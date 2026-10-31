@@ -174,7 +174,7 @@ importers:
         version: 8.4.7(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(storybook@8.4.7(prettier@3.3.3))(typescript@5.6.3)
       '@storybook/react-vite':
         specifier: 8.4.7
-        version: 8.4.7(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(rollup@4.67.2)(storybook@8.4.7(prettier@3.3.3))(typescript@5.6.3)(vite@6.0.3(@types/node@22.7.5)(yaml@2.9.1))
+        version: 8.4.7(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(rollup@4.67.2)(storybook@8.4.7(prettier@3.3.3))(typescript@5.6.3)(vite@6.4.5(@types/node@22.7.5)(yaml@2.9.1))
       '@testing-library/dom':
         specifier: 10.4.0
         version: 10.4.0
@@ -203,11 +203,11 @@ importers:
         specifier: 8.4.7
         version: 8.4.7(prettier@3.3.3)
       vite:
-        specifier: 6.0.3
-        version: 6.0.3(@types/node@22.7.5)(yaml@2.9.1)
+        specifier: ^6.4.5
+        version: 6.4.5(@types/node@22.7.5)(yaml@2.9.1)
       vitest:
         specifier: 4.1.12
-        version: 4.1.12(@types/node@22.7.5)(jsdom@25.0.1)(vite@6.0.3(@types/node@22.7.5)(yaml@2.9.1))
+        version: 4.1.12(@types/node@22.7.5)(jsdom@25.0.1)(vite@6.4.5(@types/node@22.7.5)(yaml@2.9.1))
       yaml:
         specifier: '>=2.8.3'
         version: 2.9.1
@@ -2241,46 +2241,6 @@ packages:
   util@0.12.5:
     resolution: {integrity: sha512-kZf/K6hEIrWHI6XqOFUiiMa+79wE/D8Q+NCNAWclkyg3b4d2k7s0QGepNjiABc+aR3N1PAyHL7p6UcLY6LmrnA==}
 
-  vite@6.0.3:
-    resolution: {integrity: sha512-Cmuo5P0ENTN6HxLSo6IHsjCLn/81Vgrp81oaiFFMRa8gGDj5xEjIcEpf2ZymZtZR8oU0P2JX5WuUp/rlXcHkAw==}
-    engines: {node: ^18.0.0 || ^20.0.0 || >=22.0.0}
-    hasBin: true
-    peerDependencies:
-      '@types/node': ^18.0.0 || ^20.0.0 || >=22.0.0
-      jiti: '>=1.21.0'
-      less: '*'
-      lightningcss: ^1.21.0
-      sass: '*'
-      sass-embedded: '*'
-      stylus: '*'
-      sugarss: '*'
-      terser: ^5.16.0
-      tsx: ^4.8.1
-      yaml: '>=2.8.3'
-    peerDependenciesMeta:
-      '@types/node':
-        optional: true
-      jiti:
-        optional: true
-      less:
-        optional: true
-      lightningcss:
-        optional: true
-      sass:
-        optional: true
-      sass-embedded:
-        optional: true
-      stylus:
-        optional: true
-      sugarss:
-        optional: true
-      terser:
-        optional: true
-      tsx:
-        optional: true
-      yaml:
-        optional: true
-
   vite@6.4.5:
     resolution: {integrity: sha512-4enwjFfi4IwtEh0w+jPzpLVOFQiPHmmzPxcHXQOyEur47o6u0jE573DmGpjA+7irXoMLYRZD5ZaFUEneS3abPg==}
     engines: {node: ^18.0.0 || ^20.0.0 || >=22.0.0}
@@ -2779,11 +2739,11 @@ snapshots:
 
   '@fontsource/ibm-plex-sans@5.1.0': {}
 
-  '@joshwooding/vite-plugin-react-docgen-typescript@0.4.2(typescript@5.6.3)(vite@6.0.3(@types/node@22.7.5)(yaml@2.9.1))':
+  '@joshwooding/vite-plugin-react-docgen-typescript@0.4.2(typescript@5.6.3)(vite@6.4.5(@types/node@22.7.5)(yaml@2.9.1))':
     dependencies:
       magic-string: 0.27.0
       react-docgen-typescript: 2.4.0(typescript@5.6.3)
-      vite: 6.0.3(@types/node@22.7.5)(yaml@2.9.1)
+      vite: 6.4.5(@types/node@22.7.5)(yaml@2.9.1)
     optionalDependencies:
       typescript: 5.6.3
 
@@ -2950,13 +2910,13 @@ snapshots:
 
   '@standard-schema/spec@1.1.0': {}
 
-  '@storybook/builder-vite@8.4.7(storybook@8.4.7(prettier@3.3.3))(vite@6.0.3(@types/node@22.7.5)(yaml@2.9.1))':
+  '@storybook/builder-vite@8.4.7(storybook@8.4.7(prettier@3.3.3))(vite@6.4.5(@types/node@22.7.5)(yaml@2.9.1))':
     dependencies:
       '@storybook/csf-plugin': 8.4.7(storybook@8.4.7(prettier@3.3.3))
       browser-assert: 1.2.1
       storybook: 8.4.7(prettier@3.3.3)
       ts-dedent: 2.3.0
-      vite: 6.0.3(@types/node@22.7.5)(yaml@2.9.1)
+      vite: 6.4.5(@types/node@22.7.5)(yaml@2.9.1)
 
   '@storybook/components@8.4.7(storybook@8.4.7(prettier@3.3.3))':
     dependencies:
@@ -3007,11 +2967,11 @@ snapshots:
       react-dom: 18.3.1(react@18.3.1)
       storybook: 8.4.7(prettier@3.3.3)
 
-  '@storybook/react-vite@8.4.7(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(rollup@4.67.2)(storybook@8.4.7(prettier@3.3.3))(typescript@5.6.3)(vite@6.0.3(@types/node@22.7.5)(yaml@2.9.1))':
+  '@storybook/react-vite@8.4.7(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(rollup@4.67.2)(storybook@8.4.7(prettier@3.3.3))(typescript@5.6.3)(vite@6.4.5(@types/node@22.7.5)(yaml@2.9.1))':
     dependencies:
-      '@joshwooding/vite-plugin-react-docgen-typescript': 0.4.2(typescript@5.6.3)(vite@6.0.3(@types/node@22.7.5)(yaml@2.9.1))
+      '@joshwooding/vite-plugin-react-docgen-typescript': 0.4.2(typescript@5.6.3)(vite@6.4.5(@types/node@22.7.5)(yaml@2.9.1))
       '@rollup/pluginutils': 5.5.1(rollup@4.67.2)
-      '@storybook/builder-vite': 8.4.7(storybook@8.4.7(prettier@3.3.3))(vite@6.0.3(@types/node@22.7.5)(yaml@2.9.1))
+      '@storybook/builder-vite': 8.4.7(storybook@8.4.7(prettier@3.3.3))(vite@6.4.5(@types/node@22.7.5)(yaml@2.9.1))
       '@storybook/react': 8.4.7(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(storybook@8.4.7(prettier@3.3.3))(typescript@5.6.3)
       find-up: 5.0.0
       magic-string: 0.30.21
@@ -3021,7 +2981,7 @@ snapshots:
       resolve: 1.22.13
       storybook: 8.4.7(prettier@3.3.3)
       tsconfig-paths: 4.2.0
-      vite: 6.0.3(@types/node@22.7.5)(yaml@2.9.1)
+      vite: 6.4.5(@types/node@22.7.5)(yaml@2.9.1)
     transitivePeerDependencies:
       - '@storybook/test'
       - rollup
@@ -3237,14 +3197,6 @@ snapshots:
       '@vitest/utils': 4.1.12
       chai: 6.3.0
       tinyrainbow: 3.2.0
-
-  '@vitest/mocker@4.1.12(vite@6.0.3(@types/node@22.7.5)(yaml@2.9.1))':
-    dependencies:
-      '@vitest/spy': 4.1.12
-      estree-walker: 3.0.3
-      magic-string: 0.30.21
-    optionalDependencies:
-      vite: 6.0.3(@types/node@22.7.5)(yaml@2.9.1)
 
   '@vitest/mocker@4.1.12(vite@6.4.5(@types/node@22.7.5)(yaml@2.9.1))':
     dependencies:
@@ -4315,16 +4267,6 @@ snapshots:
       is-typed-array: 1.1.15
       which-typed-array: 1.1.24
 
-  vite@6.0.3(@types/node@22.7.5)(yaml@2.9.1):
-    dependencies:
-      esbuild: 0.24.2
-      postcss: 8.5.32
-      rollup: 4.67.2
-    optionalDependencies:
-      '@types/node': 22.7.5
-      fsevents: 2.3.3
-      yaml: 2.9.1
-
   vite@6.4.5(@types/node@22.7.5)(yaml@2.9.1):
     dependencies:
       esbuild: 0.25.12
@@ -4337,34 +4279,6 @@ snapshots:
       '@types/node': 22.7.5
       fsevents: 2.3.3
       yaml: 2.9.1
-
-  vitest@4.1.12(@types/node@22.7.5)(jsdom@25.0.1)(vite@6.0.3(@types/node@22.7.5)(yaml@2.9.1)):
-    dependencies:
-      '@vitest/expect': 4.1.12
-      '@vitest/mocker': 4.1.12(vite@6.0.3(@types/node@22.7.5)(yaml@2.9.1))
-      '@vitest/pretty-format': 4.1.12
-      '@vitest/runner': 4.1.12
-      '@vitest/snapshot': 4.1.12
-      '@vitest/spy': 4.1.12
-      '@vitest/utils': 4.1.12
-      es-module-lexer: 2.3.2
-      expect-type: 1.4.0
-      magic-string: 0.30.21
-      obug: 2.2.1
-      pathe: 2.0.3
-      picomatch: 4.0.7
-      std-env: 4.3.0
-      tinybench: 2.9.0
-      tinyexec: 1.3.1
-      tinyglobby: 0.2.17
-      tinyrainbow: 3.2.0
-      vite: 6.0.3(@types/node@22.7.5)(yaml@2.9.1)
-      why-is-node-running: 2.3.0
-    optionalDependencies:
-      '@types/node': 22.7.5
-      jsdom: 25.0.1
-    transitivePeerDependencies:
-      - msw
 
   vitest@4.1.12(@types/node@22.7.5)(jsdom@25.0.1)(vite@6.4.5(@types/node@22.7.5)(yaml@2.9.1)):
     dependencies:
