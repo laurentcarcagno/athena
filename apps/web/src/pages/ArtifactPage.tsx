@@ -134,7 +134,7 @@ export function ArtifactPage({ session }: { session: Session }) {
         eyebrow={def.name}
         title={`${artifact.key} · ${title}`}
         sub={<><StatusPill kind={pillKind(status?.category ?? '')}>{status?.name ?? artifact.status}</StatusPill> <Link className="ath-link" to={`/p/${project}`}>{project}</Link></>}
-        actions={<div className="ath-row" aria-label={fr.artifact.transitions}>{available.map((t) => <Btn key={t.id} variant="deep" onClick={() => transition(t.name)}>{t.name}</Btn>)}</div>}
+        actions={<div className="ath-row" role="group" aria-label={fr.artifact.transitions}>{available.map((t) => <Btn key={t.id} variant="deep" onClick={() => transition(t.name)}>{t.name}</Btn>)}</div>}
       />
       <Tabs
         tabs={[

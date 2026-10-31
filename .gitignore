@@ -11,3 +11,5 @@ coverage/
 packages/ui/src/tokens.generated.*
 apps/web/dist/
 apps/api/perf-report.txt
+e2e/test-results/
+e2e/playwright-report/

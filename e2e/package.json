@@ -1,0 +1,14 @@
+{
+  "name": "@athena/e2e",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "test": "node global-setup.mjs && playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.49.1",
+    "@types/node": "22.7.5",
+    "axe-core": "4.10.2",
+    "typescript": "5.6.3"
+  }
+}
