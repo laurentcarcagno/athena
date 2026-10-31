@@ -13,8 +13,13 @@ export interface SearchHit {
   updatedAt: string;
 }
 
+/** Au-delà de ce nombre de résultats, le total est plafonné. */
+export const COUNT_CAP = 10_000;
+
 export interface SearchResult {
   total: number;
+  /** Vrai si le total a été plafonné à COUNT_CAP (il y a au moins ce nombre de résultats). */
+  totalCapped: boolean;
   hits: SearchHit[];
 }
 
@@ -61,7 +66,10 @@ export class SearchService {
     return this.db.tx(organizationId, async (c) => {
       // Coût borné : délai maximal par requête dans cette transaction.
       await c.query("set local statement_timeout = '5s'");
-      const total = Number((await c.query(`select count(*) n ${from}`, compiled.params.slice(0, compiled.whereParamCount))).rows[0].n);
+      // Comptage borné : au-delà de COUNT_CAP résultats, le total est plafonné (totalCapped) pour garder un coût constant.
+      const counted = Number((await c.query(`select count(*) n from (select 1 ${from} limit ${COUNT_CAP + 1}) c`, compiled.params.slice(0, compiled.whereParamCount))).rows[0].n);
+      const totalCapped = counted > COUNT_CAP;
+      const total = totalCapped ? COUNT_CAP : counted;
       const rows = (
         await c.query(
           `select a.key, t.key as tracker, s.key as status, s.category, a."values" as values, a.version, a.updated_at
@@ -71,6 +79,7 @@ export class SearchService {
       ).rows;
       return {
         total,
+        totalCapped,
         hits: rows.map((r) => ({
           key: r.key, tracker: r.tracker, status: r.status, category: r.category,
           values: restricted.has(r.tracker) ? Object.fromEntries(Object.entries(r.values as Record<string, unknown>).filter(([k]) => !restricted.get(r.tracker)!.has(k))) : r.values,

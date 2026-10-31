@@ -94,7 +94,7 @@ export function ListPage({ session }: { session?: Session } = {}) {
 
   return (
     <>
-      <PageHeader eyebrow={fr.list.eyebrow} title={String(project)} sub={result ? fr.list.total(result.total) : undefined}
+      <PageHeader eyebrow={fr.list.eyebrow} title={String(project)} sub={result ? `${fr.list.total(result.total)}${result.totalCapped ? '+' : ''}` : undefined}
         actions={<><Btn onClick={() => setCreating(true)}>{fr.list.create}</Btn>{session?.user?.roles.includes('athena-admin') && trackerKeys[0] && <Btn variant="ghost" onClick={() => navigate(`/p/${project}/trackers/${trackerKeys[0]}/config`)}>{fr.config.eyebrow}</Btn>}</>} />
       <CreateArtifact project={String(project)} trackers={trackerKeys} open={creating} onClose={() => setCreating(false)} onCreated={(key) => { setCreating(false); navigate(`/p/${project}/a/${key}`); }} />
       <form className="ath-toolbar" onSubmit={submit} role="search">
@@ -152,8 +152,8 @@ export function ListPage({ session }: { session?: Session } = {}) {
           </Table>
           <div className="ath-toolbar">
             <Btn variant="ghost" size="sm" disabled={offset === 0} onClick={() => setParams({ ...(query ? { q: query } : {}), o: String(Math.max(0, offset - PAGE)) })}>{fr.list.previous}</Btn>
-            <Id>{offset + 1}–{Math.min(offset + PAGE, result.total)} / {result.total}</Id>
-            <Btn variant="ghost" size="sm" disabled={offset + PAGE >= result.total} onClick={() => setParams({ ...(query ? { q: query } : {}), o: String(offset + PAGE) })}>{fr.list.next}</Btn>
+            <Id>{offset + 1}–{Math.min(offset + PAGE, result.total)} / {result.total}{result.totalCapped ? '+' : ''}</Id>
+            <Btn variant="ghost" size="sm" disabled={offset + PAGE >= result.total && !result.totalCapped} onClick={() => setParams({ ...(query ? { q: query } : {}), o: String(offset + PAGE) })}>{fr.list.next}</Btn>
           </div>
         </>
       ) : <p role="status">{fr.loading}</p>}
