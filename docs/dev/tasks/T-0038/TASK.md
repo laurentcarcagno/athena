@@ -7,3 +7,5 @@
 - Reste : Storybook ; parcours admin (TOTP requis pour admin.dev).
 
 - Parcours administrateur ajouté (TOTP de admin.dev retiré par global-setup via l API Keycloak). `pnpm test` reconstruit l API avant.
+
+- Storybook : `pnpm --filter @athena/ui storybook` (dev) ou `build-storybook`. Histoires dans `packages/ui/stories`.
