@@ -14,6 +14,13 @@ export interface Artifact {
 }
 
 type Values = Record<string, unknown>;
+export interface Snapshot {
+  key: string;
+  tracker: string;
+  status: string;
+  version: number;
+  values: Values;
+}
 type Diff = Record<string, { from: unknown; to: unknown }>;
 
 export class ArtifactService {
@@ -41,7 +48,8 @@ export class ArtifactService {
         )
       ).rows[0].id as string;
       const diff: Diff = Object.fromEntries(Object.entries(values).map(([k, v]) => [k, { from: null, to: v }]));
-      await this.record(c, organizationId, id, 1, diff, actor, 'artifact.created', key, { values });
+      await this.record(c, organizationId, id, 1, diff, actor, 'artifact.created', key, { values },
+        { key, tracker: trackerKey, status: initial.key, version: 1, values });
       return { id, key, trackerKey, status: initial.key, values, version: 1 };
     });
   }
@@ -74,7 +82,8 @@ export class ArtifactService {
       await c.query(`update artifact set "values" = $1, version = $2, updated_at = now() where id = $3`, [
         JSON.stringify(next), version, row.id,
       ]);
-      await this.record(c, organizationId, row.id, version, diff, actor, 'artifact.updated', key, { changes: diff });
+      await this.record(c, organizationId, row.id, version, diff, actor, 'artifact.updated', key, { changes: diff },
+        { key, tracker: row.tracker_key, status: row.status_key, version, values: next });
       return { ...this.toArtifact(row), values: next, version };
     });
   }
@@ -113,7 +122,8 @@ export class ArtifactService {
         to.id, version, row.id,
       ]);
       await this.record(c, organizationId, row.id, version, { status: { from: from.key, to: to.key } }, actor,
-        'artifact.transitioned', key, { transition: transitionName, from: from.key, to: to.key, postActions: transition.postActions });
+        'artifact.transitioned', key, { transition: transitionName, from: from.key, to: to.key, postActions: transition.postActions },
+        { key, tracker: row.tracker_key, status: to.key, version, values: row.values });
       return { ...this.toArtifact(row), status: to.key, version };
     });
   }
@@ -153,11 +163,11 @@ export class ArtifactService {
 
   private async record(
     c: PoolClient, org: string, artifactId: string, version: number, diff: Diff, actor: Actor,
-    eventType: string, key: string, payload: Record<string, unknown>,
+    eventType: string, key: string, payload: Record<string, unknown>, snapshot: Snapshot,
   ): Promise<void> {
     const revision = await c.query(
-      'insert into artifact_revision (organization_id, artifact_id, version, diff, actor) values ($1,$2,$3,$4,$5) returning event_id',
-      [org, artifactId, version, JSON.stringify(diff), actor.id],
+      'insert into artifact_revision (organization_id, artifact_id, version, diff, actor, snapshot) values ($1,$2,$3,$4,$5,$6) returning event_id',
+      [org, artifactId, version, JSON.stringify(diff), actor.id, JSON.stringify(snapshot)],
     );
     await outbox(c, org, 'artifact', artifactId, eventType, {
       eventId: revision.rows[0].event_id, key, version, actor: actor.id, ...payload,

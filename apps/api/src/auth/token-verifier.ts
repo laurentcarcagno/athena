@@ -3,6 +3,7 @@ import { createRemoteJWKSet, jwtVerify, type JWTVerifyGetKey } from 'jose';
 export interface Principal {
   subject: string;
   username: string;
+  name?: string;
   email?: string;
   roles: string[];
   groups: string[];
@@ -39,6 +40,7 @@ export class TokenVerifier {
       groups,
     };
     if (typeof payload['email'] === 'string') principal.email = payload['email'];
+    if (typeof payload['name'] === 'string') principal.name = payload['name'];
     return principal;
   }
 }

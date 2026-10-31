@@ -67,7 +67,34 @@ export class OrgResolver {
       id = row.id as string;
       this.cache.set(key, { id, until: Date.now() + 60_000 });
     }
+    await this.upsertUser(id, principal);
     return { organizationId: id, actor: { id: principal.subject, roles: principal.roles } };
+  }
+
+  /** Mémorise le profil (nom, e-mail) servant d'auteur Git. Au plus une écriture par minute et utilisateur. */
+  private readonly seen = new Map<string, number>();
+  private async upsertUser(organizationId: string, principal: Principal): Promise<void> {
+    const cacheKey = `${organizationId}:${principal.subject}`;
+    if ((this.seen.get(cacheKey) ?? 0) > Date.now()) return;
+    const client = await this.pool.connect();
+    try {
+      await client.query('begin');
+      await client.query("select set_config('app.org_id', $1, true)", [organizationId]);
+      await client.query(
+        `insert into user_account (organization_id, subject, username, display_name, email)
+         values ($1,$2,$3,$4,$5)
+         on conflict (organization_id, subject) do update
+           set username = excluded.username, display_name = excluded.display_name, email = excluded.email, updated_at = now()`,
+        [organizationId, principal.subject, principal.username, principal.name ?? principal.username, principal.email ?? null],
+      );
+      await client.query('commit');
+      this.seen.set(cacheKey, Date.now() + 60_000);
+    } catch (error) {
+      await client.query('rollback').catch(() => undefined);
+      throw error;
+    } finally {
+      client.release();
+    }
   }
 }
 

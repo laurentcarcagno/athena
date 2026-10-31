@@ -8,7 +8,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "node -e \"console.log('lint api : eslint à configurer')\"",
     "test": "vitest run",
-    "start": "node dist/main.js"
+    "start": "node dist/main.js",
+    "start:worker": "node dist/worker.js"
   },
   "dependencies": {
     "@nestjs/common": "10.4.5",
@@ -19,6 +20,7 @@
     "pg": "8.13.0",
     "reflect-metadata": "0.2.2",
     "rxjs": "7.8.1",
+    "yaml": "2.6.0",
     "zod": "3.23.8"
   },
   "devDependencies": {
