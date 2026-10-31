@@ -3,13 +3,28 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "bin": { "athena": "bin/athena.mjs" },
+  "bin": {
+    "athena": "bin/athena.mjs"
+  },
   "main": "src/lib.js",
   "scripts": {
     "build": "node -e \"console.log('cli: rien à compiler')\"",
     "typecheck": "node -e \"console.log('cli: ok')\"",
     "lint": "node -e \"console.log('cli: ok')\"",
-    "test": "vitest run"
+    "test": "vitest run",
+    "pack": "pnpm pack --pack-destination ../../dist-cli"
   },
-  "devDependencies": { "vitest": "4.1.12" }
+  "devDependencies": {
+    "vitest": "4.1.12"
+  },
+  "files": [
+    "bin",
+    "src",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "description": "CLI Athena : références de commits, contrôle CI, rétroportages, notes de version.",
+  "license": "UNLICENSED"
 }

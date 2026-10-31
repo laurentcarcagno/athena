@@ -47,7 +47,9 @@ export function TrackerConfigPage({ session }: { session: Session }) {
       try {
         await api('DELETE', `${base}/fields/${key}`);
       } catch (error) {
-        if (!(error instanceof ApiError) || error.status !== 409 || !window.confirm(fr.config.confirmPurge(key))) throw error;
+        if (!(error instanceof ApiError) || error.status !== 409) throw error;
+        const impact = await api<{ withValue: number }>('GET', `${base}/fields/${key}/impact`).catch(() => ({ withValue: 0 }));
+        if (!window.confirm(fr.config.confirmPurge(key, impact.withValue))) throw error;
         await api('DELETE', `${base}/fields/${key}?purge=true`);
       }
       toast('success', fr.config.removed);

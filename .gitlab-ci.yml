@@ -1,6 +1,6 @@
 # CI Athena. Portes de sécurité : voir ATHENA_PLAN_DEVELOPPEMENT.md § 13.2.
 image: node:22-bookworm
-stages: [verify, security]
+stages: [verify, security, package]
 
 default:
   before_script:
@@ -41,3 +41,17 @@ audit:
   script:
     - pnpm audit --audit-level=high
   allow_failure: false
+
+# Archive installable du CLI (npm install -g athena-cli-<version>.tgz), conservée avec le pipeline.
+package-cli:
+  stage: package
+  rules:
+    - if: $CI_COMMIT_TAG
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  script:
+    - corepack enable
+    - pnpm install --frozen-lockfile
+    - pnpm --filter @athena/cli pack
+  artifacts:
+    paths: [dist-cli/*.tgz]
+    expire_in: 90 days

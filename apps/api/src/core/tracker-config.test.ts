@@ -80,6 +80,20 @@ suite('évolution de la configuration d’un tracker', () => {
     expect(await code(trackers.updateField(org, 'ARI', 'BUG', 'absent', { label: 'x' }, admin))).toMatch(/not_found/);
   });
 
+  it('prévisualise l’impact d’un changement de champ sans rien modifier', async () => {
+    await trackers.addField(org, 'ARI', 'BUG', { key: 'memo', label: 'Mémo', type: 'text' }, admin);
+    const before = await version();
+    const one = await artifacts.create(org, 'ARI', 'BUG', { title: 'Mémo', severity: 'mineure', memo: 'x' }, admin);
+    const total = Number((await db.tx(org, (c) => c.query("select count(*) n from artifact a join tracker t on t.id = a.tracker_id where t.key = 'BUG'"))).rows[0].n);
+    const impact = await trackers.fieldImpact(org, 'ARI', 'BUG', 'memo');
+    expect(impact).toMatchObject({ artifacts: total, withValue: 1, withoutValue: total - 1, isTitle: false, canRemoveWithoutPurge: false, canBecomeRequired: false });
+    expect(await trackers.fieldImpact(org, 'ARI', 'BUG', 'title')).toMatchObject({ isTitle: true, canRemoveWithoutPurge: false });
+    expect(await version()).toBe(before);
+    expect(one.key).toBeTruthy();
+    expect(await code(trackers.fieldImpact(org, 'ARI', 'BUG', 'absent'))).toMatch(/not_found/);
+    await trackers.removeField(org, 'ARI', 'BUG', 'memo', true, admin);
+  });
+
   it('supprime un champ : refus si utilisé ou titre, purge des valeurs sur demande', async () => {
     const a = await artifacts.create(org, 'ARI', 'BUG', { title: 'Avec note', severity: 'mineure', note: 'à retirer' }, admin);
     expect(await code(trackers.removeField(org, 'ARI', 'BUG', 'note', false, admin))).toMatch(/conflict.*purge/);

@@ -158,6 +158,24 @@ export class TrackerService {
     });
   }
 
+  /** Aperçu de l'impact d'un changement de champ, sans rien modifier. */
+  async fieldImpact(organizationId: string, projectKey: string, trackerKey: string, fieldKey: string): Promise<{
+    artifacts: number; withValue: number; withoutValue: number; isTitle: boolean; canRemoveWithoutPurge: boolean; canBecomeRequired: boolean;
+  }> {
+    return this.db.tx(organizationId, async (c) => {
+      const field = (await c.query(
+        `select f.id, f.semantic_role, f.tracker_id from field_definition f join tracker t on t.id = f.tracker_id join project p on p.id = t.project_id
+         where p.key = $1 and t.key = $2 and f.key = $3`, [projectKey, trackerKey, fieldKey])).rows[0];
+      if (!field) throw notFound(`Champ ${fieldKey}`);
+      const counts = (await c.query('select count(*)::int total, count(*) filter (where "values" ? $2)::int with_value from artifact where tracker_id = $1', [field.tracker_id, fieldKey])).rows[0];
+      return {
+        artifacts: counts.total, withValue: counts.with_value, withoutValue: counts.total - counts.with_value,
+        isTitle: field.semantic_role === 'title', canRemoveWithoutPurge: counts.with_value === 0 && field.semantic_role !== 'title',
+        canBecomeRequired: counts.total === counts.with_value,
+      };
+    });
+  }
+
   /** Modifie libellé, caractère obligatoire et rôles d'un champ. La clé et le type sont immuables (les valeurs stockées en dépendent). */
   async updateField(
     organizationId: string, projectKey: string, trackerKey: string, fieldKey: string,

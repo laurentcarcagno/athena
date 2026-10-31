@@ -81,3 +81,7 @@ Constats corrigés ou à connaître :
 - Le worker refuse de démarrer en production sans `OPENBAO_ADDR` et `OPENBAO_TOKEN` (garde-fou voulu).
 - Les politiques réseau n'ont pas été éprouvées : `kind` n'applique pas NetworkPolicy sans CNI dédié (Calico/Cilium).
 - Non couvert : ingress TLS, Keycloak dans le cluster, réplicas multiples sous charge, sauvegarde/restauration.
+
+## Distribution du CLI
+
+La CI produit `dist-cli/athena-cli-<version>.tgz` (job `package-cli`). Installation : `npm install -g athena-cli-<version>.tgz` (Node 22). Production locale : `pnpm --filter @athena/cli pack`.

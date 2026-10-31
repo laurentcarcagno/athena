@@ -157,6 +157,13 @@ export class CoreController {
   }
 
   @Roles('athena-admin')
+  @Get(':project/trackers/:tracker/fields/:field/impact')
+  async fieldImpact(@Req() request: AuthedRequest, @Param('project') project: string, @Param('tracker') tracker: string, @Param('field') field: string) {
+    const { organizationId } = await this.orgs.resolve(principalOf(request));
+    return this.trackers.fieldImpact(organizationId, project, tracker, field);
+  }
+
+  @Roles('athena-admin')
   @HttpCode(204)
   @Delete(':project/trackers/:tracker/fields/:field')
   async removeField(@Req() request: AuthedRequest, @Param('project') project: string, @Param('tracker') tracker: string, @Param('field') field: string, @Query('purge') purge?: string) {
