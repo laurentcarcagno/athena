@@ -13,6 +13,8 @@ import { ConfidentialFields } from './secrets/confidential';
 import { OpenBao } from './secrets/openbao';
 import { OpenBaoSecretStore } from './secrets/store';
 import { WebhookService } from './webhooks/webhook.service';
+import { PluginService } from './plugins/plugin.service';
+import { parseTrust } from './plugins/trust';
 import { buildWorkers, healthServer } from './workers/tasks';
 
 const env = z
@@ -27,6 +29,7 @@ const env = z
     HISTORY_INTERVAL_MS: z.coerce.number().int().min(500).default(2000),
     WEBHOOKS_INTERVAL_MS: z.coerce.number().int().min(500).default(2000),
     SESSIONS_INTERVAL_MS: z.coerce.number().int().min(10_000).default(600_000),
+    PLUGIN_TRUSTED_KEYS: z.string().optional(),
     WORKER_HEALTH_PORT: z.coerce.number().int().min(1).max(65535).default(3002),
   })
   .parse(process.env);
@@ -53,8 +56,10 @@ const registry = new FieldTypeRegistry(); // types natifs : les types de champ d
 const artifactService = new ArtifactService(db, new TrackerService(db, registry), registry);
 const automation = new AutomationService(db, artifactService, new LinkService(db), new SearchService(db));
 
+const plugins = new PluginService(db, registry, parseTrust(env.PLUGIN_TRUSTED_KEYS), { read: async () => null });
+
 const loops = buildWorkers(
-  { pool, ...(history ? { history } : {}), ...(webhooks ? { webhooks } : {}), automation, log },
+  { pool, ...(history ? { history } : {}), ...(webhooks ? { webhooks } : {}), automation, plugins, log },
   { historyMs: env.HISTORY_INTERVAL_MS, webhooksMs: env.WEBHOOKS_INTERVAL_MS, sessionsMs: env.SESSIONS_INTERVAL_MS },
 );
 const health = healthServer(loops, env.WORKER_HEALTH_PORT);
@@ -67,6 +72,7 @@ async function shutdown(signal: string): Promise<void> {
   stopping = true;
   log(`${signal} reçu : arrêt en cours…`);
   await Promise.all(loops.map((l) => l.stop()));
+  plugins.shutdown();
   health.close();
   await pool.end();
   process.exit(0);

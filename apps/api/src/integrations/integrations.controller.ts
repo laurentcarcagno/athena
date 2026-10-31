@@ -3,13 +3,14 @@ import { Body, Controller, Get, Headers, HttpCode, HttpException, Inject, Param,
 import type { Pool } from 'pg';
 import { z } from 'zod';
 import { Public, Roles, type AuthedRequest } from '../auth/auth.guard';
-import { BASELINES, CODE_ACTIONS, DOC_FETCHER, PG_POOL, REBUILD, REVERSE_SYNC, SECRET_STORE } from '../core/core.tokens';
+import { BASELINES, PLUGINS, CODE_ACTIONS, DOC_FETCHER, PG_POOL, REBUILD, REVERSE_SYNC, SECRET_STORE } from '../core/core.tokens';
 import type { RebuildService } from '../history/rebuild';
 import type { PushPayload, ReverseSync } from '../history/reverse-sync';
 import type { BaselineService } from '../history/baseline.service';
 import { Db } from '../core/db';
 import { forbidden } from '../core/errors';
 import { OrgResolver, parseBody } from '../core/http';
+import type { PluginService } from '../plugins/plugin.service';
 import type { CodeActions } from '../gitcode/code-actions';
 import type { DocFetcher } from '../docs/doc-fetch';
 import { AutomationService } from '../automation/automation.service';
@@ -49,6 +50,7 @@ export class IntegrationsController {
     @Inject(REBUILD) private readonly rebuilder: RebuildService | null,
     @Inject(CODE_ACTIONS) private readonly code: CodeActions | null,
     @Inject(DOC_FETCHER) private readonly fetcher: DocFetcher | null,
+    @Inject(PLUGINS) private readonly plugins: PluginService,
     private readonly automation: AutomationService,
     private readonly inbound: InboundService,
   ) {}
@@ -256,6 +258,36 @@ export class IntegrationsController {
     const { organizationId, actor } = await this.ctx(request);
     const input = parseBody(z.object({ repo: z.string().min(1).max(200), ref: z.string().max(100).default('main'), path: z.string().max(200).optional() }), body);
     return this.fetcher.sync(organizationId, project, source, input.repo, input.ref, input.path, actor);
+  }
+
+  // --- Plugins ---
+  @Roles('athena-admin')
+  @Get('v1/plugins')
+  async listPlugins(@Req() request: AuthedRequest) {
+    return this.plugins.list((await this.ctx(request)).organizationId);
+  }
+
+  @Roles('athena-admin')
+  @Post('v1/plugins')
+  async installPlugin(@Req() request: AuthedRequest, @Body() body: unknown) {
+    const { organizationId, actor } = await this.ctx(request);
+    const input = parseBody(z.object({
+      package: z.object({ manifest: z.unknown(), code: z.string().max(300_000), signature: z.string().max(200) }),
+      granted: z.array(z.enum(['storage', 'artifacts:read'])).max(10).default([]),
+    }), body);
+    const installed = await this.plugins.install(organizationId, { manifest: input.package.manifest, code: input.package.code, signature: input.package.signature }, input.granted, actor);
+    await this.plugins.loadEnabled(organizationId);
+    return installed;
+  }
+
+  @Roles('athena-admin')
+  @HttpCode(204)
+  @Post('v1/plugins/:id/:state')
+  async togglePlugin(@Req() request: AuthedRequest, @Param('id') id: string, @Param('state') state: string) {
+    const { organizationId, actor } = await this.ctx(request);
+    if (state !== 'enable' && state !== 'disable') throw forbidden('Action inconnue.');
+    await this.plugins.setEnabled(organizationId, id, state === 'enable', actor);
+    if (state === 'enable') await this.plugins.loadEnabled(organizationId);
   }
 
   // --- Baselines ---

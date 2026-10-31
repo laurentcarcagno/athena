@@ -2,6 +2,7 @@ import http from 'node:http';
 import type { Pool } from 'pg';
 import { PgSessionStore } from '../auth/session';
 import type { AutomationService } from '../automation/automation.service';
+import type { PluginService } from '../plugins/plugin.service';
 import type { HistorySync } from '../history/history-sync';
 import type { WebhookService } from '../webhooks/webhook.service';
 import { WorkerLoop, type LoopOptions } from './loop';
@@ -11,6 +12,7 @@ export interface WorkerDeps {
   history?: HistorySync;
   webhooks?: WebhookService;
   automation?: AutomationService;
+  plugins?: PluginService;
   log?: (message: string) => void;
 }
 
@@ -53,6 +55,18 @@ export function buildWorkers(deps: WorkerDeps, intervals: { historyMs: number; w
       let done = 0;
       for (const { id } of organizations) done += await automation.process(id);
       if (done) deps.log?.(`automatisations: ${done} exécution(s)`);
+    }, options(intervals.automationMs ?? 2000)));
+  }
+  if (deps.plugins) {
+    const plugins = deps.plugins;
+    loops.push(new WorkerLoop('plugins', async () => {
+      const organizations = (await deps.pool.query('select list_organization_ids() as id')).rows as Array<{ id: string }>;
+      let delivered = 0;
+      for (const { id } of organizations) {
+        await plugins.loadEnabled(id); // démarre les plugins nouvellement installés ou réactivés
+        delivered += await plugins.dispatchHooks(id);
+      }
+      if (delivered) deps.log?.(`plugins: ${delivered} hook(s) exécuté(s)`);
     }, options(intervals.automationMs ?? 2000)));
   }
   const sessions = new PgSessionStore(deps.pool);

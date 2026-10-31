@@ -227,4 +227,16 @@ suite('intégrations REST (webhooks, StrictDoc, GitLab)', () => {
     expect((await call('POST', '/v1/projects/ARI/code-repos', user, { path: 'a/b' })).statusCode).toBe(403);
     expect((await call('POST', '/v1/projects/ARI/docs/spec/sync', await token(['athena-admin']), { repo: 'a/b' })).statusCode).toBe(503);
   });
+
+  it('administre les plugins : seuls les éditeurs de confiance sont acceptés', async () => {
+    const admin = await token(['athena-admin']);
+    expect((await call('GET', '/v1/plugins', await token(['athena-user']))).statusCode).toBe(403);
+    expect((await call('GET', '/v1/plugins', admin)).json()).toEqual([]);
+    const pkg = { manifest: { id: 'com.acme.x', name: 'X', version: '1.0.0', athena: '>=1.0.0', publisher: 'acme', permissions: [], contributes: { fieldTypes: [], hooks: [] } }, code: 'plugin = {};', signature: 'AAAA' };
+    const refused = await call('POST', '/v1/plugins', admin, { package: pkg, granted: [] });
+    expect(refused.statusCode).toBe(422);
+    expect(refused.json().details[0]).toMatch(/éditeur non reconnu/); // aucune clé de confiance configurée
+    expect((await call('POST', '/v1/plugins', admin, { package: pkg, granted: ['root'] })).statusCode).toBe(422);
+    expect((await call('POST', '/v1/plugins/com.acme.x/enable', admin)).statusCode).toBe(404);
+  });
 });

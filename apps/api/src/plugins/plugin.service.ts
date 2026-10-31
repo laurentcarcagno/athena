@@ -104,6 +104,48 @@ export class PluginService {
     return started;
   }
 
+  /**
+   * Déclenche les hooks des plugins pour les événements d'artefact en attente. Les valeurs des champs ne sont
+   * jamais transmises (champs confidentiels) : seulement la clé, la version, l'acteur et les noms des champs modifiés.
+   * Un plugin en erreur ou trop lent n'empêche ni les autres plugins ni le traitement des événements.
+   */
+  async dispatchHooks(organizationId: string, batch = 100): Promise<number> {
+    const hooked = ['artifact.created', 'artifact.updated', 'artifact.transitioned'];
+    const events = await this.db.tx(organizationId, async (c) =>
+      (
+        await c.query(
+          `select o.id, o.type, o.payload, p.key as project_key from outbox_event o
+           left join artifact a on a.id = o.aggregate_id left join project p on p.id = a.project_id
+           where o.plugin_hooks_processed_at is null and o.type = any($1) order by o.created_at, o.id limit $2`,
+          [hooked, batch],
+        )
+      ).rows as Array<{ id: string; type: string; payload: Record<string, unknown>; project_key: string | null }>,
+    );
+    const hosts = [...this.hosts.entries()].filter(([key]) => key.startsWith(`${organizationId}:`)).map(([, host]) => host);
+    let delivered = 0;
+    for (const event of events) {
+      const payload = {
+        type: event.type,
+        key: String(event.payload['key'] ?? ''),
+        project: event.project_key ?? '',
+        version: Number(event.payload['version'] ?? 0),
+        actor: String(event.payload['actor'] ?? ''),
+        changedFields: Object.keys((event.payload['changes'] ?? event.payload['values'] ?? {}) as Record<string, unknown>),
+      };
+      for (const host of hosts.filter((h) => h.hooks.includes(event.type))) {
+        try {
+          await host.runHook(event.type, payload);
+          delivered += 1;
+        } catch (error) {
+          console.error(`plugins: hook ${event.type} de ${host.manifest.id} en échec : ${(error as Error).message.slice(0, 150)}`);
+        }
+      }
+      await this.db.tx(organizationId, (c) => c.query('update outbox_event set plugin_hooks_processed_at = now() where id = $1', [event.id]));
+    }
+    await this.db.tx(organizationId, (c) => c.query('update outbox_event set plugin_hooks_processed_at = now() where plugin_hooks_processed_at is null and not (type = any($1))', [hooked]));
+    return delivered;
+  }
+
   async stop(organizationId: string, pluginId: string): Promise<void> {
     const key = `${organizationId}:${pluginId}`;
     this.hosts.get(key)?.stop();
