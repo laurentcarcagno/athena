@@ -48,6 +48,8 @@ export function urlFor(database: string, user?: string, userPassword?: string): 
 export interface TestDb {
   /** Pool connecté avec le rôle applicatif (RLS appliquée). */
   pool: Pool;
+  /** Exécute une requête avec les droits du propriétaire (hors RLS), pour préparer ou antidater des données de test. */
+  exec(sql: string, params?: unknown[]): Promise<void>;
   drop(): Promise<void>;
 }
 
@@ -68,6 +70,15 @@ export async function createTestDb(database: string): Promise<TestDb> {
   const pool = new Pool({ connectionString: urlFor(database, role, secret), max: 8 });
   return {
     pool,
+    async exec(sql: string, params: unknown[] = []) {
+      const owner = new Client({ connectionString: urlFor(database) });
+      await owner.connect();
+      try {
+        await owner.query(sql, params);
+      } finally {
+        await owner.end();
+      }
+    },
     async drop() {
       await pool.end();
       const cleanup = new Client({ connectionString: ADMIN_URL });

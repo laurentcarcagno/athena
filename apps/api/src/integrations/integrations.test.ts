@@ -136,4 +136,25 @@ suite('intégrations REST (webhooks, StrictDoc, GitLab)', () => {
     expect((await call('POST', '/v1/projects/ARI/docs/spec/index', await token(['athena-user']), { files: [{ path: 'x', content: '' }] })).statusCode).toBe(403);
     expect((await call('POST', '/v1/projects/ARI/docs/spec/index', admin, { files: [] })).statusCode).toBe(422);
   });
+
+  it('pilote un board et un sprint par REST', async () => {
+    const admin = await token(['athena-admin', 'athena-user']);
+    const board = await call('POST', '/v1/projects/ARI/boards', admin, {
+      key: 'bugs', name: 'Bugs', trackerKeys: ['BUG'],
+      columns: [{ name: 'Ouverts', statuses: ['open'] }, { name: 'En cours', statuses: ['in_progress'], wipLimit: 3 }],
+    });
+    expect(board.statusCode).toBe(201);
+    const view = await call('GET', '/v1/projects/ARI/boards/bugs', admin);
+    expect(view.json().columns.map((c: { name: string; count: number }) => [c.name, c.count])).toEqual([['Ouverts', 0], ['En cours', 1]]);
+    expect((await call('POST', '/v1/projects/ARI/boards/bugs/cards/BUG-1/move', admin, { column: 'Ouverts', version: 99 })).statusCode).toBe(409); // version périmée
+
+    const sprint = await call('POST', '/v1/projects/ARI/sprints', admin, { name: 'S1', startsOn: '2026-01-01', endsOn: '2026-01-14' });
+    expect(sprint.statusCode).toBe(201);
+    const id = sprint.json().id;
+    expect((await call('POST', `/v1/projects/ARI/sprints/${id}/items`, admin, { artifact: 'BUG-1' })).statusCode).toBe(204);
+    expect((await call('POST', `/v1/projects/ARI/sprints/${id}/start`, admin)).statusCode).toBe(204);
+    expect((await call('GET', `/v1/projects/ARI/sprints/${id}`, admin)).json()).toMatchObject({ state: 'active', startsOn: '2026-01-01' });
+    expect(Array.isArray((await call('GET', `/v1/projects/ARI/sprints/${id}/burndown`, admin)).json())).toBe(true);
+    expect((await call('POST', '/v1/projects/ARI/sprints', await token(['athena-user']), { name: 'x', startsOn: '2026-01-01', endsOn: '2026-01-02' })).statusCode).toBe(403);
+  });
 });

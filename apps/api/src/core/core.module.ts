@@ -2,6 +2,9 @@ import { Module } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
 import { Pool } from 'pg';
 import { loadConfig } from '../config';
+import { AgileController } from '../agile/agile.controller';
+import { BoardService } from '../agile/board.service';
+import { SprintService } from '../agile/sprint.service';
 import { DocLinkService } from '../docs/doc-link.service';
 import { GitCodeService } from '../gitcode/gitcode.service';
 import { IntegrationsController } from '../integrations/integrations.controller';
@@ -21,7 +24,7 @@ import { TrackerService } from './tracker.service';
 export { PG_POOL } from './core.tokens';
 
 @Module({
-  controllers: [CoreController, IntegrationsController],
+  controllers: [CoreController, IntegrationsController, AgileController],
   providers: [
     { provide: PG_POOL, useFactory: () => new Pool({ connectionString: loadConfig().DATABASE_URL, max: 10 }) },
     { provide: FieldTypeRegistry, useValue: new FieldTypeRegistry() },
@@ -51,6 +54,8 @@ export { PG_POOL } from './core.tokens';
     },
     { provide: DocLinkService, useFactory: (db: Db) => new DocLinkService(db), inject: [Db] },
     { provide: GitCodeService, useFactory: (db: Db, a: ArtifactService) => new GitCodeService(db, a), inject: [Db, ArtifactService] },
+    { provide: BoardService, useFactory: (db: Db, t: TrackerService, a: ArtifactService) => new BoardService(db, t, a), inject: [Db, TrackerService, ArtifactService] },
+    { provide: SprintService, useFactory: (db: Db) => new SprintService(db), inject: [Db] },
     { provide: APP_FILTER, useClass: DomainErrorFilter },
   ],
   exports: [FieldTypeRegistry],
