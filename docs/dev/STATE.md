@@ -2,9 +2,13 @@
 
 Dernière mise à jour : 2026-10-31
 
-- **Phase** : 0/1 (fondations et socle).
-- **Fait** : T-0001 monorepo + jetons Hemeria ; T-0003 auth Keycloak ; T-0004 PostgreSQL ; T-0005 noyau ; T-0006 REST ; T-0007 historique GitLab ; T-0008 liens et commentaires ; T-0009 OpenBao ; T-0010 webhooks sortants ; T-0011 ATQL et recherche ; T-0012 liaison StrictDoc ; T-0013 interaction GitLab de code ; T-0014 réception webhooks GitLab et routes REST ; T-0015 boards et sprints ; T-0016 composants @athena/ui ; T-0017 BFF d authentification ; T-0018 application web ; T-0019 plugins ; T-0020 tracker.yaml, restauration, baselines ; T-0021 synchronisation inverse et rebuild ; T-0022 worker unique ; T-0023 automatisations et webhooks entrants ; T-0024 branches, MR, .sdoc ; T-0025 SDK, hooks et administration des plugins ; T-0026 vélocité, flux, roadmap, tableau de bord ; T-0027 interface complète ; T-0028 sécurité, import JIRA/Tuleap, performance.
+- **Phase** : toutes les phases du plan sont engagées ; voir le tableau « État d'implémentation » (§ 25) de `ATHENA_PLAN_DEVELOPPEMENT.md`.
+- **Fait** : T-0001 à T-0030 (voir `docs/dev/tasks/`). Backend complet (noyau, historique GitLab, ATQL, agile, plugins, webhooks, automatisations, import, sécurité), application web FR/EN, images de conteneur, chart Helm, documentation (`docs/admin`, `docs/user`, `docs/plugins`, `docs/api`, `docs/security`, `docs/perf`).
 - **Tâche en cours** : aucune.
-- **Prochain pas** : reste à faire (voir la liste dans le dernier compte rendu) : secret de session depuis OpenBao, déconnexion back-channel, signature des commits, mode MR obligatoire, tests de bout en bout navigateur, test d intrusion externe, documentation utilisateur, déploiement Kubernetes (Helm).
-- **Blocages** : relevés d'environnement (plan § 23.2 point 6). Accès SSH à gitlab.karka.lan non testé ; rien n'a été poussé.
-- **Rappel** : le plan complet représente ~58 semaines ; il avance par tâches de taille session. Voir `ATHENA_PLAN_DEVELOPPEMENT.md` § 20.
+- **Reste à faire** (par priorité) :
+  1. Test d'intrusion externe (à commander) ; déploiement de recette sur Kubernetes et mesures de charge concurrente.
+  2. Tests de bout en bout dans un navigateur réel (Playwright), tests d'accessibilité automatiques, Storybook.
+  3. Plugins : vues, widgets, actions de workflow, connecteurs ; désinstallation avec politique de données.
+  4. Connecteur GitLab de code : rétroportages, notes de version, indicateurs DORA, CLI `athena`, job CI `athena-check`.
+  5. Pièces jointes (S3/MinIO), permissions par champ, plein texte (tsvector), schéma OpenAPI publié.
+- **Blocages** : relevés d'environnement (GitLab interne, OpenBao, LDAP, Kubernetes : plan § 23.2). Rien n'est poussé ; l'accès SSH à `gitlab.karka.lan:2222` n'a pas été testé.

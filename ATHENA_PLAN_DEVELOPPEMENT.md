@@ -956,3 +956,25 @@ Ces réponses sont des valeurs par défaut proposées par le rédacteur du plan.
 3. Initialiser le monorepo et la CI.
 4. Générer les tokens depuis `DESIGN.json` et poser la première version de `@athena/ui` (Btn, StatusPill, PageHeader, Table).
 5. Organiser les ateliers utilisateurs pour consolider le backlog MVP.
+
+---
+
+## 25. État d'implémentation (2026-10-31)
+
+Légende : ● fait et testé · ◐ partiel · ○ non fait.
+
+| Phase / sujet | État | Remarques |
+|---|---|---|
+| 0 Cadrage, dispositif de continuité agent | ● | `CLAUDE.md`, `docs/dev/STATE.md`, fiches de tâches, ADR |
+| 1 Socle : Keycloak (BFF, PKCE, sessions, back-channel), OpenBao (KV, Transit, secret de session), RLS, audit chaîné, design system, CI | ● | thème sombre hors v1 |
+| 2 Trackers multiples configurables, workflow, liens, commentaires, API REST | ● | pièces jointes, permissions par champ, suppression/renommage de champs : ○ |
+| 3 Historique GitLab (commits par auteur réel, tracker.yaml, restauration, baselines, synchronisation inverse, rebuild) | ● | signature des commits : par l'instance GitLab (configuration), pas par utilisateur ; MR obligatoire : configuration GitLab |
+| 4 ATQL et recherche | ● | autocomplétion, filtres sauvegardés, plein texte (tsvector) : ○ |
+| 5 Boards, sprints, burndown, vélocité, flux, roadmap, tableau de bord | ● | swimlanes, Gantt : ○ |
+| 6 Plugins (signature, isolation, SDK, CLI, hooks, administration) | ◐ | types de champ et hooks seulement ; vues, widgets, actions de workflow, connecteurs : ○ |
+| 6 bis Liaison StrictDoc (index, liens suspects, couverture, récupération GitLab) | ● | écriture des références dans le `.sdoc` par MR : ○ |
+| 7 Webhooks sortants et entrants, automatisations, connecteur GitLab de code (références, transitions, branche, MR) | ◐ | rétroportages, DORA, notes de version, CLI `athena`, job CI `athena-check`, déclencheurs planifiés : ○ |
+| 8 Import JIRA/Tuleap, performance, sécurité interne, conteneurs et Helm, documentation | ◐ | **test d'intrusion externe : à commander** ; charge concurrente et déploiement réel sur Kubernetes : non mesurés ; formation : ○ |
+| Interface (liste, fiche, board, création, éditeur de tracker, administration, tableau de bord, palette, FR/EN) | ● | tests de bout en bout dans un navigateur réel, Storybook, tests d'accessibilité automatiques : ○ |
+
+Chiffres au 2026-10-31 : 248 tests API, 30 UI, 27 web, 4 SDK (tous verts) ; aucune vulnérabilité de dépendance connue ; 100 000 artefacts, p95 de recherche sous 300 ms.
