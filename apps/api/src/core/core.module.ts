@@ -13,7 +13,9 @@ import { OpenBaoSecretStore, UnavailableSecretStore } from '../secrets/store';
 import { WebhookService, type SecretStore } from '../webhooks/webhook.service';
 import { BaselineService } from '../history/baseline.service';
 import { GitLabClient } from '../history/gitlab-client';
-import { BASELINES, PG_POOL, SECRET_STORE } from './core.tokens';
+import { RebuildService } from '../history/rebuild';
+import { ReverseSync } from '../history/reverse-sync';
+import { BASELINES, PG_POOL, REBUILD, REVERSE_SYNC, SECRET_STORE } from './core.tokens';
 import { ArtifactService } from './artifact.service';
 import { CoreController } from './core.controller';
 import { Db } from './db';
@@ -63,6 +65,22 @@ export { PG_POOL } from './core.tokens';
       useFactory: (pool: Pool): BaselineService | null => {
         const c = loadConfig();
         return c.GITLAB_URL && c.GITLAB_TOKEN && c.GITLAB_NAMESPACE ? new BaselineService(pool, new GitLabClient(c.GITLAB_URL, c.GITLAB_TOKEN), c.GITLAB_NAMESPACE) : null;
+      },
+      inject: [PG_POOL],
+    },
+    {
+      provide: REVERSE_SYNC,
+      useFactory: (pool: Pool, a: ArtifactService): ReverseSync | null => {
+        const c = loadConfig();
+        return c.GITLAB_URL && c.GITLAB_TOKEN && c.GITLAB_NAMESPACE ? new ReverseSync(pool, new GitLabClient(c.GITLAB_URL, c.GITLAB_TOKEN), c.GITLAB_NAMESPACE, a) : null;
+      },
+      inject: [PG_POOL, ArtifactService],
+    },
+    {
+      provide: REBUILD,
+      useFactory: (pool: Pool): RebuildService | null => {
+        const c = loadConfig();
+        return c.GITLAB_URL && c.GITLAB_TOKEN && c.GITLAB_NAMESPACE ? new RebuildService(pool, new GitLabClient(c.GITLAB_URL, c.GITLAB_TOKEN), c.GITLAB_NAMESPACE) : null;
       },
       inject: [PG_POOL],
     },

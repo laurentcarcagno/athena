@@ -179,4 +179,14 @@ suite('intégrations REST (webhooks, StrictDoc, GitLab)', () => {
     expect((await call('GET', '/v1/projects/ARI/baselines', admin)).statusCode).toBe(503);
     expect((await call('POST', '/v1/projects/ARI/baselines', await token(['athena-user']), { name: 'v1' })).statusCode).toBe(403);
   });
+
+  it('protège le webhook de l’historique et signale la configuration manquante (503)', async () => {
+    const admin = await token(['athena-admin']);
+    const hook = (await call('POST', '/v1/projects/ARI/integrations/history', admin)).json();
+    expect(hook.path).toBe('/hooks/in/history/demo/ARI');
+    expect((await call('POST', hook.path, undefined, { object_kind: 'push' }, { 'x-gitlab-token': 'faux' })).statusCode).toBe(403);
+    expect((await call('POST', hook.path, undefined, { object_kind: 'push' }, { 'x-gitlab-token': hook.secret })).statusCode).toBe(503);
+    expect((await call('POST', '/v1/projects/ARI/rebuild', admin)).statusCode).toBe(503);
+    expect((await call('POST', '/v1/projects/ARI/rebuild', await token(['athena-user']))).statusCode).toBe(403);
+  });
 });

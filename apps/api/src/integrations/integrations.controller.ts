@@ -3,7 +3,9 @@ import { Body, Controller, Get, Headers, HttpCode, HttpException, Inject, Param,
 import type { Pool } from 'pg';
 import { z } from 'zod';
 import { Public, Roles, type AuthedRequest } from '../auth/auth.guard';
-import { BASELINES, PG_POOL, SECRET_STORE } from '../core/core.tokens';
+import { BASELINES, PG_POOL, REBUILD, REVERSE_SYNC, SECRET_STORE } from '../core/core.tokens';
+import type { RebuildService } from '../history/rebuild';
+import type { PushPayload, ReverseSync } from '../history/reverse-sync';
 import type { BaselineService } from '../history/baseline.service';
 import { Db } from '../core/db';
 import { forbidden } from '../core/errors';
@@ -25,6 +27,7 @@ const DocLinkBody = z.object({ source: z.string().min(1), uid: z.string().min(1)
 const GitlabEvents = new Set(['push', 'merge_request', 'pipeline']);
 
 const digest = (value: string) => createHash('sha256').update(value).digest();
+export const historySecretPath = (organizationId: string, project: string) => `athena/${organizationId}/history-hook/${project}`;
 export const gitlabSecretPath = (organizationId: string, project: string) => `athena/${organizationId}/gitlab-hook/${project}`;
 
 @Controller()
@@ -38,6 +41,8 @@ export class IntegrationsController {
     @Inject(SECRET_STORE) private readonly secrets: SecretStore,
     @Inject(PG_POOL) private readonly pool: Pool,
     @Inject(BASELINES) private readonly baselines: BaselineService | null,
+    @Inject(REVERSE_SYNC) private readonly reverse: ReverseSync | null,
+    @Inject(REBUILD) private readonly rebuilder: RebuildService | null,
   ) {}
 
   private baselineService(): BaselineService {
@@ -103,6 +108,47 @@ export class IntegrationsController {
   @Get('v1/projects/:project/docs/:source/coverage')
   async coverage(@Req() request: AuthedRequest, @Param('project') project: string, @Param('source') source: string, @Query('tracker') tracker = 'REQ') {
     return this.docs.coverage((await this.ctx(request)).organizationId, project, source, tracker);
+  }
+
+  // --- Historique GitLab : synchronisation inverse et reconstruction ---
+  @Roles('athena-admin')
+  @Post('v1/projects/:project/integrations/history')
+  async historyIntegration(@Req() request: AuthedRequest, @Param('project') project: string) {
+    const { organizationId } = await this.ctx(request);
+    const secret = `glhook_${randomBytes(32).toString('hex')}`;
+    await this.secrets.put(historySecretPath(organizationId, project), { secret });
+    const org = (await this.db.tx(organizationId, (c) => c.query('select key from organization'))).rows[0].key as string;
+    return { path: `/hooks/in/history/${org}/${project}`, secret };
+  }
+
+  /** Webhook push du dépôt d'historique : importe les commits faits directement dans GitLab. */
+  @Public()
+  @HttpCode(202)
+  @Post('hooks/in/history/:org/:project')
+  async receiveHistory(
+    @Param('org') orgKey: string, @Param('project') project: string,
+    @Headers('x-gitlab-token') token: string | undefined, @Body() body: unknown,
+  ) {
+    const denied = () => forbidden('Authentification du webhook refusée.');
+    if (!token || !/^[a-z0-9][a-z0-9-]{1,38}$/.test(orgKey) || !/^[A-Z][A-Z0-9]{1,9}$/.test(project)) throw denied();
+    const row = (await this.pool.query('select organization_id_by_key($1) as id', [orgKey])).rows[0];
+    const organizationId = row?.id as string | undefined;
+    const expected = organizationId ? (await this.secrets.get(historySecretPath(organizationId, project)))?.['secret'] : undefined;
+    if (!expected || !timingSafeEqual(digest(token), digest(expected))) throw denied();
+    if (!this.reverse) throw new HttpException({ error: 'unavailable', message: 'Historique GitLab non configuré.', details: [] }, 503);
+    const payload = body as { object_kind?: string; commits?: PushPayload['commits'] };
+    if (payload?.object_kind !== 'push') return { accepted: false, reason: 'événement ignoré' };
+    return { accepted: true, results: await this.reverse.handlePush(organizationId!, project, { commits: (payload.commits ?? []).slice(0, 100) }) };
+  }
+
+  /** Reconstruit un projet VIDE depuis le dépôt d'historique (reprise après sinistre). */
+  @Roles('athena-admin')
+  @Post('v1/projects/:project/rebuild')
+  async rebuild(@Req() request: AuthedRequest, @Param('project') project: string) {
+    if (!this.rebuilder) throw new HttpException({ error: 'unavailable', message: 'Historique GitLab non configuré.', details: [] }, 503);
+    const { organizationId, actor } = await this.ctx(request);
+    const org = (await this.db.tx(organizationId, (c) => c.query('select key from organization'))).rows[0].key as string;
+    return this.rebuilder.rebuild(organizationId, project, org, actor.id);
   }
 
   // --- Baselines ---

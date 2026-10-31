@@ -128,4 +128,18 @@ export class GitLabClient {
       'comparaison',
     );
   }
+
+  /** Liste récursive des fichiers d'une référence (pagination par page de 100). */
+  async tree(projectId: number, ref: string): Promise<string[]> {
+    const paths: string[] = [];
+    for (let page = 1; page <= 200; page++) {
+      const entries = await this.json<Array<{ type: string; path: string }>>(
+        await this.request('GET', `/projects/${projectId}/repository/tree?recursive=true&per_page=100&page=${page}&ref=${encodeURIComponent(ref)}`),
+        "liste de l'arborescence",
+      );
+      for (const e of entries) if (e.type === 'blob') paths.push(e.path);
+      if (entries.length < 100) break;
+    }
+    return paths;
+  }
 }
