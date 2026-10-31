@@ -6,10 +6,8 @@ import { loadConfig } from './config';
 
 async function bootstrap() {
   const config = loadConfig();
-  const app = await NestFactory.create<NestFastifyApplication>(
-    AppModule,
-    new FastifyAdapter({ bodyLimit: 1_048_576 }),
-  );
+  // rawBody : les signatures HMAC des webhooks entrants portent sur les octets exacts reçus.
+  const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter({ bodyLimit: 1_048_576 }), { rawBody: true });
   app.enableCors({ origin: config.CORS_ORIGIN, credentials: true });
   app
     .getHttpAdapter()

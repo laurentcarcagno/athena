@@ -10,6 +10,8 @@ import type { BaselineService } from '../history/baseline.service';
 import { Db } from '../core/db';
 import { forbidden } from '../core/errors';
 import { OrgResolver, parseBody } from '../core/http';
+import { AutomationService } from '../automation/automation.service';
+import { InboundService } from '../inbound/inbound.service';
 import { DocLinkService } from '../docs/doc-link.service';
 import { GitCodeService, type GitLabEvent } from '../gitcode/gitcode.service';
 import { WebhookService, type SecretStore } from '../webhooks/webhook.service';
@@ -43,6 +45,8 @@ export class IntegrationsController {
     @Inject(BASELINES) private readonly baselines: BaselineService | null,
     @Inject(REVERSE_SYNC) private readonly reverse: ReverseSync | null,
     @Inject(REBUILD) private readonly rebuilder: RebuildService | null,
+    private readonly automation: AutomationService,
+    private readonly inbound: InboundService,
   ) {}
 
   private baselineService(): BaselineService {
@@ -149,6 +153,60 @@ export class IntegrationsController {
     const { organizationId, actor } = await this.ctx(request);
     const org = (await this.db.tx(organizationId, (c) => c.query('select key from organization'))).rows[0].key as string;
     return this.rebuilder.rebuild(organizationId, project, org, actor.id);
+  }
+
+  // --- Automatisations ---
+  @Roles('athena-admin')
+  @Post('v1/projects/:project/automations')
+  async createRule(@Req() request: AuthedRequest, @Param('project') project: string, @Body() body: unknown) {
+    const { organizationId, actor } = await this.ctx(request);
+    return { id: await this.automation.createRule(organizationId, project, body, actor) };
+  }
+
+  @Roles('athena-user', 'athena-admin')
+  @Get('v1/projects/:project/automations')
+  async listRules(@Req() request: AuthedRequest, @Param('project') project: string) {
+    return this.automation.list((await this.ctx(request)).organizationId, project);
+  }
+
+  @Roles('athena-admin')
+  @HttpCode(204)
+  @Post('v1/automations/:id/:state')
+  async toggleRule(@Req() request: AuthedRequest, @Param('id') id: string, @Param('state') state: string) {
+    const { organizationId, actor } = await this.ctx(request);
+    if (state !== 'enable' && state !== 'disable') throw forbidden('Action inconnue.');
+    await this.automation.setEnabled(organizationId, id, state === 'enable', actor);
+  }
+
+  @Roles('athena-admin')
+  @Get('v1/automations/:id/runs')
+  async ruleRuns(@Req() request: AuthedRequest, @Param('id') id: string) {
+    return this.automation.runs((await this.ctx(request)).organizationId, id);
+  }
+
+  // --- Webhooks entrants génériques ---
+  @Roles('athena-admin')
+  @Post('v1/projects/:project/inbound-sources')
+  async createInbound(@Req() request: AuthedRequest, @Param('project') project: string, @Body() body: unknown) {
+    const { organizationId, actor } = await this.ctx(request);
+    const input = parseBody(z.object({ name: z.string().min(2).max(40), mapping: z.unknown() }), body);
+    return this.inbound.createSource(organizationId, project, input.name, input.mapping, actor);
+  }
+
+  /** Réception d'une charge utile externe : signature HMAC sur le corps brut, idempotence, mappage déclaratif. */
+  @Public()
+  @HttpCode(202)
+  @Post('hooks/in/source/:org/:project/:name')
+  async receiveInbound(
+    @Param('org') orgKey: string, @Param('project') project: string, @Param('name') name: string,
+    @Headers('athena-signature') signature: string | undefined, @Headers('idempotency-key') idempotency: string | undefined,
+    @Req() request: { rawBody?: Buffer },
+  ) {
+    const denied = () => forbidden('Authentification du webhook refusée.');
+    if (!/^[a-z0-9][a-z0-9-]{1,38}$/.test(orgKey) || !/^[A-Z][A-Z0-9]{1,9}$/.test(project) || !/^[a-z0-9][a-z0-9-]{1,39}$/.test(name) || !Buffer.isBuffer(request.rawBody)) throw denied();
+    const row = (await this.pool.query('select organization_id_by_key($1) as id', [orgKey])).rows[0];
+    if (!row?.id) throw denied();
+    return this.inbound.handle(row.id as string, project, name, request.rawBody.toString('utf8'), signature, idempotency);
   }
 
   // --- Baselines ---

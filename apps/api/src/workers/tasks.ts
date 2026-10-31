@@ -1,6 +1,7 @@
 import http from 'node:http';
 import type { Pool } from 'pg';
 import { PgSessionStore } from '../auth/session';
+import type { AutomationService } from '../automation/automation.service';
 import type { HistorySync } from '../history/history-sync';
 import type { WebhookService } from '../webhooks/webhook.service';
 import { WorkerLoop, type LoopOptions } from './loop';
@@ -9,6 +10,7 @@ export interface WorkerDeps {
   pool: Pool;
   history?: HistorySync;
   webhooks?: WebhookService;
+  automation?: AutomationService;
   log?: (message: string) => void;
 }
 
@@ -26,7 +28,7 @@ export async function webhookCycle(pool: Pool, webhooks: WebhookService): Promis
 }
 
 /** Construit les boucles du worker. Une boucle absente (service non configuré) n'est pas démarrée. */
-export function buildWorkers(deps: WorkerDeps, intervals: { historyMs: number; webhooksMs: number; sessionsMs: number }): WorkerLoop[] {
+export function buildWorkers(deps: WorkerDeps, intervals: { historyMs: number; webhooksMs: number; sessionsMs: number; automationMs?: number }): WorkerLoop[] {
   const options = (intervalMs: number): LoopOptions => ({ intervalMs, ...(deps.log ? { log: deps.log } : {}) });
   const loops: WorkerLoop[] = [];
   if (deps.history) {
@@ -43,6 +45,15 @@ export function buildWorkers(deps: WorkerDeps, intervals: { historyMs: number; w
       const r = await webhookCycle(deps.pool, webhooks);
       if (r.queued || r.delivered || r.failed) deps.log?.(`webhooks: ${r.queued} en file, ${r.delivered} livrés, ${r.failed} abandonnés`);
     }, options(intervals.webhooksMs)));
+  }
+  if (deps.automation) {
+    const automation = deps.automation;
+    loops.push(new WorkerLoop('automatisations', async () => {
+      const organizations = (await deps.pool.query('select list_organization_ids() as id')).rows as Array<{ id: string }>;
+      let done = 0;
+      for (const { id } of organizations) done += await automation.process(id);
+      if (done) deps.log?.(`automatisations: ${done} exécution(s)`);
+    }, options(intervals.automationMs ?? 2000)));
   }
   const sessions = new PgSessionStore(deps.pool);
   loops.push(new WorkerLoop('sessions', async () => {

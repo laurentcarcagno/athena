@@ -3,6 +3,7 @@ import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fa
 import { createLocalJWKSet, exportJWK, generateKeyPair, SignJWT } from 'jose';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { AppModule } from '../app.module';
+import { sign as hmacSign } from '../webhooks/signing';
 import { TOKEN_VERIFIER } from '../auth/auth.guard';
 import { TokenVerifier } from '../auth/token-verifier';
 import { PG_POOL, SECRET_STORE } from '../core/core.tokens';
@@ -48,7 +49,7 @@ suite('intégrations REST (webhooks, StrictDoc, GitLab)', () => {
       .overrideProvider(PG_POOL).useValue(testDb.pool)
       .overrideProvider(SECRET_STORE).useValue(new MemorySecrets())
       .compile();
-    app = moduleRef.createNestApplication<NestFastifyApplication>(new FastifyAdapter());
+    app = moduleRef.createNestApplication<NestFastifyApplication>(new FastifyAdapter(), { rawBody: true });
     await app.init();
     await app.getHttpAdapter().getInstance().ready();
 
@@ -188,5 +189,34 @@ suite('intégrations REST (webhooks, StrictDoc, GitLab)', () => {
     expect((await call('POST', hook.path, undefined, { object_kind: 'push' }, { 'x-gitlab-token': hook.secret })).statusCode).toBe(503);
     expect((await call('POST', '/v1/projects/ARI/rebuild', admin)).statusCode).toBe(503);
     expect((await call('POST', '/v1/projects/ARI/rebuild', await token(['athena-user']))).statusCode).toBe(403);
+  });
+
+  it('administre les automatisations et reçoit un webhook entrant signé sur le corps brut', async () => {
+    const admin = await token(['athena-admin', 'athena-user']);
+    expect((await call('POST', '/v1/projects/ARI/automations', await token(['athena-user']), { name: 'x' })).statusCode).toBe(403);
+    expect((await call('POST', '/v1/projects/ARI/automations', admin, { name: 'x', trigger: 'artifact.created', condition: 'status =', actions: [{ type: 'comment', body: 'a' }] })).statusCode).toBe(422);
+    const rule = await call('POST', '/v1/projects/ARI/automations', admin, { name: 'Commentaire auto', trigger: 'artifact.created', actions: [{ type: 'comment', body: 'Reçu.' }] });
+    expect(rule.statusCode).toBe(201);
+    const id = rule.json().id;
+    expect((await call('GET', '/v1/projects/ARI/automations', admin)).json()[0]).toMatchObject({ id, enabled: true });
+    expect((await call('POST', `/v1/automations/${id}/disable`, admin)).statusCode).toBe(204);
+    expect((await call('GET', `/v1/automations/${id}/runs`, admin)).json()).toEqual([]);
+
+    const source = await call('POST', '/v1/projects/ARI/inbound-sources', admin, {
+      name: 'externe', mapping: { action: 'create', tracker: 'BUG', values: { title: '{{$.titre}}', severity: 'mineure' } },
+    });
+    expect(source.statusCode).toBe(201);
+    const { path, secret } = source.json();
+    const raw = '{ "titre" :  "Créé par un tiers" }'; // espacement volontaire : la signature porte sur les octets reçus
+    const post = (headers: Record<string, string>) => app.inject({ method: 'POST', url: path, headers: { 'content-type': 'application/json', ...headers }, payload: raw });
+    expect((await post({})).statusCode).toBe(403);
+    expect((await post({ 'athena-signature': hmacSign('mauvais', raw) })).statusCode).toBe(403);
+    const ok = await post({ 'athena-signature': hmacSign(secret, raw), 'idempotency-key': 'k-1' });
+    expect(ok.statusCode).toBe(202);
+    expect(ok.json()).toMatchObject({ duplicate: false, action: 'create' });
+    expect((await post({ 'athena-signature': hmacSign(secret, raw), 'idempotency-key': 'k-1' })).json().duplicate).toBe(true);
+    const created = await call('GET', `/v1/projects/ARI/artifacts/${ok.json().key}`, admin);
+    expect(created.json().values.title).toBe('Créé par un tiers');
+    expect((await app.inject({ method: 'POST', url: path, headers: { 'content-type': 'application/json' }, payload: '{pas du json' })).statusCode).toBe(400);
   });
 });

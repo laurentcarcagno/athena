@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
 import { Pool } from 'pg';
 import { loadConfig } from '../config';
+import { AutomationService } from '../automation/automation.service';
+import { InboundService } from '../inbound/inbound.service';
 import { AgileController } from '../agile/agile.controller';
 import { BoardService } from '../agile/board.service';
 import { SprintService } from '../agile/sprint.service';
@@ -84,6 +86,8 @@ export { PG_POOL } from './core.tokens';
       },
       inject: [PG_POOL],
     },
+    { provide: AutomationService, useFactory: (db: Db, a: ArtifactService, l: LinkService, s: SearchService) => new AutomationService(db, a, l, s), inject: [Db, ArtifactService, LinkService, SearchService] },
+    { provide: InboundService, useFactory: (db: Db, a: ArtifactService, l: LinkService, secrets: SecretStore) => new InboundService(db, a, l, secrets), inject: [Db, ArtifactService, LinkService, SECRET_STORE] },
     { provide: APP_FILTER, useClass: DomainErrorFilter },
   ],
   exports: [FieldTypeRegistry, PG_POOL],

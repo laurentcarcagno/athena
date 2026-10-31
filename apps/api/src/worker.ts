@@ -1,5 +1,12 @@
 import { Pool } from 'pg';
 import { z } from 'zod';
+import { SearchService } from './atql/search.service';
+import { AutomationService } from './automation/automation.service';
+import { ArtifactService } from './core/artifact.service';
+import { Db } from './core/db';
+import { FieldTypeRegistry } from './core/field-types';
+import { LinkService } from './core/link.service';
+import { TrackerService } from './core/tracker.service';
 import { GitLabClient } from './history/gitlab-client';
 import { HistorySync } from './history/history-sync';
 import { ConfidentialFields } from './secrets/confidential';
@@ -41,8 +48,13 @@ const history =
 if (!history) log("GitLab non configuré : synchronisation de l'historique désactivée.");
 const webhooks = bao ? new WebhookService(pool, new OpenBaoSecretStore(bao), { allowPrivate: env.WEBHOOK_ALLOW_PRIVATE }) : undefined;
 
+const db = new Db(pool);
+const registry = new FieldTypeRegistry(); // types natifs : les types de champ de plugin ne sont pas chargés dans le worker
+const artifactService = new ArtifactService(db, new TrackerService(db, registry), registry);
+const automation = new AutomationService(db, artifactService, new LinkService(db), new SearchService(db));
+
 const loops = buildWorkers(
-  { pool, ...(history ? { history } : {}), ...(webhooks ? { webhooks } : {}), log },
+  { pool, ...(history ? { history } : {}), ...(webhooks ? { webhooks } : {}), automation, log },
   { historyMs: env.HISTORY_INTERVAL_MS, webhooksMs: env.WEBHOOKS_INTERVAL_MS, sessionsMs: env.SESSIONS_INTERVAL_MS },
 );
 const health = healthServer(loops, env.WORKER_HEALTH_PORT);
