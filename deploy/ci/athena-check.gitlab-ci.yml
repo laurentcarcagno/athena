@@ -1,0 +1,21 @@
+# Gabarit à inclure dans les projets de code :
+#   include:
+#     - project: tools/athena
+#       file: deploy/ci/athena-check.gitlab-ci.yml
+#
+# Variables du projet (Settings > CI/CD) : ATHENA_URL, ATHENA_PROJECT (clé du projet Athena), ATHENA_TOKEN (masquée,
+# jeton d'un compte de service Keycloak ayant le rôle athena-user et le groupe /org-<clé>).
+# Le job échoue si un commit de la merge request ne cite aucun artefact existant (préfixes chore/docs/ci/build/style exemptés).
+athena-check:
+  stage: .pre
+  image: node:22-bookworm-slim
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  variables:
+    GIT_DEPTH: "0"
+  before_script:
+    - apt-get update -qq && apt-get install -y -qq git >/dev/null
+    - git fetch origin "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME" --quiet
+  script:
+    - node tools/athena/bin/athena.mjs check --range "origin/${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}..HEAD"
+  # Récupérer le CLI : copier packages/cli dans le dépôt de code sous tools/athena, ou l'installer depuis le registre interne.

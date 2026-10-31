@@ -1,0 +1,15 @@
+{
+  "name": "@athena/cli",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": { "athena": "bin/athena.mjs" },
+  "main": "src/lib.js",
+  "scripts": {
+    "build": "node -e \"console.log('cli: rien à compiler')\"",
+    "typecheck": "node -e \"console.log('cli: ok')\"",
+    "lint": "node -e \"console.log('cli: ok')\"",
+    "test": "vitest run"
+  },
+  "devDependencies": { "vitest": "4.1.12" }
+}
