@@ -58,6 +58,6 @@ export { PG_POOL } from './core.tokens';
     { provide: SprintService, useFactory: (db: Db) => new SprintService(db), inject: [Db] },
     { provide: APP_FILTER, useClass: DomainErrorFilter },
   ],
-  exports: [FieldTypeRegistry],
+  exports: [FieldTypeRegistry, PG_POOL],
 })
 export class CoreModule {}

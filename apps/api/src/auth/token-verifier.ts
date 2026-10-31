@@ -23,6 +23,12 @@ export class TokenVerifier {
     return new TokenVerifier(issuer, audience, jwks);
   }
 
+  /** Vérifie l'ID token d'une connexion : signature, émetteur, audience (client) et nonce. */
+  async verifyIdToken(idToken: string, clientId: string, nonce: string): Promise<void> {
+    const { payload } = await jwtVerify(idToken, this.keys, { issuer: this.issuer, audience: clientId, algorithms: ['RS256', 'ES256', 'PS256'], clockTolerance: 5 });
+    if (payload['nonce'] !== nonce) throw new Error('nonce invalide');
+  }
+
   /** Vérifie signature, émetteur, audience et expiration. Lève une erreur si invalide. */
   async verify(token: string): Promise<Principal> {
     const { payload } = await jwtVerify(token, this.keys, {

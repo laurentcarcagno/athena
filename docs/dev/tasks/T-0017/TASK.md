@@ -1,0 +1,5 @@
+# T-0017 : BFF dauthentification web (phase 1)
+- Livre : OIDC Authorization Code + PKCE (S256), state et nonce, cookie de flux signe, echange de code cote serveur avec secret client, verification de lID token (signature, emetteur, audience, nonce) et du jeton daccès, session cote serveur (empreinte SHA-256, aucun jeton stocke ni envoye au navigateur), cookie HttpOnly SameSite=Lax (Secure par defaut), CSRF lie a la session + controle dOrigin sur les ecritures, returnTo limite aux chemins relatifs, deconnexion avec revocation, Bearer toujours accepte pour les integrations.
+- Verifie contre le Keycloak de dev : connexion, session, acces, deconnexion, revocation.
+- Tests : 12 BFF (fournisseur simule : state, cookie falsifie, nonce, PKCE, CSRF, origine, forge, logout) ; 144 au total pour lAPI.
+- Non fait : rafraichissement de session, deconnexion back-channel Keycloak, purge periodique des sessions expirees (methode purgeExpired a planifier), SESSION_SECRET depuis OpenBao, MFA obligatoire cote Keycloak pour admin hors compte de test.

@@ -9,6 +9,13 @@ const schema = z.object({
   OPENBAO_ADDR: z.string().url().optional(),
   OPENBAO_TOKEN: z.string().min(1).optional(),
   WEBHOOK_ALLOW_PRIVATE: z.enum(['true', 'false']).default('false').transform((v) => v === 'true'),
+  KEYCLOAK_WEB_CLIENT_ID: z.string().default('athena-web'),
+  KEYCLOAK_WEB_CLIENT_SECRET: z.string().min(8).optional(),
+  SESSION_SECRET: z.string().min(32).optional(),
+  PUBLIC_URL: z.string().url().default('http://localhost:3001'),
+  WEB_ORIGIN: z.string().url().default('http://localhost:3000'),
+  COOKIE_SECURE: z.enum(['true', 'false']).default('true').transform((v) => v === 'true'),
+  SESSION_TTL_SECONDS: z.coerce.number().int().min(60).max(86_400 * 7).default(28_800),
   CORS_ORIGIN: z.string().default('http://localhost:3000'),
 });
 
