@@ -82,6 +82,8 @@ export class ArtifactService {
       await c.query(`update artifact set "values" = $1, version = $2, updated_at = now() where id = $3`, [
         JSON.stringify(next), version, row.id,
       ]);
+      // Les liens pointant vers cet artefact deviennent suspects tant qu'un humain ne les a pas revus.
+      await c.query('update artifact_link set suspect = true where to_artifact_id = $1 and not suspect', [row.id]);
       await this.record(c, organizationId, row.id, version, diff, actor, 'artifact.updated', key, { changes: diff },
         { key, tracker: row.tracker_key, status: row.status_key, version, values: next });
       return { ...this.toArtifact(row), values: next, version };

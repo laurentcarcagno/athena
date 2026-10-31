@@ -4,6 +4,7 @@ import { Roles, type AuthedRequest } from '../auth/auth.guard';
 import type { Principal } from '../auth/token-verifier';
 import { ArtifactService } from './artifact.service';
 import { Db } from './db';
+import { LinkService } from './link.service';
 import { KeySchema, OrgResolver, parseBody } from './http';
 import { TrackerService } from './tracker.service';
 
@@ -32,7 +33,16 @@ const CreateArtifactBody = z.object({ values: z.record(z.unknown()) });
 const UpdateArtifactBody = z.object({ values: z.record(z.unknown()), version: z.number().int().min(1) });
 const TransitionBody = z.object({ name: z.string().min(1), version: z.number().int().min(1) });
 
-const principalOf = (request: AuthedRequest): Principal => request.principal!;
+const LinkTypeBody = z.object({
+  key: z.string().regex(/^[a-z][a-z0-9_]{0,39}$/),
+  outwardLabel: z.string().min(1).max(100),
+  inwardLabel: z.string().min(1).max(100),
+  hierarchical: z.boolean().optional(),
+});
+const LinkBody = z.object({ to: z.string().min(1), type: z.string().min(1) });
+const CommentBody = z.object({ body: z.string().min(1).max(100_000) });
+
+const principalOf =(request: AuthedRequest): Principal => request.principal!;
 
 @Controller('v1/projects')
 export class CoreController {
@@ -41,6 +51,7 @@ export class CoreController {
     private readonly db: Db,
     private readonly trackers: TrackerService,
     private readonly artifacts: ArtifactService,
+    private readonly links: LinkService,
   ) {}
 
   @Roles('athena-admin')
@@ -108,8 +119,54 @@ export class CoreController {
     const input = parseBody(TransitionBody, body);
     return this.artifacts.transition(organizationId, project, key, input.name, input.version, actor);
   }
+
+  @Roles('athena-admin')
+  @Post(':project/link-types')
+  async createLinkType(@Req() request: AuthedRequest, @Param('project') project: string, @Body() body: unknown) {
+    const { organizationId, actor } = await this.orgs.resolve(principalOf(request));
+    await this.links.createLinkType(organizationId, project, parseBody(LinkTypeBody, body), actor);
+    return { created: true };
+  }
+
+  @Roles('athena-user', 'athena-admin')
+  @Post(':project/artifacts/:key/links')
+  async link(@Req() request: AuthedRequest, @Param('project') project: string, @Param('key') key: string, @Body() body: unknown) {
+    const { organizationId, actor } = await this.orgs.resolve(principalOf(request));
+    const input = parseBody(LinkBody, body);
+    return { id: await this.links.link(organizationId, project, key, input.to, input.type, actor) };
+  }
+
+  @Roles('athena-user', 'athena-admin')
+  @Get(':project/artifacts/:key/links')
+  async listLinks(@Req() request: AuthedRequest, @Param('project') project: string, @Param('key') key: string) {
+    const { organizationId } = await this.orgs.resolve(principalOf(request));
+    return this.links.list(organizationId, project, key);
+  }
+
+  @Roles('athena-user', 'athena-admin')
+  @HttpCode(204)
+  @Post(':project/links/:id/clear-suspect')
+  async clearSuspect(@Req() request: AuthedRequest, @Param('id') id: string) {
+    const { organizationId, actor } = await this.orgs.resolve(principalOf(request));
+    await this.links.clearSuspect(organizationId, id, actor);
+  }
+
+  @Roles('athena-user', 'athena-admin')
+  @Post(':project/artifacts/:key/comments')
+  async addComment(@Req() request: AuthedRequest, @Param('project') project: string, @Param('key') key: string, @Body() body: unknown) {
+    const { organizationId, actor } = await this.orgs.resolve(principalOf(request));
+    return this.links.addComment(organizationId, project, key, parseBody(CommentBody, body).body, actor);
+  }
+
+  @Roles('athena-user', 'athena-admin')
+  @Get(':project/artifacts/:key/comments')
+  async comments(@Req() request: AuthedRequest, @Param('project') project: string, @Param('key') key: string) {
+    const { organizationId } = await this.orgs.resolve(principalOf(request));
+    return this.links.comments(organizationId, project, key);
+  }
 }
 
+// Routes de liens et commentaires : voir CoreController ci-dessus (méthodes ajoutées par T-0008).
 function stripUndefined<T extends object>(value: T): T {
   return Object.fromEntries(Object.entries(value).filter(([, v]) => v !== undefined)) as T;
 }

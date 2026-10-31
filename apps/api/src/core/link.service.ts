@@ -1,0 +1,146 @@
+import type { PoolClient } from 'pg';
+import { Db, type Actor } from './db';
+import { conflict, notFound, validation } from './errors';
+import { audit, outbox } from './tracker.service';
+
+export interface LinkView {
+  id: string;
+  type: string;
+  direction: 'outward' | 'inward';
+  label: string;
+  other: string;
+  suspect: boolean;
+}
+
+export interface CommentView {
+  id: string;
+  author: string;
+  body: string;
+  createdAt: string;
+}
+
+export class LinkService {
+  constructor(private readonly db: Db) {}
+
+  async createLinkType(
+    organizationId: string, projectKey: string,
+    input: { key: string; outwardLabel: string; inwardLabel: string; hierarchical?: boolean }, actor: Actor,
+  ): Promise<void> {
+    await this.db.tx(organizationId, async (c) => {
+      const project = await this.project(c, projectKey);
+      await c.query(
+        `insert into link_type (organization_id, project_id, key, outward_label, inward_label, hierarchical)
+         values ($1,$2,$3,$4,$5,$6)`,
+        [organizationId, project, input.key, input.outwardLabel, input.inwardLabel, input.hierarchical ?? false],
+      );
+      await audit(c, organizationId, actor, 'link_type.create', `project:${projectKey}/${input.key}`);
+    });
+  }
+
+  /** Crée un lien orienté entre deux artefacts du même projet (trackers éventuellement différents). */
+  async link(
+    organizationId: string, projectKey: string, fromKey: string, toKey: string, typeKey: string, actor: Actor,
+  ): Promise<string> {
+    return this.db.tx(organizationId, async (c) => {
+      const project = await this.project(c, projectKey);
+      const from = await this.artifact(c, project, fromKey);
+      const to = await this.artifact(c, project, toKey);
+      const type = (await c.query('select id, hierarchical from link_type where project_id = $1 and key = $2', [project, typeKey])).rows[0];
+      if (!type) throw notFound(`Type de lien ${typeKey}`);
+      if (from === to) throw validation(['un artefact ne peut pas être lié à lui-même']);
+      if (type.hierarchical && (await this.reaches(c, to, from, type.id))) {
+        throw conflict('Ce lien créerait un cycle dans la hiérarchie.');
+      }
+      const id = (
+        await c.query(
+          `insert into artifact_link (organization_id, from_artifact_id, to_artifact_id, link_type_id)
+           values ($1,$2,$3,$4) returning id`,
+          [organizationId, from, to, type.id],
+        )
+      ).rows[0].id as string;
+      await outbox(c, organizationId, 'artifact', from, 'link.created', { from: fromKey, to: toKey, type: typeKey, actor: actor.id });
+      await audit(c, organizationId, actor, 'link.create', `artifact:${fromKey}`, { to: toKey, type: typeKey });
+      return id;
+    });
+  }
+
+  async list(organizationId: string, projectKey: string, key: string): Promise<LinkView[]> {
+    return this.db.tx(organizationId, async (c) => {
+      const project = await this.project(c, projectKey);
+      const id = await this.artifact(c, project, key);
+      const rows = (
+        await c.query(
+          `select l.id, l.suspect, t.key as type, t.outward_label, t.inward_label,
+                  (l.from_artifact_id = $1) as outward, o.key as other
+           from artifact_link l join link_type t on t.id = l.link_type_id
+           join artifact o on o.id = case when l.from_artifact_id = $1 then l.to_artifact_id else l.from_artifact_id end
+           where l.from_artifact_id = $1 or l.to_artifact_id = $1 order by l.created_at`,
+          [id],
+        )
+      ).rows;
+      return rows.map((r) => ({
+        id: r.id, type: r.type, direction: r.outward ? 'outward' : 'inward',
+        label: r.outward ? r.outward_label : r.inward_label, other: r.other, suspect: r.suspect,
+      }));
+    });
+  }
+
+  /** Acquitte un lien suspect après vérification humaine. */
+  async clearSuspect(organizationId: string, linkId: string, actor: Actor): Promise<void> {
+    await this.db.tx(organizationId, async (c) => {
+      const result = await c.query('update artifact_link set suspect = false where id = $1 and suspect', [linkId]);
+      if (result.rowCount === 0) throw notFound('Lien suspect');
+      await audit(c, organizationId, actor, 'link.clear_suspect', `link:${linkId}`);
+    });
+  }
+
+  async addComment(organizationId: string, projectKey: string, key: string, body: string, actor: Actor): Promise<CommentView> {
+    if (body.trim().length === 0 || body.length > 100_000) throw validation(['commentaire vide ou trop long']);
+    return this.db.tx(organizationId, async (c) => {
+      const project = await this.project(c, projectKey);
+      const artifact = await this.artifact(c, project, key);
+      const row = (
+        await c.query('insert into comment (organization_id, artifact_id, author, body) values ($1,$2,$3,$4) returning id, created_at', [
+          organizationId, artifact, actor.id, body,
+        ])
+      ).rows[0];
+      await outbox(c, organizationId, 'artifact', artifact, 'comment.created', { key, actor: actor.id, commentId: row.id });
+      await audit(c, organizationId, actor, 'comment.create', `artifact:${key}`);
+      return { id: row.id, author: actor.id, body, createdAt: row.created_at.toISOString() };
+    });
+  }
+
+  async comments(organizationId: string, projectKey: string, key: string): Promise<CommentView[]> {
+    return this.db.tx(organizationId, async (c) => {
+      const artifact = await this.artifact(c, await this.project(c, projectKey), key);
+      const rows = (await c.query('select id, author, body, created_at from comment where artifact_id = $1 order by created_at, id', [artifact])).rows;
+      return rows.map((r) => ({ id: r.id, author: r.author, body: r.body, createdAt: r.created_at.toISOString() }));
+    });
+  }
+
+  private async project(c: PoolClient, key: string): Promise<string> {
+    const row = (await c.query('select id from project where key = $1', [key])).rows[0];
+    if (!row) throw notFound(`Projet ${key}`);
+    return row.id as string;
+  }
+
+  private async artifact(c: PoolClient, project: string, key: string): Promise<string> {
+    const row = (await c.query('select id from artifact where project_id = $1 and key = $2', [project, key])).rows[0];
+    if (!row) throw notFound(`Artefact ${key}`);
+    return row.id as string;
+  }
+
+  /** Vrai si `start` atteint `target` en suivant des liens de ce type (détection de cycle). */
+  private async reaches(c: PoolClient, start: string, target: string, typeId: string): Promise<boolean> {
+    const row = (
+      await c.query(
+        `with recursive walk(id) as (
+           select $1::uuid
+           union select l.to_artifact_id from artifact_link l join walk w on l.from_artifact_id = w.id where l.link_type_id = $3
+         ) select exists (select 1 from walk where id = $2::uuid) as found`,
+        [start, target, typeId],
+      )
+    ).rows[0];
+    return row.found as boolean;
+  }
+}
