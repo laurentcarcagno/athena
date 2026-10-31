@@ -40,7 +40,9 @@
       ],
       "attributes": {
         "pkce.code.challenge.method": "S256",
-        "post.logout.redirect.uris": "http://localhost:3000/*"
+        "post.logout.redirect.uris": "http://localhost:3000/*",
+        "backchannel.logout.url": "http://host.docker.internal:3001/auth/backchannel-logout",
+        "backchannel.logout.session.required": "false"
       },
       "protocolMappers": [
         {

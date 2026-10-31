@@ -1,0 +1,38 @@
+# Une seule instance, remplacée sans chevauchement : l'ordre des commits d'historique doit être préservé.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: athena-worker
+  labels:
+    {{- include "athena.labels" . | nindent 4 }}
+    app.kubernetes.io/component: worker
+spec:
+  replicas: 1
+  strategy: { type: Recreate }
+  selector:
+    matchLabels: { app.kubernetes.io/instance: {{ .Release.Name }}, app.kubernetes.io/component: worker }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: athena, app.kubernetes.io/instance: {{ .Release.Name }}, app.kubernetes.io/component: worker }
+    spec:
+      {{- include "athena.podSecurity" . | nindent 6 }}
+      automountServiceAccountToken: false
+      {{- with .Values.image.pullSecrets }}
+      imagePullSecrets: {{ toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: worker
+          image: {{ include "athena.image" (dict "root" . "spec" .Values.image.api) }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["/nodejs/bin/node", "dist/worker.js"]
+          ports: [{ name: health, containerPort: 3002 }]
+          env:
+            {{- include "athena.env" . | nindent 12 }}
+            - { name: WORKER_HEALTH_PORT, value: "3002" }
+          envFrom: [{ secretRef: { name: {{ .Values.existingSecret }} } }]
+          livenessProbe: { httpGet: { path: /healthz, port: health }, periodSeconds: 30, failureThreshold: 4, initialDelaySeconds: 15 }
+          resources:
+            {{- toYaml .Values.worker.resources | nindent 12 }}
+          {{- include "athena.containerSecurity" . | nindent 10 }}
+          volumeMounts: [{ name: tmp, mountPath: /tmp }]
+      volumes: [{ name: tmp, emptyDir: { sizeLimit: 64Mi } }]

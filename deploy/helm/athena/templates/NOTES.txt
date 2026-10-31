@@ -1,0 +1,6 @@
+Athena {{ .Chart.AppVersion }} déployé. Adresse : {{ .Values.publicUrl }}
+
+Avant la première installation, créer les secrets (alimentés par OpenBao) :
+  - {{ .Values.existingSecret }} : DATABASE_URL, KEYCLOAK_WEB_CLIENT_SECRET (+ OPENBAO_TOKEN, GITLAB_TOKEN, PLUGIN_TRUSTED_KEYS)
+  - {{ .Values.migrationSecret }} : MIGRATION_DATABASE_URL
+Le worker d'historique est volontairement limité à une instance.

@@ -29,6 +29,19 @@ export class TokenVerifier {
     if (payload['nonce'] !== nonce) throw new Error('nonce invalide');
   }
 
+  /**
+   * Jeton de déconnexion back-channel (OIDC Back-Channel Logout 1.0) : signature, émetteur, audience (client),
+   * événement dédié, sujet présent, et surtout pas de `nonce` (ce n'est pas un jeton d'identité).
+   */
+  async verifyLogoutToken(token: string, clientId: string): Promise<{ subject: string }> {
+    const { payload } = await jwtVerify(token, this.keys, { issuer: this.issuer, audience: clientId, algorithms: ['RS256', 'ES256', 'PS256'], clockTolerance: 5, maxTokenAge: '5m' });
+    const events = payload['events'] as Record<string, unknown> | undefined;
+    if (!events || !('http://schemas.openid.net/event/backchannel-logout' in events)) throw new Error('événement de déconnexion absent');
+    if ('nonce' in payload) throw new Error('nonce interdit dans un jeton de déconnexion');
+    if (typeof payload.sub !== 'string' || payload.sub === '') throw new Error('sujet absent');
+    return { subject: payload.sub };
+  }
+
   /** Vérifie signature, émetteur, audience et expiration. Lève une erreur si invalide. */
   async verify(token: string): Promise<Principal> {
     const { payload } = await jwtVerify(token, this.keys, {

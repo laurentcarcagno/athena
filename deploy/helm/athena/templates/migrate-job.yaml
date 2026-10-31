@@ -1,0 +1,31 @@
+{{- if .Values.migrations.enabled }}
+# Migrations avant chaque installation ou mise à jour, avec le compte propriétaire du schéma (jamais le compte applicatif).
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: athena-migrate-{{ .Release.Revision }}
+  labels:
+    {{- include "athena.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-weight: "-5"
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 2
+  ttlSecondsAfterFinished: 3600
+  template:
+    spec:
+      restartPolicy: Never
+      {{- include "athena.podSecurity" . | nindent 6 }}
+      automountServiceAccountToken: false
+      {{- with .Values.image.pullSecrets }}
+      imagePullSecrets: {{ toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: migrate
+          image: {{ include "athena.image" (dict "root" . "spec" .Values.image.api) }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["/nodejs/bin/node", "dist/migrate-cli.js"]
+          envFrom: [{ secretRef: { name: {{ .Values.migrationSecret }} } }]
+          {{- include "athena.containerSecurity" . | nindent 10 }}
+{{- end }}

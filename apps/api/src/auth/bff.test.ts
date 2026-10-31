@@ -54,6 +54,9 @@ describe('BFF OIDC (fournisseur simulé)', () => {
 
   const idToken = (nonce: string) =>
     new SignJWT({ nonce }).setProtectedHeader({ alg: 'RS256', kid: 'k1' }).setIssuer(issuer).setAudience('athena-web').setSubject('sub-1').setIssuedAt().setExpirationTime('5m').sign(privateKey);
+  const logoutToken = (claims: Record<string, unknown> = {}, audience = 'athena-web') =>
+    new SignJWT({ events: { 'http://schemas.openid.net/event/backchannel-logout': {} }, ...claims })
+      .setProtectedHeader({ alg: 'RS256', kid: 'k1' }).setIssuer(issuer).setAudience(audience).setSubject('sub-1').setIssuedAt().sign(privateKey);
   const accessToken = () =>
     new SignJWT({ preferred_username: 'alice', name: 'Alice Martin', email: 'alice@example.test', realm_access: { roles: ['athena-user'] }, groups: ['/org-demo'] })
       .setProtectedHeader({ alg: 'RS256', kid: 'k1' }).setIssuer(issuer).setAudience('athena-api').setSubject('sub-1').setIssuedAt().setExpirationTime('5m').sign(privateKey);
@@ -191,5 +194,26 @@ describe('BFF OIDC (fournisseur simulé)', () => {
   it('accepte toujours le jeton Bearer', async () => {
     const response = await inject('GET', '/v1/me', { authorization: `Bearer ${await accessToken()}` });
     expect(response.statusCode).toBe(200);
+  });
+
+  it('révoque toutes les sessions d’un utilisateur sur déconnexion back-channel signée', async () => {
+    const jarA = cookieHeader((await login()).callback.headers['set-cookie']);
+    const jarB = cookieHeader((await login()).callback.headers['set-cookie']);
+    expect((await inject('GET', '/v1/me', { cookie: jarA })).statusCode).toBe(200);
+    const send = async (token: string) => app.inject({ method: 'POST', url: '/auth/backchannel-logout', headers: { 'content-type': 'application/x-www-form-urlencoded' }, payload: `logout_token=${encodeURIComponent(token)}` });
+    expect((await send(await logoutToken())).json()).toEqual({ revoked: true });
+    expect((await inject('GET', '/v1/me', { cookie: jarA })).statusCode).toBe(401);
+    expect((await inject('GET', '/v1/me', { cookie: jarB })).statusCode).toBe(401);
+  });
+
+  it('refuse un jeton de déconnexion invalide, mal adressé, sans événement ou avec nonce', async () => {
+    const send = async (token: string) => (await app.inject({ method: 'POST', url: '/auth/backchannel-logout', headers: { 'content-type': 'application/x-www-form-urlencoded' }, payload: `logout_token=${encodeURIComponent(token)}` })).statusCode;
+    const jar = cookieHeader((await login()).callback.headers['set-cookie']);
+    expect(await send('abc.def.ghi')).toBe(400);
+    expect(await send('')).toBe(400);
+    expect(await send(await logoutToken({}, 'autre-client'))).toBe(400);
+    expect(await send(await logoutToken({ nonce: 'x' }))).toBe(400);
+    expect(await send(await accessToken())).toBe(400); // un jeton d'accès n'est pas un jeton de déconnexion
+    expect((await inject('GET', '/v1/me', { cookie: jar })).statusCode).toBe(200); // la session est intacte
   });
 });

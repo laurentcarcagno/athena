@@ -41,6 +41,19 @@ export class OpenBao {
     return result?.data.data ?? null;
   }
 
+  /** Crée le secret seulement s'il n'existe pas (CAS = 0) ; retourne faux s'il existait déjà. Atomique entre instances. */
+  async kvPutIfAbsent(path: string, data: Record<string, string>): Promise<boolean> {
+    const response = await this.fetchImpl(`${this.address}/v1/secret/data/${path}`, {
+      method: 'POST',
+      headers: { 'X-Vault-Token': this.token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ options: { cas: 0 }, data }),
+      signal: AbortSignal.timeout(10_000),
+    });
+    if (response.ok) return true;
+    if (response.status === 400) return false; // « check-and-set parameter did not match »
+    throw new OpenBaoError(`OpenBao POST ${path} : HTTP ${response.status}`, response.status);
+  }
+
   // --- Transit (chiffrement) ---
   /** Crée la clé de l'organisation si elle n'existe pas. Clé dérivée : le contexte est obligatoire et lié au texte chiffré. */
   async ensureKey(name: string): Promise<void> {

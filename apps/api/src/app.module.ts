@@ -3,7 +3,9 @@ import { APP_GUARD } from '@nestjs/core';
 import { AuthGuard } from './auth/auth.guard';
 import { SESSION_STORE, TOKEN_VERIFIER, WEB_CONFIG, type WebConfig } from './auth/auth.tokens';
 import { BffController } from './auth/bff.controller';
+import { resolveSessionSecret } from './auth/secret';
 import { PgSessionStore } from './auth/session';
+import { OpenBao } from './secrets/openbao';
 import { PG_POOL } from './core/core.tokens';
 import type { Pool } from 'pg';
 import { TokenVerifier } from './auth/token-verifier';
@@ -25,11 +27,16 @@ import { HealthController } from './health/health.controller';
     { provide: SESSION_STORE, useFactory: (pool: Pool) => new PgSessionStore(pool), inject: [PG_POOL] },
     {
       provide: WEB_CONFIG,
-      useFactory: (): WebConfig => {
+      useFactory: async (): Promise<WebConfig> => {
         const c = loadConfig();
+        const bao = c.OPENBAO_ADDR && c.OPENBAO_TOKEN ? new OpenBao(c.OPENBAO_ADDR, c.OPENBAO_TOKEN) : null;
+        const sessionSecret = await resolveSessionSecret(c.SESSION_SECRET, bao).catch((error: Error) => {
+          console.error(`auth: secret de session indisponible : ${error.message.slice(0, 150)}`);
+          return undefined; // l'authentification web répond alors 503 plutôt que d'utiliser un secret faible
+        });
         return {
           issuer: c.KEYCLOAK_ISSUER, clientId: c.KEYCLOAK_WEB_CLIENT_ID, clientSecret: c.KEYCLOAK_WEB_CLIENT_SECRET,
-          sessionSecret: c.SESSION_SECRET, publicUrl: c.PUBLIC_URL, webOrigin: c.WEB_ORIGIN, cookieSecure: c.COOKIE_SECURE,
+          sessionSecret, publicUrl: c.PUBLIC_URL, webOrigin: c.WEB_ORIGIN, cookieSecure: c.COOKIE_SECURE,
           sessionTtlSeconds: c.SESSION_TTL_SECONDS,
         };
       },

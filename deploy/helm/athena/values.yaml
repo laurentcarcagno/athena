@@ -1,0 +1,61 @@
+# Valeurs par défaut d'Athena. Les secrets ne figurent JAMAIS ici : ils viennent de secrets Kubernetes existants,
+# alimentés par OpenBao (Vault Secrets Operator, agent injector ou External Secrets).
+
+image:
+  registry: ""                 # ex. registry.exemple.lan/tools
+  api: { repository: athena-api, tag: "" }   # tag vide = appVersion
+  web: { repository: athena-web, tag: "" }
+  pullPolicy: IfNotPresent
+  pullSecrets: []
+
+# URL publique (une seule origine : l'application web relaie /v1 et /auth vers l'API).
+publicUrl: https://athena.exemple.lan
+
+# Secret existant contenant, au minimum : DATABASE_URL (compte applicatif, RLS) et KEYCLOAK_WEB_CLIENT_SECRET.
+# Optionnels : OPENBAO_TOKEN, GITLAB_TOKEN, PLUGIN_TRUSTED_KEYS, SESSION_SECRET (sinon généré dans OpenBao).
+existingSecret: athena-env
+# Secret du job de migration : MIGRATION_DATABASE_URL (compte propriétaire du schéma, distinct du compte applicatif).
+migrationSecret: athena-migration
+
+config:
+  keycloakIssuer: https://keycloak.exemple.lan/realms/athena
+  keycloakWebClientId: athena-web
+  openbaoAddr: ""              # ex. https://openbao.exemple.lan:8200
+  gitlabUrl: ""                # ex. https://gitlab.karka.lan
+  gitlabNamespace: ""          # groupe GitLab des dépôts d'historique
+  corsOrigin: ""               # vide = publicUrl
+  rateLimitApiPerMinute: 600
+  rateLimitSensitivePerMinute: 60
+  trustProxy: true             # derrière l'ingress
+  webhookAllowPrivate: false   # laisser faux en production (protection SSRF)
+
+api:
+  replicas: 2
+  resources:
+    requests: { cpu: 100m, memory: 192Mi }
+    limits: { memory: 512Mi }
+
+# Le worker d'historique doit rester à UNE instance (ordre des commits).
+worker:
+  resources:
+    requests: { cpu: 50m, memory: 128Mi }
+    limits: { memory: 512Mi }
+
+web:
+  replicas: 2
+  resources:
+    requests: { cpu: 20m, memory: 32Mi }
+    limits: { memory: 128Mi }
+
+ingress:
+  enabled: true
+  className: nginx
+  host: athena.exemple.lan
+  tlsSecret: athena-tls
+  annotations: {}
+
+networkPolicy:
+  enabled: true
+
+migrations:
+  enabled: true

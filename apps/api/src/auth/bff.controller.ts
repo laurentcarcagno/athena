@@ -1,5 +1,5 @@
 import { createHash, randomBytes } from 'node:crypto';
-import { Controller, Get, HttpCode, Inject, Post, Query, Req, Res } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Inject, Post, Query, Req, Res } from '@nestjs/common';
 import { Public } from './auth.guard';
 import { SESSION_COOKIE, SESSION_STORE, TOKEN_VERIFIER, WEB_CONFIG, type WebConfig } from './auth.tokens';
 import { cookie, csrfToken, parseCookies, safeEqual, sign, unsign, type SessionStore } from './session';
@@ -121,6 +121,24 @@ export class BffController {
       user: { username: principal.username, name: principal.name ?? principal.username, email: principal.email ?? null, roles: principal.roles, groups: principal.groups },
       csrf: csrfToken(this.config.sessionSecret, id),
     });
+  }
+
+  /**
+   * Déconnexion initiée par Keycloak (administrateur, désactivation du compte) : révoque toutes les sessions de
+   * l'utilisateur. Authentifiée par la signature du jeton de déconnexion, pas par cookie.
+   */
+  @Public()
+  @HttpCode(200)
+  @Post('backchannel-logout')
+  async backchannelLogout(@Body() body: unknown, @Res() reply: Reply_): Promise<void> {
+    const token = typeof (body as { logout_token?: unknown })?.logout_token === 'string' ? (body as { logout_token: string }).logout_token : '';
+    try {
+      const { subject } = await this.verifier.verifyLogoutToken(token, this.config.clientId);
+      await this.sessions.deleteBySubject(subject);
+      reply.status(200).header('Cache-Control', 'no-store').send({ revoked: true });
+    } catch {
+      reply.status(400).header('Cache-Control', 'no-store').send({ error: 'invalid_logout_token', message: 'Jeton de déconnexion invalide.', details: [] });
+    }
   }
 
   @Public()

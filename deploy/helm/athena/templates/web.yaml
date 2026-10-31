@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: athena-web
+  labels:
+    {{- include "athena.labels" . | nindent 4 }}
+    app.kubernetes.io/component: web
+spec:
+  replicas: {{ .Values.web.replicas }}
+  selector:
+    matchLabels: { app.kubernetes.io/instance: {{ .Release.Name }}, app.kubernetes.io/component: web }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: athena, app.kubernetes.io/instance: {{ .Release.Name }}, app.kubernetes.io/component: web }
+    spec:
+      {{- include "athena.podSecurity" . | nindent 6 }}
+      automountServiceAccountToken: false
+      {{- with .Values.image.pullSecrets }}
+      imagePullSecrets: {{ toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: web
+          image: {{ include "athena.image" (dict "root" . "spec" .Values.image.web) }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports: [{ name: http, containerPort: 8080 }]
+          env: [{ name: ATHENA_API_UPSTREAM, value: "http://athena-api:3001" }]
+          readinessProbe: { httpGet: { path: /, port: http }, periodSeconds: 5 }
+          livenessProbe: { httpGet: { path: /, port: http }, periodSeconds: 20 }
+          resources:
+            {{- toYaml .Values.web.resources | nindent 12 }}
+          {{- include "athena.containerSecurity" . | nindent 10 }}
+          volumeMounts:
+            - { name: tmp, mountPath: /tmp }
+            - { name: nginx-conf, mountPath: /etc/nginx/conf.d }
+      volumes:
+        - { name: tmp, emptyDir: { sizeLimit: 64Mi } }
+        - { name: nginx-conf, emptyDir: { sizeLimit: 1Mi } }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: athena-web
+  labels:
+    {{- include "athena.labels" . | nindent 4 }}
+spec:
+  selector: { app.kubernetes.io/instance: {{ .Release.Name }}, app.kubernetes.io/component: web }
+  ports: [{ name: http, port: 80, targetPort: http }]
