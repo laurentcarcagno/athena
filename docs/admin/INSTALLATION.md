@@ -69,3 +69,15 @@ Variables : `S3_ENDPOINT`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`, `S3_BUCKET`, `S3_RE
 ## Report des références dans les .sdoc
 
 `POST /v1/projects/:p/docs/:source/writeback` {repo, ref} crée une branche `athena/doc-refs/*` et une merge request qui ajoutent le champ `ATHENA_REFS` aux exigences liées. Le champ doit être déclaré dans la grammaire du document (`[GRAMMAR]`). Jamais d écriture directe.
+
+## Recette Kubernetes locale (kind)
+
+Un déploiement réel du chart a été réalisé le 2026-10-31 sur un cluster `kind` (Kubernetes 1.32) : PostgreSQL 16 en pod, images `athena-api` et `athena-web` chargées avec `kind load docker-image`, rendu du chart avec `helm template` puis `kubectl apply`.
+
+Séquence : secrets `athena-migration` (compte propriétaire) et `athena-env` → job de migration (21 migrations appliquées) → création du rôle de connexion applicatif membre de `athena_app` (`create role … in role athena_app`, sans `bypassrls`) → API, worker et web démarrent. Vérifié : le web relaie `/v1` et `/auth` vers l'API (401 sans jeton, `{"authenticated":false}`), en-têtes de sécurité présents.
+
+Constats corrigés ou à connaître :
+- nginx résout le service API sans liste de recherche DNS : l'amont est maintenant le nom complet `athena-api.<espace>.svc.<clusterDomain>` (valeur `clusterDomain`, défaut `cluster.local`).
+- Le worker refuse de démarrer en production sans `OPENBAO_ADDR` et `OPENBAO_TOKEN` (garde-fou voulu).
+- Les politiques réseau n'ont pas été éprouvées : `kind` n'applique pas NetworkPolicy sans CNI dédié (Calico/Cilium).
+- Non couvert : ingress TLS, Keycloak dans le cluster, réplicas multiples sous charge, sauvegarde/restauration.

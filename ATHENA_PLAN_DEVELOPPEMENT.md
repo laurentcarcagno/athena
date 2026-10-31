@@ -974,7 +974,7 @@ Légende : ● fait et testé · ◐ partiel · ○ non fait.
 | 6 Plugins (signature, isolation, SDK, CLI, hooks, administration) | ● | types de champ, hooks, actions, widgets, vues tabulaires, connecteurs, désinstallation avec politique de données |
 | 6 bis Liaison StrictDoc (index, liens suspects, couverture, récupération GitLab) | ● | report des références dans le `.sdoc` par merge request : ● |
 | 7 Webhooks sortants et entrants, automatisations, connecteur GitLab de code (références, transitions, branche, MR) | ◐ | rétroportages, DORA, notes de version, CLI `athena`, job CI `athena-check` : ●; déclencheurs planifiés : ● |
-| 8 Import JIRA/Tuleap, performance, sécurité interne, conteneurs et Helm, documentation | ◐ | **test d'intrusion externe : à commander** ; charge concurrente mesurée en local (docs/perf/RESULTATS.md) ; déploiement réel sur Kubernetes : non réalisé ; formation : ○ |
+| 8 Import JIRA/Tuleap, performance, sécurité interne, conteneurs et Helm, documentation | ◐ | **test d'intrusion externe : à commander** ; charge concurrente mesurée en local (docs/perf/RESULTATS.md) ; déploiement réel du chart sur un cluster kind : réalisé (INSTALLATION.md), recette sur le cluster cible à faire ; formation : ○ |
 | Interface (liste, fiche, board, création, éditeur de tracker, administration, tableau de bord, palette, FR/EN) | ● | tests de bout en bout (Playwright, Keycloak réel) et accessibilité (axe-core, contraste inclus) : ● ; Storybook (catalogue des composants Hemeria) : ● |
 
 Chiffres au 2026-10-31 : 262 tests API, 30 UI, 27 web, 4 SDK (tous verts) ; aucune vulnérabilité de dépendance connue ; 100 000 artefacts, p95 de recherche sous 300 ms.

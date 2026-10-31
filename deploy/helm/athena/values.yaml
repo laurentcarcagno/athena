@@ -9,6 +9,9 @@ image:
   pullSecrets: []
 
 # URL publique (une seule origine : l'application web relaie /v1 et /auth vers l'API).
+# Domaine DNS du cluster (nginx résout le service api sans liste de recherche : nom complet nécessaire).
+clusterDomain: cluster.local
+
 publicUrl: https://athena.exemple.lan
 
 # Secret existant contenant, au minimum : DATABASE_URL (compte applicatif, RLS) et KEYCLOAK_WEB_CLIENT_SECRET.
