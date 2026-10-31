@@ -2,8 +2,9 @@
 
 Dernière mise à jour : 2026-10-31
 
-- **Phase** : 0 (cadrage et fondations).
-- **Fait** : plan v0.3 et décisions (§ 23), infra de développement (`deploy/dev`), dépôt Git initialisé, hooks d'auteur unique.
+- **Phase** : 0/1 (fondations et socle).
+- **Fait** : T-0001 monorepo + jetons Hemeria + lint design ; T-0003 API NestJS + auth Keycloak (testée contre le Keycloak de dev).
 - **Tâche en cours** : aucune.
-- **Prochain pas** : monorepo pnpm + Turborepo, CI GitLab, spike historique GitLab (plan § 17/§ 4), génération des tokens depuis `DESIGN.json`.
-- **Blocages** : relevés d'environnement à faire (plan § 23.2 point 6).
+- **Prochain pas** : T-0004 persistance PostgreSQL (migrations, RLS, tables organisation/projet/tracker/artefact, outbox) ; puis intégration OpenBao (`@athena/secrets`), BFF/sessions, composants `@athena/ui`.
+- **Blocages** : relevés d'environnement (plan § 23.2 point 6). Accès SSH à gitlab.karka.lan non testé ; rien n'a été poussé.
+- **Rappel** : le plan complet représente ~58 semaines ; il avance par tâches de taille session. Voir `ATHENA_PLAN_DEVELOPPEMENT.md` § 20.
