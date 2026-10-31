@@ -322,6 +322,12 @@ export class IntegrationsController {
   }
 
   @Roles('athena-user', 'athena-admin')
+  @Get('v1/widgets')
+  async listWidgets(@Req() request: AuthedRequest) {
+    return this.plugins.widgets((await this.ctx(request)).organizationId);
+  }
+
+  @Roles('athena-user', 'athena-admin')
   @Get('v1/plugins/:id/widgets/:name')
   async pluginWidget(@Req() request: AuthedRequest, @Param('id') id: string, @Param('name') name: string, @Query('project') project = '') {
     const { organizationId } = await this.ctx(request);

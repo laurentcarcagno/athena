@@ -30,7 +30,7 @@ const frDict = {
   dashboard: {
     eyebrow: 'Pilotage', title: 'Tableau de bord', todo: 'À faire', inProgress: 'En cours', done: 'Terminés', open: 'Ouverts', total: 'Total',
     flow: 'Flux des 7 derniers jours', velocity: 'Vélocité', forecast: 'Prévision du prochain sprint', points: 'points', roadmap: 'Roadmap', noSprint: 'Aucun sprint clos.', noRelease: 'Aucune release.',
-    distribution: 'Répartition', recent: 'Activité récente', committed: 'Engagé', completed: 'Terminé',
+    extensions: 'Extensions', distribution: 'Répartition', recent: 'Activité récente', committed: 'Engagé', completed: 'Terminé',
   },
   config: {
     eyebrow: 'Configuration', title: 'Configuration du tracker', fields: 'Champs', statuses: 'Statuts', transitions: 'Transitions',
@@ -79,7 +79,7 @@ const enDict: Dictionary = {
   dashboard: {
     eyebrow: 'Overview', title: 'Dashboard', todo: 'To do', inProgress: 'In progress', done: 'Done', open: 'Open', total: 'Total',
     flow: 'Flow, last 7 days', velocity: 'Velocity', forecast: 'Next sprint forecast', points: 'points', roadmap: 'Roadmap', noSprint: 'No closed sprint.', noRelease: 'No release.',
-    distribution: 'Distribution', recent: 'Recent activity', committed: 'Committed', completed: 'Completed',
+    extensions: 'Extensions', distribution: 'Distribution', recent: 'Recent activity', committed: 'Committed', completed: 'Completed',
   },
   config: {
     eyebrow: 'Configuration', title: 'Tracker configuration', fields: 'Fields', statuses: 'Statuses', transitions: 'Transitions',

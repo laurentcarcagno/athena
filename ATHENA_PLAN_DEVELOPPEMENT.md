@@ -971,7 +971,7 @@ Légende : ● fait et testé · ◐ partiel · ○ non fait.
 | 3 Historique GitLab (commits par auteur réel, tracker.yaml, restauration, baselines, synchronisation inverse, rebuild) | ● | signature des commits : par l'instance GitLab (configuration), pas par utilisateur ; MR obligatoire : configuration GitLab |
 | 4 ATQL et recherche | ● | plein texte : ●; filtres enregistrés et autocomplétion : ● |
 | 5 Boards, sprints, burndown, vélocité, flux, roadmap, tableau de bord | ● | swimlanes et Gantt des versions : ● |
-| 6 Plugins (signature, isolation, SDK, CLI, hooks, administration) | ◐ | types de champ, hooks, actions, widgets (API), désinstallation avec politique de données : ● ; vues, connecteurs, rendu des widgets dans l'interface : ○ |
+| 6 Plugins (signature, isolation, SDK, CLI, hooks, administration) | ◐ | types de champ, hooks, actions, widgets (API), désinstallation avec politique de données : ● ; rendu des widgets dans le tableau de bord : ● ; vues, connecteurs : ○ |
 | 6 bis Liaison StrictDoc (index, liens suspects, couverture, récupération GitLab) | ● | écriture des références dans le `.sdoc` par MR : ○ |
 | 7 Webhooks sortants et entrants, automatisations, connecteur GitLab de code (références, transitions, branche, MR) | ◐ | rétroportages, DORA, notes de version, CLI `athena`, job CI `athena-check` : ●; déclencheurs planifiés : ● |
 | 8 Import JIRA/Tuleap, performance, sécurité interne, conteneurs et Helm, documentation | ◐ | **test d'intrusion externe : à commander** ; charge concurrente et déploiement réel sur Kubernetes : non mesurés ; formation : ○ |

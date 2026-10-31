@@ -158,6 +158,15 @@ export class PluginService {
     }
   }
 
+  /** Widgets déclarés par les plugins activés de l'organisation (visibles par tous les utilisateurs). */
+  async widgets(organizationId: string): Promise<Array<{ plugin: string; name: string; title: string }>> {
+    const rows = await this.db.tx(organizationId, async (c) => (await c.query('select plugin_id, manifest from plugin_installation where enabled order by plugin_id')).rows);
+    return rows.flatMap((r) => {
+      const widgets = ((r.manifest as { contributes?: { widgets?: string[] } }).contributes?.widgets ?? []);
+      return widgets.map((name) => ({ plugin: r.plugin_id as string, name, title: `${(r.manifest as { name?: string }).name ?? r.plugin_id} · ${name}` }));
+    });
+  }
+
   /** Modèle de données d'un widget de tableau de bord (rendu par l'interface, jamais de HTML du plugin). */
   async widget(organizationId: string, pluginId: string, name: string, project: string): Promise<unknown> {
     const host = await this.hostFor(organizationId, pluginId);

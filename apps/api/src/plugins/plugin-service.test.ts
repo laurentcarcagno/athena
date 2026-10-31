@@ -130,6 +130,7 @@ suite('service de plugins (intégration)', () => {
     await plugins.install(org, pkg(m, extCode), ['storage'], admin);
     expect(await plugins.runAction(org, 'com.acme.ext', 'notifier', { key: 'BRAND-1', version: 1 }, admin)).toEqual({ ok: true, key: 'BRAND-1', by: 'u-admin' });
     expect(await plugins.widget(org, 'com.acme.ext', 'stats', 'ARI')).toEqual({ kind: 'stat', label: 'Projet ARI', value: 42 });
+    expect(await plugins.widgets(org)).toEqual([{ plugin: 'com.acme.ext', name: 'stats', title: 'Couleurs · stats' }]);
     expect(await code(plugins.runAction(org, 'com.acme.ext', 'secret', {}, admin))).toMatch(/validation.*inconnu/);
     expect(await code(plugins.widget(org, 'com.acme.ext', 'absent', 'ARI'))).toMatch(/validation/);
     expect(await code(plugins.runAction(org, 'com.absent.x', 'notifier', {}, admin))).toMatch(/not_found/);

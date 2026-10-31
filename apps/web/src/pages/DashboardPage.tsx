@@ -61,6 +61,42 @@ function Gantt({ releases }: { releases: Release[] }) {
   );
 }
 
+/** Modèles de widget acceptés : le plugin fournit des données, jamais du HTML. */
+export type WidgetModel = { kind: 'stat'; label: string; value: string | number } | { kind: 'list'; title: string; items: string[] };
+
+export function parseWidgetModel(raw: unknown): WidgetModel | null {
+  const m = raw as { kind?: unknown; label?: unknown; value?: unknown; title?: unknown; items?: unknown } | null;
+  if (!m || typeof m !== 'object') return null;
+  if (m.kind === 'stat' && typeof m.label === 'string' && (typeof m.value === 'string' || typeof m.value === 'number')) return { kind: 'stat', label: m.label.slice(0, 100), value: typeof m.value === 'string' ? m.value.slice(0, 100) : m.value };
+  if (m.kind === 'list' && typeof m.title === 'string' && Array.isArray(m.items)) return { kind: 'list', title: m.title.slice(0, 100), items: m.items.slice(0, 20).map((i) => String(i).slice(0, 200)) };
+  return null;
+}
+
+function PluginWidgets({ project }: { project: string }) {
+  const [models, setModels] = useState<Array<{ id: string; title: string; model: WidgetModel }>>([]);
+  useEffect(() => {
+    (async () => {
+      const list = await api<Array<{ plugin: string; name: string; title: string }>>('GET', '/v1/widgets');
+      const loaded = await Promise.all((Array.isArray(list) ? list : []).map(async (w) => {
+        const result = await api<{ model: unknown }>('GET', `/v1/plugins/${w.plugin}/widgets/${w.name}?project=${encodeURIComponent(project)}`).catch(() => null);
+        const model = result ? parseWidgetModel(result.model) : null;
+        return model ? { id: `${w.plugin}/${w.name}`, title: w.title, model } : null;
+      }));
+      setModels(loaded.filter((x): x is NonNullable<typeof x> => x !== null));
+    })().catch(() => setModels([]));
+  }, [project]);
+  if (models.length === 0) return null;
+  return (
+    <Card title={fr.dashboard.extensions}>
+      <div className="ath-stack">
+        {models.map(({ id, title, model }) => model.kind === 'stat'
+          ? <StatCard key={id} label={model.label} value={model.value} />
+          : <div key={id}><span className="ath-eyebrow">{model.title}</span><ul>{model.items.map((item, i) => <li key={i}>{item}</li>)}</ul><span className="ath-mono">{title}</span></div>)}
+      </div>
+    </Card>
+  );
+}
+
 export function DashboardPage() {
   const { project } = useParams();
   const fail = useFailure();
@@ -132,6 +168,7 @@ export function DashboardPage() {
             </div>
           )}
         </Card>
+        <PluginWidgets project={String(project)} />
         <Card title="Trackers">
           <div className="ath-stack">
             {data.byTracker.map((t) => (

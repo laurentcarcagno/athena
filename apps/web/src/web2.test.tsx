@@ -387,3 +387,26 @@ describe('autocomplétion ATQL', () => {
     expect(input).toHaveValue('status = open AND severity ');
   });
 });
+
+describe('widgets de plugins', () => {
+  it('valide la forme du modèle et refuse tout ce qui n’est pas une donnée simple', async () => {
+    const { parseWidgetModel } = await import('./pages/DashboardPage');
+    expect(parseWidgetModel({ kind: 'stat', label: 'Projet', value: 42 })).toEqual({ kind: 'stat', label: 'Projet', value: 42 });
+    expect(parseWidgetModel({ kind: 'list', title: 'T', items: ['a', 1] })).toEqual({ kind: 'list', title: 'T', items: ['a', '1'] });
+    expect(parseWidgetModel({ kind: 'html', html: '<script>' })).toBeNull();
+    expect(parseWidgetModel({ kind: 'stat', label: 'x', value: { a: 1 } })).toBeNull();
+    expect(parseWidgetModel(null)).toBeNull();
+  });
+  it('affiche un widget fourni par un plugin dans le tableau de bord', async () => {
+    handlers = [
+      on('GET', '/v1/projects/ARI/dashboard', { body: { byCategory: { todo: 1, in_progress: 0, done: 0 }, byTracker: [], distribution: null, recent: [] } }),
+      on('GET', '/v1/projects/ARI/velocity', { body: { sprints: [], average: 0, forecast: 0 } }),
+      on('GET', /\/flow\?days=7/, { body: [] }), on('GET', '/v1/projects/ARI/roadmap', { body: [] }),
+      on('GET', '/v1/widgets', { body: [{ plugin: 'com.acme.ext', name: 'stats', title: 'Ext · stats' }] }),
+      on('GET', /\/v1\/plugins\/com\.acme\.ext\/widgets\/stats\?project=ARI$/, { body: { model: { kind: 'stat', label: 'Dette technique', value: 42 } } }),
+    ];
+    wrap('/p/ARI/dashboard', <DashboardPage />, '/p/:project/dashboard');
+    expect(await screen.findByText('Dette technique')).toBeInTheDocument();
+    expect(screen.getByText('42')).toHaveClass('ath-stat__value');
+  });
+});
