@@ -1,0 +1,139 @@
+import { Test } from '@nestjs/testing';
+import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify';
+import { createLocalJWKSet, exportJWK, generateKeyPair, SignJWT } from 'jose';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { AppModule } from '../app.module';
+import { TOKEN_VERIFIER } from '../auth/auth.guard';
+import { TokenVerifier } from '../auth/token-verifier';
+import { PG_POOL, SECRET_STORE } from '../core/core.tokens';
+import { Db } from '../core/db';
+import { bugTemplate } from '../core/templates';
+import { createTestDb, pgUp, type TestDb } from '../testing/harness';
+
+const ISSUER = 'http://kc.test/realms/athena';
+const suite = pgUp ? describe : describe.skip;
+
+class MemorySecrets {
+  readonly data = new Map<string, Record<string, string>>();
+  async put(path: string, data: Record<string, string>) { this.data.set(path, data); }
+  async get(path: string) { return this.data.get(path) ?? null; }
+}
+
+suite('intégrations REST (webhooks, StrictDoc, GitLab)', () => {
+  let app: NestFastifyApplication;
+  let testDb: TestDb;
+  let sign: (claims: Record<string, unknown>) => Promise<string>;
+  const orgId = crypto.randomUUID();
+
+  const call = (method: 'GET' | 'POST', url: string, jwt?: string, payload?: unknown, headers: Record<string, string> = {}) =>
+    app.inject({
+      method, url,
+      headers: { ...(jwt ? { authorization: `Bearer ${jwt}` } : {}), ...headers },
+      ...(payload !== undefined ? { payload: payload as object } : {}),
+    });
+  const token = (roles: string[]) =>
+    sign({ preferred_username: 'tester', email: 'dev@example.test', name: 'Dev Test', realm_access: { roles }, groups: ['/org-demo'] });
+
+  beforeAll(async () => {
+    testDb = await createTestDb('athena_test_integrations');
+    await new Db(testDb.pool).tx(orgId, (c) => c.query("insert into organization (id, key, name) values ($1, 'demo', 'Démo')", [orgId]));
+    const { publicKey, privateKey } = await generateKeyPair('RS256');
+    const jwk = { ...(await exportJWK(publicKey)), alg: 'RS256', kid: 'k1', use: 'sig' };
+    sign = (claims) => new SignJWT(claims).setProtectedHeader({ alg: 'RS256', kid: 'k1' })
+      .setIssuer(ISSUER).setAudience('athena-api').setSubject('sub-dev').setIssuedAt().setExpirationTime('5m').sign(privateKey);
+    process.env['KEYCLOAK_ISSUER'] = ISSUER;
+    process.env['DATABASE_URL'] = 'postgres://unused:unused@127.0.0.1:1/none';
+    const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
+      .overrideProvider(TOKEN_VERIFIER).useValue(new TokenVerifier(ISSUER, 'athena-api', createLocalJWKSet({ keys: [jwk] })))
+      .overrideProvider(PG_POOL).useValue(testDb.pool)
+      .overrideProvider(SECRET_STORE).useValue(new MemorySecrets())
+      .compile();
+    app = moduleRef.createNestApplication<NestFastifyApplication>(new FastifyAdapter());
+    await app.init();
+    await app.getHttpAdapter().getInstance().ready();
+
+    const admin = await token(['athena-admin', 'athena-user']);
+    await call('POST', '/v1/projects', admin, { key: 'ARI', name: 'Ariane' });
+    const { projectKey, ...spec } = bugTemplate('ARI');
+    void projectKey;
+    await call('POST', '/v1/projects/ARI/trackers', admin, spec);
+    await call('POST', '/v1/projects/ARI/trackers/BUG/artifacts', admin, { values: { title: 'Crash', severity: 'majeure', assignee: 'sub-dev' } });
+  });
+  afterAll(async () => {
+    await app?.close();
+    await testDb?.drop();
+  });
+
+  it('reçoit un webhook GitLab authentifié et applique les règles', async () => {
+    const admin = await token(['athena-admin']);
+    const integration = await call('POST', '/v1/projects/ARI/integrations/gitlab', admin);
+    expect(integration.statusCode).toBe(201);
+    const { path, secret } = integration.json();
+    expect(path).toBe('/hooks/in/gitlab/demo/ARI');
+    expect(secret).toMatch(/^glhook_[0-9a-f]{64}$/);
+
+    // L'utilisateur du jeton est mémorisé à son premier appel authentifié (mapping e-mail → utilisateur).
+    await call('GET', '/v1/projects/ARI/artifacts/BUG-1', await token(['athena-user']));
+
+    const push = { object_kind: 'push', ref: 'refs/heads/bugfix/BUG-1-crash', commits: [{ id: 'c'.repeat(40), message: 'Corrige\n\nRefs BUG-1', author: { email: 'dev@example.test' } }] };
+    const ok = await call('POST', path, undefined, push, { 'x-gitlab-token': secret });
+    expect(ok.statusCode).toBe(202);
+    expect(ok.json().results.some((r: { outcome: string }) => r.outcome === 'transitioned')).toBe(true);
+    const refs = await call('GET', '/v1/projects/ARI/artifacts/BUG-1/code-refs', await token(['athena-user']));
+    expect(refs.json().map((r: { kind: string }) => r.kind).sort()).toEqual(['branch', 'commit']);
+    expect((await call('GET', '/v1/projects/ARI/artifacts/BUG-1', await token(['athena-user']))).json().status).toBe('in_progress');
+
+    const ignored = await call('POST', path, undefined, { object_kind: 'tag_push' }, { 'x-gitlab-token': secret });
+    expect(ignored.json()).toMatchObject({ accepted: false });
+  });
+
+  it('refuse de façon identique jeton absent, faux, organisation ou projet inconnus', async () => {
+    const bodies = new Set<string>();
+    const attempts: Array<[string, Record<string, string>]> = [
+      ['/hooks/in/gitlab/demo/ARI', {}],
+      ['/hooks/in/gitlab/demo/ARI', { 'x-gitlab-token': 'faux' }],
+      ['/hooks/in/gitlab/inconnue/ARI', { 'x-gitlab-token': 'faux' }],
+      ['/hooks/in/gitlab/demo/ZZZ', { 'x-gitlab-token': 'faux' }],
+      ['/hooks/in/gitlab/DEMO%20x/ARI', { 'x-gitlab-token': 'faux' }],
+    ];
+    for (const [url, headers] of attempts) {
+      const response = await call('POST', url, undefined, { object_kind: 'push' }, headers);
+      expect(response.statusCode).toBe(403);
+      bodies.add(response.body);
+    }
+    expect(bodies.size).toBe(1);
+  });
+
+  it("n'accepte pas un jeton valide d'un autre projet", async () => {
+    const admin = await token(['athena-admin']);
+    await call('POST', '/v1/projects', admin, { key: 'OTH', name: 'Autre' });
+    const other = (await call('POST', '/v1/projects/OTH/integrations/gitlab', admin)).json();
+    const response = await call('POST', '/hooks/in/gitlab/demo/ARI', undefined, { object_kind: 'push' }, { 'x-gitlab-token': other.secret });
+    expect(response.statusCode).toBe(403);
+  });
+
+  it('administre les webhooks sortants', async () => {
+    const admin = await token(['athena-admin']);
+    expect((await call('POST', '/v1/webhooks', await token(['athena-user']), { url: 'https://exemple.org/h', eventTypes: ['artifact.*'] })).statusCode).toBe(403);
+    expect((await call('POST', '/v1/webhooks', admin, { url: 'http://exemple.org/h', eventTypes: ['artifact.*'] })).statusCode).toBe(422);
+    const created = await call('POST', '/v1/webhooks', admin, { url: 'https://exemple.org/h', eventTypes: ['artifact.*'], description: 'CI' });
+    expect(created.statusCode).toBe(201);
+    expect(created.json().secret).toMatch(/^whsec_/);
+    const list = (await call('GET', '/v1/webhooks', admin)).json();
+    expect(list).toHaveLength(1);
+    expect(JSON.stringify(list)).not.toContain('whsec_');
+    expect((await call('GET', `/v1/webhooks/${list[0].id}/deliveries`, admin)).json()).toEqual([]);
+  });
+
+  it('indexe la documentation et expose liens et couverture', async () => {
+    const admin = await token(['athena-admin', 'athena-user']);
+    const sdoc = '[DOCUMENT]\nTITLE: Spec\n\n[REQUIREMENT]\nUID: SYS-1\nTITLE: Journal\nSTATEMENT: Le système journalise.\n';
+    const indexed = await call('POST', '/v1/projects/ARI/docs/spec/index', admin, { files: [{ path: 'spec.sdoc', content: sdoc }], gitSha: 'abc1234' });
+    expect(indexed.json()).toMatchObject({ nodes: 1 });
+    expect((await call('POST', '/v1/projects/ARI/artifacts/BUG-1/doc-links', admin, { source: 'spec', uid: 'SYS-1' })).statusCode).toBe(204);
+    expect((await call('GET', '/v1/projects/ARI/artifacts/BUG-1/doc-links', admin)).json()).toMatchObject([{ uid: 'SYS-1', suspect: false }]);
+    expect((await call('GET', '/v1/projects/ARI/docs/spec/coverage?tracker=BUG', admin)).json()).toMatchObject({ covered: 1, total: 1 });
+    expect((await call('POST', '/v1/projects/ARI/docs/spec/index', await token(['athena-user']), { files: [{ path: 'x', content: '' }] })).statusCode).toBe(403);
+    expect((await call('POST', '/v1/projects/ARI/docs/spec/index', admin, { files: [] })).statusCode).toBe(422);
+  });
+});

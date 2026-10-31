@@ -6,6 +6,9 @@ const schema = z.object({
   DATABASE_URL: z.string().min(1),
   KEYCLOAK_ISSUER: z.string().url(),
   KEYCLOAK_AUDIENCE: z.string().min(1).default('athena-api'),
+  OPENBAO_ADDR: z.string().url().optional(),
+  OPENBAO_TOKEN: z.string().min(1).optional(),
+  WEBHOOK_ALLOW_PRIVATE: z.enum(['true', 'false']).default('false').transform((v) => v === 'true'),
   CORS_ORIGIN: z.string().default('http://localhost:3000'),
 });
 

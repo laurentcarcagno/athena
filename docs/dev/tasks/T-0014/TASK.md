@@ -1,0 +1,4 @@
+# T-0014 : reception des webhooks GitLab et routes REST des integrations (phases 6 bis et 7)
+- Livre : POST /hooks/in/gitlab/:org/:project (jeton secret compare en temps constant, reponse 403 identique pour tout echec, pas denumeration), rotation du secret par projet (stocke dans le coffre), routes REST des webhooks sortants (creation, liste, livraisons, rejeu), de StrictDoc (indexation, liens, couverture) et des references de code. Adaptateur OpenBao KV pour les secrets ; sans OpenBao le stockage de secrets est refuse (pas de repli en clair).
+- Tests : 5 (124 au total pour lAPI).
+- Non fait : worker de livraison des webhooks sortants (service existant, pas encore lance en tache de fond), recuperation des fichiers .sdoc depuis GitLab, reconciliation periodique, limitation de debit, OpenAPI.
