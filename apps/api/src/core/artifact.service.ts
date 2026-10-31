@@ -1,0 +1,175 @@
+import type { PoolClient } from 'pg';
+import { Db, type Actor } from './db';
+import { conflict, forbidden, notFound, validation } from './errors';
+import { FieldTypeRegistry } from './field-types';
+import { audit, outbox, TrackerService, type TrackerDefinition } from './tracker.service';
+
+export interface Artifact {
+  id: string;
+  key: string;
+  trackerKey: string;
+  status: string;
+  values: Record<string, unknown>;
+  version: number;
+}
+
+type Values = Record<string, unknown>;
+type Diff = Record<string, { from: unknown; to: unknown }>;
+
+export class ArtifactService {
+  constructor(
+    private readonly db: Db,
+    private readonly trackers: TrackerService,
+    private readonly fieldTypes: FieldTypeRegistry,
+  ) {}
+
+  async create(
+    organizationId: string, projectKey: string, trackerKey: string, values: Values, actor: Actor,
+  ): Promise<Artifact> {
+    return this.db.tx(organizationId, async (c) => {
+      const def = await this.trackers.getDefinition(c, projectKey, trackerKey);
+      this.validateValues(def, values, true);
+      const initial = def.statuses.find((s) => s.category === 'todo');
+      if (!initial) throw validation(['aucun statut initial']);
+      const number = Number((await c.query('select next_artifact_number($1) n', [def.id])).rows[0].n);
+      const key = `${def.key}-${number}`;
+      const id = (
+        await c.query(
+          `insert into artifact (organization_id, project_id, tracker_id, number, key, status_id, "values", created_by)
+           values ($1,$2,$3,$4,$5,$6,$7,$8) returning id`,
+          [organizationId, def.projectId, def.id, number, key, initial.id, JSON.stringify(values), actor.id],
+        )
+      ).rows[0].id as string;
+      const diff: Diff = Object.fromEntries(Object.entries(values).map(([k, v]) => [k, { from: null, to: v }]));
+      await this.record(c, organizationId, id, 1, diff, actor, 'artifact.created', key, { values });
+      return { id, key, trackerKey, status: initial.key, values, version: 1 };
+    });
+  }
+
+  async get(organizationId: string, projectKey: string, key: string): Promise<Artifact> {
+    return this.db.tx(organizationId, async (c) => {
+      const row = await this.load(c, projectKey, key, false);
+      return this.toArtifact(row);
+    });
+  }
+
+  async update(
+    organizationId: string, projectKey: string, key: string, patch: Values, expectedVersion: number, actor: Actor,
+  ): Promise<Artifact> {
+    return this.db.tx(organizationId, async (c) => {
+      const row = await this.load(c, projectKey, key, true);
+      if (row.version !== expectedVersion) {
+        throw conflict(`Version attendue ${expectedVersion}, version courante ${row.version}.`);
+      }
+      const def = await this.trackers.getDefinition(c, projectKey, row.tracker_key);
+      const next: Values = { ...row.values };
+      for (const [k, v] of Object.entries(patch)) {
+        if (v === null) delete next[k];
+        else next[k] = v;
+      }
+      this.validateValues(def, next, true);
+      const diff = diffOf(row.values, next);
+      if (Object.keys(diff).length === 0) return this.toArtifact(row);
+      const version = row.version + 1;
+      await c.query(`update artifact set "values" = $1, version = $2, updated_at = now() where id = $3`, [
+        JSON.stringify(next), version, row.id,
+      ]);
+      await this.record(c, organizationId, row.id, version, diff, actor, 'artifact.updated', key, { changes: diff });
+      return { ...this.toArtifact(row), values: next, version };
+    });
+  }
+
+  async transition(
+    organizationId: string, projectKey: string, key: string, transitionName: string, expectedVersion: number, actor: Actor,
+  ): Promise<Artifact> {
+    return this.db.tx(organizationId, async (c) => {
+      const row = await this.load(c, projectKey, key, true);
+      if (row.version !== expectedVersion) {
+        throw conflict(`Version attendue ${expectedVersion}, version courante ${row.version}.`);
+      }
+      const def = await this.trackers.getDefinition(c, projectKey, row.tracker_key);
+      const transition = def.transitions.find(
+        (t) => t.name === transitionName && (t.fromStatusId === null || t.fromStatusId === row.status_id),
+      );
+      if (!transition) throw conflict(`Transition « ${transitionName} » impossible depuis l'état courant.`);
+
+      for (const condition of transition.conditions as Array<{ type: string; roles?: string[] }>) {
+        if (condition.type === 'role' && !condition.roles?.some((r) => actor.roles.includes(r))) {
+          throw forbidden(`Transition « ${transitionName} » réservée aux rôles : ${condition.roles?.join(', ')}.`);
+        }
+      }
+      const problems: string[] = [];
+      for (const validator of transition.validators as Array<{ type: string; fields?: string[] }>) {
+        if (validator.type === 'required_fields') {
+          for (const f of validator.fields ?? []) if (row.values[f] === undefined) problems.push(`champ requis : ${f}`);
+        }
+      }
+      if (problems.length) throw validation(problems);
+
+      const to = def.statuses.find((s) => s.id === transition.toStatusId)!;
+      const from = def.statuses.find((s) => s.id === row.status_id)!;
+      const version = row.version + 1;
+      await c.query('update artifact set status_id = $1, version = $2, updated_at = now() where id = $3', [
+        to.id, version, row.id,
+      ]);
+      await this.record(c, organizationId, row.id, version, { status: { from: from.key, to: to.key } }, actor,
+        'artifact.transitioned', key, { transition: transitionName, from: from.key, to: to.key, postActions: transition.postActions });
+      return { ...this.toArtifact(row), status: to.key, version };
+    });
+  }
+
+  private validateValues(def: TrackerDefinition, values: Values, checkRequired: boolean): void {
+    const errors: string[] = [];
+    const fields = new Map(def.fields.map((f) => [f.key, f]));
+    for (const [k, v] of Object.entries(values)) {
+      const field = fields.get(k);
+      if (!field) { errors.push(`champ inconnu : ${k}`); continue; }
+      const problem = this.fieldTypes.validate(field.type, v, field.config);
+      if (problem) errors.push(`${k} : ${problem}`);
+    }
+    if (checkRequired) {
+      for (const f of def.fields) if (f.required && values[f.key] === undefined) errors.push(`${f.key} : obligatoire`);
+    }
+    if (errors.length) throw validation(errors);
+  }
+
+  private async load(c: PoolClient, projectKey: string, key: string, lock: boolean) {
+    const row = (
+      await c.query(
+        `select a.id, a.key, a.version, a.status_id, a."values" as values, s.key as status_key, t.key as tracker_key
+         from artifact a join project p on p.id = a.project_id
+         join tracker t on t.id = a.tracker_id join status s on s.id = a.status_id
+         where p.key = $1 and a.key = $2 ${lock ? 'for update of a' : ''}`,
+        [projectKey, key],
+      )
+    ).rows[0];
+    if (!row) throw notFound(`Artefact ${key}`);
+    return row;
+  }
+
+  private toArtifact(row: { id: string; key: string; tracker_key: string; status_key: string; values: Values; version: number }): Artifact {
+    return { id: row.id, key: row.key, trackerKey: row.tracker_key, status: row.status_key, values: row.values, version: row.version };
+  }
+
+  private async record(
+    c: PoolClient, org: string, artifactId: string, version: number, diff: Diff, actor: Actor,
+    eventType: string, key: string, payload: Record<string, unknown>,
+  ): Promise<void> {
+    const revision = await c.query(
+      'insert into artifact_revision (organization_id, artifact_id, version, diff, actor) values ($1,$2,$3,$4,$5) returning event_id',
+      [org, artifactId, version, JSON.stringify(diff), actor.id],
+    );
+    await outbox(c, org, 'artifact', artifactId, eventType, {
+      eventId: revision.rows[0].event_id, key, version, actor: actor.id, ...payload,
+    });
+    await audit(c, org, actor, eventType, `artifact:${key}`, { version });
+  }
+}
+
+function diffOf(before: Values, after: Values): Diff {
+  const diff: Diff = {};
+  for (const k of new Set([...Object.keys(before), ...Object.keys(after)])) {
+    if (JSON.stringify(before[k]) !== JSON.stringify(after[k])) diff[k] = { from: before[k] ?? null, to: after[k] ?? null };
+  }
+  return diff;
+}
