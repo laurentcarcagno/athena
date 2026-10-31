@@ -71,7 +71,7 @@ describe('configuration', () => {
     expect(() => loadConfig({})).toThrow(/KEYCLOAK_ISSUER/);
   });
   it('applique les valeurs par défaut', () => {
-    expect(loadConfig({ KEYCLOAK_ISSUER: ISSUER }).PORT).toBe(3001);
+    expect(loadConfig({ KEYCLOAK_ISSUER: ISSUER, DATABASE_URL: 'postgres://x' }).PORT).toBe(3001);
   });
 });
 
@@ -81,6 +81,7 @@ describe('garde HTTP', () => {
 
   beforeAll(async () => {
     process.env['KEYCLOAK_ISSUER'] = ISSUER;
+    process.env['DATABASE_URL'] = 'postgres://app:unused@127.0.0.1:1/none';
     const keys = await makeKeys();
     sign = keys.sign;
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] })

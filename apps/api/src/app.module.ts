@@ -3,9 +3,11 @@ import { APP_GUARD } from '@nestjs/core';
 import { AuthGuard, TOKEN_VERIFIER } from './auth/auth.guard';
 import { TokenVerifier } from './auth/token-verifier';
 import { loadConfig } from './config';
+import { CoreModule } from './core/core.module';
 import { HealthController } from './health/health.controller';
 
 @Module({
+  imports: [CoreModule],
   controllers: [HealthController],
   providers: [
     {
