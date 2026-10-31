@@ -78,6 +78,11 @@ suite('permissions par champ (intégration)', () => {
     expect((await search.search(org, 'ARI', 'salary > 4000', 'x', 50, 0, ['athena-admin'])).total).toBe(1);
   });
 
+  it('refuse le plein texte aux lecteurs qui ont des champs masqués, et l’autorise sinon', async () => {
+    expect(await code(search.search(org, 'ARI', 'text ~ "5000"', 'u-dev', 50, 0, dev.roles))).toMatch(/validation.*plein texte indisponible/i);
+    expect((await search.search(org, 'ARI', 'text ~ "alice"', 'u-hr', 50, 0, hr.roles)).hits.map((h) => h.key)).toEqual(['STAFF-1']);
+  });
+
   it('applique les rôles aux champs ajoutés ensuite et les expose dans la définition', async () => {
     await trackers.addField(org, 'ARI', 'STAFF', { key: 'review', label: 'Évaluation', type: 'text', readRoles: ['manager'] }, admin);
     const def = await new Db(testDb.pool).tx(org, (c) => trackers.getDefinition(c, 'ARI', 'STAFF'));

@@ -60,6 +60,13 @@ export function compile(input: string | Query, context: CompileContext, leading:
   };
 
   function cmp(field: string, op: Operator, value: Value): string {
+    if (field.toLowerCase() === 'text') {
+      // Plein texte (mots, "expression exacte", -exclusion). Interdit si le lecteur a des champs masqués : la requête
+      // pourrait sinon révéler leur contenu.
+      if (op !== '~') throw new AtqlError("Le champ text n'accepte que l'opérateur ~", 0);
+      if (context.forbiddenFields && context.forbiddenFields.size > 0) throw new AtqlError('Recherche plein texte indisponible : des champs sont à lecture restreinte pour votre rôle', 0);
+      return `a.search_tsv @@ websearch_to_tsquery('simple', ${bind(String(scalar(value)))})`;
+    }
     const { builtin, name } = fieldRef(field);
     const v = scalar(value);
     if (builtin) {

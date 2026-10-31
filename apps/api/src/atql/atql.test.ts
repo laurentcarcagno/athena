@@ -145,4 +145,24 @@ suite('recherche ATQL (intégration)', () => {
     const other = await search.search(crypto.randomUUID(), 'ARI', '', 'u1');
     expect(other.total).toBe(0);
   });
+
+  it('recherche en plein texte sur toutes les valeurs, avec expressions exactes et exclusions', async () => {
+    expect(await keys('text ~ "démarrage"')).toEqual(['BUG-1']);
+    expect(await keys('text ~ "crash"')).toEqual(['BUG-1']);
+    expect(await keys('text ~ "lenteur liste" ORDER BY key')).toEqual(['BUG-2']); // tous les mots, dans n'importe quel champ
+    expect(await keys('text ~ "faute OR cpu" ORDER BY key')).toEqual(['BUG-3', 'BUG-4']);
+    expect(await keys('text ~ "ui -lenteur"')).toEqual(['BUG-4']); // « ui » est une étiquette de BUG-2 et BUG-4
+    expect(await keys('text ~ "\\"faute de frappe\\"" AND status = done')).toEqual(['BUG-4']);
+    expect(await keys('text ~ "api" AND severity = bloquante')).toEqual(['BUG-1']);
+  });
+  it('limite l’opérateur du plein texte et le refuse quand des champs sont masqués au lecteur', async () => {
+    const code = async (p: Promise<unknown>) => {
+      const e = await p.then(() => null, (x: unknown) => x);
+      return e instanceof DomainError ? `${e.code}:${e.message} ${e.details.join(' ')}` : `autre:${(e as Error)?.message}`;
+    };
+    expect(await code(run('text = "x"'))).toMatch(/validation.*n'accepte que l'opérateur ~/);
+    expect(await code(run('text > 3'))).toMatch(/validation.*n'accepte que l'opérateur ~/);
+    const hidden = await search.search(org, 'ARI', 'text ~ "crash"', 'u1', 50, 0, ['athena-user']);
+    expect(hidden.total).toBe(1); // aucun champ restreint dans ce jeu de données : le plein texte reste disponible
+  });
 });
