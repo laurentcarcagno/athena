@@ -10,3 +10,4 @@ coverage/
 # Généré par `pnpm tokens`
 packages/ui/src/tokens.generated.*
 apps/web/dist/
+apps/api/perf-report.txt

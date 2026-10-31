@@ -239,4 +239,24 @@ suite('intégrations REST (webhooks, StrictDoc, GitLab)', () => {
     expect((await call('POST', '/v1/plugins', admin, { package: pkg, granted: ['root'] })).statusCode).toBe(422);
     expect((await call('POST', '/v1/plugins/com.acme.x/enable', admin)).statusCode).toBe(404);
   });
+
+  it('importe depuis JIRA : simulation par défaut, puis application, réservé aux administrateurs', async () => {
+    const admin = await token(['athena-admin', 'athena-user']);
+    const csv = 'Issue key,Summary,Issue Type,Status,Priority\nPRJ-1,Bug importé,Bug,Open,High';
+    const payload = (dryRun?: boolean) => ({
+      source: 'jira', content: csv, statusMap: { Open: 'open' },
+      config: { trackerByType: { Bug: 'BUG' }, statusMap: {}, fieldMap: { Summary: 'title', Priority: 'severity' }, valueMaps: { severity: { High: 'majeure' } } },
+      ...(dryRun === undefined ? {} : { dryRun }),
+    });
+    expect((await call('POST', '/v1/projects/ARI/import', await token(['athena-user']), payload())).statusCode).toBe(403);
+    const dry = await call('POST', '/v1/projects/ARI/import', admin, payload()); // simulation par défaut
+    expect(dry.statusCode).toBe(201);
+    expect(dry.json()).toMatchObject({ dryRun: true, created: 1, errors: [] });
+    const before = (await call('GET', '/v1/projects/ARI/search?q=' + encodeURIComponent('title ~ "Bug importé"'), admin)).json().total;
+    expect(before).toBe(0);
+    const applied = await call('POST', '/v1/projects/ARI/import', admin, payload(false));
+    expect(applied.json()).toMatchObject({ dryRun: false, created: 1 });
+    expect((await call('GET', '/v1/projects/ARI/search?q=' + encodeURIComponent('title ~ "Bug importé"'), admin)).json().total).toBe(1);
+    expect((await call('POST', '/v1/projects/ARI/import', admin, { ...payload(), config: { oups: true } })).statusCode).toBe(422);
+  });
 });

@@ -9,8 +9,10 @@ import type { PushPayload, ReverseSync } from '../history/reverse-sync';
 import type { BaselineService } from '../history/baseline.service';
 import { Db } from '../core/db';
 import { FieldTypeRegistry } from '../core/field-types';
-import { forbidden } from '../core/errors';
+import { forbidden, validation } from '../core/errors';
 import { OrgResolver, parseBody } from '../core/http';
+import { ImportService } from '../import/import.service';
+import { JiraConfigSchema, parseJiraCsv, parseTuleapArtifacts, TuleapConfigSchema, type ImportRecord } from '../import/sources';
 import type { PluginService } from '../plugins/plugin.service';
 import type { CodeActions } from '../gitcode/code-actions';
 import type { DocFetcher } from '../docs/doc-fetch';
@@ -54,6 +56,7 @@ export class IntegrationsController {
     @Inject(PLUGINS) private readonly plugins: PluginService,
     private readonly fieldTypes: FieldTypeRegistry,
     private readonly automation: AutomationService,
+    private readonly importer: ImportService,
     private readonly inbound: InboundService,
   ) {}
 
@@ -297,6 +300,33 @@ export class IntegrationsController {
     if (state !== 'enable' && state !== 'disable') throw forbidden('Action inconnue.');
     await this.plugins.setEnabled(organizationId, id, state === 'enable', actor);
     if (state === 'enable') await this.plugins.loadEnabled(organizationId);
+  }
+
+  // --- Import JIRA / Tuleap ---
+  /** Simulation par défaut (`dryRun` vrai) : rapport d'écarts sans rien écrire. Limite de corps : 1 Mo, découper les gros exports. */
+  @Roles('athena-admin')
+  @Post('v1/projects/:project/import')
+  async importData(@Req() request: AuthedRequest, @Param('project') project: string, @Body() body: unknown) {
+    const { organizationId, actor } = await this.ctx(request);
+    const input = parseBody(z.object({
+      source: z.enum(['jira', 'tuleap']),
+      content: z.unknown(),
+      config: z.unknown(),
+      statusMap: z.record(z.string(), z.string()),
+      dryRun: z.boolean().default(true),
+    }), body);
+    let parsed: { records: ImportRecord[]; errors: Array<{ row: number; message: string }> };
+    try {
+      if (input.source === 'jira') {
+        parsed = parseJiraCsv(String(input.content ?? ''), JiraConfigSchema.parse(input.config));
+      } else {
+        parsed = parseTuleapArtifacts(input.content, TuleapConfigSchema.parse(input.config));
+      }
+    } catch (error) {
+      throw validation([(error as Error).message.slice(0, 300)]);
+    }
+    const report = await this.importer.run(organizationId, project, input.source, parsed.records, { dryRun: input.dryRun, statusMap: input.statusMap }, actor);
+    return { ...report, parseErrors: parsed.errors };
   }
 
   // --- Baselines ---

@@ -4,6 +4,7 @@ import { Pool } from 'pg';
 import { loadConfig } from '../config';
 import { PluginService } from '../plugins/plugin.service';
 import { parseTrust } from '../plugins/trust';
+import { ImportService } from '../import/import.service';
 import { CodeActions } from '../gitcode/code-actions';
 import { DocFetcher } from '../docs/doc-fetch';
 import { AutomationService } from '../automation/automation.service';
@@ -131,6 +132,7 @@ export { PG_POOL } from './core.tokens';
       },
       inject: [Db, FieldTypeRegistry, ArtifactService, PG_POOL],
     },
+    { provide: ImportService, useFactory: (db: Db, t: TrackerService, f: FieldTypeRegistry) => new ImportService(db, t, f), inject: [Db, TrackerService, FieldTypeRegistry] },
     { provide: APP_FILTER, useClass: DomainErrorFilter },
   ],
   exports: [FieldTypeRegistry, PG_POOL],

@@ -91,9 +91,10 @@ export function compile(input: string | Query, context: CompileContext, leading:
       }
       case 'empty': {
         const { builtin, name } = fieldRef(e.field);
+        const key = builtin ? '' : bindText(name);
         const sql = builtin
           ? `(${builtin.column} is null)`
-          : `(a."values" -> ${bindText(name)} is null or a."values" ->> ${bindText(name)} = '' or a."values" -> ${bindText(name)} = '[]'::jsonb)`;
+          : `(a."values" -> ${key} is null or jsonb_typeof(a."values" -> ${key}) = 'null' or a."values" ->> ${key} = '' or a."values" -> ${key} = '[]'::jsonb)`;
         return e.negated ? `(not ${sql})` : sql;
       }
     }
