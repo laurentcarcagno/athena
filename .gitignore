@@ -15,3 +15,4 @@ e2e/test-results/
 e2e/playwright-report/
 storybook-static/
 dist-cli/
+dev-start.log

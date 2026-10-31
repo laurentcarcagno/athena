@@ -85,3 +85,7 @@ Constats corrigés ou à connaître :
 ## Distribution du CLI
 
 La CI produit `dist-cli/athena-cli-<version>.tgz` (job `package-cli`). Installation : `npm install -g athena-cli-<version>.tgz` (Node 22). Production locale : `pnpm --filter @athena/cli pack`.
+
+## Démarrage local
+
+`node tools/dev-start.mjs` (infra `deploy/dev` démarrée, API construite) crée et amorce la base `athena_dev` au premier lancement puis lance API (3001), worker et web (3000). Connexion : `user.dev` / `dev-only-user`.
