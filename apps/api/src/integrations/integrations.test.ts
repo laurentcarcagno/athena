@@ -219,4 +219,12 @@ suite('intégrations REST (webhooks, StrictDoc, GitLab)', () => {
     expect(created.json().values.title).toBe('Créé par un tiers');
     expect((await app.inject({ method: 'POST', url: path, headers: { 'content-type': 'application/json' }, payload: '{pas du json' })).statusCode).toBe(400);
   });
+
+  it('signale GitLab non configuré (503) pour les actions de branche, merge request et synchronisation de documentation', async () => {
+    const user = await token(['athena-user']);
+    expect((await call('POST', '/v1/projects/ARI/artifacts/BUG-1/branch', user, { type: 'bugfix' })).statusCode).toBe(503);
+    expect((await call('POST', '/v1/projects/ARI/artifacts/BUG-1/branch', user, { type: 'autre' })).statusCode).toBe(422);
+    expect((await call('POST', '/v1/projects/ARI/code-repos', user, { path: 'a/b' })).statusCode).toBe(403);
+    expect((await call('POST', '/v1/projects/ARI/docs/spec/sync', await token(['athena-admin']), { repo: 'a/b' })).statusCode).toBe(503);
+  });
 });

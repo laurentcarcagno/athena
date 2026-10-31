@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
 import { Pool } from 'pg';
 import { loadConfig } from '../config';
+import { CodeActions } from '../gitcode/code-actions';
+import { DocFetcher } from '../docs/doc-fetch';
 import { AutomationService } from '../automation/automation.service';
 import { InboundService } from '../inbound/inbound.service';
 import { AgileController } from '../agile/agile.controller';
@@ -17,7 +19,7 @@ import { BaselineService } from '../history/baseline.service';
 import { GitLabClient } from '../history/gitlab-client';
 import { RebuildService } from '../history/rebuild';
 import { ReverseSync } from '../history/reverse-sync';
-import { BASELINES, PG_POOL, REBUILD, REVERSE_SYNC, SECRET_STORE } from './core.tokens';
+import { BASELINES, CODE_ACTIONS, DOC_FETCHER, PG_POOL, REBUILD, REVERSE_SYNC, SECRET_STORE } from './core.tokens';
 import { ArtifactService } from './artifact.service';
 import { CoreController } from './core.controller';
 import { Db } from './db';
@@ -88,6 +90,22 @@ export { PG_POOL } from './core.tokens';
     },
     { provide: AutomationService, useFactory: (db: Db, a: ArtifactService, l: LinkService, s: SearchService) => new AutomationService(db, a, l, s), inject: [Db, ArtifactService, LinkService, SearchService] },
     { provide: InboundService, useFactory: (db: Db, a: ArtifactService, l: LinkService, secrets: SecretStore) => new InboundService(db, a, l, secrets), inject: [Db, ArtifactService, LinkService, SECRET_STORE] },
+    {
+      provide: CODE_ACTIONS,
+      useFactory: (db: Db): CodeActions | null => {
+        const c = loadConfig();
+        return c.GITLAB_URL && c.GITLAB_TOKEN ? new CodeActions(db, new GitLabClient(c.GITLAB_URL, c.GITLAB_TOKEN)) : null;
+      },
+      inject: [Db],
+    },
+    {
+      provide: DOC_FETCHER,
+      useFactory: (docs: DocLinkService): DocFetcher | null => {
+        const c = loadConfig();
+        return c.GITLAB_URL && c.GITLAB_TOKEN ? new DocFetcher(new GitLabClient(c.GITLAB_URL, c.GITLAB_TOKEN), docs) : null;
+      },
+      inject: [DocLinkService],
+    },
     { provide: APP_FILTER, useClass: DomainErrorFilter },
   ],
   exports: [FieldTypeRegistry, PG_POOL],

@@ -3,13 +3,15 @@ import { Body, Controller, Get, Headers, HttpCode, HttpException, Inject, Param,
 import type { Pool } from 'pg';
 import { z } from 'zod';
 import { Public, Roles, type AuthedRequest } from '../auth/auth.guard';
-import { BASELINES, PG_POOL, REBUILD, REVERSE_SYNC, SECRET_STORE } from '../core/core.tokens';
+import { BASELINES, CODE_ACTIONS, DOC_FETCHER, PG_POOL, REBUILD, REVERSE_SYNC, SECRET_STORE } from '../core/core.tokens';
 import type { RebuildService } from '../history/rebuild';
 import type { PushPayload, ReverseSync } from '../history/reverse-sync';
 import type { BaselineService } from '../history/baseline.service';
 import { Db } from '../core/db';
 import { forbidden } from '../core/errors';
 import { OrgResolver, parseBody } from '../core/http';
+import type { CodeActions } from '../gitcode/code-actions';
+import type { DocFetcher } from '../docs/doc-fetch';
 import { AutomationService } from '../automation/automation.service';
 import { InboundService } from '../inbound/inbound.service';
 import { DocLinkService } from '../docs/doc-link.service';
@@ -45,6 +47,8 @@ export class IntegrationsController {
     @Inject(BASELINES) private readonly baselines: BaselineService | null,
     @Inject(REVERSE_SYNC) private readonly reverse: ReverseSync | null,
     @Inject(REBUILD) private readonly rebuilder: RebuildService | null,
+    @Inject(CODE_ACTIONS) private readonly code: CodeActions | null,
+    @Inject(DOC_FETCHER) private readonly fetcher: DocFetcher | null,
     private readonly automation: AutomationService,
     private readonly inbound: InboundService,
   ) {}
@@ -207,6 +211,51 @@ export class IntegrationsController {
     const row = (await this.pool.query('select organization_id_by_key($1) as id', [orgKey])).rows[0];
     if (!row?.id) throw denied();
     return this.inbound.handle(row.id as string, project, name, request.rawBody.toString('utf8'), signature, idempotency);
+  }
+
+  // --- Actions vers GitLab : branches, merge requests, documentation ---
+  private codeActions(): CodeActions {
+    if (!this.code) throw new HttpException({ error: 'unavailable', message: 'GitLab non configuré.', details: [] }, 503);
+    return this.code;
+  }
+
+  @Roles('athena-admin')
+  @Post('v1/projects/:project/code-repos')
+  async addCodeRepo(@Req() request: AuthedRequest, @Param('project') project: string, @Body() body: unknown) {
+    const { organizationId, actor } = await this.ctx(request);
+    const input = parseBody(z.object({ path: z.string().min(1).max(200), defaultBranch: z.string().max(100).default('main') }), body);
+    return this.codeActions().addRepo(organizationId, project, input.path, input.defaultBranch, actor);
+  }
+
+  @Roles('athena-user', 'athena-admin')
+  @Get('v1/projects/:project/code-repos')
+  async codeRepos(@Req() request: AuthedRequest, @Param('project') project: string) {
+    return this.codeActions().repos((await this.ctx(request)).organizationId, project);
+  }
+
+  @Roles('athena-user', 'athena-admin')
+  @Post('v1/projects/:project/artifacts/:key/branch')
+  async createBranch(@Req() request: AuthedRequest, @Param('project') project: string, @Param('key') key: string, @Body() body: unknown) {
+    const { organizationId, actor } = await this.ctx(request);
+    const input = parseBody(z.object({ type: z.enum(['bugfix', 'feature']), repo: z.string().max(200).optional() }), body);
+    return this.codeActions().createBranch(organizationId, project, key, input.type, input.repo, actor);
+  }
+
+  @Roles('athena-user', 'athena-admin')
+  @Post('v1/projects/:project/artifacts/:key/merge-request')
+  async createMergeRequest(@Req() request: AuthedRequest, @Param('project') project: string, @Param('key') key: string, @Body() body: unknown) {
+    const { organizationId, actor } = await this.ctx(request);
+    const input = parseBody(z.object({ branch: z.string().min(1).max(200), repo: z.string().max(200).optional() }), body);
+    return this.codeActions().createMergeRequest(organizationId, project, key, input.branch, input.repo, actor);
+  }
+
+  @Roles('athena-admin')
+  @Post('v1/projects/:project/docs/:source/sync')
+  async syncDocs(@Req() request: AuthedRequest, @Param('project') project: string, @Param('source') source: string, @Body() body: unknown) {
+    if (!this.fetcher) throw new HttpException({ error: 'unavailable', message: 'GitLab non configuré.', details: [] }, 503);
+    const { organizationId, actor } = await this.ctx(request);
+    const input = parseBody(z.object({ repo: z.string().min(1).max(200), ref: z.string().max(100).default('main'), path: z.string().max(200).optional() }), body);
+    return this.fetcher.sync(organizationId, project, source, input.repo, input.ref, input.path, actor);
   }
 
   // --- Baselines ---

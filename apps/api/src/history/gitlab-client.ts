@@ -142,4 +142,27 @@ export class GitLabClient {
     }
     return paths;
   }
+
+  /** Identifiant d'un dépôt existant, ou null. Ne crée rien. */
+  async findRepository(path: string): Promise<number | null> {
+    const response = await this.request('GET', `/projects/${encodeURIComponent(path)}`);
+    if (response.status === 404) return null;
+    return (await this.json<{ id: number }>(response, 'lecture du dépôt')).id;
+  }
+
+  async createBranch(projectId: number, branch: string, ref: string): Promise<{ webUrl: string }> {
+    const query = new URLSearchParams({ branch, ref });
+    const result = await this.json<{ web_url: string }>(await this.request('POST', `/projects/${projectId}/repository/branches?${query.toString()}`), 'création de la branche');
+    return { webUrl: result.web_url };
+  }
+
+  async createMergeRequest(projectId: number, input: { source: string; target: string; title: string; description: string }): Promise<{ iid: number; webUrl: string }> {
+    const result = await this.json<{ iid: number; web_url: string }>(
+      await this.request('POST', `/projects/${projectId}/merge_requests`, {
+        source_branch: input.source, target_branch: input.target, title: input.title, description: input.description, remove_source_branch: true,
+      }),
+      'création de la merge request',
+    );
+    return { iid: result.iid, webUrl: result.web_url };
+  }
 }
