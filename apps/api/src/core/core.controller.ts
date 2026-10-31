@@ -2,6 +2,7 @@ import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Query, Req
 import { z } from 'zod';
 import { Roles, type AuthedRequest } from '../auth/auth.guard';
 import type { Principal } from '../auth/token-verifier';
+import { BodySchema } from '../openapi/body-schema';
 import { ArtifactService } from './artifact.service';
 import { SearchService } from '../atql/search.service';
 import { Db } from './db';
@@ -112,6 +113,7 @@ export class CoreController {
 
   @Roles('athena-admin')
   @Post()
+  @BodySchema(ProjectBody)
   async createProject(@Req() request: AuthedRequest, @Body() body: unknown) {
     const { organizationId, actor } = await this.orgs.resolve(principalOf(request));
     const input = parseBody(ProjectBody, body);
@@ -121,6 +123,7 @@ export class CoreController {
 
   @Roles('athena-admin')
   @Post(':project/trackers')
+  @BodySchema(TrackerBody)
   async createTracker(@Req() request: AuthedRequest, @Param('project') project: string, @Body() body: unknown) {
     const { organizationId, actor } = await this.orgs.resolve(principalOf(request));
     const input = parseBody(TrackerBody, body);
@@ -195,6 +198,7 @@ export class CoreController {
 
   @Roles('athena-user', 'athena-admin')
   @Post(':project/trackers/:tracker/artifacts')
+  @BodySchema(CreateArtifactBody)
   async createArtifact(
     @Req() request: AuthedRequest, @Param('project') project: string, @Param('tracker') tracker: string, @Body() body: unknown,
   ) {
@@ -211,6 +215,7 @@ export class CoreController {
 
   @Roles('athena-user', 'athena-admin')
   @Patch(':project/artifacts/:key')
+  @BodySchema(UpdateArtifactBody)
   async updateArtifact(
     @Req() request: AuthedRequest, @Param('project') project: string, @Param('key') key: string, @Body() body: unknown,
   ) {
@@ -222,6 +227,7 @@ export class CoreController {
   @Roles('athena-user', 'athena-admin')
   @HttpCode(200)
   @Post(':project/artifacts/:key/transitions')
+  @BodySchema(TransitionBody)
   async transition(
     @Req() request: AuthedRequest, @Param('project') project: string, @Param('key') key: string, @Body() body: unknown,
   ) {
@@ -242,6 +248,7 @@ export class CoreController {
 
   @Roles('athena-admin')
   @Post(':project/link-types')
+  @BodySchema(LinkTypeBody)
   async createLinkType(@Req() request: AuthedRequest, @Param('project') project: string, @Body() body: unknown) {
     const { organizationId, actor } = await this.orgs.resolve(principalOf(request));
     await this.links.createLinkType(organizationId, project, parseBody(LinkTypeBody, body), actor);
@@ -250,6 +257,7 @@ export class CoreController {
 
   @Roles('athena-user', 'athena-admin')
   @Post(':project/artifacts/:key/links')
+  @BodySchema(LinkBody)
   async link(@Req() request: AuthedRequest, @Param('project') project: string, @Param('key') key: string, @Body() body: unknown) {
     const { organizationId, actor } = await this.orgs.resolve(principalOf(request));
     const input = parseBody(LinkBody, body);
@@ -259,6 +267,7 @@ export class CoreController {
   @Roles('athena-user', 'athena-admin')
   @HttpCode(200)
   @Post(':project/artifacts/:key/restore')
+  @BodySchema(RestoreBody)
   async restore(@Req() request: AuthedRequest, @Param('project') project: string, @Param('key') key: string, @Body() body: unknown) {
     const { organizationId, actor } = await this.orgs.resolve(principalOf(request));
     const input = parseBody(RestoreBody, body);
@@ -282,6 +291,7 @@ export class CoreController {
 
   @Roles('athena-user', 'athena-admin')
   @Post(':project/artifacts/:key/comments')
+  @BodySchema(CommentBody)
   async addComment(@Req() request: AuthedRequest, @Param('project') project: string, @Param('key') key: string, @Body() body: unknown) {
     const { organizationId, actor } = await this.orgs.resolve(principalOf(request));
     return this.links.addComment(organizationId, project, key, parseBody(CommentBody, body).body, actor);

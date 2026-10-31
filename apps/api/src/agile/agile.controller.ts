@@ -1,5 +1,6 @@
 import { Body, Controller, Get, HttpCode, Param, Post, Query, Req } from '@nestjs/common';
 import { z } from 'zod';
+import { BodySchema } from '../openapi/body-schema';
 import { Roles, type AuthedRequest } from '../auth/auth.guard';
 import { OrgResolver, parseBody } from '../core/http';
 import { BoardService } from './board.service';
@@ -50,6 +51,7 @@ export class AgileController {
   @Roles('athena-user', 'athena-admin')
   @HttpCode(200)
   @Post('boards/:board/cards/:key/move')
+  @BodySchema(MoveBody)
   async move(@Req() request: AuthedRequest, @Param('project') project: string, @Param('board') board: string, @Param('key') key: string, @Body() body: unknown) {
     const { organizationId, actor } = await this.ctx(request);
     const input = parseBody(MoveBody, body);

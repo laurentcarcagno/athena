@@ -1,6 +1,8 @@
 import 'reflect-metadata';
 import { RequestMethod } from '@nestjs/common';
+import { z, type ZodType } from 'zod';
 import { PUBLIC_KEY, ROLES_KEY } from '../auth/auth.guard';
+import { BODY_SCHEMA_KEY } from './body-schema';
 
 type Ctor = new (...args: never[]) => unknown;
 
@@ -29,11 +31,13 @@ export function buildOpenApi(controllers: Ctor[], version = '0.1.0'): Record<str
       const params = [...route.matchAll(/:([A-Za-z0-9_]+)/g)].map((m) => ({ name: m[1], in: 'path', required: true, schema: { type: 'string' } }));
       const isPublic = Reflect.getMetadata(PUBLIC_KEY, handler) === true || Reflect.getMetadata(PUBLIC_KEY, controller) === true;
       const roles = (Reflect.getMetadata(ROLES_KEY, handler) ?? Reflect.getMetadata(ROLES_KEY, controller)) as string[] | undefined;
+      const bodySchema = Reflect.getMetadata(BODY_SCHEMA_KEY, handler) as ZodType | undefined;
       const status = Reflect.getMetadata('__httpCode__', handler) as number | undefined ?? (verb === 'post' ? 201 : 200);
       (paths[path] ??= {})[verb] = {
         operationId: `${controller.name.replace(/Controller$/, '')}_${name}`,
         tags: [controller.name.replace(/Controller$/, '')],
         parameters: params,
+        ...(bodySchema ? { requestBody: { required: true, content: { 'application/json': { schema: z.toJSONSchema(bodySchema, { io: 'input', unrepresentable: 'any' }) } } } } : {}),
         ...(isPublic ? { security: [] } : { security: [{ bearer: [] }, { session: [] }] }),
         ...(roles ? { 'x-athena-roles': roles } : {}),
         responses: { [String(status)]: { description: 'Succès' }, '401': { description: 'Non authentifié' }, '403': { description: 'Rôle insuffisant' }, '422': { description: 'Validation' } },

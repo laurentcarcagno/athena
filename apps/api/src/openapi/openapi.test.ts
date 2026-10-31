@@ -23,4 +23,11 @@ describe('schéma OpenAPI', () => {
     expect(ops.length).toBeGreaterThan(60);
     expect(Object.keys(doc.paths).every((p) => p.startsWith('/'))).toBe(true);
   });
+  it('décrit le corps des routes qui déclarent un schéma', () => {
+    const body = (doc.paths['/v1/projects/{project}/artifacts/{key}/transitions']!['post'] as unknown as { requestBody: { content: Record<string, { schema: { required: string[]; properties: Record<string, { type: string }> } }> } }).requestBody;
+    const schema = body.content['application/json']!.schema;
+    expect(schema.required).toEqual(expect.arrayContaining(['name', 'version']));
+    expect(schema.properties['version']!.type).toBe('integer');
+    expect(JSON.stringify(doc)).not.toContain('"undefined"');
+  });
 });
