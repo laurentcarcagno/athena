@@ -9,6 +9,6 @@ Dernière mise à jour : 2026-10-31
   1. Test d'intrusion externe (à commander) ; déploiement de recette sur Kubernetes et mesures de charge concurrente.
   2. Storybook ; parcours e2e administrateur (TOTP requis pour admin.dev).
   3. Plugins : vues et connecteurs.
-  4. Pièces jointes : antivirus. OpenAPI : schémas de corps.
+  4. OpenAPI : schémas de corps.
   5. Écarts mineurs : interface des rôles de champ, permissions par transition, suppression/renommage de champs, swimlanes, Gantt.
 - **Blocages** : relevés d'environnement (GitLab interne, OpenBao, LDAP, Kubernetes : plan § 23.2). Rien n'est poussé ; l'accès SSH à `gitlab.karka.lan:2222` n'a pas été testé.

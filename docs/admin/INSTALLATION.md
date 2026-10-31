@@ -61,3 +61,7 @@ Realm avec : client confidentiel `athena-web` (PKCE S256, URI de redirection `ht
 
 ## Limites connues
 Voir `docs/security/REVUE.md` (test d'intrusion externe à commander, limiteur de débit par instance) et `docs/dev/STATE.md`.
+
+## Pièces jointes : stockage et antivirus
+
+Variables : `S3_ENDPOINT`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`, `S3_BUCKET`, `S3_REGION`. Antivirus optionnel : `CLAMAV_HOST` et `CLAMAV_PORT` (clamd, commande INSTREAM). Quand il est configuré, un fichier détecté est refusé, et l'indisponibilité de clamd refuse aussi le fichier (échec fermé).

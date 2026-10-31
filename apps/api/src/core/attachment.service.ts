@@ -3,6 +3,7 @@ import type { PoolClient } from 'pg';
 import { Db, type Actor } from './db';
 import { notFound, validation } from './errors';
 import { audit, outbox } from './tracker.service';
+import type { Scanner } from '../storage/clamav';
 import type { S3Client } from '../storage/s3';
 
 export const MAX_ATTACHMENT_BYTES = 25 * 1024 * 1024;
@@ -29,13 +30,22 @@ export interface AttachmentQuota { maxPerArtifact: number; maxBytesPerOrganizati
 export const DEFAULT_QUOTA: AttachmentQuota = { maxPerArtifact: 50, maxBytesPerOrganization: 5 * 1024 ** 3 };
 
 export class AttachmentService {
-  constructor(private readonly db: Db, private readonly s3: S3Client, private readonly quota: AttachmentQuota = DEFAULT_QUOTA) {}
+  constructor(private readonly db: Db, private readonly s3: S3Client, private readonly quota: AttachmentQuota = DEFAULT_QUOTA, private readonly scanner?: Scanner) {}
 
   async add(organizationId: string, projectKey: string, key: string, name: string, contentType: string, data: Buffer, actor: Actor): Promise<AttachmentView> {
     if (data.length === 0) throw validation(['fichier vide']);
     if (data.length > MAX_ATTACHMENT_BYTES) throw validation([`fichier trop volumineux (maximum ${MAX_ATTACHMENT_BYTES / 1024 / 1024} Mo)`]);
     const safeName = sanitizeName(name);
     const type = /^[a-z0-9.+-]+\/[a-z0-9.+-]+$/i.test(contentType) ? contentType.toLowerCase() : 'application/octet-stream';
+    if (this.scanner) {
+      let detection: string | null;
+      try {
+        detection = await this.scanner.scan(data);
+      } catch {
+        throw validation(['analyse antivirus indisponible : fichier refusé par précaution']); // échec fermé
+      }
+      if (detection) throw validation([`fichier refusé par l'antivirus : ${detection}`]);
+    }
     const sha256 = createHash('sha256').update(data).digest('hex');
     const storageKey = `${organizationId}/${randomUUID()}`;
     const artifactId = await this.db.tx(organizationId, async (c) => {

@@ -31,7 +31,8 @@ import { Db } from './db';
 import { FieldTypeRegistry } from './field-types';
 import { SearchService } from '../atql/search.service';
 import { AttachmentController } from './attachment.controller';
-import { AttachmentService } from './attachment.service';
+import { AttachmentService, DEFAULT_QUOTA } from './attachment.service';
+import { ClamAvScanner } from '../storage/clamav';
 import { S3Client } from '../storage/s3';
 import { SavedFilterController } from '../atql/saved-filter.controller';
 import { SavedFilterService } from '../atql/saved-filter.service';
@@ -63,7 +64,7 @@ export { PG_POOL } from './core.tokens';
         }
         const s3 = new S3Client({ endpoint: c.S3_ENDPOINT, region: c.S3_REGION, accessKey: c.S3_ACCESS_KEY, secretKey: c.S3_SECRET_KEY, bucket: c.S3_BUCKET });
         void s3.ensureBucket().catch((e: Error) => console.error(`s3: ${e.message}`));
-        return new AttachmentService(db, s3);
+        return new AttachmentService(db, s3, DEFAULT_QUOTA, c.CLAMAV_HOST ? new ClamAvScanner(c.CLAMAV_HOST, c.CLAMAV_PORT) : undefined);
       },
       inject: [Db],
     },

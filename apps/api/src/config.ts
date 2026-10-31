@@ -25,6 +25,8 @@ const schema = z.object({
   S3_ACCESS_KEY: z.string().min(3).optional(),
   S3_SECRET_KEY: z.string().min(8).optional(),
   S3_BUCKET: z.string().min(3).default('athena-attachments'),
+  CLAMAV_HOST: z.string().optional(),
+  CLAMAV_PORT: z.coerce.number().int().min(1).max(65535).default(3310),
   PLUGIN_TRUSTED_KEYS: z.string().optional(),
   RATE_LIMIT_API_PER_MINUTE: z.coerce.number().int().min(10).max(100_000).default(600),
   RATE_LIMIT_SENSITIVE_PER_MINUTE: z.coerce.number().int().min(5).max(10_000).default(60),
