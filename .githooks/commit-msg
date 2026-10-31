@@ -1,0 +1,7 @@
+#!/bin/sh
+# Pas de trailer Co-Authored-By ni de mention d'outil dans les messages.
+if grep -qiE '^(co-authored-by|generated with|🤖)' "$1"; then
+  echo "Refusé : pas de Co-Authored-By ni de mention d'outil dans le message de commit." >&2
+  exit 1
+fi
+exit 0

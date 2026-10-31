@@ -1,0 +1,98 @@
+# Infrastructure TEMPORAIRE de développement d'Athena. Ne jamais utiliser en production.
+# Tous les ports sont liés à 127.0.0.1.
+name: athena-dev
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: athena
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: athena
+    ports: ["127.0.0.1:5432:5432"]
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U athena -d athena"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    ports: ["127.0.0.1:6379:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    ports: ["127.0.0.1:9000:9000", "127.0.0.1:9001:9001"]
+    volumes: ["miniodata:/data"]
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    command: ["start-dev", "--import-realm", "--http-port=8080"]
+    environment:
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_HEALTH_ENABLED: "true"
+    ports: ["127.0.0.1:8080:8080"]
+    volumes: ["./keycloak/athena-realm.json:/opt/keycloak/data/import/athena-realm.json:ro"]
+
+  openbao:
+    image: openbao/openbao:latest
+    command: ["server", "-dev", "-dev-root-token-id=${BAO_DEV_ROOT_TOKEN}", "-dev-listen-address=0.0.0.0:8200"]
+    cap_add: ["IPC_LOCK"]
+    ports: ["127.0.0.1:8200:8200"]
+
+  openbao-init:
+    image: openbao/openbao:latest
+    depends_on: [openbao]
+    environment:
+      BAO_ADDR: http://openbao:8200
+      BAO_TOKEN: ${BAO_DEV_ROOT_TOKEN}
+    volumes: ["./openbao/init.sh:/init.sh:ro", "./openbao/athena-api.hcl:/athena-api.hcl:ro"]
+    entrypoint: ["/bin/sh", "/init.sh"]
+    restart: "no"
+
+  # GitLab local : pour les besoins APPLICATIFS (tests d'intégration du connecteur, de la
+  # synchronisation d'historique et des webhooks). Ce n'est PAS le dépôt d'Athena.
+  gitlab:
+    image: gitlab/gitlab-ce:latest
+    hostname: localhost
+    shm_size: "256m"
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'http://localhost:8929'
+        gitlab_rails['gitlab_shell_ssh_port'] = 2224
+        gitlab_rails['initial_root_password'] = '${GITLAB_ROOT_PASSWORD}'
+        gitlab_rails['usage_ping_enabled'] = false
+        puma['worker_processes'] = 0
+        sidekiq['concurrency'] = 5
+        prometheus_monitoring['enable'] = false
+        postgresql['shared_buffers'] = '128MB'
+    ports: ["127.0.0.1:8929:8929", "127.0.0.1:2224:22"]
+    volumes: ["gitlab-config:/etc/gitlab", "gitlab-logs:/var/log/gitlab", "gitlab-data:/var/opt/gitlab"]
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8929/-/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 60
+      start_period: 120s
+
+volumes:
+  gitlab-config:
+  gitlab-logs:
+  gitlab-data:
+  pgdata:
+  miniodata:

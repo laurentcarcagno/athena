@@ -1,0 +1,50 @@
+{
+  "realm": "athena",
+  "enabled": true,
+  "displayName": "Athena (dev)",
+  "registrationAllowed": false,
+  "bruteForceProtected": true,
+  "accessTokenLifespan": 300,
+  "sslRequired": "none",
+  "roles": { "realm": [
+    { "name": "athena-admin", "description": "Administrateur plateforme" },
+    { "name": "athena-user", "description": "Utilisateur" }
+  ] },
+  "groups": [ { "name": "org-demo" } ],
+  "clients": [
+    {
+      "clientId": "athena-web",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "dev-only-athena-web-secret",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": ["http://localhost:3000/*"],
+      "webOrigins": ["http://localhost:3000"],
+      "attributes": { "pkce.code.challenge.method": "S256" }
+    },
+    {
+      "clientId": "athena-worker",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "dev-only-athena-worker-secret",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false
+    }
+  ],
+  "users": [
+    {
+      "username": "admin.dev", "enabled": true, "email": "admin.dev@example.test",
+      "firstName": "Admin", "lastName": "Dev", "emailVerified": true,
+      "credentials": [ { "type": "password", "value": "dev-only-admin", "temporary": false } ],
+      "realmRoles": ["athena-admin", "athena-user"], "groups": ["/org-demo"],
+      "requiredActions": ["CONFIGURE_TOTP"]
+    },
+    {
+      "username": "user.dev", "enabled": true, "email": "user.dev@example.test",
+      "firstName": "User", "lastName": "Dev", "emailVerified": true,
+      "credentials": [ { "type": "password", "value": "dev-only-user", "temporary": false } ],
+      "realmRoles": ["athena-user"], "groups": ["/org-demo"]
+    }
+  ]
+}

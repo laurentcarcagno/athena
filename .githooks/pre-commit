@@ -1,0 +1,16 @@
+#!/bin/sh
+# Règle d'auteur unique des commits de développement d'Athena (plan § 13.4).
+EXPECTED_NAME="Laurent Carcagno"
+EXPECTED_EMAIL="laurent.carcagno@gmail.com"
+for var in GIT_AUTHOR_IDENT GIT_COMMITTER_IDENT; do
+  ident=$(git var "$var") || exit 1
+  case "$ident" in
+    "$EXPECTED_NAME <$EXPECTED_EMAIL> "*) ;;
+    *) echo "Refusé : $var doit être '$EXPECTED_NAME <$EXPECTED_EMAIL>' (obtenu : ${ident% *  *})." >&2; exit 1 ;;
+  esac
+done
+# Secrets : gitleaks si disponible.
+if command -v gitleaks >/dev/null 2>&1; then
+  gitleaks protect --staged --no-banner --redact || exit 1
+fi
+exit 0
