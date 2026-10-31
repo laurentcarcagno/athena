@@ -1,0 +1,35 @@
+# CI Athena. Portes de sécurité : voir ATHENA_PLAN_DEVELOPPEMENT.md § 13.2.
+image: node:22-bookworm
+stages: [verify, security]
+
+default:
+  before_script:
+    - corepack enable
+    - pnpm install --frozen-lockfile
+
+verify:
+  stage: verify
+  script:
+    - pnpm check
+
+commit-authors:
+  stage: verify
+  variables: { GIT_DEPTH: "0" }
+  before_script: []
+  script:
+    - sh tools/check-commit-authors.sh "origin/${CI_DEFAULT_BRANCH}..HEAD"
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+secrets:
+  stage: security
+  image: zricethezav/gitleaks:latest
+  before_script: []
+  script:
+    - gitleaks detect --no-banner --redact
+
+audit:
+  stage: security
+  script:
+    - pnpm audit --audit-level=high
+  allow_failure: false

@@ -6,3 +6,6 @@ coverage/
 !.env.example
 *.log
 .DS_Store
+
+# Généré par `pnpm tokens`
+packages/ui/src/tokens.generated.*
