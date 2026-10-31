@@ -71,14 +71,17 @@ export class BoardService {
     );
   }
 
-  async view(organizationId: string, projectKey: string, boardKey: string): Promise<BoardView> {
+  /** `roles` : rôles du lecteur. Titre ou responsable à lecture restreinte masqués s'il ne les a pas (sans `roles` : usage interne). */
+  async view(organizationId: string, projectKey: string, boardKey: string, roles?: string[]): Promise<BoardView> {
     return this.db.tx(organizationId, async (c) => {
       const board = await this.load(c, projectKey, boardKey);
       const rows = (
         await c.query(
           `select a.key, a.version, a."values" as values, t.key as tracker, s.key as status,
                   (select f.key from field_definition f where f.tracker_id = t.id and f.semantic_role = 'title') as title_field,
-                  (select f.key from field_definition f where f.tracker_id = t.id and f.semantic_role = 'assignee') as assignee_field
+                  (select f.read_roles from field_definition f where f.tracker_id = t.id and f.semantic_role = 'title') as title_roles,
+                  (select f.key from field_definition f where f.tracker_id = t.id and f.semantic_role = 'assignee') as assignee_field,
+                  (select f.read_roles from field_definition f where f.tracker_id = t.id and f.semantic_role = 'assignee') as assignee_roles
            from artifact a join tracker t on t.id = a.tracker_id join status s on s.id = a.status_id join project p on p.id = a.project_id
            where p.key = $1 and t.key = any($2) order by a.created_at, a.id`,
           [projectKey, board.tracker_keys],
@@ -87,14 +90,15 @@ export class BoardService {
       const columns = (board.columns as ColumnSpec[]).map((spec) => ({
         name: spec.name, wipLimit: spec.wipLimit ?? null, count: 0, overLimit: false, cards: [] as Card[],
       }));
+      const canRead = (restricted: string[] | null): boolean => !restricted || roles === undefined || roles.includes('athena-admin') || restricted.some((x) => roles.includes(x));
       let unmapped = 0;
       for (const r of rows) {
         const index = (board.columns as ColumnSpec[]).findIndex((spec) => spec.statuses.includes(r.status));
         if (index < 0) { unmapped++; continue; }
         columns[index]!.cards.push({
           key: r.key, tracker: r.tracker, status: r.status, version: r.version,
-          title: String(r.values[r.title_field ?? 'title'] ?? r.key),
-          assignee: r.assignee_field && r.values[r.assignee_field] ? String(r.values[r.assignee_field]) : null,
+          title: canRead(r.title_roles) ? String(r.values[r.title_field ?? 'title'] ?? r.key) : r.key,
+          assignee: r.assignee_field && canRead(r.assignee_roles) && r.values[r.assignee_field] ? String(r.values[r.assignee_field]) : null,
         });
       }
       for (const column of columns) {

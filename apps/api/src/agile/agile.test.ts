@@ -83,6 +83,18 @@ suite('boards et sprints (intégration)', () => {
     expect(view.columns[0]!.cards[0]).toMatchObject({ key: 'STORY-1', title: 'A', assignee: 'u1', status: 'todo' });
   });
 
+  it('masque titre et responsable à lecture restreinte aux lecteurs sans le rôle', async () => {
+    await testDb.exec("update field_definition set read_roles = '{hr}' where key = 'assignee'");
+    const dev = await boards.view(org, 'ARI', 'kanban', ['athena-user']);
+    expect(dev.columns[0]!.cards[0]).toMatchObject({ title: 'A', assignee: null });
+    const hr = await boards.view(org, 'ARI', 'kanban', ['athena-user', 'hr']);
+    expect(hr.columns[0]!.cards[0]).toMatchObject({ assignee: 'u1' });
+    expect((await boards.view(org, 'ARI', 'kanban', ['athena-admin'])).columns[0]!.cards[0]).toMatchObject({ assignee: 'u1' });
+    await testDb.exec("update field_definition set read_roles = '{hr}' where key = 'title'");
+    expect((await boards.view(org, 'ARI', 'kanban', ['athena-user'])).columns[0]!.cards[0]).toMatchObject({ title: 'STORY-1' });
+    await testDb.exec("update field_definition set read_roles = null where key in ('title', 'assignee')");
+  });
+
   it('déplace une carte via les transitions du workflow et applique la limite WIP', async () => {
     const m1 = await boards.moveCard(org, 'ARI', 'kanban', 'STORY-1', 'En cours', 1, user);
     expect(m1.status).toBe('doing');

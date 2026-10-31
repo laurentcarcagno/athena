@@ -43,7 +43,8 @@ export class AgileController {
   @Roles('athena-user', 'athena-admin')
   @Get('boards/:board')
   async board(@Req() request: AuthedRequest, @Param('project') project: string, @Param('board') board: string) {
-    return this.boards.view((await this.ctx(request)).organizationId, project, board);
+    const { organizationId, actor } = await this.ctx(request);
+    return this.boards.view(organizationId, project, board, actor.roles);
   }
 
   @Roles('athena-user', 'athena-admin')
