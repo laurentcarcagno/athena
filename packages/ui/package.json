@@ -6,18 +6,32 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
-    ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" },
-    "./tokens.css": "./src/tokens.generated.css"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./tokens.css": "./src/tokens.generated.css",
+    "./styles.css": "./src/styles.css"
   },
   "scripts": {
     "tokens": "node scripts/build-tokens.mjs",
     "build": "node scripts/build-tokens.mjs && tsc -p tsconfig.json",
-    "typecheck": "node scripts/build-tokens.mjs && tsc -p tsconfig.json --noEmit",
+    "typecheck": "node scripts/build-tokens.mjs && tsc -p tsconfig.json --noEmit && tsc -p tsconfig.test.json",
     "lint": "node scripts/lint-design.mjs src",
     "test": "node scripts/build-tokens.mjs && vitest run"
   },
-  "dependencies": {},
+  "dependencies": {
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
   "devDependencies": {
+    "@testing-library/dom": "10.4.0",
+    "@testing-library/jest-dom": "6.6.2",
+    "@testing-library/react": "16.0.1",
+    "@testing-library/user-event": "14.5.2",
+    "@types/react": "18.3.11",
+    "@types/react-dom": "18.3.1",
+    "jsdom": "25.0.1",
     "vitest": "2.1.3",
     "yaml": "2.6.0"
   }

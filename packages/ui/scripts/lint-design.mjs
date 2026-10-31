@@ -11,7 +11,7 @@ const palette = new Set(
     .concat(['#ffffff', '#000000']),
 );
 const RULES = [
-  { re: /border-radius\s*:\s*(?!0\b|0(px|rem|em)?\s*[;}]|var\(--ath-radius-none\))[^;}]+/i, msg: 'border-radius non nul interdit' },
+  { re: /border-radius\s*:\s*(?=[^;}\s])(?!0(?:px|rem|em)?\s*(?:;|}|$))(?!var\(--ath-radius-none\))[^;}]+/i, msg: 'border-radius non nul interdit' },
   { re: /box-shadow\s*:\s*(?!none\b)[^;}]+/i, msg: 'box-shadow interdit' },
   { re: /(linear|radial|conic)-gradient\s*\(/i, msg: 'dégradé interdit' },
   { re: /backdrop-filter\s*:/i, msg: 'backdrop-filter interdit' },
@@ -38,10 +38,10 @@ function walk(dir) {
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
-  const exts = new Set(['.css', '.ts', '.tsx']);
+  const exts = new Set([".css", ".ts", ".tsx"]);
   const problems = process.argv.slice(2).flatMap((d) =>
     walk(d)
-      .filter((f) => exts.has(extname(f)) && !f.endsWith('.test.ts') && !f.includes('.generated.'))
+      .filter((f) => exts.has(extname(f)) && !/\.test\.tsx?$/.test(f) && !f.includes('.generated.'))
       .flatMap((f) => lintSource(readFileSync(f, 'utf8'), f)),
   );
   if (problems.length) { console.error(problems.join('\n')); process.exit(1); }
