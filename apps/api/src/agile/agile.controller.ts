@@ -1,8 +1,9 @@
-import { Body, Controller, Get, HttpCode, Param, Post, Req } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Param, Post, Query, Req } from '@nestjs/common';
 import { z } from 'zod';
 import { Roles, type AuthedRequest } from '../auth/auth.guard';
 import { OrgResolver, parseBody } from '../core/http';
 import { BoardService } from './board.service';
+import { ReportService } from './report.service';
 import { SprintService } from './sprint.service';
 
 const BoardBody = z.object({
@@ -20,7 +21,7 @@ const ItemBody = z.object({ artifact: z.string().min(1) });
 
 @Controller('v1/projects/:project')
 export class AgileController {
-  constructor(private readonly orgs: OrgResolver, private readonly boards: BoardService, private readonly sprints: SprintService) {}
+  constructor(private readonly orgs: OrgResolver, private readonly boards: BoardService, private readonly sprints: SprintService, private readonly reports: ReportService) {}
 
   private ctx = (request: AuthedRequest) => this.orgs.resolve(request.principal!);
 
@@ -90,6 +91,55 @@ export class AgileController {
   @Get('sprints/:id')
   async sprint(@Req() request: AuthedRequest, @Param('id') id: string) {
     return this.sprints.get((await this.ctx(request)).organizationId, id);
+  }
+
+  // --- Pilotage : vélocité, flux, roadmap, tableau de bord ---
+  @Roles('athena-user', 'athena-admin')
+  @Get('velocity')
+  async velocity(@Req() request: AuthedRequest, @Param('project') project: string, @Query('last') last = '10') {
+    return this.reports.velocity((await this.ctx(request)).organizationId, project, Number(last) || 10);
+  }
+
+  @Roles('athena-user', 'athena-admin')
+  @Get('flow')
+  async flow(@Req() request: AuthedRequest, @Param('project') project: string, @Query('days') days = '30') {
+    return this.reports.cumulativeFlow((await this.ctx(request)).organizationId, project, Number(days));
+  }
+
+  @Roles('athena-user', 'athena-admin')
+  @Get('roadmap')
+  async roadmap(@Req() request: AuthedRequest, @Param('project') project: string) {
+    return this.reports.roadmap((await this.ctx(request)).organizationId, project);
+  }
+
+  @Roles('athena-admin')
+  @Post('releases')
+  async createRelease(@Req() request: AuthedRequest, @Param('project') project: string, @Body() body: unknown) {
+    const { organizationId, actor } = await this.ctx(request);
+    const input = parseBody(z.object({ name: z.string().min(1).max(100), startsOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), endsOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) }), body);
+    return { id: await this.reports.createRelease(organizationId, project, input, actor) };
+  }
+
+  @Roles('athena-user', 'athena-admin')
+  @HttpCode(204)
+  @Post('releases/:id/items')
+  async assignRelease(@Req() request: AuthedRequest, @Param('project') project: string, @Param('id') id: string, @Body() body: unknown) {
+    const { organizationId, actor } = await this.ctx(request);
+    await this.reports.assign(organizationId, project, id, parseBody(ItemBody, body).artifact, actor);
+  }
+
+  @Roles('athena-admin')
+  @HttpCode(204)
+  @Post('releases/:id/publish')
+  async publishRelease(@Req() request: AuthedRequest, @Param('id') id: string) {
+    const { organizationId, actor } = await this.ctx(request);
+    await this.reports.publish(organizationId, id, actor);
+  }
+
+  @Roles('athena-user', 'athena-admin')
+  @Get('dashboard')
+  async dashboard(@Req() request: AuthedRequest, @Param('project') project: string, @Query('by') by?: string) {
+    return this.reports.dashboard((await this.ctx(request)).organizationId, project, by);
   }
 
   @Roles('athena-user', 'athena-admin')

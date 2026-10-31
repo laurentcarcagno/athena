@@ -68,7 +68,8 @@ export class SprintService {
       if (sprint.state !== 'planned') throw conflict('Seul un sprint planifié peut démarrer.');
       const count = Number((await c.query('select count(*) n from sprint_item where sprint_id = $1', [sprintId])).rows[0].n);
       if (count === 0) throw validation(['sprint vide']);
-      await c.query("update sprint set state = 'active', started_at = now() where id = $1", [sprintId]);
+      const committed = (await this.items(c, sprintId)).reduce((n, i) => n + i.points, 0);
+      await c.query("update sprint set state = 'active', started_at = now(), committed_points = $2 where id = $1", [sprintId, committed]);
       await outbox(c, organizationId, 'sprint', sprintId, 'sprint.started', { name: sprint.name, items: count });
       await audit(c, organizationId, actor, 'sprint.start', `sprint:${sprintId}`);
     });
@@ -87,7 +88,8 @@ export class SprintService {
           [sprintId, returned],
         );
       }
-      await c.query("update sprint set state = 'closed', closed_at = now() where id = $1", [sprintId]);
+      const completed = items.filter((i) => i.done).reduce((n, i) => n + i.points, 0);
+      await c.query("update sprint set state = 'closed', closed_at = now(), completed_points = $2 where id = $1", [sprintId, completed]);
       await outbox(c, organizationId, 'sprint', sprintId, 'sprint.completed', { name: sprint.name, completed: items.length - returned.length, returned });
       await audit(c, organizationId, actor, 'sprint.close', `sprint:${sprintId}`);
       return { completed: items.length - returned.length, returned };
