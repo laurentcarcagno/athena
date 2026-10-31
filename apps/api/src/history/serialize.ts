@@ -34,7 +34,7 @@ export interface TrackerYaml {
   key: string;
   name: string;
   schemaVersion: number;
-  fields: Array<{ key: string; label: string; type: string; config: unknown; required: boolean; semanticRole: string | null }>;
+  fields: Array<{ key: string; label: string; type: string; config: unknown; required: boolean; semanticRole: string | null; readRoles?: string[] | null; writeRoles?: string[] | null }>;
   statuses: Array<{ key: string; name: string; category: string }>;
   transitions: Array<{ name: string; from: string | null; to: string; conditions: unknown; validators: unknown; postActions: unknown }>;
 }

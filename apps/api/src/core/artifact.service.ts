@@ -23,6 +23,21 @@ export interface Snapshot {
 }
 type Diff = Record<string, { from: unknown; to: unknown }>;
 
+const canUse = (restricted: string[] | null | undefined, roles: string[]): boolean =>
+  !restricted || roles.includes('athena-admin') || restricted.some((r) => roles.includes(r));
+
+/** Valeurs visibles par un lecteur : les champs à lecture restreinte sont retirés. */
+export function visibleValues(def: TrackerDefinition, values: Record<string, unknown>, roles: string[]): Record<string, unknown> {
+  const hidden = new Set(def.fields.filter((f) => !canUse(f.readRoles, roles)).map((f) => f.key));
+  return hidden.size === 0 ? values : Object.fromEntries(Object.entries(values).filter(([k]) => !hidden.has(k)));
+}
+
+/** Refuse l'écriture de champs à écriture restreinte pour un acteur sans le rôle requis. */
+function assertWritable(def: TrackerDefinition, keys: string[], actor: Actor): void {
+  const denied = def.fields.filter((f) => keys.includes(f.key) && !canUse(f.writeRoles, actor.roles)).map((f) => f.key);
+  if (denied.length) throw forbidden(`Écriture interdite sur : ${denied.join(', ')}.`);
+}
+
 export class ArtifactService {
   constructor(
     private readonly db: Db,
@@ -35,6 +50,7 @@ export class ArtifactService {
   ): Promise<Artifact> {
     return this.db.tx(organizationId, async (c) => {
       const def = await this.trackers.getDefinition(c, projectKey, trackerKey);
+      assertWritable(def, Object.keys(values), actor);
       await this.validateValues(def, values, true);
       const initial = def.statuses.find((s) => s.category === 'todo');
       if (!initial) throw validation(['aucun statut initial']);
@@ -54,10 +70,14 @@ export class ArtifactService {
     });
   }
 
-  async get(organizationId: string, projectKey: string, key: string): Promise<Artifact> {
+  /** Avec `viewer`, les champs à lecture restreinte sont retirés des valeurs. */
+  async get(organizationId: string, projectKey: string, key: string, viewer?: Actor): Promise<Artifact> {
     return this.db.tx(organizationId, async (c) => {
       const row = await this.load(c, projectKey, key, false);
-      return this.toArtifact(row);
+      const artifact = this.toArtifact(row);
+      if (!viewer) return artifact;
+      const def = await this.trackers.getDefinition(c, projectKey, row.tracker_key);
+      return { ...artifact, values: visibleValues(def, artifact.values, viewer.roles) };
     });
   }
 
@@ -70,6 +90,7 @@ export class ArtifactService {
         throw conflict(`Version attendue ${expectedVersion}, version courante ${row.version}.`);
       }
       const def = await this.trackers.getDefinition(c, projectKey, row.tracker_key);
+      assertWritable(def, Object.keys(patch), actor);
       const next: Values = { ...row.values };
       for (const [k, v] of Object.entries(patch)) {
         if (v === null) delete next[k];

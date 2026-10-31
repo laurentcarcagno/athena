@@ -23,13 +23,35 @@ export class SearchService {
 
   /** Exécute une requête ATQL dans le périmètre (RLS) de l'organisation et du projet. */
   async search(
-    organizationId: string, projectKey: string, query: string, currentUser: string, limit = 50, offset = 0,
+    organizationId: string, projectKey: string, query: string, currentUser: string, limit = 50, offset = 0, roles?: string[],
   ): Promise<SearchResult> {
     if (!Number.isInteger(limit) || limit < 1 || limit > 200) throw validation(['limit : entre 1 et 200']);
     if (!Number.isInteger(offset) || offset < 0 || offset > 100_000) throw validation(['offset invalide']);
+    // Champs à lecture restreinte : retirés des résultats et interdits dans les filtres et tris du lecteur.
+    const restricted = new Map<string, Map<string, string[]>>();
+    const forbidden = new Set<string>();
+    if (roles) {
+      const rows = await this.db.tx(organizationId, async (c) =>
+        (
+          await c.query(
+            `select t.key as tracker, f.key, f.read_roles from field_definition f join tracker t on t.id = f.tracker_id
+             join project p on p.id = t.project_id where p.key = $1 and f.read_roles is not null`,
+            [projectKey],
+          )
+        ).rows,
+      );
+      for (const r of rows) {
+        const allowed = roles.includes('athena-admin') || (r.read_roles as string[]).some((x) => roles.includes(x));
+        if (allowed) continue;
+        forbidden.add(r.key);
+        const perTracker = restricted.get(r.tracker) ?? new Map<string, string[]>();
+        perTracker.set(r.key, r.read_roles);
+        restricted.set(r.tracker, perTracker);
+      }
+    }
     let compiled;
     try {
-      compiled = compile(query, { currentUser }, [projectKey]);
+      compiled = compile(query, { currentUser, forbiddenFields: forbidden }, [projectKey]);
     } catch (error) {
       if (error instanceof AtqlError) throw validation([error.message]);
       throw error;
@@ -50,7 +72,9 @@ export class SearchService {
       return {
         total,
         hits: rows.map((r) => ({
-          key: r.key, tracker: r.tracker, status: r.status, category: r.category, values: r.values, version: r.version, updatedAt: r.updated_at.toISOString(),
+          key: r.key, tracker: r.tracker, status: r.status, category: r.category,
+          values: restricted.has(r.tracker) ? Object.fromEntries(Object.entries(r.values as Record<string, unknown>).filter(([k]) => !restricted.get(r.tracker)!.has(k))) : r.values,
+          version: r.version, updatedAt: r.updated_at.toISOString(),
         })),
       };
     });

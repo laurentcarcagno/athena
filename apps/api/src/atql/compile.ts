@@ -2,6 +2,8 @@ import { AtqlError, parse, type Expr, type Operator, type Query, type Value } fr
 
 export interface CompileContext {
   currentUser: string;
+  /** Champs à lecture restreinte que le lecteur ne peut pas voir : interdits dans filtres et tris (pas de déduction par la requête). */
+  forbiddenFields?: ReadonlySet<string>;
 }
 
 export interface Compiled {
@@ -53,6 +55,7 @@ export function compile(input: string | Query, context: CompileContext, leading:
     const builtin = BUILTIN[lower];
     if (builtin) return { builtin, name: lower };
     if (!CUSTOM_FIELD.test(field)) throw new AtqlError(`Champ inconnu ou invalide : ${field}`, 0);
+    if (context.forbiddenFields?.has(field)) throw new AtqlError(`Champ non accessible : ${field}`, 0);
     return { name: field };
   };
 

@@ -86,8 +86,8 @@ export class CoreController {
   @Roles('athena-user', 'athena-admin')
   @Get(':project/artifacts/:key/history')
   async history(@Req() request: AuthedRequest, @Param('project') project: string, @Param('key') key: string) {
-    const { organizationId } = await this.orgs.resolve(principalOf(request));
-    return this.db.tx(organizationId, async (c) =>
+    const { organizationId, actor } = await this.orgs.resolve(principalOf(request));
+    const rows = await this.db.tx(organizationId, async (c) =>
       (
         await c.query(
           `select r.version, r.diff, r.git_sha as "gitSha", r.created_at as "at",
@@ -99,6 +99,15 @@ export class CoreController {
         )
       ).rows,
     );
+    // Les champs à lecture restreinte n'apparaissent pas non plus dans les différences de l'historique.
+    const hidden = await this.db.tx(organizationId, async (c) => {
+      const tracker = (await c.query('select t.key from artifact a join tracker t on t.id = a.tracker_id join project p on p.id = a.project_id where p.key = $1 and a.key = $2', [project, key])).rows[0]?.key as string | undefined;
+      if (!tracker) return new Set<string>();
+      const def = await this.trackers.getDefinition(c, project, tracker);
+      return new Set(def.fields.filter((f) => f.readRoles && !actor.roles.includes('athena-admin') && !f.readRoles.some((r) => actor.roles.includes(r))).map((f) => f.key));
+    });
+    if (hidden.size === 0) return rows;
+    return rows.map((r) => ({ ...r, diff: Object.fromEntries(Object.entries(r.diff as Record<string, unknown>).filter(([k]) => !hidden.has(k))) }));
   }
 
   @Roles('athena-admin')
@@ -129,6 +138,7 @@ export class CoreController {
     const { organizationId, actor } = await this.orgs.resolve(principalOf(request));
     const input = parseBody(z.object({
       key: z.string(), label: z.string().min(1).max(100), type: z.string(), config: z.record(z.string(), z.unknown()).optional(),
+      readRoles: z.array(z.string().max(60)).min(1).max(20).optional(), writeRoles: z.array(z.string().max(60)).min(1).max(20).optional(),
       required: z.boolean().optional(), semanticRole: z.enum(['title', 'description', 'status', 'assignee', 'due_date', 'estimate']).optional(),
     }), body);
     await this.trackers.addField(organizationId, project, tracker, stripUndefined(input), actor);
@@ -175,8 +185,8 @@ export class CoreController {
   @Roles('athena-user', 'athena-admin')
   @Get(':project/artifacts/:key')
   async getArtifact(@Req() request: AuthedRequest, @Param('project') project: string, @Param('key') key: string) {
-    const { organizationId } = await this.orgs.resolve(principalOf(request));
-    return this.artifacts.get(organizationId, project, key);
+    const { organizationId, actor } = await this.orgs.resolve(principalOf(request));
+    return this.artifacts.get(organizationId, project, key, actor);
   }
 
   @Roles('athena-user', 'athena-admin')
@@ -207,7 +217,7 @@ export class CoreController {
     @Query('q') q = '', @Query('limit') limit = '50', @Query('offset') offset = '0',
   ) {
     const { organizationId, actor } = await this.orgs.resolve(principalOf(request));
-    return this.searcher.search(organizationId, project, q, actor.id, Number(limit), Number(offset));
+    return this.searcher.search(organizationId, project, q, actor.id, Number(limit), Number(offset), actor.roles);
   }
 
   @Roles('athena-admin')

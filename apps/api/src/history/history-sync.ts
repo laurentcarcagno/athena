@@ -176,7 +176,7 @@ async function loadTrackerYaml(c: PoolClient, projectKey: string, trackerKey: st
   const transitions = (await c.query('select * from transition where tracker_id = $1 order by name, id', [t.id])).rows;
   return {
     key: t.key, name: t.name, schemaVersion: t.schema_version,
-    fields: fields.map((f) => ({ key: f.key, label: f.label, type: f.type, config: f.config, required: f.required, semanticRole: f.semantic_role })),
+    fields: fields.map((f) => ({ key: f.key, label: f.label, type: f.type, config: f.config, required: f.required, semanticRole: f.semantic_role, readRoles: f.read_roles ?? null, writeRoles: f.write_roles ?? null })),
     statuses: statuses.map((s) => ({ key: s.key, name: s.name, category: s.category })),
     transitions: transitions.map((x) => ({
       name: x.name, from: x.from_status_id ? keyOf.get(x.from_status_id) ?? null : null, to: keyOf.get(x.to_status_id)!,

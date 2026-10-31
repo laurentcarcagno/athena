@@ -15,7 +15,7 @@ interface TrackerFile {
   key: string;
   name: string;
   schemaVersion?: number;
-  fields: Array<{ key: string; label: string; type: string; config: unknown; required: boolean; semanticRole: string | null }>;
+  fields: Array<{ key: string; label: string; type: string; config: unknown; required: boolean; semanticRole: string | null; readRoles?: string[] | null; writeRoles?: string[] | null }>;
   statuses: Array<{ key: string; name: string; category: string }>;
   transitions: Array<{ name: string; from: string | null; to: string; conditions: unknown; validators: unknown; postActions: unknown }>;
 }
@@ -64,8 +64,8 @@ export class RebuildService {
         let position = 0;
         for (const f of t.fields) {
           await c.query(
-            'insert into field_definition (organization_id, tracker_id, key, label, type, config, required, position, semantic_role) values ($1,$2,$3,$4,$5,$6,$7,$8,$9)',
-            [organizationId, id, f.key, f.label, f.type, JSON.stringify(f.config ?? {}), f.required, position++, f.semanticRole],
+            'insert into field_definition (organization_id, tracker_id, key, label, type, config, required, position, semantic_role, read_roles, write_roles) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)',
+            [organizationId, id, f.key, f.label, f.type, JSON.stringify(f.config ?? {}), f.required, position++, f.semanticRole, f.readRoles ?? null, f.writeRoles ?? null],
           );
         }
         const statusIds = new Map<string, string>();

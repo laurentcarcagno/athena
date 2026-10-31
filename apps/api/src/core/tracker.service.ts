@@ -10,6 +10,9 @@ export interface FieldSpec {
   config?: Record<string, unknown>;
   required?: boolean;
   semanticRole?: 'title' | 'description' | 'status' | 'assignee' | 'due_date' | 'estimate';
+  /** Rôles autorisés à lire / écrire ce champ (absent = tous). `athena-admin` passe toujours. */
+  readRoles?: string[];
+  writeRoles?: string[];
 }
 export interface StatusSpec {
   key: string;
@@ -45,6 +48,8 @@ export interface TrackerDefinition {
     config: Record<string, unknown>;
     required: boolean;
     semanticRole: string | null;
+    readRoles: string[] | null;
+    writeRoles: string[] | null;
   }>;
   statuses: Array<StatusSpec & { id: string; position: number }>;
   transitions: Array<{
@@ -95,9 +100,9 @@ export class TrackerService {
       let position = 0;
       for (const f of spec.fields) {
         await c.query(
-          `insert into field_definition (organization_id, tracker_id, key, label, type, config, required, position, semantic_role)
-           values ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
-          [organizationId, tracker, f.key, f.label, f.type, f.config ?? {}, f.required ?? false, position++, f.semanticRole ?? null],
+          `insert into field_definition (organization_id, tracker_id, key, label, type, config, required, position, semantic_role, read_roles, write_roles)
+           values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
+          [organizationId, tracker, f.key, f.label, f.type, f.config ?? {}, f.required ?? false, position++, f.semanticRole ?? null, f.readRoles ?? null, f.writeRoles ?? null],
         );
       }
       const statusIds = new Map<string, string>();
@@ -146,8 +151,8 @@ export class TrackerService {
       if (field.required && used > 0) throw conflict('Un champ obligatoire ne peut pas être ajouté à un tracker qui contient déjà des artefacts.');
       const position = Number((await c.query('select coalesce(max(position) + 1, 0) n from field_definition where tracker_id = $1', [tracker])).rows[0].n);
       await c.query(
-        'insert into field_definition (organization_id, tracker_id, key, label, type, config, required, position, semantic_role) values ($1,$2,$3,$4,$5,$6,$7,$8,$9)',
-        [organizationId, tracker, field.key, field.label, field.type, JSON.stringify(field.config ?? {}), field.required ?? false, position, field.semanticRole ?? null],
+        'insert into field_definition (organization_id, tracker_id, key, label, type, config, required, position, semantic_role, read_roles, write_roles) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)',
+        [organizationId, tracker, field.key, field.label, field.type, JSON.stringify(field.config ?? {}), field.required ?? false, position, field.semanticRole ?? null, field.readRoles ?? null, field.writeRoles ?? null],
       );
     });
   }
@@ -205,7 +210,7 @@ export class TrackerService {
       name: t.name,
       schemaVersion: t.schema_version,
       fields: fields.map((f) => ({
-        id: f.id, key: f.key, label: f.label, type: f.type, config: f.config, required: f.required, semanticRole: f.semantic_role,
+        id: f.id, key: f.key, label: f.label, type: f.type, config: f.config, required: f.required, semanticRole: f.semantic_role, readRoles: f.read_roles ?? null, writeRoles: f.write_roles ?? null,
       })),
       statuses: statuses.map((s) => ({ id: s.id, key: s.key, name: s.name, category: s.category, position: s.position })),
       transitions: transitions.map((x) => ({
