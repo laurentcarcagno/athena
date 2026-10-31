@@ -296,3 +296,29 @@ describe('transitions réservées à des rôles', () => {
     expect(await screen.findByRole('button', { name: 'Valider' })).toBeInTheDocument();
   });
 });
+
+describe('filtres enregistrés', () => {
+  it('liste, applique, enregistre et supprime un filtre', async () => {
+    const { ListPage } = await import('./pages/ListPage');
+    let saved = [{ id: 'f1', name: 'Ouverts', query: 'status = open', owner: 'b', shared: false }];
+    handlers = [
+      on('GET', '/v1/projects/ARI/trackers', { body: [{ key: 'BUG' }] }),
+      on('GET', /\/search\?/, { body: { total: 0, hits: [] } }),
+      (url, m) => (m === 'GET' && url === '/v1/projects/ARI/filters' ? { body: saved } : undefined),
+      (url, m) => (m === 'POST' && url === '/v1/projects/ARI/filters' ? { status: 201, body: {} } : undefined),
+      (url, m) => (m === 'DELETE' && url.endsWith('/filters/f1') ? { status: 204 } : undefined),
+    ];
+    wrap('/p/ARI?q=severity%20%3D%20majeure', <ListPage session={simple} />, '/p/:project');
+    await screen.findByRole('option', { name: 'Ouverts' });
+    await userEvent.click(screen.getByRole('button', { name: 'Enregistrer' }));
+    await userEvent.type(screen.getByLabelText('Nom du filtre'), 'Majeurs');
+    await userEvent.click(screen.getByLabelText('Partagé'));
+    await userEvent.click(within(screen.getByLabelText('Nom du filtre').closest('form')!).getByRole('button', { name: 'Enregistrer' }));
+    await waitFor(() => expect(calls.find((c) => c.method === 'POST' && c.url.endsWith('/filters'))?.body).toEqual({ name: 'Majeurs', query: 'severity = majeure', shared: true }));
+    await userEvent.selectOptions(screen.getByLabelText('Filtres enregistrés'), 'Ouverts');
+    await waitFor(() => expect(calls.some((c) => c.url.includes('/search?q=status%20%3D%20open'))).toBe(true));
+    await userEvent.click(await screen.findByRole('button', { name: 'Supprimer le filtre' }));
+    await waitFor(() => expect(calls.some((c) => c.method === 'DELETE')).toBe(true));
+    saved = [];
+  });
+});

@@ -73,6 +73,7 @@ export interface TrackerDefinition {
 }
 export interface Artifact { id: string; key: string; trackerKey: string; status: string; values: Record<string, unknown>; version: number }
 export interface AttachmentView { id: string; name: string; contentType: string; size: number; sha256: string; uploadedBy: string; createdAt: string }
+export interface SavedFilter { id: string; name: string; query: string; owner: string; shared: boolean }
 export interface Revision { version: number; diff: Record<string, { from: unknown; to: unknown }>; gitSha: string | null; at: string; actor: string }
 export interface BoardView {
   key: string; name: string; unmapped: number;

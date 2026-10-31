@@ -33,6 +33,8 @@ import { SearchService } from '../atql/search.service';
 import { AttachmentController } from './attachment.controller';
 import { AttachmentService } from './attachment.service';
 import { S3Client } from '../storage/s3';
+import { SavedFilterController } from '../atql/saved-filter.controller';
+import { SavedFilterService } from '../atql/saved-filter.service';
 import { LinkService } from './link.service';
 import { DomainErrorFilter, OrgResolver } from './http';
 import { TrackerService } from './tracker.service';
@@ -40,7 +42,7 @@ import { TrackerService } from './tracker.service';
 export { PG_POOL } from './core.tokens';
 
 @Module({
-  controllers: [CoreController, AttachmentController, IntegrationsController, AgileController],
+  controllers: [CoreController, AttachmentController, SavedFilterController, IntegrationsController, AgileController],
   providers: [
     { provide: PG_POOL, useFactory: () => new Pool({ connectionString: loadConfig().DATABASE_URL, max: 10 }) },
     { provide: FieldTypeRegistry, useValue: new FieldTypeRegistry() },
@@ -66,6 +68,7 @@ export { PG_POOL } from './core.tokens';
       inject: [Db],
     },
     { provide: LinkService, useFactory: (db: Db) => new LinkService(db), inject: [Db] },
+    { provide: SavedFilterService, useFactory: (db: Db) => new SavedFilterService(db), inject: [Db] },
     { provide: SearchService, useFactory: (db: Db) => new SearchService(db), inject: [Db] },
     {
       provide: SECRET_STORE,

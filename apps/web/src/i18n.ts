@@ -14,6 +14,7 @@ const frDict = {
     key: 'Clé', title: 'Titre', status: 'Statut', tracker: 'Tracker', updated: 'Mis à jour', total: (n: number) => `${n} résultat${n > 1 ? 's' : ''}`,
     empty: 'Aucun artefact ne correspond à la requête.', emptyEyebrow: 'Aucun résultat', reset: 'Réinitialiser',
     previous: 'Précédent', next: 'Suivant', create: 'Nouvel artefact',
+    filters: 'Filtres enregistrés', noFilter: 'Aucun', saveFilter: 'Enregistrer', filterName: 'Nom du filtre', shareFilter: 'Partagé', filterSaved: 'Filtre enregistré.', deleteFilter: 'Supprimer le filtre',
   },
   create: { title: 'Nouvel artefact', tracker: 'Tracker', submit: 'Créer', cancel: 'Annuler', created: (key: string) => `${key} créé.`, noTracker: 'Aucun tracker disponible.' },
   artifact: {
@@ -62,6 +63,7 @@ const enDict: Dictionary = {
     key: 'Key', title: 'Title', status: 'Status', tracker: 'Tracker', updated: 'Updated', total: (n: number) => `${n} result${n > 1 ? 's' : ''}`,
     empty: 'No artifact matches the query.', emptyEyebrow: 'No result', reset: 'Reset',
     previous: 'Previous', next: 'Next', create: 'New artifact',
+    filters: 'Saved filters', noFilter: 'None', saveFilter: 'Save', filterName: 'Filter name', shareFilter: 'Shared', filterSaved: 'Filter saved.', deleteFilter: 'Delete filter',
   },
   create: { title: 'New artifact', tracker: 'Tracker', submit: 'Create', cancel: 'Cancel', created: (key: string) => `${key} created.`, noTracker: 'No tracker available.' },
   artifact: {
