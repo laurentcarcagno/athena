@@ -14,6 +14,7 @@ import { OrgResolver, parseBody } from '../core/http';
 import { ImportService } from '../import/import.service';
 import { JiraConfigSchema, parseJiraCsv, parseTuleapArtifacts, TuleapConfigSchema, type ImportRecord } from '../import/sources';
 import type { PluginService } from '../plugins/plugin.service';
+import { DeliveryService } from '../gitcode/delivery';
 import type { CodeActions } from '../gitcode/code-actions';
 import type { DocFetcher } from '../docs/doc-fetch';
 import { AutomationService } from '../automation/automation.service';
@@ -32,7 +33,7 @@ const IndexBody = z.object({
   gitSha: z.string().regex(/^[0-9a-f]{7,40}$/).nullable().optional(),
 });
 const DocLinkBody = z.object({ source: z.string().min(1), uid: z.string().min(1).max(200) });
-const GitlabEvents = new Set(['push', 'merge_request', 'pipeline']);
+const GitlabEvents = new Set(['push', 'merge_request', 'pipeline', 'deployment']);
 
 const digest = (value: string) => createHash('sha256').update(value).digest();
 export const historySecretPath = (organizationId: string, project: string) => `athena/${organizationId}/history-hook/${project}`;
@@ -55,6 +56,7 @@ export class IntegrationsController {
     @Inject(DOC_FETCHER) private readonly fetcher: DocFetcher | null,
     @Inject(PLUGINS) private readonly plugins: PluginService,
     private readonly fieldTypes: FieldTypeRegistry,
+    private readonly delivery: DeliveryService,
     private readonly automation: AutomationService,
     private readonly importer: ImportService,
     private readonly inbound: InboundService,
@@ -327,6 +329,41 @@ export class IntegrationsController {
     }
     const report = await this.importer.run(organizationId, project, input.source, parsed.records, { dryRun: input.dryRun, statusMap: input.statusMap }, actor);
     return { ...report, parseErrors: parsed.errors };
+  }
+
+  // --- Livraison : rétroportages, DORA, notes de version ---
+  @Roles('athena-user', 'athena-admin')
+  @Post('v1/projects/:project/artifacts/:key/backports')
+  async planBackports(@Req() request: AuthedRequest, @Param('project') project: string, @Param('key') key: string, @Body() body: unknown) {
+    const { organizationId, actor } = await this.ctx(request);
+    const input = parseBody(z.object({ branches: z.array(z.string().max(80)).min(1).max(20) }), body);
+    return this.delivery.planBackports(organizationId, project, key, input.branches, actor);
+  }
+
+  @Roles('athena-user', 'athena-admin')
+  @Get('v1/projects/:project/artifacts/:key/backports')
+  async backports(@Req() request: AuthedRequest, @Param('project') project: string, @Param('key') key: string) {
+    return this.delivery.backports((await this.ctx(request)).organizationId, project, key);
+  }
+
+  @Roles('athena-admin')
+  @HttpCode(204)
+  @Post('v1/projects/:project/artifacts/:key/backports/cancel')
+  async cancelBackport(@Req() request: AuthedRequest, @Param('project') project: string, @Param('key') key: string, @Body() body: unknown) {
+    const { organizationId, actor } = await this.ctx(request);
+    await this.delivery.cancelBackport(organizationId, project, key, parseBody(z.object({ branch: z.string().max(80) }), body).branch, actor);
+  }
+
+  @Roles('athena-user', 'athena-admin')
+  @Get('v1/projects/:project/dora')
+  async dora(@Req() request: AuthedRequest, @Param('project') project: string, @Query('days') days = '30', @Query('incident') incident?: string) {
+    return this.delivery.dora((await this.ctx(request)).organizationId, project, Number(days), incident && /^[A-Z][A-Z0-9]{1,9}$/.test(incident) ? incident : undefined);
+  }
+
+  @Roles('athena-user', 'athena-admin')
+  @Get('v1/projects/:project/releases/:id/notes')
+  async releaseNotes(@Req() request: AuthedRequest, @Param('project') project: string, @Param('id') id: string) {
+    return { markdown: await this.delivery.releaseNotes((await this.ctx(request)).organizationId, project, id) };
   }
 
   // --- Baselines ---

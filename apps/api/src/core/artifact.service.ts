@@ -137,6 +137,10 @@ export class ArtifactService {
       }
       const problems: string[] = [];
       for (const validator of transition.validators as Array<{ type: string; fields?: string[] }>) {
+        if (validator.type === 'backports_done') {
+          const pending = (await c.query("select branch from backport where artifact_id = $1 and state = 'pending' order by branch", [row.id])).rows.map((r) => r.branch as string);
+          if (pending.length) problems.push(`rétroportages en attente : ${pending.join(', ')}`);
+        }
         if (validator.type === 'required_fields') {
           for (const f of validator.fields ?? []) if (row.values[f] === undefined) problems.push(`champ requis : ${f}`);
         }

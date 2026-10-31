@@ -6,6 +6,8 @@ import { outbox } from '../core/tracker.service';
 import { extractKeyActions, keysFromBranch, type Action } from './refs';
 
 export interface Rules {
+  /** Transition tentée après un déploiement réussi en production (le workflow reste maître). */
+  onDeploy?: string | null;
   /** Transition tentée au premier commit/branche référençant l'artefact (statut de catégorie « todo »). */
   onStart: string | null;
   onMrOpened: string | null;
@@ -13,7 +15,7 @@ export interface Rules {
   onMrMergedResolves: string | null;
 }
 
-export const defaultRules: Rules = { onStart: 'Démarrer', onMrOpened: 'Soumettre à revue', onMrMergedResolves: 'Résoudre' };
+export const defaultRules: Rules = { onStart: 'Démarrer', onMrOpened: 'Soumettre à revue', onMrMergedResolves: 'Résoudre', onDeploy: 'Livrer' };
 
 export type Outcome = 'linked' | 'transitioned' | 'blocked' | 'unknown_artifact' | 'ignored';
 export interface Result {
@@ -30,14 +32,24 @@ interface PushEvent {
 interface MergeRequestEvent {
   object_kind: 'merge_request';
   user?: { email?: string };
-  object_attributes: { iid: number; title: string; description?: string; state: string; action?: string; url?: string; source_branch: string };
+  object_attributes: {
+    iid: number; title: string; description?: string; state: string; action?: string; url?: string; source_branch: string;
+    target_branch?: string; merge_commit_sha?: string | null; merged_at?: string | null;
+  };
 }
 interface PipelineEvent {
   object_kind: 'pipeline';
   object_attributes: { status: string };
   merge_request?: { iid: number };
 }
-export type GitLabEvent = PushEvent | MergeRequestEvent | PipelineEvent;
+interface DeploymentEvent {
+  object_kind: 'deployment';
+  status: string;
+  environment: string;
+  short_sha?: string;
+  status_changed_at?: string;
+}
+export type GitLabEvent = PushEvent | MergeRequestEvent | PipelineEvent | DeploymentEvent;
 
 /**
  * Traite les événements GitLab des dépôts de code. Règles de sécurité :
@@ -57,6 +69,7 @@ export class GitCodeService {
       case 'push': return this.push(organizationId, projectKey, event);
       case 'merge_request': return this.mergeRequest(organizationId, projectKey, event);
       case 'pipeline': return this.pipeline(organizationId, projectKey, event);
+      case 'deployment': return this.deployment(organizationId, projectKey, event);
       default: return [];
     }
   }
@@ -84,9 +97,9 @@ export class GitCodeService {
     }
     for (const commit of event.commits ?? []) {
       const actor = await this.actorByEmail(org, commit.author?.email);
-      for (const { key } of extractKeyActions(commit.message)) {
+      for (const { key, action } of extractKeyActions(commit.message)) {
         const title = commit.message.split('\n')[0]!.slice(0, 200);
-        const linked = await this.link(org, project, key, 'commit', commit.id, title, commit.url ?? '');
+        const linked = await this.link(org, project, key, 'commit', commit.id, title, commit.url ?? '', action === 'reverts' ? 'reverts' : '');
         results.push(linked);
         if (linked.outcome === 'linked') started.add(key);
       }
@@ -109,11 +122,53 @@ export class GitCodeService {
     for (const [key, action] of actions) {
       const linked = await this.link(org, project, key, 'mr', String(a.iid), a.title, a.url ?? '', a.state);
       results.push(linked);
+      if (a.state === 'merged') await this.recordMerge(org, project, key, a);
       if (linked.outcome === 'unknown_artifact' || !actor) continue; // la MR peut déjà être connue : l'état a changé
       if (a.state === 'opened' && this.rules.onMrOpened) {
         results.push(await this.tryTransition(org, project, key, this.rules.onMrOpened, actor, 'in_progress'));
       } else if (a.state === 'merged' && ['fixes', 'closes', 'implements'].includes(action) && this.rules.onMrMergedResolves) {
         results.push(await this.tryTransition(org, project, key, this.rules.onMrMergedResolves, actor, 'in_progress'));
+      }
+    }
+    return results;
+  }
+
+  /** Mémorise la fusion (SHA, date, branche cible) et solde le rétroportage si la cible est une branche de maintenance. */
+  private async recordMerge(org: string, project: string, key: string, a: MergeRequestEvent['object_attributes']): Promise<void> {
+    await this.db.tx(org, async (c) => {
+      const artifact = (await c.query('select a.id from artifact a join project p on p.id = a.project_id where p.key = $1 and a.key = $2', [project, key])).rows[0];
+      if (!artifact) return;
+      await c.query(
+        `update code_ref set merge_sha = $3, merged_at = coalesce($4::timestamptz, now()), target_branch = $5, updated_at = now()
+         where artifact_id = $1 and kind = 'mr' and ref = $2`,
+        [artifact.id, String(a.iid), a.merge_commit_sha ?? null, a.merged_at ?? null, a.target_branch ?? null],
+      );
+      if (a.target_branch && /^release\//.test(a.target_branch)) {
+        const done = await c.query("update backport set state = 'done', mr_ref = $3, done_at = now() where artifact_id = $1 and branch = $2 and state = 'pending'", [artifact.id, a.target_branch, String(a.iid)]);
+        if (done.rowCount) await outbox(c, org, 'artifact', artifact.id, 'backport.done', { key, branch: a.target_branch });
+      }
+    });
+  }
+
+  /** Déploiement réussi : date et environnement sur les MR fusionnées dont le SHA correspond ; transition configurable en production. */
+  private async deployment(org: string, project: string, event: DeploymentEvent): Promise<Result[]> {
+    if (event.status !== 'success' || !event.short_sha || !/^[0-9a-f]{7,40}$/.test(event.short_sha)) return [];
+    const keys = await this.db.tx(org, async (c) =>
+      (
+        await c.query(
+          `update code_ref r set deployed_at = coalesce($3::timestamptz, now()), environment = $4, updated_at = now()
+           from artifact a join project p on p.id = a.project_id
+           where r.artifact_id = a.id and p.key = $1 and r.kind = 'mr' and r.merge_sha like $2 || '%' and r.deployed_at is null
+           returning a.key`,
+          [project, event.short_sha, event.status_changed_at ?? null, event.environment.slice(0, 50)],
+        )
+      ).rows.map((r) => r.key as string),
+    );
+    const results: Result[] = [];
+    for (const key of [...new Set(keys)]) {
+      results.push({ key, outcome: 'linked', detail: `déployé : ${event.environment}` });
+      if (event.environment === 'production' && this.rules.onDeploy) {
+        results.push(await this.tryTransition(org, project, key, this.rules.onDeploy, { id: 'gitlab:deployment', roles: ['athena-user'] }, 'done'));
       }
     }
     return results;

@@ -259,4 +259,17 @@ suite('intégrations REST (webhooks, StrictDoc, GitLab)', () => {
     expect((await call('GET', '/v1/projects/ARI/search?q=' + encodeURIComponent('title ~ "Bug importé"'), admin)).json().total).toBe(1);
     expect((await call('POST', '/v1/projects/ARI/import', admin, { ...payload(), config: { oups: true } })).statusCode).toBe(422);
   });
+
+  it('expose rétroportages, indicateurs DORA et notes de version', async () => {
+    const admin = await token(['athena-admin', 'athena-user']);
+    expect((await call('POST', '/v1/projects/ARI/artifacts/BUG-1/backports', admin, { branches: ['main'] })).statusCode).toBe(422);
+    const planned = await call('POST', '/v1/projects/ARI/artifacts/BUG-1/backports', admin, { branches: ['release/1.0'] });
+    expect(planned.json()).toMatchObject([{ branch: 'release/1.0', state: 'pending' }]);
+    expect((await call('GET', '/v1/projects/ARI/artifacts/BUG-1/backports', admin)).json()).toHaveLength(1);
+    expect((await call('GET', '/v1/projects/ARI/dora?days=30', admin)).json()).toMatchObject({ windowDays: 30, deployments: 0, leadTimeHours: null });
+    expect((await call('GET', '/v1/projects/ARI/dora?days=0', admin)).statusCode).toBe(422);
+    const release = (await call('POST', '/v1/projects/ARI/releases', admin, { name: '1.0', startsOn: '2026-10-01', endsOn: '2026-10-31' })).json();
+    const notes = (await call('GET', `/v1/projects/ARI/releases/${release.id}/notes`, admin)).json().markdown as string;
+    expect(notes).toContain('# Notes de version — 1.0');
+  });
 });
