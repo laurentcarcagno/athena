@@ -4,7 +4,7 @@
   "private": true,
   "main": "dist/main.js",
   "scripts": {
-    "build": "tsc -p tsconfig.build.json && node -e \"require('fs').cpSync('src/db/migrations','dist/db/migrations',{recursive:true})\"",
+    "build": "tsc -p tsconfig.build.json && node -e \"require('fs').cpSync('src/db/migrations','dist/db/migrations',{recursive:true});require('fs').copyFileSync('src/plugins/runner.cjs','dist/plugins/runner.cjs')\"",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "node -e \"console.log('lint api : eslint à configurer')\"",
     "test": "vitest run",

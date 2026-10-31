@@ -35,7 +35,7 @@ export class ArtifactService {
   ): Promise<Artifact> {
     return this.db.tx(organizationId, async (c) => {
       const def = await this.trackers.getDefinition(c, projectKey, trackerKey);
-      this.validateValues(def, values, true);
+      await this.validateValues(def, values, true);
       const initial = def.statuses.find((s) => s.category === 'todo');
       if (!initial) throw validation(['aucun statut initial']);
       const number = Number((await c.query('select next_artifact_number($1) n', [def.id])).rows[0].n);
@@ -75,7 +75,7 @@ export class ArtifactService {
         if (v === null) delete next[k];
         else next[k] = v;
       }
-      this.validateValues(def, next, true);
+      await this.validateValues(def, next, true);
       const diff = diffOf(row.values, next);
       if (Object.keys(diff).length === 0) return this.toArtifact(row);
       const version = row.version + 1;
@@ -130,13 +130,13 @@ export class ArtifactService {
     });
   }
 
-  private validateValues(def: TrackerDefinition, values: Values, checkRequired: boolean): void {
+  private async validateValues(def: TrackerDefinition, values: Values, checkRequired: boolean): Promise<void> {
     const errors: string[] = [];
     const fields = new Map(def.fields.map((f) => [f.key, f]));
     for (const [k, v] of Object.entries(values)) {
       const field = fields.get(k);
       if (!field) { errors.push(`champ inconnu : ${k}`); continue; }
-      const problem = this.fieldTypes.validate(field.type, v, field.config);
+      const problem = await this.fieldTypes.validate(field.type, v, field.config);
       if (problem) errors.push(`${k} : ${problem}`);
     }
     if (checkRequired) {

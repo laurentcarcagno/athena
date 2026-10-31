@@ -2,7 +2,7 @@ export type FieldConfig = Record<string, unknown>;
 
 /** Un type de champ valide une valeur. Les plugins en enregistrent d'autres (plan § 6.1, `fieldType`). */
 export interface FieldType {
-  validate(value: unknown, config: FieldConfig): string | null;
+  validate(value: unknown, config: FieldConfig): string | null | Promise<string | null>;
 }
 
 const isString = (v: unknown): v is string => typeof v === 'string';
@@ -67,6 +67,10 @@ export class FieldTypeRegistry {
     this.types.set(name, type);
   }
 
+  unregister(name: string): void {
+    this.types.delete(name);
+  }
+
   has(name: string): boolean {
     return this.types.has(name);
   }
@@ -75,7 +79,7 @@ export class FieldTypeRegistry {
     return [...this.types.keys()].sort();
   }
 
-  validate(name: string, value: unknown, config: FieldConfig): string | null {
+  validate(name: string, value: unknown, config: FieldConfig): string | null | Promise<string | null> {
     const type = this.types.get(name);
     return type ? type.validate(value, config) : `type de champ inconnu : ${name}`;
   }
