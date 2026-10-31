@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Btn, EmptyState, Field as TextField, FilterChip, Id, PageHeader, StatusPill, Table, Td, Th, type PillKind, type SortState } from '@athena/ui';
-import { ApiError, api, type SavedFilter, type Session, type SearchResult } from '../api';
+import { ApiError, api, type SavedFilter, type Session, type SearchResult, type TrackerDefinition } from '../api';
 import { CreateArtifact } from '../components/CreateArtifact';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
@@ -11,6 +11,19 @@ const PAGE = 25;
 const SORTABLE = { key: 'key', status: 'status', tracker: 'tracker', updated: 'updated' } as const;
 
 /** Sépare la clause ORDER BY de la requête pour que le tri par colonne reste visible dans l'URL. */
+const BUILTIN_FIELDS = ['key', 'status', 'tracker', 'project', 'created', 'updated', 'created_by', 'text'];
+const KEYWORDS = ['AND', 'OR', 'NOT', 'IN', 'IS EMPTY', 'IS NOT EMPTY', 'ORDER BY'];
+
+/** Suggestions pour le dernier mot saisi : champs (natifs et du projet) et mots-clés ATQL. */
+export function suggest(draft: string, fields: string[]): { prefix: string; items: string[] } {
+  const match = /([A-Za-z_]+)$/.exec(draft);
+  const prefix = match?.[1] ?? '';
+  if (prefix.length < 1) return { prefix, items: [] };
+  const lower = prefix.toLowerCase();
+  const pool = [...new Set([...BUILTIN_FIELDS, ...fields, ...KEYWORDS])];
+  return { prefix, items: pool.filter((p) => p.toLowerCase().startsWith(lower) && p.toLowerCase() !== lower).sort().slice(0, 8) };
+}
+
 export function splitOrder(query: string): { where: string; order: { field: string; dir: 'asc' | 'desc' } | null } {
   const match = /\s*\bORDER\s+BY\s+([a-z_][a-z0-9_]*)\s*(ASC|DESC)?\s*$/i.exec(query);
   if (!match) return { where: query.trim(), order: null };
@@ -30,13 +43,19 @@ export function ListPage({ session }: { session?: Session } = {}) {
   const [result, setResult] = useState<SearchResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const fail = useFailure();
+  const [fieldKeys, setFieldKeys] = useState<string[]>([]);
   const [filters, setFilters] = useState<SavedFilter[]>([]);
   const [saving, setSaving] = useState({ open: false, name: '', shared: false });
   const { where, order } = splitOrder(query);
 
   useEffect(() => setDraft(query), [query]);
   useEffect(() => {
-    api<Array<{ key: string }>>('GET', `/v1/projects/${project}/trackers`).then((t) => setTrackerKeys(t.map((x) => x.key))).catch(() => setTrackerKeys([]));
+    api<Array<{ key: string }>>('GET', `/v1/projects/${project}/trackers`).then(async (t) => {
+      setTrackerKeys(t.map((x) => x.key));
+      const roles = session?.user?.roles ?? [];
+      const defs = await Promise.all(t.map((x) => api<TrackerDefinition>('GET', `/v1/projects/${project}/trackers/${x.key}`).catch(() => null)));
+      setFieldKeys(defs.flatMap((d) => d?.fields ?? []).filter((f) => !f.readRoles || f.readRoles.some((r) => roles.includes(r)) || roles.includes('athena-admin')).map((f) => f.key));
+    }).catch(() => setTrackerKeys([]));
   }, [project]);
   useEffect(() => {
     setResult(null);
@@ -65,6 +84,9 @@ export function ListPage({ session }: { session?: Session } = {}) {
     try { await api('DELETE', `/v1/projects/${project}/filters/${activeFilter.id}`); await loadFilters(); } catch (e) { fail(e); }
   };
 
+  const completion = suggest(draft, fieldKeys);
+  const complete = (item: string) => setDraft(draft.slice(0, draft.length - completion.prefix.length) + item + ' ');
+
   const submit = (event: FormEvent) => { event.preventDefault(); setParams(draft ? { q: draft } : {}); };
   const sortOf = (field: string): SortState => (order?.field === field ? order.dir : null);
   const sortBy = (field: string) => (next: SortState) => setParams({ q: joinOrder(where, next ? { field, dir: next } : null) });
@@ -76,7 +98,14 @@ export function ListPage({ session }: { session?: Session } = {}) {
         actions={<><Btn onClick={() => setCreating(true)}>{fr.list.create}</Btn>{session?.user?.roles.includes('athena-admin') && trackerKeys[0] && <Btn variant="ghost" onClick={() => navigate(`/p/${project}/trackers/${trackerKeys[0]}/config`)}>{fr.config.eyebrow}</Btn>}</>} />
       <CreateArtifact project={String(project)} trackers={trackerKeys} open={creating} onClose={() => setCreating(false)} onCreated={(key) => { setCreating(false); navigate(`/p/${project}/a/${key}`); }} />
       <form className="ath-toolbar" onSubmit={submit} role="search">
-        <input className="ath-input ath-mono" size={60} aria-label="Requête ATQL" placeholder={fr.list.placeholder} value={draft} onChange={(e) => setDraft(e.target.value)} />
+        <div className="ath-suggest">
+          <input className="ath-input ath-mono" size={60} aria-label="Requête ATQL" placeholder={fr.list.placeholder} value={draft} onChange={(e) => setDraft(e.target.value)} autoComplete="off" />
+          {completion.items.length > 0 && (
+            <ul className="ath-suggest__list" role="listbox" aria-label={fr.list.suggestions}>
+              {completion.items.map((item) => <li key={item} role="option" aria-selected={false}><button type="button" className="ath-suggest__item ath-mono" onClick={() => complete(item)}>{item}</button></li>)}
+            </ul>
+          )}
+        </div>
         <Btn type="submit">{fr.list.run}</Btn>
         <label className="ath-field__label" htmlFor="saved-filters">{fr.list.filters}</label>
         <select id="saved-filters" className="ath-select" value={activeFilter?.id ?? ''} onChange={(e) => { const f = filters.find((x) => x.id === e.target.value); setParams(f?.query ? { q: f.query } : {}); }}>

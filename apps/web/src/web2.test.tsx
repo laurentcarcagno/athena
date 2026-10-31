@@ -357,3 +357,33 @@ describe('Gantt des versions', () => {
     expect(ganttLayout([])).toEqual([]);
   });
 });
+
+describe('autocomplétion ATQL', () => {
+  it('suggère champs et mots-clés pour le dernier mot', async () => {
+    const { suggest } = await import('./pages/ListPage');
+    expect(suggest('sta', []).items).toEqual(['status']);
+    expect(suggest('status = open AND sev', ['severity', 'points']).items).toEqual(['severity']);
+    expect(suggest('status = open O', []).items).toEqual(['OR', 'ORDER BY']);
+    expect(suggest('status = ', []).items).toEqual([]);
+    expect(suggest('status', []).items).toEqual([]); // mot déjà complet
+    expect(suggest('x', ['xyz']).prefix).toBe('x');
+  });
+  it('complète le mot en cours au clic', async () => {
+    const { ListPage } = await import('./pages/ListPage');
+    handlers = [
+      on('GET', '/v1/projects/ARI/trackers', { body: [{ key: 'BUG' }] }),
+      on('GET', '/v1/projects/ARI/trackers/BUG', { body: { key: 'BUG', name: 'Bugs', statuses: [], transitions: [], fields: [
+        { id: '1', key: 'severity', label: 'Sév', type: 'select', config: {}, required: false, semanticRole: null },
+        { id: '2', key: 'salary', label: 'Salaire', type: 'number', config: {}, required: false, semanticRole: null, readRoles: ['hr'] },
+      ] } }),
+      on('GET', /\/search\?/, { body: { total: 0, hits: [] } }),
+    ];
+    wrap('/p/ARI', <ListPage session={simple} />, '/p/:project');
+    const input = await screen.findByLabelText('Requête ATQL');
+    await userEvent.type(input, 'status = open AND s');
+    expect(await screen.findByRole('option', { name: 'severity' })).toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: 'salary' })).toBeNull(); // champ à lecture restreinte non suggéré
+    await userEvent.click(screen.getByRole('button', { name: 'severity' }));
+    expect(input).toHaveValue('status = open AND severity ');
+  });
+});

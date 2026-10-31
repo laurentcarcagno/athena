@@ -173,6 +173,10 @@
 .ath-bar { display: block; margin: 4px 0; }
 .ath-bar__track { fill: var(--ath-color-muted-mist); }
 .ath-bar__fill { fill: var(--ath-color-console-sky); }
+.ath-suggest { position: relative; display: inline-block; }
+.ath-suggest__list { position: absolute; top: 100%; left: 0; right: 0; z-index: 5; margin: 0; padding: 0; list-style: none; background: var(--ath-color-instrument-white); border: 1px solid var(--ath-color-console-border); }
+.ath-suggest__item { display: block; width: 100%; padding: 6px 10px; border: 0; background: transparent; text-align: left; color: var(--ath-color-ink); cursor: pointer; font-size: 12px; }
+.ath-suggest__item:hover, .ath-suggest__item:focus-visible { background: var(--ath-color-hover-mist); }
 .ath-gantt { display: block; margin: 4px 0 8px; }
 .ath-gantt__track { fill: var(--ath-color-muted-mist); stroke: var(--ath-color-console-border); stroke-width: 1; }
 .ath-gantt__fill { fill: var(--ath-color-console-sky); }
