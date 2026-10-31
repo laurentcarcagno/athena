@@ -1,3 +1,4 @@
+import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { Client, Pool, type PoolClient } from 'pg';
@@ -18,11 +19,14 @@ function adminUrl(): string | undefined {
 }
 
 const ADMIN = adminUrl();
-let reachable = false;
-if (ADMIN) {
-  const probe = new Client({ connectionString: ADMIN, connectionTimeoutMillis: 1500 });
-  reachable = await probe.connect().then(() => probe.end().then(() => true), () => false);
-}
+// Sonde synchrone (pas de await de niveau supérieur : le code est compilé en CommonJS).
+const reachable =
+  ADMIN !== undefined &&
+  spawnSync(
+    process.execPath,
+    ['-e', "const {Client}=require('pg');const c=new Client({connectionString:process.env.PROBE_URL,connectionTimeoutMillis:1500});c.connect().then(()=>c.end()).then(()=>process.exit(0),()=>process.exit(1))"],
+    { env: { ...process.env, PROBE_URL: ADMIN }, cwd: join(__dirname, '../..'), timeout: 5000 },
+  ).status === 0;
 if (!reachable && process.env['CI']) throw new Error('PostgreSQL requis en CI');
 const suite = reachable ? describe : describe.skip;
 
