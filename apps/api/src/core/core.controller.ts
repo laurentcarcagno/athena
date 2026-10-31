@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, Param, Patch, Post, Query, Req } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Query, Req } from '@nestjs/common';
 import { z } from 'zod';
 import { Roles, type AuthedRequest } from '../auth/auth.guard';
 import type { Principal } from '../auth/token-verifier';
@@ -130,6 +130,26 @@ export class CoreController {
       actor,
     );
     return { id, key: input.key };
+  }
+
+  @Roles('athena-admin')
+  @HttpCode(204)
+  @Patch(':project/trackers/:tracker/fields/:field')
+  async updateField(@Req() request: AuthedRequest, @Param('project') project: string, @Param('tracker') tracker: string, @Param('field') field: string, @Body() body: unknown) {
+    const { organizationId, actor } = await this.orgs.resolve(principalOf(request));
+    const input = parseBody(z.object({
+      label: z.string().min(1).max(100).optional(), required: z.boolean().optional(),
+      readRoles: z.array(z.string().max(60)).min(1).max(20).nullable().optional(), writeRoles: z.array(z.string().max(60)).min(1).max(20).nullable().optional(),
+    }), body);
+    await this.trackers.updateField(organizationId, project, tracker, field, stripUndefined(input), actor);
+  }
+
+  @Roles('athena-admin')
+  @HttpCode(204)
+  @Delete(':project/trackers/:tracker/fields/:field')
+  async removeField(@Req() request: AuthedRequest, @Param('project') project: string, @Param('tracker') tracker: string, @Param('field') field: string, @Query('purge') purge?: string) {
+    const { organizationId, actor } = await this.orgs.resolve(principalOf(request));
+    await this.trackers.removeField(organizationId, project, tracker, field, purge === 'true', actor);
   }
 
   @Roles('athena-admin')

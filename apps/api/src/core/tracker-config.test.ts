@@ -67,4 +67,27 @@ suite('évolution de la configuration d’un tracker', () => {
     await trackers.addField(org, 'ARI', 'EMPTY', { key: 'must', label: 'Obligatoire', type: 'text', required: true }, admin);
     expect(await code(artifacts.create(org, 'ARI', 'EMPTY', { title: 't', severity: 'mineure' }, admin))).toMatch(/validation.*must : obligatoire/);
   });
+
+  it('modifie un champ (libellé, rôles) et protège le passage à obligatoire', async () => {
+    await trackers.addField(org, 'ARI', 'BUG', { key: 'note', label: 'Note', type: 'text' }, admin);
+    await artifacts.create(org, 'ARI', 'BUG', { title: 'Sans note', severity: 'mineure' }, admin);
+    await trackers.updateField(org, 'ARI', 'BUG', 'note', { label: 'Remarque', readRoles: ['qa'] }, admin);
+    const def = await db.tx(org, (c) => trackers.getDefinition(c, 'ARI', 'BUG'));
+    expect(def.fields.find((f) => f.key === 'note')).toMatchObject({ label: 'Remarque', readRoles: ['qa'], writeRoles: null });
+    expect(await code(trackers.updateField(org, 'ARI', 'BUG', 'note', { required: true }, admin))).toMatch(/conflict.*obligatoire/);
+    await trackers.updateField(org, 'ARI', 'BUG', 'note', { readRoles: null }, admin);
+    expect((await db.tx(org, (c) => trackers.getDefinition(c, 'ARI', 'BUG'))).fields.find((f) => f.key === 'note')!.readRoles).toBeNull();
+    expect(await code(trackers.updateField(org, 'ARI', 'BUG', 'absent', { label: 'x' }, admin))).toMatch(/not_found/);
+  });
+
+  it('supprime un champ : refus si utilisé ou titre, purge des valeurs sur demande', async () => {
+    const a = await artifacts.create(org, 'ARI', 'BUG', { title: 'Avec note', severity: 'mineure', note: 'à retirer' }, admin);
+    expect(await code(trackers.removeField(org, 'ARI', 'BUG', 'note', false, admin))).toMatch(/conflict.*purge/);
+    expect(await code(trackers.removeField(org, 'ARI', 'BUG', 'title', true, admin))).toMatch(/conflict.*titre/);
+    const before = await version();
+    await trackers.removeField(org, 'ARI', 'BUG', 'note', true, admin);
+    expect(await version()).toBe(before + 1);
+    expect((await artifacts.get(org, 'ARI', a.key)).values).toEqual({ title: 'Avec note', severity: 'mineure' });
+    expect(await code(trackers.removeField(org, 'ARI', 'BUG', 'note', false, admin))).toMatch(/not_found/);
+  });
 });

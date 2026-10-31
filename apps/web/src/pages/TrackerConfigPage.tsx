@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { useParams } from 'react-router-dom';
 import { Btn, Card, Field as TextField, PageHeader, StatusPill, Table, Td, Th, useToast } from '@athena/ui';
-import { api, type Session, type TrackerDefinition } from '../api';
+import { ApiError, api, type Session, type TrackerDefinition } from '../api';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
 
@@ -13,7 +13,7 @@ export function TrackerConfigPage({ session }: { session: Session }) {
   const admin = session.user?.roles.includes('athena-admin') ?? false;
   const [def, setDef] = useState<TrackerDefinition | null>(null);
   const [types, setTypes] = useState<string[]>([]);
-  const [field, setField] = useState({ key: '', label: '', type: 'text', required: false });
+  const [field, setField] = useState({ key: '', label: '', type: 'text', required: false, readRoles: '', writeRoles: '' });
   const [status, setStatus] = useState({ key: '', name: '', category: 'todo' });
   const [transition, setTransition] = useState({ name: '', from: '', to: '' });
   const base = `/v1/projects/${project}/trackers/${tracker}`;
@@ -36,6 +36,25 @@ export function TrackerConfigPage({ session }: { session: Session }) {
     }
   };
 
+  const roleList = (raw: string) => raw.split(',').map((r) => r.trim()).filter(Boolean);
+  const fieldBody = () => ({
+    key: field.key, label: field.label, type: field.type, required: field.required,
+    ...(roleList(field.readRoles).length ? { readRoles: roleList(field.readRoles) } : {}),
+    ...(roleList(field.writeRoles).length ? { writeRoles: roleList(field.writeRoles) } : {}),
+  });
+  const removeField = async (key: string) => {
+    try {
+      try {
+        await api('DELETE', `${base}/fields/${key}`);
+      } catch (error) {
+        if (!(error instanceof ApiError) || error.status !== 409 || !window.confirm(fr.config.confirmPurge(key))) throw error;
+        await api('DELETE', `${base}/fields/${key}?purge=true`);
+      }
+      toast('success', fr.config.removed);
+      await reload();
+    } catch (error) { fail(error); }
+  };
+
   if (!def) return <p role="status">{fr.loading}</p>;
   const statusName = (id: string | null) => (id === null ? fr.config.anyState : def.statuses.find((s) => s.id === id)?.key ?? '?');
   return (
@@ -45,11 +64,15 @@ export function TrackerConfigPage({ session }: { session: Session }) {
       <div className="ath-stack">
         <Card title={fr.config.fields} meta={String(def.fields.length)}>
           <Table>
-            <thead><tr><Th>{fr.config.key}</Th><Th>{fr.config.label}</Th><Th>{fr.config.type}</Th><Th>{fr.config.required}</Th></tr></thead>
-            <tbody>{def.fields.map((f) => <tr key={f.key}><Td mono>{f.key}</Td><Td>{f.label}</Td><Td mono>{f.type}</Td><Td>{f.required ? '✓' : ''}</Td></tr>)}</tbody>
+            <thead><tr><Th>{fr.config.key}</Th><Th>{fr.config.label}</Th><Th>{fr.config.type}</Th><Th>{fr.config.required}</Th><Th>{fr.config.roles}</Th>{admin && <Th>{fr.config.remove}</Th>}</tr></thead>
+            <tbody>{def.fields.map((f) => (
+              <tr key={f.key}><Td mono>{f.key}</Td><Td>{f.label}</Td><Td mono>{f.type}</Td><Td>{f.required ? '✓' : ''}</Td>
+                <Td mono>{f.readRoles || f.writeRoles ? `R: ${f.readRoles?.join(', ') ?? fr.config.everyone} · W: ${f.writeRoles?.join(', ') ?? fr.config.everyone}` : fr.config.everyone}</Td>
+                {admin && <Td>{f.semanticRole !== 'title' && <Btn size="sm" variant="ghost" aria-label={`${fr.config.remove} ${f.key}`} onClick={() => removeField(f.key)}>{fr.config.remove}</Btn>}</Td>}</tr>
+            ))}</tbody>
           </Table>
           {admin && (
-            <form className="ath-toolbar" onSubmit={submit('fields', field, () => setField({ key: '', label: '', type: 'text', required: false }))}>
+            <form className="ath-toolbar" onSubmit={submit('fields', fieldBody(), () => setField({ key: '', label: '', type: 'text', required: false, readRoles: '', writeRoles: '' }))}>
               <TextField label={fr.config.key} value={field.key} onChange={(e) => setField({ ...field, key: e.target.value })} mono />
               <TextField label={fr.config.label} value={field.label} onChange={(e) => setField({ ...field, label: e.target.value })} />
               <div className="ath-field">
@@ -58,6 +81,8 @@ export function TrackerConfigPage({ session }: { session: Session }) {
                   {types.map((t) => <option key={t} value={t}>{t}</option>)}
                 </select>
               </div>
+              <TextField label={fr.config.readRoles} value={field.readRoles} onChange={(e) => setField({ ...field, readRoles: e.target.value })} />
+              <TextField label={fr.config.writeRoles} value={field.writeRoles} onChange={(e) => setField({ ...field, writeRoles: e.target.value })} />
               <Btn type="submit" disabled={!field.key || !field.label}>{fr.config.add}</Btn>
             </form>
           )}

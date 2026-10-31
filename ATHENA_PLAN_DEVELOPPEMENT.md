@@ -967,7 +967,7 @@ Légende : ● fait et testé · ◐ partiel · ○ non fait.
 |---|---|---|
 | 0 Cadrage, dispositif de continuité agent | ● | `CLAUDE.md`, `docs/dev/STATE.md`, fiches de tâches, ADR |
 | 1 Socle : Keycloak (BFF, PKCE, sessions, back-channel), OpenBao (KV, Transit, secret de session), RLS, audit chaîné, design system, CI | ● | thème sombre hors v1 |
-| 2 Trackers multiples configurables, workflow, liens, commentaires, API REST | ● | pièces jointes (API) et permissions par champ : ●; interface d'envoi et quotas : ●; antivirus, suppression/renommage de champs : ○ |
+| 2 Trackers multiples configurables, workflow, liens, commentaires, API REST | ● | pièces jointes (API) et permissions par champ : ●; interface d'envoi et quotas : ●; modification et suppression de champs (API et interface) : ●; antivirus : ○ |
 | 3 Historique GitLab (commits par auteur réel, tracker.yaml, restauration, baselines, synchronisation inverse, rebuild) | ● | signature des commits : par l'instance GitLab (configuration), pas par utilisateur ; MR obligatoire : configuration GitLab |
 | 4 ATQL et recherche | ● | plein texte : ●; autocomplétion, filtres sauvegardés : ○ |
 | 5 Boards, sprints, burndown, vélocité, flux, roadmap, tableau de bord | ● | swimlanes, Gantt : ○ |

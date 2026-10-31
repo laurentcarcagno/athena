@@ -157,6 +157,42 @@ export class TrackerService {
     });
   }
 
+  /** Modifie libellé, caractère obligatoire et rôles d'un champ. La clé et le type sont immuables (les valeurs stockées en dépendent). */
+  async updateField(
+    organizationId: string, projectKey: string, trackerKey: string, fieldKey: string,
+    patch: { label?: string; required?: boolean; readRoles?: string[] | null; writeRoles?: string[] | null }, actor: Actor,
+  ): Promise<void> {
+    await this.mutate(organizationId, projectKey, trackerKey, actor, `champ ${fieldKey} modifié`, async (c, tracker) => {
+      const field = (await c.query('select id, required from field_definition where tracker_id = $1 and key = $2', [tracker, fieldKey])).rows[0];
+      if (!field) throw notFound(`Champ ${fieldKey}`);
+      if (patch.required === true && !field.required) {
+        const missing = Number((await c.query('select count(*) n from artifact where tracker_id = $1 and not ("values" ? $2)', [tracker, fieldKey])).rows[0].n);
+        if (missing > 0) throw conflict(`${missing} artefact(s) n'ont pas de valeur pour ${fieldKey} : le champ ne peut pas devenir obligatoire.`);
+      }
+      await c.query(
+        `update field_definition set label = coalesce($2, label), required = coalesce($3, required),
+           read_roles = case when $4::boolean then $5 else read_roles end, write_roles = case when $6::boolean then $7 else write_roles end where id = $1`,
+        [field.id, patch.label ?? null, patch.required ?? null, patch.readRoles !== undefined, patch.readRoles ?? null, patch.writeRoles !== undefined, patch.writeRoles ?? null],
+      );
+    });
+  }
+
+  /**
+   * Supprime un champ. Refusé s'il porte le rôle sémantique « titre » ou si des artefacts ont une valeur,
+   * sauf `purge` : les valeurs sont alors retirées des artefacts (les révisions passées les conservent).
+   */
+  async removeField(organizationId: string, projectKey: string, trackerKey: string, fieldKey: string, purge: boolean, actor: Actor): Promise<void> {
+    await this.mutate(organizationId, projectKey, trackerKey, actor, `champ ${fieldKey} supprimé`, async (c, tracker) => {
+      const field = (await c.query('select id, semantic_role from field_definition where tracker_id = $1 and key = $2', [tracker, fieldKey])).rows[0];
+      if (!field) throw notFound(`Champ ${fieldKey}`);
+      if (field.semantic_role === 'title') throw conflict('Le champ titre ne peut pas être supprimé.');
+      const used = Number((await c.query('select count(*) n from artifact where tracker_id = $1 and "values" ? $2', [tracker, fieldKey])).rows[0].n);
+      if (used > 0 && !purge) throw conflict(`${used} artefact(s) ont une valeur pour ${fieldKey} : supprimer avec purge pour les retirer.`);
+      if (used > 0) await c.query('update artifact set "values" = "values" - $2 where tracker_id = $1', [tracker, fieldKey]);
+      await c.query('delete from field_definition where id = $1', [field.id]);
+    });
+  }
+
   async addStatus(organizationId: string, projectKey: string, trackerKey: string, status: StatusSpec, actor: Actor): Promise<void> {
     if (!/^[a-z][a-z0-9_]{0,39}$/.test(status.key)) throw validation(['clé de statut invalide']);
     await this.mutate(organizationId, projectKey, trackerKey, actor, `statut ${status.key}`, async (c, tracker) => {

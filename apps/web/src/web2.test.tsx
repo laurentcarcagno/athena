@@ -245,3 +245,31 @@ describe('pièces jointes', () => {
     expect(formatSize(5 * 1024 * 1024)).toBe('5.0 Mo');
   });
 });
+
+describe('champs : rôles et suppression', () => {
+  const def = { key: 'BUG', name: 'Bugs', fields: [
+    { id: 'f', key: 'title', label: 'Titre', type: 'text', config: {}, required: true, semanticRole: 'title' },
+    { id: 'g', key: 'salary', label: 'Salaire', type: 'number', config: {}, required: false, semanticRole: null, readRoles: ['hr'], writeRoles: null },
+  ], statuses: [], transitions: [] };
+  it('envoie les rôles saisis, affiche les rôles et propose la purge après un conflit', async () => {
+    handlers = [
+      on('GET', '/v1/projects/ARI/trackers/BUG', { body: def }), on('GET', '/v1/field-types', { body: ['text', 'number'] }),
+      on('POST', /\/fields$/, { status: 201, body: {} }),
+      (url, method) => (method === 'DELETE' && url.endsWith('/fields/salary') ? { status: 409, body: { error: 'conflict', message: 'Utilisé.', details: [] } } : undefined),
+      on('DELETE', /fields\/salary\?purge=true$/, { status: 204 }),
+    ];
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    wrap('/p/ARI/trackers/BUG/config', <TrackerConfigPage session={admin} />, '/p/:project/trackers/:tracker/config');
+    expect(await screen.findByText('R: hr · W: Tous')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Supprimer title' })).toBeNull(); // le titre n'est pas supprimable
+    const fields = screen.getByRole('heading', { name: 'Champs' }).closest('section')!;
+    await userEvent.type(within(fields).getByLabelText('Clé'), 'cost');
+    await userEvent.type(within(fields).getByLabelText('Libellé'), 'Coût');
+    await userEvent.type(within(fields).getByLabelText('Rôles en lecture (virgules)'), 'hr, finance');
+    await userEvent.click(within(fields).getByRole('button', { name: 'Ajouter' }));
+    await waitFor(() => expect(calls.find((c) => c.method === 'POST' && c.url.endsWith('/fields'))?.body).toEqual({ key: 'cost', label: 'Coût', type: 'text', required: false, readRoles: ['hr', 'finance'] }));
+    await userEvent.click(screen.getByRole('button', { name: 'Supprimer salary' }));
+    await waitFor(() => expect(calls.some((c) => c.method === 'DELETE' && c.url.endsWith('?purge=true'))).toBe(true));
+    vi.restoreAllMocks();
+  });
+});
