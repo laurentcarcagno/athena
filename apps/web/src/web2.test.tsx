@@ -322,3 +322,25 @@ describe('filtres enregistrés', () => {
     saved = [];
   });
 });
+
+describe('couloirs du board', () => {
+  const board = { key: 'kanban', name: 'Kanban', unmapped: 0, columns: [
+    { name: 'À faire', wipLimit: null, count: 2, overLimit: false, cards: [
+      { key: 'BUG-1', tracker: 'BUG', title: 'Crash', status: 'open', assignee: 'alice', version: 1 },
+      { key: 'BUG-2', tracker: 'BUG', title: 'Lenteur', status: 'open', assignee: null, version: 1 },
+    ] },
+    { name: 'Fini', wipLimit: null, count: 1, overLimit: false, cards: [{ key: 'BUG-3', tracker: 'BUG', title: 'Typo', status: 'done', assignee: 'alice', version: 2 }] },
+  ] };
+  it('regroupe les cartes par responsable', async () => {
+    const { BoardPage } = await import('./pages/BoardPage');
+    handlers = [on('GET', '/v1/projects/ARI/boards/kanban', { body: board })];
+    wrap('/p/ARI/board/kanban', <BoardPage />, '/p/:project/board/:board');
+    await screen.findByText('Crash');
+    await userEvent.selectOptions(screen.getByLabelText('Couloirs'), 'assignee');
+    const alice = screen.getByRole('region', { name: 'alice' });
+    expect(within(alice).getByText('Crash')).toBeInTheDocument();
+    expect(within(alice).getByText('Typo')).toBeInTheDocument();
+    expect(within(alice).queryByText('Lenteur')).toBeNull();
+    expect(within(screen.getByRole('region', { name: 'Non assigné' })).getByText('Lenteur')).toBeInTheDocument();
+  });
+});

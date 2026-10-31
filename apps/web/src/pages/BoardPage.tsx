@@ -11,6 +11,7 @@ type Card = BoardView['columns'][number]['cards'][number];
 export function BoardPage() {
   const { project, board } = useParams();
   const [view, setView] = useState<BoardView | null>(null);
+  const [laneBy, setLaneBy] = useState<'none' | 'assignee' | 'tracker'>('none');
   const toast = useToast();
   const fail = useFailure();
   const load = useCallback(() => api<BoardView>('GET', `/v1/projects/${project}/boards/${board}`).then(setView), [project, board]);
@@ -34,19 +35,21 @@ export function BoardPage() {
   };
 
   if (!view) return <p role="status">{fr.loading}</p>;
-  return (
-    <>
-      <PageHeader eyebrow={fr.board.eyebrow} title={view.name} sub={view.unmapped > 0 ? fr.board.unmapped(view.unmapped) : undefined} />
-      <div className="ath-board">
+  const laneOf = (card: Card): string => (laneBy === 'assignee' ? card.assignee ?? fr.board.noAssignee : laneBy === 'tracker' ? card.tracker : '');
+  const lanes = laneBy === 'none' ? [''] : [...new Set(view.columns.flatMap((c) => c.cards.map(laneOf)))].sort();
+  const renderBoard = (lane: string) => {
+    const cardsOf = (column: BoardView['columns'][number]) => (laneBy === 'none' ? column.cards : column.cards.filter((c) => laneOf(c) === lane));
+    return (
+    <div className="ath-board">
         {view.columns.map((column) => (
           <section key={column.name} className={`ath-column${column.overLimit ? ' ath-column--over' : ''}`} aria-label={column.name} onDragOver={(e) => e.preventDefault()} onDrop={(e) => drop(e, column.name)}>
             <header className="ath-column__head">
               <span className="ath-label">{column.name}</span>
-              <span className="ath-mono">{column.count}{column.wipLimit !== null ? ` / ${column.wipLimit}` : ''}</span>
+              <span className="ath-mono">{laneBy === 'none' ? column.count : cardsOf(column).length}{column.wipLimit !== null ? ` / ${column.wipLimit}` : ''}</span>
             </header>
             <div className="ath-column__cards">
-              {column.cards.length === 0 && <p className="ath-eyebrow">{fr.board.empty}</p>}
-              {column.cards.map((card) => (
+              {cardsOf(column).length === 0 && <p className="ath-eyebrow">{fr.board.empty}</p>}
+              {cardsOf(column).map((card) => (
                 <article key={card.key} className="ath-ticket" draggable onDragStart={(e) => e.dataTransfer.setData('application/x-athena-card', JSON.stringify(card))}>
                   <Link className="ath-link" to={`/p/${project}/a/${card.key}`}><Id>{card.key}</Id></Link>
                   <p className="ath-ticket__title">{card.title}</p>
@@ -65,6 +68,23 @@ export function BoardPage() {
           </section>
         ))}
       </div>
+    );
+  };
+  return (
+    <>
+      <PageHeader eyebrow={fr.board.eyebrow} title={view.name} sub={view.unmapped > 0 ? fr.board.unmapped(view.unmapped) : undefined} />
+      <div className="ath-toolbar">
+        <label className="ath-field__label" htmlFor="lane-by">{fr.board.laneBy}</label>
+        <select id="lane-by" className="ath-select" value={laneBy} onChange={(e) => setLaneBy(e.target.value as 'none' | 'assignee' | 'tracker')}>
+          <option value="none">{fr.board.laneNone}</option><option value="assignee">{fr.board.laneAssignee}</option><option value="tracker">{fr.board.laneTracker}</option>
+        </select>
+      </div>
+      {lanes.map((lane) => (
+        <section key={lane || 'all'} aria-label={lane || undefined}>
+          {lane && <h2 className="ath-label">{lane}</h2>}
+          {renderBoard(lane)}
+        </section>
+      ))}
       {view.columns.every((c) => c.cards.length === 0) && <EmptyState eyebrow={fr.board.eyebrow} title={fr.board.empty} />}
     </>
   );
