@@ -65,3 +65,7 @@ Voir `docs/security/REVUE.md` (test d'intrusion externe à commander, limiteur d
 ## Pièces jointes : stockage et antivirus
 
 Variables : `S3_ENDPOINT`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`, `S3_BUCKET`, `S3_REGION`. Antivirus optionnel : `CLAMAV_HOST` et `CLAMAV_PORT` (clamd, commande INSTREAM). Quand il est configuré, un fichier détecté est refusé, et l'indisponibilité de clamd refuse aussi le fichier (échec fermé).
+
+## Report des références dans les .sdoc
+
+`POST /v1/projects/:p/docs/:source/writeback` {repo, ref} crée une branche `athena/doc-refs/*` et une merge request qui ajoutent le champ `ATHENA_REFS` aux exigences liées. Le champ doit être déclaré dans la grammaire du document (`[GRAMMAR]`). Jamais d écriture directe.

@@ -972,7 +972,7 @@ Légende : ● fait et testé · ◐ partiel · ○ non fait.
 | 4 ATQL et recherche | ● | plein texte : ●; filtres enregistrés et autocomplétion : ● |
 | 5 Boards, sprints, burndown, vélocité, flux, roadmap, tableau de bord | ● | swimlanes et Gantt des versions : ● |
 | 6 Plugins (signature, isolation, SDK, CLI, hooks, administration) | ◐ | types de champ, hooks, actions, widgets (API), désinstallation avec politique de données : ● ; rendu des widgets dans le tableau de bord : ● ; vues, connecteurs : ○ |
-| 6 bis Liaison StrictDoc (index, liens suspects, couverture, récupération GitLab) | ● | écriture des références dans le `.sdoc` par MR : ○ |
+| 6 bis Liaison StrictDoc (index, liens suspects, couverture, récupération GitLab) | ● | report des références dans le `.sdoc` par merge request : ● |
 | 7 Webhooks sortants et entrants, automatisations, connecteur GitLab de code (références, transitions, branche, MR) | ◐ | rétroportages, DORA, notes de version, CLI `athena`, job CI `athena-check` : ●; déclencheurs planifiés : ● |
 | 8 Import JIRA/Tuleap, performance, sécurité interne, conteneurs et Helm, documentation | ◐ | **test d'intrusion externe : à commander** ; charge concurrente et déploiement réel sur Kubernetes : non mesurés ; formation : ○ |
 | Interface (liste, fiche, board, création, éditeur de tracker, administration, tableau de bord, palette, FR/EN) | ● | tests de bout en bout (Playwright, Keycloak réel) et accessibilité (axe-core, contraste inclus) : ● ; Storybook (catalogue des composants Hemeria) : ● |

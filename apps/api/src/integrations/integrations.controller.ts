@@ -3,7 +3,7 @@ import { Body, Controller, Delete, Get, Headers, HttpCode, HttpException, Inject
 import type { Pool } from 'pg';
 import { z } from 'zod';
 import { Public, Roles, type AuthedRequest } from '../auth/auth.guard';
-import { BASELINES, PLUGINS, CODE_ACTIONS, DOC_FETCHER, PG_POOL, REBUILD, REVERSE_SYNC, SECRET_STORE } from '../core/core.tokens';
+import { BASELINES, PLUGINS, CODE_ACTIONS, DOC_FETCHER, DOC_WRITEBACK, PG_POOL, REBUILD, REVERSE_SYNC, SECRET_STORE } from '../core/core.tokens';
 import type { RebuildService } from '../history/rebuild';
 import type { PushPayload, ReverseSync } from '../history/reverse-sync';
 import type { BaselineService } from '../history/baseline.service';
@@ -17,6 +17,7 @@ import type { PluginService } from '../plugins/plugin.service';
 import { DeliveryService } from '../gitcode/delivery';
 import type { CodeActions } from '../gitcode/code-actions';
 import type { DocFetcher } from '../docs/doc-fetch';
+import type { DocWriteback } from '../docs/doc-writeback';
 import { AutomationService } from '../automation/automation.service';
 import { InboundService } from '../inbound/inbound.service';
 import { DocLinkService } from '../docs/doc-link.service';
@@ -54,6 +55,7 @@ export class IntegrationsController {
     @Inject(REBUILD) private readonly rebuilder: RebuildService | null,
     @Inject(CODE_ACTIONS) private readonly code: CodeActions | null,
     @Inject(DOC_FETCHER) private readonly fetcher: DocFetcher | null,
+    @Inject(DOC_WRITEBACK) private readonly writeback: DocWriteback | null,
     @Inject(PLUGINS) private readonly plugins: PluginService,
     private readonly fieldTypes: FieldTypeRegistry,
     private readonly delivery: DeliveryService,
@@ -265,6 +267,16 @@ export class IntegrationsController {
     const { organizationId, actor } = await this.ctx(request);
     const input = parseBody(z.object({ repo: z.string().min(1).max(200), ref: z.string().max(100).default('main'), path: z.string().max(200).optional() }), body);
     return this.fetcher.sync(organizationId, project, source, input.repo, input.ref, input.path, actor);
+  }
+
+  /** Propose, par merge request, le report des liens Athena dans les fichiers .sdoc (jamais d'écriture directe). */
+  @Roles('athena-admin')
+  @Post('v1/projects/:project/docs/:source/writeback')
+  async writebackDocs(@Req() request: AuthedRequest, @Param('project') project: string, @Param('source') source: string, @Body() body: unknown) {
+    if (!this.writeback) throw new HttpException({ error: 'unavailable', message: 'GitLab non configuré.', details: [] }, 503);
+    const { organizationId, actor } = await this.ctx(request);
+    const input = parseBody(z.object({ repo: z.string().min(1).max(200), ref: z.string().max(100).default('main') }), body);
+    return this.writeback.proposeRefs(organizationId, project, source, input.repo, input.ref, actor);
   }
 
   /** Types de champ disponibles (natifs et fournis par des plugins) : alimente l'éditeur de tracker. */

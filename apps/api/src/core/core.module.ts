@@ -8,6 +8,7 @@ import { ImportService } from '../import/import.service';
 import { DeliveryService } from '../gitcode/delivery';
 import { CodeActions } from '../gitcode/code-actions';
 import { DocFetcher } from '../docs/doc-fetch';
+import { DocWriteback } from '../docs/doc-writeback';
 import { AutomationService } from '../automation/automation.service';
 import { InboundService } from '../inbound/inbound.service';
 import { AgileController } from '../agile/agile.controller';
@@ -24,7 +25,7 @@ import { BaselineService } from '../history/baseline.service';
 import { GitLabClient } from '../history/gitlab-client';
 import { RebuildService } from '../history/rebuild';
 import { ReverseSync } from '../history/reverse-sync';
-import { BASELINES, PLUGINS, CODE_ACTIONS, DOC_FETCHER, PG_POOL, REBUILD, REVERSE_SYNC, SECRET_STORE } from './core.tokens';
+import { BASELINES, PLUGINS, CODE_ACTIONS, DOC_FETCHER, DOC_WRITEBACK, PG_POOL, REBUILD, REVERSE_SYNC, SECRET_STORE } from './core.tokens';
 import { ArtifactService } from './artifact.service';
 import { CoreController } from './core.controller';
 import { Db } from './db';
@@ -121,6 +122,14 @@ export { PG_POOL } from './core.tokens';
       useFactory: (db: Db): CodeActions | null => {
         const c = loadConfig();
         return c.GITLAB_URL && c.GITLAB_TOKEN ? new CodeActions(db, new GitLabClient(c.GITLAB_URL, c.GITLAB_TOKEN)) : null;
+      },
+      inject: [Db],
+    },
+    {
+      provide: DOC_WRITEBACK,
+      useFactory: (db: Db): DocWriteback | null => {
+        const c = loadConfig();
+        return c.GITLAB_URL && c.GITLAB_TOKEN ? new DocWriteback(db, new GitLabClient(c.GITLAB_URL, c.GITLAB_TOKEN)) : null;
       },
       inject: [Db],
     },

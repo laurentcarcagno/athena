@@ -148,3 +148,20 @@ suite('liaison documentaire (intégration)', () => {
     await expect(docs.index(org, 'ARI', 'spec', file(duplicate), null, actor)).rejects.toMatchObject({ code: 'validation' });
   });
 });
+
+describe('report des références dans le .sdoc', () => {
+  it('insère ATHENA_REFS avant RELATIONS, met à jour une ligne existante et reste idempotent', async () => {
+    const { setAthenaRefs } = await import('./doc-writeback');
+    const doc = '[REQUIREMENT]\nUID: SYS-1\nTITLE: A\nRELATIONS:\n- TYPE: Parent\n  VALUE: SYS-0\n\n[REQUIREMENT]\nUID: SYS-2\nTITLE: B\n\n[REQUIREMENT]\nUID: SYS-3\nATHENA_REFS: BUG-1\n';
+    const a = setAthenaRefs(doc, 'SYS-1', ['BUG-2', 'BUG-1'])!;
+    expect(a).toContain('TITLE: A\nATHENA_REFS: BUG-1, BUG-2\nRELATIONS:');
+    expect(setAthenaRefs(a, 'SYS-1', ['BUG-1', 'BUG-2'])).toBeNull();
+    const b = setAthenaRefs(doc, 'SYS-2', ['REQ-5'])!;
+    expect(b).toContain('TITLE: B\nATHENA_REFS: REQ-5\n\n[REQUIREMENT]\nUID: SYS-3');
+    expect(setAthenaRefs(doc, 'SYS-3', ['BUG-1', 'BUG-9'])).toContain('ATHENA_REFS: BUG-1, BUG-9');
+    expect(setAthenaRefs(doc, 'SYS-404', ['BUG-1'])).toBeNull();
+    expect(setAthenaRefs(doc, 'SYS-2', [])).toBeNull();
+    expect(setAthenaRefs(doc.replace(/\n/g, '\r\n'), 'SYS-2', ['REQ-5'])).toContain('\r\nATHENA_REFS: REQ-5\r\n');
+    expect(parseSdoc(b).find((n) => n.uid === 'SYS-2')!.athenaRefs).toEqual(['REQ-5']);
+  });
+});
