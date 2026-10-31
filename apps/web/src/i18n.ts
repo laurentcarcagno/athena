@@ -35,7 +35,7 @@ const frDict = {
   config: {
     eyebrow: 'Configuration', title: 'Configuration du tracker', fields: 'Champs', statuses: 'Statuts', transitions: 'Transitions',
     key: 'Clé', label: 'Libellé', type: 'Type', required: 'Obligatoire', category: 'Catégorie', name: 'Nom', from: 'Depuis', to: 'Vers', anyState: 'Tout état', add: 'Ajouter',
-    readRoles: 'Rôles en lecture (virgules)', writeRoles: 'Rôles en écriture (virgules)', roles: 'Rôles', everyone: 'Tous', allowedRoles: 'Rôles autorisés (virgules, vide : tous)', remove: 'Supprimer', confirmPurge: (n: string) => `Le champ ${n} contient des valeurs. Les supprimer définitivement des artefacts ?`, removed: 'Champ supprimé.',
+    historyMode: 'Écriture de l’historique', historyDirect: 'Directe (branche principale)', historyMr: 'Par merge request (revue)', readRoles: 'Rôles en lecture (virgules)', writeRoles: 'Rôles en écriture (virgules)', roles: 'Rôles', everyone: 'Tous', allowedRoles: 'Rôles autorisés (virgules, vide : tous)', remove: 'Supprimer', confirmPurge: (n: string) => `Le champ ${n} contient des valeurs. Les supprimer définitivement des artefacts ?`, removed: 'Champ supprimé.',
     added: 'Configuration enregistrée.', schemaNote: 'Chaque modification incrémente la version du schéma et est versionnée dans Git.', adminOnly: 'Réservé aux administrateurs.',
   },
   admin: {
@@ -84,7 +84,7 @@ const enDict: Dictionary = {
   config: {
     eyebrow: 'Configuration', title: 'Tracker configuration', fields: 'Fields', statuses: 'Statuses', transitions: 'Transitions',
     key: 'Key', label: 'Label', type: 'Type', required: 'Required', category: 'Category', name: 'Name', from: 'From', to: 'To', anyState: 'Any state', add: 'Add',
-    readRoles: 'Read roles (comma separated)', writeRoles: 'Write roles (comma separated)', roles: 'Roles', everyone: 'Everyone', allowedRoles: 'Allowed roles (comma separated, empty: everyone)', remove: 'Delete', confirmPurge: (n: string) => `Field ${n} holds values. Permanently remove them from artifacts?`, removed: 'Field deleted.',
+    historyMode: 'History writes', historyDirect: 'Direct (main branch)', historyMr: 'Through merge request (review)', readRoles: 'Read roles (comma separated)', writeRoles: 'Write roles (comma separated)', roles: 'Roles', everyone: 'Everyone', allowedRoles: 'Allowed roles (comma separated, empty: everyone)', remove: 'Delete', confirmPurge: (n: string) => `Field ${n} holds values. Permanently remove them from artifacts?`, removed: 'Field deleted.',
     added: 'Configuration saved.', schemaNote: 'Each change increments the schema version and is versioned in Git.', adminOnly: 'Administrators only.',
   },
   admin: {

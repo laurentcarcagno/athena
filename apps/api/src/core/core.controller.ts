@@ -137,6 +137,15 @@ export class CoreController {
 
   @Roles('athena-admin')
   @HttpCode(204)
+  @Patch(':project/trackers/:tracker/history-mode')
+  async setHistoryMode(@Req() request: AuthedRequest, @Param('project') project: string, @Param('tracker') tracker: string, @Body() body: unknown) {
+    const { organizationId, actor } = await this.orgs.resolve(principalOf(request));
+    const input = parseBody(z.object({ mode: z.enum(['direct', 'merge_request']) }), body);
+    await this.trackers.setHistoryMode(organizationId, project, tracker, input.mode, actor);
+  }
+
+  @Roles('athena-admin')
+  @HttpCode(204)
   @Patch(':project/trackers/:tracker/fields/:field')
   async updateField(@Req() request: AuthedRequest, @Param('project') project: string, @Param('tracker') tracker: string, @Param('field') field: string, @Body() body: unknown) {
     const { organizationId, actor } = await this.orgs.resolve(principalOf(request));

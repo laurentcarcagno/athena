@@ -156,6 +156,33 @@ export class GitLabClient {
     return { webUrl: result.web_url };
   }
 
+  async branchExists(projectId: number, branch: string): Promise<boolean> {
+    const response = await this.request('GET', `/projects/${projectId}/repository/branches/${encodeURIComponent(branch)}`);
+    if (response.status === 404) return false;
+    if (!response.ok) throw new GitLabError(`GitLab lecture de branche : HTTP ${response.status}`, response.status);
+    return true;
+  }
+
+  /** Merge request ouverte pour cette branche source, ou null. */
+  async openMergeRequest(projectId: number, source: string, target: string): Promise<{ iid: number; webUrl: string } | null> {
+    const query = new URLSearchParams({ state: 'opened', source_branch: source, target_branch: target });
+    const list = await this.json<Array<{ iid: number; web_url: string }>>(await this.request('GET', `/projects/${projectId}/merge_requests?${query.toString()}`), 'liste des merge requests');
+    return list[0] ? { iid: list[0].iid, webUrl: list[0].web_url } : null;
+  }
+
+  /** Fusionne une MR. GitLab calcule la fusionnabilité de façon asynchrone : 405/406 sont réessayés quelques secondes. */
+  async mergeMergeRequest(projectId: number, iid: number): Promise<void> {
+    for (let attempt = 0; ; attempt++) {
+      const response = await this.request('PUT', `/projects/${projectId}/merge_requests/${iid}/merge`);
+      if (response.ok) return;
+      if ((response.status === 405 || response.status === 406) && attempt < 10) {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        continue;
+      }
+      throw new GitLabError(`GitLab fusion de la merge request : HTTP ${response.status}`, response.status);
+    }
+  }
+
   async createMergeRequest(projectId: number, input: { source: string; target: string; title: string; description: string }): Promise<{ iid: number; webUrl: string }> {
     const result = await this.json<{ iid: number; web_url: string }>(
       await this.request('POST', `/projects/${projectId}/merge_requests`, {

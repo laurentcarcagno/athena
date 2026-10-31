@@ -173,4 +173,35 @@ suite('historique GitLab (intégration)', () => {
     const revealed = await new ConfidentialFields(bao).reveal(orgKey, stored.values);
     expect(revealed['note']).toBe('Mot de passe du coffre-fort');
   }, 60_000);
+
+  it('mode « merge request » : les commits vont sur une branche de revue avec une MR ouverte, la fusion les intègre à main', async () => {
+    const db = new Db(pool);
+    const trackers = new TrackerService(db, new FieldTypeRegistry());
+    await trackers.createTracker(org, {
+      projectKey: 'ARI', key: 'REV', name: 'Revue',
+      fields: [{ key: 'title', label: 'Titre', type: 'text', required: true, semanticRole: 'title' }],
+      statuses: [{ key: 'open', name: 'Ouvert', category: 'todo' }], transitions: [],
+    }, alice);
+    await trackers.setHistoryMode(org, 'ARI', 'REV', 'merge_request', alice);
+    const created = await artifacts.create(org, 'ARI', 'REV', { title: 'Soumis à revue' }, alice);
+    await artifacts.update(org, 'ARI', created.key, { title: 'Soumis à revue (v2)' }, 1, alice);
+    expect((await sync.runOnce()).failed).toBe(0);
+
+    const path = `trackers/REV/artifacts/${created.key}.yaml`;
+    expect(await gitlab.fileExists(projectId, path, 'main')).toBe(false); // rien sur la branche principale
+    const branch = 'athena/review/REV';
+    expect(parse(await gitlab.fileContent(projectId, path, branch))).toMatchObject({ version: 2, values: { title: 'Soumis à revue (v2)' } });
+    const mr = await gitlab.openMergeRequest(projectId, branch, 'main');
+    expect(mr).not.toBeNull();
+    await sync.runOnce(); // un passage de plus ne crée pas de seconde MR
+    expect((await gitlab.openMergeRequest(projectId, branch, 'main'))!.iid).toBe(mr!.iid);
+
+    await gitlab.mergeMergeRequest(projectId, mr!.iid);
+    await new Promise((resolve) => setTimeout(resolve, 1500)); // GitLab fusionne de façon asynchrone
+    expect(parse(await gitlab.fileContent(projectId, path, 'main'))).toMatchObject({ version: 2 });
+    // Les trackers en mode direct continuent d'écrire sur main.
+    const direct = await artifacts.create(org, 'ARI', 'BUG', { title: 'Direct', severity: 'mineure' }, alice);
+    await sync.runOnce();
+    expect(await gitlab.fileExists(projectId, `trackers/BUG/artifacts/${direct.key}.yaml`, 'main')).toBe(true);
+  }, 90_000);
 });

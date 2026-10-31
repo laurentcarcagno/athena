@@ -43,6 +43,7 @@ export interface TrackerDefinition {
   key: string;
   name: string;
   schemaVersion: number;
+  historyMode: 'direct' | 'merge_request';
   fields: Array<Required<Pick<FieldSpec, 'key' | 'label' | 'type'>> & {
     id: string;
     config: Record<string, unknown>;
@@ -193,6 +194,15 @@ export class TrackerService {
     });
   }
 
+  /** Mode d'écriture de l'historique : « direct » (branche principale) ou « merge_request » (changements soumis à revue). */
+  async setHistoryMode(organizationId: string, projectKey: string, trackerKey: string, mode: 'direct' | 'merge_request', actor: Actor): Promise<void> {
+    await this.db.tx(organizationId, async (c) => {
+      const result = await c.query('update tracker t set history_mode = $3 from project p where p.id = t.project_id and p.key = $1 and t.key = $2', [projectKey, trackerKey, mode]);
+      if (result.rowCount === 0) throw notFound(`Tracker ${projectKey}/${trackerKey}`);
+      await audit(c, organizationId, actor, 'tracker.history_mode', `tracker:${projectKey}/${trackerKey}`, { mode });
+    });
+  }
+
   async addStatus(organizationId: string, projectKey: string, trackerKey: string, status: StatusSpec, actor: Actor): Promise<void> {
     if (!/^[a-z][a-z0-9_]{0,39}$/.test(status.key)) throw validation(['clé de statut invalide']);
     await this.mutate(organizationId, projectKey, trackerKey, actor, `statut ${status.key}`, async (c, tracker) => {
@@ -230,7 +240,7 @@ export class TrackerService {
   async getDefinition(c: PoolClient, projectKey: string, trackerKey: string): Promise<TrackerDefinition> {
     const t = (
       await c.query(
-        `select t.id, t.project_id, t.key, t.name, t.schema_version from tracker t
+        `select t.id, t.project_id, t.key, t.name, t.schema_version, t.history_mode from tracker t
          join project p on p.id = t.project_id where p.key = $1 and t.key = $2`,
         [projectKey, trackerKey],
       )
@@ -245,6 +255,7 @@ export class TrackerService {
       key: t.key,
       name: t.name,
       schemaVersion: t.schema_version,
+      historyMode: t.history_mode,
       fields: fields.map((f) => ({
         id: f.id, key: f.key, label: f.label, type: f.type, config: f.config, required: f.required, semanticRole: f.semantic_role, readRoles: f.read_roles ?? null, writeRoles: f.write_roles ?? null,
       })),

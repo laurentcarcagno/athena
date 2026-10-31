@@ -20,6 +20,8 @@ interface PendingEvent {
   display_name: string | null;
   email: string | null;
   confidential_fields: string[];
+  history_mode: string;
+  tracker_key: string | null;
 }
 
 const FALLBACK_AUTHOR = { name: 'Athena', email: 'athena@localhost' };
@@ -83,6 +85,8 @@ export class HistorySync {
     const rows = await c.query(
       `select o.id, o.type, o.payload, r.id as revision_id, r.snapshot,
               coalesce(p.key, o.payload->>'project') as project_key, u.display_name, u.email,
+              coalesce(tk.history_mode, (select t2.history_mode from tracker t2 join project p2 on p2.id = t2.project_id where p2.key = o.payload->>'project' and t2.key = o.payload->>'key'), 'direct') as history_mode,
+              coalesce(tk.key, o.payload->>'key') as tracker_key,
               coalesce((select array_agg(f.key) from field_definition f
                         where f.tracker_id = a.tracker_id and f.config->>'confidential' = 'true'), '{}') as confidential_fields
        from outbox_event o
@@ -90,6 +94,7 @@ export class HistorySync {
        left join artifact a on a.id = r.artifact_id
        left join project p on p.id = a.project_id
        left join user_account u on u.subject = coalesce(r.actor, o.payload->>'actor')
+       left join tracker tk on tk.id = a.tracker_id
        where o.history_synced_at is null
        order by o.created_at, o.id
        limit $1`,
@@ -108,10 +113,11 @@ export class HistorySync {
       ? await this.confidential.protect(orgKey, event.snapshot.values, event.confidential_fields)
       : event.snapshot.values;
     const content = serializeArtifact({ ...event.snapshot, values: protectedValues });
-    const exists = await this.gitlab.fileExists(projectId, path, this.branch);
+    const branch = await this.writeBranch(projectId, event);
+    const exists = await this.gitlab.fileExists(projectId, path, branch);
     const summary = summarize(event);
-    return this.gitlab.commit(projectId, {
-      branch: this.branch,
+    const sha = await this.gitlab.commit(projectId, {
+      branch,
       message:
         `${event.snapshot.key}: ${summary}\n\n` +
         `Athena-Event-Id: ${event.payload.eventId ?? event.id}\n` +
@@ -121,6 +127,8 @@ export class HistorySync {
       authorEmail: event.email ?? FALLBACK_AUTHOR.email,
       actions: [{ action: exists ? 'update' : 'create', file_path: path, content }],
     });
+    await this.ensureReview(projectId, event, branch);
+    return sha;
   }
 
   private async commitTracker(organizationId: string, orgKey: string, event: PendingEvent): Promise<string> {
@@ -128,9 +136,10 @@ export class HistorySync {
     const def = await new Db(this.pool).tx(organizationId, (c) => loadTrackerYaml(c, event.project_key!, trackerKey));
     const projectId = await this.repository(orgKey, event.project_key!);
     const path = trackerPath(trackerKey);
-    const exists = await this.gitlab.fileExists(projectId, path, this.branch);
-    return this.gitlab.commit(projectId, {
-      branch: this.branch,
+    const branch = await this.writeBranch(projectId, event);
+    const exists = await this.gitlab.fileExists(projectId, path, branch);
+    const sha = await this.gitlab.commit(projectId, {
+      branch,
       message: `tracker ${trackerKey}: ${event.type === 'tracker.created' ? 'création' : `configuration (${String((event.payload as Record<string, unknown>)['change'] ?? 'mise à jour')})`}
 
 Athena-Event-Id: ${event.id}
@@ -138,6 +147,26 @@ Athena-Actor: ${event.payload.actor ?? 'inconnu'}`,
       authorName: event.display_name ?? FALLBACK_AUTHOR.name,
       authorEmail: event.email ?? FALLBACK_AUTHOR.email,
       actions: [{ action: exists ? 'update' : 'create', file_path: path, content: serializeTracker(def) }],
+    });
+    await this.ensureReview(projectId, event, branch);
+    return sha;
+  }
+
+  /** Branche cible : la branche principale, ou la branche de revue du tracker en mode « merge request ». */
+  private async writeBranch(projectId: number, event: PendingEvent): Promise<string> {
+    if (event.history_mode !== 'merge_request' || !event.tracker_key) return this.branch;
+    const branch = reviewBranch(event.tracker_key);
+    if (!(await this.gitlab.branchExists(projectId, branch))) await this.gitlab.createBranch(projectId, branch, this.branch);
+    return branch;
+  }
+
+  /** Garantit qu'une merge request est ouverte pour la branche de revue (une seule, mise à jour par les commits suivants). */
+  private async ensureReview(projectId: number, event: PendingEvent, branch: string): Promise<void> {
+    if (branch === this.branch) return;
+    if (await this.gitlab.openMergeRequest(projectId, branch, this.branch)) return;
+    await this.gitlab.createMergeRequest(projectId, {
+      source: branch, target: this.branch, title: `Revue des modifications du tracker ${event.tracker_key}`,
+      description: 'Modifications Athena soumises à revue (mode merge request). Fusionner pour les intégrer à la branche principale.',
     });
   }
 
@@ -151,6 +180,8 @@ Athena-Actor: ${event.payload.actor ?? 'inconnu'}`,
     return id;
   }
 }
+
+export const reviewBranch = (trackerKey: string): string => `athena/review/${trackerKey}`;
 
 function summarize(event: PendingEvent): string {
   const payload = event.payload as Record<string, unknown>;

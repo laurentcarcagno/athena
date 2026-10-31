@@ -61,6 +61,17 @@ export function TrackerConfigPage({ session }: { session: Session }) {
     <>
       <PageHeader eyebrow={fr.config.eyebrow} title={`${fr.config.title} · ${def.key}`} sub={fr.config.schemaNote} />
       {!admin && <p className="ath-field__error">{fr.config.adminOnly}</p>}
+      {admin && (
+        <div className="ath-field">
+          <label className="ath-field__label" htmlFor="cfg-history">{fr.config.historyMode}</label>
+          <select id="cfg-history" className="ath-select" value={def.historyMode ?? 'direct'} onChange={async (e) => {
+            try { await api('PATCH', `${base}/history-mode`, { mode: e.target.value }); toast('success', fr.config.added); await reload(); } catch (error) { fail(error); }
+          }}>
+            <option value="direct">{fr.config.historyDirect}</option>
+            <option value="merge_request">{fr.config.historyMr}</option>
+          </select>
+        </div>
+      )}
       <div className="ath-stack">
         <Card title={fr.config.fields} meta={String(def.fields.length)}>
           <Table>

@@ -410,3 +410,13 @@ describe('widgets de plugins', () => {
     expect(screen.getByText('42')).toHaveClass('ath-stat__value');
   });
 });
+
+describe('mode d’écriture de l’historique', () => {
+  it('permet à un administrateur de passer un tracker en mode merge request', async () => {
+    const def = { key: 'BUG', name: 'Bugs', historyMode: 'direct', fields: [], statuses: [], transitions: [] };
+    handlers = [on('GET', '/v1/projects/ARI/trackers/BUG', { body: def }), on('GET', '/v1/field-types', { body: [] }), on('PATCH', /\/history-mode$/, { status: 204 })];
+    wrap('/p/ARI/trackers/BUG/config', <TrackerConfigPage session={admin} />, '/p/:project/trackers/:tracker/config');
+    await userEvent.selectOptions(await screen.findByLabelText('Écriture de l’historique'), 'merge_request');
+    await waitFor(() => expect(calls.find((c) => c.method === 'PATCH')?.body).toEqual({ mode: 'merge_request' }));
+  });
+});

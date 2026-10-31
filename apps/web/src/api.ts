@@ -66,7 +66,7 @@ export interface Hit { key: string; tracker: string; status: string; category: s
 export interface SearchResult { total: number; hits: Hit[] }
 export interface Field { id: string; key: string; label: string; type: string; config: Record<string, unknown>; required: boolean; semanticRole: string | null; readRoles?: string[] | null; writeRoles?: string[] | null }
 export interface TrackerDefinition {
-  key: string; name: string;
+  key: string; name: string; historyMode?: 'direct' | 'merge_request';
   fields: Field[];
   statuses: Array<{ id: string; key: string; name: string; category: string }>;
   transitions: Array<{ id: string; name: string; fromStatusId: string | null; toStatusId: string; conditions?: Array<{ type: string; roles?: string[] }> }>;
