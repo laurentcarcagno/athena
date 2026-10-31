@@ -17,7 +17,19 @@ export const DB = 'athena_e2e';
 export const APP_URL = url(DB, 'e2e_app', 'e2e-only');
 
 /** Base jetable migrée, rôle applicatif sous RLS, organisation « demo » et un projet avec un tracker de bugs. */
+/** Retire l'action requise TOTP de admin.dev (compte de développement) pour permettre une connexion automatisée. */
+async function relaxAdminLogin() {
+  const base = 'http://localhost:8080';
+  const form = new URLSearchParams({ grant_type: 'password', client_id: 'admin-cli', username: /^KEYCLOAK_ADMIN=(.+)$/m.exec(env)[1].trim(), password: /^KEYCLOAK_ADMIN_PASSWORD=(.+)$/m.exec(env)[1].trim() });
+  const token = (await (await fetch(`${base}/realms/master/protocol/openid-connect/token`, { method: 'POST', body: form })).json()).access_token;
+  const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
+  const users = await (await fetch(`${base}/admin/realms/athena/users?username=admin.dev&exact=true`, { headers })).json();
+  const res = await fetch(`${base}/admin/realms/athena/users/${users[0].id}`, { method: 'PUT', headers, body: JSON.stringify({ requiredActions: [] }) });
+  if (!res.ok) throw new Error(`Keycloak : mise à jour de admin.dev impossible (${res.status})`);
+}
+
 async function globalSetup() {
+  await relaxAdminLogin();
   const root = new Client({ connectionString: url('postgres') });
   await root.connect();
   await root.query(`drop database if exists ${DB} with (force)`);

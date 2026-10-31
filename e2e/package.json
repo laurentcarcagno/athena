@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "test": "node global-setup.mjs && playwright test"
+    "test": "pnpm --filter @athena/api build && node global-setup.mjs && playwright test"
   },
   "devDependencies": {
     "@playwright/test": "1.49.1",

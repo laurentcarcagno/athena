@@ -69,3 +69,19 @@ test('pièces jointes : envoi, liste, téléchargement identique, suppression', 
   await page.getByRole('button', { name: 'Supprimer' }).click();
   await expect(page.getByText('Aucune pièce jointe.')).toBeVisible();
 });
+
+test('administrateur : ajoute un champ avec rôles puis le supprime dans l’éditeur de tracker', async ({ page }) => {
+  await login(page, 'admin.dev', 'dev-only-admin');
+  await page.goto('/p/ARI/trackers/BUG/config');
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('BUG');
+  const fields = page.locator('section', { has: page.getByRole('heading', { name: 'Champs' }) });
+  await fields.getByLabel('Clé').fill('cout');
+  await fields.getByLabel('Libellé').fill('Coût');
+  await fields.getByLabel('Rôles en lecture (virgules)').fill('finance');
+  await fields.getByRole('button', { name: 'Ajouter' }).click();
+  const row = fields.getByRole('row', { name: /cout/ });
+  await expect(row).toContainText('R: finance');
+  await row.getByRole('button', { name: 'Supprimer cout' }).click();
+  await expect(fields.getByRole('row', { name: /cout/ })).toHaveCount(0);
+  expect(await axeViolations(page)).toEqual([]);
+});
