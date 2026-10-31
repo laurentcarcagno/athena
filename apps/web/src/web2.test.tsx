@@ -344,3 +344,16 @@ describe('couloirs du board', () => {
     expect(within(screen.getByRole('region', { name: 'Non assigné' })).getByText('Lenteur')).toBeInTheDocument();
   });
 });
+
+describe('Gantt des versions', () => {
+  it('positionne les versions sur un axe commun et expose chaque barre au lecteur d’écran', async () => {
+    const { ganttLayout } = await import('./pages/DashboardPage');
+    const r = (id: string, startsOn: string, endsOn: string, progress: number) => ({ id, name: id, startsOn, endsOn, state: 'planned', items: 1, doneItems: 0, progress });
+    const layout = ganttLayout([r('a', '2026-01-01', '2026-01-10', 0.5), r('b', '2026-01-11', '2026-01-20', 0), r('x', 'invalide', '2026-01-01', 0)]);
+    expect(layout.map((l) => l.id)).toEqual(['a', 'b']);
+    expect(layout[0]!.left).toBe(0);
+    expect(layout[1]!.left).toBeCloseTo(50, 5);
+    expect(layout[0]!.width + layout[1]!.width).toBeCloseTo(100, 5);
+    expect(ganttLayout([])).toEqual([]);
+  });
+});

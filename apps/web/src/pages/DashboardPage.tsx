@@ -26,6 +26,41 @@ function Bar({ value, max, label }: { value: number; max: number; label: string 
   );
 }
 
+const DAY = 86_400_000;
+
+/** Calcule la position (en %) de chaque version sur l'axe du temps commun. */
+export function ganttLayout(releases: Release[]): Array<{ id: string; left: number; width: number; progress: number }> {
+  const spans = releases.map((r) => ({ r, start: Date.parse(r.startsOn), end: Date.parse(r.endsOn) })).filter((s) => Number.isFinite(s.start) && Number.isFinite(s.end) && s.end >= s.start);
+  if (spans.length === 0) return [];
+  const min = Math.min(...spans.map((s) => s.start));
+  const max = Math.max(...spans.map((s) => s.end + DAY));
+  const total = max - min;
+  return spans.map(({ r, start, end }) => ({
+    id: r.id, left: ((start - min) / total) * 100, width: Math.max(((end + DAY - start) / total) * 100, 1), progress: r.progress,
+  }));
+}
+
+/** Diagramme de Gantt à plat des versions (SVG, aucun style en ligne). */
+function Gantt({ releases }: { releases: Release[] }) {
+  const rows = ganttLayout(releases);
+  const ROW = 22;
+  const name = (id: string) => releases.find((r) => r.id === id)!;
+  return (
+    <svg className="ath-gantt" role="img" aria-label="Gantt" width="100%" height={rows.length * ROW + 4} preserveAspectRatio="none">
+      {rows.map((row, i) => {
+        const r = name(row.id);
+        return (
+          <g key={row.id}>
+            <title>{`${r.name} : ${r.startsOn} → ${r.endsOn} (${Math.round(row.progress * 100)} %)`}</title>
+            <rect className="ath-gantt__track" x={`${row.left}%`} y={i * ROW + 2} width={`${row.width}%`} height={ROW - 6} />
+            <rect className="ath-gantt__fill" x={`${row.left}%`} y={i * ROW + 2} width={`${row.width * row.progress}%`} height={ROW - 6} />
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
 export function DashboardPage() {
   const { project } = useParams();
   const fail = useFailure();
@@ -86,6 +121,7 @@ export function DashboardPage() {
         <Card title={fr.dashboard.roadmap}>
           {roadmap.length === 0 ? <p>{fr.dashboard.noRelease}</p> : (
             <div className="ath-stack">
+              <Gantt releases={roadmap} />
               {roadmap.map((r) => (
                 <div key={r.id}>
                   <div className="ath-row"><strong>{r.name}</strong> <StatusPill kind={r.state === 'released' ? 'success' : 'info'}>{r.state}</StatusPill> <span className="ath-mono">{r.startsOn} → {r.endsOn}</span></div>

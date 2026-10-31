@@ -173,6 +173,9 @@
 .ath-bar { display: block; margin: 4px 0; }
 .ath-bar__track { fill: var(--ath-color-muted-mist); }
 .ath-bar__fill { fill: var(--ath-color-console-sky); }
+.ath-gantt { display: block; margin: 4px 0 8px; }
+.ath-gantt__track { fill: var(--ath-color-muted-mist); stroke: var(--ath-color-console-border); stroke-width: 1; }
+.ath-gantt__fill { fill: var(--ath-color-console-sky); }
 @media (max-width: 768px) { .ath-dash { grid-template-columns: 1fr; } .ath-page { flex-direction: column; } .ath-sidebar { width: 100%; min-height: 0; } }
 
 /* Palette de commandes */
