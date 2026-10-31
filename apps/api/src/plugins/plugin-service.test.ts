@@ -148,4 +148,15 @@ suite('service de plugins (intégration)', () => {
     expect((await db.tx(org, (c) => c.query("select count(*)::int n from plugin_storage where plugin_id = 'com.acme.quota'"))).rows[0].n).toBe(0);
     expect(await code(plugins.uninstall(org, 'com.acme.quota', admin))).toMatch(/not_found/);
   }, 30_000);
+
+  it('exécute un connecteur : le plugin transforme, l’hôte valide la forme et le nombre d’enregistrements', async () => {
+    const m = manifest({ id: 'com.acme.conn', version: '1.0.0', permissions: [], contributes: { fieldTypes: [], hooks: [], connectors: ['jira'] } });
+    const connCode = `plugin = { connectors: { jira: async (p) => p.issues.map((i) => i.bad ? { tracker: 'nope' } : ({ tracker: 'BRAND', values: { title: i.summary, color: '#112233' } })) } };`;
+    await plugins.install(org, pkg(m, connCode), [], admin);
+    const ok = await plugins.runConnector(org, 'com.acme.conn', 'jira', { issues: [{ summary: 'Un' }, { summary: 'Deux' }] });
+    expect(ok).toEqual([{ tracker: 'BRAND', values: { title: 'Un', color: '#112233' } }, { tracker: 'BRAND', values: { title: 'Deux', color: '#112233' } }]);
+    expect(await code(plugins.runConnector(org, 'com.acme.conn', 'jira', { issues: [{ bad: true }] }))).toMatch(/validation.*enregistrement 0 invalide/);
+    expect(await code(plugins.runConnector(org, 'com.acme.conn', 'jira', { issues: Array.from({ length: 51 }, () => ({ summary: 'x' })) }))).toMatch(/50 enregistrements/);
+    expect(await code(plugins.runConnector(org, 'com.acme.conn', 'autre', {}))).toMatch(/validation.*inconnu/);
+  }, 30_000);
 });

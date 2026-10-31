@@ -47,6 +47,7 @@ function load(code) {
       hooks: Object.keys((globalThis.plugin && plugin.hooks) || {}),
       actions: Object.keys((globalThis.plugin && plugin.actions) || {}),
       widgets: Object.keys((globalThis.plugin && plugin.widgets) || {}),
+      connectors: Object.keys((globalThis.plugin && plugin.connectors) || {}),
       ok: typeof globalThis.plugin === 'object' && globalThis.plugin !== null,
     })`,
     context,
@@ -62,7 +63,7 @@ async function invoke(kind, name, argsJson) {
   context.__args = String(argsJson);
   const promise = vm.runInContext(
     `(function () {
-      const table = (plugin[{ fieldType: 'fieldTypes', hook: 'hooks', action: 'actions', widget: 'widgets' }[__kind]] || {});
+      const table = (plugin[{ fieldType: 'fieldTypes', hook: 'hooks', action: 'actions', widget: 'widgets', connector: 'connectors' }[__kind]] || {});
       const entry = table[__name];
       if (!entry) throw new Error('Point d\\'extension inconnu : ' + __name);
       const args = JSON.parse(__args);

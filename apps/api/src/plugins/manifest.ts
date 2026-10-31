@@ -18,6 +18,8 @@ export const ManifestSchema = z.object({
     actions: z.array(z.string().regex(/^[a-z][a-z0-9-]{1,40}$/)).max(20).default([]),
     /** Widgets de tableau de bord : renvoient un modèle de données, jamais du HTML. */
     widgets: z.array(z.string().regex(/^[a-z][a-z0-9-]{1,40}$/)).max(20).default([]),
+    /** Connecteurs : transforment une charge externe en artefacts à créer (le plugin n'a aucun accès réseau). */
+    connectors: z.array(z.string().regex(/^[a-z][a-z0-9-]{1,40}$/)).max(20).default([]),
   }),
 });
 export type Manifest = z.infer<typeof ManifestSchema>;

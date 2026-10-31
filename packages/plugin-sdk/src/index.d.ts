@@ -34,8 +34,11 @@ export interface ActionContext { key?: string; version?: number; actor: string }
 
 export interface PluginDefinition {
   /** Actions de workflow appelables à la demande ; le résultat JSON est borné à 100 Ko. */
+  /** Connecteurs : transforment une charge externe en enregistrements `{ tracker, values }` (50 au plus). Le plugin n'a aucun accès réseau. */
+  connectors?: Record<string, (payload: unknown) => Array<{ tracker: string; values: Record<string, unknown> }> | Promise<Array<{ tracker: string; values: Record<string, unknown> }>>>;
   actions?: Record<string, (context: ActionContext) => unknown | Promise<unknown>>;
   /** Widgets de tableau de bord : renvoient un modèle de données (jamais de HTML). */
+  /** Modèles acceptés : `stat`, `list`, `table` (vue tabulaire : title, columns, rows). */
   widgets?: Record<string, (context: { project: string }) => unknown | Promise<unknown>>;
   fieldTypes?: Record<string, FieldTypeDefinition>;
   hooks?: Partial<Record<HookEvent, (payload: HookPayload) => void | Promise<void>>>;
@@ -48,7 +51,7 @@ export interface Manifest {
   athena: string;
   publisher: string;
   permissions: Permission[];
-  contributes: { fieldTypes?: string[]; hooks?: HookEvent[]; actions?: string[]; widgets?: string[] };
+  contributes: { fieldTypes?: string[]; hooks?: HookEvent[]; actions?: string[]; widgets?: string[]; connectors?: string[] };
 }
 
 export interface PluginPackage {

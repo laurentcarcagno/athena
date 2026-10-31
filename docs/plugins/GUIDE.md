@@ -4,6 +4,8 @@
 - **Types de champ** (`fieldTypes`) : valider une valeur selon une règle métier.
 - **Actions** (`actions`) : fonctions appelées à la demande via `POST /v1/plugins/:id/actions/:nom` (reçoivent clé, version, acteur ; jamais de valeurs).
 - **Widgets** (`widgets`) : `GET /v1/plugins/:id/widgets/:nom?project=` renvoie un modèle de données JSON (100 Ko max), rendu par l'interface, jamais du HTML du plugin.
+- **Vues** : un widget de modèle `table` (`title`, `columns`, `rows`) est rendu comme vue tabulaire dans le tableau de bord.
+- **Connecteurs** (`connectors`) : `POST /v1/projects/:p/plugins/:id/connectors/:nom` {payload} ; le plugin transforme la charge externe en `[{ tracker, values }]` (50 au plus), Athena crée les artefacts sous l'identité de l'appelant avec la validation habituelle. Le plugin n'a aucun accès réseau.
 - **Désinstallation** : `DELETE /v1/plugins/:id` (administrateur). Refusée tant qu'un champ utilise un type du plugin ; le stockage du plugin est supprimé, sauf avec `?keepData=true`.
 - **Hooks** (`hooks`) : réagir à `artifact.created`, `artifact.updated`, `artifact.transitioned` (reçoit la clé, la version, l'acteur et les **noms** des champs modifiés, jamais leurs valeurs).
 - Stockage clé/valeur (permission `storage`) et lecture d'artefacts (permission `artifacts:read`).

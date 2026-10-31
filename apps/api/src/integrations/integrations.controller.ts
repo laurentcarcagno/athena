@@ -2,6 +2,7 @@ import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import { Body, Controller, Delete, Get, Headers, HttpCode, HttpException, Inject, Param, Post, Query, Req } from '@nestjs/common';
 import type { Pool } from 'pg';
 import { z } from 'zod';
+import { ArtifactService } from '../core/artifact.service';
 import { Public, Roles, type AuthedRequest } from '../auth/auth.guard';
 import { BASELINES, PLUGINS, CODE_ACTIONS, DOC_FETCHER, DOC_WRITEBACK, PG_POOL, REBUILD, REVERSE_SYNC, SECRET_STORE } from '../core/core.tokens';
 import type { RebuildService } from '../history/rebuild';
@@ -57,6 +58,7 @@ export class IntegrationsController {
     @Inject(DOC_FETCHER) private readonly fetcher: DocFetcher | null,
     @Inject(DOC_WRITEBACK) private readonly writeback: DocWriteback | null,
     @Inject(PLUGINS) private readonly plugins: PluginService,
+    private readonly artifacts: ArtifactService,
     private readonly fieldTypes: FieldTypeRegistry,
     private readonly delivery: DeliveryService,
     private readonly automation: AutomationService,
@@ -331,6 +333,19 @@ export class IntegrationsController {
     const { organizationId, actor } = await this.ctx(request);
     const input = parseBody(z.object({ key: z.string().max(50).optional(), version: z.number().int().optional() }), body ?? {});
     return { result: await this.plugins.runAction(organizationId, id, name, input, actor) };
+  }
+
+  /** Exécute un connecteur sur une charge externe puis crée les artefacts renvoyés, sous l'identité de l'appelant (validation et droits habituels). */
+  @Roles('athena-user', 'athena-admin')
+  @HttpCode(200)
+  @Post('v1/projects/:project/plugins/:id/connectors/:name')
+  async pluginConnector(@Req() request: AuthedRequest, @Param('project') project: string, @Param('id') id: string, @Param('name') name: string, @Body() body: unknown) {
+    const { organizationId, actor } = await this.ctx(request);
+    const input = parseBody(z.object({ payload: z.unknown() }), body);
+    const records = await this.plugins.runConnector(organizationId, id, name, input.payload);
+    const created: string[] = [];
+    for (const record of records) created.push((await this.artifacts.create(organizationId, project, record.tracker, record.values, actor)).key);
+    return { created };
   }
 
   @Roles('athena-user', 'athena-admin')

@@ -167,6 +167,28 @@ export class PluginService {
     });
   }
 
+  /**
+   * Exécute un connecteur : le plugin transforme la charge externe (fournie par l'appelant) en enregistrements
+   * `{ tracker, values }`, validés ici (forme et nombre). Le plugin ne crée rien lui-même.
+   */
+  async runConnector(organizationId: string, pluginId: string, name: string, payload: unknown): Promise<Array<{ tracker: string; values: Record<string, unknown> }>> {
+    const host = await this.hostFor(organizationId, pluginId);
+    let result: unknown;
+    try {
+      result = await host.runConnector(name, payload);
+    } catch (error) {
+      throw validation([`connecteur ${name} en échec : ${(error as Error).message.slice(0, 150)}`]);
+    }
+    if (!Array.isArray(result) || result.length > 50) throw validation(['le connecteur doit renvoyer une liste de 50 enregistrements au plus']);
+    return result.map((r, i) => {
+      const rec = r as { tracker?: unknown; values?: unknown };
+      if (typeof rec?.tracker !== 'string' || !/^[A-Z][A-Z0-9]{1,9}$/.test(rec.tracker) || typeof rec.values !== 'object' || rec.values === null || Array.isArray(rec.values)) {
+        throw validation([`enregistrement ${i} invalide (tracker et values attendus)`]);
+      }
+      return { tracker: rec.tracker, values: rec.values as Record<string, unknown> };
+    });
+  }
+
   /** Modèle de données d'un widget de tableau de bord (rendu par l'interface, jamais de HTML du plugin). */
   async widget(organizationId: string, pluginId: string, name: string, project: string): Promise<unknown> {
     const host = await this.hostFor(organizationId, pluginId);

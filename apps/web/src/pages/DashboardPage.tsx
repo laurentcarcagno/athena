@@ -62,13 +62,19 @@ function Gantt({ releases }: { releases: Release[] }) {
 }
 
 /** Modèles de widget acceptés : le plugin fournit des données, jamais du HTML. */
-export type WidgetModel = { kind: 'stat'; label: string; value: string | number } | { kind: 'list'; title: string; items: string[] };
+export type WidgetModel = { kind: 'stat'; label: string; value: string | number } | { kind: 'list'; title: string; items: string[] }
+  | { kind: 'table'; title: string; columns: string[]; rows: string[][] };
 
 export function parseWidgetModel(raw: unknown): WidgetModel | null {
   const m = raw as { kind?: unknown; label?: unknown; value?: unknown; title?: unknown; items?: unknown } | null;
   if (!m || typeof m !== 'object') return null;
   if (m.kind === 'stat' && typeof m.label === 'string' && (typeof m.value === 'string' || typeof m.value === 'number')) return { kind: 'stat', label: m.label.slice(0, 100), value: typeof m.value === 'string' ? m.value.slice(0, 100) : m.value };
   if (m.kind === 'list' && typeof m.title === 'string' && Array.isArray(m.items)) return { kind: 'list', title: m.title.slice(0, 100), items: m.items.slice(0, 20).map((i) => String(i).slice(0, 200)) };
+  if (m.kind === 'table' && typeof m.title === 'string' && Array.isArray((m as { columns?: unknown }).columns) && Array.isArray((m as { rows?: unknown }).rows)) {
+    const columns = ((m as { columns: unknown[] }).columns).slice(0, 8).map((c) => String(c).slice(0, 60));
+    const rows = ((m as { rows: unknown[] }).rows).slice(0, 50).map((r) => (Array.isArray(r) ? r : []).slice(0, columns.length).map((v) => String(v).slice(0, 200)));
+    return { kind: 'table', title: m.title.slice(0, 100), columns, rows };
+  }
   return null;
 }
 
@@ -91,6 +97,10 @@ function PluginWidgets({ project }: { project: string }) {
       <div className="ath-stack">
         {models.map(({ id, title, model }) => model.kind === 'stat'
           ? <StatCard key={id} label={model.label} value={model.value} />
+          : model.kind === 'table'
+          ? <div key={id}><span className="ath-eyebrow">{model.title}</span>
+              <Table><thead><tr>{model.columns.map((c) => <Th key={c}>{c}</Th>)}</tr></thead>
+                <tbody>{model.rows.map((row, i) => <tr key={i}>{row.map((cell, j) => <Td key={j}>{cell}</Td>)}</tr>)}</tbody></Table></div>
           : <div key={id}><span className="ath-eyebrow">{model.title}</span><ul>{model.items.map((item, i) => <li key={i}>{item}</li>)}</ul><span className="ath-mono">{title}</span></div>)}
       </div>
     </Card>

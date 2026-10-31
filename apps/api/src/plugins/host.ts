@@ -37,6 +37,7 @@ export class PluginHost {
   hooks: string[] = [];
   actions: string[] = [];
   widgets: string[] = [];
+  connectors: string[] = [];
 
   constructor(
     readonly manifest: Manifest,
@@ -62,7 +63,7 @@ export class PluginHost {
       child.on('message', handler);
       child.once('exit', () => { clearTimeout(timer); reject(new PluginCrashed('le plugin s\'est arrêté au démarrage')); });
     });
-    const info = JSON.parse((await this.request({ type: 'load', code: this.code })) ?? '{}') as { fieldTypes: string[]; hooks: string[]; actions?: string[]; widgets?: string[] };
+    const info = JSON.parse((await this.request({ type: 'load', code: this.code })) ?? '{}') as { fieldTypes: string[]; hooks: string[]; actions?: string[]; widgets?: string[]; connectors?: string[] };
     const declaredTypes = new Set(this.manifest.contributes.fieldTypes);
     const declaredHooks = new Set(this.manifest.contributes.hooks);
     // Un plugin ne peut contribuer que ce que son manifeste (donc sa signature) déclare.
@@ -70,6 +71,7 @@ export class PluginHost {
     this.hooks = info.hooks.filter((n) => declaredHooks.has(n as never));
     this.actions = (info.actions ?? []).filter((n) => this.manifest.contributes.actions.includes(n));
     this.widgets = (info.widgets ?? []).filter((n) => this.manifest.contributes.widgets.includes(n));
+    this.connectors = (info.connectors ?? []).filter((n) => this.manifest.contributes.connectors.includes(n));
   }
 
   async validateFieldType(name: string, value: unknown, config: unknown): Promise<string | null> {
@@ -92,9 +94,14 @@ export class PluginHost {
     return this.callJson('widget', name, context);
   }
 
-  private async callJson(kind: 'action' | 'widget', name: string, input: unknown): Promise<unknown> {
-    const list = kind === 'action' ? this.actions : this.widgets;
-    if (!list.includes(name)) throw new PluginError(`${kind === 'action' ? 'Action' : 'Widget'} inconnu : ${name}`);
+  /** Transforme une charge externe en enregistrements à créer. */
+  async runConnector(name: string, payload: unknown): Promise<unknown> {
+    return this.callJson('connector', name, payload);
+  }
+
+  private async callJson(kind: 'action' | 'widget' | 'connector', name: string, input: unknown): Promise<unknown> {
+    const list = kind === 'action' ? this.actions : kind === 'widget' ? this.widgets : this.connectors;
+    if (!list.includes(name)) throw new PluginError(`${kind} inconnu : ${name}`);
     const result = await this.request({ type: 'call', kind, name, args: JSON.stringify([input]) });
     if (result !== undefined && result.length > 100_000) throw new PluginError('résultat trop volumineux');
     return result === undefined ? null : JSON.parse(result);

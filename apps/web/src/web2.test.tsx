@@ -395,6 +395,7 @@ describe('widgets de plugins', () => {
     expect(parseWidgetModel({ kind: 'list', title: 'T', items: ['a', 1] })).toEqual({ kind: 'list', title: 'T', items: ['a', '1'] });
     expect(parseWidgetModel({ kind: 'html', html: '<script>' })).toBeNull();
     expect(parseWidgetModel({ kind: 'stat', label: 'x', value: { a: 1 } })).toBeNull();
+    expect(parseWidgetModel({ kind: 'table', title: 'Vue', columns: ['A', 'B'], rows: [['1', 2, 'extra'], 'invalide'] })).toEqual({ kind: 'table', title: 'Vue', columns: ['A', 'B'], rows: [['1', '2'], []] });
     expect(parseWidgetModel(null)).toBeNull();
   });
   it('affiche un widget fourni par un plugin dans le tableau de bord', async () => {
