@@ -14,6 +14,10 @@ export const ManifestSchema = z.object({
   contributes: z.object({
     fieldTypes: z.array(z.string().regex(/^[a-z][a-z0-9-]{1,40}$/)).max(20).default([]),
     hooks: z.array(z.enum(['artifact.created', 'artifact.updated', 'artifact.transitioned'])).max(10).default([]),
+    /** Actions de workflow appelables à la demande (API ou automatisation). */
+    actions: z.array(z.string().regex(/^[a-z][a-z0-9-]{1,40}$/)).max(20).default([]),
+    /** Widgets de tableau de bord : renvoient un modèle de données, jamais du HTML. */
+    widgets: z.array(z.string().regex(/^[a-z][a-z0-9-]{1,40}$/)).max(20).default([]),
   }),
 });
 export type Manifest = z.infer<typeof ManifestSchema>;

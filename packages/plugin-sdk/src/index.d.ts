@@ -29,7 +29,14 @@ export interface HookPayload {
   changedFields: string[];
 }
 
+/** Contexte d'une action : jamais de valeurs de champ. */
+export interface ActionContext { key?: string; version?: number; actor: string }
+
 export interface PluginDefinition {
+  /** Actions de workflow appelables à la demande ; le résultat JSON est borné à 100 Ko. */
+  actions?: Record<string, (context: ActionContext) => unknown | Promise<unknown>>;
+  /** Widgets de tableau de bord : renvoient un modèle de données (jamais de HTML). */
+  widgets?: Record<string, (context: { project: string }) => unknown | Promise<unknown>>;
   fieldTypes?: Record<string, FieldTypeDefinition>;
   hooks?: Partial<Record<HookEvent, (payload: HookPayload) => void | Promise<void>>>;
 }
@@ -41,7 +48,7 @@ export interface Manifest {
   athena: string;
   publisher: string;
   permissions: Permission[];
-  contributes: { fieldTypes?: string[]; hooks?: HookEvent[] };
+  contributes: { fieldTypes?: string[]; hooks?: HookEvent[]; actions?: string[]; widgets?: string[] };
 }
 
 export interface PluginPackage {

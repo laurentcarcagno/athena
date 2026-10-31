@@ -1,5 +1,5 @@
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
-import { Body, Controller, Get, Headers, HttpCode, HttpException, Inject, Param, Post, Query, Req } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Headers, HttpCode, HttpException, Inject, Param, Post, Query, Req } from '@nestjs/common';
 import type { Pool } from 'pg';
 import { z } from 'zod';
 import { Public, Roles, type AuthedRequest } from '../auth/auth.guard';
@@ -302,6 +302,30 @@ export class IntegrationsController {
     if (state !== 'enable' && state !== 'disable') throw forbidden('Action inconnue.');
     await this.plugins.setEnabled(organizationId, id, state === 'enable', actor);
     if (state === 'enable') await this.plugins.loadEnabled(organizationId);
+  }
+
+  @Roles('athena-admin')
+  @HttpCode(204)
+  @Delete('v1/plugins/:id')
+  async uninstallPlugin(@Req() request: AuthedRequest, @Param('id') id: string, @Query('keepData') keepData?: string) {
+    const { organizationId, actor } = await this.ctx(request);
+    await this.plugins.uninstall(organizationId, id, actor, keepData === 'true');
+  }
+
+  @Roles('athena-user', 'athena-admin')
+  @HttpCode(200)
+  @Post('v1/plugins/:id/actions/:name')
+  async pluginAction(@Req() request: AuthedRequest, @Param('id') id: string, @Param('name') name: string, @Body() body: unknown) {
+    const { organizationId, actor } = await this.ctx(request);
+    const input = parseBody(z.object({ key: z.string().max(50).optional(), version: z.number().int().optional() }), body ?? {});
+    return { result: await this.plugins.runAction(organizationId, id, name, input, actor) };
+  }
+
+  @Roles('athena-user', 'athena-admin')
+  @Get('v1/plugins/:id/widgets/:name')
+  async pluginWidget(@Req() request: AuthedRequest, @Param('id') id: string, @Param('name') name: string, @Query('project') project = '') {
+    const { organizationId } = await this.ctx(request);
+    return { model: await this.plugins.widget(organizationId, id, name, project) };
   }
 
   // --- Import JIRA / Tuleap ---

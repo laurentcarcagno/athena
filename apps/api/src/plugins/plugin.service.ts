@@ -56,7 +56,7 @@ export class PluginService {
          on conflict (organization_id, plugin_id) do update set version = excluded.version, manifest = excluded.manifest,
            code = excluded.code, signature = excluded.signature, granted_permissions = excluded.granted_permissions,
            installed_by = excluded.installed_by, installed_at = now()`,
-        [organizationId, manifest.id, manifest.version, JSON.stringify(manifest), pkg.code, pkg.signature, granted, actor.id],
+        [organizationId, manifest.id, manifest.version, JSON.stringify(pkg.manifest), pkg.code, pkg.signature, granted, actor.id],
       );
       await audit(c, organizationId, actor, 'plugin.install', `plugin:${manifest.id}`, { version: manifest.version, granted });
     });
@@ -144,6 +144,51 @@ export class PluginService {
     }
     await this.db.tx(organizationId, (c) => c.query('update outbox_event set plugin_hooks_processed_at = now() where plugin_hooks_processed_at is null and not (type = any($1))', [hooked]));
     return delivered;
+  }
+
+  /** Exécute une action de workflow d'un plugin activé. Seuls clé, version et acteur sont transmis, jamais de valeurs de champ. */
+  async runAction(organizationId: string, pluginId: string, name: string, payload: { key?: string; version?: number }, actor: Actor): Promise<unknown> {
+    const host = await this.hostFor(organizationId, pluginId);
+    try {
+      const result = await host.runAction(name, { key: payload.key, version: payload.version, actor: actor.id });
+      await this.db.tx(organizationId, (c) => audit(c, organizationId, actor, 'plugin.action', `plugin:${pluginId}/${name}`, { key: payload.key }));
+      return result;
+    } catch (error) {
+      throw validation([`action ${name} en échec : ${(error as Error).message.slice(0, 150)}`]);
+    }
+  }
+
+  /** Modèle de données d'un widget de tableau de bord (rendu par l'interface, jamais de HTML du plugin). */
+  async widget(organizationId: string, pluginId: string, name: string, project: string): Promise<unknown> {
+    const host = await this.hostFor(organizationId, pluginId);
+    try {
+      return await host.runWidget(name, { project });
+    } catch (error) {
+      throw validation([`widget ${name} indisponible : ${(error as Error).message.slice(0, 150)}`]);
+    }
+  }
+
+  /**
+   * Désinstalle un plugin. Refusé tant qu'un champ utilise l'un de ses types (les valeurs ne seraient plus validables).
+   * Politique de données : par défaut le stockage du plugin est supprimé ; `keepData` le conserve pour une réinstallation.
+   */
+  async uninstall(organizationId: string, pluginId: string, actor: Actor, keepData = false): Promise<void> {
+    await this.db.tx(organizationId, async (c) => {
+      const used = (await c.query('select count(*)::int n from field_definition where type like $1', [`${pluginId}.%`])).rows[0].n as number;
+      if (used > 0) throw conflict(`Désinstallation refusée : ${used} champ(s) utilisent des types de ce plugin.`);
+      const removed = await c.query('delete from plugin_installation where plugin_id = $1', [pluginId]);
+      if (removed.rowCount === 0) throw notFound(`Plugin ${pluginId}`);
+      if (!keepData) await c.query('delete from plugin_storage where plugin_id = $1', [pluginId]);
+      await audit(c, organizationId, actor, 'plugin.uninstall', `plugin:${pluginId}`, { keepData });
+    });
+    await this.stop(organizationId, pluginId);
+  }
+
+  private async hostFor(organizationId: string, pluginId: string): Promise<PluginHost> {
+    await this.loadEnabled(organizationId);
+    const host = this.hosts.get(`${organizationId}:${pluginId}`);
+    if (!host) throw notFound(`Plugin actif ${pluginId}`);
+    return host;
   }
 
   async stop(organizationId: string, pluginId: string): Promise<void> {

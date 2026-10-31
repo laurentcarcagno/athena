@@ -120,4 +120,31 @@ suite('service de plugins (intégration)', () => {
     expect(list.find((p) => p.id === 'com.acme.quota')).toMatchObject({ enabled: false });
     expect(await code(plugins.setEnabled(org, 'com.inconnu.x', true, admin))).toMatch(/not_found/);
   });
+
+  it('exécute actions et widgets déclarés, jamais ceux qui ne le sont pas', async () => {
+    const m = manifest({ id: 'com.acme.ext', version: '1.0.0', contributes: { fieldTypes: [], hooks: [], actions: ['notifier'], widgets: ['stats'] } });
+    const extCode = `plugin = {
+      actions: { notifier: async (p) => { await athena.storage.set('dernier', p.key); return { ok: true, key: p.key, by: p.actor }; }, secret: async () => 'non déclarée' },
+      widgets: { stats: async (ctx) => ({ kind: 'stat', label: 'Projet ' + ctx.project, value: 42 }) },
+    };`;
+    await plugins.install(org, pkg(m, extCode), ['storage'], admin);
+    expect(await plugins.runAction(org, 'com.acme.ext', 'notifier', { key: 'BRAND-1', version: 1 }, admin)).toEqual({ ok: true, key: 'BRAND-1', by: 'u-admin' });
+    expect(await plugins.widget(org, 'com.acme.ext', 'stats', 'ARI')).toEqual({ kind: 'stat', label: 'Projet ARI', value: 42 });
+    expect(await code(plugins.runAction(org, 'com.acme.ext', 'secret', {}, admin))).toMatch(/validation.*inconnu/);
+    expect(await code(plugins.widget(org, 'com.acme.ext', 'absent', 'ARI'))).toMatch(/validation/);
+    expect(await code(plugins.runAction(org, 'com.absent.x', 'notifier', {}, admin))).toMatch(/not_found/);
+  }, 30_000);
+
+  it('désinstalle avec politique de données et refuse si un type de champ est utilisé', async () => {
+    await plugins.setEnabled(org, 'com.acme.colors', true, admin);
+    expect(await code(plugins.uninstall(org, 'com.acme.colors', admin))).toMatch(/conflict.*Désinstallation refusée/);
+    const keep = await db.tx(org, (c) => c.query("select count(*)::int n from plugin_storage where plugin_id = 'com.acme.ext'"));
+    expect(keep.rows[0].n).toBe(1);
+    await plugins.uninstall(org, 'com.acme.ext', admin, true); // conserve les données
+    expect((await db.tx(org, (c) => c.query("select count(*)::int n from plugin_storage where plugin_id = 'com.acme.ext'"))).rows[0].n).toBe(1);
+    expect((await plugins.list(org)).some((p) => p.id === 'com.acme.ext')).toBe(false);
+    await plugins.uninstall(org, 'com.acme.quota', admin); // purge par défaut
+    expect((await db.tx(org, (c) => c.query("select count(*)::int n from plugin_storage where plugin_id = 'com.acme.quota'"))).rows[0].n).toBe(0);
+    expect(await code(plugins.uninstall(org, 'com.acme.quota', admin))).toMatch(/not_found/);
+  }, 30_000);
 });

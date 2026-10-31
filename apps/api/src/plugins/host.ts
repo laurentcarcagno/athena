@@ -35,6 +35,8 @@ export class PluginHost {
   private readonly waiting = new Map<number, { resolve: (v: string | undefined) => void; reject: (e: Error) => void; timer: NodeJS.Timeout }>();
   fieldTypes: string[] = [];
   hooks: string[] = [];
+  actions: string[] = [];
+  widgets: string[] = [];
 
   constructor(
     readonly manifest: Manifest,
@@ -60,12 +62,14 @@ export class PluginHost {
       child.on('message', handler);
       child.once('exit', () => { clearTimeout(timer); reject(new PluginCrashed('le plugin s\'est arrêté au démarrage')); });
     });
-    const info = JSON.parse((await this.request({ type: 'load', code: this.code })) ?? '{}') as { fieldTypes: string[]; hooks: string[] };
+    const info = JSON.parse((await this.request({ type: 'load', code: this.code })) ?? '{}') as { fieldTypes: string[]; hooks: string[]; actions?: string[]; widgets?: string[] };
     const declaredTypes = new Set(this.manifest.contributes.fieldTypes);
     const declaredHooks = new Set(this.manifest.contributes.hooks);
     // Un plugin ne peut contribuer que ce que son manifeste (donc sa signature) déclare.
     this.fieldTypes = info.fieldTypes.filter((n) => declaredTypes.has(n));
     this.hooks = info.hooks.filter((n) => declaredHooks.has(n as never));
+    this.actions = (info.actions ?? []).filter((n) => this.manifest.contributes.actions.includes(n));
+    this.widgets = (info.widgets ?? []).filter((n) => this.manifest.contributes.widgets.includes(n));
   }
 
   async validateFieldType(name: string, value: unknown, config: unknown): Promise<string | null> {
@@ -76,6 +80,24 @@ export class PluginHost {
 
   async runHook(name: string, payload: unknown): Promise<void> {
     await this.request({ type: 'call', kind: 'hook', name, args: JSON.stringify([payload]) });
+  }
+
+  /** Exécute une action déclarée ; le résultat (JSON) est borné à 100 Ko. */
+  async runAction(name: string, payload: unknown): Promise<unknown> {
+    return this.callJson('action', name, payload);
+  }
+
+  /** Calcule le modèle de données d'un widget. */
+  async runWidget(name: string, context: unknown): Promise<unknown> {
+    return this.callJson('widget', name, context);
+  }
+
+  private async callJson(kind: 'action' | 'widget', name: string, input: unknown): Promise<unknown> {
+    const list = kind === 'action' ? this.actions : this.widgets;
+    if (!list.includes(name)) throw new PluginError(`${kind === 'action' ? 'Action' : 'Widget'} inconnu : ${name}`);
+    const result = await this.request({ type: 'call', kind, name, args: JSON.stringify([input]) });
+    if (result !== undefined && result.length > 100_000) throw new PluginError('résultat trop volumineux');
+    return result === undefined ? null : JSON.parse(result);
   }
 
   stop(): void {
