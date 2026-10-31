@@ -107,4 +107,25 @@ export class GitLabClient {
       'liste des commits',
     );
   }
+
+  async branchHead(projectId: number, branch: string): Promise<string> {
+    const result = await this.json<{ commit: { id: string } }>(
+      await this.request('GET', `/projects/${projectId}/repository/branches/${encodeURIComponent(branch)}`),
+      'lecture de la branche',
+    );
+    return result.commit.id;
+  }
+
+  async createTag(projectId: number, tag: string, ref: string, message: string): Promise<void> {
+    const query = new URLSearchParams({ tag_name: tag, ref, message });
+    await this.json(await this.request('POST', `/projects/${projectId}/repository/tags?${query.toString()}`), 'création du tag');
+  }
+
+  async compare(projectId: number, from: string, to: string) {
+    const query = new URLSearchParams({ from, to, straight: 'true' });
+    return this.json<{ diffs: Array<{ old_path: string; new_path: string; new_file: boolean; deleted_file: boolean }> }>(
+      await this.request('GET', `/projects/${projectId}/repository/compare?${query.toString()}`),
+      'comparaison',
+    );
+  }
 }

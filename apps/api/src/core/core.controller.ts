@@ -41,6 +41,7 @@ const LinkTypeBody = z.object({
   hierarchical: z.boolean().optional(),
 });
 const LinkBody = z.object({ to: z.string().min(1), type: z.string().min(1) });
+const RestoreBody = z.object({ version: z.number().int().min(1), expectedVersion: z.number().int().min(1) });
 const CommentBody = z.object({ body: z.string().min(1).max(100_000) });
 
 const principalOf =(request: AuthedRequest): Principal => request.principal!;
@@ -190,6 +191,15 @@ export class CoreController {
     const { organizationId, actor } = await this.orgs.resolve(principalOf(request));
     const input = parseBody(LinkBody, body);
     return { id: await this.links.link(organizationId, project, key, input.to, input.type, actor) };
+  }
+
+  @Roles('athena-user', 'athena-admin')
+  @HttpCode(200)
+  @Post(':project/artifacts/:key/restore')
+  async restore(@Req() request: AuthedRequest, @Param('project') project: string, @Param('key') key: string, @Body() body: unknown) {
+    const { organizationId, actor } = await this.orgs.resolve(principalOf(request));
+    const input = parseBody(RestoreBody, body);
+    return this.artifacts.restore(organizationId, project, key, input.version, input.expectedVersion, actor);
   }
 
   @Roles('athena-user', 'athena-admin')

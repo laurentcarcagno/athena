@@ -109,7 +109,7 @@ suite('historique GitLab (intégration)', () => {
     await artifacts.transition(org, 'ARI', created.key, 'Démarrer', updated.version, bob);
 
     const result = await sync.runOnce();
-    expect(result).toEqual({ committed: 3, failed: 0 });
+    expect(result).toEqual({ committed: 4, failed: 0 }); // tracker.yaml + 3 révisions de l'artefact
 
     projectId = await gitlab.ensureRepository('root', `athena-history-${orgKey}-ari`);
     const path = 'trackers/BUG/artifacts/BUG-1.yaml';
@@ -163,7 +163,7 @@ suite('historique GitLab (intégration)', () => {
     await artifacts.create(org, 'ARI', 'SEC', { title: 'Visible', note: 'Mot de passe du coffre-fort' }, alice);
     const bao = new OpenBao(BAO_ADDR, BAO_TOKEN!);
     const secured = new HistorySync(pool, gitlab, 'root', 'main', new ConfidentialFields(bao));
-    expect(await secured.runOnce()).toEqual({ committed: 1, failed: 0 });
+    expect(await secured.runOnce()).toEqual({ committed: 2, failed: 0 }); // tracker.yaml + artefact
 
     const raw = await gitlab.fileContent(projectId, 'trackers/SEC/artifacts/SEC-1.yaml', 'main');
     expect(raw).toContain('Visible');

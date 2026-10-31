@@ -90,6 +90,32 @@ export class ArtifactService {
     });
   }
 
+  /**
+   * Restaure les valeurs d'une révision antérieure. Ce n'est jamais une réécriture : une nouvelle révision
+   * (et donc un nouveau commit d'historique) est créée. Le statut n'est pas restauré : il ne change que par transition.
+   */
+  async restore(
+    organizationId: string, projectKey: string, key: string, targetVersion: number, expectedVersion: number, actor: Actor,
+  ): Promise<Artifact> {
+    const snapshot = await this.db.tx(organizationId, async (c) => {
+      const row = (
+        await c.query(
+          `select r.snapshot, a."values" as current from artifact_revision r join artifact a on a.id = r.artifact_id
+           join project p on p.id = a.project_id where p.key = $1 and a.key = $2 and r.version = $3`,
+          [projectKey, key, targetVersion],
+        )
+      ).rows[0];
+      if (!row) throw notFound(`Révision ${targetVersion} de ${key}`);
+      if (!row.snapshot) throw validation([`la révision ${targetVersion} n'a pas d'instantané`]);
+      return { values: (row.snapshot as { values: Values }).values, current: row.current as Values };
+    });
+    const patch: Values = { ...snapshot.values };
+    for (const k of Object.keys(snapshot.current)) if (!(k in snapshot.values)) patch[k] = null;
+    const restored = await this.update(organizationId, projectKey, key, patch, expectedVersion, actor);
+    await this.db.tx(organizationId, (c) => audit(c, organizationId, actor, 'artifact.restore', `artifact:${key}`, { fromVersion: targetVersion, toVersion: restored.version }));
+    return restored;
+  }
+
   async transition(
     organizationId: string, projectKey: string, key: string, transitionName: string, expectedVersion: number, actor: Actor,
   ): Promise<Artifact> {

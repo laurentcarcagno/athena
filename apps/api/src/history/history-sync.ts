@@ -3,7 +3,7 @@ import { Db } from '../core/db';
 import type { Snapshot } from '../core/artifact.service';
 import { GitLabClient } from './gitlab-client';
 import type { ConfidentialFields } from '../secrets/confidential';
-import { artifactPath, repositoryName, serializeArtifact } from './serialize';
+import { artifactPath, repositoryName, serializeArtifact, serializeTracker, trackerPath, type TrackerYaml } from './serialize';
 
 export interface SyncResult {
   committed: number;
@@ -61,7 +61,7 @@ export class HistorySync {
       if (events.length === 0) return result;
       for (const event of events) {
         try {
-          const sha = await this.commitEvent(orgKey, event);
+          const sha = await this.commitEvent(organizationId, orgKey, event);
           await db.tx(organizationId, async (c) => {
             if (event.revision_id && sha) {
               await c.query('update artifact_revision set git_sha = $1 where id = $2', [sha, event.revision_id]);
@@ -82,14 +82,14 @@ export class HistorySync {
   private async pending(c: PoolClient, limit: number): Promise<PendingEvent[]> {
     const rows = await c.query(
       `select o.id, o.type, o.payload, r.id as revision_id, r.snapshot,
-              p.key as project_key, u.display_name, u.email,
+              coalesce(p.key, o.payload->>'project') as project_key, u.display_name, u.email,
               coalesce((select array_agg(f.key) from field_definition f
                         where f.tracker_id = a.tracker_id and f.config->>'confidential' = 'true'), '{}') as confidential_fields
        from outbox_event o
        left join artifact_revision r on r.event_id = nullif(o.payload->>'eventId','')::uuid
        left join artifact a on a.id = r.artifact_id
        left join project p on p.id = a.project_id
-       left join user_account u on u.subject = r.actor
+       left join user_account u on u.subject = coalesce(r.actor, o.payload->>'actor')
        where o.history_synced_at is null
        order by o.created_at, o.id
        limit $1`,
@@ -99,7 +99,8 @@ export class HistorySync {
   }
 
   /** Retourne le SHA du commit, ou null si l'événement n'a pas de représentation Git (encore). */
-  private async commitEvent(orgKey: string, event: PendingEvent): Promise<string | null> {
+  private async commitEvent(organizationId: string, orgKey: string, event: PendingEvent): Promise<string | null> {
+    if (event.type === 'tracker.created' && event.project_key) return this.commitTracker(organizationId, orgKey, event);
     if (!event.type.startsWith('artifact.') || !event.snapshot || !event.project_key) return null;
     const projectId = await this.repository(orgKey, event.project_key);
     const path = artifactPath(event.snapshot);
@@ -119,6 +120,24 @@ export class HistorySync {
       authorName: event.display_name ?? FALLBACK_AUTHOR.name,
       authorEmail: event.email ?? FALLBACK_AUTHOR.email,
       actions: [{ action: exists ? 'update' : 'create', file_path: path, content }],
+    });
+  }
+
+  private async commitTracker(organizationId: string, orgKey: string, event: PendingEvent): Promise<string> {
+    const trackerKey = String((event.payload as Record<string, unknown>)['key']);
+    const def = await new Db(this.pool).tx(organizationId, (c) => loadTrackerYaml(c, event.project_key!, trackerKey));
+    const projectId = await this.repository(orgKey, event.project_key!);
+    const path = trackerPath(trackerKey);
+    const exists = await this.gitlab.fileExists(projectId, path, this.branch);
+    return this.gitlab.commit(projectId, {
+      branch: this.branch,
+      message: `tracker ${trackerKey}: création
+
+Athena-Event-Id: ${event.id}
+Athena-Actor: ${event.payload.actor ?? 'inconnu'}`,
+      authorName: event.display_name ?? FALLBACK_AUTHOR.name,
+      authorEmail: event.email ?? FALLBACK_AUTHOR.email,
+      actions: [{ action: exists ? 'update' : 'create', file_path: path, content: serializeTracker(def) }],
     });
   }
 
@@ -145,4 +164,23 @@ function summarize(event: PendingEvent): string {
     default:
       return event.type;
   }
+}
+
+async function loadTrackerYaml(c: PoolClient, projectKey: string, trackerKey: string): Promise<TrackerYaml> {
+  const t = (
+    await c.query('select t.id, t.key, t.name, t.schema_version from tracker t join project p on p.id = t.project_id where p.key = $1 and t.key = $2', [projectKey, trackerKey])
+  ).rows[0];
+  const fields = (await c.query('select * from field_definition where tracker_id = $1 order by position', [t.id])).rows;
+  const statuses = (await c.query('select * from status where tracker_id = $1 order by position', [t.id])).rows;
+  const keyOf = new Map<string, string>(statuses.map((s) => [s.id as string, s.key as string]));
+  const transitions = (await c.query('select * from transition where tracker_id = $1 order by name, id', [t.id])).rows;
+  return {
+    key: t.key, name: t.name, schemaVersion: t.schema_version,
+    fields: fields.map((f) => ({ key: f.key, label: f.label, type: f.type, config: f.config, required: f.required, semanticRole: f.semantic_role })),
+    statuses: statuses.map((s) => ({ key: s.key, name: s.name, category: s.category })),
+    transitions: transitions.map((x) => ({
+      name: x.name, from: x.from_status_id ? keyOf.get(x.from_status_id) ?? null : null, to: keyOf.get(x.to_status_id)!,
+      conditions: x.conditions, validators: x.validators, postActions: x.post_actions,
+    })),
+  };
 }

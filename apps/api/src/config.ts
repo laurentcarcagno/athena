@@ -16,6 +16,9 @@ const schema = z.object({
   WEB_ORIGIN: z.string().url().default('http://localhost:3000'),
   COOKIE_SECURE: z.enum(['true', 'false']).default('true').transform((v) => v === 'true'),
   SESSION_TTL_SECONDS: z.coerce.number().int().min(60).max(86_400 * 7).default(28_800),
+  GITLAB_URL: z.string().url().optional(),
+  GITLAB_TOKEN: z.string().min(10).optional(),
+  GITLAB_NAMESPACE: z.string().min(1).optional(),
   CORS_ORIGIN: z.string().default('http://localhost:3000'),
 });
 

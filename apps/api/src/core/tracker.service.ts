@@ -126,7 +126,7 @@ export class TrackerService {
           ],
         );
       }
-      await outbox(c, organizationId, 'tracker', tracker, 'tracker.created', { key: spec.key, project: spec.projectKey });
+      await outbox(c, organizationId, 'tracker', tracker, 'tracker.created', { key: spec.key, project: spec.projectKey, actor: actor.id });
       await audit(c, organizationId, actor, 'tracker.create', `tracker:${spec.projectKey}/${spec.key}`);
       return tracker;
     });

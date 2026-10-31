@@ -1,9 +1,10 @@
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
-import { Body, Controller, Get, Headers, HttpCode, Inject, Param, Post, Query, Req } from '@nestjs/common';
+import { Body, Controller, Get, Headers, HttpCode, HttpException, Inject, Param, Post, Query, Req } from '@nestjs/common';
 import type { Pool } from 'pg';
 import { z } from 'zod';
 import { Public, Roles, type AuthedRequest } from '../auth/auth.guard';
-import { PG_POOL, SECRET_STORE } from '../core/core.tokens';
+import { BASELINES, PG_POOL, SECRET_STORE } from '../core/core.tokens';
+import type { BaselineService } from '../history/baseline.service';
 import { Db } from '../core/db';
 import { forbidden } from '../core/errors';
 import { OrgResolver, parseBody } from '../core/http';
@@ -36,7 +37,13 @@ export class IntegrationsController {
     private readonly gitCode: GitCodeService,
     @Inject(SECRET_STORE) private readonly secrets: SecretStore,
     @Inject(PG_POOL) private readonly pool: Pool,
+    @Inject(BASELINES) private readonly baselines: BaselineService | null,
   ) {}
+
+  private baselineService(): BaselineService {
+    if (!this.baselines) throw new HttpException({ error: 'unavailable', message: 'Historique GitLab non configuré.', details: [] }, 503);
+    return this.baselines;
+  }
 
   private ctx = (request: AuthedRequest) => this.orgs.resolve(request.principal!);
 
@@ -96,6 +103,26 @@ export class IntegrationsController {
   @Get('v1/projects/:project/docs/:source/coverage')
   async coverage(@Req() request: AuthedRequest, @Param('project') project: string, @Param('source') source: string, @Query('tracker') tracker = 'REQ') {
     return this.docs.coverage((await this.ctx(request)).organizationId, project, source, tracker);
+  }
+
+  // --- Baselines ---
+  @Roles('athena-admin')
+  @Post('v1/projects/:project/baselines')
+  async createBaseline(@Req() request: AuthedRequest, @Param('project') project: string, @Body() body: unknown) {
+    const { organizationId, actor } = await this.ctx(request);
+    return this.baselineService().create(organizationId, project, parseBody(z.object({ name: z.string().min(1).max(61) }), body).name, actor);
+  }
+
+  @Roles('athena-user', 'athena-admin')
+  @Get('v1/projects/:project/baselines')
+  async listBaselines(@Req() request: AuthedRequest, @Param('project') project: string) {
+    return this.baselineService().list((await this.ctx(request)).organizationId, project);
+  }
+
+  @Roles('athena-user', 'athena-admin')
+  @Get('v1/projects/:project/baselines-diff')
+  async diffBaselines(@Req() request: AuthedRequest, @Param('project') project: string, @Query('from') from = '', @Query('to') to = '') {
+    return this.baselineService().diff((await this.ctx(request)).organizationId, project, from, to);
   }
 
   // --- Code GitLab ---

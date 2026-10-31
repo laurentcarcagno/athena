@@ -11,7 +11,9 @@ import { IntegrationsController } from '../integrations/integrations.controller'
 import { OpenBao } from '../secrets/openbao';
 import { OpenBaoSecretStore, UnavailableSecretStore } from '../secrets/store';
 import { WebhookService, type SecretStore } from '../webhooks/webhook.service';
-import { PG_POOL, SECRET_STORE } from './core.tokens';
+import { BaselineService } from '../history/baseline.service';
+import { GitLabClient } from '../history/gitlab-client';
+import { BASELINES, PG_POOL, SECRET_STORE } from './core.tokens';
 import { ArtifactService } from './artifact.service';
 import { CoreController } from './core.controller';
 import { Db } from './db';
@@ -56,6 +58,14 @@ export { PG_POOL } from './core.tokens';
     { provide: GitCodeService, useFactory: (db: Db, a: ArtifactService) => new GitCodeService(db, a), inject: [Db, ArtifactService] },
     { provide: BoardService, useFactory: (db: Db, t: TrackerService, a: ArtifactService) => new BoardService(db, t, a), inject: [Db, TrackerService, ArtifactService] },
     { provide: SprintService, useFactory: (db: Db) => new SprintService(db), inject: [Db] },
+    {
+      provide: BASELINES,
+      useFactory: (pool: Pool): BaselineService | null => {
+        const c = loadConfig();
+        return c.GITLAB_URL && c.GITLAB_TOKEN && c.GITLAB_NAMESPACE ? new BaselineService(pool, new GitLabClient(c.GITLAB_URL, c.GITLAB_TOKEN), c.GITLAB_NAMESPACE) : null;
+      },
+      inject: [PG_POOL],
+    },
     { provide: APP_FILTER, useClass: DomainErrorFilter },
   ],
   exports: [FieldTypeRegistry, PG_POOL],

@@ -29,3 +29,19 @@ export function serializeArtifact(snapshot: Snapshot): string {
 export function repositoryName(organizationKey: string, projectKey: string): string {
   return `athena-history-${organizationKey}-${projectKey}`.toLowerCase();
 }
+
+export interface TrackerYaml {
+  key: string;
+  name: string;
+  schemaVersion: number;
+  fields: Array<{ key: string; label: string; type: string; config: unknown; required: boolean; semanticRole: string | null }>;
+  statuses: Array<{ key: string; name: string; category: string }>;
+  transitions: Array<{ name: string; from: string | null; to: string; conditions: unknown; validators: unknown; postActions: unknown }>;
+}
+
+export const trackerPath = (key: string): string => `trackers/${key}/tracker.yaml`;
+
+/** Définition d'un tracker en YAML déterministe (plan § 4.1 : `tracker.yaml`). */
+export function serializeTracker(def: TrackerYaml): string {
+  return stringify({ schema: SCHEMA_VERSION, ...def }, { sortMapEntries: true, lineWidth: 0 });
+}

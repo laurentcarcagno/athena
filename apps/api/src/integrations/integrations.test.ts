@@ -25,7 +25,7 @@ suite('intégrations REST (webhooks, StrictDoc, GitLab)', () => {
   let sign: (claims: Record<string, unknown>) => Promise<string>;
   const orgId = crypto.randomUUID();
 
-  const call = (method: 'GET' | 'POST', url: string, jwt?: string, payload?: unknown, headers: Record<string, string> = {}) =>
+  const call = (method: 'GET' | 'POST' | 'PATCH', url: string, jwt?: string, payload?: unknown, headers: Record<string, string> = {}) =>
     app.inject({
       method, url,
       headers: { ...(jwt ? { authorization: `Bearer ${jwt}` } : {}), ...headers },
@@ -166,5 +166,17 @@ suite('intégrations REST (webhooks, StrictDoc, GitLab)', () => {
     const history = (await call('GET', '/v1/projects/ARI/artifacts/BUG-1/history', user)).json();
     expect(history[0].version).toBeGreaterThan(history[history.length - 1].version);
     expect(history[history.length - 1]).toMatchObject({ version: 1, actor: 'Dev Test' });
+  });
+
+  it('restaure une révision par REST et signale l’historique GitLab non configuré (503)', async () => {
+    const admin = await token(['athena-admin', 'athena-user']);
+    const current = (await call('GET', '/v1/projects/ARI/artifacts/BUG-1', admin)).json();
+    await call('PATCH', '/v1/projects/ARI/artifacts/BUG-1', admin, { values: { severity: 'mineure' }, version: current.version });
+    const back = await call('POST', '/v1/projects/ARI/artifacts/BUG-1/restore', admin, { version: 1, expectedVersion: current.version + 1 });
+    expect(back.statusCode).toBe(200);
+    expect(back.json().version).toBe(current.version + 2);
+    expect((await call('POST', '/v1/projects/ARI/artifacts/BUG-1/restore', admin, { version: 1, expectedVersion: 1 })).statusCode).toBe(409);
+    expect((await call('GET', '/v1/projects/ARI/baselines', admin)).statusCode).toBe(503);
+    expect((await call('POST', '/v1/projects/ARI/baselines', await token(['athena-user']), { name: 'v1' })).statusCode).toBe(403);
   });
 });
