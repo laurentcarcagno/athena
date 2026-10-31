@@ -34,3 +34,7 @@ Authentification : cookie de session (application web, écritures avec en-tête 
 - Documentation StrictDoc : `…/docs/:source/index`, `/sync`, `/coverage`. Baselines : `…/baselines`, `…/baselines-diff?from=&to=`. Reconstruction : `POST …/rebuild`. Import : `POST …/import`.
 
 Santé : `GET /healthz`. Un schéma OpenAPI généré n'est pas encore publié.
+
+## Schéma OpenAPI
+
+`GET /v1/openapi.json` (authentifié) renvoie le document OpenAPI 3.1 généré depuis les contrôleurs : routes, paramètres, codes de succès, rôles requis (`x-athena-roles`) et schémas de sécurité. Il ne décrit pas encore les corps de requête.
