@@ -4,41 +4,59 @@ import { GitLabClient } from './history/gitlab-client';
 import { HistorySync } from './history/history-sync';
 import { ConfidentialFields } from './secrets/confidential';
 import { OpenBao } from './secrets/openbao';
+import { OpenBaoSecretStore } from './secrets/store';
+import { WebhookService } from './webhooks/webhook.service';
+import { buildWorkers, healthServer } from './workers/tasks';
 
 const env = z
   .object({
     DATABASE_URL: z.string().min(1),
-    GITLAB_URL: z.string().url(),
-    GITLAB_TOKEN: z.string().min(10),
-    GITLAB_NAMESPACE: z.string().min(1),
+    GITLAB_URL: z.string().url().optional(),
+    GITLAB_TOKEN: z.string().min(10).optional(),
+    GITLAB_NAMESPACE: z.string().min(1).optional(),
     OPENBAO_ADDR: z.string().url().optional(),
     OPENBAO_TOKEN: z.string().min(1).optional(),
+    WEBHOOK_ALLOW_PRIVATE: z.enum(['true', 'false']).default('false').transform((v) => v === 'true'),
     HISTORY_INTERVAL_MS: z.coerce.number().int().min(500).default(2000),
+    WEBHOOKS_INTERVAL_MS: z.coerce.number().int().min(500).default(2000),
+    SESSIONS_INTERVAL_MS: z.coerce.number().int().min(10_000).default(600_000),
+    WORKER_HEALTH_PORT: z.coerce.number().int().min(1).max(65535).default(3002),
   })
   .parse(process.env);
 
-const pool = new Pool({ connectionString: env.DATABASE_URL, max: 4 });
-if (!env.OPENBAO_ADDR || !env.OPENBAO_TOKEN) {
-  console.warn('history-sync: OpenBao non configuré, les champs confidentiels ne seraient pas chiffrés.');
-  if (process.env['NODE_ENV'] === 'production') throw new Error('OPENBAO_ADDR et OPENBAO_TOKEN sont obligatoires en production');
+const log = (message: string) => console.log(`${new Date().toISOString()} ${message}`);
+const production = process.env['NODE_ENV'] === 'production';
+const pool = new Pool({ connectionString: env.DATABASE_URL, max: 6 });
+
+const bao = env.OPENBAO_ADDR && env.OPENBAO_TOKEN ? new OpenBao(env.OPENBAO_ADDR, env.OPENBAO_TOKEN) : null;
+if (!bao) {
+  log('OpenBao non configuré : champs confidentiels non chiffrés, webhooks sortants désactivés.');
+  if (production) throw new Error('OPENBAO_ADDR et OPENBAO_TOKEN sont obligatoires en production');
 }
-const confidential =
-  env.OPENBAO_ADDR && env.OPENBAO_TOKEN ? new ConfidentialFields(new OpenBao(env.OPENBAO_ADDR, env.OPENBAO_TOKEN)) : undefined;
-const sync = new HistorySync(pool, new GitLabClient(env.GITLAB_URL, env.GITLAB_TOKEN), env.GITLAB_NAMESPACE, 'main', confidential);
+
+const history =
+  env.GITLAB_URL && env.GITLAB_TOKEN && env.GITLAB_NAMESPACE
+    ? new HistorySync(pool, new GitLabClient(env.GITLAB_URL, env.GITLAB_TOKEN), env.GITLAB_NAMESPACE, 'main', bao ? new ConfidentialFields(bao) : undefined)
+    : undefined;
+if (!history) log("GitLab non configuré : synchronisation de l'historique désactivée.");
+const webhooks = bao ? new WebhookService(pool, new OpenBaoSecretStore(bao), { allowPrivate: env.WEBHOOK_ALLOW_PRIVATE }) : undefined;
+
+const loops = buildWorkers(
+  { pool, ...(history ? { history } : {}), ...(webhooks ? { webhooks } : {}), log },
+  { historyMs: env.HISTORY_INTERVAL_MS, webhooksMs: env.WEBHOOKS_INTERVAL_MS, sessionsMs: env.SESSIONS_INTERVAL_MS },
+);
+const health = healthServer(loops, env.WORKER_HEALTH_PORT);
+for (const loop of loops) loop.start();
+log(`worker démarré : ${loops.map((l) => l.name).join(', ')} (santé : :${env.WORKER_HEALTH_PORT}/healthz)`);
 
 let stopping = false;
-async function loop(): Promise<void> {
-  while (!stopping) {
-    try {
-      const { committed, failed } = await sync.runOnce();
-      if (committed || failed) console.log(`history-sync: ${committed} commit(s), ${failed} échec(s)`);
-    } catch (error) {
-      console.error(`history-sync: ${(error as Error).message.slice(0, 200)}`);
-    }
-    await new Promise((resolve) => setTimeout(resolve, env.HISTORY_INTERVAL_MS));
-  }
+async function shutdown(signal: string): Promise<void> {
+  if (stopping) return;
+  stopping = true;
+  log(`${signal} reçu : arrêt en cours…`);
+  await Promise.all(loops.map((l) => l.stop()));
+  health.close();
   await pool.end();
+  process.exit(0);
 }
-
-for (const signal of ['SIGINT', 'SIGTERM'] as const) process.on(signal, () => { stopping = true; });
-void loop();
+for (const signal of ['SIGINT', 'SIGTERM'] as const) process.on(signal, () => void shutdown(signal));
