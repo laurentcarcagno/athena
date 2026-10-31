@@ -3,6 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify';
 import { AppModule } from './app.module';
 import { loadConfig } from './config';
+import { registerBinaryUpload } from './core/attachment.controller';
 import { applyHardening } from './security/hardening';
 
 async function bootstrap() {
@@ -15,6 +16,7 @@ async function bootstrap() {
     sensitivePerMinute: config.RATE_LIMIT_SENSITIVE_PER_MINUTE,
     hsts: config.COOKIE_SECURE,
   });
+  registerBinaryUpload(app.getHttpAdapter().getInstance());
   await app.listen(config.PORT, config.HOST);
 }
 

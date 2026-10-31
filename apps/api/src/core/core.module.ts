@@ -30,6 +30,9 @@ import { CoreController } from './core.controller';
 import { Db } from './db';
 import { FieldTypeRegistry } from './field-types';
 import { SearchService } from '../atql/search.service';
+import { AttachmentController } from './attachment.controller';
+import { AttachmentService } from './attachment.service';
+import { S3Client } from '../storage/s3';
 import { LinkService } from './link.service';
 import { DomainErrorFilter, OrgResolver } from './http';
 import { TrackerService } from './tracker.service';
@@ -37,7 +40,7 @@ import { TrackerService } from './tracker.service';
 export { PG_POOL } from './core.tokens';
 
 @Module({
-  controllers: [CoreController, IntegrationsController, AgileController],
+  controllers: [CoreController, AttachmentController, IntegrationsController, AgileController],
   providers: [
     { provide: PG_POOL, useFactory: () => new Pool({ connectionString: loadConfig().DATABASE_URL, max: 10 }) },
     { provide: FieldTypeRegistry, useValue: new FieldTypeRegistry() },
@@ -48,6 +51,19 @@ export { PG_POOL } from './core.tokens';
       provide: ArtifactService,
       useFactory: (db: Db, t: TrackerService, f: FieldTypeRegistry) => new ArtifactService(db, t, f),
       inject: [Db, TrackerService, FieldTypeRegistry],
+    },
+    {
+      provide: AttachmentService,
+      useFactory: (db: Db): AttachmentService => {
+        const c = loadConfig();
+        if (!c.S3_ENDPOINT || !c.S3_ACCESS_KEY || !c.S3_SECRET_KEY) {
+          return new AttachmentService(db, new (class extends S3Client { override async put(): Promise<void> { throw new Error('Stockage S3 non configuré'); } })({ endpoint: 'http://localhost', region: '', accessKey: '', secretKey: '', bucket: 'x' }));
+        }
+        const s3 = new S3Client({ endpoint: c.S3_ENDPOINT, region: c.S3_REGION, accessKey: c.S3_ACCESS_KEY, secretKey: c.S3_SECRET_KEY, bucket: c.S3_BUCKET });
+        void s3.ensureBucket().catch((e: Error) => console.error(`s3: ${e.message}`));
+        return new AttachmentService(db, s3);
+      },
+      inject: [Db],
     },
     { provide: LinkService, useFactory: (db: Db) => new LinkService(db), inject: [Db] },
     { provide: SearchService, useFactory: (db: Db) => new SearchService(db), inject: [Db] },

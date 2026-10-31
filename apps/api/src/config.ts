@@ -20,6 +20,11 @@ const schema = z.object({
   GITLAB_TOKEN: z.string().min(10).optional(),
   GITLAB_NAMESPACE: z.string().min(1).optional(),
   /** Éditeurs de confiance : JSON `{"éditeur": "clé publique Ed25519 PEM"}`. Vide : aucune installation possible. */
+  S3_ENDPOINT: z.string().url().optional(),
+  S3_REGION: z.string().default('us-east-1'),
+  S3_ACCESS_KEY: z.string().min(3).optional(),
+  S3_SECRET_KEY: z.string().min(8).optional(),
+  S3_BUCKET: z.string().min(3).default('athena-attachments'),
   PLUGIN_TRUSTED_KEYS: z.string().optional(),
   RATE_LIMIT_API_PER_MINUTE: z.coerce.number().int().min(10).max(100_000).default(600),
   RATE_LIMIT_SENSITIVE_PER_MINUTE: z.coerce.number().int().min(5).max(10_000).default(60),
