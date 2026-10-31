@@ -56,6 +56,50 @@ export class CoreController {
     private readonly searcher: SearchService,
   ) {}
 
+  @Roles('athena-user', 'athena-admin')
+  @Get()
+  async listProjects(@Req() request: AuthedRequest) {
+    const { organizationId } = await this.orgs.resolve(principalOf(request));
+    return this.db.tx(organizationId, async (c) =>
+      (await c.query('select key, name from project order by key')).rows,
+    );
+  }
+
+  @Roles('athena-user', 'athena-admin')
+  @Get(':project/trackers')
+  async listTrackers(@Req() request: AuthedRequest, @Param('project') project: string) {
+    const { organizationId } = await this.orgs.resolve(principalOf(request));
+    return this.db.tx(organizationId, async (c) =>
+      (
+        await c.query(
+          `select t.key, t.name, t.description,
+                  (select count(*)::int from artifact a where a.tracker_id = t.id) as artifacts
+           from tracker t join project p on p.id = t.project_id where p.key = $1 order by t.key`,
+          [project],
+        )
+      ).rows,
+    );
+  }
+
+  /** Historique d'un artefact : révisions, auteur, différences et SHA du commit GitLab. */
+  @Roles('athena-user', 'athena-admin')
+  @Get(':project/artifacts/:key/history')
+  async history(@Req() request: AuthedRequest, @Param('project') project: string, @Param('key') key: string) {
+    const { organizationId } = await this.orgs.resolve(principalOf(request));
+    return this.db.tx(organizationId, async (c) =>
+      (
+        await c.query(
+          `select r.version, r.diff, r.git_sha as "gitSha", r.created_at as "at",
+                  coalesce(u.display_name, r.actor) as actor
+           from artifact_revision r join artifact a on a.id = r.artifact_id join project p on p.id = a.project_id
+           left join user_account u on u.subject = r.actor
+           where p.key = $1 and a.key = $2 order by r.version desc`,
+          [project, key],
+        )
+      ).rows,
+    );
+  }
+
   @Roles('athena-admin')
   @Post()
   async createProject(@Req() request: AuthedRequest, @Body() body: unknown) {

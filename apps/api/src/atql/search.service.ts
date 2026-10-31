@@ -7,6 +7,7 @@ export interface SearchHit {
   key: string;
   tracker: string;
   status: string;
+  category: string;
   values: Record<string, unknown>;
   version: number;
   updatedAt: string;
@@ -41,7 +42,7 @@ export class SearchService {
       const total = Number((await c.query(`select count(*) n ${from}`, compiled.params.slice(0, compiled.whereParamCount))).rows[0].n);
       const rows = (
         await c.query(
-          `select a.key, t.key as tracker, s.key as status, a."values" as values, a.version, a.updated_at
+          `select a.key, t.key as tracker, s.key as status, s.category, a."values" as values, a.version, a.updated_at
            ${from} order by ${compiled.orderBy} limit ${limit} offset ${offset}`,
           compiled.params,
         )
@@ -49,7 +50,7 @@ export class SearchService {
       return {
         total,
         hits: rows.map((r) => ({
-          key: r.key, tracker: r.tracker, status: r.status, values: r.values, version: r.version, updatedAt: r.updated_at.toISOString(),
+          key: r.key, tracker: r.tracker, status: r.status, category: r.category, values: r.values, version: r.version, updatedAt: r.updated_at.toISOString(),
         })),
       };
     });

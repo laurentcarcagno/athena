@@ -63,6 +63,14 @@ export class BoardService {
     });
   }
 
+  async list(organizationId: string, projectKey: string): Promise<Array<{ key: string; name: string; trackerKeys: string[] }>> {
+    return this.db.tx(organizationId, async (c) =>
+      (await c.query('select b.key, b.name, b.tracker_keys from board b join project p on p.id = b.project_id where p.key = $1 order by b.key', [projectKey])).rows.map(
+        (r) => ({ key: r.key, name: r.name, trackerKeys: r.tracker_keys }),
+      ),
+    );
+  }
+
   async view(organizationId: string, projectKey: string, boardKey: string): Promise<BoardView> {
     return this.db.tx(organizationId, async (c) => {
       const board = await this.load(c, projectKey, boardKey);

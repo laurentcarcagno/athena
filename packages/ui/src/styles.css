@@ -136,3 +136,30 @@
 .ath-nav-item[aria-current="page"] { opacity: 1; border-left-color: var(--ath-color-console-sky); background: rgba(0, 110, 177, 0.18); }
 .ath-sidebar__user { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-top: 1px solid rgba(255, 255, 255, 0.12); }
 .ath-avatar { width: 28px; height: 28px; background: var(--ath-color-console-sky); color: var(--ath-color-instrument-white); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 11px; }
+
+/* Remplace les styles en ligne (CSP sans unsafe-inline) */
+.ath-chip__label { opacity: 0.7; }
+.ath-icon-btn--bare { width: 16px; height: 16px; border: 0; }
+.ath-card__title { margin: 0; }
+.ath-table__caption { text-align: left; padding-bottom: 6px; }
+.ath-pageheader__eyebrow { margin: 0 0 4px; }
+.ath-sidebar__role { color: inherit; opacity: 0.6; }
+.ath-page { display: flex; min-height: 100vh; }
+.ath-page__main { flex: 1; min-width: 0; padding: 24px; }
+.ath-toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
+.ath-stack { display: flex; flex-direction: column; gap: 12px; }
+.ath-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.ath-grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+.ath-board { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(240px, 1fr); gap: 12px; overflow-x: auto; }
+.ath-column { background: var(--ath-color-muted-mist); border: 1px solid var(--ath-color-console-border); min-height: 200px; }
+.ath-column--over { border-color: var(--ath-color-signal-danger); }
+.ath-column__head { display: flex; justify-content: space-between; padding: 8px 10px; background: var(--ath-color-sovereign-deep-blue); color: var(--ath-color-instrument-white); }
+.ath-column__cards { display: flex; flex-direction: column; gap: 8px; padding: 8px; }
+.ath-ticket { background: var(--ath-color-instrument-white); border: 1px solid var(--ath-color-console-border); padding: 8px 10px; cursor: grab; }
+.ath-ticket:hover { background: var(--ath-color-hover-mist); }
+.ath-ticket__title { margin: 4px 0; }
+.ath-link { color: var(--ath-color-console-sky); text-decoration: none; }
+.ath-link:hover { text-decoration: underline; }
+.ath-select { font-family: inherit; font-size: 12px; padding: 5px 8px; background: var(--ath-color-instrument-white); border: 1px solid var(--ath-color-console-border); color: var(--ath-color-ink); }
+.ath-diff__from { color: var(--ath-color-signal-danger); }
+.ath-diff__to { color: var(--ath-color-signal-success); }

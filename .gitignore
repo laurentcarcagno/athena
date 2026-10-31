@@ -9,3 +9,4 @@ coverage/
 
 # Généré par `pnpm tokens`
 packages/ui/src/tokens.generated.*
+apps/web/dist/

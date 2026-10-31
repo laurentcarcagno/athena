@@ -157,4 +157,14 @@ suite('intégrations REST (webhooks, StrictDoc, GitLab)', () => {
     expect(Array.isArray((await call('GET', `/v1/projects/ARI/sprints/${id}/burndown`, admin)).json())).toBe(true);
     expect((await call('POST', '/v1/projects/ARI/sprints', await token(['athena-user']), { name: 'x', startsOn: '2026-01-01', endsOn: '2026-01-02' })).statusCode).toBe(403);
   });
+
+  it('liste projets et trackers, et expose l’historique d’un artefact', async () => {
+    const user = await token(['athena-user']);
+    expect((await call('GET', '/v1/projects', user)).json().map((p: { key: string }) => p.key)).toEqual(['ARI', 'OTH']);
+    const trackers = (await call('GET', '/v1/projects/ARI/trackers', user)).json();
+    expect(trackers).toMatchObject([{ key: 'BUG', artifacts: 1 }]);
+    const history = (await call('GET', '/v1/projects/ARI/artifacts/BUG-1/history', user)).json();
+    expect(history[0].version).toBeGreaterThan(history[history.length - 1].version);
+    expect(history[history.length - 1]).toMatchObject({ version: 1, actor: 'Dev Test' });
+  });
 });

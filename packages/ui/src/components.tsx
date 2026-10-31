@@ -31,10 +31,10 @@ export function Tag({ variant = 'default', children }: { variant?: 'default' | '
 export function FilterChip({ label, value, active = false, onClick, onClear }: { label: string; value: string; active?: boolean; onClick?: () => void; onClear?: () => void }) {
   return (
     <span className={cx('ath-chip', active && 'ath-chip--active')} onClick={onClick} role="group" aria-label={`${label} : ${value}`}>
-      <span style={{ opacity: 0.7 }}>{label}</span>
+      <span className="ath-chip__label">{label}</span>
       <span>{value}</span>
       {active && onClear && (
-        <button type="button" className="ath-icon-btn" style={{ width: 16, height: 16, border: 0 }} aria-label={`Retirer le filtre ${label}`} onClick={(e) => { e.stopPropagation(); onClear(); }}>×</button>
+        <button type="button" className="ath-icon-btn ath-icon-btn--bare" aria-label={`Retirer le filtre ${label}`} onClick={(e) => { e.stopPropagation(); onClear(); }}>×</button>
       )}
     </span>
   );
@@ -83,7 +83,7 @@ export function Card({ title, meta, children }: { title?: string; meta?: ReactNo
       <section className="ath-card">
         {(title || meta) && (
           <header className="ath-card__header">
-            <h3 className="ath-label ath-card__title" style={{ margin: 0 }}>{title}</h3>
+            <h3 className="ath-label ath-card__title">{title}</h3>
             {meta && <span className="ath-mono ath-card__meta">{meta}</span>}
           </header>
         )}
@@ -109,7 +109,7 @@ export function StatCard({ label, value, delta, icon }: { label: string; value: 
 }
 
 export function Table({ children, caption }: { children: ReactNode; caption?: string }) {
-  return <table className="ath-table">{caption && <caption className="ath-eyebrow" style={{ textAlign: 'left', paddingBottom: 6 }}>{caption}</caption>}{children}</table>;
+  return <table className="ath-table">{caption && <caption className="ath-eyebrow ath-table__caption">{caption}</caption>}{children}</table>;
 }
 
 export type SortState = 'asc' | 'desc' | null;
@@ -259,7 +259,7 @@ export function PageHeader({ eyebrow, title, sub, actions }: { eyebrow?: string;
           <div className="ath-stripe__blue" /><div className="ath-stripe__white" /><div className="ath-stripe__red" />
         </div>
         <div>
-          {eyebrow && <p className="ath-eyebrow" style={{ margin: '0 0 4px' }}>{eyebrow}</p>}
+          {eyebrow && <p className="ath-eyebrow ath-pageheader__eyebrow">{eyebrow}</p>}
           <h1 className="ath-pageheader__title">{title}</h1>
           {sub && <div className="ath-pageheader__sub">{sub}</div>}
         </div>
@@ -298,7 +298,7 @@ export function Sidebar({ items, current, onNavigate, user, collapsed = false }:
       {user && (
         <div className="ath-sidebar__user">
           <div className="ath-avatar" aria-hidden="true">{initials}</div>
-          <div><div>{user.name}</div><div className="ath-eyebrow" style={{ color: 'inherit', opacity: 0.6 }}>{user.role}</div></div>
+          <div><div>{user.name}</div><div className="ath-eyebrow ath-sidebar__role">{user.role}</div></div>
         </div>
       )}
     </aside>

@@ -1,0 +1,5 @@
+# T-0018 : application web (phase 1/2)
+- Livre : application Vite + React (apps/web) branchee sur le BFF (proxy meme origine), pages Projets, Recherche ATQL (tri par colonne dans lURL, pagination, erreurs de syntaxe, etat vide), Fiche dartefact (edition en place avec version, transitions du workflow, onglets Details, Liens, Historique avec SHA, Commentaires, Developpement), Board (glisser-deposer et selecteur accessible, limite WIP), toasts sobres, textes dans i18n.ts. Routes ajoutees a lAPI : liste des projets, des trackers, des boards, historique dun artefact. Les composants nutilisent plus de styles en ligne (CSP sans unsafe-inline).
+- Constat : le lien de la cle nutilisait pas la police mono (regle Identifier-Is-Mono) ; corrige.
+- Tests : 14 pour le web (145 API, 29 UI).
+- Non fait : configuration de tracker (editeur de champs et de workflow), creation dartefact depuis linterface, liens et doc-links en ecriture, ecran admin (webhooks, GitLab, utilisateurs), palette de commandes globale, anglais, polices IBM Plex embarquees, tests e2e navigateur, en-tete CSP a poser sur le reverse proxy.
