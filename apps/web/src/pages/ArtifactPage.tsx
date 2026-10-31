@@ -89,7 +89,8 @@ export function ArtifactPage({ session }: { session: Session }) {
 
   if (!artifact || !def) return <p role="status">{fr.loading}</p>;
   const status = def.statuses.find((s) => s.key === artifact.status);
-  const available = def.transitions.filter((t) => t.fromStatusId === null || t.fromStatusId === status?.id).filter((t) => t.toStatusId !== status?.id);
+  const available = def.transitions.filter((t) => t.fromStatusId === null || t.fromStatusId === status?.id).filter((t) => t.toStatusId !== status?.id)
+    .filter((t) => (t.conditions ?? []).every((c) => c.type !== 'role' || c.roles?.some((r) => session.user?.roles.includes(r))));
   const title = String(artifact.values['title'] ?? artifact.values['name'] ?? '');
 
   const save = async (field: Field, raw: string) => {

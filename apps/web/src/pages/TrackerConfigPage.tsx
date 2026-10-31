@@ -15,7 +15,7 @@ export function TrackerConfigPage({ session }: { session: Session }) {
   const [types, setTypes] = useState<string[]>([]);
   const [field, setField] = useState({ key: '', label: '', type: 'text', required: false, readRoles: '', writeRoles: '' });
   const [status, setStatus] = useState({ key: '', name: '', category: 'todo' });
-  const [transition, setTransition] = useState({ name: '', from: '', to: '' });
+  const [transition, setTransition] = useState({ name: '', from: '', to: '', roles: '' });
   const base = `/v1/projects/${project}/trackers/${tracker}`;
 
   const reload = useCallback(async () => {
@@ -109,7 +109,7 @@ export function TrackerConfigPage({ session }: { session: Session }) {
             <tbody>{def.transitions.map((t) => <tr key={t.id}><Td>{t.name}</Td><Td mono>{statusName(t.fromStatusId)}</Td><Td mono>{statusName(t.toStatusId)}</Td></tr>)}</tbody>
           </Table>
           {admin && (
-            <form className="ath-toolbar" onSubmit={submit('transitions', { name: transition.name, from: transition.from === '' ? null : transition.from, to: transition.to }, () => setTransition({ name: '', from: '', to: '' }))}>
+            <form className="ath-toolbar" onSubmit={submit('transitions', { name: transition.name, from: transition.from === '' ? null : transition.from, to: transition.to, ...(roleList(transition.roles).length ? { conditions: [{ type: 'role', roles: roleList(transition.roles) }] } : {}) }, () => setTransition({ name: '', from: '', to: '', roles: '' }))}>
               <TextField label={fr.config.name} value={transition.name} onChange={(e) => setTransition({ ...transition, name: e.target.value })} />
               <div className="ath-field">
                 <label className="ath-field__label" htmlFor="cfg-from">{fr.config.from}</label>
@@ -125,6 +125,7 @@ export function TrackerConfigPage({ session }: { session: Session }) {
                   {def.statuses.map((s) => <option key={s.id} value={s.key}>{s.key}</option>)}
                 </select>
               </div>
+              <TextField label={fr.config.allowedRoles} value={transition.roles} onChange={(e) => setTransition({ ...transition, roles: e.target.value })} />
               <Btn type="submit" disabled={!transition.name || !transition.to}>{fr.config.add}</Btn>
             </form>
           )}

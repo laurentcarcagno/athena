@@ -273,3 +273,26 @@ describe('champs : rôles et suppression', () => {
     vi.restoreAllMocks();
   });
 });
+
+describe('transitions réservées à des rôles', () => {
+  const def = { key: 'BUG', name: 'Bugs', fields: [{ id: 'f', key: 'title', label: 'Titre', type: 'text', config: {}, required: true, semanticRole: 'title' }],
+    statuses: [{ id: 's1', key: 'open', name: 'Ouvert', category: 'todo' }, { id: 's2', key: 'done', name: 'Fini', category: 'done' }],
+    transitions: [{ id: 't1', name: 'Terminer', fromStatusId: 's1', toStatusId: 's2' }, { id: 't2', name: 'Valider', fromStatusId: 's1', toStatusId: 's2', conditions: [{ type: 'role', roles: ['release'] }] }] };
+  const artifact = { id: 'a', key: 'BUG-1', trackerKey: 'BUG', status: 'open', version: 1, values: { title: 'x' } };
+  const routes = () => [
+    on('GET', '/v1/projects/ARI/artifacts/BUG-1', { body: artifact }), on('GET', '/v1/projects/ARI/trackers/BUG', { body: def }),
+    on('GET', /\/(links|doc-links|comments|history|code-refs)$/, { body: [] }),
+  ];
+  it('masque les transitions dont l’utilisateur n’a pas le rôle', async () => {
+    handlers = routes();
+    wrap('/p/ARI/a/BUG-1', <ArtifactPage session={simple} />, '/p/:project/a/:key');
+    expect(await screen.findByRole('button', { name: 'Terminer' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Valider' })).toBeNull();
+  });
+  it('les affiche pour le rôle requis', async () => {
+    handlers = routes();
+    const releaser: Session = { authenticated: true, user: { username: 'r', name: 'R', email: null, roles: ['athena-user', 'release'], groups: [] } };
+    wrap('/p/ARI/a/BUG-1', <ArtifactPage session={releaser} />, '/p/:project/a/:key');
+    expect(await screen.findByRole('button', { name: 'Valider' })).toBeInTheDocument();
+  });
+});

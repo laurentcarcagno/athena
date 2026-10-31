@@ -69,7 +69,7 @@ export interface TrackerDefinition {
   key: string; name: string;
   fields: Field[];
   statuses: Array<{ id: string; key: string; name: string; category: string }>;
-  transitions: Array<{ id: string; name: string; fromStatusId: string | null; toStatusId: string }>;
+  transitions: Array<{ id: string; name: string; fromStatusId: string | null; toStatusId: string; conditions?: Array<{ type: string; roles?: string[] }> }>;
 }
 export interface Artifact { id: string; key: string; trackerKey: string; status: string; values: Record<string, unknown>; version: number }
 export interface AttachmentView { id: string; name: string; contentType: string; size: number; sha256: string; uploadedBy: string; createdAt: string }
