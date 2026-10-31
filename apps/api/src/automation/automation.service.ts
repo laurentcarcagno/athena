@@ -18,10 +18,12 @@ export type Action = z.infer<typeof ActionSchema>;
 const TRIGGERS = ['artifact.created', 'artifact.updated', 'artifact.transitioned', 'comment.created', 'code.linked'] as const;
 const RuleSchema = z.object({
   name: z.string().min(1).max(200),
-  trigger: z.enum(TRIGGERS),
+  trigger: z.enum([...TRIGGERS, 'schedule']),
+  /** Pour `schedule` : période en minutes (5 à 10080). */
+  everyMinutes: z.number().int().min(5).max(10_080).optional(),
   condition: z.string().max(1000).default(''),
   actions: z.array(ActionSchema).min(1).max(10),
-});
+}).refine((r) => r.trigger !== 'schedule' || (r.everyMinutes !== undefined && r.condition.trim() !== ''), { message: 'une règle planifiée exige everyMinutes et une condition ATQL' });
 
 export const LIMITS = { maxDepth: 3, runsPerArtifactPerHour: 20 };
 const SYSTEM = /^automation:([0-9a-f-]{36}):(\d+)$/;
@@ -69,8 +71,8 @@ export class AutomationService {
       if (!project) throw notFound(`Projet ${projectKey}`);
       const id = (
         await c.query(
-          'insert into automation_rule (organization_id, project_id, name, trigger_type, condition, actions, created_by) values ($1,$2,$3,$4,$5,$6,$7) returning id',
-          [organizationId, project.id, parsed.data.name, parsed.data.trigger, parsed.data.condition, JSON.stringify(parsed.data.actions), actor.id],
+          'insert into automation_rule (organization_id, project_id, name, trigger_type, condition, actions, created_by, schedule_minutes) values ($1,$2,$3,$4,$5,$6,$7,$8) returning id',
+          [organizationId, project.id, parsed.data.name, parsed.data.trigger, parsed.data.condition, JSON.stringify(parsed.data.actions), actor.id, parsed.data.trigger === 'schedule' ? parsed.data.everyMinutes : null],
         )
       ).rows[0].id as string;
       await audit(c, organizationId, actor, 'automation.create', `automation:${id}`, { name: parsed.data.name });
@@ -119,6 +121,48 @@ export class AutomationService {
     }
     // Les événements d'autres types sont simplement marqués pour ne pas être relus.
     await this.db.tx(organizationId, (c) => c.query('update outbox_event set automation_processed_at = now() where automation_processed_at is null and not (type = any($1))', [[...TRIGGERS]]));
+    return done;
+  }
+
+  /** Quota d'artefacts traités par exécution d'une règle planifiée. */
+  static readonly SCHEDULE_BATCH = 100;
+
+  /**
+   * Exécute les règles planifiées échues : la condition ATQL désigne les artefacts à traiter (au plus
+   * SCHEDULE_BATCH par passage). La date d'exécution est posée avant le traitement (pas de double exécution).
+   */
+  async runDue(organizationId: string): Promise<number> {
+    const due = await this.db.tx(organizationId, async (c) =>
+      (
+        await c.query(
+          `update automation_rule r set last_run_at = now() from project p
+           where p.id = r.project_id and r.enabled and r.trigger_type = 'schedule'
+             and (r.last_run_at is null or r.last_run_at + make_interval(mins => r.schedule_minutes) <= now())
+           returning r.id, r.condition, r.actions, p.key as project_key`,
+        )
+      ).rows as Array<{ id: string; condition: string; actions: Action[]; project_key: string }>,
+    );
+    let done = 0;
+    for (const rule of due) {
+      const actor: Actor = { id: `automation:${rule.id}:1`, roles: ['athena-user'] };
+      const hits = await this.search.search(organizationId, rule.project_key, rule.condition, actor.id, AutomationService.SCHEDULE_BATCH, 0).catch(() => null);
+      if (!hits) continue;
+      for (const hit of hits.hits) {
+        const recent = await this.db.tx(organizationId, async (c) =>
+          Number((await c.query("select count(*) n from automation_run where rule_id = $1 and artifact_key = $2 and status = 'done' and at > now() - interval '1 hour'", [rule.id, hit.key])).rows[0].n),
+        );
+        let status: 'done' | 'failed' | 'skipped' = 'done';
+        let detail = '';
+        if (recent >= LIMITS.runsPerArtifactPerHour) { status = 'skipped'; detail = 'quota horaire atteint'; }
+        else {
+          try { for (const action of rule.actions) await this.apply(organizationId, rule.project_key, hit.key, action, actor); } catch (error) { status = 'failed'; detail = (error as Error).message.slice(0, 300); }
+        }
+        await this.db.tx(organizationId, (c) =>
+          c.query('insert into automation_run (organization_id, rule_id, event_id, artifact_key, status, detail) values ($1,$2,gen_random_uuid(),$3,$4,$5)', [organizationId, rule.id, hit.key, status, detail]),
+        );
+        if (status === 'done') done++;
+      }
+    }
     return done;
   }
 

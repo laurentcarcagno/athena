@@ -115,4 +115,20 @@ suite('automatisations (intégration)', () => {
     await settle();
     expect((await automation.runs(org, rule!.id)).length).toBe(before.length); // règle désactivée : aucune exécution
   }, 60_000);
+
+  it('exécute une règle planifiée sur les artefacts désignés par sa condition, sans double exécution', async () => {
+    expect(await code(automation.createRule(org, 'ARI', { name: 's', trigger: 'schedule', actions: [{ type: 'comment', body: 'a' }] }, admin))).toMatch(/validation.*planifiée/);
+    expect(await code(automation.createRule(org, 'ARI', { name: 's', trigger: 'schedule', everyMinutes: 1, condition: 'status = open', actions: [{ type: 'comment', body: 'a' }] }, admin))).toMatch(/validation/);
+    const stale = await artifacts.create(org, 'ARI', 'BUG', { title: 'Ancien', severity: 'mineure' }, admin);
+    const fresh = await artifacts.create(org, 'ARI', 'BUG', { title: 'Récent', severity: 'mineure' }, admin);
+    await testDb.exec("update artifact set updated_at = now() - interval '10 days' where key = $1", [stale.key]);
+    const id = await automation.createRule(org, 'ARI', { name: 'Relance', trigger: 'schedule', everyMinutes: 60, condition: `title ~ "Ancien" AND updated < daysAgo(7)`, actions: [{ type: 'comment', body: 'Relance automatique' }] }, admin);
+    expect(await automation.runDue(org)).toBe(1);
+    expect((await links.comments(org, 'ARI', stale.key)).map((c) => c.body)).toEqual(['Relance automatique']);
+    expect(await links.comments(org, 'ARI', fresh.key)).toEqual([]);
+    expect(await automation.runDue(org)).toBe(0); // pas encore échue
+    await testDb.exec("update automation_rule set last_run_at = now() - interval '2 hours' where id = $1", [id]);
+    expect(await automation.runDue(org)).toBe(1);
+    expect((await automation.runs(org, id)).map((r) => r.status)).toEqual(['done', 'done']);
+  });
 });

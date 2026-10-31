@@ -53,7 +53,7 @@ export function buildWorkers(deps: WorkerDeps, intervals: { historyMs: number; w
     loops.push(new WorkerLoop('automatisations', async () => {
       const organizations = (await deps.pool.query('select list_organization_ids() as id')).rows as Array<{ id: string }>;
       let done = 0;
-      for (const { id } of organizations) done += await automation.process(id);
+      for (const { id } of organizations) done += (await automation.process(id)) + (await automation.runDue(id));
       if (done) deps.log?.(`automatisations: ${done} exécution(s)`);
     }, options(intervals.automationMs ?? 2000)));
   }

@@ -10,7 +10,7 @@ export type Value =
   | { kind: 'string'; value: string }
   | { kind: 'number'; value: number }
   | { kind: 'word'; value: string }
-  | { kind: 'func'; name: string };
+  | { kind: 'func'; name: string; arg?: number };
 
 export type Operator = '=' | '!=' | '~' | '<' | '>' | '<=' | '>=';
 
@@ -94,6 +94,11 @@ export function parse(input: string): Query {
     if (token.t === 'word') {
       if (peek().t === 'punct' && peek().v === '(') {
         next();
+        if (peek().t === 'num') {
+          const arg = Number(next().v);
+          expectPunct(')');
+          return { kind: 'func', name: token.v, arg };
+        }
         expectPunct(')');
         return { kind: 'func', name: token.v };
       }

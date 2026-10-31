@@ -47,6 +47,9 @@ export function compile(input: string | Query, context: CompileContext, leading:
     if (value.kind === 'string' || value.kind === 'word') return value.value;
     if (value.kind === 'number') return value.value;
     if (value.name.toLowerCase() === 'currentuser') return context.currentUser;
+    if (value.name.toLowerCase() === 'daysago' && value.arg !== undefined && value.arg >= 0 && value.arg <= 3650) {
+      return new Date(Date.now() - value.arg * 86_400_000).toISOString();
+    }
     throw new AtqlError(`Fonction inconnue : ${value.name}()`, position);
   };
 
