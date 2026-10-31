@@ -100,7 +100,7 @@ export class HistorySync {
 
   /** Retourne le SHA du commit, ou null si l'événement n'a pas de représentation Git (encore). */
   private async commitEvent(organizationId: string, orgKey: string, event: PendingEvent): Promise<string | null> {
-    if (event.type === 'tracker.created' && event.project_key) return this.commitTracker(organizationId, orgKey, event);
+    if ((event.type === 'tracker.created' || event.type === 'tracker.updated') && event.project_key) return this.commitTracker(organizationId, orgKey, event);
     if (!event.type.startsWith('artifact.') || !event.snapshot || !event.project_key) return null;
     const projectId = await this.repository(orgKey, event.project_key);
     const path = artifactPath(event.snapshot);
@@ -131,7 +131,7 @@ export class HistorySync {
     const exists = await this.gitlab.fileExists(projectId, path, this.branch);
     return this.gitlab.commit(projectId, {
       branch: this.branch,
-      message: `tracker ${trackerKey}: création
+      message: `tracker ${trackerKey}: ${event.type === 'tracker.created' ? 'création' : `configuration (${String((event.payload as Record<string, unknown>)['change'] ?? 'mise à jour')})`}
 
 Athena-Event-Id: ${event.id}
 Athena-Actor: ${event.payload.actor ?? 'inconnu'}`,

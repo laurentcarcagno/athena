@@ -123,6 +123,39 @@ export class CoreController {
     return { id, key: input.key };
   }
 
+  @Roles('athena-admin')
+  @Post(':project/trackers/:tracker/fields')
+  async addField(@Req() request: AuthedRequest, @Param('project') project: string, @Param('tracker') tracker: string, @Body() body: unknown) {
+    const { organizationId, actor } = await this.orgs.resolve(principalOf(request));
+    const input = parseBody(z.object({
+      key: z.string(), label: z.string().min(1).max(100), type: z.string(), config: z.record(z.unknown()).optional(),
+      required: z.boolean().optional(), semanticRole: z.enum(['title', 'description', 'status', 'assignee', 'due_date', 'estimate']).optional(),
+    }), body);
+    await this.trackers.addField(organizationId, project, tracker, stripUndefined(input), actor);
+    return { added: input.key };
+  }
+
+  @Roles('athena-admin')
+  @Post(':project/trackers/:tracker/statuses')
+  async addStatus(@Req() request: AuthedRequest, @Param('project') project: string, @Param('tracker') tracker: string, @Body() body: unknown) {
+    const { organizationId, actor } = await this.orgs.resolve(principalOf(request));
+    const input = parseBody(z.object({ key: z.string(), name: z.string().min(1).max(100), category: z.enum(['todo', 'in_progress', 'done']) }), body);
+    await this.trackers.addStatus(organizationId, project, tracker, input, actor);
+    return { added: input.key };
+  }
+
+  @Roles('athena-admin')
+  @Post(':project/trackers/:tracker/transitions')
+  async addTransition(@Req() request: AuthedRequest, @Param('project') project: string, @Param('tracker') tracker: string, @Body() body: unknown) {
+    const { organizationId, actor } = await this.orgs.resolve(principalOf(request));
+    const input = parseBody(z.object({
+      name: z.string().min(1).max(100), from: z.string().nullable(), to: z.string(),
+      conditions: z.array(z.unknown()).optional(), validators: z.array(z.unknown()).optional(), postActions: z.array(z.unknown()).optional(),
+    }), body);
+    await this.trackers.addTransition(organizationId, project, tracker, stripUndefined(input), actor);
+    return { added: input.name };
+  }
+
   @Roles('athena-user', 'athena-admin')
   @Get(':project/trackers/:tracker')
   async getTracker(@Req() request: AuthedRequest, @Param('project') project: string, @Param('tracker') tracker: string) {

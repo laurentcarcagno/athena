@@ -168,13 +168,17 @@ const FOCUSABLE = 'a[href], button:not(:disabled), input:not(:disabled), select:
 export function Modal({ open, title, size = 'sm', onClose, children, footer }: { open: boolean; title: string; size?: 'sm' | 'md' | 'lg'; onClose: () => void; children: ReactNode; footer?: ReactNode }) {
   const dialog = useRef<HTMLDivElement>(null);
   const titleId = useId();
+  // `onClose` est souvent une fonction recréée à chaque rendu : on la lit par référence pour que l'effet
+  // (focus initial, piège de focus) ne se relance qu'à l'ouverture et ne vole pas le focus pendant la saisie.
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
   useEffect(() => {
     if (!open) return;
     const previous = document.activeElement as HTMLElement | null;
     const first = dialog.current?.querySelector<HTMLElement>(FOCUSABLE);
     first?.focus();
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') { event.stopPropagation(); onClose(); return; }
+      if (event.key === 'Escape') { event.stopPropagation(); onCloseRef.current(); return; }
       if (event.key !== 'Tab' || !dialog.current) return;
       const items = [...dialog.current.querySelectorAll<HTMLElement>(FOCUSABLE)];
       if (items.length === 0) return;
@@ -185,7 +189,7 @@ export function Modal({ open, title, size = 'sm', onClose, children, footer }: {
     };
     document.addEventListener('keydown', onKey);
     return () => { document.removeEventListener('keydown', onKey); previous?.focus(); };
-  }, [open, onClose]);
+  }, [open]);
   if (!open) return null;
   return (
     <div className="ath-modal-backdrop" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>

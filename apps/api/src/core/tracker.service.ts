@@ -1,6 +1,6 @@
 import type { PoolClient } from 'pg';
 import { Db, type Actor } from './db';
-import { DomainError, notFound, validation } from './errors';
+import { DomainError, conflict, notFound, validation } from './errors';
 import { FieldTypeRegistry } from './field-types';
 
 export interface FieldSpec {
@@ -129,6 +129,60 @@ export class TrackerService {
       await outbox(c, organizationId, 'tracker', tracker, 'tracker.created', { key: spec.key, project: spec.projectKey, actor: actor.id });
       await audit(c, organizationId, actor, 'tracker.create', `tracker:${spec.projectKey}/${spec.key}`);
       return tracker;
+    });
+  }
+
+  /**
+   * Évolutions de configuration d'un tracker (plan § 15.3). Chaque évolution incrémente `schema_version`, est
+   * auditée et produit un événement `tracker.updated` (donc un commit de `tracker.yaml` dans l'historique).
+   * Les évolutions destructrices (suppression, changement de type) ne sont pas proposées : elles exigent une
+   * migration de données prévisualisée.
+   */
+  async addField(organizationId: string, projectKey: string, trackerKey: string, field: FieldSpec, actor: Actor): Promise<void> {
+    if (!/^[a-z][a-z0-9_]{0,39}$/.test(field.key)) throw validation(['clé de champ invalide (minuscules, chiffres, tiret bas)']);
+    if (!this.fieldTypes.has(field.type)) throw validation([`type de champ inconnu : ${field.type}`]);
+    await this.mutate(organizationId, projectKey, trackerKey, actor, `champ ${field.key}`, async (c, tracker) => {
+      const used = Number((await c.query('select count(*) n from artifact where tracker_id = $1', [tracker])).rows[0].n);
+      if (field.required && used > 0) throw conflict('Un champ obligatoire ne peut pas être ajouté à un tracker qui contient déjà des artefacts.');
+      const position = Number((await c.query('select coalesce(max(position) + 1, 0) n from field_definition where tracker_id = $1', [tracker])).rows[0].n);
+      await c.query(
+        'insert into field_definition (organization_id, tracker_id, key, label, type, config, required, position, semantic_role) values ($1,$2,$3,$4,$5,$6,$7,$8,$9)',
+        [organizationId, tracker, field.key, field.label, field.type, JSON.stringify(field.config ?? {}), field.required ?? false, position, field.semanticRole ?? null],
+      );
+    });
+  }
+
+  async addStatus(organizationId: string, projectKey: string, trackerKey: string, status: StatusSpec, actor: Actor): Promise<void> {
+    if (!/^[a-z][a-z0-9_]{0,39}$/.test(status.key)) throw validation(['clé de statut invalide']);
+    await this.mutate(organizationId, projectKey, trackerKey, actor, `statut ${status.key}`, async (c, tracker) => {
+      const position = Number((await c.query('select coalesce(max(position) + 1, 0) n from status where tracker_id = $1', [tracker])).rows[0].n);
+      await c.query('insert into status (organization_id, tracker_id, key, name, category, position) values ($1,$2,$3,$4,$5,$6)', [organizationId, tracker, status.key, status.name, status.category, position]);
+    });
+  }
+
+  async addTransition(organizationId: string, projectKey: string, trackerKey: string, t: TransitionSpec, actor: Actor): Promise<void> {
+    await this.mutate(organizationId, projectKey, trackerKey, actor, `transition ${t.name}`, async (c, tracker) => {
+      const ids = new Map((await c.query('select key, id from status where tracker_id = $1', [tracker])).rows.map((r) => [r.key as string, r.id as string]));
+      if (t.from !== null && !ids.has(t.from)) throw validation([`statut source inconnu : ${t.from}`]);
+      if (!ids.has(t.to)) throw validation([`statut cible inconnu : ${t.to}`]);
+      await c.query(
+        'insert into transition (organization_id, tracker_id, name, from_status_id, to_status_id, conditions, validators, post_actions) values ($1,$2,$3,$4,$5,$6,$7,$8)',
+        [organizationId, tracker, t.name, t.from === null ? null : ids.get(t.from), ids.get(t.to), JSON.stringify(t.conditions ?? []), JSON.stringify(t.validators ?? []), JSON.stringify(t.postActions ?? [])],
+      );
+    });
+  }
+
+  private async mutate(
+    organizationId: string, projectKey: string, trackerKey: string, actor: Actor, what: string,
+    change: (c: PoolClient, trackerId: string) => Promise<void>,
+  ): Promise<void> {
+    await this.db.tx(organizationId, async (c) => {
+      const tracker = (await c.query('select t.id from tracker t join project p on p.id = t.project_id where p.key = $1 and t.key = $2 for update of t', [projectKey, trackerKey])).rows[0];
+      if (!tracker) throw notFound(`Tracker ${projectKey}/${trackerKey}`);
+      await change(c, tracker.id as string);
+      const version = (await c.query('update tracker set schema_version = schema_version + 1 where id = $1 returning schema_version', [tracker.id])).rows[0].schema_version as number;
+      await outbox(c, organizationId, 'tracker', tracker.id as string, 'tracker.updated', { key: trackerKey, project: projectKey, actor: actor.id, change: what, schemaVersion: version });
+      await audit(c, organizationId, actor, 'tracker.update', `tracker:${projectKey}/${trackerKey}`, { change: what, schemaVersion: version });
     });
   }
 

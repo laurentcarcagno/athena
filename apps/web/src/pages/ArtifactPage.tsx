@@ -108,6 +108,17 @@ export function ArtifactPage({ session }: { session: Session }) {
       fail(error);
     }
   };
+  const restore = async (target: number) => {
+    try {
+      const restored = await api<Artifact>('POST', `${base}/restore`, { version: target, expectedVersion: artifact.version });
+      setArtifact(restored);
+      setHistory(await api<Revision[]>('GET', `${base}/history`));
+      toast('success', fr.artifact.restored(target));
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 409) await reload();
+      fail(error);
+    }
+  };
   const addComment = async (event: FormEvent) => {
     event.preventDefault();
     try {
@@ -154,7 +165,7 @@ export function ArtifactPage({ session }: { session: Session }) {
                 <div key={d.uid} className="ath-row">
                   <Id>{d.uid}</Id> <span>{d.title}</span>
                   {d.suspect && <StatusPill kind="warning">{fr.artifact.suspect}</StatusPill>}
-                  {d.orphan && <StatusPill kind="danger">absente</StatusPill>}
+                  {d.orphan && <StatusPill kind="danger">{fr.artifact.absent}</StatusPill>}
                 </div>
               ))}
             </div>
@@ -162,7 +173,7 @@ export function ArtifactPage({ session }: { session: Session }) {
         ))}
         {tab === 'history' && (history.length === 0 ? <EmptyState eyebrow={fr.artifact.history} title={fr.artifact.noHistory} /> : (
           <Table>
-            <thead><tr><Th>Version</Th><Th>Auteur</Th><Th>Date</Th><Th>Modifications</Th><Th>{fr.artifact.commit}</Th></tr></thead>
+            <thead><tr><Th>{fr.artifact.version}</Th><Th>{fr.artifact.author}</Th><Th>{fr.artifact.date}</Th><Th>{fr.artifact.changes}</Th><Th>{fr.artifact.commit}</Th><Th>{fr.artifact.restore}</Th></tr></thead>
             <tbody>
               {history.map((r) => (
                 <tr key={r.version}>
@@ -173,6 +184,7 @@ export function ArtifactPage({ session }: { session: Session }) {
                     <div key={field}><Id>{field}</Id> <span className="ath-diff__from">{asText(d.from) || '∅'}</span> → <span className="ath-diff__to">{asText(d.to) || '∅'}</span></div>
                   ))}</Td>
                   <Td mono>{r.gitSha ? r.gitSha.slice(0, 8) : '—'}</Td>
+                  <Td>{r.version < artifact.version && <Btn size="sm" variant="ghost" onClick={() => restore(r.version)}>{fr.artifact.restore}</Btn>}</Td>
                 </tr>
               ))}
             </tbody>
@@ -195,7 +207,7 @@ export function ArtifactPage({ session }: { session: Session }) {
         )}
         {tab === 'dev' && (code.length === 0 ? <EmptyState eyebrow={fr.artifact.development} title={fr.artifact.noCode} /> : (
           <Table>
-            <thead><tr><Th>Type</Th><Th>Référence</Th><Th>Titre</Th><Th>État</Th><Th>Pipeline</Th></tr></thead>
+            <thead><tr><Th>{fr.artifact.type}</Th><Th>{fr.artifact.reference}</Th><Th>{fr.artifact.titleCol}</Th><Th>{fr.artifact.state}</Th><Th>{fr.artifact.pipeline}</Th></tr></thead>
             <tbody>
               {code.map((r) => (
                 <tr key={`${r.kind}-${r.ref}`}>

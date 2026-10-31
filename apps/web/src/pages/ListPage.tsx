@@ -1,7 +1,8 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Btn, EmptyState, FilterChip, Id, PageHeader, StatusPill, Table, Td, Th, type PillKind, type SortState } from '@athena/ui';
-import { ApiError, api, type SearchResult } from '../api';
+import { ApiError, api, type Session, type SearchResult } from '../api';
+import { CreateArtifact } from '../components/CreateArtifact';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
 
@@ -17,8 +18,11 @@ export function splitOrder(query: string): { where: string; order: { field: stri
 }
 export const joinOrder = (where: string, order: { field: string; dir: string } | null) => (order ? `${where} ORDER BY ${order.field} ${order.dir}`.trim() : where);
 
-export function ListPage() {
+export function ListPage({ session }: { session?: Session } = {}) {
   const { project } = useParams();
+  const navigate = useNavigate();
+  const [creating, setCreating] = useState(false);
+  const [trackerKeys, setTrackerKeys] = useState<string[]>([]);
   const [params, setParams] = useSearchParams();
   const query = params.get('q') ?? '';
   const offset = Number(params.get('o') ?? '0') || 0;
@@ -29,6 +33,9 @@ export function ListPage() {
   const { where, order } = splitOrder(query);
 
   useEffect(() => setDraft(query), [query]);
+  useEffect(() => {
+    api<Array<{ key: string }>>('GET', `/v1/projects/${project}/trackers`).then((t) => setTrackerKeys(t.map((x) => x.key))).catch(() => setTrackerKeys([]));
+  }, [project]);
   useEffect(() => {
     setResult(null);
     setError(null);
@@ -47,7 +54,9 @@ export function ListPage() {
 
   return (
     <>
-      <PageHeader eyebrow={fr.list.eyebrow} title={String(project)} sub={result ? fr.list.total(result.total) : undefined} />
+      <PageHeader eyebrow={fr.list.eyebrow} title={String(project)} sub={result ? fr.list.total(result.total) : undefined}
+        actions={<><Btn onClick={() => setCreating(true)}>{fr.list.create}</Btn>{session?.user?.roles.includes('athena-admin') && trackerKeys[0] && <Btn variant="ghost" onClick={() => navigate(`/p/${project}/trackers/${trackerKeys[0]}/config`)}>{fr.config.eyebrow}</Btn>}</>} />
+      <CreateArtifact project={String(project)} trackers={trackerKeys} open={creating} onClose={() => setCreating(false)} onCreated={(key) => { setCreating(false); navigate(`/p/${project}/a/${key}`); }} />
       <form className="ath-toolbar" onSubmit={submit} role="search">
         <input className="ath-input ath-mono" size={60} aria-label="Requête ATQL" placeholder={fr.list.placeholder} value={draft} onChange={(e) => setDraft(e.target.value)} />
         <Btn type="submit">{fr.list.run}</Btn>

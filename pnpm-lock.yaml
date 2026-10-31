@@ -75,6 +75,12 @@ importers:
       '@athena/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      '@fontsource/ibm-plex-mono':
+        specifier: 5.1.0
+        version: 5.1.0
+      '@fontsource/ibm-plex-sans':
+        specifier: 5.1.0
+        version: 5.1.0
       react:
         specifier: 18.3.1
         version: 18.3.1
@@ -440,6 +446,12 @@ packages:
 
   '@fastify/middie@8.3.3':
     resolution: {integrity: sha512-+WHavMQr9CNTZoy2cjoDxoWp76kZ3JKjAtZj5sXNlxX5XBzHig0TeCPfPc+1+NQmliXtndT3PFwAjrQHE/6wnQ==}
+
+  '@fontsource/ibm-plex-mono@5.1.0':
+    resolution: {integrity: sha512-XKsZNyRCj6tz8zlatHmniSoLVephMD5GQG2sXgcaEb8DkUO+O61r28uTlIMEZuoZXtP4c4STvL+KUlJM5jZOEg==}
+
+  '@fontsource/ibm-plex-sans@5.1.0':
+    resolution: {integrity: sha512-v2aFHGh33ogG+At6dVNUCX6vWlNAhQ6STWj5WrBKPxVWX1SsAnHNq8sXQBa7WHEt29Irmozuk7GTp6GzFlpwdQ==}
 
   '@jridgewell/gen-mapping@0.3.13':
     resolution: {integrity: sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA==}
@@ -2053,6 +2065,10 @@ snapshots:
       fastify-plugin: 4.5.1
       path-to-regexp: 6.3.0
       reusify: 1.1.0
+
+  '@fontsource/ibm-plex-mono@5.1.0': {}
+
+  '@fontsource/ibm-plex-sans@5.1.0': {}
 
   '@jridgewell/gen-mapping@0.3.13':
     dependencies:

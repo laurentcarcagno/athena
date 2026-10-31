@@ -103,4 +103,20 @@ suite('tracker.yaml, restauration et baselines (GitLab réel)', () => {
     expect(diff).toEqual({ created: ['BUG-2'], modified: ['BUG-1'], deleted: [], trackers: [] });
     expect(await code(baselines.diff(org, 'ARI', 'v1.0', 'inconnue'))).toMatch(/not_found/);
   }, 90_000);
+
+  it('versionne les évolutions de configuration du tracker dans tracker.yaml', async () => {
+    const db = new Db(testDb.pool);
+    const trackers = new TrackerService(db, new FieldTypeRegistry());
+    await trackers.addField(org, 'ARI', 'BUG', { key: 'environment', label: 'Environnement', type: 'text' }, alice);
+    await trackers.addStatus(org, 'ARI', 'BUG', { key: 'wontfix', name: 'Abandonné', category: 'done' }, alice);
+    await trackers.addTransition(org, 'ARI', 'BUG', { name: 'Abandonner', from: 'open', to: 'wontfix' }, alice);
+    await sync.runOnce();
+    const def = parse(await gitlab.fileContent(repoId, 'trackers/BUG/tracker.yaml', 'main'));
+    expect(def.schemaVersion).toBe(4);
+    expect(def.fields.map((f: { key: string }) => f.key)).toContain('environment');
+    expect(def.transitions.find((t: { name: string }) => t.name === 'Abandonner')).toMatchObject({ from: 'open', to: 'wontfix' });
+    const commits = await gitlab.commits(repoId, 'trackers/BUG/tracker.yaml', 'main');
+    expect(commits[0]!.message).toContain('configuration (champ environment)'); // l'état courant est écrit dès le premier événement
+    expect(commits[0]).toMatchObject({ author_name: 'Alice Martin' });
+  }, 60_000);
 });

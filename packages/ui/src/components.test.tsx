@@ -139,6 +139,24 @@ describe('modale', () => {
   });
 });
 
+describe('modale : saisie', () => {
+  it('ne vole pas le focus quand le parent se redessine avec un nouvel onClose', async () => {
+    function Form() {
+      const [text, setText] = useState('');
+      return (
+        <Modal open title="Saisie" onClose={() => setText('')}>
+          <Field label="Texte" value={text} onChange={(e) => setText(e.target.value)} />
+        </Modal>
+      );
+    }
+    render(<Form />);
+    const input = screen.getByLabelText('Texte');
+    await userEvent.type(input, 'abcdef');
+    expect(input).toHaveValue('abcdef');
+    expect(input).toHaveFocus();
+  });
+});
+
 describe('notifications', () => {
   function Demo() {
     const toast = useToast();

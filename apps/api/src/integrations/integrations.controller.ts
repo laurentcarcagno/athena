@@ -8,6 +8,7 @@ import type { RebuildService } from '../history/rebuild';
 import type { PushPayload, ReverseSync } from '../history/reverse-sync';
 import type { BaselineService } from '../history/baseline.service';
 import { Db } from '../core/db';
+import { FieldTypeRegistry } from '../core/field-types';
 import { forbidden } from '../core/errors';
 import { OrgResolver, parseBody } from '../core/http';
 import type { PluginService } from '../plugins/plugin.service';
@@ -51,6 +52,7 @@ export class IntegrationsController {
     @Inject(CODE_ACTIONS) private readonly code: CodeActions | null,
     @Inject(DOC_FETCHER) private readonly fetcher: DocFetcher | null,
     @Inject(PLUGINS) private readonly plugins: PluginService,
+    private readonly fieldTypes: FieldTypeRegistry,
     private readonly automation: AutomationService,
     private readonly inbound: InboundService,
   ) {}
@@ -258,6 +260,13 @@ export class IntegrationsController {
     const { organizationId, actor } = await this.ctx(request);
     const input = parseBody(z.object({ repo: z.string().min(1).max(200), ref: z.string().max(100).default('main'), path: z.string().max(200).optional() }), body);
     return this.fetcher.sync(organizationId, project, source, input.repo, input.ref, input.path, actor);
+  }
+
+  /** Types de champ disponibles (natifs et fournis par des plugins) : alimente l'éditeur de tracker. */
+  @Roles('athena-user', 'athena-admin')
+  @Get('v1/field-types')
+  fieldTypeNames() {
+    return this.fieldTypes.names();
   }
 
   // --- Plugins ---
