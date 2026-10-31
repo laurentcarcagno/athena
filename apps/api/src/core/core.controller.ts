@@ -17,7 +17,7 @@ const TrackerBody = z.object({
   description: z.string().max(2000).optional(),
   fields: z.array(z.object({
     key: z.string(), label: z.string().min(1), type: z.string(),
-    config: z.record(z.unknown()).optional(), required: z.boolean().optional(),
+    config: z.record(z.string(), z.unknown()).optional(), required: z.boolean().optional(),
     semanticRole: z.enum(['title', 'description', 'status', 'assignee', 'due_date', 'estimate']).optional(),
   })).max(100),
   statuses: z.array(z.object({
@@ -30,8 +30,8 @@ const TrackerBody = z.object({
   })).max(200),
 });
 
-const CreateArtifactBody = z.object({ values: z.record(z.unknown()) });
-const UpdateArtifactBody = z.object({ values: z.record(z.unknown()), version: z.number().int().min(1) });
+const CreateArtifactBody = z.object({ values: z.record(z.string(), z.unknown()) });
+const UpdateArtifactBody = z.object({ values: z.record(z.string(), z.unknown()), version: z.number().int().min(1) });
 const TransitionBody = z.object({ name: z.string().min(1), version: z.number().int().min(1) });
 
 const LinkTypeBody = z.object({
@@ -128,7 +128,7 @@ export class CoreController {
   async addField(@Req() request: AuthedRequest, @Param('project') project: string, @Param('tracker') tracker: string, @Body() body: unknown) {
     const { organizationId, actor } = await this.orgs.resolve(principalOf(request));
     const input = parseBody(z.object({
-      key: z.string(), label: z.string().min(1).max(100), type: z.string(), config: z.record(z.unknown()).optional(),
+      key: z.string(), label: z.string().min(1).max(100), type: z.string(), config: z.record(z.string(), z.unknown()).optional(),
       required: z.boolean().optional(), semanticRole: z.enum(['title', 'description', 'status', 'assignee', 'due_date', 'estimate']).optional(),
     }), body);
     await this.trackers.addField(organizationId, project, tracker, stripUndefined(input), actor);

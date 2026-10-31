@@ -9,10 +9,10 @@ import { z } from 'zod';
 export type ValueSpec = string | number | boolean | { from: string; map?: Record<string, string>; default?: string };
 
 export const MappingSchema = z.discriminatedUnion('action', [
-  z.object({ action: z.literal('create'), tracker: z.string().regex(/^[A-Z][A-Z0-9]{1,9}$/), values: z.record(z.union([z.string().max(2000), z.number(), z.boolean(), z.object({ from: z.string(), map: z.record(z.string()).optional(), default: z.string().optional() })])), idempotencyKey: z.string().optional() }),
+  z.object({ action: z.literal('create'), tracker: z.string().regex(/^[A-Z][A-Z0-9]{1,9}$/), values: z.record(z.string(), z.union([z.string().max(2000), z.number(), z.boolean(), z.object({ from: z.string(), map: z.record(z.string(), z.string()).optional(), default: z.string().optional() })])), idempotencyKey: z.string().optional() }),
   z.object({ action: z.literal('comment'), key: z.string(), body: z.string().max(5000), idempotencyKey: z.string().optional() }),
   z.object({ action: z.literal('transition'), key: z.string(), name: z.string().max(200), idempotencyKey: z.string().optional() }),
-  z.object({ action: z.literal('update'), key: z.string(), values: z.record(z.union([z.string().max(2000), z.number(), z.boolean(), z.object({ from: z.string(), map: z.record(z.string()).optional(), default: z.string().optional() })])), idempotencyKey: z.string().optional() }),
+  z.object({ action: z.literal('update'), key: z.string(), values: z.record(z.string(), z.union([z.string().max(2000), z.number(), z.boolean(), z.object({ from: z.string(), map: z.record(z.string(), z.string()).optional(), default: z.string().optional() })])), idempotencyKey: z.string().optional() }),
 ]);
 export type Mapping = z.infer<typeof MappingSchema>;
 

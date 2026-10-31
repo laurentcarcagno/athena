@@ -11,7 +11,7 @@ import { audit } from '../core/tracker.service';
 export const ActionSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('comment'), body: z.string().min(1).max(2000) }),
   z.object({ type: z.literal('transition'), name: z.string().min(1).max(200) }),
-  z.object({ type: z.literal('update'), values: z.record(z.union([z.string().max(2000), z.number(), z.boolean(), z.null()])) }),
+  z.object({ type: z.literal('update'), values: z.record(z.string(), z.union([z.string().max(2000), z.number(), z.boolean(), z.null()])) }),
 ]);
 export type Action = z.infer<typeof ActionSchema>;
 

@@ -21,6 +21,9 @@ const schema = z.object({
   GITLAB_NAMESPACE: z.string().min(1).optional(),
   /** Éditeurs de confiance : JSON `{"éditeur": "clé publique Ed25519 PEM"}`. Vide : aucune installation possible. */
   PLUGIN_TRUSTED_KEYS: z.string().optional(),
+  RATE_LIMIT_API_PER_MINUTE: z.coerce.number().int().min(10).max(100_000).default(600),
+  RATE_LIMIT_SENSITIVE_PER_MINUTE: z.coerce.number().int().min(5).max(10_000).default(60),
+  TRUST_PROXY: z.enum(['true', 'false']).default('false').transform((v) => v === 'true'),
   CORS_ORIGIN: z.string().default('http://localhost:3000'),
 });
 

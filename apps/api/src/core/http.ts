@@ -41,7 +41,7 @@ function isPgError(error: unknown): error is { code: string } {
   return typeof error === 'object' && error !== null && typeof (error as { code?: unknown }).code === 'string';
 }
 
-export function parseBody<T>(schema: z.ZodType<T, z.ZodTypeDef, unknown>, body: unknown): T {
+export function parseBody<T>(schema: z.ZodType<T>, body: unknown): T {
   const result = schema.safeParse(body);
   if (!result.success) {
     throw validation(result.error.issues.map((i) => `${i.path.join('.') || 'corps'} : ${i.message}`));
