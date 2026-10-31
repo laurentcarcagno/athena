@@ -19,6 +19,7 @@ const frDict = {
   artifact: {
     details: 'Détails', links: 'Liens', history: 'Historique', activity: 'Commentaires', development: 'Développement',
     transitions: 'Transitions', save: 'Enregistrer', saved: 'Modification enregistrée.', comment: 'Commentaire', addComment: 'Ajouter',
+    attachments: 'Pièces jointes', noAttachments: 'Aucune pièce jointe.', upload: 'Ajouter un fichier', download: 'Télécharger', removeAttachment: 'Supprimer', uploaded: 'Fichier ajouté.', removedAttachment: 'Pièce jointe supprimée.',
     noHistory: 'Aucune révision.', noLinks: 'Aucun lien.', noComments: 'Aucun commentaire.', noCode: 'Aucune référence de code.', noDocs: 'Aucune exigence liée.',
     suspect: 'Suspect', commit: 'Commit', docs: 'Documentation liée', transitioned: (name: string) => `Transition « ${name} » appliquée.`,
     required: 'obligatoire', version: 'Version', author: 'Auteur', date: 'Date', changes: 'Modifications', type: 'Type', reference: 'Référence', titleCol: 'Titre', state: 'État', pipeline: 'Pipeline', absent: 'absente',
@@ -65,6 +66,7 @@ const enDict: Dictionary = {
   artifact: {
     details: 'Details', links: 'Links', history: 'History', activity: 'Comments', development: 'Development',
     transitions: 'Transitions', save: 'Save', saved: 'Change saved.', comment: 'Comment', addComment: 'Add',
+    attachments: 'Attachments', noAttachments: 'No attachment.', upload: 'Add a file', download: 'Download', removeAttachment: 'Delete', uploaded: 'File added.', removedAttachment: 'Attachment deleted.',
     noHistory: 'No revision.', noLinks: 'No link.', noComments: 'No comment.', noCode: 'No code reference.', noDocs: 'No linked requirement.',
     suspect: 'Suspect', commit: 'Commit', docs: 'Linked documentation', transitioned: (name: string) => `Transition "${name}" applied.`,
     required: 'required', version: 'Version', author: 'Author', date: 'Date', changes: 'Changes', type: 'Type', reference: 'Reference', titleCol: 'Title', state: 'State', pipeline: 'Pipeline', absent: 'missing',

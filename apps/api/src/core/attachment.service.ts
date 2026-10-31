@@ -25,8 +25,11 @@ export function sanitizeName(raw: string): string {
   return clean;
 }
 
+export interface AttachmentQuota { maxPerArtifact: number; maxBytesPerOrganization: number }
+export const DEFAULT_QUOTA: AttachmentQuota = { maxPerArtifact: 50, maxBytesPerOrganization: 5 * 1024 ** 3 };
+
 export class AttachmentService {
-  constructor(private readonly db: Db, private readonly s3: S3Client) {}
+  constructor(private readonly db: Db, private readonly s3: S3Client, private readonly quota: AttachmentQuota = DEFAULT_QUOTA) {}
 
   async add(organizationId: string, projectKey: string, key: string, name: string, contentType: string, data: Buffer, actor: Actor): Promise<AttachmentView> {
     if (data.length === 0) throw validation(['fichier vide']);
@@ -35,7 +38,13 @@ export class AttachmentService {
     const type = /^[a-z0-9.+-]+\/[a-z0-9.+-]+$/i.test(contentType) ? contentType.toLowerCase() : 'application/octet-stream';
     const sha256 = createHash('sha256').update(data).digest('hex');
     const storageKey = `${organizationId}/${randomUUID()}`;
-    const artifactId = await this.db.tx(organizationId, (c) => this.artifactId(c, projectKey, key));
+    const artifactId = await this.db.tx(organizationId, async (c) => {
+      const id = await this.artifactId(c, projectKey, key);
+      const used = (await c.query('select count(*) filter (where artifact_id = $1) as n, coalesce(sum(size_bytes), 0) as bytes from attachment', [id])).rows[0];
+      if (Number(used.n) >= this.quota.maxPerArtifact) throw validation([`quota atteint : ${this.quota.maxPerArtifact} pièces jointes par artefact`]);
+      if (Number(used.bytes) + data.length > this.quota.maxBytesPerOrganization) throw validation(['quota de stockage de l’organisation atteint']);
+      return id;
+    });
     await this.s3.put(storageKey, data);
     try {
       return await this.db.tx(organizationId, async (c) => {

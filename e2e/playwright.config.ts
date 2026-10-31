@@ -1,4 +1,8 @@
+import { readFileSync } from 'node:fs';
 import { defineConfig } from '@playwright/test';
+
+const devEnv = readFileSync('../deploy/dev/.env', 'utf8');
+const fromDev = (name: string): string => new RegExp(`^${name}=(.+)$`, 'm').exec(devEnv)![1]!.trim();
 
 const ISSUER = 'http://localhost:8080/realms/athena';
 const API = {
@@ -9,6 +13,7 @@ const API = {
   SESSION_SECRET: 'e2e-only-session-secret-0123456789abcdef',
   COOKIE_SECURE: 'false', PUBLIC_URL: 'http://localhost:3001', WEB_ORIGIN: 'http://localhost:3000',
   CORS_ORIGIN: 'http://localhost:3000',
+  S3_ENDPOINT: 'http://127.0.0.1:9000', S3_ACCESS_KEY: fromDev('MINIO_ROOT_USER'), S3_SECRET_KEY: fromDev('MINIO_ROOT_PASSWORD'), S3_BUCKET: 'athena-e2e',
 };
 
 /** Parcours réels : navigateur Chromium, Keycloak de développement, API et web démarrés pour le test. */

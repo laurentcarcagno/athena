@@ -30,13 +30,24 @@ export async function loadSession(): Promise<Session> {
 }
 
 /** Appel JSON authentifié par le cookie de session. Les écritures portent le jeton CSRF. */
-export async function api<T>(method: 'GET' | 'POST' | 'PATCH', path: string, body?: unknown): Promise<T> {
+export async function api<T>(method: 'GET' | 'POST' | 'PATCH' | 'DELETE', path: string, body?: unknown): Promise<T> {
   const headers: Record<string, string> = { Accept: 'application/json' };
   if (body !== undefined) headers['Content-Type'] = 'application/json';
   if (method !== 'GET' && csrf) headers['X-CSRF-Token'] = csrf;
   const response = await fetch(path, { method, headers, credentials: 'include', ...(body !== undefined ? { body: JSON.stringify(body) } : {}) });
   if (response.status === 401) throw new UnauthorizedError();
   if (response.status === 204) return undefined as T;
+  const payload = (await response.json().catch(() => ({}))) as { error?: string; message?: string; details?: string[] };
+  if (!response.ok) throw new ApiError(payload.message ?? 'Erreur.', response.status, payload.error ?? 'error', payload.details ?? []);
+  return payload as T;
+}
+
+/** Envoie un fichier brut (corps binaire) avec le jeton CSRF. */
+export async function upload<T>(path: string, file: File): Promise<T> {
+  const headers: Record<string, string> = { Accept: 'application/json', 'Content-Type': 'application/octet-stream', 'X-File-Type': file.type };
+  if (csrf) headers['X-CSRF-Token'] = csrf;
+  const response = await fetch(`${path}?name=${encodeURIComponent(file.name)}`, { method: 'POST', headers, credentials: 'include', body: file });
+  if (response.status === 401) throw new UnauthorizedError();
   const payload = (await response.json().catch(() => ({}))) as { error?: string; message?: string; details?: string[] };
   if (!response.ok) throw new ApiError(payload.message ?? 'Erreur.', response.status, payload.error ?? 'error', payload.details ?? []);
   return payload as T;
@@ -61,6 +72,7 @@ export interface TrackerDefinition {
   transitions: Array<{ id: string; name: string; fromStatusId: string | null; toStatusId: string }>;
 }
 export interface Artifact { id: string; key: string; trackerKey: string; status: string; values: Record<string, unknown>; version: number }
+export interface AttachmentView { id: string; name: string; contentType: string; size: number; sha256: string; uploadedBy: string; createdAt: string }
 export interface Revision { version: number; diff: Record<string, { from: unknown; to: unknown }>; gitSha: string | null; at: string; actor: string }
 export interface BoardView {
   key: string; name: string; unmapped: number;

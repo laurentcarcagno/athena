@@ -236,3 +236,12 @@ describe('restauration depuis l’historique', () => {
     expect(await screen.findByText('Révision 1 restaurée.')).toBeInTheDocument();
   });
 });
+
+describe('pièces jointes', () => {
+  it('formate les tailles', async () => {
+    const { formatSize } = await import('./pages/ArtifactPage');
+    expect(formatSize(512)).toBe('512 o');
+    expect(formatSize(2048)).toBe('2.0 Ko');
+    expect(formatSize(5 * 1024 * 1024)).toBe('5.0 Mo');
+  });
+});

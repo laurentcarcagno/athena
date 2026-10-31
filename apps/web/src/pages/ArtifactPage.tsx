@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Btn, Card, EmptyState, Id, PageHeader, StatusPill, Table, Tabs, Td, Th, Tag, useToast } from '@athena/ui';
-import { ApiError, api, type Artifact, type Field, type Revision, type Session, type TrackerDefinition } from '../api';
+import { ApiError, api, upload, type Artifact, type AttachmentView, type Field, type Revision, type Session, type TrackerDefinition } from '../api';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
 import { pillKind } from './ListPage';
@@ -10,6 +10,8 @@ interface LinkView { id: string; type: string; direction: string; label: string;
 interface Comment { id: string; author: string; body: string; createdAt: string }
 interface CodeRef { kind: string; ref: string; title: string; state: string; pipeline: string }
 interface DocLink { uid: string; title: string; status: string; suspect: boolean; orphan: boolean }
+
+export const formatSize = (bytes: number): string => (bytes < 1024 ? `${bytes} o` : bytes < 1024 * 1024 ? `${(bytes / 1024).toFixed(1)} Ko` : `${(bytes / 1024 / 1024).toFixed(1)} Mo`);
 
 const asText = (value: unknown): string => (value === undefined || value === null ? '' : Array.isArray(value) ? value.join(', ') : String(value));
 
@@ -67,6 +69,7 @@ export function ArtifactPage({ session }: { session: Session }) {
   const [history, setHistory] = useState<Revision[]>([]);
   const [code, setCode] = useState<CodeRef[]>([]);
   const [comment, setComment] = useState('');
+  const [files, setFiles] = useState<AttachmentView[]>([]);
   const base = `/v1/projects/${project}/artifacts/${key}`;
 
   const reload = useCallback(async () => {
@@ -80,6 +83,9 @@ export function ArtifactPage({ session }: { session: Session }) {
     setLinks(l); setDocs(d); setComments(c); setHistory(h); setCode(r);
   }, [base, project]);
   useEffect(() => { reload().catch(fail); }, [reload, fail]);
+  useEffect(() => {
+    if (tab === 'attachments') api<AttachmentView[]>('GET', `${base}/attachments`).then(setFiles).catch(fail);
+  }, [tab, base, fail]);
 
   if (!artifact || !def) return <p role="status">{fr.loading}</p>;
   const status = def.statuses.find((s) => s.key === artifact.status);
@@ -119,6 +125,23 @@ export function ArtifactPage({ session }: { session: Session }) {
       fail(error);
     }
   };
+  const addFile = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    try {
+      await upload(`${base}/attachments`, file);
+      setFiles(await api<AttachmentView[]>('GET', `${base}/attachments`));
+      toast('success', fr.artifact.uploaded);
+    } catch (error) { fail(error); }
+  };
+  const removeFile = async (id: string) => {
+    try {
+      await api('DELETE', `${base}/attachments/${id}`);
+      setFiles((current) => current.filter((f) => f.id !== id));
+      toast('success', fr.artifact.removedAttachment);
+    } catch (error) { fail(error); }
+  };
   const addComment = async (event: FormEvent) => {
     event.preventDefault();
     try {
@@ -139,7 +162,7 @@ export function ArtifactPage({ session }: { session: Session }) {
       <Tabs
         tabs={[
           { id: 'details', label: fr.artifact.details }, { id: 'links', label: fr.artifact.links }, { id: 'history', label: fr.artifact.history },
-          { id: 'activity', label: fr.artifact.activity }, { id: 'dev', label: fr.artifact.development },
+          { id: 'attachments', label: fr.artifact.attachments }, { id: 'activity', label: fr.artifact.activity }, { id: 'dev', label: fr.artifact.development },
         ]}
         active={tab} onChange={setTab}
       />
@@ -190,6 +213,24 @@ export function ArtifactPage({ session }: { session: Session }) {
             </tbody>
           </Table>
         ))}
+        {tab === 'attachments' && (
+          <Card title={fr.artifact.attachments}>
+            <div className="ath-stack">
+              {files.length === 0 && <p>{fr.artifact.noAttachments}</p>}
+              {files.map((f) => (
+                <div key={f.id} className="ath-row">
+                  <a className="ath-link" href={`${base}/attachments/${f.id}`} download={f.name}>{f.name}</a>
+                  <span className="ath-mono">{formatSize(f.size)}</span>
+                  <Btn size="sm" variant="ghost" onClick={() => removeFile(f.id)}>{fr.artifact.removeAttachment}</Btn>
+                </div>
+              ))}
+              <div>
+                <label className="ath-field__label" htmlFor="attachment-file">{fr.artifact.upload}</label>
+                <input id="attachment-file" className="ath-input" type="file" onChange={addFile} />
+              </div>
+            </div>
+          </Card>
+        )}
         {tab === 'activity' && (
           <Card title={fr.artifact.activity}>
             <div className="ath-stack">

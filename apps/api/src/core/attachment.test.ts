@@ -86,4 +86,14 @@ suite('pièces jointes (PostgreSQL + MinIO)', () => {
     await s3.put(row.storage_key as string, Buffer.from('falsifié'));
     await expect(service.read(org, 'ARI', 'BUG-1', meta.id)).rejects.toThrow(/Intégrité/);
   });
+
+  it('applique les quotas par artefact et par organisation', async () => {
+    const db = new Db(testDb.pool);
+    const small = new AttachmentService(db, s3, { maxPerArtifact: 1, maxBytesPerOrganization: 1024 ** 3 });
+    const existing = (await service.list(org, 'ARI', 'BUG-1')).length;
+    expect(existing).toBeGreaterThanOrEqual(1);
+    await expect(small.add(org, 'ARI', 'BUG-1', 'q.txt', 'text/plain', Buffer.from('x'), actor)).rejects.toThrow(/Données invalides|quota/i);
+    const tiny = new AttachmentService(db, s3, { maxPerArtifact: 100, maxBytesPerOrganization: 5 });
+    await expect(tiny.add(org, 'ARI', 'BUG-1', 'q.txt', 'text/plain', Buffer.from('x'), actor)).rejects.toBeInstanceOf(DomainError);
+  });
 });
