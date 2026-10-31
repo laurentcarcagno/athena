@@ -2,6 +2,7 @@ import type { Pool, PoolClient } from 'pg';
 import { Db } from '../core/db';
 import type { Snapshot } from '../core/artifact.service';
 import { GitLabClient } from './gitlab-client';
+import type { ConfidentialFields } from '../secrets/confidential';
 import { artifactPath, repositoryName, serializeArtifact } from './serialize';
 
 export interface SyncResult {
@@ -18,6 +19,7 @@ interface PendingEvent {
   project_key: string | null;
   display_name: string | null;
   email: string | null;
+  confidential_fields: string[];
 }
 
 const FALLBACK_AUTHOR = { name: 'Athena', email: 'athena@localhost' };
@@ -34,6 +36,7 @@ export class HistorySync {
     private readonly gitlab: GitLabClient,
     private readonly namespace: string,
     private readonly branch = 'main',
+    private readonly confidential?: ConfidentialFields,
   ) {}
 
   /** Traite les événements en attente de toutes les organisations, dans l'ordre. */
@@ -79,7 +82,9 @@ export class HistorySync {
   private async pending(c: PoolClient, limit: number): Promise<PendingEvent[]> {
     const rows = await c.query(
       `select o.id, o.type, o.payload, r.id as revision_id, r.snapshot,
-              p.key as project_key, u.display_name, u.email
+              p.key as project_key, u.display_name, u.email,
+              coalesce((select array_agg(f.key) from field_definition f
+                        where f.tracker_id = a.tracker_id and f.config->>'confidential' = 'true'), '{}') as confidential_fields
        from outbox_event o
        left join artifact_revision r on r.event_id = nullif(o.payload->>'eventId','')::uuid
        left join artifact a on a.id = r.artifact_id
@@ -98,7 +103,10 @@ export class HistorySync {
     if (!event.type.startsWith('artifact.') || !event.snapshot || !event.project_key) return null;
     const projectId = await this.repository(orgKey, event.project_key);
     const path = artifactPath(event.snapshot);
-    const content = serializeArtifact(event.snapshot);
+    const protectedValues = this.confidential
+      ? await this.confidential.protect(orgKey, event.snapshot.values, event.confidential_fields)
+      : event.snapshot.values;
+    const content = serializeArtifact({ ...event.snapshot, values: protectedValues });
     const exists = await this.gitlab.fileExists(projectId, path, this.branch);
     const summary = summarize(event);
     return this.gitlab.commit(projectId, {

@@ -10,6 +10,8 @@ import { FieldTypeRegistry } from '../core/field-types';
 import { bugTemplate } from '../core/templates';
 import { TrackerService } from '../core/tracker.service';
 import { migrate } from '../db/migrate';
+import { ConfidentialFields } from '../secrets/confidential';
+import { OpenBao } from '../secrets/openbao';
 import { GitLabClient } from './gitlab-client';
 import { HistorySync } from './history-sync';
 import { artifactPath, serializeArtifact } from './serialize';
@@ -27,6 +29,9 @@ const probe = (script: string, env: Record<string, string>) =>
   spawnSync(process.execPath, ['-e', script], { env: { ...process.env, ...env }, cwd: join(__dirname, '../..'), timeout: 8000 }).status === 0;
 const pgUp = ADMIN !== undefined && probe("const {Client}=require('pg');const c=new Client({connectionString:process.env.U,connectionTimeoutMillis:1500});c.connect().then(()=>c.end()).then(()=>process.exit(0),()=>process.exit(1))", { U: ADMIN });
 const gitlabUp = !!GITLAB_TOKEN && probe("fetch(process.env.U+'/users/sign_in',{signal:AbortSignal.timeout(3000)}).then(r=>process.exit(r.ok?0:1),()=>process.exit(1))", { U: GITLAB_URL });
+const BAO_ADDR = fromEnv('OPENBAO_TEST_ADDR') ?? 'http://127.0.0.1:8200';
+const BAO_TOKEN = fromEnv('BAO_DEV_ROOT_TOKEN');
+const baoUp = !!BAO_TOKEN && probe("fetch(process.env.U+'/v1/sys/health',{signal:AbortSignal.timeout(3000)}).then(r=>process.exit(r.status<500?0:1),()=>process.exit(1))", { U: BAO_ADDR });
 const suite = pgUp && gitlabUp ? describe : describe.skip;
 
 describe('sérialisation déterministe', () => {
@@ -141,5 +146,31 @@ suite('historique GitLab (intégration)', () => {
     expect(await sync.runOnce()).toEqual({ committed: 1, failed: 0 });
     const commits = await gitlab.commits(projectId, 'trackers/BUG/artifacts/BUG-2.yaml', 'main');
     expect(commits.length).toBe(1);
+  }, 60_000);
+
+  it.runIf(baoUp)('chiffre les champs confidentiels avant de les écrire dans Git', async () => {
+    const db = new Db(pool);
+    const trackers = new TrackerService(db, new FieldTypeRegistry());
+    await trackers.createTracker(org, {
+      projectKey: 'ARI', key: 'SEC', name: 'Sécurité',
+      fields: [
+        { key: 'title', label: 'Titre', type: 'text', required: true, semanticRole: 'title' },
+        { key: 'note', label: 'Note', type: 'richtext', config: { confidential: true } },
+      ],
+      statuses: [{ key: 'open', name: 'Ouvert', category: 'todo' }],
+      transitions: [],
+    }, alice);
+    await artifacts.create(org, 'ARI', 'SEC', { title: 'Visible', note: 'Mot de passe du coffre-fort' }, alice);
+    const bao = new OpenBao(BAO_ADDR, BAO_TOKEN!);
+    const secured = new HistorySync(pool, gitlab, 'root', 'main', new ConfidentialFields(bao));
+    expect(await secured.runOnce()).toEqual({ committed: 1, failed: 0 });
+
+    const raw = await gitlab.fileContent(projectId, 'trackers/SEC/artifacts/SEC-1.yaml', 'main');
+    expect(raw).toContain('Visible');
+    expect(raw).not.toContain('coffre-fort');
+    const stored = parse(raw) as { values: Record<string, unknown> };
+    expect(String(stored.values['note'])).toMatch(/^bao:v1:vault:v1:/);
+    const revealed = await new ConfidentialFields(bao).reveal(orgKey, stored.values);
+    expect(revealed['note']).toBe('Mot de passe du coffre-fort');
   }, 60_000);
 });
