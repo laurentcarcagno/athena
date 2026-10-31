@@ -79,7 +79,7 @@ Séquence : secrets `athena-migration` (compte propriétaire) et `athena-env` �
 Constats corrigés ou à connaître :
 - nginx résout le service API sans liste de recherche DNS : l'amont est maintenant le nom complet `athena-api.<espace>.svc.<clusterDomain>` (valeur `clusterDomain`, défaut `cluster.local`).
 - Le worker refuse de démarrer en production sans `OPENBAO_ADDR` et `OPENBAO_TOKEN` (garde-fou voulu).
-- Les politiques réseau n'ont pas été éprouvées : `kind` n'applique pas NetworkPolicy sans CNI dédié (Calico/Cilium).
+- Politiques réseau éprouvées le 2026-10-31 sur un cluster `kind` avec Calico 3.29 (le CNI par défaut de `kind` ne les applique pas) : un pod quelconque atteint le web (401 relayé de l'API) mais **pas l'API directement** ; le web atteint l'API mais **pas PostgreSQL** ; l'API atteint PostgreSQL ; migration, API et worker démarrent avec les politiques actives. À refaire sur le CNI du cluster cible.
 - Non couvert : ingress TLS, Keycloak dans le cluster, réplicas multiples sous charge, sauvegarde/restauration.
 
 ## Distribution du CLI
