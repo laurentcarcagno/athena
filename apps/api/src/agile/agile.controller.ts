@@ -20,6 +20,7 @@ const SprintBody = z.object({
 });
 const ItemBody = z.object({ artifact: z.string().min(1) });
 
+const CreateReleaseBody = z.object({ name: z.string().min(1).max(100), startsOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), endsOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) });
 @Controller('v1/projects/:project')
 export class AgileController {
   constructor(private readonly orgs: OrgResolver, private readonly boards: BoardService, private readonly sprints: SprintService, private readonly reports: ReportService) {}
@@ -27,7 +28,8 @@ export class AgileController {
   private ctx = (request: AuthedRequest) => this.orgs.resolve(request.principal!);
 
   @Roles('athena-admin')
-  @Post('boards')
+  @Post('boards')  @BodySchema(BoardBody)
+
   async createBoard(@Req() request: AuthedRequest, @Param('project') project: string, @Body() body: unknown) {
     const { organizationId, actor } = await this.ctx(request);
     const input = parseBody(BoardBody, body);
@@ -59,7 +61,8 @@ export class AgileController {
   }
 
   @Roles('athena-admin')
-  @Post('sprints')
+  @Post('sprints')  @BodySchema(SprintBody)
+
   async createSprint(@Req() request: AuthedRequest, @Param('project') project: string, @Body() body: unknown) {
     const { organizationId, actor } = await this.ctx(request);
     const input = parseBody(SprintBody, body);
@@ -68,7 +71,8 @@ export class AgileController {
 
   @Roles('athena-user', 'athena-admin')
   @HttpCode(204)
-  @Post('sprints/:id/items')
+  @Post('sprints/:id/items')  @BodySchema(ItemBody)
+
   async addItem(@Req() request: AuthedRequest, @Param('project') project: string, @Param('id') id: string, @Body() body: unknown) {
     const { organizationId, actor } = await this.ctx(request);
     await this.sprints.addItem(organizationId, id, parseBody(ItemBody, body).artifact, project, actor);
@@ -117,15 +121,17 @@ export class AgileController {
 
   @Roles('athena-admin')
   @Post('releases')
+  @BodySchema(CreateReleaseBody)
   async createRelease(@Req() request: AuthedRequest, @Param('project') project: string, @Body() body: unknown) {
     const { organizationId, actor } = await this.ctx(request);
-    const input = parseBody(z.object({ name: z.string().min(1).max(100), startsOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), endsOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) }), body);
+    const input = parseBody(CreateReleaseBody, body);
     return { id: await this.reports.createRelease(organizationId, project, input, actor) };
   }
 
   @Roles('athena-user', 'athena-admin')
   @HttpCode(204)
-  @Post('releases/:id/items')
+  @Post('releases/:id/items')  @BodySchema(ItemBody)
+
   async assignRelease(@Req() request: AuthedRequest, @Param('project') project: string, @Param('id') id: string, @Body() body: unknown) {
     const { organizationId, actor } = await this.ctx(request);
     await this.reports.assign(organizationId, project, id, parseBody(ItemBody, body).artifact, actor);

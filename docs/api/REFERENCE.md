@@ -37,4 +37,4 @@ Santé : `GET /healthz`. Un schéma OpenAPI généré n'est pas encore publié.
 
 ## Schéma OpenAPI
 
-`GET /v1/openapi.json` (authentifié) renvoie le document OpenAPI 3.1 généré depuis les contrôleurs : routes, paramètres, codes de succès, rôles requis (`x-athena-roles`) et schémas de sécurité. Les corps sont décrits (JSON Schema) pour les routes qui déclarent `@BodySchema(schema)` : noyau (projets, trackers, artefacts, transitions, liens, commentaires) et déplacement de carte ; les autres routes sont à compléter.
+`GET /v1/openapi.json` (authentifié) renvoie le document OpenAPI 3.1 généré depuis les contrôleurs : routes, paramètres, codes de succès, rôles requis (`x-athena-roles`) et schémas de sécurité. Les corps sont décrits (JSON Schema, via `@BodySchema(schema)`) pour toutes les routes qui reçoivent un corps JSON validé ; l envoi de fichier est décrit en `application/octet-stream` ; les routes sans corps (actions) n en ont pas ; un test vérifie qu aucune nouvelle écriture n est ajoutée sans corps documenté.

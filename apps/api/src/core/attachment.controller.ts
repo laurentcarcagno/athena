@@ -4,6 +4,7 @@ import { Roles, type AuthedRequest } from '../auth/auth.guard';
 import { AttachmentService, MAX_ATTACHMENT_BYTES } from './attachment.service';
 import { OrgResolver } from './http';
 import { validation } from './errors';
+import { RawBody } from '../openapi/body-schema';
 
 /** Accepte les envois binaires bruts (le client envoie le fichier tel quel, le nom en paramètre). */
 export function registerBinaryUpload(fastify: FastifyInstance): void {
@@ -19,6 +20,7 @@ export class AttachmentController {
 
   @Roles('athena-user', 'athena-admin')
   @Post(':project/artifacts/:key/attachments')
+  @RawBody()
   async upload(@Req() request: AuthedRequest & { body: unknown }, @Param('project') project: string, @Param('key') key: string, @Query('name') name: string | undefined) {
     if (!Buffer.isBuffer(request.body)) throw validation(['envoyer le fichier brut avec Content-Type: application/octet-stream']);
     if (!name) throw validation(['paramètre name requis']);

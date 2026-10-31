@@ -2,6 +2,7 @@ import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import { Body, Controller, Delete, Get, Headers, HttpCode, HttpException, Inject, Param, Post, Query, Req } from '@nestjs/common';
 import type { Pool } from 'pg';
 import { z } from 'zod';
+import { BodySchema } from '../openapi/body-schema';
 import { ArtifactService } from '../core/artifact.service';
 import { Public, Roles, type AuthedRequest } from '../auth/auth.guard';
 import { BASELINES, PLUGINS, CODE_ACTIONS, DOC_FETCHER, DOC_WRITEBACK, PG_POOL, REBUILD, REVERSE_SYNC, SECRET_STORE } from '../core/core.tokens';
@@ -41,6 +42,28 @@ const digest = (value: string) => createHash('sha256').update(value).digest();
 export const historySecretPath = (organizationId: string, project: string) => `athena/${organizationId}/history-hook/${project}`;
 export const gitlabSecretPath = (organizationId: string, project: string) => `athena/${organizationId}/gitlab-hook/${project}`;
 
+const CreateInboundBody = z.object({ name: z.string().min(2).max(40), mapping: z.unknown() });
+const AddCodeRepoBody = z.object({ path: z.string().min(1).max(200), defaultBranch: z.string().max(100).default('main') });
+const CreateBranchBody = z.object({ type: z.enum(['bugfix', 'feature']), repo: z.string().max(200).optional() });
+const CreateMergeRequestBody = z.object({ branch: z.string().min(1).max(200), repo: z.string().max(200).optional() });
+const SyncDocsBody = z.object({ repo: z.string().min(1).max(200), ref: z.string().max(100).default('main'), path: z.string().max(200).optional() });
+const WritebackDocsBody = z.object({ repo: z.string().min(1).max(200), ref: z.string().max(100).default('main') });
+const InstallPluginBody = z.object({
+      package: z.object({ manifest: z.unknown(), code: z.string().max(300_000), signature: z.string().max(200) }),
+      granted: z.array(z.enum(['storage', 'artifacts:read'])).max(10).default([]),
+    });
+const PluginActionBody = z.object({ key: z.string().max(50).optional(), version: z.number().int().optional() });
+const PluginConnectorBody = z.object({ payload: z.unknown() });
+const ImportDataBody = z.object({
+      source: z.enum(['jira', 'tuleap']),
+      content: z.unknown(),
+      config: z.unknown(),
+      statusMap: z.record(z.string(), z.string()),
+      dryRun: z.boolean().default(true),
+    });
+const PlanBackportsBody = z.object({ branches: z.array(z.string().max(80)).min(1).max(20) });
+const CancelBackportBody = z.object({ branch: z.string().max(80) });
+const CreateBaselineBody = z.object({ name: z.string().min(1).max(61) });
 @Controller()
 export class IntegrationsController {
   constructor(
@@ -75,7 +98,8 @@ export class IntegrationsController {
 
   // --- Webhooks sortants ---
   @Roles('athena-admin')
-  @Post('v1/webhooks')
+  @Post('v1/webhooks')  @BodySchema(WebhookBody)
+
   async createWebhook(@Req() request: AuthedRequest, @Body() body: unknown) {
     const { organizationId, actor } = await this.ctx(request);
     return this.webhooks.createEndpoint(organizationId, parseBody(WebhookBody, body), actor);
@@ -103,7 +127,8 @@ export class IntegrationsController {
 
   // --- Documentation StrictDoc ---
   @Roles('athena-admin')
-  @Post('v1/projects/:project/docs/:source/index')
+  @Post('v1/projects/:project/docs/:source/index')  @BodySchema(IndexBody)
+
   async indexDocs(@Req() request: AuthedRequest, @Param('project') project: string, @Param('source') source: string, @Body() body: unknown) {
     const { organizationId, actor } = await this.ctx(request);
     const input = parseBody(IndexBody, body);
@@ -112,7 +137,8 @@ export class IntegrationsController {
 
   @Roles('athena-user', 'athena-admin')
   @Post('v1/projects/:project/artifacts/:key/doc-links')
-  @HttpCode(204)
+  @HttpCode(204)  @BodySchema(DocLinkBody)
+
   async docLink(@Req() request: AuthedRequest, @Param('project') project: string, @Param('key') key: string, @Body() body: unknown) {
     const { organizationId, actor } = await this.ctx(request);
     const input = parseBody(DocLinkBody, body);
@@ -204,9 +230,10 @@ export class IntegrationsController {
   // --- Webhooks entrants génériques ---
   @Roles('athena-admin')
   @Post('v1/projects/:project/inbound-sources')
+  @BodySchema(CreateInboundBody)
   async createInbound(@Req() request: AuthedRequest, @Param('project') project: string, @Body() body: unknown) {
     const { organizationId, actor } = await this.ctx(request);
-    const input = parseBody(z.object({ name: z.string().min(2).max(40), mapping: z.unknown() }), body);
+    const input = parseBody(CreateInboundBody, body);
     return this.inbound.createSource(organizationId, project, input.name, input.mapping, actor);
   }
 
@@ -234,9 +261,10 @@ export class IntegrationsController {
 
   @Roles('athena-admin')
   @Post('v1/projects/:project/code-repos')
+  @BodySchema(AddCodeRepoBody)
   async addCodeRepo(@Req() request: AuthedRequest, @Param('project') project: string, @Body() body: unknown) {
     const { organizationId, actor } = await this.ctx(request);
-    const input = parseBody(z.object({ path: z.string().min(1).max(200), defaultBranch: z.string().max(100).default('main') }), body);
+    const input = parseBody(AddCodeRepoBody, body);
     return this.codeActions().addRepo(organizationId, project, input.path, input.defaultBranch, actor);
   }
 
@@ -248,36 +276,40 @@ export class IntegrationsController {
 
   @Roles('athena-user', 'athena-admin')
   @Post('v1/projects/:project/artifacts/:key/branch')
+  @BodySchema(CreateBranchBody)
   async createBranch(@Req() request: AuthedRequest, @Param('project') project: string, @Param('key') key: string, @Body() body: unknown) {
     const { organizationId, actor } = await this.ctx(request);
-    const input = parseBody(z.object({ type: z.enum(['bugfix', 'feature']), repo: z.string().max(200).optional() }), body);
+    const input = parseBody(CreateBranchBody, body);
     return this.codeActions().createBranch(organizationId, project, key, input.type, input.repo, actor);
   }
 
   @Roles('athena-user', 'athena-admin')
   @Post('v1/projects/:project/artifacts/:key/merge-request')
+  @BodySchema(CreateMergeRequestBody)
   async createMergeRequest(@Req() request: AuthedRequest, @Param('project') project: string, @Param('key') key: string, @Body() body: unknown) {
     const { organizationId, actor } = await this.ctx(request);
-    const input = parseBody(z.object({ branch: z.string().min(1).max(200), repo: z.string().max(200).optional() }), body);
+    const input = parseBody(CreateMergeRequestBody, body);
     return this.codeActions().createMergeRequest(organizationId, project, key, input.branch, input.repo, actor);
   }
 
   @Roles('athena-admin')
   @Post('v1/projects/:project/docs/:source/sync')
+  @BodySchema(SyncDocsBody)
   async syncDocs(@Req() request: AuthedRequest, @Param('project') project: string, @Param('source') source: string, @Body() body: unknown) {
     if (!this.fetcher) throw new HttpException({ error: 'unavailable', message: 'GitLab non configuré.', details: [] }, 503);
     const { organizationId, actor } = await this.ctx(request);
-    const input = parseBody(z.object({ repo: z.string().min(1).max(200), ref: z.string().max(100).default('main'), path: z.string().max(200).optional() }), body);
+    const input = parseBody(SyncDocsBody, body);
     return this.fetcher.sync(organizationId, project, source, input.repo, input.ref, input.path, actor);
   }
 
   /** Propose, par merge request, le report des liens Athena dans les fichiers .sdoc (jamais d'écriture directe). */
   @Roles('athena-admin')
   @Post('v1/projects/:project/docs/:source/writeback')
+  @BodySchema(WritebackDocsBody)
   async writebackDocs(@Req() request: AuthedRequest, @Param('project') project: string, @Param('source') source: string, @Body() body: unknown) {
     if (!this.writeback) throw new HttpException({ error: 'unavailable', message: 'GitLab non configuré.', details: [] }, 503);
     const { organizationId, actor } = await this.ctx(request);
-    const input = parseBody(z.object({ repo: z.string().min(1).max(200), ref: z.string().max(100).default('main') }), body);
+    const input = parseBody(WritebackDocsBody, body);
     return this.writeback.proposeRefs(organizationId, project, source, input.repo, input.ref, actor);
   }
 
@@ -297,12 +329,10 @@ export class IntegrationsController {
 
   @Roles('athena-admin')
   @Post('v1/plugins')
+  @BodySchema(InstallPluginBody)
   async installPlugin(@Req() request: AuthedRequest, @Body() body: unknown) {
     const { organizationId, actor } = await this.ctx(request);
-    const input = parseBody(z.object({
-      package: z.object({ manifest: z.unknown(), code: z.string().max(300_000), signature: z.string().max(200) }),
-      granted: z.array(z.enum(['storage', 'artifacts:read'])).max(10).default([]),
-    }), body);
+    const input = parseBody(InstallPluginBody, body);
     const installed = await this.plugins.install(organizationId, { manifest: input.package.manifest, code: input.package.code, signature: input.package.signature }, input.granted, actor);
     await this.plugins.loadEnabled(organizationId);
     return installed;
@@ -329,9 +359,10 @@ export class IntegrationsController {
   @Roles('athena-user', 'athena-admin')
   @HttpCode(200)
   @Post('v1/plugins/:id/actions/:name')
+  @BodySchema(PluginActionBody)
   async pluginAction(@Req() request: AuthedRequest, @Param('id') id: string, @Param('name') name: string, @Body() body: unknown) {
     const { organizationId, actor } = await this.ctx(request);
-    const input = parseBody(z.object({ key: z.string().max(50).optional(), version: z.number().int().optional() }), body ?? {});
+    const input = parseBody(PluginActionBody, body ?? {});
     return { result: await this.plugins.runAction(organizationId, id, name, input, actor) };
   }
 
@@ -339,9 +370,10 @@ export class IntegrationsController {
   @Roles('athena-user', 'athena-admin')
   @HttpCode(200)
   @Post('v1/projects/:project/plugins/:id/connectors/:name')
+  @BodySchema(PluginConnectorBody)
   async pluginConnector(@Req() request: AuthedRequest, @Param('project') project: string, @Param('id') id: string, @Param('name') name: string, @Body() body: unknown) {
     const { organizationId, actor } = await this.ctx(request);
-    const input = parseBody(z.object({ payload: z.unknown() }), body);
+    const input = parseBody(PluginConnectorBody, body);
     const records = await this.plugins.runConnector(organizationId, id, name, input.payload);
     const created: string[] = [];
     for (const record of records) created.push((await this.artifacts.create(organizationId, project, record.tracker, record.values, actor)).key);
@@ -365,15 +397,10 @@ export class IntegrationsController {
   /** Simulation par défaut (`dryRun` vrai) : rapport d'écarts sans rien écrire. Limite de corps : 1 Mo, découper les gros exports. */
   @Roles('athena-admin')
   @Post('v1/projects/:project/import')
+  @BodySchema(ImportDataBody)
   async importData(@Req() request: AuthedRequest, @Param('project') project: string, @Body() body: unknown) {
     const { organizationId, actor } = await this.ctx(request);
-    const input = parseBody(z.object({
-      source: z.enum(['jira', 'tuleap']),
-      content: z.unknown(),
-      config: z.unknown(),
-      statusMap: z.record(z.string(), z.string()),
-      dryRun: z.boolean().default(true),
-    }), body);
+    const input = parseBody(ImportDataBody, body);
     let parsed: { records: ImportRecord[]; errors: Array<{ row: number; message: string }> };
     try {
       if (input.source === 'jira') {
@@ -391,9 +418,10 @@ export class IntegrationsController {
   // --- Livraison : rétroportages, DORA, notes de version ---
   @Roles('athena-user', 'athena-admin')
   @Post('v1/projects/:project/artifacts/:key/backports')
+  @BodySchema(PlanBackportsBody)
   async planBackports(@Req() request: AuthedRequest, @Param('project') project: string, @Param('key') key: string, @Body() body: unknown) {
     const { organizationId, actor } = await this.ctx(request);
-    const input = parseBody(z.object({ branches: z.array(z.string().max(80)).min(1).max(20) }), body);
+    const input = parseBody(PlanBackportsBody, body);
     return this.delivery.planBackports(organizationId, project, key, input.branches, actor);
   }
 
@@ -406,9 +434,10 @@ export class IntegrationsController {
   @Roles('athena-admin')
   @HttpCode(204)
   @Post('v1/projects/:project/artifacts/:key/backports/cancel')
+  @BodySchema(CancelBackportBody)
   async cancelBackport(@Req() request: AuthedRequest, @Param('project') project: string, @Param('key') key: string, @Body() body: unknown) {
     const { organizationId, actor } = await this.ctx(request);
-    await this.delivery.cancelBackport(organizationId, project, key, parseBody(z.object({ branch: z.string().max(80) }), body).branch, actor);
+    await this.delivery.cancelBackport(organizationId, project, key, parseBody(CancelBackportBody, body).branch, actor);
   }
 
   @Roles('athena-user', 'athena-admin')
@@ -426,9 +455,10 @@ export class IntegrationsController {
   // --- Baselines ---
   @Roles('athena-admin')
   @Post('v1/projects/:project/baselines')
+  @BodySchema(CreateBaselineBody)
   async createBaseline(@Req() request: AuthedRequest, @Param('project') project: string, @Body() body: unknown) {
     const { organizationId, actor } = await this.ctx(request);
-    return this.baselineService().create(organizationId, project, parseBody(z.object({ name: z.string().min(1).max(61) }), body).name, actor);
+    return this.baselineService().create(organizationId, project, parseBody(CreateBaselineBody, body).name, actor);
   }
 
   @Roles('athena-user', 'athena-admin')

@@ -30,4 +30,20 @@ describe('schéma OpenAPI', () => {
     expect(schema.properties['version']!.type).toBe('integer');
     expect(JSON.stringify(doc)).not.toContain('"undefined"');
   });
+  it('documente un corps pour toute écriture qui en reçoit un, sauf les actions sans corps connues', () => {
+    const noBody = new Set([
+      'POST /auth/logout', 'POST /v1/automations/{id}/{state}', 'POST /v1/plugins/{id}/{state}', 'POST /v1/projects/{project}/links/{id}/clear-suspect',
+      'POST /v1/projects/{project}/rebuild', 'POST /v1/projects/{project}/releases/{id}/publish', 'POST /v1/projects/{project}/sprints/{id}/close',
+      'POST /v1/projects/{project}/sprints/{id}/start', 'POST /v1/webhooks/deliveries/{id}/replay',
+      'POST /v1/projects/{project}/integrations/gitlab', 'POST /v1/projects/{project}/integrations/history',
+      'POST /hooks/in/source/{org}/{project}/{name}', // charge externe signée (HMAC) lue en octets bruts : forme fixée par l’émetteur
+    ]);
+    const missing: string[] = [];
+    for (const [path, ops] of Object.entries(doc.paths)) for (const [method, op] of Object.entries(ops)) {
+      if (['post', 'put', 'patch'].includes(method) && !(op as { requestBody?: unknown }).requestBody && !noBody.has(`${method.toUpperCase()} ${path}`)) missing.push(`${method.toUpperCase()} ${path}`);
+    }
+    expect(missing).toEqual([]);
+    const upload = doc.paths['/v1/projects/{project}/artifacts/{key}/attachments']!['post'] as unknown as { requestBody: { content: Record<string, unknown> } };
+    expect(Object.keys(upload.requestBody.content)).toEqual(['application/octet-stream']);
+  });
 });

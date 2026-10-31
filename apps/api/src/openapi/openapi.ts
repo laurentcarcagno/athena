@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import { RequestMethod } from '@nestjs/common';
 import { z, type ZodType } from 'zod';
 import { PUBLIC_KEY, ROLES_KEY } from '../auth/auth.guard';
-import { BODY_SCHEMA_KEY } from './body-schema';
+import { BODY_SCHEMA_KEY, RAW_BODY_KEY } from './body-schema';
 
 type Ctor = new (...args: never[]) => unknown;
 
@@ -31,13 +31,16 @@ export function buildOpenApi(controllers: Ctor[], version = '0.1.0'): Record<str
       const params = [...route.matchAll(/:([A-Za-z0-9_]+)/g)].map((m) => ({ name: m[1], in: 'path', required: true, schema: { type: 'string' } }));
       const isPublic = Reflect.getMetadata(PUBLIC_KEY, handler) === true || Reflect.getMetadata(PUBLIC_KEY, controller) === true;
       const roles = (Reflect.getMetadata(ROLES_KEY, handler) ?? Reflect.getMetadata(ROLES_KEY, controller)) as string[] | undefined;
+      const takesBody = Object.keys((Reflect.getMetadata('__routeArguments__', controller, name) ?? {}) as Record<string, unknown>).some((k) => k.startsWith('3:'));
       const bodySchema = Reflect.getMetadata(BODY_SCHEMA_KEY, handler) as ZodType | undefined;
       const status = Reflect.getMetadata('__httpCode__', handler) as number | undefined ?? (verb === 'post' ? 201 : 200);
       (paths[path] ??= {})[verb] = {
         operationId: `${controller.name.replace(/Controller$/, '')}_${name}`,
         tags: [controller.name.replace(/Controller$/, '')],
         parameters: params,
-        ...(bodySchema ? { requestBody: { required: true, content: { 'application/json': { schema: z.toJSONSchema(bodySchema, { io: 'input', unrepresentable: 'any' }) } } } } : {}),
+        ...(bodySchema ? { requestBody: { required: true, content: { 'application/json': { schema: z.toJSONSchema(bodySchema, { io: 'input', unrepresentable: 'any' }) } } } }
+          : Reflect.getMetadata(RAW_BODY_KEY, handler) === true ? { requestBody: { required: true, content: { 'application/octet-stream': { schema: { type: 'string', format: 'binary' } } } } }
+          : takesBody ? { requestBody: { required: false, description: 'Charge JSON dont la forme est validée par le service ou fixée par l’émetteur externe (webhooks entrants).', content: { 'application/json': { schema: { type: 'object' } } } } } : {}),
         ...(isPublic ? { security: [] } : { security: [{ bearer: [] }, { session: [] }] }),
         ...(roles ? { 'x-athena-roles': roles } : {}),
         responses: { [String(status)]: { description: 'Succès' }, '401': { description: 'Non authentifié' }, '403': { description: 'Rôle insuffisant' }, '422': { description: 'Validation' } },

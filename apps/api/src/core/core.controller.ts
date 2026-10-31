@@ -47,6 +47,21 @@ const CommentBody = z.object({ body: z.string().min(1).max(100_000) });
 
 const principalOf =(request: AuthedRequest): Principal => request.principal!;
 
+const SetHistoryModeBody = z.object({ mode: z.enum(['direct', 'merge_request']) });
+const UpdateFieldBody = z.object({
+      label: z.string().min(1).max(100).optional(), required: z.boolean().optional(),
+      readRoles: z.array(z.string().max(60)).min(1).max(20).nullable().optional(), writeRoles: z.array(z.string().max(60)).min(1).max(20).nullable().optional(),
+    });
+const AddFieldBody = z.object({
+      key: z.string(), label: z.string().min(1).max(100), type: z.string(), config: z.record(z.string(), z.unknown()).optional(),
+      readRoles: z.array(z.string().max(60)).min(1).max(20).optional(), writeRoles: z.array(z.string().max(60)).min(1).max(20).optional(),
+      required: z.boolean().optional(), semanticRole: z.enum(['title', 'description', 'status', 'assignee', 'due_date', 'estimate']).optional(),
+    });
+const AddStatusBody = z.object({ key: z.string(), name: z.string().min(1).max(100), category: z.enum(['todo', 'in_progress', 'done']) });
+const AddTransitionBody = z.object({
+      name: z.string().min(1).max(100), from: z.string().nullable(), to: z.string(),
+      conditions: z.array(z.unknown()).optional(), validators: z.array(z.unknown()).optional(), postActions: z.array(z.unknown()).optional(),
+    });
 @Controller('v1/projects')
 export class CoreController {
   constructor(
@@ -138,21 +153,20 @@ export class CoreController {
   @Roles('athena-admin')
   @HttpCode(204)
   @Patch(':project/trackers/:tracker/history-mode')
+  @BodySchema(SetHistoryModeBody)
   async setHistoryMode(@Req() request: AuthedRequest, @Param('project') project: string, @Param('tracker') tracker: string, @Body() body: unknown) {
     const { organizationId, actor } = await this.orgs.resolve(principalOf(request));
-    const input = parseBody(z.object({ mode: z.enum(['direct', 'merge_request']) }), body);
+    const input = parseBody(SetHistoryModeBody, body);
     await this.trackers.setHistoryMode(organizationId, project, tracker, input.mode, actor);
   }
 
   @Roles('athena-admin')
   @HttpCode(204)
   @Patch(':project/trackers/:tracker/fields/:field')
+  @BodySchema(UpdateFieldBody)
   async updateField(@Req() request: AuthedRequest, @Param('project') project: string, @Param('tracker') tracker: string, @Param('field') field: string, @Body() body: unknown) {
     const { organizationId, actor } = await this.orgs.resolve(principalOf(request));
-    const input = parseBody(z.object({
-      label: z.string().min(1).max(100).optional(), required: z.boolean().optional(),
-      readRoles: z.array(z.string().max(60)).min(1).max(20).nullable().optional(), writeRoles: z.array(z.string().max(60)).min(1).max(20).nullable().optional(),
-    }), body);
+    const input = parseBody(UpdateFieldBody, body);
     await this.trackers.updateField(organizationId, project, tracker, field, stripUndefined(input), actor);
   }
 
@@ -173,34 +187,30 @@ export class CoreController {
 
   @Roles('athena-admin')
   @Post(':project/trackers/:tracker/fields')
+  @BodySchema(AddFieldBody)
   async addField(@Req() request: AuthedRequest, @Param('project') project: string, @Param('tracker') tracker: string, @Body() body: unknown) {
     const { organizationId, actor } = await this.orgs.resolve(principalOf(request));
-    const input = parseBody(z.object({
-      key: z.string(), label: z.string().min(1).max(100), type: z.string(), config: z.record(z.string(), z.unknown()).optional(),
-      readRoles: z.array(z.string().max(60)).min(1).max(20).optional(), writeRoles: z.array(z.string().max(60)).min(1).max(20).optional(),
-      required: z.boolean().optional(), semanticRole: z.enum(['title', 'description', 'status', 'assignee', 'due_date', 'estimate']).optional(),
-    }), body);
+    const input = parseBody(AddFieldBody, body);
     await this.trackers.addField(organizationId, project, tracker, stripUndefined(input), actor);
     return { added: input.key };
   }
 
   @Roles('athena-admin')
   @Post(':project/trackers/:tracker/statuses')
+  @BodySchema(AddStatusBody)
   async addStatus(@Req() request: AuthedRequest, @Param('project') project: string, @Param('tracker') tracker: string, @Body() body: unknown) {
     const { organizationId, actor } = await this.orgs.resolve(principalOf(request));
-    const input = parseBody(z.object({ key: z.string(), name: z.string().min(1).max(100), category: z.enum(['todo', 'in_progress', 'done']) }), body);
+    const input = parseBody(AddStatusBody, body);
     await this.trackers.addStatus(organizationId, project, tracker, input, actor);
     return { added: input.key };
   }
 
   @Roles('athena-admin')
   @Post(':project/trackers/:tracker/transitions')
+  @BodySchema(AddTransitionBody)
   async addTransition(@Req() request: AuthedRequest, @Param('project') project: string, @Param('tracker') tracker: string, @Body() body: unknown) {
     const { organizationId, actor } = await this.orgs.resolve(principalOf(request));
-    const input = parseBody(z.object({
-      name: z.string().min(1).max(100), from: z.string().nullable(), to: z.string(),
-      conditions: z.array(z.unknown()).optional(), validators: z.array(z.unknown()).optional(), postActions: z.array(z.unknown()).optional(),
-    }), body);
+    const input = parseBody(AddTransitionBody, body);
     await this.trackers.addTransition(organizationId, project, tracker, stripUndefined(input), actor);
     return { added: input.name };
   }
