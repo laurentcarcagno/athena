@@ -6,6 +6,7 @@ import { ArtifactService } from './artifact.service';
 import { CoreController } from './core.controller';
 import { Db } from './db';
 import { FieldTypeRegistry } from './field-types';
+import { SearchService } from '../atql/search.service';
 import { LinkService } from './link.service';
 import { DomainErrorFilter, OrgResolver } from './http';
 import { TrackerService } from './tracker.service';
@@ -26,6 +27,7 @@ export const PG_POOL = Symbol('PG_POOL');
       inject: [Db, TrackerService, FieldTypeRegistry],
     },
     { provide: LinkService, useFactory: (db: Db) => new LinkService(db), inject: [Db] },
+    { provide: SearchService, useFactory: (db: Db) => new SearchService(db), inject: [Db] },
     { provide: APP_FILTER, useClass: DomainErrorFilter },
   ],
   exports: [FieldTypeRegistry],

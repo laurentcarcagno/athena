@@ -1,8 +1,9 @@
-import { Body, Controller, Get, HttpCode, Param, Patch, Post, Req } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Param, Patch, Post, Query, Req } from '@nestjs/common';
 import { z } from 'zod';
 import { Roles, type AuthedRequest } from '../auth/auth.guard';
 import type { Principal } from '../auth/token-verifier';
 import { ArtifactService } from './artifact.service';
+import { SearchService } from '../atql/search.service';
 import { Db } from './db';
 import { LinkService } from './link.service';
 import { KeySchema, OrgResolver, parseBody } from './http';
@@ -52,6 +53,7 @@ export class CoreController {
     private readonly trackers: TrackerService,
     private readonly artifacts: ArtifactService,
     private readonly links: LinkService,
+    private readonly searcher: SearchService,
   ) {}
 
   @Roles('athena-admin')
@@ -118,6 +120,16 @@ export class CoreController {
     const { organizationId, actor } = await this.orgs.resolve(principalOf(request));
     const input = parseBody(TransitionBody, body);
     return this.artifacts.transition(organizationId, project, key, input.name, input.version, actor);
+  }
+
+  @Roles('athena-user', 'athena-admin')
+  @Get(':project/search')
+  async search(
+    @Req() request: AuthedRequest, @Param('project') project: string,
+    @Query('q') q = '', @Query('limit') limit = '50', @Query('offset') offset = '0',
+  ) {
+    const { organizationId, actor } = await this.orgs.resolve(principalOf(request));
+    return this.searcher.search(organizationId, project, q, actor.id, Number(limit), Number(offset));
   }
 
   @Roles('athena-admin')

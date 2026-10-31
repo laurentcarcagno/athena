@@ -138,6 +138,17 @@ suite('API REST du noyau', () => {
     expect((await call('GET', '/v1/projects/ARI/trackers/INC', user)).json().fields.length).toBeGreaterThan(3);
   });
 
+  it('recherche ATQL via REST, erreurs de syntaxe en 422', async () => {
+    const user = await token(['athena-user']);
+    const ok = await call('GET', '/v1/projects/ARI/search?q=' + encodeURIComponent('status = in_progress AND tracker = BUG'), user);
+    expect(ok.statusCode).toBe(200);
+    expect(ok.json().hits.map((h: { key: string }) => h.key)).toEqual(['BUG-1']);
+    const bad = await call('GET', '/v1/projects/ARI/search?q=' + encodeURIComponent('status ='), user);
+    expect(bad.statusCode).toBe(422);
+    expect(bad.json().details[0]).toMatch(/Valeur attendue/);
+    expect((await call('GET', '/v1/projects/ARI/search?limit=9999', user)).statusCode).toBe(422);
+  });
+
   it("isole les organisations : l'autre organisation ne voit rien", async () => {
     const other = await token(['athena-user'], ['/org-autre']);
     expect((await call('GET', '/v1/projects/ARI/artifacts/BUG-1', other)).statusCode).toBe(404);
