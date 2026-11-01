@@ -36,6 +36,11 @@ Dans un message de commit, une merge request ou un nom de branche, citez la clé
 - **Sprint** : planifié → actif → clos. À la clôture, ce qui n'est pas terminé retourne au backlog. Vélocité, burndown et prévision se calculent seuls.
 - **Tableau de bord** : indicateurs, flux des 7 derniers jours, vélocité, roadmap par release, activité récente.
 
+## Vue projet, workflow et templates
+- **Vue projet** (page **Projets**) : chaque tracker occupe une ligne avec son nom, le nombre d'artefacts créés et la liste de ses attributs (champs).
+- **Workflow** : dans la configuration d'un tracker, la carte **Workflow** dessine la machine à états (une colonne par catégorie de statut, une flèche par transition ; les flèches en pointillés partent de « Tout état »). Un administrateur crée une transition en cliquant le statut de départ puis le statut d'arrivée, puis nomme la transition et, au besoin, limite ses rôles. Les nœuds se manipulent aussi au clavier (`Tab`, `Entrée`).
+- **Templates de projet** (administrateurs, **Organisation > Templates**) : un template regroupe plusieurs trackers (champs, statuts, transitions). Trois templates sont livrés (Projet vide, Suivi de bugs, Qualité). Pour en créer un, choisissez un projet existant et cochez les trackers à reprendre. À la création d'un projet, le choix du **Template du projet** crée automatiquement ses trackers.
+
 ## Fenêtres selon le rôle
 - **Utilisateur** (`athena-user`) : **Mon travail** liste les artefacts qui vous sont assignés (hors terminés) et ceux à prendre (non assignés, à faire) ; **Prendre** vous assigne l'artefact.
 - **Chef de projet** (`athena-pm`) : **Gestion de projet** (`/p/<projet>/manage`) : acteurs du projet (chef ou membre, choisis parmi les comptes déjà connectés), sprints (créer, démarrer, clore), versions (créer, publier), boards (créer). Un chef de projet ne gère que les projets dont il est désigné **chef**.

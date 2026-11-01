@@ -1,18 +1,22 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
-import { Btn, Card, EmptyState, Field, PageHeader, Table, Tabs, Td, Th, useToast } from '@athena/ui';
+import { Btn, Card, EmptyState, Field, PageHeader, Table, Tabs, Tag, Td, Th, useToast } from '@athena/ui';
 import { api, type Session } from '../api';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
 
 export interface UserEntry { subject: string; username: string; displayName: string; email: string | null }
 export interface MemberEntry extends UserEntry { role: 'manager' | 'member' }
+export interface TemplateEntry {
+  key: string; name: string; description: string; builtin: boolean;
+  trackers: Array<{ key: string; name: string; fields: Array<{ label: string }>; statuses: unknown[]; transitions: unknown[] }>;
+}
 interface PluginEntry { id: string; name: string; version: string; enabled: boolean; permissions: string[] }
 
-function ProjectsTab({ users }: { users: UserEntry[] }) {
+function ProjectsTab({ users, templates }: { users: UserEntry[]; templates: TemplateEntry[] }) {
   const toast = useToast();
   const fail = useFailure();
   const [projects, setProjects] = useState<Array<{ key: string; name: string; managers: MemberEntry[] }>>([]);
-  const [form, setForm] = useState({ key: '', name: '' });
+  const [form, setForm] = useState({ key: '', name: '', template: '' });
   const [pick, setPick] = useState<Record<string, string>>({});
   const load = useCallback(async () => {
     const list = await api<Array<{ key: string; name: string }>>('GET', '/v1/projects');
@@ -22,9 +26,9 @@ function ProjectsTab({ users }: { users: UserEntry[] }) {
   const create = async (event: FormEvent) => {
     event.preventDefault();
     try {
-      await api('POST', '/v1/projects', form);
+      await api('POST', '/v1/projects', { key: form.key, name: form.name, ...(form.template ? { template: form.template } : {}) });
       toast('success', fr.org.projectCreated(form.key));
-      setForm({ key: '', name: '' });
+      setForm({ key: '', name: '', template: form.template });
       await load();
     } catch (error) { fail(error); }
   };
@@ -48,6 +52,13 @@ function ProjectsTab({ users }: { users: UserEntry[] }) {
       <form className="ath-toolbar" onSubmit={create}>
         <Field label={fr.org.projectKey} value={form.key} onChange={(e) => setForm({ ...form, key: e.target.value.toUpperCase() })} mono />
         <Field label={fr.org.projectName} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+        <div className="ath-field">
+          <label className="ath-field__label" htmlFor="project-template">{fr.org.template}</label>
+          <select id="project-template" className="ath-select" value={form.template} onChange={(e) => setForm({ ...form, template: e.target.value })}>
+            <option value="">{fr.org.noTemplate}</option>
+            {templates.map((t) => <option key={t.key} value={t.key}>{t.name} ({t.trackers.length})</option>)}
+          </select>
+        </div>
         <Btn type="submit" disabled={form.key.length < 2 || !form.name.trim()}>{fr.org.createProject}</Btn>
       </form>
       {projects.length === 0 ? <EmptyState eyebrow={fr.org.projects} title={fr.admin.empty} /> : (
@@ -76,6 +87,75 @@ function ProjectsTab({ users }: { users: UserEntry[] }) {
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+function TemplatesTab({ templates, reload }: { templates: TemplateEntry[]; reload: () => Promise<void> }) {
+  const toast = useToast();
+  const fail = useFailure();
+  const [projects, setProjects] = useState<Array<{ key: string; name: string }>>([]);
+  const [trackers, setTrackers] = useState<Array<{ key: string; name: string }>>([]);
+  const [form, setForm] = useState({ key: '', name: '', description: '', project: '', picked: [] as string[] });
+  useEffect(() => { api<Array<{ key: string; name: string }>>('GET', '/v1/projects').then(setProjects).catch(fail); }, [fail]);
+  const chooseProject = async (project: string) => {
+    setForm((f) => ({ ...f, project, picked: [] }));
+    if (!project) { setTrackers([]); return; }
+    try {
+      const list = await api<Array<{ key: string; name: string }>>('GET', `/v1/projects/${project}/trackers`);
+      setTrackers(list);
+      setForm((f) => ({ ...f, picked: list.map((t) => t.key) }));
+    } catch (error) { fail(error); }
+  };
+  const create = async (event: FormEvent) => {
+    event.preventDefault();
+    try {
+      await api('POST', '/v1/project-templates', { key: form.key, name: form.name, ...(form.description ? { description: form.description } : {}), fromProject: { project: form.project, trackers: form.picked } });
+      toast('success', fr.org.templateCreated);
+      setForm({ key: '', name: '', description: '', project: '', picked: [] });
+      setTrackers([]);
+      await reload();
+    } catch (error) { fail(error); }
+  };
+  const remove = async (key: string) => {
+    try { await api('DELETE', `/v1/project-templates/${key}`); toast('success', fr.org.templateDeleted); await reload(); } catch (error) { fail(error); }
+  };
+  return (
+    <div className="ath-stack">
+      <Table>
+        <thead><tr><Th>{fr.config.name}</Th><Th>{fr.org.trackersCount}</Th><Th>{fr.org.attributes}</Th><Th>{fr.org.deleteTemplate}</Th></tr></thead>
+        <tbody>{templates.map((t) => (
+          <tr key={t.key}>
+            <Td>{t.name} <span className="ath-mono">{t.key}</span>{t.builtin && <> <Tag>{fr.org.builtin}</Tag></>}</Td>
+            <Td>{t.trackers.length === 0 ? '—' : t.trackers.map((k) => <div key={k.key}><span className="ath-mono">{k.key}</span> {k.name}</div>)}</Td>
+            <Td>{t.trackers.length === 0 ? '—' : t.trackers.map((k) => <div key={k.key}>{k.fields.map((f) => f.label).join(', ')}</div>)}</Td>
+            <Td>{!t.builtin && <Btn size="sm" variant="ghost" aria-label={`${fr.org.deleteTemplate} ${t.name}`} onClick={() => remove(t.key)}>{fr.org.deleteTemplate}</Btn>}</Td>
+          </tr>
+        ))}</tbody>
+      </Table>
+      <form className="ath-stack" onSubmit={create}>
+        <div className="ath-toolbar">
+          <Field label={fr.org.templateKey} value={form.key} onChange={(e) => setForm({ ...form, key: e.target.value })} mono />
+          <Field label={fr.org.templateName} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+          <Field label={fr.org.templateDescription} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+          <div className="ath-field">
+            <label className="ath-field__label" htmlFor="template-project">{fr.org.fromProject}</label>
+            <select id="template-project" className="ath-select" value={form.project} onChange={(e) => void chooseProject(e.target.value)}>
+              <option value="" />{projects.map((p) => <option key={p.key} value={p.key}>{p.name} ({p.key})</option>)}
+            </select>
+          </div>
+        </div>
+        {trackers.length > 0 && (
+          <fieldset className="ath-row">
+            <legend className="ath-field__label">{fr.org.pickTrackers}</legend>
+            {trackers.map((t) => (
+              <label key={t.key} className="ath-row"><input type="checkbox" checked={form.picked.includes(t.key)}
+                onChange={(e) => setForm({ ...form, picked: e.target.checked ? [...form.picked, t.key] : form.picked.filter((x) => x !== t.key) })} /><span className="ath-mono">{t.key}</span> {t.name}</label>
+            ))}
+          </fieldset>
+        )}
+        <div><Btn type="submit" disabled={!/^[a-z][a-z0-9-]{1,39}$/.test(form.key) || !form.name.trim() || !form.project || form.picked.length === 0}>{fr.org.createTemplate}</Btn></div>
+      </form>
     </div>
   );
 }
@@ -147,15 +227,18 @@ export function OrgAdminPage({ session }: { session: Session }) {
   const fail = useFailure();
   const [tab, setTab] = useState('projects');
   const [users, setUsers] = useState<UserEntry[]>([]);
+  const [templates, setTemplates] = useState<TemplateEntry[]>([]);
+  const loadTemplates = useCallback(async () => setTemplates(await api<TemplateEntry[]>('GET', '/v1/project-templates')), []);
   const admin = session.user?.roles.includes('athena-admin') ?? false;
-  useEffect(() => { if (admin) api<UserEntry[]>('GET', '/v1/users').then(setUsers).catch(fail); }, [admin, fail]);
+  useEffect(() => { if (admin) { api<UserEntry[]>('GET', '/v1/users').then(setUsers).catch(fail); loadTemplates().catch(fail); } }, [admin, fail, loadTemplates]);
   if (!admin) return <><PageHeader eyebrow={fr.org.eyebrow} title={fr.org.title} /><p className="ath-field__error">{fr.config.adminOnly}</p></>;
   return (
     <>
       <PageHeader eyebrow={fr.org.eyebrow} title={fr.org.title} />
-      <Tabs tabs={[{ id: 'projects', label: fr.org.projects }, { id: 'users', label: fr.org.users }, { id: 'plugins', label: fr.org.plugins }]} active={tab} onChange={setTab} />
+      <Tabs tabs={[{ id: 'projects', label: fr.org.projects }, { id: 'templates', label: fr.org.templates }, { id: 'users', label: fr.org.users }, { id: 'plugins', label: fr.org.plugins }]} active={tab} onChange={setTab} />
       <div role="tabpanel" className="ath-stack">
-        {tab === 'projects' && <ProjectsTab users={users} />}
+        {tab === 'projects' && <ProjectsTab users={users} templates={templates} />}
+        {tab === 'templates' && <TemplatesTab templates={templates} reload={loadTemplates} />}
         {tab === 'users' && <UsersTab users={users} />}
         {tab === 'plugins' && <PluginsTab />}
       </div>

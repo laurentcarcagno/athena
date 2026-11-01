@@ -1,3 +1,4 @@
+import { TemplateService } from './template.service';
 import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Query, Req } from '@nestjs/common';
 import { z } from 'zod';
 import { Roles, type AuthedRequest } from '../auth/auth.guard';
@@ -10,7 +11,7 @@ import { LinkService } from './link.service';
 import { KeySchema, OrgResolver, parseBody } from './http';
 import { TrackerService } from './tracker.service';
 
-const ProjectBody = z.object({ key: KeySchema, name: z.string().min(1).max(200) });
+const ProjectBody = z.object({ key: KeySchema, name: z.string().min(1).max(200), template: z.string().max(40).optional() });
 
 const TrackerBody = z.object({
   key: KeySchema,
@@ -71,6 +72,7 @@ export class CoreController {
     private readonly artifacts: ArtifactService,
     private readonly links: LinkService,
     private readonly searcher: SearchService,
+    private readonly templates: TemplateService,
   ) {}
 
   @Roles('athena-user', 'athena-admin')
@@ -132,8 +134,8 @@ export class CoreController {
   async createProject(@Req() request: AuthedRequest, @Body() body: unknown) {
     const { organizationId, actor } = await this.orgs.resolve(principalOf(request));
     const input = parseBody(ProjectBody, body);
-    await this.trackers.createProject(organizationId, input.key, input.name, actor);
-    return { key: input.key, name: input.name };
+    const created = await this.templates.createProject(organizationId, input.key, input.name, input.template, actor);
+    return { key: input.key, name: input.name, trackers: created.trackers };
   }
 
   @Roles('athena-admin')

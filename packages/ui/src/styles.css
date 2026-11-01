@@ -195,3 +195,24 @@
 
 /* Un formulaire placé en tête d'un panneau d'onglets ne doit pas toucher le filet des onglets. */
 [role="tabpanel"] > .ath-stack > .ath-toolbar:first-child { margin-top: 12px; }
+
+/* Liste d'attributs d'un tracker (vue projet). */
+.ath-taglist { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; margin: 0; padding: 0; }
+
+/* Éditeur graphique de workflow (machine à états) : angles droits, aucune ombre. */
+.ath-wf { display: block; background: var(--ath-color-instrument-white); border: 1px solid var(--ath-color-console-border); }
+.ath-wf__node rect { fill: var(--ath-color-instrument-white); stroke-width: 2; stroke: var(--ath-color-console-sky); }
+.ath-wf__node text { fill: var(--ath-color-ink); font-size: 13px; font-weight: 600; pointer-events: none; }
+.ath-wf__node--in_progress rect { stroke: var(--ath-color-signal-warning); fill: var(--ath-color-pill-warning-bg); }
+.ath-wf__node--done rect { stroke: var(--ath-color-signal-success); fill: var(--ath-color-pill-success-bg); }
+.ath-wf__node--any rect { stroke: var(--ath-color-mute-ink); stroke-dasharray: 5 3; fill: var(--ath-color-cold-mist); }
+.ath-wf__node--editable { cursor: pointer; }
+.ath-wf__node--editable:hover rect { fill: var(--ath-color-hover-mist); }
+.ath-wf__node--selected rect { stroke: var(--ath-color-tricolor-blue); stroke-width: 4; }
+.ath-wf__node:focus-visible rect { stroke: var(--ath-color-tricolor-blue); stroke-width: 4; }
+.ath-wf__node:focus { outline: none; }
+.ath-wf__path { stroke: var(--ath-color-dim-ink); stroke-width: 1.5; }
+.ath-wf__path--any { stroke-dasharray: 6 4; }
+.ath-wf__arrow { fill: var(--ath-color-dim-ink); }
+.ath-wf__labelbg { fill: var(--ath-color-instrument-white); stroke: var(--ath-color-console-border); stroke-width: 1; }
+.ath-wf__label { fill: var(--ath-color-dim-ink); font-size: 11px; }

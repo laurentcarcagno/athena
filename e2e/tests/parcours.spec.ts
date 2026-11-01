@@ -83,6 +83,12 @@ test('administrateur : ajoute un champ avec rôles puis le supprime dans l’éd
   await expect(row).toContainText('R: finance');
   await row.getByRole('button', { name: 'Supprimer cout' }).click();
   await expect(fields.getByRole('row', { name: /cout/ })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Ouvert' }).click();
+  await page.getByRole('button', { name: 'Fini' }).click();
+  const draft = page.getByRole('form', { name: /Nouvelle transition Ouvert → Fini/ });
+  await draft.getByLabel('Nom').fill('Passer à fini');
+  await draft.getByRole('button', { name: 'Ajouter' }).click();
+  await expect(page.getByRole('row', { name: /Passer à fini/ })).toBeVisible();
   expect(await axeViolations(page)).toEqual([]);
 });
 
@@ -101,8 +107,18 @@ test('administrateur : crée un projet, nomme un chef de projet et gère les act
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Administration de l’organisation');
   await page.getByLabel('Clé du projet (2 à 10 majuscules)').fill('PAY');
   await page.getByLabel('Nom du projet').fill('Paiement');
+  await page.getByLabel('Template du projet').selectOption('qualite');
   await page.getByRole('button', { name: 'Créer le projet' }).click();
   await expect(page.getByText('Projet PAY créé.')).toBeVisible();
+  await page.goto('/');
+  const paiement = page.locator('section, div', { has: page.getByText('Paiement') }).last();
+  await expect(paiement.getByRole('row', { name: /REQ/ })).toBeVisible();
+  await expect(paiement.getByRole('row', { name: /BUG/ })).toBeVisible();
+  expect(await axeViolations(page)).toEqual([]);
+  await page.goto('/org');
+  await page.getByRole('tab', { name: 'Templates' }).click();
+  await expect(page.getByRole('row', { name: /Qualité/ })).toBeVisible();
+  expect(await axeViolations(page)).toEqual([]);
   await page.goto('/p/PAY/manage');
   await expect(page.getByRole('tab', { name: 'Acteurs' })).toBeVisible();
   expect(await axeViolations(page)).toEqual([]);

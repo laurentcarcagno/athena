@@ -18,12 +18,20 @@ import { TrackerConfigPage } from './pages/TrackerConfigPage';
 /** Projet courant déduit de l'adresse (`/p/<clé>/…`). */
 export const projectOf = (pathname: string): string | undefined => (pathname.startsWith('/p/') ? pathname.split('/')[2] : undefined);
 
+/** Couleurs des drapeaux nationaux : hors palette Hemeria par nature. */
+const FLAG = {
+  frBlue: '#0055A4', // design-lint-ignore : drapeau
+  frRed: '#EF4135', // design-lint-ignore : drapeau
+  ukBlue: '#012169', // design-lint-ignore : drapeau
+  ukRed: '#C8102E', // design-lint-ignore : drapeau
+};
+
 /** Drapeaux en SVG (les émojis de drapeaux ne s'affichent pas sous Windows). */
 function Flag({ locale }: { locale: 'fr' | 'en' }) {
   return locale === 'fr' ? (
-    <svg width="20" height="14" viewBox="0 0 3 2" aria-hidden="true"><rect width="1" height="2" fill="#0055A4" /><rect x="1" width="1" height="2" fill="#FFFFFF" /><rect x="2" width="1" height="2" fill="#EF4135" /></svg>
+    <svg width="20" height="14" viewBox="0 0 3 2" aria-hidden="true"><rect width="1" height="2" fill={FLAG.frBlue} /><rect x="1" width="1" height="2" fill="#FFFFFF" /><rect x="2" width="1" height="2" fill={FLAG.frRed} /></svg>
   ) : (
-    <svg width="20" height="14" viewBox="0 0 60 30" aria-hidden="true"><rect width="60" height="30" fill="#012169" /><path d="M0 0L60 30M60 0L0 30" stroke="#FFFFFF" strokeWidth="6" /><path d="M0 0L60 30M60 0L0 30" stroke="#C8102E" strokeWidth="2.5" /><path d="M30 0V30M0 15H60" stroke="#FFFFFF" strokeWidth="10" /><path d="M30 0V30M0 15H60" stroke="#C8102E" strokeWidth="6" /></svg>
+    <svg width="20" height="14" viewBox="0 0 60 30" aria-hidden="true"><rect width="60" height="30" fill={FLAG.ukBlue} /><path d="M0 0L60 30M60 0L0 30" stroke="#FFFFFF" strokeWidth="6" /><path d="M0 0L60 30M60 0L0 30" stroke={FLAG.ukRed} strokeWidth="2.5" /><path d="M30 0V30M0 15H60" stroke="#FFFFFF" strokeWidth="10" /><path d="M30 0V30M0 15H60" stroke={FLAG.ukRed} strokeWidth="6" /></svg>
   );
 }
 

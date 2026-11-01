@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { Btn, Card, Field as TextField, PageHeader, StatusPill, Table, Td, Th, useToast } from '@athena/ui';
 import { ApiError, api, type Session, type TrackerDefinition } from '../api';
 import { useFailure } from '../hooks';
+import { WorkflowEditor } from '../components/WorkflowEditor';
 import { fr } from '../i18n';
 
 /** Éditeur de tracker : ajout de champs, de statuts et de transitions (évolutions non destructrices). */
@@ -115,6 +116,16 @@ export function TrackerConfigPage({ session }: { session: Session }) {
               <Btn type="submit" disabled={!status.key || !status.name}>{fr.config.add}</Btn>
             </form>
           )}
+        </Card>
+        <Card title={fr.config.workflow} meta={`${def.statuses.length} / ${def.transitions.length}`}>
+          <WorkflowEditor statuses={def.statuses} transitions={def.transitions} editable={admin}
+            onCreate={async ({ name, from, to, roles }) => {
+              try {
+                await api('POST', `${base}/transitions`, { name, from, to, ...(roles.length ? { conditions: [{ type: 'role', roles }] } : {}) });
+                toast('success', fr.config.added);
+                await reload();
+              } catch (error) { fail(error); }
+            }} />
         </Card>
         <Card title={fr.config.transitions} meta={String(def.transitions.length)}>
           <Table>

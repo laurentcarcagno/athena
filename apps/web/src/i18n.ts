@@ -8,7 +8,7 @@ const frDict = {
   loading: 'Chargement…',
   language: 'English',
   nav: { projects: 'Projets', search: 'Recherche', dashboard: 'Tableau de bord', admin: 'Administration', logout: 'Déconnexion', palette: 'Commandes', work: 'Mon travail', manage: 'Gestion de projet', organization: 'Organisation' },
-  projects: { eyebrow: 'Mission console', title: 'Projets', empty: 'Aucun projet.', emptyEyebrow: 'Aucun résultat', trackers: 'Trackers', boards: 'Boards' },
+  projects: { eyebrow: 'Mission console', title: 'Projets', empty: 'Aucun projet.', emptyEyebrow: 'Aucun résultat', trackers: 'Trackers', boards: 'Boards', trackerName: 'Tracker', artifacts: 'Artefacts', attributes: 'Attributs', noTracker: 'Aucun tracker.', noAttribute: 'Aucun attribut.' },
   list: {
     eyebrow: 'Recherche', placeholder: 'Requête ATQL, par exemple status = open AND severity = majeure', run: 'Rechercher',
     key: 'Clé', title: 'Titre', status: 'Statut', tracker: 'Tracker', updated: 'Mis à jour', total: (n: number) => `${n} résultat${n > 1 ? 's' : ''}`,
@@ -36,6 +36,7 @@ const frDict = {
     eyebrow: 'Configuration', title: 'Configuration du tracker', fields: 'Champs', statuses: 'Statuts', transitions: 'Transitions',
     key: 'Clé', label: 'Libellé', type: 'Type', required: 'Obligatoire', category: 'Catégorie', name: 'Nom', from: 'Depuis', to: 'Vers', anyState: 'Tout état', add: 'Ajouter',
     historyMode: 'Écriture de l’historique', historyDirect: 'Directe (branche principale)', historyMr: 'Par merge request (revue)', readRoles: 'Rôles en lecture (virgules)', writeRoles: 'Rôles en écriture (virgules)', roles: 'Rôles', everyone: 'Tous', allowedRoles: 'Rôles autorisés (virgules, vide : tous)', remove: 'Supprimer', confirmPurge: (n: string, count = 0) => `Le champ ${n} contient des valeurs${count ? ` (${count} artefact${count > 1 ? 's' : ''})` : ''}. Les supprimer définitivement des artefacts ?`, removed: 'Champ supprimé.',
+    workflow: 'Workflow', workflowHelp: 'Cliquez sur un statut de départ, puis sur un statut d’arrivée pour créer une transition. Les flèches en pointillés partent de « Tout état ».', anyStateNode: 'Tout état', pickTarget: (from: string) => `Départ : ${from}. Choisissez le statut d’arrivée.`, newTransition: (from: string, to: string) => `Nouvelle transition ${from} → ${to}`, cancel: 'Annuler',
     added: 'Configuration enregistrée.', schemaNote: 'Chaque modification incrémente la version du schéma et est versionnée dans Git.', adminOnly: 'Réservé aux administrateurs.',
   },
   admin: {
@@ -47,6 +48,7 @@ const frDict = {
   work: { eyebrow: 'Traitement', title: 'Mon travail', assigned: 'Assignés à moi', available: 'À prendre', take: 'Prendre', taken: (k: string) => `${k} vous est assigné.`, none: 'Rien à traiter.', project: 'Projet' },
   org: {
     eyebrow: 'Organisation', title: 'Administration de l’organisation', projects: 'Projets', users: 'Utilisateurs', plugins: 'Plugins',
+    templates: 'Templates', template: 'Template du projet', noTemplate: 'Projet vide', templateKey: 'Clé du template (minuscules)', templateName: 'Nom du template', templateDescription: 'Description', fromProject: 'Reprendre les trackers du projet', pickTrackers: 'Trackers à inclure', createTemplate: 'Créer le template', templateCreated: 'Template créé.', deleteTemplate: 'Supprimer', templateDeleted: 'Template supprimé.', builtin: 'Livré', trackersCount: 'Trackers', attributes: 'Attributs',
     projectKey: 'Clé du projet (2 à 10 majuscules)', projectName: 'Nom du projet', createProject: 'Créer le projet', projectCreated: (k: string) => `Projet ${k} créé.`,
     managers: 'Chefs de projet', assignManager: 'Nommer chef de projet', chooseUser: 'Choisir un compte', noManager: 'Aucun chef de projet', revoke: 'Retirer', managerSet: 'Chef de projet nommé.', managerRemoved: 'Chef de projet retiré.',
     username: 'Identifiant', displayName: 'Nom', email: 'Courriel', usersNote: 'Comptes ayant déjà ouvert une session dans Athena.',
@@ -72,7 +74,7 @@ const enDict: Dictionary = {
   loading: 'Loading…',
   language: 'Français',
   nav: { projects: 'Projects', search: 'Search', dashboard: 'Dashboard', admin: 'Administration', logout: 'Sign out', palette: 'Commands', work: 'My work', manage: 'Project management', organization: 'Organization' },
-  projects: { eyebrow: 'Mission console', title: 'Projects', empty: 'No project.', emptyEyebrow: 'No result', trackers: 'Trackers', boards: 'Boards' },
+  projects: { eyebrow: 'Mission console', title: 'Projects', empty: 'No project.', emptyEyebrow: 'No result', trackers: 'Trackers', boards: 'Boards', trackerName: 'Tracker', artifacts: 'Artifacts', attributes: 'Attributes', noTracker: 'No tracker.', noAttribute: 'No attribute.' },
   list: {
     eyebrow: 'Search', placeholder: 'ATQL query, for example status = open AND severity = major', run: 'Search',
     key: 'Key', title: 'Title', status: 'Status', tracker: 'Tracker', updated: 'Updated', total: (n: number) => `${n} result${n > 1 ? 's' : ''}`,
@@ -100,6 +102,7 @@ const enDict: Dictionary = {
     eyebrow: 'Configuration', title: 'Tracker configuration', fields: 'Fields', statuses: 'Statuses', transitions: 'Transitions',
     key: 'Key', label: 'Label', type: 'Type', required: 'Required', category: 'Category', name: 'Name', from: 'From', to: 'To', anyState: 'Any state', add: 'Add',
     historyMode: 'History writes', historyDirect: 'Direct (main branch)', historyMr: 'Through merge request (review)', readRoles: 'Read roles (comma separated)', writeRoles: 'Write roles (comma separated)', roles: 'Roles', everyone: 'Everyone', allowedRoles: 'Allowed roles (comma separated, empty: everyone)', remove: 'Delete', confirmPurge: (n: string, count = 0) => `Field ${n} holds values${count ? ` (${count} artifact${count > 1 ? 's' : ''})` : ''}. Permanently remove them from artifacts?`, removed: 'Field deleted.',
+    workflow: 'Workflow', workflowHelp: 'Click a source status, then a target status to create a transition. Dashed arrows start from “Any state”.', anyStateNode: 'Any state', pickTarget: (from: string) => `From: ${from}. Choose the target status.`, newTransition: (from: string, to: string) => `New transition ${from} → ${to}`, cancel: 'Cancel',
     added: 'Configuration saved.', schemaNote: 'Each change increments the schema version and is versioned in Git.', adminOnly: 'Administrators only.',
   },
   admin: {
@@ -111,6 +114,7 @@ const enDict: Dictionary = {
   work: { eyebrow: 'Work', title: 'My work', assigned: 'Assigned to me', available: 'To pick up', take: 'Take', taken: (k: string) => `${k} is now assigned to you.`, none: 'Nothing to process.', project: 'Project' },
   org: {
     eyebrow: 'Organization', title: 'Organization administration', projects: 'Projects', users: 'Users', plugins: 'Plugins',
+    templates: 'Templates', template: 'Project template', noTemplate: 'Empty project', templateKey: 'Template key (lowercase)', templateName: 'Template name', templateDescription: 'Description', fromProject: 'Reuse the trackers of project', pickTrackers: 'Trackers to include', createTemplate: 'Create template', templateCreated: 'Template created.', deleteTemplate: 'Delete', templateDeleted: 'Template deleted.', builtin: 'Built-in', trackersCount: 'Trackers', attributes: 'Attributes',
     projectKey: 'Project key (2 to 10 capitals)', projectName: 'Project name', createProject: 'Create project', projectCreated: (k: string) => `Project ${k} created.`,
     managers: 'Project managers', assignManager: 'Appoint project manager', chooseUser: 'Choose an account', noManager: 'No project manager', revoke: 'Remove', managerSet: 'Project manager appointed.', managerRemoved: 'Project manager removed.',
     username: 'Username', displayName: 'Name', email: 'Email', usersNote: 'Accounts that have already signed in to Athena.',
