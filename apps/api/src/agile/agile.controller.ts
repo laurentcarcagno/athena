@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { BodySchema } from '../openapi/body-schema';
 import { Roles, type AuthedRequest } from '../auth/auth.guard';
 import { OrgResolver, parseBody } from '../core/http';
+import { MemberService } from '../core/member.service';
 import { BoardService } from './board.service';
 import { ReportService } from './report.service';
 import { SprintService } from './sprint.service';
@@ -23,15 +24,21 @@ const ItemBody = z.object({ artifact: z.string().min(1) });
 const CreateReleaseBody = z.object({ name: z.string().min(1).max(100), startsOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), endsOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) });
 @Controller('v1/projects/:project')
 export class AgileController {
-  constructor(private readonly orgs: OrgResolver, private readonly boards: BoardService, private readonly sprints: SprintService, private readonly reports: ReportService) {}
+  constructor(private readonly orgs: OrgResolver, private readonly boards: BoardService, private readonly sprints: SprintService, private readonly reports: ReportService, private readonly members: MemberService) {}
 
   private ctx = (request: AuthedRequest) => this.orgs.resolve(request.principal!);
+  /** Gestion de projet : administrateur, ou chef de ce projet. */
+  private async manager(request: AuthedRequest, project: string) {
+    const context = await this.orgs.resolve(request.principal!);
+    await this.members.requireManager(context.organizationId, project, context.actor);
+    return context;
+  }
 
-  @Roles('athena-admin')
+  @Roles('athena-admin', 'athena-pm')
   @Post('boards')  @BodySchema(BoardBody)
 
   async createBoard(@Req() request: AuthedRequest, @Param('project') project: string, @Body() body: unknown) {
-    const { organizationId, actor } = await this.ctx(request);
+    const { organizationId, actor } = await this.manager(request, project);
     const input = parseBody(BoardBody, body);
     await this.boards.create(organizationId, project, { ...input, columns: input.columns.map((c) => ({ ...c, ...(c.wipLimit === undefined ? { wipLimit: undefined } : {}) })) }, actor);
     return { key: input.key };
@@ -60,11 +67,11 @@ export class AgileController {
     return this.boards.moveCard(organizationId, project, board, key, input.column, input.version, actor);
   }
 
-  @Roles('athena-admin')
+  @Roles('athena-admin', 'athena-pm')
   @Post('sprints')  @BodySchema(SprintBody)
 
   async createSprint(@Req() request: AuthedRequest, @Param('project') project: string, @Body() body: unknown) {
-    const { organizationId, actor } = await this.ctx(request);
+    const { organizationId, actor } = await this.manager(request, project);
     const input = parseBody(SprintBody, body);
     return { id: await this.sprints.create(organizationId, project, { name: input.name, startsOn: input.startsOn, endsOn: input.endsOn, ...(input.goal ? { goal: input.goal } : {}) }, actor) };
   }
@@ -78,20 +85,26 @@ export class AgileController {
     await this.sprints.addItem(organizationId, id, parseBody(ItemBody, body).artifact, project, actor);
   }
 
-  @Roles('athena-admin')
+  @Roles('athena-admin', 'athena-pm')
   @HttpCode(204)
   @Post('sprints/:id/start')
-  async start(@Req() request: AuthedRequest, @Param('id') id: string) {
-    const { organizationId, actor } = await this.ctx(request);
+  async start(@Req() request: AuthedRequest, @Param('project') project: string, @Param('id') id: string) {
+    const { organizationId, actor } = await this.manager(request, project);
     await this.sprints.start(organizationId, id, actor);
   }
 
-  @Roles('athena-admin')
+  @Roles('athena-admin', 'athena-pm')
   @HttpCode(200)
   @Post('sprints/:id/close')
-  async close(@Req() request: AuthedRequest, @Param('id') id: string) {
-    const { organizationId, actor } = await this.ctx(request);
+  async close(@Req() request: AuthedRequest, @Param('project') project: string, @Param('id') id: string) {
+    const { organizationId, actor } = await this.manager(request, project);
     return this.sprints.close(organizationId, id, actor);
+  }
+
+  @Roles('athena-user', 'athena-admin')
+  @Get('sprints')
+  async sprintList(@Req() request: AuthedRequest, @Param('project') project: string) {
+    return this.sprints.list((await this.ctx(request)).organizationId, project);
   }
 
   @Roles('athena-user', 'athena-admin')
@@ -119,11 +132,11 @@ export class AgileController {
     return this.reports.roadmap((await this.ctx(request)).organizationId, project);
   }
 
-  @Roles('athena-admin')
+  @Roles('athena-admin', 'athena-pm')
   @Post('releases')
   @BodySchema(CreateReleaseBody)
   async createRelease(@Req() request: AuthedRequest, @Param('project') project: string, @Body() body: unknown) {
-    const { organizationId, actor } = await this.ctx(request);
+    const { organizationId, actor } = await this.manager(request, project);
     const input = parseBody(CreateReleaseBody, body);
     return { id: await this.reports.createRelease(organizationId, project, input, actor) };
   }
@@ -137,11 +150,11 @@ export class AgileController {
     await this.reports.assign(organizationId, project, id, parseBody(ItemBody, body).artifact, actor);
   }
 
-  @Roles('athena-admin')
+  @Roles('athena-admin', 'athena-pm')
   @HttpCode(204)
   @Post('releases/:id/publish')
-  async publishRelease(@Req() request: AuthedRequest, @Param('id') id: string) {
-    const { organizationId, actor } = await this.ctx(request);
+  async publishRelease(@Req() request: AuthedRequest, @Param('project') project: string, @Param('id') id: string) {
+    const { organizationId, actor } = await this.manager(request, project);
     await this.reports.publish(organizationId, id, actor);
   }
 

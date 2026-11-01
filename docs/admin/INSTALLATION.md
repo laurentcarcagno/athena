@@ -36,7 +36,7 @@ Prérequis : deux secrets Kubernetes, alimentés par OpenBao (jamais dans le dé
 Le job de migration s'exécute avant chaque installation ou mise à jour (hook Helm).
 
 ## Keycloak
-Realm avec : client confidentiel `athena-web` (PKCE S256, URI de redirection `https://<hôte>/auth/callback`, URL de déconnexion back-channel `https://<hôte>/auth/backchannel-logout`), mappeurs d'audience `athena-api` et de groupes (`groups`, chemins complets), rôles `athena-user` et `athena-admin`. Chaque organisation est un groupe `/org-<clé>`. Activer la MFA (TOTP/WebAuthn) pour les administrateurs. Un exemple complet est dans `deploy/dev/keycloak/athena-realm.json` (**ne pas l'utiliser tel quel en production** : mots de passe de démonstration).
+Realm avec : client confidentiel `athena-web` (PKCE S256, URI de redirection `https://<hôte>/auth/callback`, URL de déconnexion back-channel `https://<hôte>/auth/backchannel-logout`), mappeurs d'audience `athena-api` et de groupes (`groups`, chemins complets), rôles `athena-user`, `athena-pm` (chef de projet) et `athena-admin`. Un chef de projet reçoit `athena-user` et `athena-pm`, puis est désigné chef de chaque projet par un administrateur (fenêtre **Organisation**). Chaque organisation est un groupe `/org-<clé>`. Activer la MFA (TOTP/WebAuthn) pour les administrateurs. Un exemple complet est dans `deploy/dev/keycloak/athena-realm.json` (**ne pas l'utiliser tel quel en production** : mots de passe de démonstration).
 
 ## OpenBao
 - KV v2 : `secret/athena/<organisation>/…` (secrets de webhooks, intégrations), `secret/athena/platform/session` (secret de session, généré au premier démarrage).

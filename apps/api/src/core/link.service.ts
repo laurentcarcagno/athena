@@ -15,6 +15,7 @@ export interface LinkView {
 export interface CommentView {
   id: string;
   author: string;
+  authorName: string;
   body: string;
   createdAt: string;
 }
@@ -106,15 +107,15 @@ export class LinkService {
       ).rows[0];
       await outbox(c, organizationId, 'artifact', artifact, 'comment.created', { key, actor: actor.id, commentId: row.id });
       await audit(c, organizationId, actor, 'comment.create', `artifact:${key}`);
-      return { id: row.id, author: actor.id, body, createdAt: row.created_at.toISOString() };
+      return { id: row.id, author: actor.id, authorName: actor.id, body, createdAt: row.created_at.toISOString() };
     });
   }
 
   async comments(organizationId: string, projectKey: string, key: string): Promise<CommentView[]> {
     return this.db.tx(organizationId, async (c) => {
       const artifact = await this.artifact(c, await this.project(c, projectKey), key);
-      const rows = (await c.query('select id, author, body, created_at from comment where artifact_id = $1 order by created_at, id', [artifact])).rows;
-      return rows.map((r) => ({ id: r.id, author: r.author, body: r.body, createdAt: r.created_at.toISOString() }));
+      const rows = (await c.query('select c.id, c.author, coalesce(u.display_name, c.author) as author_name, c.body, c.created_at from comment c left join user_account u on u.organization_id = c.organization_id and u.subject = c.author where c.artifact_id = $1 order by c.created_at, c.id', [artifact])).rows;
+      return rows.map((r) => ({ id: r.id, author: r.author, authorName: r.author_name, body: r.body, createdAt: r.created_at.toISOString() }));
     });
   }
 

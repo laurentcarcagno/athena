@@ -14,6 +14,7 @@ export interface Card {
   tracker: string;
   title: string;
   status: string;
+  statusName: string;
   assignee: string | null;
   version: number;
 }
@@ -77,7 +78,7 @@ export class BoardService {
       const board = await this.load(c, projectKey, boardKey);
       const rows = (
         await c.query(
-          `select a.key, a.version, a."values" as values, t.key as tracker, s.key as status,
+          `select a.key, a.version, a."values" as values, t.key as tracker, s.key as status, s.name as status_name,
                   (select f.key from field_definition f where f.tracker_id = t.id and f.semantic_role = 'title') as title_field,
                   (select f.read_roles from field_definition f where f.tracker_id = t.id and f.semantic_role = 'title') as title_roles,
                   (select f.key from field_definition f where f.tracker_id = t.id and f.semantic_role = 'assignee') as assignee_field,
@@ -96,7 +97,7 @@ export class BoardService {
         const index = (board.columns as ColumnSpec[]).findIndex((spec) => spec.statuses.includes(r.status));
         if (index < 0) { unmapped++; continue; }
         columns[index]!.cards.push({
-          key: r.key, tracker: r.tracker, status: r.status, version: r.version,
+          key: r.key, tracker: r.tracker, status: r.status, statusName: r.status_name, version: r.version,
           title: canRead(r.title_roles) ? String(r.values[r.title_field ?? 'title'] ?? r.key) : r.key,
           assignee: r.assignee_field && canRead(r.assignee_roles) && r.values[r.assignee_field] ? String(r.values[r.assignee_field]) : null,
         });

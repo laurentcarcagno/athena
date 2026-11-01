@@ -36,6 +36,11 @@ Dans un message de commit, une merge request ou un nom de branche, citez la clé
 - **Sprint** : planifié → actif → clos. À la clôture, ce qui n'est pas terminé retourne au backlog. Vélocité, burndown et prévision se calculent seuls.
 - **Tableau de bord** : indicateurs, flux des 7 derniers jours, vélocité, roadmap par release, activité récente.
 
+## Fenêtres selon le rôle
+- **Utilisateur** (`athena-user`) : **Mon travail** liste les artefacts qui vous sont assignés (hors terminés) et ceux à prendre (non assignés, à faire) ; **Prendre** vous assigne l'artefact.
+- **Chef de projet** (`athena-pm`) : **Gestion de projet** (`/p/<projet>/manage`) : acteurs du projet (chef ou membre, choisis parmi les comptes déjà connectés), sprints (créer, démarrer, clore), versions (créer, publier), boards (créer). Un chef de projet ne gère que les projets dont il est désigné **chef**.
+- **Administrateur** (`athena-admin`) : **Organisation** (`/org`) : créer les projets, nommer ou retirer leurs chefs de projet, consulter les comptes, installer, activer et désinstaller les plugins ; plus la configuration des trackers et l'**Administration** du projet.
+
 ## Administrateurs
 - **Configuration d'un tracker** : ajout de champs, de statuts et de transitions. Chaque modification incrémente la version du schéma et est versionnée dans Git (`tracker.yaml`). Pas de suppression ni de changement de type en v1.
 - **Administration** : webhooks sortants (le secret n'est affiché qu'une fois), automatisations, plugins, baselines.

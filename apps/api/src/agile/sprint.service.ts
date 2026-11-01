@@ -26,6 +26,14 @@ const day = (d: Date) => d.toISOString().slice(0, 10);
 export class SprintService {
   constructor(private readonly db: Db) {}
 
+  async list(organizationId: string, projectKey: string): Promise<Array<{ id: string; name: string; goal: string; state: string; startsOn: string | null; endsOn: string | null }>> {
+    return this.db.tx(organizationId, async (c) => {
+      const project = await this.project(c, projectKey);
+      return (await c.query(`select id, name, goal, state, to_char(starts_on, 'YYYY-MM-DD') as starts_on, to_char(ends_on, 'YYYY-MM-DD') as ends_on from sprint where project_id = $1 order by created_at desc`, [project])).rows
+        .map((r) => ({ id: r.id, name: r.name, goal: r.goal, state: r.state, startsOn: r.starts_on, endsOn: r.ends_on }));
+    });
+  }
+
   async create(
     organizationId: string, projectKey: string, input: { name: string; goal?: string; startsOn: string; endsOn: string }, actor: Actor,
   ): Promise<string> {

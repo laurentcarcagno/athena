@@ -59,6 +59,28 @@ async function prepare() {
   await pool.end();
 }
 
+/** Garantit le rôle athena-pm et le compte pm.dev sur un Keycloak déjà initialisé (l'import du royaume n'a lieu qu'une fois). */
+async function ensureKeycloak() {
+  const base = 'http://localhost:8080';
+  const form = new URLSearchParams({ grant_type: 'password', client_id: 'admin-cli', username: get('KEYCLOAK_ADMIN'), password: get('KEYCLOAK_ADMIN_PASSWORD') });
+  const token = (await (await fetch(`${base}/realms/master/protocol/openid-connect/token`, { method: 'POST', body: form })).json()).access_token;
+  if (!token) { console.log('Keycloak : jeton administrateur indisponible, rôle athena-pm non vérifié'); return; }
+  const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
+  const api = (path, init = {}) => fetch(`${base}/admin/realms/athena${path}`, { headers, ...init });
+  if ((await api('/roles/athena-pm')).status === 404) await api('/roles', { method: 'POST', body: JSON.stringify({ name: 'athena-pm', description: 'Chef de projet' }) });
+  let users = await (await api('/users?username=pm.dev&exact=true')).json();
+  if (users.length === 0) {
+    await api('/users', { method: 'POST', body: JSON.stringify({ username: 'pm.dev', enabled: true, email: 'pm.dev@example.test', emailVerified: true, firstName: 'Chef', lastName: 'Projet', credentials: [{ type: 'password', value: 'dev-only-pm', temporary: false }] }) });
+    users = await (await api('/users?username=pm.dev&exact=true')).json();
+  }
+  const id = users[0].id;
+  const roles = await Promise.all(['athena-pm', 'athena-user'].map(async (n) => (await api(`/roles/${n}`)).json()));
+  await api(`/users/${id}/role-mappings/realm`, { method: 'POST', body: JSON.stringify(roles) });
+  const group = (await (await api('/groups?search=org-demo')).json())[0];
+  if (group) await api(`/users/${id}/groups/${group.id}`, { method: 'PUT' });
+}
+
+await ensureKeycloak().catch((e) => console.log(`Keycloak : ${e.message}`));
 await prepare();
 
 const apiEnv = {
@@ -86,7 +108,7 @@ const procs = [
   child.on('exit', (code) => console.log(`[${name}] arrêté (${code})`));
   return child;
 });
-console.log('Athena démarre : http://localhost:3000  (utilisateurs : user.dev / dev-only-user ; admin.dev / dev-only-admin, TOTP à configurer)');
+console.log('Athena démarre : http://localhost:3000  (utilisateurs : user.dev / dev-only-user ; admin.dev / dev-only-admin, TOTP à configurer ; pm.dev / dev-only-pm)');
 const stop = () => { procs.forEach((p) => p.kill()); process.exit(0); };
 process.on('SIGINT', stop);
 process.on('SIGTERM', stop);

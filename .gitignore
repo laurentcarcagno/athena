@@ -16,3 +16,6 @@ e2e/playwright-report/
 storybook-static/
 dist-cli/
 dev-start.log
+.turbo/
+user-manual-work/
+*.docx

@@ -9,6 +9,9 @@ import { ArtifactPage } from './pages/ArtifactPage';
 import { BoardPage } from './pages/BoardPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { ListPage } from './pages/ListPage';
+import { MyWorkPage } from './pages/MyWorkPage';
+import { OrgAdminPage } from './pages/OrgAdminPage';
+import { ProjectManagePage } from './pages/ProjectManagePage';
 import { ProjectsPage } from './pages/ProjectsPage';
 import { TrackerConfigPage } from './pages/TrackerConfigPage';
 
@@ -20,11 +23,15 @@ function Shell({ session, children }: { session: Session; children: ReactNode })
   const location = useLocation();
   const project = projectOf(location.pathname);
   const admin = session.user?.roles.includes('athena-admin') ?? false;
+  const manager = admin || (session.user?.roles.includes('athena-pm') ?? false);
   const items = [
     { id: '/', label: fr.nav.projects },
+    { id: '/me', label: fr.nav.work },
+    ...(admin ? [{ id: '/org', label: fr.nav.organization }] : []),
     ...(project ? [
       { id: `/p/${project}`, label: fr.nav.search },
       { id: `/p/${project}/dashboard`, label: fr.nav.dashboard },
+      ...(manager ? [{ id: `/p/${project}/manage`, label: fr.nav.manage }] : []),
       ...(admin ? [{ id: `/p/${project}/admin`, label: fr.nav.admin }] : []),
     ] : []),
   ];
@@ -34,7 +41,7 @@ function Shell({ session, children }: { session: Session; children: ReactNode })
   const other = getLocale() === 'fr' ? 'en' : 'fr';
   return (
     <div className="ath-page">
-      <Sidebar items={items} current={current} onNavigate={(id) => navigate(id)} user={{ name: session.user!.name, role: admin ? 'Admin' : 'Utilisateur' }} />
+      <Sidebar items={items} current={current} onNavigate={(id) => navigate(id)} user={{ name: session.user!.name, role: admin ? 'Admin' : manager ? 'Chef de projet' : 'Utilisateur' }} />
       <main className="ath-page__main">
         <div className="ath-row">
           <Btn variant="ghost" size="sm" onClick={() => setLocale(other)} aria-label={`${fr.language}`}>{fr.language}</Btn>
@@ -62,7 +69,10 @@ export function AuthenticatedApp({ session }: { session: Session }) {
     <Shell session={session}>
       <Routes>
         <Route path="/" element={<ProjectsPage />} />
+        <Route path="/me" element={<MyWorkPage session={session} />} />
+        <Route path="/org" element={<OrgAdminPage session={session} />} />
         <Route path="/p/:project" element={<ListPage session={session} />} />
+        <Route path="/p/:project/manage" element={<ProjectManagePage session={session} />} />
         <Route path="/p/:project/dashboard" element={<DashboardPage />} />
         <Route path="/p/:project/admin" element={<AdminPage />} />
         <Route path="/p/:project/a/:key" element={<ArtifactPage session={session} />} />

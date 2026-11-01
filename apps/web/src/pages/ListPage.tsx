@@ -143,7 +143,7 @@ export function ListPage({ session }: { session?: Session } = {}) {
                 <tr key={hit.key}>
                   <Td><Link className="ath-link ath-mono" to={`/p/${project}/a/${hit.key}`}>{hit.key}</Link></Td>
                   <Td>{title(hit)}</Td>
-                  <Td><StatusPill kind={pillKind(hit.category)}>{hit.status}</StatusPill></Td>
+                  <Td><StatusPill kind={pillKind(hit.category)}>{hit.statusName ?? hit.status}</StatusPill></Td>
                   <Td mono>{hit.tracker}</Td>
                   <Td mono mute>{hit.updatedAt.slice(0, 16).replace('T', ' ')}</Td>
                 </tr>
@@ -156,7 +156,7 @@ export function ListPage({ session }: { session?: Session } = {}) {
             <Btn variant="ghost" size="sm" disabled={offset + PAGE >= result.total && !result.totalCapped} onClick={() => setParams({ ...(query ? { q: query } : {}), o: String(offset + PAGE) })}>{fr.list.next}</Btn>
           </div>
         </>
-      ) : <p role="status">{fr.loading}</p>}
+      ) : error ? null : <p role="status">{fr.loading}</p>}
     </>
   );
 }

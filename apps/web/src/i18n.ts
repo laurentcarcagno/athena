@@ -7,7 +7,7 @@ import { useSyncExternalStore } from 'react';
 const frDict = {
   loading: 'Chargement…',
   language: 'English',
-  nav: { projects: 'Projets', search: 'Recherche', dashboard: 'Tableau de bord', admin: 'Administration', logout: 'Déconnexion', palette: 'Commandes' },
+  nav: { projects: 'Projets', search: 'Recherche', dashboard: 'Tableau de bord', admin: 'Administration', logout: 'Déconnexion', palette: 'Commandes', work: 'Mon travail', manage: 'Gestion de projet', organization: 'Organisation' },
   projects: { eyebrow: 'Mission console', title: 'Projets', empty: 'Aucun projet.', emptyEyebrow: 'Aucun résultat', trackers: 'Trackers', boards: 'Boards' },
   list: {
     eyebrow: 'Recherche', placeholder: 'Requête ATQL, par exemple status = open AND severity = majeure', run: 'Rechercher',
@@ -44,6 +44,21 @@ const frDict = {
     enable: 'Activer', disable: 'Désactiver', active: 'Actif', inactive: 'Inactif', baselineName: 'Nom de la baseline', createdBaseline: (n: string) => `Baseline ${n} créée.`,
     createdWebhook: 'Webhook créé.', toggled: 'État modifié.', trigger: 'Déclencheur',
   },
+  work: { eyebrow: 'Traitement', title: 'Mon travail', assigned: 'Assignés à moi', available: 'À prendre', take: 'Prendre', taken: (k: string) => `${k} vous est assigné.`, none: 'Rien à traiter.', project: 'Projet' },
+  org: {
+    eyebrow: 'Organisation', title: 'Administration de l’organisation', projects: 'Projets', users: 'Utilisateurs', plugins: 'Plugins',
+    projectKey: 'Clé du projet (2 à 10 majuscules)', projectName: 'Nom du projet', createProject: 'Créer le projet', projectCreated: (k: string) => `Projet ${k} créé.`,
+    managers: 'Chefs de projet', assignManager: 'Nommer chef de projet', chooseUser: 'Choisir un compte', noManager: 'Aucun chef de projet', revoke: 'Retirer', managerSet: 'Chef de projet nommé.', managerRemoved: 'Chef de projet retiré.',
+    username: 'Identifiant', displayName: 'Nom', email: 'Courriel', usersNote: 'Comptes ayant déjà ouvert une session dans Athena.',
+    install: 'Installer un plugin', packageJson: 'Paquet signé (JSON : manifest, code, signature)', grants: 'Permissions accordées', installAction: 'Installer', installed: 'Plugin installé.', uninstall: 'Désinstaller', uninstalled: 'Plugin désinstallé.', badPackage: 'Le paquet n’est pas un JSON valide.',
+  },
+  manage: {
+    eyebrow: 'Gestion de projet', title: 'Gestion du projet', actors: 'Acteurs', sprints: 'Sprints', releases: 'Versions', boards: 'Boards',
+    addActor: 'Ajouter l’acteur', role: 'Rôle', manager: 'Chef de projet', member: 'Membre', removeActor: 'Retirer', actorSet: 'Acteur enregistré.', actorRemoved: 'Acteur retiré.', restricted: 'Réservé aux chefs de projet et aux administrateurs.',
+    sprintName: 'Nom du sprint', goal: 'Objectif', starts: 'Début', ends: 'Fin', createSprint: 'Créer le sprint', start: 'Démarrer', close: 'Clore', state: 'État', saved: 'Enregistré.',
+    releaseName: 'Nom de la version', createRelease: 'Créer la version', publish: 'Publier',
+    boardKey: 'Clé du board (minuscules)', boardName: 'Nom du board', boardTracker: 'Tracker', boardColumns: 'Colonnes (une par ligne : nom=statut1,statut2|limite WIP)', createBoard: 'Créer le board',
+  },
   palette: { title: 'Commandes', placeholder: 'Aller à… ou rechercher un artefact', none: 'Aucun résultat.', projects: 'Projets', artifacts: 'Artefacts', goto: 'Aller à' },
   errors: {
     generic: 'Une erreur est survenue. Réessayez.', notFoundTitle: 'Page introuvable', notFoundEyebrow: 'Erreur 404', notFound: 'Cette adresse ne correspond à aucune page.',
@@ -56,7 +71,7 @@ export type Dictionary = typeof frDict;
 const enDict: Dictionary = {
   loading: 'Loading…',
   language: 'Français',
-  nav: { projects: 'Projects', search: 'Search', dashboard: 'Dashboard', admin: 'Administration', logout: 'Sign out', palette: 'Commands' },
+  nav: { projects: 'Projects', search: 'Search', dashboard: 'Dashboard', admin: 'Administration', logout: 'Sign out', palette: 'Commands', work: 'My work', manage: 'Project management', organization: 'Organization' },
   projects: { eyebrow: 'Mission console', title: 'Projects', empty: 'No project.', emptyEyebrow: 'No result', trackers: 'Trackers', boards: 'Boards' },
   list: {
     eyebrow: 'Search', placeholder: 'ATQL query, for example status = open AND severity = major', run: 'Search',
@@ -92,6 +107,21 @@ const enDict: Dictionary = {
     url: 'HTTPS URL', events: 'Events (comma separated)', create: 'Create', secret: 'Signing secret (shown once)', empty: 'Nothing here.',
     enable: 'Enable', disable: 'Disable', active: 'Active', inactive: 'Inactive', baselineName: 'Baseline name', createdBaseline: (n: string) => `Baseline ${n} created.`,
     createdWebhook: 'Webhook created.', toggled: 'State changed.', trigger: 'Trigger',
+  },
+  work: { eyebrow: 'Work', title: 'My work', assigned: 'Assigned to me', available: 'To pick up', take: 'Take', taken: (k: string) => `${k} is now assigned to you.`, none: 'Nothing to process.', project: 'Project' },
+  org: {
+    eyebrow: 'Organization', title: 'Organization administration', projects: 'Projects', users: 'Users', plugins: 'Plugins',
+    projectKey: 'Project key (2 to 10 capitals)', projectName: 'Project name', createProject: 'Create project', projectCreated: (k: string) => `Project ${k} created.`,
+    managers: 'Project managers', assignManager: 'Appoint project manager', chooseUser: 'Choose an account', noManager: 'No project manager', revoke: 'Remove', managerSet: 'Project manager appointed.', managerRemoved: 'Project manager removed.',
+    username: 'Username', displayName: 'Name', email: 'Email', usersNote: 'Accounts that have already signed in to Athena.',
+    install: 'Install a plugin', packageJson: 'Signed package (JSON: manifest, code, signature)', grants: 'Granted permissions', installAction: 'Install', installed: 'Plugin installed.', uninstall: 'Uninstall', uninstalled: 'Plugin uninstalled.', badPackage: 'The package is not valid JSON.',
+  },
+  manage: {
+    eyebrow: 'Project management', title: 'Project management', actors: 'Actors', sprints: 'Sprints', releases: 'Releases', boards: 'Boards',
+    addActor: 'Add actor', role: 'Role', manager: 'Project manager', member: 'Member', removeActor: 'Remove', actorSet: 'Actor saved.', actorRemoved: 'Actor removed.', restricted: 'Restricted to project managers and administrators.',
+    sprintName: 'Sprint name', goal: 'Goal', starts: 'Start', ends: 'End', createSprint: 'Create sprint', start: 'Start', close: 'Close', state: 'State', saved: 'Saved.',
+    releaseName: 'Release name', createRelease: 'Create release', publish: 'Publish',
+    boardKey: 'Board key (lowercase)', boardName: 'Board name', boardTracker: 'Tracker', boardColumns: 'Columns (one per line: name=status1,status2|WIP limit)', createBoard: 'Create board',
   },
   palette: { title: 'Commands', placeholder: 'Go to… or search for an artifact', none: 'No result.', projects: 'Projects', artifacts: 'Artifacts', goto: 'Go to' },
   errors: {

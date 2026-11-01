@@ -186,3 +186,6 @@
 .ath-palette { list-style: none; margin: 0; padding: 0; max-height: 320px; overflow-y: auto; border: 1px solid var(--ath-color-console-border); }
 .ath-palette__item { display: flex; gap: 10px; padding: 8px 12px; cursor: pointer; border-bottom: 1px solid var(--ath-color-console-border); }
 .ath-palette__item--active { background: var(--ath-color-selection-veil); }
+
+/* Un formulaire placé en tête d'un panneau d'onglets ne doit pas toucher le filet des onglets. */
+[role="tabpanel"] > .ath-stack > .ath-toolbar:first-child { margin-top: 12px; }

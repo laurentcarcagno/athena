@@ -85,3 +85,25 @@ test('administrateur : ajoute un champ avec rôles puis le supprime dans l’éd
   await expect(fields.getByRole('row', { name: /cout/ })).toHaveCount(0);
   expect(await axeViolations(page)).toEqual([]);
 });
+
+test('utilisateur : « Mon travail » liste les artefacts à prendre, sans accès à l’organisation', async ({ page }) => {
+  await login(page, 'user.dev', 'dev-only-user');
+  await page.goto('/me');
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Mon travail');
+  await expect(page.getByRole('button', { name: 'Organisation' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Gestion de projet' })).toHaveCount(0);
+  expect(await axeViolations(page)).toEqual([]);
+});
+
+test('administrateur : crée un projet, nomme un chef de projet et gère les acteurs', async ({ page }) => {
+  await login(page, 'admin.dev', 'dev-only-admin');
+  await page.goto('/org');
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Administration de l’organisation');
+  await page.getByLabel('Clé du projet (2 à 10 majuscules)').fill('PAY');
+  await page.getByLabel('Nom du projet').fill('Paiement');
+  await page.getByRole('button', { name: 'Créer le projet' }).click();
+  await expect(page.getByText('Projet PAY créé.')).toBeVisible();
+  await page.goto('/p/PAY/manage');
+  await expect(page.getByRole('tab', { name: 'Acteurs' })).toBeVisible();
+  expect(await axeViolations(page)).toEqual([]);
+});

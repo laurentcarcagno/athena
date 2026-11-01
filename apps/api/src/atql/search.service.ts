@@ -7,6 +7,7 @@ export interface SearchHit {
   key: string;
   tracker: string;
   status: string;
+  statusName: string;
   category: string;
   values: Record<string, unknown>;
   version: number;
@@ -72,7 +73,7 @@ export class SearchService {
       const total = totalCapped ? COUNT_CAP : counted;
       const rows = (
         await c.query(
-          `select a.key, t.key as tracker, s.key as status, s.category, a."values" as values, a.version, a.updated_at
+          `select a.key, t.key as tracker, s.key as status, s.name as status_name, s.category, a."values" as values, a.version, a.updated_at
            ${from} order by ${compiled.orderBy} limit ${limit} offset ${offset}`,
           compiled.params,
         )
@@ -81,7 +82,7 @@ export class SearchService {
         total,
         totalCapped,
         hits: rows.map((r) => ({
-          key: r.key, tracker: r.tracker, status: r.status, category: r.category,
+          key: r.key, tracker: r.tracker, status: r.status, statusName: r.status_name, category: r.category,
           values: restricted.has(r.tracker) ? Object.fromEntries(Object.entries(r.values as Record<string, unknown>).filter(([k]) => !restricted.get(r.tracker)!.has(k))) : r.values,
           version: r.version, updatedAt: r.updated_at.toISOString(),
         })),

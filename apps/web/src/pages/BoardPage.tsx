@@ -54,7 +54,7 @@ export function BoardPage() {
                   <Link className="ath-link" to={`/p/${project}/a/${card.key}`}><Id>{card.key}</Id></Link>
                   <p className="ath-ticket__title">{card.title}</p>
                   <div className="ath-row">
-                    <StatusPill>{card.status}</StatusPill>
+                    <StatusPill>{card.statusName ?? card.status}</StatusPill>
                     {card.assignee && <span className="ath-mono">{card.assignee}</span>}
                   </div>
                   <label className="ath-field__label" htmlFor={`mv-${card.key}`}>{fr.board.moveTo}</label>

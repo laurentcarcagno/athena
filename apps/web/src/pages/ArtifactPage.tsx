@@ -7,7 +7,7 @@ import { fr } from '../i18n';
 import { pillKind } from './ListPage';
 
 interface LinkView { id: string; type: string; direction: string; label: string; other: string; suspect: boolean }
-interface Comment { id: string; author: string; body: string; createdAt: string }
+interface Comment { id: string; author: string; authorName: string; body: string; createdAt: string }
 interface CodeRef { kind: string; ref: string; title: string; state: string; pipeline: string }
 interface DocLink { uid: string; title: string; status: string; suspect: boolean; orphan: boolean }
 
@@ -237,7 +237,7 @@ export function ArtifactPage({ session }: { session: Session }) {
             <div className="ath-stack">
               {comments.length === 0 && <p>{fr.artifact.noComments}</p>}
               {comments.map((c) => (
-                <div key={c.id}><span className="ath-eyebrow">{c.author} · <span className="ath-mono">{c.createdAt.slice(0, 16).replace('T', ' ')}</span></span><p>{c.body}</p></div>
+                <div key={c.id}><span className="ath-eyebrow">{c.authorName ?? c.author} · <span className="ath-mono">{c.createdAt.slice(0, 16).replace('T', ' ')}</span></span><p>{c.body}</p></div>
               ))}
               <form className="ath-stack" onSubmit={addComment}>
                 <label className="ath-field__label" htmlFor="comment">{fr.artifact.comment}</label>

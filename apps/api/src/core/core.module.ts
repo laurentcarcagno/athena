@@ -38,13 +38,15 @@ import { S3Client } from '../storage/s3';
 import { SavedFilterController } from '../atql/saved-filter.controller';
 import { SavedFilterService } from '../atql/saved-filter.service';
 import { LinkService } from './link.service';
+import { MemberController } from './member.controller';
+import { MemberService } from './member.service';
 import { DomainErrorFilter, OrgResolver } from './http';
 import { TrackerService } from './tracker.service';
 
 export { PG_POOL } from './core.tokens';
 
 @Module({
-  controllers: [CoreController, AttachmentController, SavedFilterController, IntegrationsController, AgileController],
+  controllers: [CoreController, AttachmentController, SavedFilterController, IntegrationsController, AgileController, MemberController],
   providers: [
     { provide: PG_POOL, useFactory: () => new Pool({ connectionString: loadConfig().DATABASE_URL, max: 10 }) },
     { provide: FieldTypeRegistry, useValue: new FieldTypeRegistry() },
@@ -90,6 +92,7 @@ export { PG_POOL } from './core.tokens';
     { provide: GitCodeService, useFactory: (db: Db, a: ArtifactService) => new GitCodeService(db, a), inject: [Db, ArtifactService] },
     { provide: BoardService, useFactory: (db: Db, t: TrackerService, a: ArtifactService) => new BoardService(db, t, a), inject: [Db, TrackerService, ArtifactService] },
     { provide: ReportService, useFactory: (db: Db) => new ReportService(db), inject: [Db] },
+    { provide: MemberService, useFactory: (db: Db) => new MemberService(db), inject: [Db] },
     { provide: SprintService, useFactory: (db: Db) => new SprintService(db), inject: [Db] },
     {
       provide: BASELINES,

@@ -30,7 +30,7 @@ export async function loadSession(): Promise<Session> {
 }
 
 /** Appel JSON authentifié par le cookie de session. Les écritures portent le jeton CSRF. */
-export async function api<T>(method: 'GET' | 'POST' | 'PATCH' | 'DELETE', path: string, body?: unknown): Promise<T> {
+export async function api<T>(method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE', path: string, body?: unknown): Promise<T> {
   const headers: Record<string, string> = { Accept: 'application/json' };
   if (body !== undefined) headers['Content-Type'] = 'application/json';
   if (method !== 'GET' && csrf) headers['X-CSRF-Token'] = csrf;
@@ -62,7 +62,7 @@ export async function logout(): Promise<string> {
 export const loginUrl = (returnTo: string) => `/auth/login?returnTo=${encodeURIComponent(returnTo)}`;
 
 // --- Types de l'API ---
-export interface Hit { key: string; tracker: string; status: string; category: string; values: Record<string, unknown>; version: number; updatedAt: string }
+export interface Hit { key: string; tracker: string; status: string; statusName: string; category: string; values: Record<string, unknown>; version: number; updatedAt: string }
 export interface SearchResult { total: number; totalCapped?: boolean; hits: Hit[] }
 export interface Field { id: string; key: string; label: string; type: string; config: Record<string, unknown>; required: boolean; semanticRole: string | null; readRoles?: string[] | null; writeRoles?: string[] | null }
 export interface TrackerDefinition {
@@ -77,5 +77,5 @@ export interface SavedFilter { id: string; name: string; query: string; owner: s
 export interface Revision { version: number; diff: Record<string, { from: unknown; to: unknown }>; gitSha: string | null; at: string; actor: string }
 export interface BoardView {
   key: string; name: string; unmapped: number;
-  columns: Array<{ name: string; wipLimit: number | null; count: number; overLimit: boolean; cards: Array<{ key: string; tracker: string; title: string; status: string; assignee: string | null; version: number }> }>;
+  columns: Array<{ name: string; wipLimit: number | null; count: number; overLimit: boolean; cards: Array<{ key: string; tracker: string; title: string; status: string; statusName: string; assignee: string | null; version: number }> }>;
 }

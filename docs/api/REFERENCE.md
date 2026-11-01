@@ -25,6 +25,9 @@ Authentification : cookie de session (application web, écritures avec en-tête 
 ## Pilotage
 `boards`, `boards/:b`, `boards/:b/cards/:key/move`, `sprints` (+ `/items`, `/start`, `/close`, `/burndown`), `velocity`, `flow?days=`, `roadmap`, `releases`, `dashboard?by=<champ>` (tous sous `/v1/projects/:p/`).
 
+## Acteurs de projet
+`GET /v1/users` (admin, chef de projet : comptes connus), `GET /v1/projects/:p/members`, `PUT /v1/projects/:p/members/:subject` (`{role: manager|member}`) et `DELETE` (administrateur, ou chef désigné du projet). Les écritures de gestion de projet (`boards`, `sprints`, `releases`, `start`, `close`, `publish`) exigent le même droit. `GET /v1/projects/:p/sprints` liste les sprints.
+
 ## Intégrations (admin)
 - Webhooks sortants : `GET/POST /v1/webhooks`, `GET /v1/webhooks/:id/deliveries`, `POST /v1/webhooks/deliveries/:id/replay`. Enveloppe `{id, type, version, occurredAt, organization, data}`, en-tête `Athena-Signature: t=<s>,v1=<hmac-sha256 de "t.corps">` ; tolérance 5 min.
 - Webhooks entrants génériques : `POST /v1/projects/:p/inbound-sources` puis `POST /hooks/in/source/:org/:p/:nom` (signature HMAC sur le corps brut, `Idempotency-Key`).
