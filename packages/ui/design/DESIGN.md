@@ -352,7 +352,7 @@ Une seule famille fait tout, ce qui garde le système sobre : IBM Plex Sans, une
 | `{typography.eyebrow}` | Plex Sans 700, 11 px, `0.18em`, MAJUSCULES | Ligne au-dessus du titre de page (« Mission Console »). `{colors.mute-ink}`. |
 | `{typography.mono}` | Plex Mono 500, `0.02em`, chiffres tabulaires | Identifiants, références, codes, horodatages. |
 
-Échelle des tailles de police : `{fontSizes.2xs}` 10 px, `{fontSizes.xs}` 11 px, `{fontSizes.sm}` 12 px, `{fontSizes.md}` 13 px, `{fontSizes.lg}` 15 px, `{fontSizes.xl}` 18 px, `{fontSizes.2xl}` 26 px, `{fontSizes.3xl}` 32 px, `{fontSizes.stat}` 30 px (valeur de stat card). `{fontSizes.micro}` (9,5 px, en-têtes de tableau) est **déprécié** : viser `{fontSizes.xs}`.
+Échelle des tailles de police : `{fontSizes.2xs}` 10 px (historique, plus utilisé par les composants), `{fontSizes.xs}` 11 px, `{fontSizes.sm}` 12 px, `{fontSizes.md}` 13 px, `{fontSizes.lg}` 15 px, `{fontSizes.xl}` 18 px, `{fontSizes.2xl}` 26 px, `{fontSizes.3xl}` 32 px, `{fontSizes.stat}` 30 px (valeur de stat card). `{fontSizes.micro}` (9,5 px, en-têtes de tableau) est **déprécié** : viser `{fontSizes.xs}`.
 
 **Règles nommées**
 
@@ -425,7 +425,7 @@ Tous les composants sont rectangulaires, bordés de 1 px, sans ombre, et lisent 
 ### 3.2 Pastille de statut (`StatusPill`)
 
 - **Usage.** Exprimer un état (succès, avertissement, danger, info, neutre) dans une liste, un tableau, un en-tête.
-- **Anatomie.** Rectangle de `padding: 2px 8px`, bordure 1 px de la couleur de signal, point **carré** de 7 px en `currentColor`, libellé en capitales 10 px (`{fontSizes.2xs}`, `{letterSpacings.pill}`).
+- **Anatomie.** Rectangle de `padding: 2px 8px`, bordure 1 px de la couleur de signal, point **carré** de 7 px en `currentColor`, libellé en capitales 11 px (`{fontSizes.xs}`, `{letterSpacings.pill}`).
 - **Variantes.** `success`, `warning`, `danger`, `info`, `default` (neutre : aucune des quatre ne convient ; jamais un repli « on a oublié de traiter la valeur »). On n'invente pas d'autre type. Le texte utilise `{semantic.state.success.fg}` et ses équivalents, qui atteignent 4,5:1.
 - **États.** Non interactive : pas de survol.
 - **À faire.** Un libellé lisible (« En revue », « Bloqué »). Le même libellé que dans le texte de la page.
@@ -434,7 +434,7 @@ Tous les composants sont rectangulaires, bordés de 1 px, sans ombre, et lisent 
 ### 3.3 Tag
 
 - **Usage.** Catégoriser (type, famille, étiquette).
-- **Anatomie.** 18 px de haut (`{sizes.tag-height}`), `padding: 0 6px`, bordure 1 px, capitales 10 px (`{letterSpacings.tag}`).
+- **Anatomie.** 18 px de haut (`{sizes.tag-height}`), `padding: 0 6px`, bordure 1 px, capitales 11 px (`{letterSpacings.tag}`).
 - **Variantes.** `default` (fond `{semantic.surface.hover}`, texte `{semantic.text.heading}`), `solid` (fond `{semantic.surface.inverse}`), `accent` (fond `{semantic.action.primary.bg}` : filtre actif), `ghost` (transparent, texte `{semantic.text.secondary}`).
 - **À faire.** Garder un tag court (un mot). **À ne pas faire.** Un tag cliquable sans nom accessible ; il n'est pas une cible de 24 px : s'il devient interactif, il doit atteindre `{sizes.touch-target-min}`.
 
@@ -447,7 +447,7 @@ Tous les composants sont rectangulaires, bordés de 1 px, sans ombre, et lisent 
 ### 3.5 Champ de recherche (`SearchInput`)
 
 - **Usage.** Rechercher dans une liste ou naviguer.
-- **Anatomie.** Fond `{semantic.surface.hover}`, icône de loupe 13 px, champ, indice du raccourci (`⌘K` ou `Ctrl+K`, mono 10 px). Le raccourci de recherche est toujours visible dans le cadre.
+- **Anatomie.** Fond `{semantic.surface.hover}`, icône de loupe 13 px, champ, indice du raccourci (`⌘K` ou `Ctrl+K`, mono 11 px). Le raccourci de recherche est toujours visible dans le cadre.
 - **États.** Focus : bordure `{semantic.border.focus}`. Le texte d'aide et le placeholder utilisent `{semantic.text.mute-aa}`.
 - **À ne pas faire.** Supprimer l'étiquette accessible parce qu'une loupe est visible.
 
@@ -469,7 +469,7 @@ Tous les composants sont rectangulaires, bordés de 1 px, sans ombre, et lisent 
 ### 3.8 Stat card (`StatCard`) : signature
 
 - **Usage.** Présenter une métrique de tableau de bord.
-- **Anatomie.** `padding: 18px 20px`, liseré supérieur de 3 px `{semantic.border.focus}`, label de 10 px, valeur de 30 px (`{fontSizes.stat}`, tabulaire), delta en mono 11 px, icône dans un carré de 1 px de 40 px.
+- **Anatomie.** `padding: 18px 20px`, liseré supérieur de 3 px `{semantic.border.focus}`, label de 11 px, valeur de 30 px (`{fontSizes.stat}`, tabulaire), delta en mono 11 px, icône dans un carré de 1 px de 40 px.
 - **À ne pas faire.** Répéter la carte à l'identique quatre fois ; la valeur doit appeler une décision.
 
 ### 3.9 Tableau et en-tête triable
@@ -490,12 +490,13 @@ Tous les composants sont rectangulaires, bordés de 1 px, sans ombre, et lisent 
 - **Usage.** Une décision ou une saisie qui doit bloquer le reste de l'écran. Pas pour afficher une simple information.
 - **Anatomie.** Fond `{semantic.surface.scrim}` (sans flou), dialogue `{semantic.surface.default}` bordé de `{semantic.border.strong}`, largeurs 480 / 640 / 880 px, en-tête `{semantic.surface.inverse}` avec titre H3 et fermeture carrée de 24 px, corps de 18 px, pied avec filet. Empilement `{zIndex.overlay}`.
 - **Comportement.** `role="dialog"`, `aria-modal="true"`, `aria-labelledby`. `Échap`, clic sur le fond et la croix ferment. Piège à focus : le focus entre sur le premier contrôle et revient au déclencheur à la fermeture.
+- **Confirmation destructive** (`{component.confirm-dialog}`, proposé) : titre nommant l'objet, corps disant la conséquence, annulation (fantôme) puis confirmation en `{component.button.danger}` ; le navigateur (`window.confirm`) n'est jamais utilisé.
 - **À faire.** Pied : annulation (fantôme) puis confirmation (primaire) à droite ; action destructrice avec le bouton danger. **À ne pas faire.** Une modale dans une modale ; une modale qui s'ouvre seule sans action de l'utilisateur.
 
 ### 3.12 Toast
 
 - **Usage.** Confirmer une action asynchrone ou signaler un événement qui n'exige pas de décision.
-- **Anatomie.** Haut à droite, à 16 px du bord, 8 px entre toasts, `{sizes.toast-min}` à `{sizes.toast-max}` de large. Icône de 18 px, message, croix de 14 px. Fond et bordure de l'état (`{semantic.state.success.bg}`, etc.). Disparition après `{durations.toast}`, en pause au survol, fondu de 120 ms. Zone `aria-live="polite"` (`role="alert"` pour les erreurs).
+- **Anatomie.** Haut à droite, à 16 px du bord, 8 px entre toasts, `{sizes.toast-min}` à `{sizes.toast-max}` de large. Icône de 18 px, message, croix de 14 px. Fond et bordure de l'état (`{semantic.state.success.bg}`, etc.). Un toast `danger` reste jusqu'à sa fermeture ; les autres disparaissent après `{durations.toast}`, en pause au survol et au focus, fondu de 120 ms. Zone `aria-live="polite"` (`role="alert"` pour les erreurs).
 - **À faire.** Phrase courte sans point d'exclamation (« Préférences enregistrées. »). **À ne pas faire.** Un toast pour une erreur de formulaire (elle reste au champ) ; un toast qui disparaît avant d'avoir été lu quand il porte une information critique.
 
 ### 3.13 État vide
@@ -513,7 +514,13 @@ Tous les composants sont rectangulaires, bordés de 1 px, sans ombre, et lisent 
 
 - **Anatomie.** Bandeau vertical tricolore de 4 px (bleu / blanc bordé / rouge, trois parties égales), eyebrow facultatif, titre H1, sous-ligne facultative, actions à droite, filet inférieur de 1 px, 14 px de padding et 20 px de marge basse. Chaque page en commence par un.
 
-### 3.16 Corner frame
+### 3.16 Lien d'évitement et entrée d'aide
+
+- **Lien d'évitement** (`{component.skip-link}`, proposé) : premier élément focalisable de chaque page, invisible au repos, visible au focus (bordure 2 px `{semantic.border.strong}`, `{states.focus}`). Il place le focus sur le contenu principal (`main`, `tabindex="-1"`) et évite les arrêts de tabulation de la navigation.
+- **Entrée d'aide** (`{component.help-entry}`, proposé) : dernière entrée de la navigation, à la même place sur toutes les pages ; la page liste les raccourcis clavier, la syntaxe de recherche et les rôles.
+- **Tableau** (`{component.table.row.clip}`, proposé) : un titre long est tronqué sur une ligne avec son texte complet dans `title` ; une clé ne se coupe jamais (`white-space: nowrap`).
+
+### 3.17 Corner frame
 
 Voir 2.6. Quatre repères de 12 px, tracé de 2 px, une fois par page.
 
@@ -808,6 +815,7 @@ Modèle de proposition :
 | D-012 | 2026-11-01 | lint-design.mjs d’Athena tire sa palette des seules couleurs du front matter, plus de tous les « # » du .md. | Écrire une couleur dans un exemple ne doit pas l’autoriser. | Surveiller la prose à la main. |
 | D-013 | 2026-11-01 | Les variantes accessibles deviennent les valeurs sémantiques par défaut : `{semantic.text.mute}` (`{colors.mute-ink-aa}`), `{semantic.text.link}` (`{colors.console-sky-text}`), `{semantic.state.success.fg}` et équivalents. Les couleurs primitives ne changent pas. | Supprimer les écarts de contraste du thème clair sans toucher à la palette ; Athena applique déjà ces assombrissements. | Laisser les écarts en `known-issue`. |
 | D-014 | 2026-11-01 | Le contour d'un champ utilise `{semantic.border.control}` (3:1) ; `{semantic.border.default}` est réservé aux filets décoratifs ; le focus ring sur surface inverse utilise `{semantic.focus.ring-on-inverse}` ; l'en-tête de tableau passe à 11 px. | WCAG 1.4.11 et plancher de 11 px ; toutes les paires par défaut atteignent leur seuil. | Exempter le contour des champs comme séparateur décoratif. |
+| D-015 | 2026-11-01 | Corrections de l’audit Athena : confirmation des suppressions irréversibles, toasts d’erreur persistants, lien d’évitement, entrée d’aide, état loading des boutons, tailles 11 px minimum, troncature des titres, volet de navigation sous 768 px, suggestion des valeurs ATQL, page Administration réservée. Nouveaux tokens de composant en proposed : skip-link, confirm-dialog, help-entry, table.row.clip. | Chaque changement corrige un constat F-01 à F-13 de design-audit-work/AUDIT_athena.md ; aucun token existant n’est supprimé. | Laisser les écarts en known-issue ; créer des composants sans les déclarer. |
 
 ### Décisions en attente (`proposed`)
 
@@ -1130,16 +1138,20 @@ Généré par `scripts/validate-design.mjs --write`. Ne pas modifier à la main.
 | `{component.button.ghost}` | — | stable |
 | `{component.button.primary}` | — | stable |
 | `{component.card}` | — | stable |
+| `{component.confirm-dialog}` | — | proposed |
 | `{component.empty-state}` | — | stable |
 | `{component.field}` | — | stable |
+| `{component.help-entry}` | — | proposed |
 | `{component.modal}` | — | stable |
 | `{component.nav-item}` | — | stable |
 | `{component.page-header}` | — | stable |
+| `{component.skip-link}` | — | proposed |
 | `{component.stat-card}` | — | stable |
 | `{component.tab}` | — | stable |
 | `{component.table.cell-mono}` | — | stable |
 | `{component.table.header}` | — | stable |
 | `{component.table.row}` | — | stable |
+| `{component.table.row.clip}` | — | proposed |
 | `{component.toast}` | — | stable |
 
 <!-- registry:end -->

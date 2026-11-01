@@ -15,7 +15,14 @@ const BUILTIN_FIELDS = ['key', 'status', 'tracker', 'project', 'created', 'updat
 const KEYWORDS = ['AND', 'OR', 'NOT', 'IN', 'IS EMPTY', 'IS NOT EMPTY', 'ORDER BY'];
 
 /** Suggestions pour le dernier mot saisi : champs (natifs et du projet) et mots-clés ATQL. */
-export function suggest(draft: string, fields: string[]): { prefix: string; items: string[] } {
+export function suggest(draft: string, fields: string[], values: Record<string, string[]> = {}): { prefix: string; items: string[] } {
+  // Après « champ = », on propose les valeurs possibles (clé technique de statut, options d'une liste, trackers).
+  const afterOp = /([A-Za-z_][A-Za-z0-9_]*)\s*(?:=|!=|~)\s*([A-Za-z0-9_-]*)$/.exec(draft);
+  const known = afterOp ? values[afterOp[1]!.toLowerCase()] : undefined;
+  if (afterOp && known) {
+    const typed = afterOp[2] ?? '';
+    return { prefix: typed, items: known.filter((v) => v.toLowerCase().startsWith(typed.toLowerCase()) && v.toLowerCase() !== typed.toLowerCase()).slice(0, 8) };
+  }
   const match = /([A-Za-z_]+)$/.exec(draft);
   const prefix = match?.[1] ?? '';
   if (prefix.length < 1) return { prefix, items: [] };
@@ -44,6 +51,8 @@ export function ListPage({ session }: { session?: Session } = {}) {
   const [error, setError] = useState<string | null>(null);
   const fail = useFailure();
   const [fieldKeys, setFieldKeys] = useState<string[]>([]);
+  const [valueMap, setValueMap] = useState<Record<string, string[]>>({});
+  const [valueLabels, setValueLabels] = useState<Record<string, string>>({});
   const [filters, setFilters] = useState<SavedFilter[]>([]);
   const [saving, setSaving] = useState({ open: false, name: '', shared: false });
   const { where, order } = splitOrder(query);
@@ -54,6 +63,11 @@ export function ListPage({ session }: { session?: Session } = {}) {
       setTrackerKeys(t.map((x) => x.key));
       const roles = session?.user?.roles ?? [];
       const defs = await Promise.all(t.map((x) => api<TrackerDefinition>('GET', `/v1/projects/${project}/trackers/${x.key}`).catch(() => null)));
+      const map: Record<string, string[]> = { tracker: t.map((x) => x.key), status: [...new Set(defs.flatMap((d) => d?.statuses ?? []).map((st) => st.key))] };
+      const labels: Record<string, string> = {};
+      for (const d of defs) for (const st of d?.statuses ?? []) labels[st.key] = st.name;
+      for (const f of defs.flatMap((d) => d?.fields ?? [])) { const o = f.config['options']; if (f.type === 'select' && Array.isArray(o)) map[f.key.toLowerCase()] = [...new Set([...(map[f.key.toLowerCase()] ?? []), ...(o as string[])])]; }
+      setValueMap(map); setValueLabels(labels);
       setFieldKeys(defs.flatMap((d) => d?.fields ?? []).filter((f) => !f.readRoles || f.readRoles.some((r) => roles.includes(r)) || roles.includes('athena-admin')).map((f) => f.key));
     }).catch(() => setTrackerKeys([]));
   }, [project]);
@@ -84,7 +98,7 @@ export function ListPage({ session }: { session?: Session } = {}) {
     try { await api('DELETE', `/v1/projects/${project}/filters/${activeFilter.id}`); await loadFilters(); } catch (e) { fail(e); }
   };
 
-  const completion = suggest(draft, fieldKeys);
+  const completion = suggest(draft, fieldKeys, valueMap);
   const complete = (item: string) => setDraft(draft.slice(0, draft.length - completion.prefix.length) + item + ' ');
 
   const submit = (event: FormEvent) => { event.preventDefault(); setParams(draft ? { q: draft } : {}); };
@@ -102,7 +116,7 @@ export function ListPage({ session }: { session?: Session } = {}) {
           <input className="ath-input ath-mono" size={60} aria-label="Requête ATQL" placeholder={fr.list.placeholder} value={draft} onChange={(e) => setDraft(e.target.value)} autoComplete="off" />
           {completion.items.length > 0 && (
             <ul className="ath-suggest__list" role="listbox" aria-label={fr.list.suggestions}>
-              {completion.items.map((item) => <li key={item} role="option" aria-selected={false}><button type="button" className="ath-suggest__item ath-mono" onClick={() => complete(item)}>{item}</button></li>)}
+              {completion.items.map((item) => <li key={item} role="option" aria-selected={false}><button type="button" className="ath-suggest__item ath-mono" onClick={() => complete(item)}>{item}{valueLabels[item] && valueLabels[item] !== item ? <span className="ath-suggest__label"> — {valueLabels[item]}</span> : null}</button></li>)}
             </ul>
           )}
         </div>
@@ -142,7 +156,7 @@ export function ListPage({ session }: { session?: Session } = {}) {
               {result.hits.map((hit) => (
                 <tr key={hit.key}>
                   <Td><Link className="ath-link ath-mono" to={`/p/${project}/a/${hit.key}`}>{hit.key}</Link></Td>
-                  <Td>{title(hit)}</Td>
+                  <Td><span className="ath-clip" title={title(hit)}>{title(hit)}</span></Td>
                   <Td><StatusPill kind={pillKind(hit.category)}>{hit.statusName ?? hit.status}</StatusPill></Td>
                   <Td mono>{hit.tracker}</Td>
                   <Td mono mute>{hit.updatedAt.slice(0, 16).replace('T', ' ')}</Td>

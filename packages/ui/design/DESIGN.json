@@ -166,7 +166,7 @@
         "2xs": {
           "value": "10px",
           "status": "stable",
-          "note": "Pastilles, tags, chips, indices. Maintenu pour compatibilité ; 11 px recommandé pour tout nouveau composant."
+          "note": "Historique : pastilles, tags, chips passent à {fontSizes.xs} (11 px) depuis l’audit Athena F-05 ; 2xs n’est plus utilisé par les composants."
         },
         "xs": {
           "value": "11px",
@@ -1150,7 +1150,14 @@
             "selected": "{states.selected}"
           },
           "fontSize": "{fontSizes.sm}",
-          "status": "stable"
+          "status": "stable",
+          "clip": {
+            "maxWidth": "{sizes.prose-max}",
+            "overflow": "ellipsis",
+            "fullTextAttribute": "title",
+            "status": "proposed",
+            "note": "Audit Athena F-07 : un titre long est tronqué sur une ligne ; une clé ne se coupe jamais (nowrap)."
+          }
         },
         "cell-mono": {
           "fontFamily": "{fontFamilies.mono}",
@@ -1204,11 +1211,14 @@
           "info"
         ],
         "status": "stable",
-        "note": "Implémenté dans Athena (ToastProvider)."
+        "note": "Implémenté dans Athena (ToastProvider). Un toast danger reste jusqu’à sa fermeture ; les autres disparaissent après {durations.toast}, suspendus au survol et au focus (audit F-02).",
+        "persistentKinds": [
+          "danger"
+        ]
       },
       "badge": {
         "pill": {
-          "fontSize": "{fontSizes.2xs}",
+          "fontSize": "{fontSizes.xs}",
           "letterSpacing": "{letterSpacings.pill}",
           "padding": "2px 8px",
           "kinds": [
@@ -1223,7 +1233,7 @@
         },
         "tag": {
           "height": "{sizes.tag-height}",
-          "fontSize": "{fontSizes.2xs}",
+          "fontSize": "{fontSizes.xs}",
           "letterSpacing": "{letterSpacings.tag}",
           "variants": [
             "default",
@@ -1234,7 +1244,7 @@
           "status": "stable"
         },
         "chip": {
-          "fontSize": "{fontSizes.2xs}",
+          "fontSize": "{fontSizes.xs}",
           "letterSpacing": "{letterSpacings.label}",
           "padding": "5px 10px",
           "states": {
@@ -1282,6 +1292,33 @@
         "maxWidth": "280px",
         "padding": "60px",
         "status": "stable"
+      },
+      "skip-link": {
+        "bg": "{semantic.surface.default}",
+        "fg": "{semantic.text.heading}",
+        "border": "{semantic.border.strong}",
+        "borderWidth": "{borderWidths.strong}",
+        "fontSize": "{fontSizes.sm}",
+        "fontWeight": "{fontWeights.bold}",
+        "states": {
+          "focus": "{states.focus}"
+        },
+        "status": "proposed",
+        "note": "Audit Athena F-04 : premier élément focalisable, visible au focus seulement, il déplace le focus sur le contenu principal."
+      },
+      "confirm-dialog": {
+        "base": "{component.modal}",
+        "confirm": "{component.button.danger}",
+        "cancel": "{component.button.ghost}",
+        "initialFocus": "annulation",
+        "status": "proposed",
+        "note": "Audit Athena F-01 et F-03 : confirmation d’une action irréversible (titre nommant l’objet, conséquence, bouton danger)."
+      },
+      "help-entry": {
+        "base": "{component.nav-item}",
+        "position": "dernière entrée de la navigation, même place sur toutes les pages",
+        "status": "proposed",
+        "note": "Audit Athena F-12 (WCAG 3.2.6, aide cohérente)."
       }
     },
     "density": {
@@ -2366,6 +2403,13 @@
       "decision": "Le contour d’un champ utilise semantic.border.control (3:1) ; semantic.border.default est réservé aux filets décoratifs ; le focus ring sur surface inverse utilise ring-on-inverse ; l’en-tête de tableau passe à 11 px.",
       "reason": "WCAG 1.4.11 et plancher de 11 px ; toutes les paires par défaut atteignent leur seuil.",
       "rejected": "Exempter le contour des champs comme séparateur décoratif."
+    },
+    {
+      "id": "D-015",
+      "date": "2026-11-01",
+      "decision": "Corrections de l’audit Athena : confirmation des suppressions irréversibles, toasts d’erreur persistants, lien d’évitement, entrée d’aide, état loading des boutons, tailles 11 px minimum, troncature des titres, volet de navigation sous 768 px, suggestion des valeurs ATQL, page Administration réservée. Nouveaux tokens de composant en proposed : skip-link, confirm-dialog, help-entry, table.row.clip.",
+      "reason": "Chaque changement corrige un constat F-01 à F-13 de design-audit-work/AUDIT_athena.md ; aucun token existant n’est supprimé.",
+      "rejected": "Laisser les écarts en known-issue ; créer des composants sans les déclarer."
     }
   ],
   "extensions": {

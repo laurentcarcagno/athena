@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { useParams } from 'react-router-dom';
 import { Btn, Card, EmptyState, Field, PageHeader, StatusPill, Table, Tabs, Td, Th, useToast } from '@athena/ui';
-import { api } from '../api';
+import { api, type Session } from '../api';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
 
@@ -133,9 +133,10 @@ function BaselinesTab({ project }: { project: string }) {
   );
 }
 
-export function AdminPage() {
+export function AdminPage({ session }: { session: Session }) {
   const { project } = useParams();
   const [tab, setTab] = useState('webhooks');
+  if (!session.user?.roles.includes('athena-admin')) return <><PageHeader eyebrow={fr.admin.eyebrow} title={`${fr.admin.title} · ${project}`} /><p className="ath-field__error">{fr.config.adminOnly}</p></>;
   return (
     <>
       <PageHeader eyebrow={fr.admin.eyebrow} title={`${fr.admin.title} · ${project}`} />

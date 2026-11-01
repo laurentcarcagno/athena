@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Btn, EmptyState, PageHeader, StatusPill, Table, Td, Th, useToast } from '@athena/ui';
 import { api, type Hit, type SearchResult, type Session } from '../api';
-import { useFailure } from '../hooks';
+import { useBusy, useFailure } from '../hooks';
 import { fr } from '../i18n';
 import { pillKind } from './ListPage';
 
@@ -14,6 +14,7 @@ const titleOf = (hit: Hit) => String(hit.values['title'] ?? hit.values['name'] ?
 export function MyWorkPage({ session }: { session: Session }) {
   const toast = useToast();
   const fail = useFailure();
+  const { busy, guard } = useBusy();
   const username = session.user!.username;
   const [mine, setMine] = useState<Item[] | null>(null);
   const [free, setFree] = useState<Item[]>([]);
@@ -30,7 +31,8 @@ export function MyWorkPage({ session }: { session: Session }) {
   }, [username]);
   useEffect(() => { load().catch(fail); }, [load, fail]);
 
-  const take = async ({ project, hit }: Item) => {
+  const take = (item: Item) => guard(() => takeRun(item));
+  const takeRun = async ({ project, hit }: Item) => {
     try {
       await api('PATCH', `/v1/projects/${project}/artifacts/${hit.key}`, { values: { assignee: username }, version: hit.version });
       toast('success', fr.work.taken(hit.key));
@@ -45,9 +47,9 @@ export function MyWorkPage({ session }: { session: Session }) {
         <tr key={`${i.project}-${i.hit.key}`}>
           <Td mono>{i.project}</Td>
           <Td><Link className="ath-link ath-mono" to={`/p/${i.project}/a/${i.hit.key}`}>{i.hit.key}</Link></Td>
-          <Td>{titleOf(i.hit)}</Td>
+          <Td><span className="ath-clip" title={titleOf(i.hit)}>{titleOf(i.hit)}</span></Td>
           <Td><StatusPill kind={pillKind(i.hit.category)}>{i.hit.statusName ?? i.hit.status}</StatusPill></Td>
-          {action && <Td><Btn size="sm" variant="ghost" onClick={() => action(i)}>{fr.work.take}</Btn></Td>}
+          {action && <Td><Btn size="sm" variant="ghost" loading={busy} onClick={() => action(i)}>{fr.work.take}</Btn></Td>}
         </tr>
       ))}</tbody>
     </Table>

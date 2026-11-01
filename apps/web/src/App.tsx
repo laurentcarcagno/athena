@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { BrowserRouter, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
-import { EmptyState, PageHeader, Sidebar, ToastProvider } from '@athena/ui';
+import { Btn, EmptyState, PageHeader, Sidebar, ToastProvider } from '@athena/ui';
 import { loadSession, loginUrl, logout, type Session } from './api';
 import { CommandPalette } from './components/CommandPalette';
 import { fr, getLocale, setLocale, useLocale } from './i18n';
@@ -10,6 +10,7 @@ import { BoardPage } from './pages/BoardPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { ListPage } from './pages/ListPage';
 import { MyWorkPage } from './pages/MyWorkPage';
+import { HelpPage } from './pages/HelpPage';
 import { OrgAdminPage } from './pages/OrgAdminPage';
 import { ProjectManagePage } from './pages/ProjectManagePage';
 import { ProjectsPage } from './pages/ProjectsPage';
@@ -58,19 +59,23 @@ function Shell({ session, children }: { session: Session; children: ReactNode })
       ...(manager ? [{ id: `/p/${project}/manage`, label: fr.nav.manage }] : []),
       ...(admin ? [{ id: `/p/${project}/admin`, label: fr.nav.admin }] : []),
     ] : []),
+    { id: '/help', label: fr.nav.help },
   ];
   // La page courante est l'entrée la plus spécifique dont l'adresse est un préfixe.
   const current = [...items].sort((a, b) => b.id.length - a.id.length).find((i) => i.id !== '/' && location.pathname.startsWith(i.id))?.id ?? '/';
   const out = async () => { window.location.assign(await logout()); };
+  const [menuOpen, setMenuOpen] = useState(false);
   const other = getLocale() === 'fr' ? 'en' : 'fr';
   return (
     <div className="ath-page">
-      <Sidebar items={items} current={current} onNavigate={(id) => navigate(id)} user={{ name: session.user!.name, role: admin ? 'Admin' : manager ? 'Chef de projet' : 'Utilisateur' }}
+      <a className="ath-skip" href="#contenu" onClick={(e) => { e.preventDefault(); document.getElementById('contenu')?.focus(); }}>{fr.nav.skip}</a>
+      <Btn variant="ghost" size="sm" className="ath-menu-btn" aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)}>{fr.nav.menu}</Btn>
+      <Sidebar open={menuOpen} items={items} current={current} onNavigate={(id) => { setMenuOpen(false); navigate(id); }} user={{ name: session.user!.name, role: admin ? 'Admin' : manager ? 'Chef de projet' : 'Utilisateur' }}
         userActions={<>
           <button type="button" className="ath-iconbtn" onClick={() => setLocale(other)} aria-label={fr.language} title={fr.language}><Flag locale={other} /></button>
           <button type="button" className="ath-iconbtn" onClick={out} aria-label={fr.nav.logout} title={fr.nav.logout}><LogoutIcon /></button>
         </>} />
-      <main className="ath-page__main">
+      <main id="contenu" tabIndex={-1} className="ath-page__main">
         {children}
         <CommandPalette project={project} />
       </main>
@@ -97,7 +102,8 @@ export function AuthenticatedApp({ session }: { session: Session }) {
         <Route path="/p/:project" element={<ListPage session={session} />} />
         <Route path="/p/:project/manage" element={<ProjectManagePage session={session} />} />
         <Route path="/p/:project/dashboard" element={<DashboardPage />} />
-        <Route path="/p/:project/admin" element={<AdminPage />} />
+        <Route path="/p/:project/admin" element={<AdminPage session={session} />} />
+        <Route path="/help" element={<HelpPage />} />
         <Route path="/p/:project/a/:key" element={<ArtifactPage session={session} />} />
         <Route path="/p/:project/board/:board" element={<BoardPage />} />
         <Route path="/p/:project/trackers/new" element={<TrackerCreatePage session={session} />} />

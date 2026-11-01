@@ -2,7 +2,8 @@ import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { Btn, Card, EmptyState, Field, PageHeader, Table, Tabs, Tag, Td, Th, useToast } from '@athena/ui';
 import { api, type Session } from '../api';
 import { TrackerTemplateForm, type TrackerTemplateEntry } from '../components/TrackerTemplateForm';
-import { useFailure } from '../hooks';
+import { useConfirm } from '../components/ConfirmDialog';
+import { useBusy, useFailure } from '../hooks';
 import { fr } from '../i18n';
 
 export interface UserEntry { subject: string; username: string; displayName: string; email: string | null }
@@ -14,6 +15,7 @@ export interface TemplateEntry {
 interface PluginEntry { id: string; name: string; version: string; enabled: boolean; permissions: string[] }
 
 function ProjectsTab({ users, templates }: { users: UserEntry[]; templates: TemplateEntry[] }) {
+  const { busy, guard } = useBusy();
   const toast = useToast();
   const fail = useFailure();
   const [projects, setProjects] = useState<Array<{ key: string; name: string; managers: MemberEntry[] }>>([]);
@@ -24,8 +26,8 @@ function ProjectsTab({ users, templates }: { users: UserEntry[]; templates: Temp
     setProjects(await Promise.all(list.map(async (p) => ({ ...p, managers: (await api<MemberEntry[]>('GET', `/v1/projects/${p.key}/members`)).filter((m) => m.role === 'manager') }))));
   }, []);
   useEffect(() => { load().catch(fail); }, [load, fail]);
-  const create = async (event: FormEvent) => {
-    event.preventDefault();
+  const create = (event: FormEvent) => { event.preventDefault(); void guard(() => createRun()); };
+  const createRun = async () => {
     try {
       await api('POST', '/v1/projects', { key: form.key, name: form.name, ...(form.template ? { template: form.template } : {}) });
       toast('success', fr.org.projectCreated(form.key));
@@ -60,7 +62,7 @@ function ProjectsTab({ users, templates }: { users: UserEntry[]; templates: Temp
             {templates.map((t) => <option key={t.key} value={t.key}>{t.name} ({t.trackers.length})</option>)}
           </select>
         </div>
-        <Btn type="submit" disabled={form.key.length < 2 || !form.name.trim()}>{fr.org.createProject}</Btn>
+        <Btn type="submit" loading={busy} disabled={form.key.length < 2 || !form.name.trim()}>{fr.org.createProject}</Btn>
       </form>
       {projects.length === 0 ? <EmptyState eyebrow={fr.org.projects} title={fr.admin.empty} /> : (
         <div className="ath-grid-2">
@@ -125,12 +127,15 @@ function ProjectTemplates({ templates, trackerTemplates, reload, reloadTrackerTe
       await reload();
     } catch (error) { fail(error); }
   };
+  const confirm = useConfirm();
   const remove = async (key: string) => {
+    if (!(await confirm.ask({ title: fr.confirm.deleteTitle(key), body: fr.confirm.deleteTemplate, confirm: fr.confirm.delete }))) return;
     try { await api('DELETE', `/v1/project-templates/${key}`); toast('success', fr.org.templateDeleted); await reload(); } catch (error) { fail(error); }
   };
   const nothing = form.picked.length === 0 && form.tplPicked.length === 0;
   return (
     <div className="ath-stack">
+      {confirm.dialog}
       <Table>
         <thead><tr><Th>{fr.config.name}</Th><Th>{fr.org.trackersCount}</Th><Th>{fr.org.attributes}</Th><Th>{fr.org.deleteTemplate}</Th></tr></thead>
         <tbody>{templates.map((t) => (
@@ -193,11 +198,14 @@ function ProjectTemplates({ templates, trackerTemplates, reload, reloadTrackerTe
 function TrackerTemplates({ templates, reload }: { templates: TrackerTemplateEntry[]; reload: () => Promise<void> }) {
   const toast = useToast();
   const fail = useFailure();
+  const confirm = useConfirm();
   const remove = async (key: string) => {
+    if (!(await confirm.ask({ title: fr.confirm.deleteTitle(key), body: fr.confirm.deleteTemplate, confirm: fr.confirm.delete }))) return;
     try { await api('DELETE', `/v1/tracker-templates/${key}`); toast('success', fr.builder.trackerTemplateDeleted); await reload(); } catch (error) { fail(error); }
   };
   return (
     <div className="ath-stack">
+      {confirm.dialog}
       <Table>
         <thead><tr><Th>{fr.config.name}</Th><Th>{fr.org.attributes}</Th><Th>{fr.config.statuses}</Th><Th>{fr.org.deleteTemplate}</Th></tr></thead>
         <tbody>{templates.map((t) => (
@@ -254,7 +262,9 @@ function PluginsTab() {
   const toggle = async (p: PluginEntry) => {
     try { await api('POST', `/v1/plugins/${p.id}/${p.enabled ? 'disable' : 'enable'}`); toast('success', fr.admin.toggled); await load(); } catch (error) { fail(error); }
   };
+  const confirm = useConfirm();
   const uninstall = async (p: PluginEntry) => {
+    if (!(await confirm.ask({ title: fr.confirm.uninstallTitle(p.name), body: fr.confirm.uninstallBody, confirm: fr.confirm.uninstall }))) return;
     try { await api('DELETE', `/v1/plugins/${p.id}`); toast('success', fr.org.uninstalled); await load(); } catch (error) { fail(error); }
   };
   const install = async (event: FormEvent) => {
@@ -265,6 +275,7 @@ function PluginsTab() {
   };
   return (
     <div className="ath-stack">
+      {confirm.dialog}
       {items.length === 0 ? <EmptyState eyebrow={fr.org.plugins} title={fr.admin.empty} /> : (
         <Table>
           <thead><tr><Th>{fr.config.name}</Th><Th>{fr.artifact.version}</Th><Th>Permissions</Th><Th>{fr.admin.active}</Th><Th>{fr.org.uninstall}</Th></tr></thead>

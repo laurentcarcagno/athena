@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState, type ChangeEvent, type FormEvent } fr
 import { Link, useParams } from 'react-router-dom';
 import { Btn, Card, EmptyState, Id, PageHeader, StatusPill, Table, Tabs, Td, Th, Tag, useToast } from '@athena/ui';
 import { ApiError, api, upload, type Artifact, type AttachmentView, type Field, type Revision, type Session, type TrackerDefinition } from '../api';
-import { useFailure } from '../hooks';
+import { useBusy, useFailure } from '../hooks';
 import { fr } from '../i18n';
 import { pillKind } from './ListPage';
 
@@ -60,6 +60,7 @@ export function ArtifactPage({ session }: { session: Session }) {
   const { project, key } = useParams();
   const toast = useToast();
   const fail = useFailure();
+  const { busy, guard } = useBusy();
   const [artifact, setArtifact] = useState<Artifact | null>(null);
   const [def, setDef] = useState<TrackerDefinition | null>(null);
   const [tab, setTab] = useState('details');
@@ -143,8 +144,8 @@ export function ArtifactPage({ session }: { session: Session }) {
       toast('success', fr.artifact.removedAttachment);
     } catch (error) { fail(error); }
   };
-  const addComment = async (event: FormEvent) => {
-    event.preventDefault();
+  const addComment = (event: FormEvent) => { event.preventDefault(); void guard(() => addCommentRun()); };
+  const addCommentRun = async () => {
     try {
       await api('POST', `${base}/comments`, { body: comment });
       setComment('');
@@ -242,7 +243,7 @@ export function ArtifactPage({ session }: { session: Session }) {
               <form className="ath-stack" onSubmit={addComment}>
                 <label className="ath-field__label" htmlFor="comment">{fr.artifact.comment}</label>
                 <textarea id="comment" className="ath-input" rows={3} value={comment} onChange={(e) => setComment(e.target.value)} />
-                <div><Btn type="submit" disabled={comment.trim() === ''}>{fr.artifact.addComment}</Btn></div>
+                <div><Btn type="submit" loading={busy} disabled={comment.trim() === ''}>{fr.artifact.addComment}</Btn></div>
               </form>
             </div>
           </Card>

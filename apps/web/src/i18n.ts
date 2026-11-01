@@ -7,7 +7,7 @@ import { useSyncExternalStore } from 'react';
 const frDict = {
   loading: 'Chargement…',
   language: 'English',
-  nav: { projects: 'Projets', search: 'Recherche', dashboard: 'Tableau de bord', admin: 'Administration', logout: 'Déconnexion', palette: 'Commandes', work: 'Mon travail', manage: 'Gestion de projet', organization: 'Organisation' },
+  nav: { projects: 'Projets', search: 'Recherche', dashboard: 'Tableau de bord', admin: 'Administration', logout: 'Déconnexion', palette: 'Commandes', work: 'Mon travail', manage: 'Gestion de projet', organization: 'Organisation', help: 'Aide', menu: 'Menu', skip: 'Aller au contenu' },
   projects: { eyebrow: 'Mission console', title: 'Projets', empty: 'Aucun projet.', emptyEyebrow: 'Aucun résultat', trackers: 'Trackers', boards: 'Boards', trackerName: 'Tracker', artifacts: 'Artefacts', attributes: 'Attributs', noTracker: 'Aucun tracker.', noAttribute: 'Aucun attribut.' },
   list: {
     eyebrow: 'Recherche', placeholder: 'Requête ATQL, par exemple status = open AND severity = majeure', run: 'Rechercher',
@@ -70,6 +70,21 @@ const frDict = {
     createTrackerTemplate: 'Créer le template de tracker', trackerTemplateCreated: 'Template de tracker créé.', trackerTemplateDeleted: 'Template de tracker supprimé.', newTrackerForTemplate: 'Nouveau tracker pour ce template',
     templateKey: 'Clé du template de tracker (minuscules)', templateName: 'Nom du template de tracker', addedTracker: (k: string) => `Template ${k} ajouté aux trackers du template.`,
   },
+  confirm: {
+    cancel: 'Annuler', delete: 'Supprimer', uninstall: 'Désinstaller',
+    deleteTitle: (n: string) => `Supprimer « ${n} »`, deleteTemplate: 'Le template est supprimé définitivement. Les projets déjà créés ne changent pas.',
+    uninstallTitle: (n: string) => `Désinstaller « ${n} »`, uninstallBody: 'Le plugin est retiré : ses actions, widgets et connecteurs disparaissent, et sa politique de données s’applique. L’opération est irréversible.',
+    purgeTitle: (n: string) => `Supprimer le champ ${n}`,
+  },
+  help: {
+    eyebrow: 'Aide', title: 'Aide', guide: 'Le guide complet se trouve dans docs/user/GUIDE.md du dépôt.', key: 'Touche', effect: 'Effet', example: 'Exemple', meaning: 'Sens', role: 'Rôle', capabilities: 'Peut',
+    shortcuts: 'Raccourcis clavier',
+    shortcutRows: [['Ctrl+K', 'Ouvre ou ferme la palette de commandes'], ['Tab', 'Passe au contrôle suivant ; le lien « Aller au contenu » est le premier'], ['Échap', 'Ferme une fenêtre ou la palette'], ['Entrée', 'Valide la sélection ou lance la recherche']],
+    atql: 'Langage de recherche (ATQL)',
+    atqlRows: [['status = in_progress', 'les suggestions affichent la clé technique d’un statut à côté de son nom'], ['severity IN (majeure, bloquante)', 'liste de valeurs'], ['title ~ "crash"', 'contient'], ['assignee IS EMPTY', 'champ vide'], ['updated > daysAgo(7)', 'relatif à aujourd’hui']],
+    roles: 'Rôles',
+    roleRows: [['Utilisateur', 'traite ses artefacts (Mon travail), recherche, commente'], ['Chef de projet', 'gère les acteurs, sprints, versions et boards de ses projets'], ['Administrateur', 'crée les projets, templates et trackers, gère les plugins']],
+  },
   palette: { title: 'Commandes', placeholder: 'Aller à… ou rechercher un artefact', none: 'Aucun résultat.', projects: 'Projets', artifacts: 'Artefacts', goto: 'Aller à' },
   errors: {
     generic: 'Une erreur est survenue. Réessayez.', notFoundTitle: 'Page introuvable', notFoundEyebrow: 'Erreur 404', notFound: 'Cette adresse ne correspond à aucune page.',
@@ -82,7 +97,7 @@ export type Dictionary = typeof frDict;
 const enDict: Dictionary = {
   loading: 'Loading…',
   language: 'Français',
-  nav: { projects: 'Projects', search: 'Search', dashboard: 'Dashboard', admin: 'Administration', logout: 'Sign out', palette: 'Commands', work: 'My work', manage: 'Project management', organization: 'Organization' },
+  nav: { projects: 'Projects', search: 'Search', dashboard: 'Dashboard', admin: 'Administration', logout: 'Sign out', palette: 'Commands', work: 'My work', manage: 'Project management', organization: 'Organization', help: 'Help', menu: 'Menu', skip: 'Skip to content' },
   projects: { eyebrow: 'Mission console', title: 'Projects', empty: 'No project.', emptyEyebrow: 'No result', trackers: 'Trackers', boards: 'Boards', trackerName: 'Tracker', artifacts: 'Artifacts', attributes: 'Attributes', noTracker: 'No tracker.', noAttribute: 'No attribute.' },
   list: {
     eyebrow: 'Search', placeholder: 'ATQL query, for example status = open AND severity = major', run: 'Search',
@@ -144,6 +159,21 @@ const enDict: Dictionary = {
     adminOnly: 'Administrators only.', projectTemplates: 'Project templates', trackerTemplates: 'Tracker templates', templateTrackers: 'Template trackers',
     createTrackerTemplate: 'Create tracker template', trackerTemplateCreated: 'Tracker template created.', trackerTemplateDeleted: 'Tracker template deleted.', newTrackerForTemplate: 'New tracker for this template',
     templateKey: 'Tracker template key (lowercase)', templateName: 'Tracker template name', addedTracker: (k: string) => `Template ${k} added to the template trackers.`,
+  },
+  confirm: {
+    cancel: 'Cancel', delete: 'Delete', uninstall: 'Uninstall',
+    deleteTitle: (n: string) => `Delete “${n}”`, deleteTemplate: 'The template is permanently deleted. Projects already created are unchanged.',
+    uninstallTitle: (n: string) => `Uninstall “${n}”`, uninstallBody: 'The plugin is removed: its actions, widgets and connectors disappear, and its data policy applies. This cannot be undone.',
+    purgeTitle: (n: string) => `Delete field ${n}`,
+  },
+  help: {
+    eyebrow: 'Help', title: 'Help', guide: 'The full guide is in docs/user/GUIDE.md in the repository.', key: 'Key', effect: 'Effect', example: 'Example', meaning: 'Meaning', role: 'Role', capabilities: 'Can',
+    shortcuts: 'Keyboard shortcuts',
+    shortcutRows: [['Ctrl+K', 'Opens or closes the command palette'], ['Tab', 'Moves to the next control; “Skip to content” is the first'], ['Esc', 'Closes a window or the palette'], ['Enter', 'Confirms the selection or runs the search']],
+    atql: 'Search language (ATQL)',
+    atqlRows: [['status = in_progress', 'suggestions show a status technical key next to its name'], ['severity IN (major, blocker)', 'list of values'], ['title ~ "crash"', 'contains'], ['assignee IS EMPTY', 'empty field'], ['updated > daysAgo(7)', 'relative to today']],
+    roles: 'Roles',
+    roleRows: [['User', 'processes their artifacts (My work), searches, comments'], ['Project manager', 'manages actors, sprints, releases and boards of their projects'], ['Administrator', 'creates projects, templates and trackers, manages plugins']],
   },
   palette: { title: 'Commands', placeholder: 'Go to… or search for an artifact', none: 'No result.', projects: 'Projects', artifacts: 'Artifacts', goto: 'Go to' },
   errors: {

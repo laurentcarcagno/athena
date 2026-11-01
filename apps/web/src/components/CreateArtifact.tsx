@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Btn, Modal, useToast } from '@athena/ui';
 import { api, type Artifact, type Field, type TrackerDefinition } from '../api';
-import { useFailure } from '../hooks';
+import { useBusy, useFailure } from '../hooks';
 import { fr } from '../i18n';
 
 export function coerce(field: Field, raw: string): unknown {
@@ -39,6 +39,7 @@ export function CreateArtifact({ project, trackers, open, onClose, onCreated }: 
 }) {
   const toast = useToast();
   const fail = useFailure();
+  const { busy, guard } = useBusy();
   const [tracker, setTracker] = useState(trackers[0] ?? '');
   const [definition, setDefinition] = useState<TrackerDefinition | null>(null);
   const [values, setValues] = useState<Record<string, string>>({});
@@ -50,8 +51,8 @@ export function CreateArtifact({ project, trackers, open, onClose, onCreated }: 
     api<TrackerDefinition>('GET', `/v1/projects/${project}/trackers/${tracker}`).then(setDefinition).catch(fail);
   }, [open, tracker, project, fail]);
 
-  const submit = async (event: FormEvent) => {
-    event.preventDefault();
+  const submit = (event: FormEvent) => { event.preventDefault(); void guard(() => submitRun()); };
+  const submitRun = async () => {
     if (!definition) return;
     const payload: Record<string, unknown> = {};
     for (const field of definition.fields) {
@@ -69,7 +70,7 @@ export function CreateArtifact({ project, trackers, open, onClose, onCreated }: 
 
   return (
     <Modal open={open} title={fr.create.title} size="md" onClose={onClose}
-      footer={<><Btn variant="ghost" onClick={onClose}>{fr.create.cancel}</Btn><Btn type="submit" form="create-artifact">{fr.create.submit}</Btn></>}>
+      footer={<><Btn variant="ghost" onClick={onClose}>{fr.create.cancel}</Btn><Btn type="submit" form="create-artifact" loading={busy}>{fr.create.submit}</Btn></>}>
       {trackers.length === 0 ? <p>{fr.create.noTracker}</p> : (
         <form id="create-artifact" className="ath-stack" onSubmit={submit}>
           <div className="ath-field">

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { useParams } from 'react-router-dom';
 import { Btn, Card, Field as TextField, PageHeader, StatusPill, Table, Td, Th, useToast } from '@athena/ui';
 import { ApiError, api, type Session, type TrackerDefinition } from '../api';
+import { useConfirm } from '../components/ConfirmDialog';
 import { useFailure } from '../hooks';
 import { WorkflowEditor } from '../components/WorkflowEditor';
 import { fr } from '../i18n';
@@ -11,6 +12,7 @@ export function TrackerConfigPage({ session }: { session: Session }) {
   const { project, tracker } = useParams();
   const toast = useToast();
   const fail = useFailure();
+  const confirm = useConfirm();
   const admin = session.user?.roles.includes('athena-admin') ?? false;
   const [def, setDef] = useState<TrackerDefinition | null>(null);
   const [types, setTypes] = useState<string[]>([]);
@@ -50,7 +52,7 @@ export function TrackerConfigPage({ session }: { session: Session }) {
       } catch (error) {
         if (!(error instanceof ApiError) || error.status !== 409) throw error;
         const impact = await api<{ withValue: number }>('GET', `${base}/fields/${key}/impact`).catch(() => ({ withValue: 0 }));
-        if (!window.confirm(fr.config.confirmPurge(key, impact.withValue))) throw error;
+        if (!(await confirm.ask({ title: fr.confirm.purgeTitle(key), body: fr.config.confirmPurge(key, impact.withValue), confirm: fr.confirm.delete }))) throw error;
         await api('DELETE', `${base}/fields/${key}?purge=true`);
       }
       toast('success', fr.config.removed);
@@ -62,6 +64,7 @@ export function TrackerConfigPage({ session }: { session: Session }) {
   const statusName = (id: string | null) => (id === null ? fr.config.anyState : def.statuses.find((s) => s.id === id)?.key ?? '?');
   return (
     <>
+      {confirm.dialog}
       <PageHeader eyebrow={fr.config.eyebrow} title={`${fr.config.title} · ${def.key}`} sub={fr.config.schemaNote} />
       {!admin && <p className="ath-field__error">{fr.config.adminOnly}</p>}
       {admin && (

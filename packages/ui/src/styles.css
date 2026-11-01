@@ -26,24 +26,24 @@
 .ath-btn--danger:hover:not(:disabled) { background: var(--ath-color-signal-danger); color: var(--ath-color-instrument-white); }
 
 /* Pastilles, étiquettes, filtres */
-.ath-pill { display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; border: 1px solid; font-weight: 700; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; line-height: 1.4; background: var(--ath-color-instrument-white); color: var(--ath-color-dim-ink); border-color: var(--ath-color-sovereign-deep-blue); }
+.ath-pill { display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; border: 1px solid; font-weight: 700; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; line-height: 1.4; background: var(--ath-color-instrument-white); color: var(--ath-color-dim-ink); border-color: var(--ath-color-sovereign-deep-blue); }
 .ath-pill__dot { width: 7px; height: 7px; background: currentColor; display: inline-block; }
 .ath-pill--success { background: var(--ath-color-pill-success-bg); color: color-mix(in srgb, var(--ath-color-signal-success) 72%, black); border-color: var(--ath-color-signal-success); }
 .ath-pill--warning { background: var(--ath-color-pill-warning-bg); color: color-mix(in srgb, var(--ath-color-signal-warning) 55%, black); border-color: var(--ath-color-signal-warning); }
 .ath-pill--danger { background: var(--ath-color-pill-danger-bg); color: color-mix(in srgb, var(--ath-color-signal-danger) 85%, black); border-color: var(--ath-color-signal-danger); }
 .ath-pill--info { background: var(--ath-color-hover-mist); color: color-mix(in srgb, var(--ath-color-console-sky) 85%, black); border-color: var(--ath-color-console-sky); }
-.ath-tag { display: inline-flex; align-items: center; height: 18px; padding: 0 6px; border: 1px solid var(--ath-color-console-border); font-weight: 700; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; background: var(--ath-color-hover-mist); color: var(--ath-color-sovereign-deep-blue); }
+.ath-tag { display: inline-flex; align-items: center; height: 18px; padding: 0 6px; border: 1px solid var(--ath-color-console-border); font-weight: 700; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; background: var(--ath-color-hover-mist); color: var(--ath-color-sovereign-deep-blue); }
 .ath-tag--solid { background: var(--ath-color-sovereign-deep-blue); color: var(--ath-color-instrument-white); border-color: var(--ath-color-sovereign-deep-blue); }
 .ath-tag--accent { background: var(--ath-color-console-sky); color: var(--ath-color-instrument-white); border-color: var(--ath-color-console-sky); }
 .ath-tag--ghost { background: transparent; color: var(--ath-color-dim-ink); }
-.ath-chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border: 1px solid var(--ath-color-console-border); background: var(--ath-color-instrument-white); color: var(--ath-color-dim-ink); font-family: inherit; font-weight: 700; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; transition: background 120ms linear, color 120ms linear; }
+.ath-chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border: 1px solid var(--ath-color-console-border); background: var(--ath-color-instrument-white); color: var(--ath-color-dim-ink); font-family: inherit; font-weight: 700; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; transition: background 120ms linear, color 120ms linear; }
 .ath-chip--active { background: var(--ath-color-sovereign-deep-blue); color: var(--ath-color-instrument-white); border-color: var(--ath-color-sovereign-deep-blue); }
 
 /* Champs */
 .ath-search { display: inline-flex; align-items: center; gap: 8px; min-width: 260px; padding: 5px 10px; background: var(--ath-color-hover-mist); border: 1px solid var(--ath-color-mute-ink); }
 .ath-search:focus-within { border-color: var(--ath-color-console-sky); }
 .ath-search__input { flex: 1; min-width: 0; border: 0; background: transparent; outline: none; font-family: inherit; font-size: 12px; color: var(--ath-color-ink); }
-.ath-search__hint { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 10px; color: var(--ath-text-mute); }
+.ath-search__hint { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 11px; color: var(--ath-text-mute); }
 .ath-field { display: inline-flex; flex-direction: column; gap: 6px; min-width: 240px; }
 .ath-field__label { font-weight: 700; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ath-color-dim-ink); }
 .ath-input { font-family: inherit; font-size: 13px; color: var(--ath-color-ink); background: var(--ath-color-instrument-white); border: 1px solid var(--ath-color-mute-ink); padding: 6px 10px; outline: none; transition: border-color 120ms linear; }
@@ -62,7 +62,7 @@
 .ath-stat { position: relative; background: var(--ath-color-instrument-white); border: 1px solid var(--ath-color-console-border); padding: 18px 20px; }
 .ath-stat::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--ath-color-console-sky); }
 .ath-stat__row { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
-.ath-stat__label { font-weight: 700; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ath-text-mute); }
+.ath-stat__label { font-weight: 700; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ath-text-mute); }
 .ath-stat__value { margin-top: 6px; font-weight: 700; font-size: 30px; letter-spacing: 0.02em; color: var(--ath-color-sovereign-deep-blue); line-height: 1; font-variant-numeric: tabular-nums; }
 .ath-stat__delta { margin-top: 8px; font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 11px; color: var(--ath-color-signal-success); }
 .ath-stat__icon { width: 40px; height: 40px; border: 1px solid var(--ath-color-sovereign-deep-blue); display: flex; align-items: center; justify-content: center; color: var(--ath-color-sovereign-deep-blue); flex: none; }
@@ -72,7 +72,7 @@
 .ath-th { background: var(--ath-color-sovereign-deep-blue); color: var(--ath-color-instrument-white); padding: 9px 12px; text-align: left; font-weight: 600; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; border-right: 1px solid var(--ath-color-muted-mist); }
 .ath-th--sortable { cursor: pointer; user-select: none; }
 .ath-th--sortable:hover { background: rgba(255, 255, 255, 0.06); }
-.ath-th__sort { margin-left: 6px; color: var(--ath-color-console-border); font-size: 8px; }
+.ath-th__sort { margin-left: 6px; color: var(--ath-color-console-border); font-size: 11px; }
 .ath-th[aria-sort="ascending"] .ath-th__sort, .ath-th[aria-sort="descending"] .ath-th__sort { color: var(--ath-color-console-sky); }
 .ath-td { padding: 9px 12px; border: 1px solid var(--ath-color-console-border); }
 .ath-td--mute { color: var(--ath-text-mute); }
@@ -134,7 +134,7 @@
 .ath-sidebar--collapsed { width: 64px; }
 .ath-sidebar__brand { padding: 18px 16px 14px; font-weight: 700; font-size: 14px; letter-spacing: 0.18em; }
 .ath-sidebar__dot { color: var(--ath-color-tricolor-red); }
-.ath-sidebar__sub { display: block; margin-top: 4px; font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; opacity: 0.75; }
+.ath-sidebar__sub { display: block; margin-top: 4px; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; opacity: 0.75; }
 .ath-nav { display: flex; flex-direction: column; flex: 1; }
 .ath-nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-left: 3px solid transparent; color: var(--ath-color-instrument-white); opacity: 0.7; text-decoration: none; font-weight: 600; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; background: transparent; border-top: 0; border-right: 0; border-bottom: 0; cursor: pointer; font-family: inherit; text-align: left; transition: background 120ms linear; }
 .ath-nav-item:hover { opacity: 1; background: rgba(255, 255, 255, 0.06); }
@@ -218,3 +218,31 @@
 .ath-wf__arrow { fill: var(--ath-color-dim-ink); }
 .ath-wf__labelbg { fill: var(--ath-color-instrument-white); stroke: var(--ath-color-console-border); stroke-width: 1; }
 .ath-wf__label { fill: var(--ath-color-dim-ink); font-size: 11px; }
+
+/* Audit F-04 : lien d'évitement, visible au focus seulement. */
+.ath-skip { position: absolute; left: 8px; top: -48px; z-index: 1100; padding: 8px 14px; background: var(--ath-color-instrument-white); color: var(--ath-color-sovereign-deep-blue); border: 2px solid var(--ath-color-sovereign-deep-blue); font-weight: 700; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; text-decoration: none; }
+.ath-skip:focus { top: 8px; outline: 2px solid var(--ath-color-console-sky); outline-offset: 2px; }
+.ath-page__main:focus { outline: none; }
+
+/* Audit F-06 : cibles de 24 px minimum pour les liens des tableaux, des cartes et des listes. */
+.ath-table .ath-link, .ath-ticket .ath-link, .ath-row .ath-link, .ath-stack .ath-link, .ath-pageheader__sub .ath-link { display: inline-flex; align-items: center; min-height: 24px; }
+
+/* Audit F-07 : un identifiant ne se coupe pas, un titre long se tronque (texte complet dans l'attribut title). */
+.ath-table .ath-link.ath-mono, .ath-table .ath-mono, .ath-ticket .ath-link { white-space: nowrap; }
+.ath-clip { display: block; max-width: 60ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ath-ticket__title { overflow-wrap: anywhere; }
+.ath-input, .ath-select { max-width: 100%; }
+
+/* Audit F-09 : sous 768 px la navigation se replie derrière un bouton ; la page ne déborde pas. */
+.ath-menu-btn { display: none; }
+@media (max-width: 768px) {
+  .ath-menu-btn { display: inline-flex; margin: 0 0 8px; }
+  .ath-sidebar:not(.ath-sidebar--open) .ath-nav { display: none; }
+  .ath-page__main { min-width: 0; }
+  .ath-table-wrap { overflow-x: auto; }
+  .ath-pageheader { flex-wrap: wrap; align-items: flex-start; gap: 12px; }
+  .ath-pageheader__actions { flex-wrap: wrap; }
+  .ath-suggest { max-width: 100%; flex: 1 1 100%; }
+  .ath-suggest .ath-input { width: 100%; box-sizing: border-box; }
+}
+.ath-table-wrap { max-width: 100%; }

@@ -149,7 +149,7 @@ describe('administration', () => {
       on('GET', '/v1/webhooks', { body: [] }),
       on('POST', '/v1/webhooks', { status: 201, body: { secret: 'whsec_abc123', endpoint: { id: '1' } } }),
     ];
-    wrap('/p/ARI/admin', <AdminPage />, '/p/:project/admin');
+    wrap('/p/ARI/admin', <AdminPage session={admin} />, '/p/:project/admin');
     await userEvent.type(await screen.findByLabelText('URL HTTPS'), 'https://exemple.org/hook');
     await userEvent.click(screen.getByRole('button', { name: 'Créer' }));
     expect(await screen.findByText('whsec_abc123')).toHaveClass('ath-mono');
@@ -162,7 +162,7 @@ describe('administration', () => {
       on('GET', '/v1/plugins', { body: [{ id: 'com.acme.x', name: 'Couleurs', version: '1.0.0', enabled: true, permissions: ['storage'] }] }),
       on('GET', '/v1/projects/ARI/baselines', { body: [{ name: 'v1.0', gitSha: 'abcdef1234567890', createdAt: '2026-10-31T10:00:00.000Z' }] }),
     ];
-    wrap('/p/ARI/admin', <AdminPage />, '/p/:project/admin');
+    wrap('/p/ARI/admin', <AdminPage session={admin} />, '/p/:project/admin');
     await userEvent.click(await screen.findByRole('tab', { name: 'Automatisations' }));
     expect(await screen.findByText('severity = bloquante')).toHaveClass('ath-mono');
     await userEvent.click(screen.getByRole('button', { name: 'Désactiver' }));
@@ -258,7 +258,6 @@ describe('champs : rôles et suppression', () => {
       (url, method) => (method === 'DELETE' && url.endsWith('/fields/salary') ? { status: 409, body: { error: 'conflict', message: 'Utilisé.', details: [] } } : undefined),
       on('DELETE', /fields\/salary\?purge=true$/, { status: 204 }),
     ];
-    vi.spyOn(window, 'confirm').mockReturnValue(true);
     wrap('/p/ARI/trackers/BUG/config', <TrackerConfigPage session={admin} />, '/p/:project/trackers/:tracker/config');
     expect(await screen.findByText('R: hr · W: Tous')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Supprimer title' })).toBeNull(); // le titre n'est pas supprimable
@@ -269,8 +268,10 @@ describe('champs : rôles et suppression', () => {
     await userEvent.click(within(fields).getByRole('button', { name: 'Ajouter' }));
     await waitFor(() => expect(calls.find((c) => c.method === 'POST' && c.url.endsWith('/fields'))?.body).toEqual({ key: 'cost', label: 'Coût', type: 'text', required: false, readRoles: ['hr', 'finance'] }));
     await userEvent.click(screen.getByRole('button', { name: 'Supprimer salary' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Supprimer le champ salary' });
+    expect(calls.some((c) => c.url.endsWith('?purge=true'))).toBe(false); // rien n'est supprimé avant la confirmation
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Supprimer' }));
     await waitFor(() => expect(calls.some((c) => c.method === 'DELETE' && c.url.endsWith('?purge=true'))).toBe(true));
-    vi.restoreAllMocks();
   });
 });
 

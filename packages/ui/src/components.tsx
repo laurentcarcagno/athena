@@ -10,8 +10,13 @@ export function Id({ children }: { children: ReactNode }) {
   return <span className="ath-mono">{children}</span>;
 }
 
-export function Btn({ variant = 'primary', size = 'md', className, ...rest }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'primary' | 'deep' | 'ghost' | 'danger'; size?: 'sm' | 'md' | 'lg' }) {
-  return <button type="button" {...rest} className={cx('ath-btn', `ath-btn--${variant}`, size !== 'md' && `ath-btn--${size}`, className)} />;
+export function Btn({ variant = 'primary', size = 'md', className, loading = false, children, ...rest }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'primary' | 'deep' | 'ghost' | 'danger'; size?: 'sm' | 'md' | 'lg'; loading?: boolean }) {
+  // État « loading » de la charte : contrôle désactivé, aria-busy, libellé suivi de « … ».
+  return (
+    <button type="button" {...rest} disabled={rest.disabled || loading} aria-busy={loading || undefined} className={cx('ath-btn', `ath-btn--${variant}`, size !== 'md' && `ath-btn--${size}`, className)}>
+      {children}{loading ? '…' : null}
+    </button>
+  );
 }
 
 export type PillKind = 'success' | 'warning' | 'danger' | 'info' | 'default';
@@ -109,7 +114,7 @@ export function StatCard({ label, value, delta, icon }: { label: string; value: 
 }
 
 export function Table({ children, caption }: { children: ReactNode; caption?: string }) {
-  return <table className="ath-table">{caption && <caption className="ath-eyebrow ath-table__caption">{caption}</caption>}{children}</table>;
+  return <div className="ath-table-wrap"><table className="ath-table">{caption && <caption className="ath-eyebrow ath-table__caption">{caption}</caption>}{children}</table></div>;
 }
 
 export type SortState = 'asc' | 'desc' | null;
@@ -212,13 +217,15 @@ export const useToast = () => useContext(ToastContext);
 
 function ToastView({ toast, onDismiss, duration }: { toast: ToastItem; onDismiss: () => void; duration: number }) {
   const [paused, setPaused] = useState(false);
+  // Une erreur reste affichée jusqu'à sa fermeture ; les autres messages sont suspendus au survol et au focus.
+  const persistent = toast.kind === 'danger';
   useEffect(() => {
-    if (paused) return;
+    if (paused || persistent) return;
     const timer = setTimeout(onDismiss, duration);
     return () => clearTimeout(timer);
-  }, [paused, onDismiss, duration]);
+  }, [paused, persistent, onDismiss, duration]);
   return (
-    <div className={`ath-toast ath-toast--${toast.kind}`} role={toast.kind === 'danger' ? 'alert' : 'status'} onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
+    <div className={`ath-toast ath-toast--${toast.kind}`} role={toast.kind === 'danger' ? 'alert' : 'status'} onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)} onFocus={() => setPaused(true)} onBlur={() => setPaused(false)}>
       <span className="ath-toast__message">{toast.message}</span>
       <button type="button" className="ath-icon-btn" aria-label="Fermer la notification" onClick={onDismiss}>×</button>
     </div>
@@ -284,10 +291,10 @@ export function CornerFrame({ children }: { children: ReactNode }) {
 }
 
 export interface NavItem { id: string; label: string; href?: string }
-export function Sidebar({ items, current, onNavigate, user, userActions, collapsed = false }: { items: NavItem[]; current: string; onNavigate?: (id: string) => void; user?: { name: string; role: string }; userActions?: ReactNode; collapsed?: boolean }) {
+export function Sidebar({ items, current, onNavigate, user, userActions, collapsed = false, open = false }: { items: NavItem[]; current: string; onNavigate?: (id: string) => void; user?: { name: string; role: string }; userActions?: ReactNode; collapsed?: boolean; open?: boolean }) {
   const initials = user?.name.split(/\s+/).map((p) => p[0]).slice(0, 2).join('').toUpperCase() ?? '';
   return (
-    <aside className={cx('ath-sidebar', collapsed && 'ath-sidebar--collapsed')}>
+    <aside className={cx('ath-sidebar', collapsed && 'ath-sidebar--collapsed', open && 'ath-sidebar--open')}>
       <div className="ath-sidebar__brand">
         ATHENA<span className="ath-sidebar__dot">·</span>BOARD
         <span className="ath-sidebar__sub">Suivi de projet</span>

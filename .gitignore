@@ -19,3 +19,9 @@ dev-start.log
 .turbo/
 user-manual-work/
 *.docx
+
+# Preuves d audit et de redesign (captures, mesures, scripts)
+design-audit-work/evidence/
+design-audit-work/*.mjs
+design-redesign-work/after/
+design-redesign-work/*.mjs
