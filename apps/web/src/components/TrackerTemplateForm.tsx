@@ -9,10 +9,12 @@ export interface TrackerTemplateEntry { key: string; name: string; description: 
 
 /** Sélecteur « partir d'un template de tracker » : copie le template dans le brouillon, qui reste modifiable. */
 export function TemplatePicker({ templates, onPick, id }: { templates: TrackerTemplateEntry[]; onPick: (tracker: DraftTracker) => void; id: string }) {
+  const [chosen, setChosen] = useState('');
   return (
     <div className="ath-field">
       <label className="ath-field__label" htmlFor={id}>{fr.builder.fromTemplate}</label>
-      <select id={id} className="ath-select" value="" onChange={(e) => {
+      <select id={id} className="ath-select" value={chosen} onChange={(e) => {
+        setChosen(e.target.value);
         const found = templates.find((t) => t.key === e.target.value);
         onPick(found ? (JSON.parse(JSON.stringify(found.tracker)) as DraftTracker) : emptyTracker());
       }}>
