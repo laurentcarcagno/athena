@@ -1,7 +1,2414 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "generatedAt": "2026-04-30T00:00:00Z",
   "title": "Design System: THOR · Hemeria",
+  "meta": {
+    "name": "THOR · Hemeria Design System",
+    "version": "3.0.0",
+    "date": "2026-11-01",
+    "author": "Laurent Carcagno",
+    "statusLegend": {
+      "stable": "Validé et utilisé.",
+      "proposed": "Proposé, en attente de décision ; ne pas l’afficher comme acquis.",
+      "deprecated": "À ne plus utiliser ; voir `replacement`."
+    },
+    "compatibility": "Additif : aucune clé de la version 2 n’est supprimée ni renommée. Les blocs YAML colors, typography, rounded, spacing de DESIGN.md restent la seule entrée de build-tokens.mjs.",
+    "citationSyntax": "Dans DESIGN.md, un token se cite entre accolades : {colors.ink}, {semantic.text.default}, {component.button.primary}. Le chemin existe dans DESIGN.json ou dans le front matter.",
+    "aliases": {}
+  },
+  "tokens": {
+    "primitive": {
+      "colors": {
+        "sovereign-deep-blue": {
+          "value": "#12293A",
+          "status": "stable"
+        },
+        "tricolor-blue": {
+          "value": "#174082",
+          "status": "stable"
+        },
+        "console-sky": {
+          "value": "#006EB1",
+          "status": "stable"
+        },
+        "tricolor-red": {
+          "value": "#C80A26",
+          "status": "stable"
+        },
+        "cold-mist": {
+          "value": "#F0F7FC",
+          "status": "stable"
+        },
+        "instrument-white": {
+          "value": "#FCFDFE",
+          "status": "stable"
+        },
+        "hover-mist": {
+          "value": "#E6F3FA",
+          "status": "stable"
+        },
+        "muted-mist": {
+          "value": "#DBE7F0",
+          "status": "stable"
+        },
+        "selection-veil": {
+          "value": "#CEE5FC",
+          "status": "stable"
+        },
+        "console-border": {
+          "value": "#C2DDF0",
+          "status": "stable"
+        },
+        "ink": {
+          "value": "#001423",
+          "status": "stable"
+        },
+        "dim-ink": {
+          "value": "#43474C",
+          "status": "stable"
+        },
+        "mute-ink": {
+          "value": "#73777D",
+          "status": "stable"
+        },
+        "signal-success": {
+          "value": "#1F8A4C",
+          "status": "stable"
+        },
+        "signal-warning": {
+          "value": "#C68A00",
+          "status": "stable"
+        },
+        "signal-danger": {
+          "value": "#BA1A1A",
+          "status": "stable"
+        },
+        "pill-success-bg": {
+          "value": "#EAF6EE",
+          "status": "stable"
+        },
+        "pill-warning-bg": {
+          "value": "#FBF3DC",
+          "status": "stable"
+        },
+        "pill-danger-bg": {
+          "value": "#FBE9E9",
+          "status": "stable"
+        },
+        "mute-ink-aa": {
+          "value": "#505358",
+          "status": "proposed",
+          "derivedFrom": "mute-ink",
+          "note": "Mute Ink assombri à 70 % (color-mix avec le noir), déjà utilisé par Athena (--ath-text-mute) pour atteindre 4,5:1 sur les fonds clairs."
+        },
+        "signal-success-text": {
+          "value": "#166337",
+          "status": "proposed",
+          "derivedFrom": "signal-success",
+          "note": "Texte de pastille succès (72 % du signal + noir), observé dans Athena."
+        },
+        "signal-warning-text": {
+          "value": "#6D4C00",
+          "status": "proposed",
+          "derivedFrom": "signal-warning",
+          "note": "Texte de pastille avertissement (55 % du signal + noir), observé dans Athena."
+        },
+        "signal-danger-text": {
+          "value": "#9E1616",
+          "status": "proposed",
+          "derivedFrom": "signal-danger",
+          "note": "Texte de pastille danger (85 % du signal + noir), observé dans Athena."
+        },
+        "console-sky-text": {
+          "value": "#005E96",
+          "status": "proposed",
+          "derivedFrom": "console-sky",
+          "note": "Texte de pastille info (85 % de Console Sky + noir), observé dans Athena."
+        }
+      },
+      "overlays": {
+        "scrim": {
+          "value": "rgba(0, 20, 35, 0.55)",
+          "note": "Fond de modale : Ink à 55 %. Sans flou.",
+          "status": "stable"
+        },
+        "on-inverse-subtle": {
+          "value": "rgba(255, 255, 255, 0.06)",
+          "note": "Survol sur surface inverse (en-tête de tableau triable, item de navigation).",
+          "status": "proposed"
+        },
+        "on-inverse-hover": {
+          "value": "rgba(255, 255, 255, 0.12)",
+          "note": "Survol d’un bouton-icône ou séparateur sur surface inverse.",
+          "status": "proposed"
+        },
+        "on-inverse-border": {
+          "value": "rgba(255, 255, 255, 0.35)",
+          "note": "Bordure d’un bouton-icône sur surface inverse.",
+          "status": "proposed"
+        },
+        "sky-tint-active": {
+          "value": "rgba(0, 110, 177, 0.18)",
+          "note": "Teinte de l’item actif de la barre latérale.",
+          "status": "proposed"
+        }
+      },
+      "fontSizes": {
+        "micro": {
+          "value": "9.5px",
+          "status": "deprecated",
+          "replacement": "{fontSizes.xs}",
+          "note": "En-têtes de tableau. Sous le plancher de 11 px : à remplacer."
+        },
+        "2xs": {
+          "value": "10px",
+          "status": "stable",
+          "note": "Pastilles, tags, chips, indices. Maintenu pour compatibilité ; 11 px recommandé pour tout nouveau composant."
+        },
+        "xs": {
+          "value": "11px",
+          "status": "stable",
+          "note": "Label, eyebrow : plancher recommandé."
+        },
+        "sm": {
+          "value": "12px",
+          "status": "stable",
+          "note": "Boutons, champs de recherche, cellules de tableau."
+        },
+        "md": {
+          "value": "13px",
+          "status": "stable",
+          "note": "Corps de texte."
+        },
+        "lg": {
+          "value": "15px",
+          "status": "stable",
+          "note": "H3, titre de modale."
+        },
+        "xl": {
+          "value": "18px",
+          "status": "stable",
+          "note": "H2."
+        },
+        "2xl": {
+          "value": "26px",
+          "status": "stable",
+          "note": "H1."
+        },
+        "3xl": {
+          "value": "32px",
+          "status": "stable",
+          "note": "Display."
+        },
+        "stat": {
+          "value": "30px",
+          "status": "stable",
+          "note": "Valeur d’une stat card (écart documenté avec Display 32 px)."
+        }
+      },
+      "fontFamilies": {
+        "sans": {
+          "value": "IBM Plex Sans, system-ui, sans-serif",
+          "status": "stable"
+        },
+        "mono": {
+          "value": "IBM Plex Mono, ui-monospace, monospace",
+          "status": "stable"
+        }
+      },
+      "fontWeights": {
+        "regular": {
+          "value": 400,
+          "status": "stable"
+        },
+        "medium": {
+          "value": 500,
+          "status": "stable"
+        },
+        "semibold": {
+          "value": 600,
+          "status": "stable"
+        },
+        "bold": {
+          "value": 700,
+          "status": "stable"
+        }
+      },
+      "letterSpacings": {
+        "none": {
+          "value": "0",
+          "status": "stable"
+        },
+        "heading-sm": {
+          "value": "0.02em",
+          "status": "stable"
+        },
+        "heading": {
+          "value": "0.04em",
+          "status": "stable"
+        },
+        "label": {
+          "value": "0.12em",
+          "status": "stable"
+        },
+        "pill": {
+          "value": "0.14em",
+          "status": "stable"
+        },
+        "eyebrow": {
+          "value": "0.18em",
+          "status": "stable"
+        },
+        "tag": {
+          "value": "0.10em",
+          "status": "stable"
+        }
+      },
+      "lineHeights": {
+        "tight": {
+          "value": 1.15,
+          "status": "stable"
+        },
+        "body": {
+          "value": 1.45,
+          "status": "stable"
+        }
+      },
+      "spacing": {
+        "xs": {
+          "value": "4px",
+          "status": "stable"
+        },
+        "sm": {
+          "value": "8px",
+          "status": "stable"
+        },
+        "md": {
+          "value": "12px",
+          "status": "stable"
+        },
+        "lg": {
+          "value": "20px",
+          "status": "stable"
+        },
+        "xl": {
+          "value": "24px",
+          "status": "stable"
+        },
+        "2xs": {
+          "value": "2px",
+          "status": "proposed",
+          "note": "Espace interne minimal (pastille, jauge)."
+        },
+        "base": {
+          "value": "16px",
+          "status": "proposed",
+          "note": "Marge standard entre blocs ; absente de l’échelle d’origine alors que le CSS l’emploie."
+        },
+        "2xl": {
+          "value": "32px",
+          "status": "proposed"
+        },
+        "3xl": {
+          "value": "48px",
+          "status": "proposed"
+        }
+      },
+      "rounded": {
+        "none": {
+          "value": "0",
+          "status": "stable"
+        }
+      },
+      "borderWidths": {
+        "hairline": {
+          "value": "1px",
+          "status": "stable",
+          "note": "Bordure standard."
+        },
+        "strong": {
+          "value": "2px",
+          "status": "stable",
+          "note": "Focus d’un champ, filet des onglets, repères du CornerFrame."
+        },
+        "accent": {
+          "value": "3px",
+          "status": "stable",
+          "note": "Liseré de la stat card et repère actif de la barre latérale."
+        },
+        "stripe": {
+          "value": "4px",
+          "status": "stable",
+          "note": "Bandeau tricolore de l’en-tête de page."
+        }
+      },
+      "opacities": {
+        "disabled": {
+          "value": 0.55,
+          "status": "stable"
+        },
+        "nav-inactive": {
+          "value": 0.7,
+          "status": "stable"
+        },
+        "sidebar-subtitle": {
+          "value": 0.45,
+          "status": "stable"
+        }
+      },
+      "durations": {
+        "instant": {
+          "value": "0ms",
+          "status": "proposed",
+          "note": "Valeur imposée si prefers-reduced-motion: reduce."
+        },
+        "fast": {
+          "value": "120ms",
+          "status": "stable",
+          "note": "Seule durée de la charte : filter, background, color."
+        },
+        "toast": {
+          "value": "5000ms",
+          "status": "stable",
+          "note": "Délai avant disparition automatique d’un toast."
+        }
+      },
+      "easings": {
+        "linear": {
+          "value": "linear",
+          "status": "stable"
+        }
+      },
+      "zIndex": {
+        "base": {
+          "value": 0,
+          "status": "proposed"
+        },
+        "sticky": {
+          "value": 100,
+          "status": "proposed"
+        },
+        "overlay": {
+          "value": 1000,
+          "status": "stable",
+          "note": "Fond et dialogue de modale (valeur du CSS d’origine)."
+        },
+        "toast": {
+          "value": 1100,
+          "status": "proposed"
+        }
+      },
+      "sizes": {
+        "control-sm": {
+          "value": "26px",
+          "status": "stable"
+        },
+        "control-md": {
+          "value": "32px",
+          "status": "stable"
+        },
+        "control-lg": {
+          "value": "40px",
+          "status": "stable"
+        },
+        "icon-button": {
+          "value": "28px",
+          "status": "stable"
+        },
+        "icon-button-compact": {
+          "value": "24px",
+          "status": "stable",
+          "note": "Fermeture de modale ; 24 px = minimum WCAG 2.2 (2.5.8)."
+        },
+        "tag-height": {
+          "value": "18px",
+          "status": "stable",
+          "note": "Non interactif : exempté de la cible minimale."
+        },
+        "touch-target-min": {
+          "value": "24px",
+          "status": "proposed",
+          "note": "Cible minimale d’un contrôle interactif (WCAG 2.2 AA, 2.5.8)."
+        },
+        "dialog-sm": {
+          "value": "480px",
+          "status": "stable"
+        },
+        "dialog-md": {
+          "value": "640px",
+          "status": "stable"
+        },
+        "dialog-lg": {
+          "value": "880px",
+          "status": "stable"
+        },
+        "sidebar": {
+          "value": "232px",
+          "status": "proposed",
+          "note": "Valeur observée dans Athena."
+        },
+        "sidebar-collapsed": {
+          "value": "64px",
+          "status": "stable"
+        },
+        "prose-max": {
+          "value": "75ch",
+          "status": "stable"
+        },
+        "toast-min": {
+          "value": "280px",
+          "status": "stable"
+        },
+        "toast-max": {
+          "value": "420px",
+          "status": "stable"
+        }
+      },
+      "breakpoints": {
+        "sm": {
+          "value": "480px",
+          "status": "proposed"
+        },
+        "md": {
+          "value": "768px",
+          "status": "stable",
+          "note": "Barre latérale visible ou tiroir."
+        },
+        "lg": {
+          "value": "1024px",
+          "status": "proposed"
+        },
+        "xl": {
+          "value": "1440px",
+          "status": "proposed"
+        }
+      }
+    },
+    "semantic": {
+      "themes": {
+        "light": {
+          "surface": {
+            "app": {
+              "value": "{colors.cold-mist}",
+              "status": "stable"
+            },
+            "default": {
+              "value": "{colors.instrument-white}",
+              "status": "stable"
+            },
+            "hover": {
+              "value": "{colors.hover-mist}",
+              "status": "stable"
+            },
+            "muted": {
+              "value": "{colors.muted-mist}",
+              "status": "stable"
+            },
+            "selected": {
+              "value": "{colors.selection-veil}",
+              "status": "stable"
+            },
+            "inverse": {
+              "value": "{colors.sovereign-deep-blue}",
+              "status": "stable"
+            },
+            "scrim": {
+              "value": "{overlays.scrim}",
+              "status": "stable"
+            }
+          },
+          "text": {
+            "default": {
+              "value": "{colors.ink}",
+              "status": "stable"
+            },
+            "secondary": {
+              "value": "{colors.dim-ink}",
+              "status": "stable"
+            },
+            "mute": {
+              "value": "{colors.mute-ink}",
+              "status": "stable"
+            },
+            "mute-aa": {
+              "value": "{colors.mute-ink-aa}",
+              "status": "proposed"
+            },
+            "on-inverse": {
+              "value": "{colors.instrument-white}",
+              "status": "stable"
+            },
+            "on-action": {
+              "value": "{colors.instrument-white}",
+              "status": "stable"
+            },
+            "link": {
+              "value": "{colors.console-sky}",
+              "status": "stable"
+            },
+            "link-aa": {
+              "value": "{colors.console-sky-text}",
+              "status": "proposed"
+            },
+            "heading": {
+              "value": "{colors.sovereign-deep-blue}",
+              "status": "stable"
+            }
+          },
+          "border": {
+            "default": {
+              "value": "{colors.console-border}",
+              "status": "stable"
+            },
+            "strong": {
+              "value": "{colors.sovereign-deep-blue}",
+              "status": "stable"
+            },
+            "focus": {
+              "value": "{colors.console-sky}",
+              "status": "stable"
+            },
+            "danger": {
+              "value": "{colors.signal-danger}",
+              "status": "stable"
+            },
+            "control": {
+              "value": "{colors.mute-ink}",
+              "status": "proposed"
+            }
+          },
+          "action": {
+            "primary": {
+              "bg": {
+                "value": "{colors.console-sky}",
+                "status": "stable"
+              },
+              "fg": {
+                "value": "{colors.instrument-white}",
+                "status": "stable"
+              }
+            },
+            "deep": {
+              "bg": {
+                "value": "{colors.sovereign-deep-blue}",
+                "status": "stable"
+              },
+              "fg": {
+                "value": "{colors.instrument-white}",
+                "status": "stable"
+              }
+            },
+            "ghost": {
+              "bg": {
+                "value": "transparent",
+                "status": "stable"
+              },
+              "fg": {
+                "value": "{colors.sovereign-deep-blue}",
+                "status": "stable"
+              },
+              "border": {
+                "value": "{colors.sovereign-deep-blue}",
+                "status": "stable"
+              }
+            },
+            "danger": {
+              "bg": {
+                "value": "transparent",
+                "status": "stable"
+              },
+              "fg": {
+                "value": "{colors.signal-danger}",
+                "status": "stable"
+              },
+              "border": {
+                "value": "{colors.signal-danger}",
+                "status": "stable"
+              }
+            }
+          },
+          "state": {
+            "success": {
+              "bg": {
+                "value": "{colors.pill-success-bg}",
+                "status": "stable"
+              },
+              "fg": {
+                "value": "{colors.signal-success}",
+                "status": "stable"
+              },
+              "fg-aa": {
+                "value": "{colors.signal-success-text}",
+                "status": "proposed"
+              },
+              "border": {
+                "value": "{colors.signal-success}",
+                "status": "stable"
+              }
+            },
+            "warning": {
+              "bg": {
+                "value": "{colors.pill-warning-bg}",
+                "status": "stable"
+              },
+              "fg": {
+                "value": "{colors.signal-warning}",
+                "status": "stable"
+              },
+              "fg-aa": {
+                "value": "{colors.signal-warning-text}",
+                "status": "proposed"
+              },
+              "border": {
+                "value": "{colors.signal-warning}",
+                "status": "stable"
+              }
+            },
+            "danger": {
+              "bg": {
+                "value": "{colors.pill-danger-bg}",
+                "status": "stable"
+              },
+              "fg": {
+                "value": "{colors.signal-danger}",
+                "status": "stable"
+              },
+              "fg-aa": {
+                "value": "{colors.signal-danger-text}",
+                "status": "proposed"
+              },
+              "border": {
+                "value": "{colors.signal-danger}",
+                "status": "stable"
+              }
+            },
+            "info": {
+              "bg": {
+                "value": "{colors.hover-mist}",
+                "status": "stable"
+              },
+              "fg": {
+                "value": "{colors.console-sky}",
+                "status": "stable"
+              },
+              "fg-aa": {
+                "value": "{colors.console-sky-text}",
+                "status": "proposed"
+              },
+              "border": {
+                "value": "{colors.console-sky}",
+                "status": "stable"
+              }
+            },
+            "neutral": {
+              "bg": {
+                "value": "{colors.instrument-white}",
+                "status": "proposed"
+              },
+              "fg": {
+                "value": "{colors.dim-ink}",
+                "status": "proposed"
+              },
+              "fg-aa": {
+                "value": "{colors.dim-ink}",
+                "status": "proposed"
+              },
+              "border": {
+                "value": "{colors.sovereign-deep-blue}",
+                "status": "proposed"
+              }
+            }
+          },
+          "focus": {
+            "ring": {
+              "value": "{colors.console-sky}",
+              "status": "proposed"
+            },
+            "ring-on-inverse": {
+              "value": "{colors.instrument-white}",
+              "status": "proposed"
+            }
+          }
+        },
+        "dark": {
+          "surface": {
+            "app": {
+              "value": "#0A1B27",
+              "status": "proposed"
+            },
+            "default": {
+              "value": "#0E2230",
+              "status": "proposed"
+            },
+            "hover": {
+              "value": "#1B3850",
+              "status": "proposed"
+            },
+            "muted": {
+              "value": "#264E6E",
+              "status": "proposed"
+            },
+            "selected": {
+              "value": "#264E6E",
+              "status": "proposed"
+            },
+            "inverse": {
+              "value": "#06121C",
+              "status": "proposed"
+            },
+            "scrim": {
+              "value": "rgba(0, 0, 0, 0.65)",
+              "status": "proposed"
+            }
+          },
+          "text": {
+            "default": {
+              "value": "#F0F7FC",
+              "status": "proposed"
+            },
+            "secondary": {
+              "value": "#C7DAE2",
+              "status": "proposed"
+            },
+            "mute": {
+              "value": "#A8C0CB",
+              "status": "proposed"
+            },
+            "mute-aa": {
+              "value": "#A8C0CB",
+              "status": "proposed"
+            },
+            "on-inverse": {
+              "value": "#F0F7FC",
+              "status": "proposed"
+            },
+            "on-action": {
+              "value": "#001423",
+              "status": "proposed"
+            },
+            "link": {
+              "value": "#7EC4EC",
+              "status": "proposed"
+            },
+            "link-aa": {
+              "value": "#7EC4EC",
+              "status": "proposed"
+            },
+            "heading": {
+              "value": "#F0F7FC",
+              "status": "proposed"
+            }
+          },
+          "border": {
+            "default": {
+              "value": "#264E6E",
+              "status": "proposed"
+            },
+            "strong": {
+              "value": "#5C95BB",
+              "status": "proposed"
+            },
+            "focus": {
+              "value": "#7EC4EC",
+              "status": "proposed"
+            },
+            "danger": {
+              "value": "#EE9C99",
+              "status": "proposed"
+            },
+            "control": {
+              "value": "#5C95BB",
+              "status": "proposed"
+            }
+          },
+          "action": {
+            "primary": {
+              "bg": {
+                "value": "#B2DDF6",
+                "status": "proposed"
+              },
+              "fg": {
+                "value": "#001423",
+                "status": "proposed"
+              }
+            },
+            "deep": {
+              "bg": {
+                "value": "#5C95BB",
+                "status": "proposed"
+              },
+              "fg": {
+                "value": "#001423",
+                "status": "proposed"
+              }
+            },
+            "ghost": {
+              "bg": {
+                "value": "transparent",
+                "status": "proposed"
+              },
+              "fg": {
+                "value": "#F0F7FC",
+                "status": "proposed"
+              },
+              "border": {
+                "value": "#5C95BB",
+                "status": "proposed"
+              }
+            },
+            "danger": {
+              "bg": {
+                "value": "transparent",
+                "status": "proposed"
+              },
+              "fg": {
+                "value": "#EE9C99",
+                "status": "proposed"
+              },
+              "border": {
+                "value": "#EE9C99",
+                "status": "proposed"
+              }
+            }
+          },
+          "state": {
+            "success": {
+              "bg": {
+                "value": "#0A3A1F",
+                "status": "proposed"
+              },
+              "fg": {
+                "value": "#92D2AC",
+                "status": "proposed"
+              },
+              "fg-aa": {
+                "value": "#92D2AC",
+                "status": "proposed"
+              },
+              "border": {
+                "value": "#92D2AC",
+                "status": "proposed"
+              }
+            },
+            "warning": {
+              "bg": {
+                "value": "#4A3000",
+                "status": "proposed"
+              },
+              "fg": {
+                "value": "#F1D38A",
+                "status": "proposed"
+              },
+              "fg-aa": {
+                "value": "#F1D38A",
+                "status": "proposed"
+              },
+              "border": {
+                "value": "#F1D38A",
+                "status": "proposed"
+              }
+            },
+            "danger": {
+              "bg": {
+                "value": "#600C0E",
+                "status": "proposed"
+              },
+              "fg": {
+                "value": "#EE9C99",
+                "status": "proposed"
+              },
+              "fg-aa": {
+                "value": "#EE9C99",
+                "status": "proposed"
+              },
+              "border": {
+                "value": "#EE9C99",
+                "status": "proposed"
+              }
+            },
+            "info": {
+              "bg": {
+                "value": "#003157",
+                "status": "proposed"
+              },
+              "fg": {
+                "value": "#7EC4EC",
+                "status": "proposed"
+              },
+              "fg-aa": {
+                "value": "#7EC4EC",
+                "status": "proposed"
+              },
+              "border": {
+                "value": "#7EC4EC",
+                "status": "proposed"
+              }
+            },
+            "neutral": {
+              "bg": {
+                "value": "#0E2230",
+                "status": "proposed"
+              },
+              "fg": {
+                "value": "#C7DAE2",
+                "status": "proposed"
+              },
+              "fg-aa": {
+                "value": "#C7DAE2",
+                "status": "proposed"
+              },
+              "border": {
+                "value": "#5C95BB",
+                "status": "proposed"
+              }
+            }
+          },
+          "focus": {
+            "ring": {
+              "value": "#7EC4EC",
+              "status": "proposed"
+            },
+            "ring-on-inverse": {
+              "value": "#F0F7FC",
+              "status": "proposed"
+            }
+          }
+        }
+      },
+      "defaultTheme": "light",
+      "note": "Mêmes clés dans les deux thèmes. Le thème clair s’appuie sur les tokens existants ; le thème sombre est entièrement proposé et n’utilise que des valeurs des rampes tonales de colorMeta."
+    },
+    "states": {
+      "default": {
+        "status": "stable",
+        "rule": "Aspect de repos défini par le composant."
+      },
+      "hover": {
+        "status": "stable",
+        "rule": "Remplissage plein : filter brightness(1.07). Fantôme, ligne, item : {semantic.surface.hover}. Bordure de champ : {semantic.border.strong}. Aucun transform ni ombre."
+      },
+      "active": {
+        "status": "proposed",
+        "rule": "Pendant l’appui : filter brightness(0.93) pour les pleins, {semantic.surface.selected} pour les fantômes. Non défini dans la charte d’origine."
+      },
+      "focus": {
+        "status": "stable",
+        "rule": "Focus ring visible au clavier (:focus-visible) : 2px solid {semantic.focus.ring}, décalage 2px. Champ : bordure {borderWidths.strong} {semantic.border.focus}, sans décalage. Sur surface inverse : {semantic.focus.ring-on-inverse}."
+      },
+      "disabled": {
+        "status": "stable",
+        "rule": "opacity {opacities.disabled}, curseur not-allowed. Champ : fond {semantic.surface.hover}, texte {semantic.text.mute}. Le texte reste lisible : l’état n’est jamais transmis seulement par l’opacité (ajouter aria-disabled ou disabled)."
+      },
+      "loading": {
+        "status": "proposed",
+        "rule": "aria-busy=\"true\", contrôle désactivé, libellé conservé suivi de « … ». Pas d’animation ; au-delà de 1 s, afficher un état de chargement explicite (voir patterns)."
+      },
+      "error": {
+        "status": "stable",
+        "rule": "Bordure {semantic.border.danger} et ligne d’aide 11 px en {semantic.state.danger.fg-aa} sous le champ, reliée par aria-describedby. Fond inchangé. Jamais en rouge tricolore."
+      },
+      "selected": {
+        "status": "stable",
+        "rule": "Ligne : fond {semantic.surface.selected} et aria-selected / aria-current. Chip actif : fond {semantic.surface.inverse}. Onglet : filet 2px {semantic.border.focus}. L’état sélectionné s’accompagne d’un indice non coloré (texte, graisse ou marque)."
+      }
+    },
+    "component": {
+      "button": {
+        "primary": {
+          "height": "{sizes.control-md}",
+          "paddingX": "14px",
+          "fontSize": "{fontSizes.sm}",
+          "fontWeight": "{fontWeights.bold}",
+          "letterSpacing": "{letterSpacings.label}",
+          "textTransform": "uppercase",
+          "rounded": "{rounded.none}",
+          "bg": "{semantic.action.primary.bg}",
+          "fg": "{semantic.action.primary.fg}",
+          "states": {
+            "hover": "filter brightness(1.07)",
+            "active": "filter brightness(0.93)",
+            "focus": "{states.focus}",
+            "disabled": "{states.disabled}",
+            "loading": "{states.loading}"
+          },
+          "status": "stable"
+        },
+        "deep": {
+          "height": "{sizes.control-md}",
+          "paddingX": "14px",
+          "fontSize": "{fontSizes.sm}",
+          "fontWeight": "{fontWeights.bold}",
+          "letterSpacing": "{letterSpacings.label}",
+          "textTransform": "uppercase",
+          "rounded": "{rounded.none}",
+          "bg": "{semantic.action.deep.bg}",
+          "fg": "{semantic.action.deep.fg}",
+          "states": {
+            "hover": "filter brightness(1.07)",
+            "active": "filter brightness(0.93)",
+            "focus": "{states.focus}",
+            "disabled": "{states.disabled}",
+            "loading": "{states.loading}"
+          },
+          "status": "stable"
+        },
+        "ghost": {
+          "height": "{sizes.control-md}",
+          "paddingX": "14px",
+          "fontSize": "{fontSizes.sm}",
+          "fontWeight": "{fontWeights.bold}",
+          "letterSpacing": "{letterSpacings.label}",
+          "textTransform": "uppercase",
+          "rounded": "{rounded.none}",
+          "bg": "{semantic.action.ghost.bg}",
+          "fg": "{semantic.action.ghost.fg}",
+          "states": {
+            "hover": "{semantic.surface.hover}",
+            "active": "filter brightness(0.93)",
+            "focus": "{states.focus}",
+            "disabled": "{states.disabled}",
+            "loading": "{states.loading}"
+          },
+          "status": "stable",
+          "border": "{semantic.action.ghost.border}"
+        },
+        "danger": {
+          "height": "{sizes.control-md}",
+          "paddingX": "14px",
+          "fontSize": "{fontSizes.sm}",
+          "fontWeight": "{fontWeights.bold}",
+          "letterSpacing": "{letterSpacings.label}",
+          "textTransform": "uppercase",
+          "rounded": "{rounded.none}",
+          "bg": "{semantic.action.danger.bg}",
+          "fg": "{semantic.action.danger.fg}",
+          "states": {
+            "hover": "fond {semantic.action.danger.fg}, texte {semantic.text.on-action}",
+            "active": "filter brightness(0.93)",
+            "focus": "{states.focus}",
+            "disabled": "{states.disabled}",
+            "loading": "{states.loading}"
+          },
+          "status": "stable",
+          "border": "{semantic.action.danger.border}"
+        },
+        "sizes": {
+          "sm": "{sizes.control-sm}",
+          "md": "{sizes.control-md}",
+          "lg": "{sizes.control-lg}"
+        }
+      },
+      "field": {
+        "bg": "{semantic.surface.default}",
+        "fg": "{semantic.text.default}",
+        "border": "{semantic.border.default}",
+        "borderWidth": "{borderWidths.hairline}",
+        "padding": "6px 10px",
+        "fontSize": "{fontSizes.md}",
+        "rounded": "{rounded.none}",
+        "labelFontSize": "{fontSizes.xs}",
+        "labelColor": "{semantic.text.secondary}",
+        "placeholder": "{semantic.text.mute-aa}",
+        "states": {
+          "hover": "bordure {semantic.border.strong}",
+          "focus": "{states.focus}",
+          "disabled": "{states.disabled}",
+          "error": "{states.error}",
+          "loading": "{states.loading}"
+        },
+        "status": "stable"
+      },
+      "table": {
+        "header": {
+          "bg": "{semantic.surface.inverse}",
+          "fg": "{semantic.text.on-inverse}",
+          "fontSize": "{fontSizes.micro}",
+          "target": "{fontSizes.xs}",
+          "fontWeight": "{fontWeights.semibold}",
+          "letterSpacing": "{letterSpacings.eyebrow}",
+          "padding": "9px 12px",
+          "status": "stable",
+          "note": "Valeur observée : 9,5 px. Le plancher de 11 px est visé ({fontSizes.micro} déprécié)."
+        },
+        "row": {
+          "border": "{semantic.border.default}",
+          "states": {
+            "hover": "{semantic.surface.hover}",
+            "selected": "{states.selected}"
+          },
+          "fontSize": "{fontSizes.sm}",
+          "status": "stable"
+        },
+        "cell-mono": {
+          "fontFamily": "{fontFamilies.mono}",
+          "tabularNums": true,
+          "status": "stable"
+        }
+      },
+      "tab": {
+        "fontSize": "{fontSizes.xs}",
+        "fontWeight": "{fontWeights.semibold}",
+        "letterSpacing": "{letterSpacings.eyebrow}",
+        "inactive": "{semantic.text.mute-aa}",
+        "active": "{semantic.text.heading}",
+        "rule": "{semantic.border.default}",
+        "indicator": "{semantic.border.focus}",
+        "indicatorWidth": "{borderWidths.strong}",
+        "states": {
+          "hover": "{semantic.text.heading}",
+          "focus": "{states.focus}",
+          "selected": "{states.selected}"
+        },
+        "status": "stable"
+      },
+      "modal": {
+        "backdrop": "{semantic.surface.scrim}",
+        "bg": "{semantic.surface.default}",
+        "border": "{semantic.border.strong}",
+        "header": {
+          "bg": "{semantic.surface.inverse}",
+          "fg": "{semantic.text.on-inverse}"
+        },
+        "widths": [
+          "{sizes.dialog-sm}",
+          "{sizes.dialog-md}",
+          "{sizes.dialog-lg}"
+        ],
+        "zIndex": "{zIndex.overlay}",
+        "status": "stable",
+        "note": "Implémenté dans Athena (Modal) ; marqué proposed dans la version 2 du JSON."
+      },
+      "toast": {
+        "bg": "{semantic.state.success.bg}",
+        "border": "{semantic.state.success.border}",
+        "text": "{semantic.text.default}",
+        "duration": "{durations.toast}",
+        "zIndex": "{zIndex.toast}",
+        "variants": [
+          "success",
+          "warning",
+          "danger",
+          "info"
+        ],
+        "status": "stable",
+        "note": "Implémenté dans Athena (ToastProvider)."
+      },
+      "badge": {
+        "pill": {
+          "fontSize": "{fontSizes.2xs}",
+          "letterSpacing": "{letterSpacings.pill}",
+          "padding": "2px 8px",
+          "kinds": [
+            "success",
+            "warning",
+            "danger",
+            "info",
+            "default"
+          ],
+          "text": "{semantic.state.*.fg-aa}",
+          "status": "stable"
+        },
+        "tag": {
+          "height": "{sizes.tag-height}",
+          "fontSize": "{fontSizes.2xs}",
+          "letterSpacing": "{letterSpacings.tag}",
+          "variants": [
+            "default",
+            "solid",
+            "accent",
+            "ghost"
+          ],
+          "status": "stable"
+        },
+        "chip": {
+          "fontSize": "{fontSizes.2xs}",
+          "letterSpacing": "{letterSpacings.label}",
+          "padding": "5px 10px",
+          "states": {
+            "selected": "{semantic.surface.inverse}"
+          },
+          "status": "stable"
+        }
+      },
+      "card": {
+        "bg": "{semantic.surface.default}",
+        "border": "{semantic.border.default}",
+        "nesting": "interdit",
+        "status": "stable"
+      },
+      "stat-card": {
+        "padding": "18px 20px",
+        "stripe": "{borderWidths.accent}",
+        "stripeColor": "{semantic.border.focus}",
+        "valueSize": "{fontSizes.stat}",
+        "status": "stable"
+      },
+      "nav-item": {
+        "fg": "{semantic.text.on-inverse}",
+        "inactiveOpacity": "{opacities.nav-inactive}",
+        "hover": "{overlays.on-inverse-subtle}",
+        "active": {
+          "bg": "{overlays.sky-tint-active}",
+          "indicator": "{semantic.border.focus}",
+          "indicatorWidth": "{borderWidths.accent}"
+        },
+        "states": {
+          "focus": "{states.focus}",
+          "selected": "aria-current=\"page\""
+        },
+        "status": "stable"
+      },
+      "page-header": {
+        "stripeWidth": "{borderWidths.stripe}",
+        "titleSize": "{fontSizes.2xl}",
+        "border": "{semantic.border.default}",
+        "status": "stable"
+      },
+      "empty-state": {
+        "frame": "48px",
+        "maxWidth": "280px",
+        "padding": "60px",
+        "status": "stable"
+      }
+    },
+    "density": {
+      "normal": {
+        "status": "stable",
+        "controlHeight": "{sizes.control-md}",
+        "rowPaddingY": "9px",
+        "fontSize": "{fontSizes.sm}",
+        "gap": "{spacing.sm}",
+        "note": "Valeurs actuelles de la charte."
+      },
+      "compact": {
+        "status": "proposed",
+        "controlHeight": "{sizes.control-sm}",
+        "rowPaddingY": "5px",
+        "fontSize": "{fontSizes.sm}",
+        "gap": "{spacing.xs}",
+        "note": "Tables de plusieurs centaines de lignes. Cible minimale 24 px respectée."
+      },
+      "comfortable": {
+        "status": "proposed",
+        "controlHeight": "{sizes.control-lg}",
+        "rowPaddingY": "13px",
+        "fontSize": "{fontSizes.md}",
+        "gap": "{spacing.md}",
+        "note": "Écrans tactiles ou usage occasionnel."
+      },
+      "rule": "La densité change les espacements et hauteurs, jamais les couleurs ni les tailles de police en dessous de 11 px."
+    }
+  },
+  "contrast": {
+    "method": "WCAG 2.x, luminance relative sRGB ; seuils : texte 4,5:1, grand texte et éléments non textuels 3:1.",
+    "pairs": [
+      {
+        "theme": "light",
+        "fg": "{semantic.text.default}",
+        "bg": "{semantic.surface.default}",
+        "usage": "text",
+        "where": "Corps de texte sur surface",
+        "fgValue": "#001423",
+        "bgValue": "#FCFDFE",
+        "ratio": 18.34,
+        "wcag": "AAA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "light",
+        "fg": "{semantic.text.default}",
+        "bg": "{semantic.surface.app}",
+        "usage": "text",
+        "where": "Corps de texte sur fond d’application",
+        "fgValue": "#001423",
+        "bgValue": "#F0F7FC",
+        "ratio": 17.27,
+        "wcag": "AAA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "light",
+        "fg": "{semantic.text.default}",
+        "bg": "{semantic.surface.selected}",
+        "usage": "text",
+        "where": "Ligne sélectionnée",
+        "fgValue": "#001423",
+        "bgValue": "#CEE5FC",
+        "ratio": 14.44,
+        "wcag": "AAA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "light",
+        "fg": "{semantic.text.secondary}",
+        "bg": "{semantic.surface.default}",
+        "usage": "text",
+        "where": "Texte secondaire",
+        "fgValue": "#43474C",
+        "bgValue": "#FCFDFE",
+        "ratio": 9.19,
+        "wcag": "AAA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "light",
+        "fg": "{semantic.text.mute}",
+        "bg": "{semantic.surface.default}",
+        "usage": "text",
+        "where": "Aide, eyebrow, méta sur surface",
+        "fgValue": "#73777D",
+        "bgValue": "#FCFDFE",
+        "ratio": 4.42,
+        "wcag": "AA-large",
+        "required": 4.5,
+        "result": "known-issue",
+        "remediation": "{semantic.text.mute-aa}"
+      },
+      {
+        "theme": "light",
+        "fg": "{semantic.text.mute}",
+        "bg": "{semantic.surface.app}",
+        "usage": "text",
+        "where": "Eyebrow sur fond d’application",
+        "fgValue": "#73777D",
+        "bgValue": "#F0F7FC",
+        "ratio": 4.16,
+        "wcag": "AA-large",
+        "required": 4.5,
+        "result": "known-issue",
+        "remediation": "{semantic.text.mute-aa}"
+      },
+      {
+        "theme": "light",
+        "fg": "{semantic.text.mute}",
+        "bg": "{semantic.surface.hover}",
+        "usage": "text",
+        "where": "Champ désactivé, champ de recherche",
+        "fgValue": "#73777D",
+        "bgValue": "#E6F3FA",
+        "ratio": 3.98,
+        "wcag": "AA-large",
+        "required": 4.5,
+        "result": "known-issue",
+        "remediation": "{semantic.text.mute-aa}"
+      },
+      {
+        "theme": "light",
+        "fg": "{semantic.text.mute-aa}",
+        "bg": "{semantic.surface.default}",
+        "usage": "text",
+        "where": "Variante accessible sur surface",
+        "fgValue": "#505358",
+        "bgValue": "#FCFDFE",
+        "ratio": 7.58,
+        "wcag": "AAA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "light",
+        "fg": "{semantic.text.mute-aa}",
+        "bg": "{semantic.surface.app}",
+        "usage": "text",
+        "where": "Variante accessible sur fond d’application",
+        "fgValue": "#505358",
+        "bgValue": "#F0F7FC",
+        "ratio": 7.14,
+        "wcag": "AAA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "light",
+        "fg": "{semantic.text.mute-aa}",
+        "bg": "{semantic.surface.hover}",
+        "usage": "text",
+        "where": "Variante accessible sur survol",
+        "fgValue": "#505358",
+        "bgValue": "#E6F3FA",
+        "ratio": 6.83,
+        "wcag": "AA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "light",
+        "fg": "{semantic.text.link}",
+        "bg": "{semantic.surface.default}",
+        "usage": "text",
+        "where": "Lien sur surface",
+        "fgValue": "#006EB1",
+        "bgValue": "#FCFDFE",
+        "ratio": 5.33,
+        "wcag": "AA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "light",
+        "fg": "{semantic.text.link}",
+        "bg": "{semantic.surface.hover}",
+        "usage": "text",
+        "where": "Lien sur survol",
+        "fgValue": "#006EB1",
+        "bgValue": "#E6F3FA",
+        "ratio": 4.8,
+        "wcag": "AA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "light",
+        "fg": "{semantic.text.link}",
+        "bg": "{semantic.surface.selected}",
+        "usage": "text",
+        "where": "Lien sur ligne sélectionnée",
+        "fgValue": "#006EB1",
+        "bgValue": "#CEE5FC",
+        "ratio": 4.2,
+        "wcag": "AA-large",
+        "required": 4.5,
+        "result": "known-issue",
+        "remediation": "{semantic.text.link-aa}"
+      },
+      {
+        "theme": "light",
+        "fg": "{semantic.text.link-aa}",
+        "bg": "{semantic.surface.selected}",
+        "usage": "text",
+        "where": "Lien accessible sur ligne sélectionnée",
+        "fgValue": "#005E96",
+        "bgValue": "#CEE5FC",
+        "ratio": 5.34,
+        "wcag": "AA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "light",
+        "fg": "{semantic.text.on-inverse}",
+        "bg": "{semantic.surface.inverse}",
+        "usage": "text",
+        "where": "Barre latérale, en-tête de tableau",
+        "fgValue": "#FCFDFE",
+        "bgValue": "#12293A",
+        "ratio": 14.69,
+        "wcag": "AAA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "light",
+        "fg": "{semantic.action.primary.fg}",
+        "bg": "{semantic.action.primary.bg}",
+        "usage": "text",
+        "where": "Bouton primaire",
+        "fgValue": "#FCFDFE",
+        "bgValue": "#006EB1",
+        "ratio": 5.33,
+        "wcag": "AA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "light",
+        "fg": "{semantic.action.deep.fg}",
+        "bg": "{semantic.action.deep.bg}",
+        "usage": "text",
+        "where": "Bouton deep",
+        "fgValue": "#FCFDFE",
+        "bgValue": "#12293A",
+        "ratio": 14.69,
+        "wcag": "AAA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "light",
+        "fg": "{semantic.action.ghost.fg}",
+        "bg": "{semantic.surface.default}",
+        "usage": "text",
+        "where": "Bouton fantôme",
+        "fgValue": "#12293A",
+        "bgValue": "#FCFDFE",
+        "ratio": 14.69,
+        "wcag": "AAA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "light",
+        "fg": "{semantic.action.danger.fg}",
+        "bg": "{semantic.surface.default}",
+        "usage": "text",
+        "where": "Bouton danger",
+        "fgValue": "#BA1A1A",
+        "bgValue": "#FCFDFE",
+        "ratio": 6.34,
+        "wcag": "AA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "light",
+        "fg": "{semantic.state.success.fg}",
+        "bg": "{semantic.state.success.bg}",
+        "usage": "text",
+        "where": "Pastille success (valeur de la charte)",
+        "fgValue": "#1F8A4C",
+        "bgValue": "#EAF6EE",
+        "ratio": 3.94,
+        "wcag": "AA-large",
+        "required": 4.5,
+        "result": "known-issue",
+        "remediation": "{semantic.state.success.fg-aa}"
+      },
+      {
+        "theme": "light",
+        "fg": "{semantic.state.success.fg-aa}",
+        "bg": "{semantic.state.success.bg}",
+        "usage": "text",
+        "where": "Pastille success (variante accessible)",
+        "fgValue": "#166337",
+        "bgValue": "#EAF6EE",
+        "ratio": 6.58,
+        "wcag": "AA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "light",
+        "fg": "{semantic.state.warning.fg}",
+        "bg": "{semantic.state.warning.bg}",
+        "usage": "text",
+        "where": "Pastille warning (valeur de la charte)",
+        "fgValue": "#C68A00",
+        "bgValue": "#FBF3DC",
+        "ratio": 2.69,
+        "wcag": "fail",
+        "required": 4.5,
+        "result": "known-issue",
+        "remediation": "{semantic.state.warning.fg-aa}"
+      },
+      {
+        "theme": "light",
+        "fg": "{semantic.state.warning.fg-aa}",
+        "bg": "{semantic.state.warning.bg}",
+        "usage": "text",
+        "where": "Pastille warning (variante accessible)",
+        "fgValue": "#6D4C00",
+        "bgValue": "#FBF3DC",
+        "ratio": 7.06,
+        "wcag": "AAA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "light",
+        "fg": "{semantic.state.danger.fg}",
+        "bg": "{semantic.state.danger.bg}",
+        "usage": "text",
+        "where": "Pastille danger (valeur de la charte)",
+        "fgValue": "#BA1A1A",
+        "bgValue": "#FBE9E9",
+        "ratio": 5.52,
+        "wcag": "AA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "light",
+        "fg": "{semantic.state.danger.fg-aa}",
+        "bg": "{semantic.state.danger.bg}",
+        "usage": "text",
+        "where": "Pastille danger (variante accessible)",
+        "fgValue": "#9E1616",
+        "bgValue": "#FBE9E9",
+        "ratio": 6.95,
+        "wcag": "AA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "light",
+        "fg": "{semantic.state.info.fg}",
+        "bg": "{semantic.state.info.bg}",
+        "usage": "text",
+        "where": "Pastille info (valeur de la charte)",
+        "fgValue": "#006EB1",
+        "bgValue": "#E6F3FA",
+        "ratio": 4.8,
+        "wcag": "AA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "light",
+        "fg": "{semantic.state.info.fg-aa}",
+        "bg": "{semantic.state.info.bg}",
+        "usage": "text",
+        "where": "Pastille info (variante accessible)",
+        "fgValue": "#005E96",
+        "bgValue": "#E6F3FA",
+        "ratio": 6.1,
+        "wcag": "AA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "light",
+        "fg": "{semantic.state.neutral.fg}",
+        "bg": "{semantic.state.neutral.bg}",
+        "usage": "text",
+        "where": "Pastille neutral (valeur de la charte)",
+        "fgValue": "#43474C",
+        "bgValue": "#FCFDFE",
+        "ratio": 9.19,
+        "wcag": "AAA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "light",
+        "fg": "{semantic.state.neutral.fg-aa}",
+        "bg": "{semantic.state.neutral.bg}",
+        "usage": "text",
+        "where": "Pastille neutral (variante accessible)",
+        "fgValue": "#43474C",
+        "bgValue": "#FCFDFE",
+        "ratio": 9.19,
+        "wcag": "AAA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "light",
+        "fg": "{semantic.border.default}",
+        "bg": "{semantic.surface.default}",
+        "usage": "non-text",
+        "where": "Filet de carte, de tableau, de champ",
+        "fgValue": "#C2DDF0",
+        "bgValue": "#FCFDFE",
+        "ratio": 1.38,
+        "wcag": "fail",
+        "required": 3.0,
+        "result": "known-issue",
+        "remediation": "{semantic.border.control}",
+        "accepted": "Séparateurs décoratifs exemptés par WCAG 1.4.11 ; non conforme pour la délimitation d’un champ."
+      },
+      {
+        "theme": "light",
+        "fg": "{semantic.border.control}",
+        "bg": "{semantic.surface.default}",
+        "usage": "non-text",
+        "where": "Contour de champ (proposé)",
+        "fgValue": "#73777D",
+        "bgValue": "#FCFDFE",
+        "ratio": 4.42,
+        "wcag": "AA",
+        "required": 3.0,
+        "result": "pass"
+      },
+      {
+        "theme": "light",
+        "fg": "{semantic.border.focus}",
+        "bg": "{semantic.surface.default}",
+        "usage": "non-text",
+        "where": "Focus ring sur surface",
+        "fgValue": "#006EB1",
+        "bgValue": "#FCFDFE",
+        "ratio": 5.33,
+        "wcag": "AA",
+        "required": 3.0,
+        "result": "pass"
+      },
+      {
+        "theme": "light",
+        "fg": "{semantic.border.focus}",
+        "bg": "{semantic.surface.inverse}",
+        "usage": "non-text",
+        "where": "Focus ring sur surface inverse",
+        "fgValue": "#006EB1",
+        "bgValue": "#12293A",
+        "ratio": 2.75,
+        "wcag": "fail",
+        "required": 3.0,
+        "result": "known-issue",
+        "remediation": "{semantic.focus.ring-on-inverse}"
+      },
+      {
+        "theme": "light",
+        "fg": "{semantic.focus.ring-on-inverse}",
+        "bg": "{semantic.surface.inverse}",
+        "usage": "non-text",
+        "where": "Focus ring sur surface inverse (proposé)",
+        "fgValue": "#FCFDFE",
+        "bgValue": "#12293A",
+        "ratio": 14.69,
+        "wcag": "AA",
+        "required": 3.0,
+        "result": "pass"
+      },
+      {
+        "theme": "light",
+        "fg": "{semantic.border.danger}",
+        "bg": "{semantic.surface.default}",
+        "usage": "non-text",
+        "where": "Bordure de champ en erreur",
+        "fgValue": "#BA1A1A",
+        "bgValue": "#FCFDFE",
+        "ratio": 6.34,
+        "wcag": "AA",
+        "required": 3.0,
+        "result": "pass"
+      },
+      {
+        "theme": "dark",
+        "fg": "{semantic.text.default}",
+        "bg": "{semantic.surface.default}",
+        "usage": "text",
+        "where": "Corps de texte sur surface",
+        "fgValue": "#F0F7FC",
+        "bgValue": "#0E2230",
+        "ratio": 15.05,
+        "wcag": "AAA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "dark",
+        "fg": "{semantic.text.default}",
+        "bg": "{semantic.surface.app}",
+        "usage": "text",
+        "where": "Corps de texte sur fond d’application",
+        "fgValue": "#F0F7FC",
+        "bgValue": "#0A1B27",
+        "ratio": 16.19,
+        "wcag": "AAA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "dark",
+        "fg": "{semantic.text.default}",
+        "bg": "{semantic.surface.selected}",
+        "usage": "text",
+        "where": "Ligne sélectionnée",
+        "fgValue": "#F0F7FC",
+        "bgValue": "#264E6E",
+        "ratio": 8.1,
+        "wcag": "AAA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "dark",
+        "fg": "{semantic.text.secondary}",
+        "bg": "{semantic.surface.default}",
+        "usage": "text",
+        "where": "Texte secondaire",
+        "fgValue": "#C7DAE2",
+        "bgValue": "#0E2230",
+        "ratio": 11.28,
+        "wcag": "AAA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "dark",
+        "fg": "{semantic.text.mute}",
+        "bg": "{semantic.surface.default}",
+        "usage": "text",
+        "where": "Aide, eyebrow, méta sur surface",
+        "fgValue": "#A8C0CB",
+        "bgValue": "#0E2230",
+        "ratio": 8.58,
+        "wcag": "AAA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "dark",
+        "fg": "{semantic.text.mute}",
+        "bg": "{semantic.surface.app}",
+        "usage": "text",
+        "where": "Eyebrow sur fond d’application",
+        "fgValue": "#A8C0CB",
+        "bgValue": "#0A1B27",
+        "ratio": 9.23,
+        "wcag": "AAA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "dark",
+        "fg": "{semantic.text.mute}",
+        "bg": "{semantic.surface.hover}",
+        "usage": "text",
+        "where": "Champ désactivé, champ de recherche",
+        "fgValue": "#A8C0CB",
+        "bgValue": "#1B3850",
+        "ratio": 6.4,
+        "wcag": "AA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "dark",
+        "fg": "{semantic.text.mute-aa}",
+        "bg": "{semantic.surface.default}",
+        "usage": "text",
+        "where": "Variante accessible sur surface",
+        "fgValue": "#A8C0CB",
+        "bgValue": "#0E2230",
+        "ratio": 8.58,
+        "wcag": "AAA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "dark",
+        "fg": "{semantic.text.mute-aa}",
+        "bg": "{semantic.surface.app}",
+        "usage": "text",
+        "where": "Variante accessible sur fond d’application",
+        "fgValue": "#A8C0CB",
+        "bgValue": "#0A1B27",
+        "ratio": 9.23,
+        "wcag": "AAA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "dark",
+        "fg": "{semantic.text.mute-aa}",
+        "bg": "{semantic.surface.hover}",
+        "usage": "text",
+        "where": "Variante accessible sur survol",
+        "fgValue": "#A8C0CB",
+        "bgValue": "#1B3850",
+        "ratio": 6.4,
+        "wcag": "AA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "dark",
+        "fg": "{semantic.text.link}",
+        "bg": "{semantic.surface.default}",
+        "usage": "text",
+        "where": "Lien sur surface",
+        "fgValue": "#7EC4EC",
+        "bgValue": "#0E2230",
+        "ratio": 8.52,
+        "wcag": "AAA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "dark",
+        "fg": "{semantic.text.link}",
+        "bg": "{semantic.surface.hover}",
+        "usage": "text",
+        "where": "Lien sur survol",
+        "fgValue": "#7EC4EC",
+        "bgValue": "#1B3850",
+        "ratio": 6.36,
+        "wcag": "AA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "dark",
+        "fg": "{semantic.text.link}",
+        "bg": "{semantic.surface.selected}",
+        "usage": "text",
+        "where": "Lien sur ligne sélectionnée",
+        "fgValue": "#7EC4EC",
+        "bgValue": "#264E6E",
+        "ratio": 4.59,
+        "wcag": "AA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "dark",
+        "fg": "{semantic.text.link-aa}",
+        "bg": "{semantic.surface.selected}",
+        "usage": "text",
+        "where": "Lien accessible sur ligne sélectionnée",
+        "fgValue": "#7EC4EC",
+        "bgValue": "#264E6E",
+        "ratio": 4.59,
+        "wcag": "AA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "dark",
+        "fg": "{semantic.text.on-inverse}",
+        "bg": "{semantic.surface.inverse}",
+        "usage": "text",
+        "where": "Barre latérale, en-tête de tableau",
+        "fgValue": "#F0F7FC",
+        "bgValue": "#06121C",
+        "ratio": 17.47,
+        "wcag": "AAA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "dark",
+        "fg": "{semantic.action.primary.fg}",
+        "bg": "{semantic.action.primary.bg}",
+        "usage": "text",
+        "where": "Bouton primaire",
+        "fgValue": "#001423",
+        "bgValue": "#B2DDF6",
+        "ratio": 12.96,
+        "wcag": "AAA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "dark",
+        "fg": "{semantic.action.deep.fg}",
+        "bg": "{semantic.action.deep.bg}",
+        "usage": "text",
+        "where": "Bouton deep",
+        "fgValue": "#001423",
+        "bgValue": "#5C95BB",
+        "ratio": 5.76,
+        "wcag": "AA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "dark",
+        "fg": "{semantic.action.ghost.fg}",
+        "bg": "{semantic.surface.default}",
+        "usage": "text",
+        "where": "Bouton fantôme",
+        "fgValue": "#F0F7FC",
+        "bgValue": "#0E2230",
+        "ratio": 15.05,
+        "wcag": "AAA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "dark",
+        "fg": "{semantic.action.danger.fg}",
+        "bg": "{semantic.surface.default}",
+        "usage": "text",
+        "where": "Bouton danger",
+        "fgValue": "#EE9C99",
+        "bgValue": "#0E2230",
+        "ratio": 7.64,
+        "wcag": "AAA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "dark",
+        "fg": "{semantic.state.success.fg}",
+        "bg": "{semantic.state.success.bg}",
+        "usage": "text",
+        "where": "Pastille success (valeur de la charte)",
+        "fgValue": "#92D2AC",
+        "bgValue": "#0A3A1F",
+        "ratio": 7.35,
+        "wcag": "AAA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "dark",
+        "fg": "{semantic.state.success.fg-aa}",
+        "bg": "{semantic.state.success.bg}",
+        "usage": "text",
+        "where": "Pastille success (variante accessible)",
+        "fgValue": "#92D2AC",
+        "bgValue": "#0A3A1F",
+        "ratio": 7.35,
+        "wcag": "AAA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "dark",
+        "fg": "{semantic.state.warning.fg}",
+        "bg": "{semantic.state.warning.bg}",
+        "usage": "text",
+        "where": "Pastille warning (valeur de la charte)",
+        "fgValue": "#F1D38A",
+        "bgValue": "#4A3000",
+        "ratio": 8.42,
+        "wcag": "AAA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "dark",
+        "fg": "{semantic.state.warning.fg-aa}",
+        "bg": "{semantic.state.warning.bg}",
+        "usage": "text",
+        "where": "Pastille warning (variante accessible)",
+        "fgValue": "#F1D38A",
+        "bgValue": "#4A3000",
+        "ratio": 8.42,
+        "wcag": "AAA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "dark",
+        "fg": "{semantic.state.danger.fg}",
+        "bg": "{semantic.state.danger.bg}",
+        "usage": "text",
+        "where": "Pastille danger (valeur de la charte)",
+        "fgValue": "#EE9C99",
+        "bgValue": "#600C0E",
+        "ratio": 6.33,
+        "wcag": "AA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "dark",
+        "fg": "{semantic.state.danger.fg-aa}",
+        "bg": "{semantic.state.danger.bg}",
+        "usage": "text",
+        "where": "Pastille danger (variante accessible)",
+        "fgValue": "#EE9C99",
+        "bgValue": "#600C0E",
+        "ratio": 6.33,
+        "wcag": "AA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "dark",
+        "fg": "{semantic.state.info.fg}",
+        "bg": "{semantic.state.info.bg}",
+        "usage": "text",
+        "where": "Pastille info (valeur de la charte)",
+        "fgValue": "#7EC4EC",
+        "bgValue": "#003157",
+        "ratio": 6.97,
+        "wcag": "AA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "dark",
+        "fg": "{semantic.state.info.fg-aa}",
+        "bg": "{semantic.state.info.bg}",
+        "usage": "text",
+        "where": "Pastille info (variante accessible)",
+        "fgValue": "#7EC4EC",
+        "bgValue": "#003157",
+        "ratio": 6.97,
+        "wcag": "AA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "dark",
+        "fg": "{semantic.state.neutral.fg}",
+        "bg": "{semantic.state.neutral.bg}",
+        "usage": "text",
+        "where": "Pastille neutral (valeur de la charte)",
+        "fgValue": "#C7DAE2",
+        "bgValue": "#0E2230",
+        "ratio": 11.28,
+        "wcag": "AAA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "dark",
+        "fg": "{semantic.state.neutral.fg-aa}",
+        "bg": "{semantic.state.neutral.bg}",
+        "usage": "text",
+        "where": "Pastille neutral (variante accessible)",
+        "fgValue": "#C7DAE2",
+        "bgValue": "#0E2230",
+        "ratio": 11.28,
+        "wcag": "AAA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "dark",
+        "fg": "{semantic.border.default}",
+        "bg": "{semantic.surface.default}",
+        "usage": "non-text",
+        "where": "Filet de carte, de tableau, de champ",
+        "fgValue": "#264E6E",
+        "bgValue": "#0E2230",
+        "ratio": 1.86,
+        "wcag": "fail",
+        "required": 3.0,
+        "result": "known-issue",
+        "remediation": "{semantic.border.control}",
+        "accepted": "Séparateurs décoratifs exemptés par WCAG 1.4.11 ; non conforme pour la délimitation d’un champ."
+      },
+      {
+        "theme": "dark",
+        "fg": "{semantic.border.control}",
+        "bg": "{semantic.surface.default}",
+        "usage": "non-text",
+        "where": "Contour de champ (proposé)",
+        "fgValue": "#5C95BB",
+        "bgValue": "#0E2230",
+        "ratio": 5.02,
+        "wcag": "AA",
+        "required": 3.0,
+        "result": "pass"
+      },
+      {
+        "theme": "dark",
+        "fg": "{semantic.border.focus}",
+        "bg": "{semantic.surface.default}",
+        "usage": "non-text",
+        "where": "Focus ring sur surface",
+        "fgValue": "#7EC4EC",
+        "bgValue": "#0E2230",
+        "ratio": 8.52,
+        "wcag": "AA",
+        "required": 3.0,
+        "result": "pass"
+      },
+      {
+        "theme": "dark",
+        "fg": "{semantic.border.focus}",
+        "bg": "{semantic.surface.inverse}",
+        "usage": "non-text",
+        "where": "Focus ring sur surface inverse",
+        "fgValue": "#7EC4EC",
+        "bgValue": "#06121C",
+        "ratio": 9.9,
+        "wcag": "AA",
+        "required": 3.0,
+        "result": "pass"
+      },
+      {
+        "theme": "dark",
+        "fg": "{semantic.focus.ring-on-inverse}",
+        "bg": "{semantic.surface.inverse}",
+        "usage": "non-text",
+        "where": "Focus ring sur surface inverse (proposé)",
+        "fgValue": "#F0F7FC",
+        "bgValue": "#06121C",
+        "ratio": 17.47,
+        "wcag": "AA",
+        "required": 3.0,
+        "result": "pass"
+      },
+      {
+        "theme": "dark",
+        "fg": "{semantic.border.danger}",
+        "bg": "{semantic.surface.default}",
+        "usage": "non-text",
+        "where": "Bordure de champ en erreur",
+        "fgValue": "#EE9C99",
+        "bgValue": "#0E2230",
+        "ratio": 7.64,
+        "wcag": "AA",
+        "required": 3.0,
+        "result": "pass"
+      }
+    ]
+  },
+  "audit": {
+    "severities": {
+      "bloquant": "Empêche une tâche principale ou exclut un groupe d’utilisateurs (ex. aucun accès clavier, contraste < 3:1 sur un texte porteur de sens).",
+      "majeur": "Dégrade nettement l’efficacité, provoque des erreurs fréquentes ou viole un critère AA.",
+      "mineur": "Gêne ponctuelle ou écart de cohérence sans conséquence sur la tâche.",
+      "suggestion": "Amélioration facultative."
+    },
+    "efforts": {
+      "S": "Moins d’une demi-journée, un token ou une classe.",
+      "M": "Un à trois jours, un composant ou un écran.",
+      "L": "Plus de trois jours, plusieurs écrans ou une refonte de pattern."
+    },
+    "scale": {
+      "0": "Absent ou contraire au critère.",
+      "1": "Partiel : des écarts fréquents ou un défaut sur une tâche principale.",
+      "2": "Conforme avec écarts mineurs isolés.",
+      "3": "Conforme, sans écart observé.",
+      "NV": "Non vérifié : à indiquer avec la raison. Ne compte pas dans le score."
+    },
+    "criteria": [
+      {
+        "id": "N1",
+        "family": "nielsen",
+        "name": "Visibilité de l’état du système"
+      },
+      {
+        "id": "N2",
+        "family": "nielsen",
+        "name": "Correspondance avec le monde réel"
+      },
+      {
+        "id": "N3",
+        "family": "nielsen",
+        "name": "Contrôle et liberté de l’utilisateur"
+      },
+      {
+        "id": "N4",
+        "family": "nielsen",
+        "name": "Cohérence et standards"
+      },
+      {
+        "id": "N5",
+        "family": "nielsen",
+        "name": "Prévention des erreurs"
+      },
+      {
+        "id": "N6",
+        "family": "nielsen",
+        "name": "Reconnaissance plutôt que rappel"
+      },
+      {
+        "id": "N7",
+        "family": "nielsen",
+        "name": "Flexibilité et efficacité d’usage"
+      },
+      {
+        "id": "N8",
+        "family": "nielsen",
+        "name": "Design esthétique et minimaliste"
+      },
+      {
+        "id": "N9",
+        "family": "nielsen",
+        "name": "Aide à la reconnaissance et à la récupération des erreurs"
+      },
+      {
+        "id": "N10",
+        "family": "nielsen",
+        "name": "Aide et documentation"
+      },
+      {
+        "id": "H1",
+        "family": "hierarchie",
+        "name": "Hiérarchie visuelle et lisibilité"
+      },
+      {
+        "id": "T1",
+        "family": "systeme",
+        "name": "Cohérence avec les tokens et composants du système"
+      },
+      {
+        "id": "A1",
+        "family": "accessibilite",
+        "name": "Contrastes"
+      },
+      {
+        "id": "A2",
+        "family": "accessibilite",
+        "name": "Clavier et ordre de focus"
+      },
+      {
+        "id": "A3",
+        "family": "accessibilite",
+        "name": "Focus visible"
+      },
+      {
+        "id": "A4",
+        "family": "accessibilite",
+        "name": "Libellés, noms accessibles et rôles"
+      },
+      {
+        "id": "A5",
+        "family": "accessibilite",
+        "name": "Taille des zones cliquables et information non codée par la couleur seule"
+      },
+      {
+        "id": "D1",
+        "family": "densite",
+        "name": "Densité et charge cognitive"
+      },
+      {
+        "id": "P1",
+        "family": "performance",
+        "name": "Performance perçue et retours d’action"
+      },
+      {
+        "id": "R1",
+        "family": "robustesse",
+        "name": "Responsive et contenus longs, vides ou en erreur"
+      }
+    ],
+    "findingFields": [
+      "id",
+      "title",
+      "severity",
+      "criterion",
+      "evidence",
+      "kind",
+      "impact",
+      "recommendation",
+      "tokens",
+      "effort",
+      "verified"
+    ],
+    "kinds": [
+      "fait",
+      "interprétation",
+      "recommandation"
+    ]
+  },
+  "decisions": [
+    {
+      "id": "D-001",
+      "date": "2026-11-01",
+      "decision": "Source de vérité : ARIANE ; la copie Athena (packages/ui/design) est synchronisée à partir d’elle.",
+      "reason": "CLAUDE.md d’Athena désigne ARIANE comme référence ; deux sources divergeraient.",
+      "rejected": "Faire d’Athena la source."
+    },
+    {
+      "id": "D-002",
+      "date": "2026-11-01",
+      "decision": "Les clés front matter colors, typography, rounded, spacing sont inchangées ; tous les nouveaux tokens vivent dans DESIGN.json sous `tokens`.",
+      "reason": "build-tokens.mjs génère le CSS Athena depuis ces quatre blocs ; lint-design.mjs lit tous les # du .md comme palette autorisée.",
+      "rejected": "Ajouter les nouvelles couleurs au front matter (cela élargirait silencieusement la palette du lint)."
+    },
+    {
+      "id": "D-003",
+      "date": "2026-11-01",
+      "decision": "Aucune valeur existante n’est modifiée pour corriger les contrastes ; des variantes `*-aa` / `*-text` sont proposées.",
+      "reason": "Ne pas changer l’identité sans validation. Athena applique déjà ces assombrissements dans son CSS.",
+      "rejected": "Assombrir mute-ink et les signaux directement."
+    },
+    {
+      "id": "D-004",
+      "date": "2026-11-01",
+      "decision": "Le thème sombre n’emploie que des valeurs des rampes tonales de colorMeta.",
+      "reason": "Ne rien inventer sur l’identité visuelle.",
+      "rejected": "Inventer une palette sombre."
+    },
+    {
+      "id": "D-005",
+      "date": "2026-11-01",
+      "decision": "Le CSS d’exemple du JSON utilise #FCFDFE là où le .md dit Instrument White (au lieu de #FCFDFE).",
+      "reason": "Aligner exemples et tokens.",
+      "rejected": "Laisser coexister deux blancs."
+    },
+    {
+      "id": "D-006",
+      "date": "2026-11-01",
+      "decision": "Modale et toast passent de proposed à stable.",
+      "reason": "Implémentés et testés dans Athena (Modal, ToastProvider).",
+      "rejected": "Les laisser proposed."
+    }
+  ],
   "extensions": {
     "colorMeta": {
       "sovereign-deep-blue": {
@@ -126,7 +2533,7 @@
       "refersTo": "button-primary",
       "description": "The default action button. Console Sky solid, uppercase wide-tracked label, 32px tall, sharp corners.",
       "html": "<button class=\"ds-btn ds-btn-primary\"><svg width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 5v14M5 12h14\"/></svg>NEW AFFAIRE</button>",
-      "css": ".ds-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 32px; padding: 0 14px; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; border-radius: 0; border: 1px solid; transition: filter 120ms; } .ds-btn:disabled { opacity: 0.55; cursor: not-allowed; } .ds-btn-primary { background: #006EB1; color: #FFFFFF; border-color: #006EB1; } .ds-btn-primary:hover:not(:disabled) { filter: brightness(1.07); } .ds-btn-primary:focus-visible { outline: 2px solid #12293A; outline-offset: 2px; }"
+      "css": ".ds-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 32px; padding: 0 14px; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; border-radius: 0; border: 1px solid; transition: filter 120ms; } .ds-btn:disabled { opacity: 0.55; cursor: not-allowed; } .ds-btn-primary { background: #006EB1; color: #FCFDFE; border-color: #006EB1; } .ds-btn-primary:hover:not(:disabled) { filter: brightness(1.07); } .ds-btn-primary:focus-visible { outline: 2px solid #12293A; outline-offset: 2px; }"
     },
     {
       "name": "Ghost Button",
@@ -158,7 +2565,7 @@
       "refersTo": "chip-active",
       "description": "Active table-filter chip in the toolbar. Sovereign Deep Blue background, white text, label and value pair. The 'select' state turns ceremonial.",
       "html": "<span class=\"ds-chip ds-chip-active\"><span class=\"ds-chip-label\">FAMILLE</span><span class=\"ds-chip-value\">ELEC</span><span class=\"ds-chip-clear\" aria-label=\"Clear filter\">×</span></span>",
-      "css": ".ds-chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-weight: 700; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; border: 1px solid; border-radius: 0; cursor: pointer; transition: background 120ms, color 120ms; } .ds-chip-active { background: #12293A; color: #FFFFFF; border-color: #12293A; } .ds-chip-label { opacity: 0.7; } .ds-chip-value { opacity: 1; } .ds-chip-clear { margin-left: 2px; cursor: pointer; opacity: 0.85; } .ds-chip-clear:hover { opacity: 1; }"
+      "css": ".ds-chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-weight: 700; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; border: 1px solid; border-radius: 0; cursor: pointer; transition: background 120ms, color 120ms; } .ds-chip-active { background: #12293A; color: #FCFDFE; border-color: #12293A; } .ds-chip-label { opacity: 0.7; } .ds-chip-value { opacity: 1; } .ds-chip-clear { margin-left: 2px; cursor: pointer; opacity: 0.85; } .ds-chip-clear:hover { opacity: 1; }"
     },
     {
       "name": "Stat Card",
@@ -166,7 +2573,7 @@
       "refersTo": "stat-card",
       "description": "Dashboard metric card. Signature: a 3px Console Sky stripe across the top edge — the only 'decoration' in the system. Big IBM Plex Sans value in Sovereign Deep Blue, small uppercase label, optional delta and right-side icon framed in a 1px square.",
       "html": "<div class=\"ds-statcard\"><div class=\"ds-statcard-row\"><div><div class=\"ds-statcard-label\">TOTAL PRODUITS</div><div class=\"ds-statcard-value\">12 487</div><div class=\"ds-statcard-delta\">▲ 312 cette semaine</div></div><div class=\"ds-statcard-icon\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M16.5 9.4 7.55 4.24M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z\"/><polyline points=\"3.27 6.96 12 12.01 20.73 6.96\"/><line x1=\"12\" y1=\"22.08\" x2=\"12\" y2=\"12\"/></svg></div></div></div>",
-      "css": ".ds-statcard { background: #FFFFFF; border: 1px solid #C2DDF0; padding: 18px 20px; position: relative; } .ds-statcard::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: #006EB1; } .ds-statcard-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; } .ds-statcard-label { font-family: 'IBM Plex Sans', system-ui, sans-serif; font-weight: 700; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #73777D; } .ds-statcard-value { margin-top: 6px; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-weight: 700; font-size: 30px; letter-spacing: 0.02em; color: #12293A; line-height: 1; font-variant-numeric: tabular-nums; } .ds-statcard-delta { margin-top: 8px; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; color: #1F8A4C; } .ds-statcard-icon { width: 40px; height: 40px; border: 1px solid #12293A; display: flex; align-items: center; justify-content: center; color: #12293A; flex: none; }"
+      "css": ".ds-statcard { background: #FCFDFE; border: 1px solid #C2DDF0; padding: 18px 20px; position: relative; } .ds-statcard::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: #006EB1; } .ds-statcard-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; } .ds-statcard-label { font-family: 'IBM Plex Sans', system-ui, sans-serif; font-weight: 700; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #73777D; } .ds-statcard-value { margin-top: 6px; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-weight: 700; font-size: 30px; letter-spacing: 0.02em; color: #12293A; line-height: 1; font-variant-numeric: tabular-nums; } .ds-statcard-delta { margin-top: 8px; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; color: #1F8A4C; } .ds-statcard-icon { width: 40px; height: 40px; border: 1px solid #12293A; display: flex; align-items: center; justify-content: center; color: #12293A; flex: none; }"
     },
     {
       "name": "Tricolor Page Header",
@@ -174,7 +2581,7 @@
       "refersTo": "page-header",
       "description": "The project's signature: every page opens with a 4px vertical tricolor stripe (blue / white-with-border / red) followed by an optional eyebrow, the page title in IBM Plex Sans, an optional sub-line, and right-aligned actions. The header is the brand on every screen.",
       "html": "<header class=\"ds-pageheader\"><div class=\"ds-pageheader-left\"><div class=\"ds-pageheader-stripe\"><div class=\"ds-stripe-blue\"></div><div class=\"ds-stripe-white\"></div><div class=\"ds-stripe-red\"></div></div><div class=\"ds-pageheader-title-block\"><p class=\"ds-pageheader-eyebrow\">MISSION CONSOLE</p><h1 class=\"ds-pageheader-title\">Dashboard</h1><div class=\"ds-pageheader-sub\">Vue d'ensemble · 14:32:08 · auto every 60s</div></div></div><div class=\"ds-pageheader-actions\"><button class=\"ds-btn ds-btn-ghost\">EXPORT</button><button class=\"ds-btn ds-btn-primary\">NEW AFFAIRE</button></div></header>",
-      "css": ".ds-pageheader { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; padding-bottom: 14px; border-bottom: 1px solid #C2DDF0; margin-bottom: 20px; } .ds-pageheader-left { display: flex; align-items: stretch; gap: 14px; min-width: 0; } .ds-pageheader-stripe { width: 4px; align-self: stretch; display: flex; flex-direction: column; flex: none; min-height: 56px; } .ds-pageheader-stripe > div { flex: 1; } .ds-stripe-blue { background: #174082; } .ds-stripe-white { background: #FFFFFF; border: 1px solid #C2DDF0; } .ds-stripe-red { background: #C80A26; } .ds-pageheader-title-block { min-width: 0; } .ds-pageheader-eyebrow { margin: 0 0 4px 0; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-weight: 700; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #73777D; } .ds-pageheader-title { margin: 0 0 6px 0; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-weight: 600; font-size: 26px; letter-spacing: 0.04em; color: #12293A; line-height: 1.15; } .ds-pageheader-sub { font-size: 13px; color: #43474C; font-family: 'IBM Plex Sans', system-ui, sans-serif; } .ds-pageheader-actions { display: flex; gap: 8px; flex: none; } .ds-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 32px; padding: 0 14px; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; border-radius: 0; border: 1px solid; transition: filter 120ms, background 120ms; } .ds-btn-primary { background: #006EB1; color: #FFFFFF; border-color: #006EB1; } .ds-btn-primary:hover { filter: brightness(1.07); } .ds-btn-ghost { background: transparent; color: #12293A; border-color: #12293A; } .ds-btn-ghost:hover { background: #E6F3FA; }"
+      "css": ".ds-pageheader { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; padding-bottom: 14px; border-bottom: 1px solid #C2DDF0; margin-bottom: 20px; } .ds-pageheader-left { display: flex; align-items: stretch; gap: 14px; min-width: 0; } .ds-pageheader-stripe { width: 4px; align-self: stretch; display: flex; flex-direction: column; flex: none; min-height: 56px; } .ds-pageheader-stripe > div { flex: 1; } .ds-stripe-blue { background: #174082; } .ds-stripe-white { background: #FCFDFE; border: 1px solid #C2DDF0; } .ds-stripe-red { background: #C80A26; } .ds-pageheader-title-block { min-width: 0; } .ds-pageheader-eyebrow { margin: 0 0 4px 0; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-weight: 700; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #73777D; } .ds-pageheader-title { margin: 0 0 6px 0; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-weight: 600; font-size: 26px; letter-spacing: 0.04em; color: #12293A; line-height: 1.15; } .ds-pageheader-sub { font-size: 13px; color: #43474C; font-family: 'IBM Plex Sans', system-ui, sans-serif; } .ds-pageheader-actions { display: flex; gap: 8px; flex: none; } .ds-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 32px; padding: 0 14px; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; border-radius: 0; border: 1px solid; transition: filter 120ms, background 120ms; } .ds-btn-primary { background: #006EB1; color: #FCFDFE; border-color: #006EB1; } .ds-btn-primary:hover { filter: brightness(1.07); } .ds-btn-ghost { background: transparent; color: #12293A; border-color: #12293A; } .ds-btn-ghost:hover { background: #E6F3FA; }"
     },
     {
       "name": "Text Input",
@@ -182,7 +2589,7 @@
       "refersTo": "input-text",
       "description": "Form text input with always-visible uppercase label. Sharp corners, 1px Console Border default, Console Sky 2px on focus, no glow or shadow ring.",
       "html": "<label class=\"ds-field\"><span class=\"ds-field-label\">RÉFÉRENCE PRODUIT</span><input class=\"ds-field-input\" type=\"text\" placeholder=\"PN ELEC0001\" value=\"PN ELEC0142\"/></label>",
-      "css": ".ds-field { display: inline-flex; flex-direction: column; gap: 6px; min-width: 240px; } .ds-field-label { font-family: 'IBM Plex Sans', system-ui, sans-serif; font-weight: 700; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #43474C; } .ds-field-input { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-weight: 500; font-size: 13px; color: #001423; background: #FFFFFF; border: 1px solid #C2DDF0; border-radius: 0; padding: 6px 10px; outline: none; transition: border-color 120ms; } .ds-field-input::placeholder { color: #73777D; } .ds-field-input:hover { border-color: #12293A; } .ds-field-input:focus { border: 2px solid #006EB1; padding: 5px 9px; } .ds-field-input:disabled { background: #E6F3FA; color: #73777D; cursor: not-allowed; }"
+      "css": ".ds-field { display: inline-flex; flex-direction: column; gap: 6px; min-width: 240px; } .ds-field-label { font-family: 'IBM Plex Sans', system-ui, sans-serif; font-weight: 700; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #43474C; } .ds-field-input { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-weight: 500; font-size: 13px; color: #001423; background: #FCFDFE; border: 1px solid #C2DDF0; border-radius: 0; padding: 6px 10px; outline: none; transition: border-color 120ms; } .ds-field-input::placeholder { color: #73777D; } .ds-field-input:hover { border-color: #12293A; } .ds-field-input:focus { border: 2px solid #006EB1; padding: 5px 9px; } .ds-field-input:disabled { background: #E6F3FA; color: #73777D; cursor: not-allowed; }"
     },
     {
       "name": "Modal",
@@ -190,7 +2597,7 @@
       "refersTo": "modal",
       "description": "Doctrinal Hemeria modal (proposed; not yet implemented). Sharp Sovereign Deep Blue header bar with IBM Plex Sans title, Instrument White body, right-aligned ghost+primary footer buttons, Ink-tinted backdrop. Replaces Bootstrap modal residue.",
       "html": "<div class=\"ds-modal-backdrop\"><div class=\"ds-modal\" role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"ds-modal-title\"><header class=\"ds-modal-header\"><h3 id=\"ds-modal-title\" class=\"ds-modal-title\">CONFIRM DELETE AFFAIRE</h3><button class=\"ds-modal-close\" aria-label=\"Close\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><line x1=\"18\" y1=\"6\" x2=\"6\" y2=\"18\"/><line x1=\"6\" y1=\"6\" x2=\"18\" y2=\"18\"/></svg></button></header><div class=\"ds-modal-body\"><p class=\"ds-modal-text\">L'affaire <span class=\"ds-modal-mono\">AF001</span> contient 18 produits liés. Sa suppression est irréversible.</p></div><footer class=\"ds-modal-footer\"><button class=\"ds-btn ds-btn-ghost\">ANNULER</button><button class=\"ds-btn ds-btn-danger-solid\">SUPPRIMER</button></footer></div></div>",
-      "css": ".ds-modal-backdrop { position: fixed; inset: 0; background: rgba(0, 20, 35, 0.55); display: flex; align-items: center; justify-content: center; z-index: 1000; } .ds-modal { width: 480px; background: #FFFFFF; border: 1px solid #12293A; border-radius: 0; } .ds-modal-header { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 14px; background: #12293A; color: #FFFFFF; } .ds-modal-title { margin: 0; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-weight: 600; font-size: 15px; letter-spacing: 0.04em; color: #FFFFFF; text-transform: uppercase; } .ds-modal-close { width: 24px; height: 24px; border: 1px solid rgba(255, 255, 255, 0.4); background: transparent; color: #FFFFFF; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; border-radius: 0; transition: background 120ms; } .ds-modal-close:hover { background: rgba(255, 255, 255, 0.12); } .ds-modal-body { padding: 18px; } .ds-modal-text { margin: 0; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 13px; color: #001423; line-height: 1.45; } .ds-modal-mono { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-weight: 500; color: #12293A; } .ds-modal-footer { display: flex; justify-content: flex-end; gap: 8px; padding: 12px; border-top: 1px solid #C2DDF0; } .ds-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 32px; padding: 0 14px; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; border-radius: 0; border: 1px solid; transition: filter 120ms, background 120ms; } .ds-btn-ghost { background: transparent; color: #12293A; border-color: #12293A; } .ds-btn-ghost:hover { background: #E6F3FA; } .ds-btn-danger-solid { background: #BA1A1A; color: #FFFFFF; border-color: #BA1A1A; } .ds-btn-danger-solid:hover { filter: brightness(1.07); }"
+      "css": ".ds-modal-backdrop { position: fixed; inset: 0; background: rgba(0, 20, 35, 0.55); display: flex; align-items: center; justify-content: center; z-index: 1000; } .ds-modal { width: 480px; background: #FCFDFE; border: 1px solid #12293A; border-radius: 0; } .ds-modal-header { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 14px; background: #12293A; color: #FCFDFE; } .ds-modal-title { margin: 0; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-weight: 600; font-size: 15px; letter-spacing: 0.04em; color: #FCFDFE; text-transform: uppercase; } .ds-modal-close { width: 24px; height: 24px; border: 1px solid rgba(255, 255, 255, 0.4); background: transparent; color: #FCFDFE; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; border-radius: 0; transition: background 120ms; } .ds-modal-close:hover { background: rgba(255, 255, 255, 0.12); } .ds-modal-body { padding: 18px; } .ds-modal-text { margin: 0; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 13px; color: #001423; line-height: 1.45; } .ds-modal-mono { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-weight: 500; color: #12293A; } .ds-modal-footer { display: flex; justify-content: flex-end; gap: 8px; padding: 12px; border-top: 1px solid #C2DDF0; } .ds-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 32px; padding: 0 14px; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; border-radius: 0; border: 1px solid; transition: filter 120ms, background 120ms; } .ds-btn-ghost { background: transparent; color: #12293A; border-color: #12293A; } .ds-btn-ghost:hover { background: #E6F3FA; } .ds-btn-danger-solid { background: #BA1A1A; color: #FCFDFE; border-color: #BA1A1A; } .ds-btn-danger-solid:hover { filter: brightness(1.07); }"
     },
     {
       "name": "Toast (Success)",
@@ -198,7 +2605,7 @@
       "refersTo": "toast-success",
       "description": "Doctrinal Hemeria toast (proposed; not yet implemented). Sharp tinted-bg pill with signal icon + message + close. Replaces Bootstrap toast residue.",
       "html": "<div class=\"ds-toast ds-toast-success\" role=\"status\" aria-live=\"polite\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"ds-toast-icon\"><path d=\"M22 11.08V12a10 10 0 1 1-5.93-9.14\"/><polyline points=\"22 4 12 14.01 9 11.01\"/></svg><span class=\"ds-toast-msg\">Préférences enregistrées.</span><button class=\"ds-toast-close\" aria-label=\"Dismiss\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><line x1=\"18\" y1=\"6\" x2=\"6\" y2=\"18\"/><line x1=\"6\" y1=\"6\" x2=\"18\" y2=\"18\"/></svg></button></div>",
-      "css": ".ds-toast { display: inline-flex; align-items: center; gap: 10px; min-width: 280px; max-width: 420px; padding: 10px 14px; border: 1px solid; border-radius: 0; background: #FFFFFF; } .ds-toast-success { background: #EAF6EE; border-color: #1F8A4C; color: #1F8A4C; } .ds-toast-icon { flex: none; } .ds-toast-msg { flex: 1; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 13px; color: #001423; } .ds-toast-close { width: 22px; height: 22px; padding: 0; background: transparent; border: 0; cursor: pointer; color: #73777D; display: inline-flex; align-items: center; justify-content: center; transition: color 120ms; } .ds-toast-close:hover { color: #001423; }"
+      "css": ".ds-toast { display: inline-flex; align-items: center; gap: 10px; min-width: 280px; max-width: 420px; padding: 10px 14px; border: 1px solid; border-radius: 0; background: #FCFDFE; } .ds-toast-success { background: #EAF6EE; border-color: #1F8A4C; color: #1F8A4C; } .ds-toast-icon { flex: none; } .ds-toast-msg { flex: 1; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 13px; color: #001423; } .ds-toast-close { width: 22px; height: 22px; padding: 0; background: transparent; border: 0; cursor: pointer; color: #73777D; display: inline-flex; align-items: center; justify-content: center; transition: color 120ms; } .ds-toast-close:hover { color: #001423; }"
     },
     {
       "name": "Reticle Corner Frame",
@@ -206,7 +2613,7 @@
       "refersTo": "corner-frame",
       "description": "Aerospace-instrument tick frame: four 12px corner brackets in Sovereign Deep Blue around content. Signature element, used sparingly — typically once per page on the most important content region.",
       "html": "<div class=\"ds-corner\"><span class=\"ds-corner-tl\"></span><span class=\"ds-corner-tr\"></span><span class=\"ds-corner-bl\"></span><span class=\"ds-corner-br\"></span><div class=\"ds-corner-content\"><div class=\"ds-corner-eyebrow\">PRIMARY READOUT</div><div class=\"ds-corner-value\">PN ELEC0142</div><div class=\"ds-corner-meta\">Famille ELEC · Affaire AF001 · created 2026-04-30</div></div></div>",
-      "css": ".ds-corner { position: relative; padding: 24px; background: #FFFFFF; border: 1px solid #C2DDF0; } .ds-corner-tl, .ds-corner-tr, .ds-corner-bl, .ds-corner-br { content: ''; position: absolute; width: 12px; height: 12px; border-color: #12293A; border-style: solid; } .ds-corner-tl { top: 0; left: 0; border-width: 2px 0 0 2px; } .ds-corner-tr { top: 0; right: 0; border-width: 2px 2px 0 0; } .ds-corner-bl { bottom: 0; left: 0; border-width: 0 0 2px 2px; } .ds-corner-br { bottom: 0; right: 0; border-width: 0 2px 2px 0; } .ds-corner-content { } .ds-corner-eyebrow { font-family: 'IBM Plex Sans', system-ui, sans-serif; font-weight: 700; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #73777D; margin-bottom: 8px; } .ds-corner-value { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-weight: 500; font-size: 22px; color: #12293A; letter-spacing: 0.02em; font-variant-numeric: tabular-nums; margin-bottom: 6px; } .ds-corner-meta { font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 12px; color: #43474C; }"
+      "css": ".ds-corner { position: relative; padding: 24px; background: #FCFDFE; border: 1px solid #C2DDF0; } .ds-corner-tl, .ds-corner-tr, .ds-corner-bl, .ds-corner-br { content: ''; position: absolute; width: 12px; height: 12px; border-color: #12293A; border-style: solid; } .ds-corner-tl { top: 0; left: 0; border-width: 2px 0 0 2px; } .ds-corner-tr { top: 0; right: 0; border-width: 2px 2px 0 0; } .ds-corner-bl { bottom: 0; left: 0; border-width: 0 0 2px 2px; } .ds-corner-br { bottom: 0; right: 0; border-width: 0 2px 2px 0; } .ds-corner-content { } .ds-corner-eyebrow { font-family: 'IBM Plex Sans', system-ui, sans-serif; font-weight: 700; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #73777D; margin-bottom: 8px; } .ds-corner-value { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-weight: 500; font-size: 22px; color: #12293A; letter-spacing: 0.02em; font-variant-numeric: tabular-nums; margin-bottom: 6px; } .ds-corner-meta { font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 12px; color: #43474C; }"
     }
   ],
   "narrative": {
