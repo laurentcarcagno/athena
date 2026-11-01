@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { Btn, Card, EmptyState, Field, PageHeader, Table, Tabs, Tag, Td, Th, useToast } from '@athena/ui';
 import { api, type Session } from '../api';
+import { TrackerTemplateForm, type TrackerTemplateEntry } from '../components/TrackerTemplateForm';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
 
@@ -91,35 +92,43 @@ function ProjectsTab({ users, templates }: { users: UserEntry[]; templates: Temp
   );
 }
 
-function TemplatesTab({ templates, reload }: { templates: TemplateEntry[]; reload: () => Promise<void> }) {
+function ProjectTemplates({ templates, trackerTemplates, reload, reloadTrackerTemplates }: {
+  templates: TemplateEntry[]; trackerTemplates: TrackerTemplateEntry[]; reload: () => Promise<void>; reloadTrackerTemplates: () => Promise<void>;
+}) {
   const toast = useToast();
   const fail = useFailure();
   const [projects, setProjects] = useState<Array<{ key: string; name: string }>>([]);
-  const [trackers, setTrackers] = useState<Array<{ key: string; name: string }>>([]);
-  const [form, setForm] = useState({ key: '', name: '', description: '', project: '', picked: [] as string[] });
+  const [projectTrackers, setProjectTrackers] = useState<Array<{ key: string; name: string }>>([]);
+  const [creating, setCreating] = useState(false);
+  const [form, setForm] = useState({ key: '', name: '', description: '', project: '', picked: [] as string[], tplPicked: [] as string[] });
   useEffect(() => { api<Array<{ key: string; name: string }>>('GET', '/v1/projects').then(setProjects).catch(fail); }, [fail]);
   const chooseProject = async (project: string) => {
     setForm((f) => ({ ...f, project, picked: [] }));
-    if (!project) { setTrackers([]); return; }
+    if (!project) { setProjectTrackers([]); return; }
     try {
       const list = await api<Array<{ key: string; name: string }>>('GET', `/v1/projects/${project}/trackers`);
-      setTrackers(list);
+      setProjectTrackers(list);
       setForm((f) => ({ ...f, picked: list.map((t) => t.key) }));
     } catch (error) { fail(error); }
   };
   const create = async (event: FormEvent) => {
     event.preventDefault();
     try {
-      await api('POST', '/v1/project-templates', { key: form.key, name: form.name, ...(form.description ? { description: form.description } : {}), fromProject: { project: form.project, trackers: form.picked } });
+      await api('POST', '/v1/project-templates', {
+        key: form.key, name: form.name, ...(form.description ? { description: form.description } : {}),
+        ...(form.project && form.picked.length ? { fromProject: { project: form.project, trackers: form.picked } } : {}),
+        ...(form.tplPicked.length ? { trackerTemplates: form.tplPicked } : {}),
+      });
       toast('success', fr.org.templateCreated);
-      setForm({ key: '', name: '', description: '', project: '', picked: [] });
-      setTrackers([]);
+      setForm({ key: '', name: '', description: '', project: '', picked: [], tplPicked: [] });
+      setProjectTrackers([]);
       await reload();
     } catch (error) { fail(error); }
   };
   const remove = async (key: string) => {
     try { await api('DELETE', `/v1/project-templates/${key}`); toast('success', fr.org.templateDeleted); await reload(); } catch (error) { fail(error); }
   };
+  const nothing = form.picked.length === 0 && form.tplPicked.length === 0;
   return (
     <div className="ath-stack">
       <Table>
@@ -138,24 +147,84 @@ function TemplatesTab({ templates, reload }: { templates: TemplateEntry[]; reloa
           <Field label={fr.org.templateKey} value={form.key} onChange={(e) => setForm({ ...form, key: e.target.value })} mono />
           <Field label={fr.org.templateName} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
           <Field label={fr.org.templateDescription} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+        </div>
+        <fieldset className="ath-row">
+          <legend className="ath-field__label">{fr.builder.trackerTemplates}</legend>
+          {trackerTemplates.map((t) => (
+            <label key={t.key} className="ath-row"><input type="checkbox" checked={form.tplPicked.includes(t.key)}
+              onChange={(e) => setForm({ ...form, tplPicked: e.target.checked ? [...form.tplPicked, t.key] : form.tplPicked.filter((x) => x !== t.key) })} />{t.name} <span className="ath-mono">{t.tracker.key}</span></label>
+          ))}
+        </fieldset>
+        <div className="ath-toolbar">
           <div className="ath-field">
             <label className="ath-field__label" htmlFor="template-project">{fr.org.fromProject}</label>
             <select id="template-project" className="ath-select" value={form.project} onChange={(e) => void chooseProject(e.target.value)}>
               <option value="" />{projects.map((p) => <option key={p.key} value={p.key}>{p.name} ({p.key})</option>)}
             </select>
           </div>
+          <Btn type="button" variant="ghost" onClick={() => setCreating(!creating)} aria-expanded={creating}>{fr.builder.newTrackerForTemplate}</Btn>
         </div>
-        {trackers.length > 0 && (
+        {projectTrackers.length > 0 && (
           <fieldset className="ath-row">
             <legend className="ath-field__label">{fr.org.pickTrackers}</legend>
-            {trackers.map((t) => (
+            {projectTrackers.map((t) => (
               <label key={t.key} className="ath-row"><input type="checkbox" checked={form.picked.includes(t.key)}
                 onChange={(e) => setForm({ ...form, picked: e.target.checked ? [...form.picked, t.key] : form.picked.filter((x) => x !== t.key) })} /><span className="ath-mono">{t.key}</span> {t.name}</label>
             ))}
           </fieldset>
         )}
-        <div><Btn type="submit" disabled={!/^[a-z][a-z0-9-]{1,39}$/.test(form.key) || !form.name.trim() || !form.project || form.picked.length === 0}>{fr.org.createTemplate}</Btn></div>
+        <div><Btn type="submit" disabled={!/^[a-z][a-z0-9-]{1,39}$/.test(form.key) || !form.name.trim() || nothing}>{fr.org.createTemplate}</Btn></div>
       </form>
+      {creating && (
+        <section className="ath-stack" aria-label={fr.builder.newTrackerForTemplate}>
+          <h2 className="ath-label">{fr.builder.newTrackerForTemplate}</h2>
+          <TrackerTemplateForm templates={trackerTemplates} onCreated={async (key) => {
+            await reloadTrackerTemplates();
+            setForm((f) => ({ ...f, tplPicked: [...f.tplPicked, key] }));
+            setCreating(false);
+            toast('success', fr.builder.addedTracker(key));
+          }} />
+        </section>
+      )}
+    </div>
+  );
+}
+
+function TrackerTemplates({ templates, reload }: { templates: TrackerTemplateEntry[]; reload: () => Promise<void> }) {
+  const toast = useToast();
+  const fail = useFailure();
+  const remove = async (key: string) => {
+    try { await api('DELETE', `/v1/tracker-templates/${key}`); toast('success', fr.builder.trackerTemplateDeleted); await reload(); } catch (error) { fail(error); }
+  };
+  return (
+    <div className="ath-stack">
+      <Table>
+        <thead><tr><Th>{fr.config.name}</Th><Th>{fr.org.attributes}</Th><Th>{fr.config.statuses}</Th><Th>{fr.org.deleteTemplate}</Th></tr></thead>
+        <tbody>{templates.map((t) => (
+          <tr key={t.key}>
+            <Td>{t.name} <span className="ath-mono">{t.key}</span>{t.builtin && <> <Tag>{fr.org.builtin}</Tag></>}</Td>
+            <Td>{t.tracker.fields.map((f) => f.label).join(', ')}</Td>
+            <Td>{t.tracker.statuses.map((x) => x.name).join(' → ')}</Td>
+            <Td>{!t.builtin && <Btn size="sm" variant="ghost" aria-label={`${fr.org.deleteTemplate} ${t.name}`} onClick={() => remove(t.key)}>{fr.org.deleteTemplate}</Btn>}</Td>
+          </tr>
+        ))}</tbody>
+      </Table>
+      <TrackerTemplateForm templates={templates} onCreated={reload} />
+    </div>
+  );
+}
+
+function TemplatesTab({ templates, trackerTemplates, reload, reloadTrackerTemplates }: {
+  templates: TemplateEntry[]; trackerTemplates: TrackerTemplateEntry[]; reload: () => Promise<void>; reloadTrackerTemplates: () => Promise<void>;
+}) {
+  const [sub, setSub] = useState('project');
+  return (
+    <div className="ath-stack">
+      <Tabs tabs={[{ id: 'project', label: fr.builder.projectTemplates }, { id: 'tracker', label: fr.builder.trackerTemplates }]} active={sub} onChange={setSub} />
+      <div role="tabpanel" className="ath-stack">
+        {sub === 'project' && <ProjectTemplates templates={templates} trackerTemplates={trackerTemplates} reload={reload} reloadTrackerTemplates={reloadTrackerTemplates} />}
+        {sub === 'tracker' && <TrackerTemplates templates={trackerTemplates} reload={reloadTrackerTemplates} />}
+      </div>
     </div>
   );
 }
@@ -228,9 +297,11 @@ export function OrgAdminPage({ session }: { session: Session }) {
   const [tab, setTab] = useState('projects');
   const [users, setUsers] = useState<UserEntry[]>([]);
   const [templates, setTemplates] = useState<TemplateEntry[]>([]);
+  const [trackerTemplates, setTrackerTemplates] = useState<TrackerTemplateEntry[]>([]);
+  const loadTrackerTemplates = useCallback(async () => setTrackerTemplates(await api<TrackerTemplateEntry[]>('GET', '/v1/tracker-templates')), []);
   const loadTemplates = useCallback(async () => setTemplates(await api<TemplateEntry[]>('GET', '/v1/project-templates')), []);
   const admin = session.user?.roles.includes('athena-admin') ?? false;
-  useEffect(() => { if (admin) { api<UserEntry[]>('GET', '/v1/users').then(setUsers).catch(fail); loadTemplates().catch(fail); } }, [admin, fail, loadTemplates]);
+  useEffect(() => { if (admin) { api<UserEntry[]>('GET', '/v1/users').then(setUsers).catch(fail); loadTemplates().catch(fail); loadTrackerTemplates().catch(fail); } }, [admin, fail, loadTemplates, loadTrackerTemplates]);
   if (!admin) return <><PageHeader eyebrow={fr.org.eyebrow} title={fr.org.title} /><p className="ath-field__error">{fr.config.adminOnly}</p></>;
   return (
     <>
@@ -238,7 +309,7 @@ export function OrgAdminPage({ session }: { session: Session }) {
       <Tabs tabs={[{ id: 'projects', label: fr.org.projects }, { id: 'templates', label: fr.org.templates }, { id: 'users', label: fr.org.users }, { id: 'plugins', label: fr.org.plugins }]} active={tab} onChange={setTab} />
       <div role="tabpanel" className="ath-stack">
         {tab === 'projects' && <ProjectsTab users={users} templates={templates} />}
-        {tab === 'templates' && <TemplatesTab templates={templates} reload={loadTemplates} />}
+        {tab === 'templates' && <TemplatesTab templates={templates} trackerTemplates={trackerTemplates} reload={loadTemplates} reloadTrackerTemplates={loadTrackerTemplates} />}
         {tab === 'users' && <UsersTab users={users} />}
         {tab === 'plugins' && <PluginsTab />}
       </div>

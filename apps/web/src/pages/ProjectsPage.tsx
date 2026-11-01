@@ -1,14 +1,16 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Card, EmptyState, Id, PageHeader, Table, Tag, Td, Th } from '@athena/ui';
-import { api, type TrackerDefinition } from '../api';
+import { Link, useNavigate } from 'react-router-dom';
+import { Btn, Card, EmptyState, Id, PageHeader, Table, Tag, Td, Th } from '@athena/ui';
+import { api, type Session, type TrackerDefinition } from '../api';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
 
 interface TrackerRow { key: string; name: string; artifacts: number; attributes: string[] }
 interface ProjectEntry { key: string; name: string; trackers: TrackerRow[]; boards: Array<{ key: string; name: string }> }
 
-export function ProjectsPage() {
+export function ProjectsPage({ session }: { session?: Session } = {}) {
+  const navigate = useNavigate();
+  const admin = session?.user?.roles.includes('athena-admin') ?? false;
   const [projects, setProjects] = useState<ProjectEntry[] | null>(null);
   const fail = useFailure();
   useEffect(() => {
@@ -64,7 +66,10 @@ export function ProjectsPage() {
                     {p.boards.map((b) => <Link key={b.key} className="ath-link" to={`/p/${p.key}/board/${b.key}`}>{b.name}</Link>)}
                   </div>
                 )}
-                <Link className="ath-link" to={`/p/${p.key}`}><Id>{p.key}</Id> · {fr.nav.search}</Link>
+                <div className="ath-row">
+                  <Link className="ath-link" to={`/p/${p.key}`}><Id>{p.key}</Id> · {fr.nav.search}</Link>
+                  {admin && <Btn size="sm" variant="ghost" onClick={() => navigate(`/p/${p.key}/trackers/new`)}>{fr.builder.addTracker}</Btn>}
+                </div>
               </div>
             </Card>
           ))}

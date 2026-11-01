@@ -3,7 +3,7 @@ import { createTestDb, pgUp, type TestDb } from '../testing/harness';
 import { Db, type Actor } from './db';
 import { DomainError } from './errors';
 import { FieldTypeRegistry } from './field-types';
-import { TemplateService } from './template.service';
+import { TemplateService, type TemplateTracker } from './template.service';
 import { TrackerService } from './tracker.service';
 
 const suite = pgUp ? describe : describe.skip;
@@ -68,6 +68,37 @@ suite('templates de projet (intégration)', () => {
     expect(await code(templates.create(org, { key: 'mon-modele', name: 'x', trackers: snapshot }, admin))).toMatch(/^conflict/);
     expect(await code(templates.create(org, { key: 'dbl', name: 'x', trackers: [...snapshot, ...snapshot] }, admin))).toMatch(/^validation/);
     expect(await code(templates.trackersOf(org, 'VID'))).toMatch(/^validation/);
+  });
+
+  it('propose des templates de tracker livrés et en crée un depuis un tracker de projet ou de toutes pièces', async () => {
+    expect((await templates.listTrackerTemplates(org)).map((t) => t.key)).toEqual(expect.arrayContaining(['bug', 'exigence', 'tache']));
+    const [bug] = await templates.trackersOf(org, 'QUA', ['BUG']);
+    await templates.createTrackerTemplate(org, { key: 'bug-maison', name: 'Bugs maison', tracker: bug! }, admin);
+    const custom: TemplateTracker = {
+      key: 'RISK', name: 'Risques',
+      fields: [{ key: 'title', label: 'Titre', type: 'text', required: true, semanticRole: 'title' }, { key: 'impact', label: 'Impact', type: 'select', config: { options: ['faible', 'fort'] } }],
+      statuses: [{ key: 'open', name: 'Ouvert', category: 'todo' }, { key: 'closed', name: 'Clos', category: 'done' }],
+      transitions: [{ name: 'Clore', from: 'open', to: 'closed' }],
+    };
+    await templates.createTrackerTemplate(org, { key: 'risques', name: 'Risques', tracker: custom }, admin);
+    expect((await templates.listTrackerTemplates(org)).filter((t) => !t.builtin).map((t) => t.key).sort()).toEqual(['bug-maison', 'risques']);
+  });
+
+  it('refuse un template de tracker invalide, en double ou livré', async () => {
+    const broken: TemplateTracker = { key: 'BAD', name: 'Bad', fields: [], statuses: [{ key: 'a', name: 'A', category: 'todo' }], transitions: [{ name: 'x', from: 'a', to: 'zzz' }] };
+    expect(await code(templates.createTrackerTemplate(org, { key: 'bad', name: 'Bad', tracker: broken }, admin))).toMatch(/^validation/);
+    expect(await code(templates.createTrackerTemplate(org, { key: 'risques', name: 'Risques', tracker: broken }, admin))).toMatch(/^validation|^conflict/);
+    expect(await code(templates.removeTrackerTemplate(org, 'bug', admin))).toMatch(/^conflict/);
+    expect(await code(templates.trackersFromTemplates(org, ['absent']))).toMatch(/^not_found/);
+  });
+
+  it('assemble un template de projet avec des trackers existants, des templates de tracker et un tracker nouveau', async () => {
+    const trackersList = await templates.trackersFromTemplates(org, ['exigence', 'risques']);
+    expect(trackersList.map((t) => t.key)).toEqual(['REQ', 'RISK']);
+    await templates.create(org, { key: 'assemble', name: 'Assemblé', trackers: trackersList }, admin);
+    await templates.createProject(org, 'ASM', 'Assemblé', 'assemble', admin);
+    expect(await trackerKeys('ASM')).toEqual(['REQ', 'RISK']);
+    expect(await code(templates.create(org, { key: 'casse', name: 'Cassé', trackers: [{ key: 'BAD', name: 'Bad', fields: [], statuses: [{ key: 'a', name: 'A', category: 'done' }], transitions: [] }] }, admin))).toMatch(/^validation/);
   });
 
   it('supprime un template de l’organisation, jamais un template livré', async () => {

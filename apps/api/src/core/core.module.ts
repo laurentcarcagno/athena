@@ -39,7 +39,7 @@ import { SavedFilterController } from '../atql/saved-filter.controller';
 import { SavedFilterService } from '../atql/saved-filter.service';
 import { LinkService } from './link.service';
 import { MemberController } from './member.controller';
-import { TemplateController } from './template.controller';
+import { TemplateController, TrackerTemplateController } from './template.controller';
 import { TemplateService } from './template.service';
 import { MemberService } from './member.service';
 import { DomainErrorFilter, OrgResolver } from './http';
@@ -48,7 +48,7 @@ import { TrackerService } from './tracker.service';
 export { PG_POOL } from './core.tokens';
 
 @Module({
-  controllers: [CoreController, AttachmentController, SavedFilterController, IntegrationsController, AgileController, MemberController, TemplateController],
+  controllers: [CoreController, AttachmentController, SavedFilterController, IntegrationsController, AgileController, MemberController, TemplateController, TrackerTemplateController],
   providers: [
     { provide: PG_POOL, useFactory: () => new Pool({ connectionString: loadConfig().DATABASE_URL, max: 10 }) },
     { provide: FieldTypeRegistry, useValue: new FieldTypeRegistry() },

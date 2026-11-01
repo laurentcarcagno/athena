@@ -14,6 +14,7 @@ import { OrgAdminPage } from './pages/OrgAdminPage';
 import { ProjectManagePage } from './pages/ProjectManagePage';
 import { ProjectsPage } from './pages/ProjectsPage';
 import { TrackerConfigPage } from './pages/TrackerConfigPage';
+import { TrackerCreatePage } from './pages/TrackerCreatePage';
 
 /** Projet courant déduit de l'adresse (`/p/<clé>/…`). */
 export const projectOf = (pathname: string): string | undefined => (pathname.startsWith('/p/') ? pathname.split('/')[2] : undefined);
@@ -90,7 +91,7 @@ export function AuthenticatedApp({ session }: { session: Session }) {
   return (
     <Shell session={session}>
       <Routes>
-        <Route path="/" element={<ProjectsPage />} />
+        <Route path="/" element={<ProjectsPage session={session} />} />
         <Route path="/me" element={<MyWorkPage session={session} />} />
         <Route path="/org" element={<OrgAdminPage session={session} />} />
         <Route path="/p/:project" element={<ListPage session={session} />} />
@@ -99,6 +100,7 @@ export function AuthenticatedApp({ session }: { session: Session }) {
         <Route path="/p/:project/admin" element={<AdminPage />} />
         <Route path="/p/:project/a/:key" element={<ArtifactPage session={session} />} />
         <Route path="/p/:project/board/:board" element={<BoardPage />} />
+        <Route path="/p/:project/trackers/new" element={<TrackerCreatePage session={session} />} />
         <Route path="/p/:project/trackers/:tracker/config" element={<TrackerConfigPage session={session} />} />
         <Route path="*" element={<NotFound />} />
       </Routes>

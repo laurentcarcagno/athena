@@ -123,3 +123,27 @@ test('administrateur : crée un projet, nomme un chef de projet et gère les act
   await expect(page.getByRole('tab', { name: 'Acteurs' })).toBeVisible();
   expect(await axeViolations(page)).toEqual([]);
 });
+
+test('administrateur : crée un tracker depuis un template de tracker modifié et un template de tracker neuf', async ({ page }) => {
+  await login(page, 'admin.dev', 'dev-only-admin');
+  await page.goto('/p/ARI/trackers/new');
+  await page.getByLabel('Partir d’un template de tracker').selectOption('tache');
+  await expect(page.getByRole('cell', { name: 'Échéance' })).toBeVisible();
+  await page.getByRole('button', { name: 'Supprimer due' }).click();
+  await page.getByLabel('Clé du tracker (2 à 10 majuscules)').fill('TSK');
+  expect(await axeViolations(page)).toEqual([]);
+  await page.getByRole('button', { name: 'Créer le tracker' }).click();
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('TSK');
+  await expect(page.getByRole('cell', { name: 'due', exact: true })).toHaveCount(0);
+
+  await page.goto('/org');
+  await page.getByRole('tab', { name: 'Templates' }).click();
+  await page.getByRole('tab', { name: 'Templates de tracker' }).click();
+  await page.getByLabel('Clé du template de tracker (minuscules)').fill('risques');
+  await page.getByLabel('Nom du template de tracker').fill('Risques');
+  await page.getByLabel('Clé du tracker (2 à 10 majuscules)').fill('RISK');
+  await page.getByLabel('Nom du tracker').fill('Risques');
+  await page.getByRole('button', { name: 'Créer le template de tracker' }).click();
+  await expect(page.getByRole('row', { name: /Risques/ })).toBeVisible();
+  expect(await axeViolations(page)).toEqual([]);
+});

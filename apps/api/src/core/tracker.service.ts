@@ -285,7 +285,7 @@ export class TrackerService {
     };
   }
 
-  private validateSpec(spec: TrackerSpec): void {
+  validateSpec(spec: TrackerSpec): void {
     const errors: string[] = [];
     const dup = (items: string[], what: string) => {
       const seen = new Set<string>();

@@ -26,6 +26,7 @@ export const TemplateTrackerSchema = z.object({
 });
 export type TemplateTracker = z.infer<typeof TemplateTrackerSchema>;
 
+export interface TrackerTemplateView { key: string; name: string; description: string; builtin: boolean; tracker: TemplateTracker }
 export interface TemplateView { key: string; name: string; description: string; builtin: boolean; trackers: TemplateTracker[] }
 
 const strip = ({ projectKey: _p, ...rest }: TrackerSpec): TemplateTracker => JSON.parse(JSON.stringify(rest)) as TemplateTracker;
@@ -39,6 +40,27 @@ export function builtinTemplates(): TemplateView[] {
   ];
 }
 
+/** Templates de tracker livrés : un tracker complet, à reprendre tel quel ou à modifier. */
+export function builtinTrackerTemplates(): TrackerTemplateView[] {
+  const task: TemplateTracker = {
+    key: 'TASK', name: 'Tâches',
+    fields: [
+      { key: 'title', label: 'Titre', type: 'text', required: true, semanticRole: 'title' },
+      { key: 'description', label: 'Description', type: 'richtext', semanticRole: 'description' },
+      { key: 'assignee', label: 'Responsable', type: 'user', semanticRole: 'assignee' },
+      { key: 'due', label: 'Échéance', type: 'date', semanticRole: 'due_date' },
+      { key: 'points', label: 'Points', type: 'number', semanticRole: 'estimate' },
+    ],
+    statuses: [{ key: 'todo', name: 'À faire', category: 'todo' }, { key: 'doing', name: 'En cours', category: 'in_progress' }, { key: 'done', name: 'Terminé', category: 'done' }],
+    transitions: [{ name: 'Démarrer', from: 'todo', to: 'doing' }, { name: 'Terminer', from: 'doing', to: 'done' }, { name: 'Rouvrir', from: null, to: 'todo' }],
+  };
+  return [
+    { key: 'bug', name: 'Bugs', description: 'Sévérité, responsable, versions et cause racine ; revue avant résolution.', builtin: true, tracker: strip(bugTemplate('')) },
+    { key: 'exigence', name: 'Exigences', description: 'Énoncé, priorité et identifiant documentaire ; approbation puis vérification.', builtin: true, tracker: strip(requirementTemplate('')) },
+    { key: 'tache', name: 'Tâches', description: 'Tâche simple : à faire, en cours, terminé.', builtin: true, tracker: task },
+  ];
+}
+
 export class TemplateService {
   constructor(private readonly db: Db, private readonly trackers: TrackerService) {}
 
@@ -46,6 +68,41 @@ export class TemplateService {
     const custom = await this.db.tx(organizationId, async (c) => (await c.query('select key, name, description, trackers from project_template order by lower(name)')).rows
       .map((r) => ({ key: r.key as string, name: r.name as string, description: r.description as string, builtin: false, trackers: r.trackers as TemplateTracker[] })));
     return [...builtinTemplates(), ...custom];
+  }
+
+  async listTrackerTemplates(organizationId: string): Promise<TrackerTemplateView[]> {
+    const custom = await this.db.tx(organizationId, async (c) => (await c.query('select key, name, description, tracker from tracker_template order by lower(name)')).rows
+      .map((r) => ({ key: r.key as string, name: r.name as string, description: r.description as string, builtin: false, tracker: r.tracker as TemplateTracker })));
+    return [...builtinTrackerTemplates(), ...custom];
+  }
+
+  async createTrackerTemplate(organizationId: string, input: { key: string; name: string; description?: string; tracker: TemplateTracker }, actor: Actor): Promise<void> {
+    this.trackers.validateSpec({ ...input.tracker, projectKey: '' } as TrackerSpec);
+    if ((await this.listTrackerTemplates(organizationId)).some((t) => t.key === input.key)) throw conflict(`Un template de tracker « ${input.key} » existe déjà.`);
+    await this.db.tx(organizationId, async (c) => {
+      await c.query('insert into tracker_template (organization_id, key, name, description, tracker, created_by) values ($1,$2,$3,$4,$5,$6)',
+        [organizationId, input.key, input.name, input.description ?? '', JSON.stringify(input.tracker), actor.id]);
+      await audit(c, organizationId, actor, 'tracker_template.create', `tracker-template:${input.key}`, { tracker: input.tracker.key });
+    });
+  }
+
+  async removeTrackerTemplate(organizationId: string, key: string, actor: Actor): Promise<void> {
+    if (builtinTrackerTemplates().some((t) => t.key === key)) throw conflict('Un template de tracker livré avec Athena ne peut pas être supprimé.');
+    await this.db.tx(organizationId, async (c) => {
+      const result = await c.query('delete from tracker_template where key = $1', [key]);
+      if (result.rowCount === 0) throw notFound(`Template de tracker ${key}`);
+      await audit(c, organizationId, actor, 'tracker_template.delete', `tracker-template:${key}`);
+    });
+  }
+
+  /** Trackers désignés par des clés de templates de tracker, dans l'ordre demandé. */
+  async trackersFromTemplates(organizationId: string, keys: string[]): Promise<TemplateTracker[]> {
+    const all = await this.listTrackerTemplates(organizationId);
+    return keys.map((k) => {
+      const found = all.find((t) => t.key === k);
+      if (!found) throw notFound(`Template de tracker ${k}`);
+      return found.tracker;
+    });
   }
 
   async get(organizationId: string, key: string): Promise<TemplateView> {
@@ -58,6 +115,7 @@ export class TemplateService {
     if (builtinTemplates().some((t) => t.key === input.key)) throw conflict('Cette clé est réservée à un template livré avec Athena.');
     const keys = input.trackers.map((t) => t.key);
     if (new Set(keys).size !== keys.length) throw validation(['deux trackers du template ont la même clé']);
+    for (const t of input.trackers) this.trackers.validateSpec({ ...t, projectKey: '' } as TrackerSpec);
     if ((await this.list(organizationId)).some((t) => t.key === input.key)) throw conflict(`Un template « ${input.key} » existe déjà.`);
     await this.db.tx(organizationId, async (c) => {
       await c.query('insert into project_template (organization_id, key, name, description, trackers, created_by) values ($1,$2,$3,$4,$5,$6)',

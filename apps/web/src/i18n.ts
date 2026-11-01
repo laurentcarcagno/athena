@@ -61,6 +61,15 @@ const frDict = {
     releaseName: 'Nom de la version', createRelease: 'Créer la version', publish: 'Publier',
     boardKey: 'Clé du board (minuscules)', boardName: 'Nom du board', boardTracker: 'Tracker', boardColumns: 'Colonnes (une par ligne : nom=statut1,statut2|limite WIP)', createBoard: 'Créer le board',
   },
+  builder: {
+    trackerKey: 'Clé du tracker (2 à 10 majuscules)', trackerName: 'Nom du tracker', options: 'Options', optionsHelp: 'Options (séparées par des virgules)', role: 'Rôle sémantique',
+    addField: 'Ajouter le champ', addStatus: 'Ajouter le statut', badKey: 'La clé du tracker doit avoir 2 à 10 majuscules ou chiffres.', badName: 'Le nom du tracker est requis.',
+    noTitle: 'Un champ de rôle sémantique « title » est requis.', noTodo: 'Un statut de catégorie todo est requis.',
+    fromTemplate: 'Partir d’un template de tracker', blank: 'Tracker vierge', createTracker: 'Créer le tracker', trackerCreated: (k: string) => `Tracker ${k} créé.`, addTracker: 'Ajouter un tracker', newTracker: 'Nouveau tracker',
+    adminOnly: 'Réservé aux administrateurs.', projectTemplates: 'Templates de projet', trackerTemplates: 'Templates de tracker', templateTrackers: 'Trackers du template',
+    createTrackerTemplate: 'Créer le template de tracker', trackerTemplateCreated: 'Template de tracker créé.', trackerTemplateDeleted: 'Template de tracker supprimé.', newTrackerForTemplate: 'Nouveau tracker pour ce template',
+    templateKey: 'Clé du template de tracker (minuscules)', templateName: 'Nom du template de tracker', addedTracker: (k: string) => `Template ${k} ajouté aux trackers du template.`,
+  },
   palette: { title: 'Commandes', placeholder: 'Aller à… ou rechercher un artefact', none: 'Aucun résultat.', projects: 'Projets', artifacts: 'Artefacts', goto: 'Aller à' },
   errors: {
     generic: 'Une erreur est survenue. Réessayez.', notFoundTitle: 'Page introuvable', notFoundEyebrow: 'Erreur 404', notFound: 'Cette adresse ne correspond à aucune page.',
@@ -126,6 +135,15 @@ const enDict: Dictionary = {
     sprintName: 'Sprint name', goal: 'Goal', starts: 'Start', ends: 'End', createSprint: 'Create sprint', start: 'Start', close: 'Close', state: 'State', saved: 'Saved.',
     releaseName: 'Release name', createRelease: 'Create release', publish: 'Publish',
     boardKey: 'Board key (lowercase)', boardName: 'Board name', boardTracker: 'Tracker', boardColumns: 'Columns (one per line: name=status1,status2|WIP limit)', createBoard: 'Create board',
+  },
+  builder: {
+    trackerKey: 'Tracker key (2 to 10 capitals)', trackerName: 'Tracker name', options: 'Options', optionsHelp: 'Options (comma separated)', role: 'Semantic role',
+    addField: 'Add field', addStatus: 'Add status', badKey: 'The tracker key needs 2 to 10 capitals or digits.', badName: 'The tracker name is required.',
+    noTitle: 'A field with the “title” semantic role is required.', noTodo: 'A status in the todo category is required.',
+    fromTemplate: 'Start from a tracker template', blank: 'Blank tracker', createTracker: 'Create tracker', trackerCreated: (k: string) => `Tracker ${k} created.`, addTracker: 'Add a tracker', newTracker: 'New tracker',
+    adminOnly: 'Administrators only.', projectTemplates: 'Project templates', trackerTemplates: 'Tracker templates', templateTrackers: 'Template trackers',
+    createTrackerTemplate: 'Create tracker template', trackerTemplateCreated: 'Tracker template created.', trackerTemplateDeleted: 'Tracker template deleted.', newTrackerForTemplate: 'New tracker for this template',
+    templateKey: 'Tracker template key (lowercase)', templateName: 'Tracker template name', addedTracker: (k: string) => `Template ${k} added to the template trackers.`,
   },
   palette: { title: 'Commands', placeholder: 'Go to… or search for an artifact', none: 'No result.', projects: 'Projects', artifacts: 'Artifacts', goto: 'Go to' },
   errors: {
