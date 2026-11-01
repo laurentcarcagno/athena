@@ -267,7 +267,7 @@ La palette est petite, froide et strictement gouvernée : une triade de marque (
 **Primaires**
 
 - **Sovereign Deep Blue** (`{colors.sovereign-deep-blue}`, `#12293A`) : couleur de gravité. Barre latérale, titres de page, fond d'en-tête de tableau, bordures fortes, variante `deep` des boutons, texte des boutons fantômes. Environ 18 à 22 % de la surface d'un écran rempli.
-- **Console Sky** (`{colors.console-sky}`, `#006EB1`) : action et signal actif. Boutons primaires, liseré de 3 px des stat cards, repère de l'item actif, focus ring, liens, pastille info. Jamais décorative.
+- **Console Sky** (`{colors.console-sky}`, `#006EB1`) : action et signal actif. Boutons primaires, liseré de 3 px des stat cards, repère de l'item actif, focus ring, pastille info (les liens utilisent `{semantic.text.link}`, sa variante assombrie). Jamais décorative.
 
 **Tertiaires (cérémoniels)**
 
@@ -286,7 +286,7 @@ La palette est petite, froide et strictement gouvernée : une triade de marque (
 | `{colors.console-border}` | `#C2DDF0` | Bordure 1 px des cartes, tableaux, champs, barres d'outils. |
 | `{colors.ink}` | `#001423` | Texte courant. |
 | `{colors.dim-ink}` | `#43474C` | Texte secondaire. |
-| `{colors.mute-ink}` | `#73777D` | Aide, eyebrows, méta. **Contraste insuffisant sur plusieurs fonds**, voir 2.1.3. |
+| `{colors.mute-ink}` | `#73777D` | Primitive conservée. En texte on emploie `{semantic.text.mute}` (`{colors.mute-ink-aa}`) : la primitive seule n'atteint pas 4,5:1 sur les fonds clairs. |
 
 **Signal (état, jamais décor).** `{colors.signal-success}` sur `{colors.pill-success-bg}`, `{colors.signal-warning}` sur `{colors.pill-warning-bg}`, `{colors.signal-danger}` sur `{colors.pill-danger-bg}`. L'état **info** n'a pas de couleur propre : il emploie `{colors.console-sky}` sur `{colors.hover-mist}` (usage volontaire : « regardez ici »). L'état **neutre** (valeur inconnue) emploie `{colors.instrument-white}`, `{colors.sovereign-deep-blue}` en bordure et `{colors.dim-ink}` en texte ; il ne sert jamais de valeur par défaut quand on a oublié de traiter une valeur.
 
@@ -297,41 +297,45 @@ Les composants ne citent pas les primitives directement : ils passent par la cou
 | Groupe | Clés | Rôle |
 |---|---|---|
 | Surface | `{semantic.surface.app}`, `{semantic.surface.default}`, `{semantic.surface.hover}`, `{semantic.surface.muted}`, `{semantic.surface.selected}`, `{semantic.surface.inverse}`, `{semantic.surface.scrim}` | Fonds, du plus lointain au plus engagé. |
-| Texte | `{semantic.text.default}`, `{semantic.text.secondary}`, `{semantic.text.mute}`, `{semantic.text.mute-aa}`, `{semantic.text.heading}`, `{semantic.text.link}`, `{semantic.text.link-aa}`, `{semantic.text.on-inverse}`, `{semantic.text.on-action}` | Textes selon le fond. Les variantes `-aa` atteignent 4,5:1 là où la valeur d'origine échoue. |
+| Texte | `{semantic.text.default}`, `{semantic.text.secondary}`, `{semantic.text.mute}`, `{semantic.text.mute-aa}`, `{semantic.text.heading}`, `{semantic.text.link}`, `{semantic.text.link-aa}`, `{semantic.text.on-inverse}`, `{semantic.text.on-action}` | Textes selon le fond. `mute`, `link` et `state.*.fg` sont déjà les variantes accessibles (4,5:1) ; `mute-aa` et `link-aa` en sont des alias de compatibilité. |
 | Bordure | `{semantic.border.default}`, `{semantic.border.strong}`, `{semantic.border.control}`, `{semantic.border.focus}`, `{semantic.border.danger}` | `control` est le contour d'un champ qui atteint 3:1. |
 | Action | `{semantic.action.primary.bg}`, `{semantic.action.deep.bg}`, `{semantic.action.ghost.fg}`, `{semantic.action.danger.fg}` | Boutons (voir 3.1). |
-| État | `{semantic.state.success.bg}`, `{semantic.state.warning.bg}`, `{semantic.state.danger.bg}`, `{semantic.state.info.bg}`, `{semantic.state.neutral.bg}` | Chaque état a `bg`, `fg`, `fg-aa` et `border`. |
+| État | `{semantic.state.success.bg}`, `{semantic.state.warning.bg}`, `{semantic.state.danger.bg}`, `{semantic.state.info.bg}`, `{semantic.state.neutral.bg}` | Chaque état a `bg`, `fg` (texte accessible), `fg-aa` (alias) et `border`. |
 | Focus | `{semantic.focus.ring}`, `{semantic.focus.ring-on-inverse}` | Anneau de focus sur fond clair, et sur surface inverse. |
 
-#### 2.1.2 Couleurs dérivées proposées
+#### 2.1.2 Couleurs dérivées
 
-Athena applique déjà ces assombrissements dans son CSS pour atteindre les contrastes ; ils sont formalisés ici, en `proposed`.
+Athena applique déjà ces assombrissements dans son CSS ; ils sont formalisés ici et adoptés comme valeurs sémantiques par défaut (journal D-013). Statut `proposed` tant que l'adoption n'est pas validée ; les couleurs primitives d'origine restent inchangées.
 
 `{colors.mute-ink-aa}`, `{colors.signal-success-text}`, `{colors.signal-warning-text}`, `{colors.signal-danger-text}`, `{colors.console-sky-text}`. Les superpositions `{overlays.on-inverse-subtle}`, `{overlays.on-inverse-hover}`, `{overlays.on-inverse-border}`, `{overlays.sky-tint-active}` et `{overlays.scrim}` donnent un nom aux valeurs `rgba` du CSS.
 
 #### 2.1.3 Contrastes
 
-Les ratios sont calculés (WCAG 2.x, luminance relative sRGB) et listés paire par paire dans `DESIGN.json` (`contrast.pairs`, 70 paires, thèmes clair et sombre). Résumé du thème clair :
+Les ratios sont calculés (WCAG 2.x, luminance relative sRGB) et listés paire par paire dans `DESIGN.json` (`contrast.pairs`, 64 paires, thèmes clair et sombre). **Toutes les paires par défaut atteignent leur seuil** ; `validate-design.mjs --strict` refuse tout écart. Thème clair, paires principales :
 
 | Paire | Ratio | Seuil | Résultat |
 |---|---|---|---|
-| Ink sur Instrument White | 18,34 | 4,5 | AAA |
-| Dim Ink sur Instrument White | 9,19 | 4,5 | AAA |
-| Console Sky sur Instrument White | 5,33 | 4,5 | AA |
-| Console Sky sur Hover Mist | 4,80 | 4,5 | AA |
-| Instrument White sur Sovereign Deep Blue | 14,69 | 4,5 | AAA |
-| Instrument White sur Console Sky (bouton primaire) | 5,33 | 4,5 | AA |
-| Signal Danger sur sa pastille | 5,52 | 4,5 | AA |
-| **Mute Ink sur Instrument White** | **4,42** | 4,5 | **échec** → `{semantic.text.mute-aa}` |
-| **Mute Ink sur Cold Mist** | **4,16** | 4,5 | **échec** → `{semantic.text.mute-aa}` |
-| **Mute Ink sur Hover Mist** | **3,98** | 4,5 | **échec** → `{semantic.text.mute-aa}` |
-| **Console Sky sur Selection Veil** | **4,20** | 4,5 | **échec** → `{semantic.text.link-aa}` |
-| **Signal Success sur sa pastille** | **3,94** | 4,5 | **échec** → `{semantic.state.success.fg-aa}` |
-| **Signal Warning sur sa pastille** | **2,69** | 4,5 | **échec** → `{semantic.state.warning.fg-aa}` |
-| **Console Border sur Instrument White (non textuel)** | **1,38** | 3 | **échec** pour le contour d'un champ → `{semantic.border.control}` |
-| **Console Sky sur Sovereign Deep Blue (focus ring)** | **2,75** | 3 | **échec** → `{semantic.focus.ring-on-inverse}` |
+| `{semantic.text.default}` sur `{semantic.surface.default}` | 18,34 | 4,5 | AAA |
+| `{semantic.text.secondary}` sur `{semantic.surface.default}` | 9,19 | 4,5 | AAA |
+| `{semantic.text.mute}` sur `{semantic.surface.default}` | 7,58 | 4,5 | AAA |
+| `{semantic.text.mute}` sur `{semantic.surface.hover}` | 6,83 | 4,5 | AA |
+| `{semantic.text.link}` sur `{semantic.surface.selected}` | 5,34 | 4,5 | AA |
+| `{semantic.text.on-action}` sur `{semantic.action.primary.bg}` | 5,33 | 4,5 | AA |
+| `{semantic.text.on-inverse}` sur `{semantic.surface.inverse}` | 14,69 | 4,5 | AAA |
+| Texte de pastille succès, avertissement, danger, info | ≥ 6,1 | 4,5 | AA |
+| `{semantic.border.control}` sur `{semantic.surface.default}` (non textuel) | 4,42 | 3 | AA |
+| `{semantic.focus.ring}` sur `{semantic.surface.default}` | 5,33 | 3 | AA |
+| `{semantic.focus.ring-on-inverse}` sur `{semantic.surface.inverse}` | 14,69 | 3 | AA |
 
-Ces échecs sont des **constats connus**, pas des modifications : aucune valeur d'origine n'est changée sans décision (journal D-003). Les séparateurs purement décoratifs sont exemptés de la règle des 3:1 (WCAG 1.4.11) ; le contour d'un champ ne l'est pas.
+Écarts de la version d'origine et leur résolution :
+
+| Avant | Ratio | Résolution |
+|---|---|---|
+| `{colors.mute-ink}` en texte sur fond clair | 4,42 / 4,16 / 3,98 | `{semantic.text.mute}` = `{colors.mute-ink-aa}` |
+| `{colors.console-sky}` en lien sur Selection Veil | 4,20 | `{semantic.text.link}` = `{colors.console-sky-text}` |
+| Texte de pastille succès et avertissement | 3,94 / 2,69 | `{semantic.state.success.fg}` et `{semantic.state.warning.fg}` (variantes `-text`) |
+| `{semantic.border.default}` comme contour de champ | 1,38 | `{semantic.border.control}` ; `{semantic.border.default}` reste réservé aux filets décoratifs (exemptés, WCAG 1.4.11) |
+| Focus ring `{semantic.focus.ring}` sur surface inverse | 2,75 | `{semantic.focus.ring-on-inverse}` obligatoire sur surface inverse |
 
 ### 2.2 Typographie
 
@@ -422,7 +426,7 @@ Tous les composants sont rectangulaires, bordés de 1 px, sans ombre, et lisent 
 
 - **Usage.** Exprimer un état (succès, avertissement, danger, info, neutre) dans une liste, un tableau, un en-tête.
 - **Anatomie.** Rectangle de `padding: 2px 8px`, bordure 1 px de la couleur de signal, point **carré** de 7 px en `currentColor`, libellé en capitales 10 px (`{fontSizes.2xs}`, `{letterSpacings.pill}`).
-- **Variantes.** `success`, `warning`, `danger`, `info`, `default` (neutre : aucune des quatre ne convient ; jamais un repli « on a oublié de traiter la valeur »). On n'invente pas d'autre type. Le texte utilise `{semantic.state.success.fg-aa}` et ses équivalents pour atteindre 4,5:1.
+- **Variantes.** `success`, `warning`, `danger`, `info`, `default` (neutre : aucune des quatre ne convient ; jamais un repli « on a oublié de traiter la valeur »). On n'invente pas d'autre type. Le texte utilise `{semantic.state.success.fg}` et ses équivalents, qui atteignent 4,5:1.
 - **États.** Non interactive : pas de survol.
 - **À faire.** Un libellé lisible (« En revue », « Bloqué »). Le même libellé que dans le texte de la page.
 - **À ne pas faire.** Une pastille sans texte. Une couleur seule pour distinguer deux états. Une pastille ronde.
@@ -451,8 +455,8 @@ Tous les composants sont rectangulaires, bordés de 1 px, sans ombre, et lisent 
 
 - **Usage.** Saisir une valeur.
 - **Anatomie.** Étiquette **toujours visible** au-dessus (11 px, capitales, `{semantic.text.secondary}`), champ de `padding: 6px 10px`, texte 13 px, texte d'aide ou d'erreur de 11 px sous le champ. Liste : chevron Lucide 14 px à droite ; panneau d'options net, `{semantic.border.default}`, survol `{semantic.surface.hover}`. Zone de texte : poignée de redimensionnement native conservée.
-- **États.** Repos : bordure `{semantic.border.default}`. Survol : `{semantic.border.strong}`. Focus : bordure 2 px `{semantic.border.focus}` (padding réduit de 1 px pour éviter tout décalage), pas de halo. Erreur : bordure `{semantic.border.danger}` + ligne d'aide `{semantic.state.danger.fg-aa}` reliée par `aria-describedby` ; le fond ne change pas. Désactivé : fond `{semantic.surface.hover}`, texte `{semantic.text.mute}`.
-- **Contour.** Le contour 1 px `{semantic.border.default}` ne dépasse pas 1,38:1 : un contour qui doit délimiter le champ utilise `{semantic.border.control}` (proposé).
+- **États.** Repos : bordure `{semantic.border.control}`. Survol : `{semantic.border.strong}`. Focus : bordure 2 px `{semantic.border.focus}` (padding réduit de 1 px pour éviter tout décalage), pas de halo. Erreur : bordure `{semantic.border.danger}` + ligne d'aide `{semantic.state.danger.fg-aa}` reliée par `aria-describedby` ; le fond ne change pas. Désactivé : fond `{semantic.surface.hover}`, texte `{semantic.text.mute}`.
+- **Contour.** Le contour d'un champ utilise `{semantic.border.control}` (3:1 minimum, WCAG 1.4.11). `{semantic.border.default}` (1,38:1) est réservé aux filets décoratifs de cartes et de tableaux.
 - **À faire.** Indiquer le format attendu en aide, pas dans le placeholder. Identifier les champs obligatoires par le mot « obligatoire », pas par un astérisque seul.
 - **À ne pas faire.** Placeholder en guise d'étiquette. Message d'erreur uniquement par la couleur.
 
@@ -471,7 +475,7 @@ Tous les composants sont rectangulaires, bordés de 1 px, sans ombre, et lisent 
 ### 3.9 Tableau et en-tête triable
 
 - **Usage.** Parcourir, comparer, trier des enregistrements.
-- **Anatomie.** En-tête `{semantic.surface.inverse}`, texte `{semantic.text.on-inverse}`, capitales espacées (`{component.table.header}`, valeur observée 9,5 px : `{fontSizes.micro}` déprécié, viser `{fontSizes.xs}`). Corps 12 px, bordures 1 px. Cellule `mono` pour tout identifiant (`{component.table.cell-mono}`).
+- **Anatomie.** En-tête `{semantic.surface.inverse}`, texte `{semantic.text.on-inverse}`, capitales espacées (`{component.table.header}`, 11 px, `{fontSizes.xs}` ; l'ancienne valeur de 9,5 px, `{fontSizes.micro}`, est dépréciée). Corps 12 px, bordures 1 px. Cellule `mono` pour tout identifiant (`{component.table.cell-mono}`).
 - **États.** Survol de ligne : `{semantic.surface.hover}`. Ligne sélectionnée : `{semantic.surface.selected}` + `aria-selected`, avec un indice non coloré (case cochée ou pastille). En-tête triable : clic ou `Entrée` / `Espace` cycle `aucun → croissant → décroissant → aucun`, `aria-sort` mis à jour ; indicateur de 5 px (paire de chevrons en repos, triangle en `{semantic.border.focus}` actif).
 - **À faire.** Aligner les nombres, garder l'en-tête visible au défilement (`{zIndex.sticky}`), limiter la largeur des colonnes de texte avec troncature et accès au texte complet. **À ne pas faire.** Trier sans indicateur ; masquer une colonne sans le dire.
 
@@ -516,7 +520,7 @@ Voir 2.6. Quatre repères de 12 px, tracé de 2 px, une fois par page.
 
 ## 4. Accessibilité
 
-Cible minimale : **WCAG 2.2 niveau AA**. Un écart se traite comme un constat d'audit (critères A1 à A5) ; les écarts connus du système sont consignés en 2.1.3 et dans `DESIGN.json` (`contrast.pairs`, résultat `known-issue`).
+Cible minimale : **WCAG 2.2 niveau AA**. Un écart se traite comme un constat d'audit (critères A1 à A5) ; les paires par défaut du système atteignent toutes leur seuil (2.1.3 et `contrast.pairs`) ; un écart ajouté plus tard se consigne en `known-issue` avec sa remédiation et fait échouer `validate-design --strict`.
 
 ### 4.1 Contrastes
 
@@ -527,7 +531,7 @@ Cible minimale : **WCAG 2.2 niveau AA**. Un écart se traite comme un constat d'
 | Contour d'un champ, icône porteuse de sens, focus ring, état d'un contrôle | 3:1 | 1.4.11 |
 | Séparateur purement décoratif | exempté | 1.4.11 |
 
-Règles : employer les variantes `-aa` (`{semantic.text.mute-aa}`, `{semantic.state.danger.fg-aa}`, `{semantic.text.link-aa}`) pour les textes secondaires, d'aide et de pastille ; employer `{semantic.border.control}` pour le contour d'un champ ; employer `{semantic.focus.ring-on-inverse}` sur fond bleu profond. Pour toute combinaison absente du JSON, calculer le ratio avant de la livrer et l'ajouter à `contrast.pairs`.
+Règles : le texte secondaire, d'aide, de lien et de pastille emploie `{semantic.text.mute}`, `{semantic.text.link}` et `{semantic.state.danger.fg}` (et équivalents), qui atteignent 4,5:1 ; le contour d'un champ emploie `{semantic.border.control}` ; sur fond bleu profond le focus ring est `{semantic.focus.ring-on-inverse}`. Pour toute combinaison absente du JSON, calculer le ratio avant de la livrer et l'ajouter à `contrast.pairs`.
 
 ### 4.2 Clavier
 
@@ -792,7 +796,7 @@ Modèle de proposition :
 |---|---|---|---|---|
 | D-001 | 2026-11-01 | Source de vérité : ARIANE ; la copie d'Athena (`packages/ui/design`) est synchronisée à partir d'elle. | `CLAUDE.md` d'Athena désigne ARIANE comme référence ; deux sources divergeraient. | Faire d'Athena la source. |
 | D-002 | 2026-11-01 | Les clés `colors`, `typography`, `rounded`, `spacing` du front matter sont inchangées ; tous les nouveaux tokens vivent dans `DESIGN.json` sous `tokens`. | `build-tokens.mjs` génère le CSS d'Athena depuis ces quatre blocs ; `lint-design.mjs` lit tous les `#` du `.md` comme palette autorisée. | Ajouter les nouvelles couleurs au front matter (cela élargirait en silence la palette du lint). |
-| D-003 | 2026-11-01 | Aucune valeur existante n'est modifiée pour corriger les contrastes ; des variantes `-aa` / `-text` sont proposées. | Ne pas changer l'identité sans validation ; Athena applique déjà ces assombrissements dans son CSS. | Assombrir `mute-ink` et les signaux directement. |
+| D-003 | 2026-11-01 | Aucune valeur primitive existante n'est modifiée pour corriger les contrastes ; des variantes `-aa` / `-text` sont créées (voir D-013 pour leur adoption par défaut). | Ne pas changer l'identité sans validation ; Athena applique déjà ces assombrissements dans son CSS. | Assombrir `mute-ink` et les signaux directement. |
 | D-004 | 2026-11-01 | Le thème sombre n'emploie que des valeurs des rampes tonales de `colorMeta`. | Ne rien inventer sur l'identité visuelle. | Inventer une palette sombre. |
 | D-005 | 2026-11-01 | Le CSS d'exemple du JSON utilise `#FCFDFE` là où le `.md` dit Instrument White (au lieu de `#FFFFFF`). | Aligner exemples et tokens. | Laisser coexister deux blancs. |
 | D-006 | 2026-11-01 | Modale et toast passent de `proposed` à `stable`. | Implémentés et testés dans Athena (`Modal`, `ToastProvider`). | Les laisser `proposed`. |
@@ -802,14 +806,16 @@ Modèle de proposition :
 | D-010 | 2026-11-01 | Le vocabulaire propre au produit d’origine (nom du produit, termes métier liés à ses données, références de pièces) est retiré ; la charte s’appelle « Hemeria Design System » et ses exemples sont génériques (dossier, élément, REF-0001). | La charte doit servir à tout outil Hemeria, pas à un seul produit. | Garder le nom d’origine et y ajouter Athena. |
 | D-011 | 2026-11-01 | Le script vérifie aussi les CSS consommateurs (--check-css) et la copie synchronisée (--same-as). | Supprimer le risque d’une dérive silencieuse entre la charte et le CSS d’ARIANE ou d’Athena, ou entre les deux copies. | Se fier à la relecture. |
 | D-012 | 2026-11-01 | lint-design.mjs d’Athena tire sa palette des seules couleurs du front matter, plus de tous les « # » du .md. | Écrire une couleur dans un exemple ne doit pas l’autoriser. | Surveiller la prose à la main. |
+| D-013 | 2026-11-01 | Les variantes accessibles deviennent les valeurs sémantiques par défaut : `{semantic.text.mute}` (`{colors.mute-ink-aa}`), `{semantic.text.link}` (`{colors.console-sky-text}`), `{semantic.state.success.fg}` et équivalents. Les couleurs primitives ne changent pas. | Supprimer les écarts de contraste du thème clair sans toucher à la palette ; Athena applique déjà ces assombrissements. | Laisser les écarts en `known-issue`. |
+| D-014 | 2026-11-01 | Le contour d'un champ utilise `{semantic.border.control}` (3:1) ; `{semantic.border.default}` est réservé aux filets décoratifs ; le focus ring sur surface inverse utilise `{semantic.focus.ring-on-inverse}` ; l'en-tête de tableau passe à 11 px. | WCAG 1.4.11 et plancher de 11 px ; toutes les paires par défaut atteignent leur seuil. | Exempter le contour des champs comme séparateur décoratif. |
 
 ### Décisions en attente (`proposed`)
 
-À valider ou rejeter ; tant qu'elles ne sont pas validées, ne pas les présenter comme acquises.
+Ces tokens sont déjà appliqués par défaut (D-013, D-014) pour supprimer les écarts de contraste ; ils restent `proposed` jusqu'à validation et peuvent être annulés en repointant la couche sémantique.
 
 1. **Thème sombre** complet (`semantic.themes.dark`).
-2. **Variantes accessibles** : `{colors.mute-ink-aa}`, `{colors.signal-success-text}`, `{colors.signal-warning-text}`, `{colors.signal-danger-text}`, `{colors.console-sky-text}`, `{semantic.text.mute-aa}`, `{semantic.text.link-aa}`, et leur adoption comme valeurs par défaut du texte secondaire.
-3. **Contour de champ accessible** `{semantic.border.control}` (3:1) à la place de `{semantic.border.default}` sur les champs.
+2. **Variantes accessibles** : `{colors.mute-ink-aa}`, `{colors.signal-success-text}`, `{colors.signal-warning-text}`, `{colors.signal-danger-text}`, `{colors.console-sky-text}`, adoptées par `{semantic.text.mute}`, `{semantic.text.link}` et `{semantic.state.success.fg}`.
+3. **Contour de champ** `{semantic.border.control}` (3:1), adopté par `{component.field}`.
 4. **Focus ring** unique `{semantic.focus.ring}` et `{semantic.focus.ring-on-inverse}`, qui remplacent les trois variantes observées.
 5. **Échelle d'espacement étendue** (`2xs`, `base`, `2xl`, `3xl`) et **breakpoints** `sm`, `lg`, `xl`.
 6. **Densités** `compact` et `comfortable`.
@@ -1056,11 +1062,11 @@ Généré par `scripts/validate-design.mjs --write`. Ne pas modifier à la main.
 | `{semantic.focus.ring-on-inverse}` | {colors.instrument-white} | proposed |
 | `{semantic.state.danger.bg}` | {colors.pill-danger-bg} | stable |
 | `{semantic.state.danger.border}` | {colors.signal-danger} | stable |
-| `{semantic.state.danger.fg}` | {colors.signal-danger} | stable |
+| `{semantic.state.danger.fg}` | {colors.signal-danger-text} | proposed |
 | `{semantic.state.danger.fg-aa}` | {colors.signal-danger-text} | proposed |
 | `{semantic.state.info.bg}` | {colors.hover-mist} | stable |
 | `{semantic.state.info.border}` | {colors.console-sky} | stable |
-| `{semantic.state.info.fg}` | {colors.console-sky} | stable |
+| `{semantic.state.info.fg}` | {colors.console-sky-text} | proposed |
 | `{semantic.state.info.fg-aa}` | {colors.console-sky-text} | proposed |
 | `{semantic.state.neutral.bg}` | {colors.instrument-white} | proposed |
 | `{semantic.state.neutral.border}` | {colors.sovereign-deep-blue} | proposed |
@@ -1068,11 +1074,11 @@ Généré par `scripts/validate-design.mjs --write`. Ne pas modifier à la main.
 | `{semantic.state.neutral.fg-aa}` | {colors.dim-ink} | proposed |
 | `{semantic.state.success.bg}` | {colors.pill-success-bg} | stable |
 | `{semantic.state.success.border}` | {colors.signal-success} | stable |
-| `{semantic.state.success.fg}` | {colors.signal-success} | stable |
+| `{semantic.state.success.fg}` | {colors.signal-success-text} | proposed |
 | `{semantic.state.success.fg-aa}` | {colors.signal-success-text} | proposed |
 | `{semantic.state.warning.bg}` | {colors.pill-warning-bg} | stable |
 | `{semantic.state.warning.border}` | {colors.signal-warning} | stable |
-| `{semantic.state.warning.fg}` | {colors.signal-warning} | stable |
+| `{semantic.state.warning.fg}` | {colors.signal-warning-text} | proposed |
 | `{semantic.state.warning.fg-aa}` | {colors.signal-warning-text} | proposed |
 | `{semantic.surface.app}` | {colors.cold-mist} | stable |
 | `{semantic.surface.default}` | {colors.instrument-white} | stable |
@@ -1083,9 +1089,9 @@ Généré par `scripts/validate-design.mjs --write`. Ne pas modifier à la main.
 | `{semantic.surface.selected}` | {colors.selection-veil} | stable |
 | `{semantic.text.default}` | {colors.ink} | stable |
 | `{semantic.text.heading}` | {colors.sovereign-deep-blue} | stable |
-| `{semantic.text.link}` | {colors.console-sky} | stable |
+| `{semantic.text.link}` | {colors.console-sky-text} | proposed |
 | `{semantic.text.link-aa}` | {colors.console-sky-text} | proposed |
-| `{semantic.text.mute}` | {colors.mute-ink} | stable |
+| `{semantic.text.mute}` | {colors.mute-ink-aa} | proposed |
 | `{semantic.text.mute-aa}` | {colors.mute-ink-aa} | proposed |
 | `{semantic.text.on-action}` | {colors.instrument-white} | stable |
 | `{semantic.text.on-inverse}` | {colors.instrument-white} | stable |

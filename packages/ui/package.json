@@ -17,8 +17,8 @@
     "tokens": "node scripts/build-tokens.mjs",
     "build": "node scripts/build-tokens.mjs && tsc -p tsconfig.json",
     "typecheck": "node scripts/build-tokens.mjs && tsc -p tsconfig.json --noEmit && tsc -p tsconfig.test.json",
-    "lint": "node scripts/lint-design.mjs src && node scripts/validate-design.mjs",
-    "design:check": "node scripts/validate-design.mjs",
+    "lint": "node scripts/lint-design.mjs src && node scripts/validate-design.mjs --strict --check-css src/styles.css",
+    "design:check": "node scripts/validate-design.mjs --strict --check-css src/styles.css",
     "test": "node scripts/build-tokens.mjs && vitest run",
     "storybook": "storybook dev -p 6006 --no-open",
     "build-storybook": "storybook build -o storybook-static"

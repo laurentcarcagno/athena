@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Valide DESIGN.md et DESIGN.json et les garde synchronisés. Sans dépendance (Node 18+).
 //   node scripts/validate-design.mjs                       contrôle
+//   node scripts/validate-design.mjs --strict              refuse tout écart de contraste « known-issue »
 //   node scripts/validate-design.mjs --write               régénère le registre des tokens de DESIGN.md
 //   node scripts/validate-design.mjs --contrast "#fg" "#bg" ratio et niveau WCAG de deux couleurs
 //   node scripts/validate-design.mjs --dir <dossier>       dossier contenant DESIGN.md et DESIGN.json (défaut : racine du dépôt ou design/)
@@ -182,7 +183,8 @@ for (const p of pairs) {
     const fg = colorOf(p.theme, p.fg), bg = colorOf(p.theme, p.bg);
     if (!isHex(fg) || !isHex(bg)) { fail(`${label} : couleur non hexadécimale (${fg} / ${bg})`); continue; }
     const r = ratio(fg, bg);
-    const need = p.usage === 'text' ? 4.5 : 3;
+    const need = { text: 4.5, 'large-text': 3, 'non-text': 3, decorative: 1 }[p.usage];
+    if (need === undefined) { fail(`${label} : usage inconnu ${p.usage}`); continue; }
     if (Math.abs(r - p.ratio) > 0.01) fail(`${label} : ratio déclaré ${p.ratio}, calculé ${r}`);
     if (p.required !== need) fail(`${label} : seuil déclaré ${p.required}, attendu ${need}`);
     const pass = r >= need;
@@ -196,6 +198,8 @@ for (const p of pairs) {
     }
   } catch (e) { fail(`${label} : ${e.message}`); }
 }
+
+if (args.includes('--strict') && known > 0) fail(`--strict : ${known} paire(s) de contraste par défaut sous leur seuil (known-issue)`);
 
 // --- 6. consommateurs : CSS dont les couleurs doivent rester dans la palette ----------------------------
 for (let i = 0; i < args.length; i += 1) {

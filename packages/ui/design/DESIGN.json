@@ -69,15 +69,18 @@
         },
         "mute-ink": {
           "value": "#73777D",
-          "status": "stable"
+          "status": "stable",
+          "note": "Ne pas utiliser pour du texte sur fond clair : {colors.mute-ink-aa} (contraste insuffisant)."
         },
         "signal-success": {
           "value": "#1F8A4C",
-          "status": "stable"
+          "status": "stable",
+          "note": "Bordure, point et icône ; le texte utilise la variante -text."
         },
         "signal-warning": {
           "value": "#C68A00",
-          "status": "stable"
+          "status": "stable",
+          "note": "Bordure, point et icône ; le texte utilise la variante -text."
         },
         "signal-danger": {
           "value": "#BA1A1A",
@@ -527,8 +530,9 @@
               "status": "stable"
             },
             "mute": {
-              "value": "{colors.mute-ink}",
-              "status": "stable"
+              "value": "{colors.mute-ink-aa}",
+              "status": "proposed",
+              "note": "Remplace {colors.mute-ink} (4,42:1 sur surface, 3,98:1 sur survol) ; la couleur primitive reste inchangée."
             },
             "mute-aa": {
               "value": "{colors.mute-ink-aa}",
@@ -543,12 +547,14 @@
               "status": "stable"
             },
             "link": {
-              "value": "{colors.console-sky}",
-              "status": "stable"
+              "value": "{colors.console-sky-text}",
+              "status": "proposed",
+              "note": "Atteint 4,5:1 sur toutes les surfaces, y compris Selection Veil (4,20:1 avec Console Sky). Console Sky reste la couleur d’action et de focus."
             },
             "link-aa": {
               "value": "{colors.console-sky-text}",
-              "status": "proposed"
+              "status": "proposed",
+              "note": "Alias de text.link, conservé pour compatibilité."
             },
             "heading": {
               "value": "{colors.sovereign-deep-blue}",
@@ -574,7 +580,8 @@
             },
             "control": {
               "value": "{colors.mute-ink}",
-              "status": "proposed"
+              "status": "proposed",
+              "note": "Contour d’un champ ou d’un contrôle (3:1 minimum). {semantic.border.default} est réservé aux filets décoratifs."
             }
           },
           "action": {
@@ -634,8 +641,9 @@
                 "status": "stable"
               },
               "fg": {
-                "value": "{colors.signal-success}",
-                "status": "stable"
+                "value": "{colors.signal-success-text}",
+                "status": "proposed",
+                "note": "Variante accessible adoptée par défaut ; la couleur de signal d’origine reste la bordure."
               },
               "fg-aa": {
                 "value": "{colors.signal-success-text}",
@@ -652,8 +660,9 @@
                 "status": "stable"
               },
               "fg": {
-                "value": "{colors.signal-warning}",
-                "status": "stable"
+                "value": "{colors.signal-warning-text}",
+                "status": "proposed",
+                "note": "Variante accessible adoptée par défaut ; la couleur de signal d’origine reste la bordure."
               },
               "fg-aa": {
                 "value": "{colors.signal-warning-text}",
@@ -670,8 +679,9 @@
                 "status": "stable"
               },
               "fg": {
-                "value": "{colors.signal-danger}",
-                "status": "stable"
+                "value": "{colors.signal-danger-text}",
+                "status": "proposed",
+                "note": "Variante accessible adoptée par défaut ; la couleur de signal d’origine reste la bordure."
               },
               "fg-aa": {
                 "value": "{colors.signal-danger-text}",
@@ -688,8 +698,9 @@
                 "status": "stable"
               },
               "fg": {
-                "value": "{colors.console-sky}",
-                "status": "stable"
+                "value": "{colors.console-sky-text}",
+                "status": "proposed",
+                "note": "Variante accessible adoptée par défaut ; la couleur de signal d’origine reste la bordure."
               },
               "fg-aa": {
                 "value": "{colors.console-sky-text}",
@@ -707,7 +718,8 @@
               },
               "fg": {
                 "value": "{colors.dim-ink}",
-                "status": "proposed"
+                "status": "proposed",
+                "note": "Variante accessible adoptée par défaut ; la couleur de signal d’origine reste la bordure."
               },
               "fg-aa": {
                 "value": "{colors.dim-ink}",
@@ -726,7 +738,8 @@
             },
             "ring-on-inverse": {
               "value": "{colors.instrument-white}",
-              "status": "proposed"
+              "status": "proposed",
+              "note": "Obligatoire sur surface inverse (barre latérale, en-tête de tableau, modale)."
             }
           }
         },
@@ -1101,7 +1114,7 @@
       "field": {
         "bg": "{semantic.surface.default}",
         "fg": "{semantic.text.default}",
-        "border": "{semantic.border.default}",
+        "border": "{semantic.border.control}",
         "borderWidth": "{borderWidths.hairline}",
         "padding": "6px 10px",
         "fontSize": "{fontSizes.md}",
@@ -1116,19 +1129,19 @@
           "error": "{states.error}",
           "loading": "{states.loading}"
         },
-        "status": "stable"
+        "status": "stable",
+        "note": "Contour 3:1 (WCAG 1.4.11). Les filets décoratifs de cartes et de tableaux restent en {semantic.border.default}."
       },
       "table": {
         "header": {
           "bg": "{semantic.surface.inverse}",
           "fg": "{semantic.text.on-inverse}",
-          "fontSize": "{fontSizes.micro}",
-          "target": "{fontSizes.xs}",
+          "fontSize": "{fontSizes.xs}",
           "fontWeight": "{fontWeights.semibold}",
           "letterSpacing": "{letterSpacings.eyebrow}",
           "padding": "9px 12px",
           "status": "stable",
-          "note": "Valeur observée : 9,5 px. Le plancher de 11 px est visé ({fontSizes.micro} déprécié)."
+          "note": "Plancher de 11 px. La valeur historique de 9,5 px ({fontSizes.micro}) est dépréciée."
         },
         "row": {
           "border": "{semantic.border.default}",
@@ -1205,7 +1218,7 @@
             "info",
             "default"
           ],
-          "text": "{semantic.state.*.fg-aa}",
+          "text": "{semantic.state.*.fg}",
           "status": "stable"
         },
         "tag": {
@@ -1300,7 +1313,7 @@
     }
   },
   "contrast": {
-    "method": "WCAG 2.x, luminance relative sRGB ; seuils : texte 4,5:1, grand texte et éléments non textuels 3:1.",
+    "method": "WCAG 2.x, luminance relative sRGB ; seuils : texte 4,5:1, grand texte et éléments non textuels 3:1, filets décoratifs exemptés. Aucune paire par défaut ne doit être en échec : le résultat « known-issue » est refusé par validate-design --strict.",
     "pairs": [
       {
         "theme": "light",
@@ -1360,48 +1373,6 @@
         "bg": "{semantic.surface.default}",
         "usage": "text",
         "where": "Aide, eyebrow, méta sur surface",
-        "fgValue": "#73777D",
-        "bgValue": "#FCFDFE",
-        "ratio": 4.42,
-        "wcag": "AA-large",
-        "required": 4.5,
-        "result": "known-issue",
-        "remediation": "{semantic.text.mute-aa}"
-      },
-      {
-        "theme": "light",
-        "fg": "{semantic.text.mute}",
-        "bg": "{semantic.surface.app}",
-        "usage": "text",
-        "where": "Eyebrow sur fond d’application",
-        "fgValue": "#73777D",
-        "bgValue": "#F0F7FC",
-        "ratio": 4.16,
-        "wcag": "AA-large",
-        "required": 4.5,
-        "result": "known-issue",
-        "remediation": "{semantic.text.mute-aa}"
-      },
-      {
-        "theme": "light",
-        "fg": "{semantic.text.mute}",
-        "bg": "{semantic.surface.hover}",
-        "usage": "text",
-        "where": "Champ désactivé, champ de recherche",
-        "fgValue": "#73777D",
-        "bgValue": "#E6F3FA",
-        "ratio": 3.98,
-        "wcag": "AA-large",
-        "required": 4.5,
-        "result": "known-issue",
-        "remediation": "{semantic.text.mute-aa}"
-      },
-      {
-        "theme": "light",
-        "fg": "{semantic.text.mute-aa}",
-        "bg": "{semantic.surface.default}",
-        "usage": "text",
-        "where": "Variante accessible sur surface",
         "fgValue": "#505358",
         "bgValue": "#FCFDFE",
         "ratio": 7.58,
@@ -1411,10 +1382,10 @@
       },
       {
         "theme": "light",
-        "fg": "{semantic.text.mute-aa}",
+        "fg": "{semantic.text.mute}",
         "bg": "{semantic.surface.app}",
         "usage": "text",
-        "where": "Variante accessible sur fond d’application",
+        "where": "Eyebrow sur fond d’application",
         "fgValue": "#505358",
         "bgValue": "#F0F7FC",
         "ratio": 7.14,
@@ -1424,10 +1395,10 @@
       },
       {
         "theme": "light",
-        "fg": "{semantic.text.mute-aa}",
+        "fg": "{semantic.text.mute}",
         "bg": "{semantic.surface.hover}",
         "usage": "text",
-        "where": "Variante accessible sur survol",
+        "where": "Champ désactivé, champ de recherche",
         "fgValue": "#505358",
         "bgValue": "#E6F3FA",
         "ratio": 6.83,
@@ -1441,9 +1412,9 @@
         "bg": "{semantic.surface.default}",
         "usage": "text",
         "where": "Lien sur surface",
-        "fgValue": "#006EB1",
+        "fgValue": "#005E96",
         "bgValue": "#FCFDFE",
-        "ratio": 5.33,
+        "ratio": 6.78,
         "wcag": "AA",
         "required": 4.5,
         "result": "pass"
@@ -1454,9 +1425,9 @@
         "bg": "{semantic.surface.hover}",
         "usage": "text",
         "where": "Lien sur survol",
-        "fgValue": "#006EB1",
+        "fgValue": "#005E96",
         "bgValue": "#E6F3FA",
-        "ratio": 4.8,
+        "ratio": 6.1,
         "wcag": "AA",
         "required": 4.5,
         "result": "pass"
@@ -1467,20 +1438,6 @@
         "bg": "{semantic.surface.selected}",
         "usage": "text",
         "where": "Lien sur ligne sélectionnée",
-        "fgValue": "#006EB1",
-        "bgValue": "#CEE5FC",
-        "ratio": 4.2,
-        "wcag": "AA-large",
-        "required": 4.5,
-        "result": "known-issue",
-        "remediation": "{semantic.text.link-aa}"
-      },
-      {
-        "theme": "light",
-        "fg": "{semantic.text.link-aa}",
-        "bg": "{semantic.surface.selected}",
-        "usage": "text",
-        "where": "Lien accessible sur ligne sélectionnée",
         "fgValue": "#005E96",
         "bgValue": "#CEE5FC",
         "ratio": 5.34,
@@ -1555,24 +1512,10 @@
       },
       {
         "theme": "light",
-        "fg": "{semantic.state.success.fg}",
-        "bg": "{semantic.state.success.bg}",
-        "usage": "text",
-        "where": "Pastille success (valeur de la charte)",
-        "fgValue": "#1F8A4C",
-        "bgValue": "#EAF6EE",
-        "ratio": 3.94,
-        "wcag": "AA-large",
-        "required": 4.5,
-        "result": "known-issue",
-        "remediation": "{semantic.state.success.fg-aa}"
-      },
-      {
-        "theme": "light",
         "fg": "{semantic.state.success.fg-aa}",
         "bg": "{semantic.state.success.bg}",
         "usage": "text",
-        "where": "Pastille success (variante accessible)",
+        "where": "Pastille success",
         "fgValue": "#166337",
         "bgValue": "#EAF6EE",
         "ratio": 6.58,
@@ -1582,24 +1525,10 @@
       },
       {
         "theme": "light",
-        "fg": "{semantic.state.warning.fg}",
-        "bg": "{semantic.state.warning.bg}",
-        "usage": "text",
-        "where": "Pastille warning (valeur de la charte)",
-        "fgValue": "#C68A00",
-        "bgValue": "#FBF3DC",
-        "ratio": 2.69,
-        "wcag": "fail",
-        "required": 4.5,
-        "result": "known-issue",
-        "remediation": "{semantic.state.warning.fg-aa}"
-      },
-      {
-        "theme": "light",
         "fg": "{semantic.state.warning.fg-aa}",
         "bg": "{semantic.state.warning.bg}",
         "usage": "text",
-        "where": "Pastille warning (variante accessible)",
+        "where": "Pastille warning",
         "fgValue": "#6D4C00",
         "bgValue": "#FBF3DC",
         "ratio": 7.06,
@@ -1609,23 +1538,10 @@
       },
       {
         "theme": "light",
-        "fg": "{semantic.state.danger.fg}",
-        "bg": "{semantic.state.danger.bg}",
-        "usage": "text",
-        "where": "Pastille danger (valeur de la charte)",
-        "fgValue": "#BA1A1A",
-        "bgValue": "#FBE9E9",
-        "ratio": 5.52,
-        "wcag": "AA",
-        "required": 4.5,
-        "result": "pass"
-      },
-      {
-        "theme": "light",
         "fg": "{semantic.state.danger.fg-aa}",
         "bg": "{semantic.state.danger.bg}",
         "usage": "text",
-        "where": "Pastille danger (variante accessible)",
+        "where": "Pastille danger",
         "fgValue": "#9E1616",
         "bgValue": "#FBE9E9",
         "ratio": 6.95,
@@ -1635,23 +1551,10 @@
       },
       {
         "theme": "light",
-        "fg": "{semantic.state.info.fg}",
-        "bg": "{semantic.state.info.bg}",
-        "usage": "text",
-        "where": "Pastille info (valeur de la charte)",
-        "fgValue": "#006EB1",
-        "bgValue": "#E6F3FA",
-        "ratio": 4.8,
-        "wcag": "AA",
-        "required": 4.5,
-        "result": "pass"
-      },
-      {
-        "theme": "light",
         "fg": "{semantic.state.info.fg-aa}",
         "bg": "{semantic.state.info.bg}",
         "usage": "text",
-        "where": "Pastille info (variante accessible)",
+        "where": "Pastille info",
         "fgValue": "#005E96",
         "bgValue": "#E6F3FA",
         "ratio": 6.1,
@@ -1661,23 +1564,10 @@
       },
       {
         "theme": "light",
-        "fg": "{semantic.state.neutral.fg}",
-        "bg": "{semantic.state.neutral.bg}",
-        "usage": "text",
-        "where": "Pastille neutral (valeur de la charte)",
-        "fgValue": "#43474C",
-        "bgValue": "#FCFDFE",
-        "ratio": 9.19,
-        "wcag": "AAA",
-        "required": 4.5,
-        "result": "pass"
-      },
-      {
-        "theme": "light",
         "fg": "{semantic.state.neutral.fg-aa}",
         "bg": "{semantic.state.neutral.bg}",
         "usage": "text",
-        "where": "Pastille neutral (variante accessible)",
+        "where": "Pastille neutral",
         "fgValue": "#43474C",
         "bgValue": "#FCFDFE",
         "ratio": 9.19,
@@ -1689,23 +1579,21 @@
         "theme": "light",
         "fg": "{semantic.border.default}",
         "bg": "{semantic.surface.default}",
-        "usage": "non-text",
-        "where": "Filet de carte, de tableau, de champ",
+        "usage": "decorative",
+        "where": "Filet décoratif de carte ou de tableau (exempté, WCAG 1.4.11)",
         "fgValue": "#C2DDF0",
         "bgValue": "#FCFDFE",
         "ratio": 1.38,
-        "wcag": "fail",
-        "required": 3.0,
-        "result": "known-issue",
-        "remediation": "{semantic.border.control}",
-        "accepted": "Séparateurs décoratifs exemptés par WCAG 1.4.11 ; non conforme pour la délimitation d’un champ."
+        "wcag": "exempt",
+        "required": 1.0,
+        "result": "pass"
       },
       {
         "theme": "light",
         "fg": "{semantic.border.control}",
         "bg": "{semantic.surface.default}",
         "usage": "non-text",
-        "where": "Contour de champ (proposé)",
+        "where": "Contour de champ",
         "fgValue": "#73777D",
         "bgValue": "#FCFDFE",
         "ratio": 4.42,
@@ -1728,24 +1616,10 @@
       },
       {
         "theme": "light",
-        "fg": "{semantic.border.focus}",
-        "bg": "{semantic.surface.inverse}",
-        "usage": "non-text",
-        "where": "Focus ring sur surface inverse",
-        "fgValue": "#006EB1",
-        "bgValue": "#12293A",
-        "ratio": 2.75,
-        "wcag": "fail",
-        "required": 3.0,
-        "result": "known-issue",
-        "remediation": "{semantic.focus.ring-on-inverse}"
-      },
-      {
-        "theme": "light",
         "fg": "{semantic.focus.ring-on-inverse}",
         "bg": "{semantic.surface.inverse}",
         "usage": "non-text",
-        "where": "Focus ring sur surface inverse (proposé)",
+        "where": "Focus ring sur surface inverse",
         "fgValue": "#FCFDFE",
         "bgValue": "#12293A",
         "ratio": 14.69,
@@ -1859,45 +1733,6 @@
       },
       {
         "theme": "dark",
-        "fg": "{semantic.text.mute-aa}",
-        "bg": "{semantic.surface.default}",
-        "usage": "text",
-        "where": "Variante accessible sur surface",
-        "fgValue": "#A8C0CB",
-        "bgValue": "#0E2230",
-        "ratio": 8.58,
-        "wcag": "AAA",
-        "required": 4.5,
-        "result": "pass"
-      },
-      {
-        "theme": "dark",
-        "fg": "{semantic.text.mute-aa}",
-        "bg": "{semantic.surface.app}",
-        "usage": "text",
-        "where": "Variante accessible sur fond d’application",
-        "fgValue": "#A8C0CB",
-        "bgValue": "#0A1B27",
-        "ratio": 9.23,
-        "wcag": "AAA",
-        "required": 4.5,
-        "result": "pass"
-      },
-      {
-        "theme": "dark",
-        "fg": "{semantic.text.mute-aa}",
-        "bg": "{semantic.surface.hover}",
-        "usage": "text",
-        "where": "Variante accessible sur survol",
-        "fgValue": "#A8C0CB",
-        "bgValue": "#1B3850",
-        "ratio": 6.4,
-        "wcag": "AA",
-        "required": 4.5,
-        "result": "pass"
-      },
-      {
-        "theme": "dark",
         "fg": "{semantic.text.link}",
         "bg": "{semantic.surface.default}",
         "usage": "text",
@@ -1928,19 +1763,6 @@
         "bg": "{semantic.surface.selected}",
         "usage": "text",
         "where": "Lien sur ligne sélectionnée",
-        "fgValue": "#7EC4EC",
-        "bgValue": "#264E6E",
-        "ratio": 4.59,
-        "wcag": "AA",
-        "required": 4.5,
-        "result": "pass"
-      },
-      {
-        "theme": "dark",
-        "fg": "{semantic.text.link-aa}",
-        "bg": "{semantic.surface.selected}",
-        "usage": "text",
-        "where": "Lien accessible sur ligne sélectionnée",
         "fgValue": "#7EC4EC",
         "bgValue": "#264E6E",
         "ratio": 4.59,
@@ -2015,39 +1837,13 @@
       },
       {
         "theme": "dark",
-        "fg": "{semantic.state.success.fg}",
-        "bg": "{semantic.state.success.bg}",
-        "usage": "text",
-        "where": "Pastille success (valeur de la charte)",
-        "fgValue": "#92D2AC",
-        "bgValue": "#0A3A1F",
-        "ratio": 7.35,
-        "wcag": "AAA",
-        "required": 4.5,
-        "result": "pass"
-      },
-      {
-        "theme": "dark",
         "fg": "{semantic.state.success.fg-aa}",
         "bg": "{semantic.state.success.bg}",
         "usage": "text",
-        "where": "Pastille success (variante accessible)",
+        "where": "Pastille success",
         "fgValue": "#92D2AC",
         "bgValue": "#0A3A1F",
         "ratio": 7.35,
-        "wcag": "AAA",
-        "required": 4.5,
-        "result": "pass"
-      },
-      {
-        "theme": "dark",
-        "fg": "{semantic.state.warning.fg}",
-        "bg": "{semantic.state.warning.bg}",
-        "usage": "text",
-        "where": "Pastille warning (valeur de la charte)",
-        "fgValue": "#F1D38A",
-        "bgValue": "#4A3000",
-        "ratio": 8.42,
         "wcag": "AAA",
         "required": 4.5,
         "result": "pass"
@@ -2057,7 +1853,7 @@
         "fg": "{semantic.state.warning.fg-aa}",
         "bg": "{semantic.state.warning.bg}",
         "usage": "text",
-        "where": "Pastille warning (variante accessible)",
+        "where": "Pastille warning",
         "fgValue": "#F1D38A",
         "bgValue": "#4A3000",
         "ratio": 8.42,
@@ -2067,39 +1863,13 @@
       },
       {
         "theme": "dark",
-        "fg": "{semantic.state.danger.fg}",
-        "bg": "{semantic.state.danger.bg}",
-        "usage": "text",
-        "where": "Pastille danger (valeur de la charte)",
-        "fgValue": "#EE9C99",
-        "bgValue": "#600C0E",
-        "ratio": 6.33,
-        "wcag": "AA",
-        "required": 4.5,
-        "result": "pass"
-      },
-      {
-        "theme": "dark",
         "fg": "{semantic.state.danger.fg-aa}",
         "bg": "{semantic.state.danger.bg}",
         "usage": "text",
-        "where": "Pastille danger (variante accessible)",
+        "where": "Pastille danger",
         "fgValue": "#EE9C99",
         "bgValue": "#600C0E",
         "ratio": 6.33,
-        "wcag": "AA",
-        "required": 4.5,
-        "result": "pass"
-      },
-      {
-        "theme": "dark",
-        "fg": "{semantic.state.info.fg}",
-        "bg": "{semantic.state.info.bg}",
-        "usage": "text",
-        "where": "Pastille info (valeur de la charte)",
-        "fgValue": "#7EC4EC",
-        "bgValue": "#003157",
-        "ratio": 6.97,
         "wcag": "AA",
         "required": 4.5,
         "result": "pass"
@@ -2109,7 +1879,7 @@
         "fg": "{semantic.state.info.fg-aa}",
         "bg": "{semantic.state.info.bg}",
         "usage": "text",
-        "where": "Pastille info (variante accessible)",
+        "where": "Pastille info",
         "fgValue": "#7EC4EC",
         "bgValue": "#003157",
         "ratio": 6.97,
@@ -2119,23 +1889,10 @@
       },
       {
         "theme": "dark",
-        "fg": "{semantic.state.neutral.fg}",
-        "bg": "{semantic.state.neutral.bg}",
-        "usage": "text",
-        "where": "Pastille neutral (valeur de la charte)",
-        "fgValue": "#C7DAE2",
-        "bgValue": "#0E2230",
-        "ratio": 11.28,
-        "wcag": "AAA",
-        "required": 4.5,
-        "result": "pass"
-      },
-      {
-        "theme": "dark",
         "fg": "{semantic.state.neutral.fg-aa}",
         "bg": "{semantic.state.neutral.bg}",
         "usage": "text",
-        "where": "Pastille neutral (variante accessible)",
+        "where": "Pastille neutral",
         "fgValue": "#C7DAE2",
         "bgValue": "#0E2230",
         "ratio": 11.28,
@@ -2147,23 +1904,21 @@
         "theme": "dark",
         "fg": "{semantic.border.default}",
         "bg": "{semantic.surface.default}",
-        "usage": "non-text",
-        "where": "Filet de carte, de tableau, de champ",
+        "usage": "decorative",
+        "where": "Filet décoratif de carte ou de tableau (exempté, WCAG 1.4.11)",
         "fgValue": "#264E6E",
         "bgValue": "#0E2230",
         "ratio": 1.86,
-        "wcag": "fail",
-        "required": 3.0,
-        "result": "known-issue",
-        "remediation": "{semantic.border.control}",
-        "accepted": "Séparateurs décoratifs exemptés par WCAG 1.4.11 ; non conforme pour la délimitation d’un champ."
+        "wcag": "exempt",
+        "required": 1.0,
+        "result": "pass"
       },
       {
         "theme": "dark",
         "fg": "{semantic.border.control}",
         "bg": "{semantic.surface.default}",
         "usage": "non-text",
-        "where": "Contour de champ (proposé)",
+        "where": "Contour de champ",
         "fgValue": "#5C95BB",
         "bgValue": "#0E2230",
         "ratio": 5.02,
@@ -2186,23 +1941,10 @@
       },
       {
         "theme": "dark",
-        "fg": "{semantic.border.focus}",
-        "bg": "{semantic.surface.inverse}",
-        "usage": "non-text",
-        "where": "Focus ring sur surface inverse",
-        "fgValue": "#7EC4EC",
-        "bgValue": "#06121C",
-        "ratio": 9.9,
-        "wcag": "AA",
-        "required": 3.0,
-        "result": "pass"
-      },
-      {
-        "theme": "dark",
         "fg": "{semantic.focus.ring-on-inverse}",
         "bg": "{semantic.surface.inverse}",
         "usage": "non-text",
-        "where": "Focus ring sur surface inverse (proposé)",
+        "where": "Focus ring sur surface inverse",
         "fgValue": "#F0F7FC",
         "bgValue": "#06121C",
         "ratio": 17.47,
@@ -2219,6 +1961,188 @@
         "fgValue": "#EE9C99",
         "bgValue": "#0E2230",
         "ratio": 7.64,
+        "wcag": "AA",
+        "required": 3.0,
+        "result": "pass"
+      },
+      {
+        "theme": "light",
+        "fg": "{semantic.state.success.fg}",
+        "bg": "{semantic.state.success.bg}",
+        "usage": "text",
+        "where": "Pastille success",
+        "fgValue": "#166337",
+        "bgValue": "#EAF6EE",
+        "ratio": 6.58,
+        "wcag": "AA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "light",
+        "fg": "{semantic.state.warning.fg}",
+        "bg": "{semantic.state.warning.bg}",
+        "usage": "text",
+        "where": "Pastille warning",
+        "fgValue": "#6D4C00",
+        "bgValue": "#FBF3DC",
+        "ratio": 7.06,
+        "wcag": "AAA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "light",
+        "fg": "{semantic.state.danger.fg}",
+        "bg": "{semantic.state.danger.bg}",
+        "usage": "text",
+        "where": "Pastille danger",
+        "fgValue": "#9E1616",
+        "bgValue": "#FBE9E9",
+        "ratio": 6.95,
+        "wcag": "AA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "light",
+        "fg": "{semantic.state.info.fg}",
+        "bg": "{semantic.state.info.bg}",
+        "usage": "text",
+        "where": "Pastille info",
+        "fgValue": "#005E96",
+        "bgValue": "#E6F3FA",
+        "ratio": 6.1,
+        "wcag": "AA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "light",
+        "fg": "{semantic.state.neutral.fg}",
+        "bg": "{semantic.state.neutral.bg}",
+        "usage": "text",
+        "where": "Pastille neutral",
+        "fgValue": "#43474C",
+        "bgValue": "#FCFDFE",
+        "ratio": 9.19,
+        "wcag": "AAA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "light",
+        "fg": "{semantic.text.mute}",
+        "bg": "{semantic.surface.selected}",
+        "usage": "text",
+        "where": "Texte secondaire sur ligne sélectionnée",
+        "fgValue": "#505358",
+        "bgValue": "#CEE5FC",
+        "ratio": 5.97,
+        "wcag": "AA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "light",
+        "fg": "{semantic.border.control}",
+        "bg": "{semantic.surface.hover}",
+        "usage": "non-text",
+        "where": "Contour du champ de recherche",
+        "fgValue": "#73777D",
+        "bgValue": "#E6F3FA",
+        "ratio": 3.98,
+        "wcag": "AA",
+        "required": 3.0,
+        "result": "pass"
+      },
+      {
+        "theme": "dark",
+        "fg": "{semantic.state.success.fg}",
+        "bg": "{semantic.state.success.bg}",
+        "usage": "text",
+        "where": "Pastille success",
+        "fgValue": "#92D2AC",
+        "bgValue": "#0A3A1F",
+        "ratio": 7.35,
+        "wcag": "AAA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "dark",
+        "fg": "{semantic.state.warning.fg}",
+        "bg": "{semantic.state.warning.bg}",
+        "usage": "text",
+        "where": "Pastille warning",
+        "fgValue": "#F1D38A",
+        "bgValue": "#4A3000",
+        "ratio": 8.42,
+        "wcag": "AAA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "dark",
+        "fg": "{semantic.state.danger.fg}",
+        "bg": "{semantic.state.danger.bg}",
+        "usage": "text",
+        "where": "Pastille danger",
+        "fgValue": "#EE9C99",
+        "bgValue": "#600C0E",
+        "ratio": 6.33,
+        "wcag": "AA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "dark",
+        "fg": "{semantic.state.info.fg}",
+        "bg": "{semantic.state.info.bg}",
+        "usage": "text",
+        "where": "Pastille info",
+        "fgValue": "#7EC4EC",
+        "bgValue": "#003157",
+        "ratio": 6.97,
+        "wcag": "AA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "dark",
+        "fg": "{semantic.state.neutral.fg}",
+        "bg": "{semantic.state.neutral.bg}",
+        "usage": "text",
+        "where": "Pastille neutral",
+        "fgValue": "#C7DAE2",
+        "bgValue": "#0E2230",
+        "ratio": 11.28,
+        "wcag": "AAA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "dark",
+        "fg": "{semantic.text.mute}",
+        "bg": "{semantic.surface.selected}",
+        "usage": "text",
+        "where": "Texte secondaire sur ligne sélectionnée",
+        "fgValue": "#A8C0CB",
+        "bgValue": "#264E6E",
+        "ratio": 4.62,
+        "wcag": "AA",
+        "required": 4.5,
+        "result": "pass"
+      },
+      {
+        "theme": "dark",
+        "fg": "{semantic.border.control}",
+        "bg": "{semantic.surface.hover}",
+        "usage": "non-text",
+        "where": "Contour du champ de recherche",
+        "fgValue": "#5C95BB",
+        "bgValue": "#1B3850",
+        "ratio": 3.74,
         "wcag": "AA",
         "required": 3.0,
         "result": "pass"
@@ -2408,9 +2332,41 @@
       "reason": "Implémentés et testés dans Athena (Modal, ToastProvider).",
       "rejected": "Les laisser proposed."
     },
-    {"id": "D-010", "date": "2026-11-01", "decision": "Le vocabulaire propre au produit d’origine (nom du produit, termes métier liés à ses données, références de pièces) est retiré ; la charte s’appelle « Hemeria Design System » et ses exemples sont génériques (dossier, élément, REF-0001).", "reason": "La charte doit servir à tout outil Hemeria, pas à un seul produit.", "rejected": "Garder le nom d’origine et y ajouter Athena."},
-    {"id": "D-011", "date": "2026-11-01", "decision": "Le script vérifie aussi les CSS consommateurs (--check-css) et la copie synchronisée (--same-as).", "reason": "Supprimer le risque d’une dérive silencieuse entre la charte et le CSS d’ARIANE ou d’Athena, ou entre les deux copies.", "rejected": "Se fier à la relecture."},
-    {"id": "D-012", "date": "2026-11-01", "decision": "lint-design.mjs d’Athena tire sa palette des seules couleurs du front matter, plus de tous les « # » du .md.", "reason": "Écrire une couleur dans un exemple ne doit pas l’autoriser.", "rejected": "Surveiller la prose à la main."}
+    {
+      "id": "D-010",
+      "date": "2026-11-01",
+      "decision": "Le vocabulaire propre au produit d’origine (nom du produit, termes métier liés à ses données, références de pièces) est retiré ; la charte s’appelle « Hemeria Design System » et ses exemples sont génériques (dossier, élément, REF-0001).",
+      "reason": "La charte doit servir à tout outil Hemeria, pas à un seul produit.",
+      "rejected": "Garder le nom d’origine et y ajouter Athena."
+    },
+    {
+      "id": "D-011",
+      "date": "2026-11-01",
+      "decision": "Le script vérifie aussi les CSS consommateurs (--check-css) et la copie synchronisée (--same-as).",
+      "reason": "Supprimer le risque d’une dérive silencieuse entre la charte et le CSS d’ARIANE ou d’Athena, ou entre les deux copies.",
+      "rejected": "Se fier à la relecture."
+    },
+    {
+      "id": "D-012",
+      "date": "2026-11-01",
+      "decision": "lint-design.mjs d’Athena tire sa palette des seules couleurs du front matter, plus de tous les « # » du .md.",
+      "reason": "Écrire une couleur dans un exemple ne doit pas l’autoriser.",
+      "rejected": "Surveiller la prose à la main."
+    },
+    {
+      "id": "D-013",
+      "date": "2026-11-01",
+      "decision": "Les variantes accessibles deviennent les valeurs sémantiques par défaut : text.mute (mute-ink-aa), text.link (console-sky-text), state.*.fg (fg-aa). Les couleurs primitives ne changent pas.",
+      "reason": "Supprimer les écarts de contraste du thème clair sans toucher à la palette ; Athena applique déjà ces assombrissements.",
+      "rejected": "Laisser les écarts en « known-issue »."
+    },
+    {
+      "id": "D-014",
+      "date": "2026-11-01",
+      "decision": "Le contour d’un champ utilise semantic.border.control (3:1) ; semantic.border.default est réservé aux filets décoratifs ; le focus ring sur surface inverse utilise ring-on-inverse ; l’en-tête de tableau passe à 11 px.",
+      "reason": "WCAG 1.4.11 et plancher de 11 px ; toutes les paires par défaut atteignent leur seuil.",
+      "rejected": "Exempter le contour des champs comme séparateur décoratif."
+    }
   ],
   "extensions": {
     "colorMeta": {
