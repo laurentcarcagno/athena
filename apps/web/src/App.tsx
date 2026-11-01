@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { BrowserRouter, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
-import { Btn, EmptyState, PageHeader, Sidebar, ToastProvider } from '@athena/ui';
+import { EmptyState, PageHeader, Sidebar, ToastProvider } from '@athena/ui';
 import { loadSession, loginUrl, logout, type Session } from './api';
 import { CommandPalette } from './components/CommandPalette';
 import { fr, getLocale, setLocale, useLocale } from './i18n';
@@ -17,6 +17,21 @@ import { TrackerConfigPage } from './pages/TrackerConfigPage';
 
 /** Projet courant déduit de l'adresse (`/p/<clé>/…`). */
 export const projectOf = (pathname: string): string | undefined => (pathname.startsWith('/p/') ? pathname.split('/')[2] : undefined);
+
+/** Drapeaux en SVG (les émojis de drapeaux ne s'affichent pas sous Windows). */
+function Flag({ locale }: { locale: 'fr' | 'en' }) {
+  return locale === 'fr' ? (
+    <svg width="20" height="14" viewBox="0 0 3 2" aria-hidden="true"><rect width="1" height="2" fill="#0055A4" /><rect x="1" width="1" height="2" fill="#FFFFFF" /><rect x="2" width="1" height="2" fill="#EF4135" /></svg>
+  ) : (
+    <svg width="20" height="14" viewBox="0 0 60 30" aria-hidden="true"><rect width="60" height="30" fill="#012169" /><path d="M0 0L60 30M60 0L0 30" stroke="#FFFFFF" strokeWidth="6" /><path d="M0 0L60 30M60 0L0 30" stroke="#C8102E" strokeWidth="2.5" /><path d="M30 0V30M0 15H60" stroke="#FFFFFF" strokeWidth="10" /><path d="M30 0V30M0 15H60" stroke="#C8102E" strokeWidth="6" /></svg>
+  );
+}
+
+function LogoutIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="square" aria-hidden="true"><path d="M9 3H4v18h5" /><path d="M16 7l5 5-5 5" /><path d="M21 12H9" /></svg>
+  );
+}
 
 function Shell({ session, children }: { session: Session; children: ReactNode }) {
   const navigate = useNavigate();
@@ -41,13 +56,12 @@ function Shell({ session, children }: { session: Session; children: ReactNode })
   const other = getLocale() === 'fr' ? 'en' : 'fr';
   return (
     <div className="ath-page">
-      <Sidebar items={items} current={current} onNavigate={(id) => navigate(id)} user={{ name: session.user!.name, role: admin ? 'Admin' : manager ? 'Chef de projet' : 'Utilisateur' }} />
+      <Sidebar items={items} current={current} onNavigate={(id) => navigate(id)} user={{ name: session.user!.name, role: admin ? 'Admin' : manager ? 'Chef de projet' : 'Utilisateur' }}
+        userActions={<>
+          <button type="button" className="ath-iconbtn" onClick={() => setLocale(other)} aria-label={fr.language} title={fr.language}><Flag locale={other} /></button>
+          <button type="button" className="ath-iconbtn" onClick={out} aria-label={fr.nav.logout} title={fr.nav.logout}><LogoutIcon /></button>
+        </>} />
       <main className="ath-page__main">
-        <div className="ath-row">
-          <Btn variant="ghost" size="sm" onClick={() => setLocale(other)} aria-label={`${fr.language}`}>{fr.language}</Btn>
-          <Btn variant="ghost" size="sm" onClick={out}>{fr.nav.logout}</Btn>
-          <span className="ath-eyebrow">{fr.nav.palette} · <span className="ath-mono">Ctrl+K</span></span>
-        </div>
         {children}
         <CommandPalette project={project} />
       </main>

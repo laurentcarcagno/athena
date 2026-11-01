@@ -138,6 +138,12 @@
 .ath-nav-item:hover { opacity: 1; background: rgba(255, 255, 255, 0.06); }
 .ath-nav-item[aria-current="page"] { opacity: 1; border-left-color: var(--ath-color-console-sky); background: rgba(0, 110, 177, 0.18); }
 .ath-sidebar__user { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-top: 1px solid rgba(255, 255, 255, 0.12); }
+.ath-sidebar__who { flex: 1; min-width: 0; }
+.ath-sidebar__actions { display: flex; align-items: center; gap: 4px; }
+.ath-iconbtn { width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; padding: 0; background: transparent; border: 1px solid rgba(255, 255, 255, 0.35); color: var(--ath-color-instrument-white); cursor: pointer; border-radius: 0; }
+.ath-iconbtn:hover { background: rgba(255, 255, 255, 0.12); }
+.ath-iconbtn:focus-visible { outline: 2px solid var(--ath-color-console-sky); outline-offset: 2px; }
+.ath-iconbtn svg { display: block; }
 .ath-avatar { width: 28px; height: 28px; background: var(--ath-color-console-sky); color: var(--ath-color-instrument-white); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 11px; }
 
 /* Remplace les styles en ligne (CSP sans unsafe-inline) */

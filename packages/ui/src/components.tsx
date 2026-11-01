@@ -284,7 +284,7 @@ export function CornerFrame({ children }: { children: ReactNode }) {
 }
 
 export interface NavItem { id: string; label: string; href?: string }
-export function Sidebar({ items, current, onNavigate, user, collapsed = false }: { items: NavItem[]; current: string; onNavigate?: (id: string) => void; user?: { name: string; role: string }; collapsed?: boolean }) {
+export function Sidebar({ items, current, onNavigate, user, userActions, collapsed = false }: { items: NavItem[]; current: string; onNavigate?: (id: string) => void; user?: { name: string; role: string }; userActions?: ReactNode; collapsed?: boolean }) {
   const initials = user?.name.split(/\s+/).map((p) => p[0]).slice(0, 2).join('').toUpperCase() ?? '';
   return (
     <aside className={cx('ath-sidebar', collapsed && 'ath-sidebar--collapsed')}>
@@ -302,7 +302,8 @@ export function Sidebar({ items, current, onNavigate, user, collapsed = false }:
       {user && (
         <div className="ath-sidebar__user">
           <div className="ath-avatar" aria-hidden="true">{initials}</div>
-          <div><div>{user.name}</div><div className="ath-eyebrow ath-sidebar__role">{user.role}</div></div>
+          <div className="ath-sidebar__who"><div>{user.name}</div><div className="ath-eyebrow ath-sidebar__role">{user.role}</div></div>
+          {userActions && <div className="ath-sidebar__actions">{userActions}</div>}
         </div>
       )}
     </aside>
