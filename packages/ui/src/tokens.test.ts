@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { tokens } from './tokens.generated.js';
 // @ts-expect-error module JS sans types
-import { lintSource } from '../scripts/lint-design.mjs';
+import { lintSource, palette } from '../scripts/lint-design.mjs';
 
 describe('jetons Hemeria', () => {
   it('expose les couleurs de la charte', () => {
@@ -16,6 +16,13 @@ describe('jetons Hemeria', () => {
   it('typographie IBM Plex', () => {
     expect(tokens.typography.body.fontFamily).toContain('IBM Plex Sans');
     expect(tokens.typography.mono.fontFamily).toContain('IBM Plex Mono');
+  });
+});
+
+describe('palette du lint', () => {
+  it('vient des seules couleurs du front matter (19 couleurs + blanc et noir purs)', () => {
+    expect(palette.size).toBe(21);
+    expect(palette.has('#12293a')).toBe(true);
   });
 });
 

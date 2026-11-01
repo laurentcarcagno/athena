@@ -4,6 +4,8 @@
 //   node scripts/validate-design.mjs --write               régénère le registre des tokens de DESIGN.md
 //   node scripts/validate-design.mjs --contrast "#fg" "#bg" ratio et niveau WCAG de deux couleurs
 //   node scripts/validate-design.mjs --dir <dossier>       dossier contenant DESIGN.md et DESIGN.json (défaut : racine du dépôt ou design/)
+//   node scripts/validate-design.mjs --check-css <f.css>   toute couleur hexadécimale du CSS consommateur doit être dans la palette (répétable)
+//   node scripts/validate-design.mjs --same-as <dossier>   les fichiers de la charte sont identiques à ceux de l'autre dépôt (copie synchronisée)
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -195,7 +197,30 @@ for (const p of pairs) {
   } catch (e) { fail(`${label} : ${e.message}`); }
 }
 
-// --- 6. décisions -------------------------------------------------------------------------------------
+// --- 6. consommateurs : CSS dont les couleurs doivent rester dans la palette ----------------------------
+for (let i = 0; i < args.length; i += 1) {
+  if (args[i] !== '--check-css') continue;
+  const file = args[i + 1];
+  if (!file || !existsSync(file)) { fail(`--check-css : fichier introuvable ${file ?? ''}`); continue; }
+  readFileSync(file, 'utf8').split('\n').forEach((line, n) => {
+    if (/design-lint-ignore/.test(line)) return;
+    for (const m of line.matchAll(/#[0-9A-Fa-f]{6}\b/g)) if (!palette.has(m[0].toUpperCase())) fail(`${file}:${n + 1} : couleur hors palette ${m[0]}`);
+  });
+}
+
+// --- 7. copie synchronisée --------------------------------------------------------------------------
+if (args.includes('--same-as')) {
+  const other = resolve(args[args.indexOf('--same-as') + 1] ?? '');
+  const find = (d, f) => [d, join(d, 'design')].map((x) => join(x, f)).find((x) => existsSync(x));
+  for (const f of ['DESIGN.md', 'DESIGN.json', 'AUDIT_TEMPLATE.md']) {
+    const a = find(dir, f), b = find(other, f);
+    if (!a || !b) { fail(`--same-as : ${f} introuvable (${a ? 'autre dossier' : 'ce dossier'})`); continue; }
+    const norm = (x) => readFileSync(x, 'utf8').replace(/\r\n/g, '\n');
+    if (norm(a) !== norm(b)) fail(`--same-as : ${f} diffère entre ${a} et ${b}`);
+  }
+}
+
+// --- 8. décisions -------------------------------------------------------------------------------------
 for (const d of json.decisions ?? []) if (!prose.includes(d.id)) fail(`décision ${d.id} absente du journal de DESIGN.md`);
 
 if (errors.length) { console.error(`validate-design : ${errors.length} erreur(s)\n${errors.map((e) => ` - ${e}`).join('\n')}`); process.exit(1); }

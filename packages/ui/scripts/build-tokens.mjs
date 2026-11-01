@@ -1,4 +1,4 @@
-// Génère les jetons de design Athena depuis design/DESIGN.md (front matter YAML, source Hemeria/THOR).
+// Génère les jetons de design Athena depuis design/DESIGN.md (front matter YAML, charte Hemeria).
 // Sorties : src/tokens.generated.css et src/tokens.generated.ts. Ne pas modifier à la main.
 import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';

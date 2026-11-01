@@ -5,8 +5,11 @@ import { dirname, join, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const palette = new Set(
-  [...readFileSync(join(here, '..', 'design', 'DESIGN.md'), 'utf8').matchAll(/#[0-9A-Fa-f]{6}\b/g)]
+// Palette = couleurs du front matter de DESIGN.md uniquement : écrire un # dans la prose ne l'autorise pas.
+const designMd = readFileSync(join(here, '..', 'design', 'DESIGN.md'), 'utf8').replace(/\r\n/g, '\n');
+const frontMatter = /^---\n([\s\S]*?)\n---/.exec(designMd)?.[1] ?? '';
+export const palette = new Set(
+  [...frontMatter.matchAll(/#[0-9A-Fa-f]{6}\b/g)]
     .map((m) => m[0].toLowerCase())
     .concat(['#ffffff', '#000000']),
 );

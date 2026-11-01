@@ -16,7 +16,7 @@ Révision 0.2 : Keycloak + OpenBao (§ 14), sécurité intégrée au cycle de d�
 3. **Historiser chaque artefact dans GitLab** : l'historique des trackers est un historique Git (commits, diffs, blame, restauration), pas seulement un journal en base.
 4. **Extensibilité par plugins** : champs, vues, workflows, actions, connecteurs, widgets de dashboard.
 5. **Interopérabilité par webhooks** : sortants (événements Athena vers l'extérieur) et entrants (applications tierces vers Athena).
-6. **Design Hemeria / THOR** (cf. `DESIGN.md` et `DESIGN.json` d'ARIANE) appliqué strictement.
+6. **Design Hemeria** (cf. `DESIGN.md` et `DESIGN.json` d'ARIANE) appliqué strictement.
 
 ### 1.2 Hors périmètre (v1)
 - Gestion documentaire complète (wiki, GED) type Confluence.
@@ -926,7 +926,7 @@ Chevauchements possibles (4 ∥ 5, 6 ∥ 7 partiel) : **≈ 50–54 semaines** j
 ### 23.2 Points ouverts : réponses retenues par défaut
 Ces réponses sont des valeurs par défaut proposées par le rédacteur du plan. Elles sont révisables sans impact majeur sur le calendrier, sauf mention contraire.
 
-1. **Marque** : logo « ATHENA·BOARD » sur le modèle `THOR·ENGINE`, avec le point séparateur en Tricolor Red (seul usage du rouge dans la barre latérale) et le sous-titre en capitales à 45 % d'opacité. Une validation visuelle par le design Hemeria reste requise avant la phase 1.
+1. **Marque** : logo « ATHENA·BOARD » sur le modèle de la marque Hemeria (nom en capitales, séparateur central), avec le point séparateur en Tricolor Red (seul usage du rouge dans la barre latérale) et le sous-titre en capitales à 45 % d'opacité. Une validation visuelle par le design Hemeria reste requise avant la phase 1.
 2. **Dépôts de code GitLab** : conventions par défaut, entièrement configurables par projet :
    - un dépôt de code au démarrage, extensible à N ;
    - branche principale `main`, branches de maintenance `release/<x.y>` ;

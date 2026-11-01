@@ -1,5 +1,5 @@
 ---
-name: THOR · Hemeria Design System
+name: Hemeria Design System
 version: "3.0.0"
 description: Sharp, sovereign mission-console UI for an internal engineering reference tool. Hemeria Charte Graphique 2025.
 colors:
@@ -212,7 +212,7 @@ components:
     padding: "24px"
 ---
 
-# Design System : THOR · Hemeria
+# Design System : Hemeria
 
 Référence unique pour **auditer** une interface existante et la **re-designer** sans quitter le système. Deux fichiers font foi : ce document (lisible par une personne ou un agent) et `DESIGN.json` (lisible par du code). Ils sont synchronisés par `scripts/validate-design.mjs` (voir §9).
 
@@ -436,7 +436,7 @@ Tous les composants sont rectangulaires, bordés de 1 px, sans ombre, et lisent 
 
 ### 3.4 Chip de filtre (`FilterChip`)
 
-- **Usage.** Exprimer un filtre appliqué dans une barre d'outils (`Famille : ELEC`).
+- **Usage.** Exprimer un filtre appliqué dans une barre d'outils (`Type : BUG`).
 - **Anatomie.** Libellé + valeur en capitales, croix d'effacement avec `aria-label`. Défaut : fond `{semantic.surface.default}`, bordure `{semantic.border.default}`, texte `{semantic.text.secondary}`. Actif : fond `{semantic.surface.inverse}`, texte `{semantic.text.on-inverse}`.
 - **À faire.** Offrir un moyen unique de tout réinitialiser. **À ne pas faire.** Empiler plus de six chips sans regroupement.
 
@@ -623,7 +623,7 @@ Trois cas, trois messages distincts : **aucune donnée encore** (expliquer ce qu
 
 ### 5.7 Confirmation destructive
 
-- Une suppression irréversible passe par une modale (3.11) dont le titre nomme l'objet et dont le corps dit la conséquence chiffrée (« L'affaire AF001 contient 18 produits liés. Sa suppression est irréversible. »).
+- Une suppression irréversible passe par une modale (3.11) dont le titre nomme l'objet et dont le corps dit la conséquence chiffrée (« Le dossier DOS-001 contient 18 éléments liés. Sa suppression est irréversible. »).
 - Le bouton de confirmation reprend le verbe (« SUPPRIMER ») en `{component.button.danger}` ; le bouton par défaut au focus est l'annulation.
 - Pour un objet qui porte beaucoup de données, demander de saisir son identifiant avant d'activer le bouton.
 - Une action réversible (retrait d'une pièce jointe récupérable) ne demande pas de confirmation : elle s'annule par un toast avec action « Annuler ».
@@ -632,11 +632,11 @@ Trois cas, trois messages distincts : **aucune donnée encore** (expliquer ce qu
 
 ### 6.1 Ton
 
-Factuel, direct, sans emphase. Pas de « Désolé », « Oups », « Bravo », pas de point d'exclamation, pas de suggestion amicale. On écrit « Affaire introuvable. Vérifiez le code. » et non « Désolé, cette affaire n'existe pas. ». Un message ne s'excuse pas et ne félicite pas : il informe.
+Factuel, direct, sans emphase. Pas de « Désolé », « Oups », « Bravo », pas de point d'exclamation, pas de suggestion amicale. On écrit « Dossier introuvable. Vérifiez la clé. » et non « Désolé, ce dossier n'existe pas. ». Un message ne s'excuse pas et ne félicite pas : il informe.
 
 ### 6.2 Libellés
 
-- Boutons : verbe à l'infinitif + objet quand c'est utile (« EXPORTER », « NOUVELLE AFFAIRE »), en capitales via le style, pas dans le texte source.
+- Boutons : verbe à l'infinitif + objet quand c'est utile (« EXPORTER », « NOUVEL ÉLÉMENT »), en capitales via le style, pas dans le texte source.
 - Un terme = un concept, partout ; on emploie le vocabulaire du métier avant celui de l'outil.
 - Titres : nom ou groupe nominal court. Étiquettes : nom, pas de verbe, pas de deux-points final.
 - Pas d'abréviation que l'utilisateur ne connaît pas ; l'identifiant technique est en mono à côté du libellé, pas à sa place.
@@ -799,6 +799,9 @@ Modèle de proposition :
 | D-007 | 2026-11-01 | Un token se cite `{colors.ink}` ; la section « Registre des tokens » est générée par le script et vérifiée à chaque exécution. | Rendre la synchronisation `.md` / `.json` contrôlable par machine. | Un contrôle manuel ; des identifiants libres en prose. |
 | D-008 | 2026-11-01 | Les valeurs observées dans Athena sans token (`9.5px`, `rgba(...)`, 28 px, etc.) sont intégrées au JSON : `proposed` si l'écart est à discuter, `deprecated` pour `fontSizes.micro`. | Faire du JSON le miroir du réel, sans le légitimer par défaut. | Les ignorer ; les déclarer `stable`. |
 | D-009 | 2026-11-01 | Le script de validation est du Node sans dépendance, avec un lecteur YAML minimal limité au front matter. | Utilisable dans ARIANE comme dans Athena sans installation. | Dépendance `yaml`, absente d'ARIANE. |
+| D-010 | 2026-11-01 | Le vocabulaire propre au produit d’origine (nom du produit, termes métier liés à ses données, références de pièces) est retiré ; la charte s’appelle « Hemeria Design System » et ses exemples sont génériques (dossier, élément, REF-0001). | La charte doit servir à tout outil Hemeria, pas à un seul produit. | Garder le nom d’origine et y ajouter Athena. |
+| D-011 | 2026-11-01 | Le script vérifie aussi les CSS consommateurs (--check-css) et la copie synchronisée (--same-as). | Supprimer le risque d’une dérive silencieuse entre la charte et le CSS d’ARIANE ou d’Athena, ou entre les deux copies. | Se fier à la relecture. |
+| D-012 | 2026-11-01 | lint-design.mjs d’Athena tire sa palette des seules couleurs du front matter, plus de tous les « # » du .md. | Écrire une couleur dans un exemple ne doit pas l’autoriser. | Surveiller la prose à la main. |
 
 ### Décisions en attente (`proposed`)
 
@@ -823,6 +826,8 @@ Script Node sans dépendance. Depuis la racine du dépôt :
 node scripts/validate-design.mjs            # contrôle
 node scripts/validate-design.mjs --write    # régénère le registre des tokens du .md
 node scripts/validate-design.mjs --contrast "#006EB1" "#FCFDFE"   # ratio de deux couleurs
+node scripts/validate-design.mjs --check-css frontend/src/app/globals.css   # couleurs d'un CSS consommateur
+node scripts/validate-design.mjs --same-as ../ORBITIA/packages/ui         # copie synchronisée identique
 ```
 
 Il vérifie, et sort en erreur (code 1) si :
@@ -833,7 +838,9 @@ Il vérifie, et sort en erreur (code 1) si :
 4. les couleurs primitives du JSON sont égales à celles du front matter ;
 5. chaque paire de `contrast.pairs` a le ratio affiché (à 0,01 près), et toute paire sous son seuil porte `result: "known-issue"` avec une `remediation` ou une `accepted` ; chaque `remediation` citée existe ;
 6. aucune couleur du `.md` n'est hors palette (même règle que `lint-design.mjs`) ;
-7. chaque décision du JSON figure dans le journal.
+7. chaque couleur hexadécimale des CSS passés avec `--check-css` appartient à la palette ;
+8. avec `--same-as`, `DESIGN.md`, `DESIGN.json` et `AUDIT_TEMPLATE.md` sont identiques à ceux de l'autre dépôt ;
+9. chaque décision du JSON figure dans le journal.
 
 ### 10.2 `AUDIT_TEMPLATE.md`
 
