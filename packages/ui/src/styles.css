@@ -130,16 +130,16 @@
 .ath-corner__tick--tr { top: 0; right: 0; border-top-width: 2px; border-right-width: 2px; }
 .ath-corner__tick--bl { bottom: 0; left: 0; border-bottom-width: 2px; border-left-width: 2px; }
 .ath-corner__tick--br { bottom: 0; right: 0; border-bottom-width: 2px; border-right-width: 2px; }
-.ath-sidebar { display: flex; flex-direction: column; width: 232px; min-height: 100vh; background: var(--ath-color-sovereign-deep-blue); color: var(--ath-color-instrument-white); }
+.ath-sidebar { display: flex; flex-direction: column; flex: none; width: 232px; position: sticky; top: 0; align-self: flex-start; height: 100vh; height: 100dvh; overflow: hidden; background: var(--ath-color-sovereign-deep-blue); color: var(--ath-color-instrument-white); }
 .ath-sidebar--collapsed { width: 64px; }
 .ath-sidebar__brand { padding: 18px 16px 14px; font-weight: 700; font-size: 14px; letter-spacing: 0.18em; }
 .ath-sidebar__dot { color: var(--ath-color-tricolor-red); }
-.ath-sidebar__sub { display: block; margin-top: 4px; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; opacity: 0.75; }
-.ath-nav { display: flex; flex-direction: column; flex: 1; }
-.ath-nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-left: 3px solid transparent; color: var(--ath-color-instrument-white); opacity: 0.7; text-decoration: none; font-weight: 600; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; background: transparent; border-top: 0; border-right: 0; border-bottom: 0; cursor: pointer; font-family: inherit; text-align: left; transition: background 120ms linear; }
-.ath-nav-item:hover { opacity: 1; background: rgba(255, 255, 255, 0.06); }
-.ath-nav-item[aria-current="page"] { opacity: 1; border-left-color: var(--ath-color-console-sky); background: rgba(0, 110, 177, 0.18); }
-.ath-sidebar__user { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-top: 1px solid rgba(255, 255, 255, 0.12); }
+.ath-sidebar__sub { display: block; margin-top: 4px; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: color-mix(in srgb, var(--ath-color-instrument-white) 75%, var(--ath-color-sovereign-deep-blue)); }
+.ath-nav { display: flex; flex-direction: column; flex: 1; min-height: 0; overflow-y: auto; }
+.ath-nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-left: 3px solid transparent; color: color-mix(in srgb, var(--ath-color-instrument-white) 70%, var(--ath-color-sovereign-deep-blue)); text-decoration: none; font-weight: 600; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; background: transparent; border-top: 0; border-right: 0; border-bottom: 0; cursor: pointer; font-family: inherit; text-align: left; transition: background 120ms linear; }
+.ath-nav-item:hover { color: var(--ath-color-instrument-white); background: rgba(255, 255, 255, 0.06); }
+.ath-nav-item[aria-current="page"] { color: var(--ath-color-instrument-white); border-left-color: var(--ath-color-console-sky); background: rgba(0, 110, 177, 0.18); }
+.ath-sidebar__user { flex: none; display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-top: 1px solid rgba(255, 255, 255, 0.12); }
 .ath-sidebar__who { flex: 1; min-width: 0; }
 .ath-sidebar__actions { display: flex; align-items: center; gap: 4px; }
 .ath-iconbtn { width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; padding: 0; background: transparent; border: 1px solid rgba(255, 255, 255, 0.35); color: var(--ath-color-instrument-white); cursor: pointer; border-radius: 0; }
@@ -154,7 +154,7 @@
 .ath-card__title { margin: 0; }
 .ath-table__caption { text-align: left; padding-bottom: 6px; }
 .ath-pageheader__eyebrow { margin: 0 0 4px; }
-.ath-sidebar__role { color: inherit; opacity: 0.6; }
+.ath-sidebar__role { color: color-mix(in srgb, var(--ath-color-instrument-white) 65%, var(--ath-color-sovereign-deep-blue)); }
 .ath-page { display: flex; min-height: 100vh; }
 .ath-page__main { flex: 1; min-width: 0; padding: 24px; }
 .ath-toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
@@ -246,3 +246,17 @@
   .ath-suggest .ath-input { width: 100%; box-sizing: border-box; }
 }
 .ath-table-wrap { max-width: 100%; }
+
+/* Défilement : la barre latérale occupe la hauteur de la fenêtre (la navigation défile dedans, le pied reste visible) ;
+   l'en-tête de page et les en-têtes de tableau restent visibles. */
+.ath-pageheader { position: sticky; top: 0; z-index: 50; background: var(--ath-color-cold-mist); margin-top: -24px; padding-top: 24px; }
+.ath-th { position: sticky; top: var(--ath-pageheader-h, 0px); z-index: 2; }
+@media (max-width: 768px) {
+  .ath-sidebar { position: static; height: auto; overflow: visible; }
+  .ath-sidebar--open .ath-nav { max-height: 60vh; }
+  .ath-pageheader { position: static; margin-top: 0; padding-top: 0; }
+  .ath-th { top: 0; }
+}
+
+/* Pas de marge du navigateur : la barre latérale occupe exactement la hauteur de la fenêtre. */
+html, body { margin: 0; }

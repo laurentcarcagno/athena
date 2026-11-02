@@ -477,6 +477,7 @@ Tous les composants sont rectangulaires, bordés de 1 px, sans ombre, et lisent 
 - **Usage.** Parcourir, comparer, trier des enregistrements.
 - **Anatomie.** En-tête `{semantic.surface.inverse}`, texte `{semantic.text.on-inverse}`, capitales espacées (`{component.table.header}`, 11 px, `{fontSizes.xs}` ; l'ancienne valeur de 9,5 px, `{fontSizes.micro}`, est dépréciée). Corps 12 px, bordures 1 px. Cellule `mono` pour tout identifiant (`{component.table.cell-mono}`).
 - **États.** Survol de ligne : `{semantic.surface.hover}`. Ligne sélectionnée : `{semantic.surface.selected}` + `aria-selected`, avec un indice non coloré (case cochée ou pastille). En-tête triable : clic ou `Entrée` / `Espace` cycle `aucun → croissant → décroissant → aucun`, `aria-sort` mis à jour ; indicateur de 5 px (paire de chevrons en repos, triangle en `{semantic.border.focus}` actif).
+- **En-tête collant.** L'en-tête du tableau reste visible au défilement, juste sous l'en-tête de page (la hauteur de celui-ci est publiée par `PageHeader` dans `--ath-pageheader-h`).
 - **À faire.** Aligner les nombres, garder l'en-tête visible au défilement (`{zIndex.sticky}`), limiter la largeur des colonnes de texte avec troncature et accès au texte complet. **À ne pas faire.** Trier sans indicateur ; masquer une colonne sans le dire.
 
 ### 3.10 Onglets
@@ -508,11 +509,13 @@ Tous les composants sont rectangulaires, bordés de 1 px, sans ombre, et lisent 
 
 - **Usage.** Navigation principale.
 - **Anatomie.** Fond `{semantic.surface.inverse}`, texte blanc à 70 % (plein si actif). Marque en tête (point en `{colors.tricolor-red}`, seul usage hors bandeau). Item actif : repère de 3 px `{semantic.border.focus}` + `{overlays.sky-tint-active}` + `aria-current="page"` (exception fonctionnelle au refus des liserés). Pied : avatar carré de 28 px, nom et rôle, actions en boutons-icônes carrés de 28 px (`{sizes.icon-button}`). Repliée : 64 px (`{sizes.sidebar-collapsed}`), libellés masqués, icônes avec `title`.
+- **Hauteur.** Elle est limitée à la fenêtre visible (`position: sticky`, `top: 0`, `100dvh`, sans marge du navigateur) : la liste de navigation défile dans la barre si la fenêtre est basse, et le pied utilisateur reste visible. Sous `{breakpoints.md}` la barre redevient un bloc en flux, repliable.
+- **Atténuation.** Les textes atténués de la barre (items inactifs 70 %, rôle 65 %, sous-titre 75 %) sont des couleurs mélangées avec `color-mix`, pas des `opacity` (contrastes mesurables : 7,87:1, 7,02:1, 8,86:1).
 - **Clavier.** Le focus ring des items utilise `{semantic.focus.ring-on-inverse}` sur fond bleu profond.
 
 ### 3.15 En-tête de page (`PageHeader`) : signature
 
-- **Anatomie.** Bandeau vertical tricolore de 4 px (bleu / blanc bordé / rouge, trois parties égales), eyebrow facultatif, titre H1, sous-ligne facultative, actions à droite, filet inférieur de 1 px, 14 px de padding et 20 px de marge basse. Chaque page en commence par un.
+- **Anatomie.** Bandeau vertical tricolore de 4 px (bleu / blanc bordé / rouge, trois parties égales), eyebrow facultatif, titre H1, sous-ligne facultative, actions à droite, filet inférieur de 1 px, 14 px de padding et 20 px de marge basse. Chaque page en commence par un. L'en-tête reste visible au défilement (`position: sticky`, `top: 0`, au-dessus du contenu) ; sous `{breakpoints.md}` il reprend le flux normal pour ne pas occuper l'écran.
 
 ### 3.16 Lien d'évitement et entrée d'aide
 

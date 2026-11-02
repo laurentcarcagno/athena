@@ -263,8 +263,19 @@ export function EmptyState({ eyebrow, title, action }: { eyebrow: string; title:
 }
 
 export function PageHeader({ eyebrow, title, sub, actions }: { eyebrow?: string; title: string; sub?: ReactNode; actions?: ReactNode }) {
+  // L'en-tête reste visible au défilement : sa hauteur est publiée pour décaler les en-têtes de tableau collants.
+  const header = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const el = header.current;
+    if (!el || typeof ResizeObserver === 'undefined') return undefined;
+    const publish = () => document.documentElement.style.setProperty('--ath-pageheader-h', `${el.offsetHeight}px`);
+    publish();
+    const observer = new ResizeObserver(publish);
+    observer.observe(el);
+    return () => { observer.disconnect(); document.documentElement.style.removeProperty('--ath-pageheader-h'); };
+  }, []);
   return (
-    <header className="ath-pageheader">
+    <header ref={header} className="ath-pageheader">
       <div className="ath-pageheader__left">
         <div className="ath-stripe" aria-hidden="true">
           <div className="ath-stripe__blue" /><div className="ath-stripe__white" /><div className="ath-stripe__red" />
