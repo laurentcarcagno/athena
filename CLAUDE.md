@@ -15,7 +15,7 @@ Athena : suivi de projet (trackers configurables, type JIRA + Tuleap), historiqu
 - Commits conventionnels, un changement logique par commit. Ne pas pousser sans demande.
 
 ## Conception
-- Interface : Hemeria (`C:\projects\AI\ARIANE\DESIGN.md` et `DESIGN.json`) : angles droits, aucune ombre, aucun dégradé, Console Sky = action, rouge = cérémonie seulement, identifiants en IBM Plex Mono.
+- Interface : Hemeria (`packages/ui/design/DESIGN.md` et `DESIGN.json`, source unique) : angles droits, aucune ombre, aucun dégradé, Console Sky = action, rouge = cérémonie seulement, identifiants en IBM Plex Mono.
 - Stack : Node 22, TypeScript, NestJS, React, PostgreSQL, Redis, S3/MinIO, Keycloak (identité), OpenBao (secrets).
 - Sécurité dès la conception : voir plan § 13. Aucun secret dans le dépôt.
 

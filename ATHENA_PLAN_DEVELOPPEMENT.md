@@ -16,7 +16,7 @@ Révision 0.2 : Keycloak + OpenBao (§ 14), sécurité intégrée au cycle de d�
 3. **Historiser chaque artefact dans GitLab** : l'historique des trackers est un historique Git (commits, diffs, blame, restauration), pas seulement un journal en base.
 4. **Extensibilité par plugins** : champs, vues, workflows, actions, connecteurs, widgets de dashboard.
 5. **Interopérabilité par webhooks** : sortants (événements Athena vers l'extérieur) et entrants (applications tierces vers Athena).
-6. **Design Hemeria** (cf. `DESIGN.md` et `DESIGN.json` d'ARIANE) appliqué strictement.
+6. **Design Hemeria** (cf. `packages/ui/design/DESIGN.md` et `DESIGN.json`) appliqué strictement.
 
 ### 1.2 Hors périmètre (v1)
 - Gestion documentaire complète (wiki, GED) type Confluence.
@@ -60,7 +60,7 @@ Révision 0.2 : Keycloak + OpenBao (§ 14), sécurité intégrée au cycle de d�
 | Couche | Choix | Justification |
 |---|---|---|
 | Monorepo | pnpm workspaces + Turborepo | Partage de types, builds incrémentaux |
-| Frontend | React 18 + TypeScript + Vite, TanStack Query/Router/Table | Aligné sur `Hemeria.tsx` d'ARIANE, tables denses performantes |
+| Frontend | React 18 + TypeScript + Vite, TanStack Query/Router/Table | Composants Hemeria (`packages/ui`), tables denses performantes |
 | Design system | Package `@athena/ui` (tokens Hemeria, CSS variables, composants) | Réutilisable par les plugins |
 | Backend | Node 22 + TypeScript, NestJS (modulaire) sur Fastify | Modularité naturelle pour un noyau + plugins |
 | API | REST (OpenAPI 3.1) + GraphQL en lecture + WebSocket/SSE temps réel | REST pour intégrateurs, GraphQL pour vues riches |
@@ -301,7 +301,7 @@ Règles :
 - Transitions 120 ms sur `filter`, `background`, `color`, sans transform.
 - Textes d'interface sobres, sans exclamation ni formulation apologétique (« Artefact introuvable. Vérifiez la clé. »).
 - Pas de `Card` imbriquée ; `CornerFrame` une seule fois par page ; `StatCard` jamais en grille 4 identiques.
-- Éviter dès le départ la dette Bootstrap documentée dans ARIANE (modales, toasts, tri de tables).
+- Éviter dès le départ la dette Bootstrap (modales, toasts, tri de tables).
 
 ### 9.2 Package `@athena/ui`
 Construit en phase 1 à partir de `DESIGN.json` :

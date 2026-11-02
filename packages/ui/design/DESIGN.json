@@ -2364,9 +2364,9 @@
     {
       "id": "D-001",
       "date": "2026-11-01",
-      "decision": "Source de vérité : ARIANE ; la copie Athena (packages/ui/design) est synchronisée à partir d’elle.",
-      "reason": "CLAUDE.md d’Athena désigne ARIANE comme référence ; deux sources divergeraient.",
-      "rejected": "Faire d’Athena la source."
+      "decision": "Source de vérité : ce dépôt (packages/ui/design). Le dossier est autonome.",
+      "reason": "Une seule source évite toute dérive ; Athena doit pouvoir vivre sans dépôt externe.",
+      "rejected": "Maintenir une copie synchronisée depuis un autre dépôt."
     },
     {
       "id": "D-002",
@@ -2414,7 +2414,7 @@
       "id": "D-011",
       "date": "2026-11-01",
       "decision": "Le script vérifie aussi les CSS consommateurs (--check-css) et la copie synchronisée (--same-as).",
-      "reason": "Supprimer le risque d’une dérive silencieuse entre la charte et le CSS d’ARIANE ou d’Athena, ou entre les deux copies.",
+      "reason": "Supprimer le risque d’une dérive silencieuse entre la charte et le CSS consommateur, ou entre deux copies de la charte.",
       "rejected": "Se fier à la relecture."
     },
     {

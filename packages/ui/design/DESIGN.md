@@ -223,7 +223,7 @@ Référence unique pour **auditer** une interface existante et la **re-designer*
 - **Citer un token.** Un token se cite entre accolades, par son chemin : `{colors.ink}`, `{semantic.text.default}`, `{component.button.primary}`. Chaque chemin cité existe dans `DESIGN.json` ou dans le front matter ; la section « Registre des tokens » (§9) les liste tous.
 - **Statut d'un token.** `stable` (validé, utilisé), `proposed` (proposé, en attente de décision : ne pas le présenter comme acquis), `deprecated` (à remplacer, voir `replacement`). Le statut est porté par `DESIGN.json`.
 - **Hiérarchie en cas de désaccord.** Le front matter YAML (colors, typography, rounded, spacing) prévaut sur `DESIGN.json`, qui prévaut sur les extraits `html` et `css` des composants du JSON (illustratifs).
-- **Source.** Ce dépôt (ARIANE) est la source. La copie d'Athena (`packages/ui/design/`) est synchronisée à partir de lui.
+- **Source.** Ce dossier (`packages/ui/design/`) est la source ; le projet n'en dépend d'aucun autre dépôt.
 
 ## 1. Principes de design
 
@@ -812,7 +812,7 @@ Modèle de proposition :
 
 | ID | Date | Décision | Raison | Alternative écartée |
 |---|---|---|---|---|
-| D-001 | 2026-11-01 | Source de vérité : ARIANE ; la copie d'Athena (`packages/ui/design`) est synchronisée à partir d'elle. | `CLAUDE.md` d'Athena désigne ARIANE comme référence ; deux sources divergeraient. | Faire d'Athena la source. |
+| D-001 | 2026-11-01 | Source de vérité : ce dépôt (`packages/ui/design`). Le dossier est autonome. | Une seule source évite toute dérive ; Athena doit pouvoir vivre sans dépôt externe. | Maintenir une copie synchronisée depuis un autre dépôt. |
 | D-002 | 2026-11-01 | Les clés `colors`, `typography`, `rounded`, `spacing` du front matter sont inchangées ; tous les nouveaux tokens vivent dans `DESIGN.json` sous `tokens`. | `build-tokens.mjs` génère le CSS d'Athena depuis ces quatre blocs ; `lint-design.mjs` lit tous les `#` du `.md` comme palette autorisée. | Ajouter les nouvelles couleurs au front matter (cela élargirait en silence la palette du lint). |
 | D-003 | 2026-11-01 | Aucune valeur primitive existante n'est modifiée pour corriger les contrastes ; des variantes `-aa` / `-text` sont créées (voir D-013 pour leur adoption par défaut). | Ne pas changer l'identité sans validation ; Athena applique déjà ces assombrissements dans son CSS. | Assombrir `mute-ink` et les signaux directement. |
 | D-004 | 2026-11-01 | Le thème sombre n'emploie que des valeurs des rampes tonales de `colorMeta`. | Ne rien inventer sur l'identité visuelle. | Inventer une palette sombre. |
@@ -820,9 +820,9 @@ Modèle de proposition :
 | D-006 | 2026-11-01 | Modale et toast passent de `proposed` à `stable`. | Implémentés et testés dans Athena (`Modal`, `ToastProvider`). | Les laisser `proposed`. |
 | D-007 | 2026-11-01 | Un token se cite `{colors.ink}` ; la section « Registre des tokens » est générée par le script et vérifiée à chaque exécution. | Rendre la synchronisation `.md` / `.json` contrôlable par machine. | Un contrôle manuel ; des identifiants libres en prose. |
 | D-008 | 2026-11-01 | Les valeurs observées dans Athena sans token (`9.5px`, `rgba(...)`, 28 px, etc.) sont intégrées au JSON : `proposed` si l'écart est à discuter, `deprecated` pour `fontSizes.micro`. | Faire du JSON le miroir du réel, sans le légitimer par défaut. | Les ignorer ; les déclarer `stable`. |
-| D-009 | 2026-11-01 | Le script de validation est du Node sans dépendance, avec un lecteur YAML minimal limité au front matter. | Utilisable dans ARIANE comme dans Athena sans installation. | Dépendance `yaml`, absente d'ARIANE. |
+| D-009 | 2026-11-01 | Le script de validation est du Node sans dépendance, avec un lecteur YAML minimal limité au front matter. | Utilisable sans installation, dans tout projet Node. | Dépendance `yaml`. |
 | D-010 | 2026-11-01 | Le vocabulaire propre au produit d’origine (nom du produit, termes métier liés à ses données, références de pièces) est retiré ; la charte s’appelle « Hemeria Design System » et ses exemples sont génériques (dossier, élément, REF-0001). | La charte doit servir à tout outil Hemeria, pas à un seul produit. | Garder le nom d’origine et y ajouter Athena. |
-| D-011 | 2026-11-01 | Le script vérifie aussi les CSS consommateurs (--check-css) et la copie synchronisée (--same-as). | Supprimer le risque d’une dérive silencieuse entre la charte et le CSS d’ARIANE ou d’Athena, ou entre les deux copies. | Se fier à la relecture. |
+| D-011 | 2026-11-01 | Le script vérifie aussi les CSS consommateurs (--check-css) et la copie synchronisée (--same-as). | Supprimer le risque d’une dérive silencieuse entre la charte et le CSS consommateur, ou entre deux copies de la charte. | Se fier à la relecture. |
 | D-012 | 2026-11-01 | lint-design.mjs d’Athena tire sa palette des seules couleurs du front matter, plus de tous les « # » du .md. | Écrire une couleur dans un exemple ne doit pas l’autoriser. | Surveiller la prose à la main. |
 | D-013 | 2026-11-01 | Les variantes accessibles deviennent les valeurs sémantiques par défaut : `{semantic.text.mute}` (`{colors.mute-ink-aa}`), `{semantic.text.link}` (`{colors.console-sky-text}`), `{semantic.state.success.fg}` et équivalents. Les couleurs primitives ne changent pas. | Supprimer les écarts de contraste du thème clair sans toucher à la palette ; Athena applique déjà ces assombrissements. | Laisser les écarts en `known-issue`. |
 | D-014 | 2026-11-01 | Le contour d'un champ utilise `{semantic.border.control}` (3:1) ; `{semantic.border.default}` est réservé aux filets décoratifs ; le focus ring sur surface inverse utilise `{semantic.focus.ring-on-inverse}` ; l'en-tête de tableau passe à 11 px. | WCAG 1.4.11 et plancher de 11 px ; toutes les paires par défaut atteignent leur seuil. | Exempter le contour des champs comme séparateur décoratif. |
@@ -852,8 +852,8 @@ Script Node sans dépendance. Depuis la racine du dépôt :
 node scripts/validate-design.mjs            # contrôle
 node scripts/validate-design.mjs --write    # régénère le registre des tokens du .md
 node scripts/validate-design.mjs --contrast "#006EB1" "#FCFDFE"   # ratio de deux couleurs
-node scripts/validate-design.mjs --check-css frontend/src/app/globals.css   # couleurs d'un CSS consommateur
-node scripts/validate-design.mjs --same-as ../ORBITIA/packages/ui         # copie synchronisée identique
+node scripts/validate-design.mjs --check-css src/styles.css   # couleurs d'un CSS consommateur
+node scripts/validate-design.mjs --same-as <dossier>          # copie identique d'une autre charte (facultatif)
 ```
 
 Il vérifie, et sort en erreur (code 1) si :
@@ -872,9 +872,9 @@ Il vérifie, et sort en erreur (code 1) si :
 
 Gabarit de rapport d'audit : contexte, grille notée, constats au format imposé (§7.C), synthèse (§7.D). Copier le fichier, le renseigner, ne pas laisser de champ vide : écrire `NV` avec la raison.
 
-### 10.3 Synchronisation avec Athena
+### 10.3 Consommateurs
 
-Athena consomme `DESIGN.md` par `packages/ui/scripts/build-tokens.mjs` (quatre blocs du front matter) et `lint-design.mjs` (palette). Après une modification : copier `DESIGN.md`, `DESIGN.json` et `AUDIT_TEMPLATE.md` dans `ORBITIA/packages/ui/design/`, exécuter `pnpm --filter @athena/ui build` puis `pnpm check`, et le script `design:check`.
+`packages/ui/scripts/build-tokens.mjs` lit quatre blocs du front matter de `DESIGN.md` (couleurs, espacement, arrondis, typographie) et `lint-design.mjs` en tire sa palette. Après une modification : exécuter `pnpm --filter @athena/ui build` puis `pnpm check` (qui inclut `design:check`).
 
 ## 11. Registre des tokens
 
