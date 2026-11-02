@@ -85,6 +85,16 @@ const frDict = {
     roles: 'Rôles',
     roleRows: [['Utilisateur', 'traite ses artefacts (Mon travail), recherche, commente'], ['Chef de projet', 'gère les acteurs, sprints, versions et boards de ses projets'], ['Administrateur', 'crée les projets, templates et trackers, gère les plugins']],
   },
+  layout: {
+    title: 'Disposition de la vue détails', help: 'Choisissez comment les attributs s’affichent sur la fiche d’un artefact.',
+    autoNote: 'Disposition automatique : titre en pleine largeur, attributs courts sur une colonne, textes longs en pleine largeur.',
+    customNote: 'Disposition personnalisée : glissez les attributs, ou utilisez les boutons de chaque attribut.',
+    customize: 'Personnaliser', backToAuto: 'Revenir à l’automatique', general: 'Général', details: 'Détails', others: 'Autres attributs',
+    untitled: (n: number) => `Section ${n}`, sectionTitle: (n: number) => `Titre de la section ${n}`, addSection: 'Ajouter une section', removeSection: 'Supprimer la section',
+    sectionUp: 'Monter la section', sectionDown: 'Descendre la section', unplaced: 'Attributs non placés', allPlaced: 'Tous les attributs sont placés.', place: 'Placer',
+    width: 'Largeur', columns: (n: number) => `${n} colonne${n > 1 ? 's' : ''} sur 3`, earlier: 'Reculer', later: 'Avancer', moveTo: 'Déplacer vers la section', unplace: 'Retirer',
+    emptySection: 'Section vide : déposez un attribut ici.', dragHint: 'Un attribut non placé reste visible à la suite des autres sur la fiche.', save: 'Enregistrer la disposition', saved: 'Disposition enregistrée.',
+  },
   palette: { title: 'Commandes', placeholder: 'Aller à… ou rechercher un artefact', none: 'Aucun résultat.', projects: 'Projets', artifacts: 'Artefacts', goto: 'Aller à' },
   errors: {
     generic: 'Une erreur est survenue. Réessayez.', notFoundTitle: 'Page introuvable', notFoundEyebrow: 'Erreur 404', notFound: 'Cette adresse ne correspond à aucune page.',
@@ -174,6 +184,16 @@ const enDict: Dictionary = {
     atqlRows: [['status = in_progress', 'suggestions show a status technical key next to its name'], ['severity IN (major, blocker)', 'list of values'], ['title ~ "crash"', 'contains'], ['assignee IS EMPTY', 'empty field'], ['updated > daysAgo(7)', 'relative to today']],
     roles: 'Roles',
     roleRows: [['User', 'processes their artifacts (My work), searches, comments'], ['Project manager', 'manages actors, sprints, releases and boards of their projects'], ['Administrator', 'creates projects, templates and trackers, manages plugins']],
+  },
+  layout: {
+    title: 'Details view layout', help: 'Choose how attributes are laid out on an artifact sheet.',
+    autoNote: 'Automatic layout: title full width, short attributes on one column, long texts full width.',
+    customNote: 'Custom layout: drag attributes, or use the buttons on each attribute.',
+    customize: 'Customize', backToAuto: 'Back to automatic', general: 'General', details: 'Details', others: 'Other attributes',
+    untitled: (n: number) => `Section ${n}`, sectionTitle: (n: number) => `Section ${n} title`, addSection: 'Add a section', removeSection: 'Delete section',
+    sectionUp: 'Move section up', sectionDown: 'Move section down', unplaced: 'Unplaced attributes', allPlaced: 'All attributes are placed.', place: 'Place',
+    width: 'Width', columns: (n: number) => `${n} column${n > 1 ? 's' : ''} of 3`, earlier: 'Move earlier', later: 'Move later', moveTo: 'Move to section', unplace: 'Remove',
+    emptySection: 'Empty section: drop an attribute here.', dragHint: 'An unplaced attribute still shows after the others on the sheet.', save: 'Save layout', saved: 'Layout saved.',
   },
   palette: { title: 'Commands', placeholder: 'Go to… or search for an artifact', none: 'No result.', projects: 'Projects', artifacts: 'Artifacts', goto: 'Go to' },
   errors: {

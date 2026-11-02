@@ -523,7 +523,15 @@ Tous les composants sont rectangulaires, bordés de 1 px, sans ombre, et lisent 
 - **Entrée d'aide** (`{component.help-entry}`, proposé) : dernière entrée de la navigation, à la même place sur toutes les pages ; la page liste les raccourcis clavier, la syntaxe de recherche et les rôles.
 - **Tableau** (`{component.table.row.clip}`, proposé) : un titre long est tronqué sur une ligne avec son texte complet dans `title` ; une clé ne se coupe jamais (`white-space: nowrap`).
 
-### 3.17 Corner frame
+### 3.17 Disposition de la vue détails
+
+- **Usage.** Choisir comment les attributs d'un tracker s'affichent sur la fiche d'un artefact : sections titrées, attributs sur 1, 2 ou 3 colonnes.
+- **Grille** (`{component.layout-grid}`, proposé) : 3 colonnes, une seule colonne sous `{breakpoints.md}`. Un attribut absent de la disposition est ajouté à la suite : un champ créé plus tard n'est jamais masqué.
+- **Éditeur** (`{component.layout-editor}`, proposé). Automatique par défaut (titre en pleine largeur, attributs courts sur 1 colonne, textes longs en pleine largeur) ; « Personnaliser » ouvre un aperçu fidèle, avec les mêmes grille et gabarits que la fiche.
+- **Interactions.** Glisser un attribut pour le déplacer ; chaque déplacement a un équivalent bouton (reculer, avancer, largeur 1/3 2/3 3/3, déplacer vers une section, retirer), conformément à WCAG 2.5.7. Les attributs non placés sont listés avec un bouton « Placer ».
+- **À ne pas faire.** Obliger à configurer la disposition ; proposer le glisser-déposer sans bouton ; empiler les sections sans titre.
+
+### 3.18 Corner frame
 
 Voir 2.6. Quatre repères de 12 px, tracé de 2 px, une fois par page.
 
@@ -819,6 +827,7 @@ Modèle de proposition :
 | D-013 | 2026-11-01 | Les variantes accessibles deviennent les valeurs sémantiques par défaut : `{semantic.text.mute}` (`{colors.mute-ink-aa}`), `{semantic.text.link}` (`{colors.console-sky-text}`), `{semantic.state.success.fg}` et équivalents. Les couleurs primitives ne changent pas. | Supprimer les écarts de contraste du thème clair sans toucher à la palette ; Athena applique déjà ces assombrissements. | Laisser les écarts en `known-issue`. |
 | D-014 | 2026-11-01 | Le contour d'un champ utilise `{semantic.border.control}` (3:1) ; `{semantic.border.default}` est réservé aux filets décoratifs ; le focus ring sur surface inverse utilise `{semantic.focus.ring-on-inverse}` ; l'en-tête de tableau passe à 11 px. | WCAG 1.4.11 et plancher de 11 px ; toutes les paires par défaut atteignent leur seuil. | Exempter le contour des champs comme séparateur décoratif. |
 | D-015 | 2026-11-01 | Corrections de l’audit Athena : confirmation des suppressions irréversibles, toasts d’erreur persistants, lien d’évitement, entrée d’aide, état loading des boutons, tailles 11 px minimum, troncature des titres, volet de navigation sous 768 px, suggestion des valeurs ATQL, page Administration réservée. Nouveaux tokens de composant en proposed : skip-link, confirm-dialog, help-entry, table.row.clip. | Chaque changement corrige un constat F-01 à F-13 de design-audit-work/AUDIT_athena.md ; aucun token existant n’est supprimé. | Laisser les écarts en known-issue ; créer des composants sans les déclarer. |
+| D-016 | 2026-11-02 | Disposition de la vue détails d'un tracker : sections titrées, grille de 3 colonnes, largeur 1 à 3 par attribut, éditeur WYSIWYG avec glisser-déposer et boutons équivalents, disposition automatique par défaut. Nouveaux tokens de composant en proposed : layout-grid, layout-editor. | Demande produit : maîtriser la disposition des attributs à la création d'un tracker ; la disposition automatique évite d'imposer la configuration. | Configuration par liste d'ordre seule (pas de largeur) ; glisser-déposer sans alternative au clavier. |
 
 ### Décisions en attente (`proposed`)
 
@@ -1145,6 +1154,8 @@ Généré par `scripts/validate-design.mjs --write`. Ne pas modifier à la main.
 | `{component.empty-state}` | — | stable |
 | `{component.field}` | — | stable |
 | `{component.help-entry}` | — | proposed |
+| `{component.layout-editor}` | — | proposed |
+| `{component.layout-grid}` | — | proposed |
 | `{component.modal}` | — | stable |
 | `{component.nav-item}` | — | stable |
 | `{component.page-header}` | — | stable |

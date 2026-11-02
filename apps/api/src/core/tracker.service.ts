@@ -1,3 +1,4 @@
+import { layoutProblems, type Layout } from './layout';
 import type { PoolClient } from 'pg';
 import { Db, type Actor } from './db';
 import { DomainError, conflict, notFound, validation } from './errors';
@@ -29,6 +30,8 @@ export interface TransitionSpec {
 }
 export interface TrackerSpec {
   projectKey: string;
+  /** Disposition de la vue détails (absente : automatique). */
+  layout?: Layout | null;
   key: string;
   name: string;
   description?: string;
@@ -44,6 +47,7 @@ export interface TrackerDefinition {
   name: string;
   schemaVersion: number;
   historyMode: 'direct' | 'merge_request';
+  layout: Layout | null;
   fields: Array<Required<Pick<FieldSpec, 'key' | 'label' | 'type'>> & {
     id: string;
     config: Record<string, unknown>;
@@ -92,9 +96,9 @@ export class TrackerService {
       if (!project) throw notFound(`Projet ${spec.projectKey}`);
       const tracker = (
         await c.query(
-          `insert into tracker (organization_id, project_id, key, name, description)
-           values ($1,$2,$3,$4,$5) returning id`,
-          [organizationId, project.id, spec.key, spec.name, spec.description ?? ''],
+          `insert into tracker (organization_id, project_id, key, name, description, layout)
+           values ($1,$2,$3,$4,$5,$6) returning id`,
+          [organizationId, project.id, spec.key, spec.name, spec.description ?? '', spec.layout ? JSON.stringify(spec.layout) : null],
         )
       ).rows[0].id as string;
 
@@ -221,6 +225,18 @@ export class TrackerService {
     });
   }
 
+  /** Remplace la disposition de la vue détails ; `null` revient à la disposition automatique. */
+  async setLayout(organizationId: string, projectKey: string, trackerKey: string, layout: Layout | null, actor: Actor): Promise<void> {
+    await this.mutate(organizationId, projectKey, trackerKey, actor, 'disposition', async (c, tracker) => {
+      if (layout) {
+        const keys = (await c.query('select key from field_definition where tracker_id = $1', [tracker])).rows.map((r) => r.key as string);
+        const problems = layoutProblems(layout, keys);
+        if (problems.length) throw validation(problems);
+      }
+      await c.query('update tracker set layout = $2 where id = $1', [tracker, layout ? JSON.stringify(layout) : null]);
+    });
+  }
+
   async addStatus(organizationId: string, projectKey: string, trackerKey: string, status: StatusSpec, actor: Actor): Promise<void> {
     if (!/^[a-z][a-z0-9_]{0,39}$/.test(status.key)) throw validation(['clé de statut invalide']);
     await this.mutate(organizationId, projectKey, trackerKey, actor, `statut ${status.key}`, async (c, tracker) => {
@@ -258,7 +274,7 @@ export class TrackerService {
   async getDefinition(c: PoolClient, projectKey: string, trackerKey: string): Promise<TrackerDefinition> {
     const t = (
       await c.query(
-        `select t.id, t.project_id, t.key, t.name, t.schema_version, t.history_mode from tracker t
+        `select t.id, t.project_id, t.key, t.name, t.schema_version, t.history_mode, t.layout from tracker t
          join project p on p.id = t.project_id where p.key = $1 and t.key = $2`,
         [projectKey, trackerKey],
       )
@@ -274,6 +290,7 @@ export class TrackerService {
       name: t.name,
       schemaVersion: t.schema_version,
       historyMode: t.history_mode,
+      layout: (t.layout as Layout | null) ?? null,
       fields: fields.map((f) => ({
         id: f.id, key: f.key, label: f.label, type: f.type, config: f.config, required: f.required, semanticRole: f.semantic_role, readRoles: f.read_roles ?? null, writeRoles: f.write_roles ?? null,
       })),
@@ -293,6 +310,7 @@ export class TrackerService {
     };
     dup(spec.fields.map((f) => f.key), 'champ');
     dup(spec.statuses.map((s) => s.key), 'statut');
+    if (spec.layout) errors.push(...layoutProblems(spec.layout, spec.fields.map((f) => f.key)));
     for (const f of spec.fields) if (!this.fieldTypes.has(f.type)) errors.push(`champ ${f.key} : type inconnu ${f.type}`);
     if (!spec.statuses.some((s) => s.category === 'todo')) errors.push('au moins un statut de catégorie todo est requis');
     const keys = new Set(spec.statuses.map((s) => s.key));

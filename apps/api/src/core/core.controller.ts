@@ -1,3 +1,4 @@
+import { LayoutSchema } from './layout';
 import { TemplateService } from './template.service';
 import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Query, Req } from '@nestjs/common';
 import { z } from 'zod';
@@ -14,6 +15,7 @@ import { TrackerService } from './tracker.service';
 const ProjectBody = z.object({ key: KeySchema, name: z.string().min(1).max(200), template: z.string().max(40).optional() });
 
 const TrackerBody = z.object({
+  layout: LayoutSchema.optional(),
   key: KeySchema,
   name: z.string().min(1).max(200),
   description: z.string().max(2000).optional(),
@@ -49,6 +51,7 @@ const CommentBody = z.object({ body: z.string().min(1).max(100_000) });
 const principalOf =(request: AuthedRequest): Principal => request.principal!;
 
 const SetHistoryModeBody = z.object({ mode: z.enum(['direct', 'merge_request']) });
+const SetLayoutBody = z.object({ layout: LayoutSchema.nullable() });
 const UpdateFieldBody = z.object({
       label: z.string().min(1).max(100).optional(), required: z.boolean().optional(),
       readRoles: z.array(z.string().max(60)).min(1).max(20).nullable().optional(), writeRoles: z.array(z.string().max(60)).min(1).max(20).nullable().optional(),
@@ -150,6 +153,15 @@ export class CoreController {
       actor,
     );
     return { id, key: input.key };
+  }
+
+  @Roles('athena-admin')
+  @HttpCode(204)
+  @Patch(':project/trackers/:tracker/layout')
+  @BodySchema(SetLayoutBody)
+  async setLayout(@Req() request: AuthedRequest, @Param('project') project: string, @Param('tracker') tracker: string, @Body() body: unknown) {
+    const { organizationId, actor } = await this.orgs.resolve(principalOf(request));
+    await this.trackers.setLayout(organizationId, project, tracker, parseBody(SetLayoutBody, body).layout, actor);
   }
 
   @Roles('athena-admin')

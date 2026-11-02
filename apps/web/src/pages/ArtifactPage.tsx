@@ -4,6 +4,7 @@ import { Btn, Card, EmptyState, Id, PageHeader, StatusPill, Table, Tabs, Td, Th,
 import { ApiError, api, upload, type Artifact, type AttachmentView, type Field, type Revision, type Session, type TrackerDefinition } from '../api';
 import { useBusy, useFailure } from '../hooks';
 import { fr } from '../i18n';
+import { resolveLayout } from '../lib/layout';
 import { pillKind } from './ListPage';
 
 interface LinkView { id: string; type: string; direction: string; label: string; other: string; suspect: boolean }
@@ -171,8 +172,20 @@ export function ArtifactPage({ session }: { session: Session }) {
       <div className="ath-stack" role="tabpanel">
         {tab === 'details' && (
           <Card title={fr.artifact.details} meta={`v${artifact.version}`}>
-            <div className="ath-grid-2">
-              {def.fields.map((f) => <FieldEditor key={f.key} field={f} value={artifact.values[f.key]} onCommit={(raw) => save(f, raw)} />)}
+            <div className="ath-stack">
+              {resolveLayout(def.layout, def.fields, { general: fr.layout.general, details: fr.layout.details, others: fr.layout.others }).sections.map((section, i) => (
+                section.fields.length === 0 ? null : (
+                  <section key={i} aria-label={section.title || undefined} className="ath-layout-view">
+                    {section.title && <h3 className="ath-label">{section.title}</h3>}
+                    <div className="ath-layout-grid">
+                      {section.fields.map((lf) => {
+                        const f = def.fields.find((x) => x.key === lf.key)!;
+                        return <div key={f.key} className={`ath-span-${lf.span}`}><FieldEditor field={f} value={artifact.values[f.key]} onCommit={(raw) => save(f, raw)} /></div>;
+                      })}
+                    </div>
+                  </section>
+                )
+              ))}
             </div>
           </Card>
         )}

@@ -199,14 +199,14 @@ function summarize(event: PendingEvent): string {
 
 async function loadTrackerYaml(c: PoolClient, projectKey: string, trackerKey: string): Promise<TrackerYaml> {
   const t = (
-    await c.query('select t.id, t.key, t.name, t.schema_version from tracker t join project p on p.id = t.project_id where p.key = $1 and t.key = $2', [projectKey, trackerKey])
+    await c.query('select t.id, t.key, t.name, t.schema_version, t.layout from tracker t join project p on p.id = t.project_id where p.key = $1 and t.key = $2', [projectKey, trackerKey])
   ).rows[0];
   const fields = (await c.query('select * from field_definition where tracker_id = $1 order by position', [t.id])).rows;
   const statuses = (await c.query('select * from status where tracker_id = $1 order by position', [t.id])).rows;
   const keyOf = new Map<string, string>(statuses.map((s) => [s.id as string, s.key as string]));
   const transitions = (await c.query('select * from transition where tracker_id = $1 order by name, id', [t.id])).rows;
   return {
-    key: t.key, name: t.name, schemaVersion: t.schema_version,
+    key: t.key, name: t.name, schemaVersion: t.schema_version, ...(t.layout ? { layout: t.layout } : {}),
     fields: fields.map((f) => ({ key: f.key, label: f.label, type: f.type, config: f.config, required: f.required, semanticRole: f.semantic_role, readRoles: f.read_roles ?? null, writeRoles: f.write_roles ?? null })),
     statuses: statuses.map((s) => ({ key: s.key, name: s.name, category: s.category })),
     transitions: transitions.map((x) => ({

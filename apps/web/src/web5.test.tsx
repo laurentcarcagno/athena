@@ -96,7 +96,7 @@ describe('création d’un tracker dans un projet', () => {
     const user = userEvent.setup();
     await user.selectOptions(await screen.findByLabelText('Partir d’un template de tracker'), 'bug');
     expect(screen.getByDisplayValue('BUG')).toBeInTheDocument();
-    expect(screen.getByText('Sévérité')).toBeInTheDocument();
+    expect(screen.getAllByText('Sévérité').length).toBeGreaterThanOrEqual(2); // tableau des champs et aperçu de la disposition
     await user.clear(screen.getByLabelText('Clé du tracker (2 à 10 majuscules)'));
     await user.type(screen.getByLabelText('Clé du tracker (2 à 10 majuscules)'), 'def');
     await user.click(screen.getByRole('button', { name: 'Supprimer severity' }));

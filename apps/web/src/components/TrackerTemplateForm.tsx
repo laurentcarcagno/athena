@@ -3,6 +3,7 @@ import { Btn, Field, useToast } from '@athena/ui';
 import { api } from '../api';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
+import { forSave } from '../lib/layout';
 import { TrackerBuilder, emptyTracker, trackerProblems, type DraftTracker } from './TrackerBuilder';
 
 export interface TrackerTemplateEntry { key: string; name: string; description: string; builtin: boolean; tracker: DraftTracker }
@@ -35,7 +36,7 @@ export function TrackerTemplateForm({ templates, onCreated }: { templates: Track
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     try {
-      await api('POST', '/v1/tracker-templates', { key: meta.key, name: meta.name, ...(meta.description ? { description: meta.description } : {}), tracker: { ...draft, description: undefined } });
+      await api('POST', '/v1/tracker-templates', { key: meta.key, name: meta.name, ...(meta.description ? { description: meta.description } : {}), tracker: { ...draft, description: undefined, layout: draft.layout ? forSave(draft.layout, draft.fields) : undefined } });
       toast('success', fr.builder.trackerTemplateCreated);
       setMeta({ key: '', name: '', description: '' });
       setDraft(emptyTracker());

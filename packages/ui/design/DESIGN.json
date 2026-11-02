@@ -1319,6 +1319,40 @@
         "position": "dernière entrée de la navigation, même place sur toutes les pages",
         "status": "proposed",
         "note": "Audit Athena F-12 (WCAG 3.2.6, aide cohérente)."
+      },
+      "layout-grid": {
+        "columns": 3,
+        "gap": "{spacing.md} {spacing.base}",
+        "spans": [
+          1,
+          2,
+          3
+        ],
+        "narrow": "une colonne sous {breakpoints.md}",
+        "status": "proposed",
+        "note": "Disposition de la vue détails : grille de 3 colonnes, un attribut occupe 1, 2 ou 3 colonnes ; les attributs non placés sont ajoutés à la suite."
+      },
+      "layout-editor": {
+        "preview": "WYSIWYG : mêmes grille et gabarits que la fiche",
+        "tile": {
+          "bg": "{semantic.surface.hover}",
+          "border": "{semantic.border.control}"
+        },
+        "section": {
+          "bg": "{semantic.surface.default}",
+          "border": "{semantic.border.default}"
+        },
+        "controls": [
+          "largeur 1/3, 2/3, 3/3",
+          "reculer",
+          "avancer",
+          "déplacer vers la section",
+          "retirer"
+        ],
+        "dragAlternative": "chaque déplacement a un bouton (WCAG 2.5.7)",
+        "default": "automatique",
+        "status": "proposed",
+        "note": "Éditeur de la disposition d'un tracker (création et configuration)."
       }
     },
     "density": {
@@ -2410,6 +2444,13 @@
       "decision": "Corrections de l’audit Athena : confirmation des suppressions irréversibles, toasts d’erreur persistants, lien d’évitement, entrée d’aide, état loading des boutons, tailles 11 px minimum, troncature des titres, volet de navigation sous 768 px, suggestion des valeurs ATQL, page Administration réservée. Nouveaux tokens de composant en proposed : skip-link, confirm-dialog, help-entry, table.row.clip.",
       "reason": "Chaque changement corrige un constat F-01 à F-13 de design-audit-work/AUDIT_athena.md ; aucun token existant n’est supprimé.",
       "rejected": "Laisser les écarts en known-issue ; créer des composants sans les déclarer."
+    },
+    {
+      "id": "D-016",
+      "date": "2026-11-02",
+      "decision": "Disposition de la vue détails d'un tracker : sections titrées, grille de 3 colonnes, largeur 1 à 3 par attribut, éditeur WYSIWYG avec glisser-déposer et boutons équivalents, disposition automatique par défaut. Nouveaux tokens de composant en proposed : layout-grid, layout-editor.",
+      "reason": "Demande produit : maîtriser la disposition des attributs à la création d'un tracker ; la disposition automatique évite d'imposer la configuration.",
+      "rejected": "Configuration par liste d'ordre seule (pas de largeur) ; glisser-déposer sans alternative au clavier."
     }
   ],
   "extensions": {

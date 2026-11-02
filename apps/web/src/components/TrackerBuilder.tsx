@@ -2,12 +2,14 @@ import { useEffect, useId, useState } from 'react';
 import { Btn, Card, Field, StatusPill, Table, Td, Th } from '@athena/ui';
 import { api } from '../api';
 import { fr } from '../i18n';
+import type { Layout } from '../lib/layout';
+import { LayoutEditor } from './LayoutEditor';
 import { WorkflowEditor } from './WorkflowEditor';
 
 export interface DraftField { key: string; label: string; type: string; required?: boolean; config?: Record<string, unknown>; semanticRole?: string; readRoles?: string[]; writeRoles?: string[] }
 export interface DraftStatus { key: string; name: string; category: 'todo' | 'in_progress' | 'done' }
 export interface DraftTransition { name: string; from: string | null; to: string; conditions?: unknown[]; validators?: unknown[]; postActions?: unknown[] }
-export interface DraftTracker { key: string; name: string; description?: string; fields: DraftField[]; statuses: DraftStatus[]; transitions: DraftTransition[] }
+export interface DraftTracker { layout?: Layout | null; key: string; name: string; description?: string; fields: DraftField[]; statuses: DraftStatus[]; transitions: DraftTransition[] }
 
 export const emptyTracker = (): DraftTracker => ({
   key: '', name: '',
@@ -83,6 +85,13 @@ export function TrackerBuilder({ value, onChange }: { value: DraftTracker; onCha
             <label className="ath-row"><input type="checkbox" checked={field.required} onChange={(e) => setField({ ...field, required: e.target.checked })} />{fr.config.required}</label>
             <Btn type="button" disabled={fieldInvalid} onClick={addField}>{fr.builder.addField}</Btn>
           </div>
+        </div>
+      </Card>
+
+      <Card title={fr.layout.title}>
+        <div className="ath-stack">
+          <p className="ath-eyebrow">{fr.layout.help}</p>
+          <LayoutEditor fields={value.fields} value={value.layout ?? null} onChange={(layout) => onChange({ ...value, layout })} />
         </div>
       </Card>
 

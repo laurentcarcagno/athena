@@ -7,6 +7,7 @@ Dernière mise à jour : 2026-11-01
 - **Rôles et fenêtres (2026-11-01)** : rôle `athena-pm`, table `project_member` (migration 025), routes membres/utilisateurs/sprints, pages **Mon travail**, **Gestion de projet**, **Organisation** ; noms de statut, auteurs de commentaires et message d'erreur ATQL corrigés. Le compte `pm.dev` (mot de passe `dev-only-pm`) est créé par `tools/dev-start.mjs`.
 - **Vue projet, workflow graphique, templates (2026-11-01)** : trackers en lignes (nom, artefacts, attributs), éditeur de workflow en machine à états (`WorkflowEditor`, SVG, clavier), templates de projet (migration 026, `TemplateService`, onglet Organisation > Templates, sélection à la création du projet).
 - **Templates de tracker (2026-11-01)** : migration 027, `/v1/tracker-templates`, éditeur de tracker réutilisable (`TrackerBuilder`), page `/p/:projet/trackers/new` avec départ depuis un template, Organisation > Templates en deux volets (projet, tracker) avec création de tracker à la volée.
+- **Disposition de la vue détails (2026-11-02)** : migration 028 (`tracker.layout`), `LayoutSchema`, `PATCH .../layout`, `tracker.yaml` et reconstruction, templates ; éditeur `LayoutEditor` (WYSIWYG, glisser-déposer + boutons), fiche artefact en grille de 3 colonnes.
 - **Tâche en cours** : aucune.
 - **Reste à faire** (par priorité) :
   1. Test d'intrusion externe (à commander) ; déploiement de recette sur Kubernetes et mesures de charge concurrente.

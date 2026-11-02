@@ -147,3 +147,37 @@ test('administrateur : crée un tracker depuis un template de tracker modifié e
   await expect(page.getByRole('row', { name: /Risques/ })).toBeVisible();
   expect(await axeViolations(page)).toEqual([]);
 });
+
+test('administrateur : personnalise la disposition de la vue détails à la création d’un tracker', async ({ page, request }) => {
+  await login(page, 'admin.dev', 'dev-only-admin');
+  await page.goto('/p/ARI/trackers/new');
+  await page.getByLabel('Partir d’un template de tracker').selectOption('bug');
+  await page.getByLabel('Clé du tracker (2 à 10 majuscules)').fill('LAY');
+  await page.getByLabel('Nom du tracker').fill('Mise en page');
+  await expect(page.getByText('Disposition automatique')).toBeVisible();
+  await page.getByRole('button', { name: 'Personnaliser' }).click();
+  await page.getByLabel('Titre de la section 1').fill('Résumé');
+  await page.getByRole('button', { name: 'Sévérité : 3 colonnes sur 3' }).click();
+  await page.getByRole('button', { name: 'Reculer Sévérité' }).click();
+  // glisser-déposer : « Version corrigée » passe avant « Version affectée »
+  const tiles = page.locator('.ath-layout-tile');
+  const order = async () => (await tiles.locator('.ath-layout-tile__label').allTextContents()).map((t) => t.trim().toLowerCase());
+  expect((await order()).indexOf('version affectée')).toBeLessThan((await order()).indexOf('version corrigée'));
+  await tiles.filter({ hasText: 'Version corrigée' }).dragTo(tiles.filter({ hasText: 'Version affectée' }));
+  expect((await order()).indexOf('version corrigée')).toBeLessThan((await order()).indexOf('version affectée'));
+  expect(await axeViolations(page)).toEqual([]);
+  await page.getByRole('button', { name: 'Créer le tracker' }).click();
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('LAY');
+  await expect(page.getByText('Disposition personnalisée')).toBeVisible(); // la disposition est enregistrée avec le tracker
+
+  const token = (await (await request.post('http://localhost:8080/realms/athena/protocol/openid-connect/token', { form: { grant_type: 'password', client_id: 'athena-dev-cli', username: 'admin.dev', password: 'dev-only-admin' } })).json()).access_token as string;
+  const created = await request.post('http://127.0.0.1:3001/v1/projects/ARI/trackers/LAY/artifacts', { headers: { Authorization: `Bearer ${token}` }, data: { values: { title: 'Panne', severity: 'majeure' } } });
+  expect(created.status()).toBe(201);
+  await page.goto('/p/ARI/a/LAY-1');
+  const resume = page.getByRole('region', { name: 'Résumé' });
+  await expect(resume).toBeVisible();
+  const first = resume.locator('[class*="ath-span-"]').first();
+  await expect(first).toContainText('Sévérité'); // reculée en tête
+  await expect(first).toHaveClass(/ath-span-3/);
+  expect(await axeViolations(page)).toEqual([]);
+});

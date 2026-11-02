@@ -25,6 +25,9 @@ Authentification : cookie de session (application web, écritures avec en-tête 
 ## Pilotage
 `boards`, `boards/:b`, `boards/:b/cards/:key/move`, `sprints` (+ `/items`, `/start`, `/close`, `/burndown`), `velocity`, `flow?days=`, `roadmap`, `releases`, `dashboard?by=<champ>` (tous sous `/v1/projects/:p/`).
 
+## Disposition de la vue détails
+`layout` (optionnel) à la création d'un tracker (`POST /v1/projects/:p/trackers`) et dans les templates : `{sections: [{title, fields: [{key, span: 1|2|3}]}]}` (20 sections et 100 attributs au plus ; chaque clé existe et n'est placée qu'une fois). `PATCH /v1/projects/:p/trackers/:t/layout` avec `{layout: {...} | null}` (administrateur) la remplace ; `null` revient à la disposition automatique. La définition d'un tracker renvoie `layout`. Chaque changement incrémente la version du schéma et est versionné dans `tracker.yaml`.
+
 ## Templates de projet
 `GET /v1/project-templates`, `POST /v1/project-templates` (`{key, name, description?, trackers[]}` ou `{key, name, fromProject: {project, trackers?}}`), `DELETE /v1/project-templates/:key` (administrateur ; les trois templates livrés ne se suppriment pas). Les trackers d'un template de projet peuvent aussi être désignés par `trackerTemplates: [clé]` ; les trois sources (`trackers`, `fromProject`, `trackerTemplates`) se combinent. Templates de tracker : `GET /v1/tracker-templates`, `POST /v1/tracker-templates` (`{key, name, description?, tracker}` ou `{key, name, fromTracker: {project, tracker}}`), `DELETE /v1/tracker-templates/:key`. `POST /v1/projects` accepte `template` (clé d'un template) et crée alors les trackers du template ; la réponse liste les trackers créés.
 

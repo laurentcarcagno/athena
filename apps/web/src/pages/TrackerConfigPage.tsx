@@ -3,9 +3,11 @@ import { useParams } from 'react-router-dom';
 import { Btn, Card, Field as TextField, PageHeader, StatusPill, Table, Td, Th, useToast } from '@athena/ui';
 import { ApiError, api, type Session, type TrackerDefinition } from '../api';
 import { useConfirm } from '../components/ConfirmDialog';
-import { useFailure } from '../hooks';
+import { useBusy, useFailure } from '../hooks';
 import { WorkflowEditor } from '../components/WorkflowEditor';
+import { LayoutEditor } from '../components/LayoutEditor';
 import { fr } from '../i18n';
+import { forSave, type Layout } from '../lib/layout';
 
 /** Éditeur de tracker : ajout de champs, de statuts et de transitions (évolutions non destructrices). */
 export function TrackerConfigPage({ session }: { session: Session }) {
@@ -16,13 +18,17 @@ export function TrackerConfigPage({ session }: { session: Session }) {
   const admin = session.user?.roles.includes('athena-admin') ?? false;
   const [def, setDef] = useState<TrackerDefinition | null>(null);
   const [types, setTypes] = useState<string[]>([]);
+  const [layout, setLayout] = useState<Layout | null>(null);
+  const { busy, guard } = useBusy();
   const [field, setField] = useState({ key: '', label: '', type: 'text', required: false, readRoles: '', writeRoles: '' });
   const [status, setStatus] = useState({ key: '', name: '', category: 'todo' });
   const [transition, setTransition] = useState({ name: '', from: '', to: '', roles: '' });
   const base = `/v1/projects/${project}/trackers/${tracker}`;
 
   const reload = useCallback(async () => {
-    setDef(await api<TrackerDefinition>('GET', base));
+    const loaded = await api<TrackerDefinition>('GET', base);
+    setDef(loaded);
+    setLayout(loaded.layout ?? null);
     setTypes(await api<string[]>('GET', '/v1/field-types'));
   }, [base]);
   useEffect(() => { reload().catch(fail); }, [reload, fail]);
@@ -60,7 +66,15 @@ export function TrackerConfigPage({ session }: { session: Session }) {
     } catch (error) { fail(error); }
   };
 
+  const saveLayout = () => guard(async () => {
+    try {
+      await api('PATCH', `${base}/layout`, { layout: layout ? forSave(layout, def!.fields) : null });
+      toast('success', fr.layout.saved);
+      await reload();
+    } catch (error) { fail(error); }
+  });
   if (!def) return <p role="status">{fr.loading}</p>;
+  const layoutChanged = JSON.stringify(layout ? forSave(layout, def.fields) : null) !== JSON.stringify(def.layout ?? null);
   const statusName = (id: string | null) => (id === null ? fr.config.anyState : def.statuses.find((s) => s.id === id)?.key ?? '?');
   return (
     <>
@@ -104,6 +118,15 @@ export function TrackerConfigPage({ session }: { session: Session }) {
             </form>
           )}
         </Card>
+        {admin && (
+          <Card title={fr.layout.title}>
+            <div className="ath-stack">
+              <p className="ath-eyebrow">{fr.layout.help}</p>
+              <LayoutEditor fields={def.fields} value={layout} onChange={setLayout} />
+              <div><Btn loading={busy} disabled={!layoutChanged} onClick={() => void saveLayout()}>{fr.layout.save}</Btn></div>
+            </div>
+          </Card>
+        )}
         <Card title={fr.config.statuses} meta={String(def.statuses.length)}>
           <div className="ath-row">{def.statuses.map((s) => <StatusPill key={s.id} kind={s.category === 'done' ? 'success' : s.category === 'in_progress' ? 'warning' : 'info'}>{s.name}</StatusPill>)}</div>
           {admin && (

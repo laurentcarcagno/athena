@@ -31,6 +31,7 @@ export function repositoryName(organizationKey: string, projectKey: string): str
 }
 
 export interface TrackerYaml {
+  layout?: unknown;
   key: string;
   name: string;
   schemaVersion: number;
