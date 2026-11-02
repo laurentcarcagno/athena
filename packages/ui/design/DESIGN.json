@@ -389,7 +389,7 @@
         },
         "sticky": {
           "value": 100,
-          "status": "proposed"
+          "status": "stable"
         },
         "overlay": {
           "value": 1000,
@@ -398,7 +398,7 @@
         },
         "toast": {
           "value": 1100,
-          "status": "proposed"
+          "status": "stable"
         }
       },
       "sizes": {
@@ -447,7 +447,7 @@
         },
         "sidebar": {
           "value": "232px",
-          "status": "proposed",
+          "status": "stable",
           "note": "Valeur observée dans Athena."
         },
         "sidebar-collapsed": {
@@ -1013,7 +1013,7 @@
         "rule": "opacity {opacities.disabled}, curseur not-allowed. Champ : fond {semantic.surface.hover}, texte {semantic.text.mute}. Le texte reste lisible : l’état n’est jamais transmis seulement par l’opacité (ajouter aria-disabled ou disabled)."
       },
       "loading": {
-        "status": "proposed",
+        "status": "stable",
         "rule": "aria-busy=\"true\", contrôle désactivé, libellé conservé suivi de « … ». Pas d’animation ; au-delà de 1 s, afficher un état de chargement explicite (voir patterns)."
       },
       "error": {
@@ -1303,7 +1303,7 @@
         "states": {
           "focus": "{states.focus}"
         },
-        "status": "proposed",
+        "status": "stable",
         "note": "Audit Athena F-04 : premier élément focalisable, visible au focus seulement, il déplace le focus sur le contenu principal."
       },
       "confirm-dialog": {
@@ -1311,13 +1311,13 @@
         "confirm": "{component.button.danger}",
         "cancel": "{component.button.ghost}",
         "initialFocus": "annulation",
-        "status": "proposed",
+        "status": "stable",
         "note": "Audit Athena F-01 et F-03 : confirmation d’une action irréversible (titre nommant l’objet, conséquence, bouton danger)."
       },
       "help-entry": {
         "base": "{component.nav-item}",
         "position": "dernière entrée de la navigation, même place sur toutes les pages",
-        "status": "proposed",
+        "status": "stable",
         "note": "Audit Athena F-12 (WCAG 3.2.6, aide cohérente)."
       },
       "layout-grid": {
@@ -1329,7 +1329,7 @@
           3
         ],
         "narrow": "une colonne sous {breakpoints.md}",
-        "status": "proposed",
+        "status": "stable",
         "note": "Disposition de la vue détails : grille de 3 colonnes, un attribut occupe 1, 2 ou 3 colonnes ; les attributs non placés sont ajoutés à la suite."
       },
       "layout-editor": {
@@ -1351,7 +1351,7 @@
         ],
         "dragAlternative": "chaque déplacement a un bouton (WCAG 2.5.7)",
         "default": "automatique",
-        "status": "proposed",
+        "status": "stable",
         "note": "Éditeur de la disposition d'un tracker (création et configuration)."
       }
     },
@@ -2451,6 +2451,13 @@
       "decision": "Disposition de la vue détails d'un tracker : sections titrées, grille de 3 colonnes, largeur 1 à 3 par attribut, éditeur WYSIWYG avec glisser-déposer et boutons équivalents, disposition automatique par défaut. Nouveaux tokens de composant en proposed : layout-grid, layout-editor.",
       "reason": "Demande produit : maîtriser la disposition des attributs à la création d'un tracker ; la disposition automatique évite d'imposer la configuration.",
       "rejected": "Configuration par liste d'ordre seule (pas de largeur) ; glisser-déposer sans alternative au clavier."
+    },
+    {
+      "id": "D-017",
+      "date": "2026-11-02",
+      "decision": "Passent de proposed à stable les tokens que l'interface d'Athena utilise : primitive.zIndex.sticky, primitive.zIndex.toast, primitive.sizes.sidebar, states.loading, component.skip-link, component.confirm-dialog, component.help-entry, component.layout-grid, component.layout-editor. Les autres tokens proposed (thème sombre, densités, surcouches) restent en attente.",
+      "reason": "Ces tokens sont livrés, testés (unitaires et e2e) et audités ; les laisser proposed faussait l'état de la charte.",
+      "rejected": "Tout passer en stable, y compris le thème sombre qu'aucune feuille de style ne consomme."
     }
   ],
   "extensions": {

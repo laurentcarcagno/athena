@@ -491,7 +491,7 @@ Tous les composants sont rectangulaires, bordés de 1 px, sans ombre, et lisent 
 - **Usage.** Une décision ou une saisie qui doit bloquer le reste de l'écran. Pas pour afficher une simple information.
 - **Anatomie.** Fond `{semantic.surface.scrim}` (sans flou), dialogue `{semantic.surface.default}` bordé de `{semantic.border.strong}`, largeurs 480 / 640 / 880 px, en-tête `{semantic.surface.inverse}` avec titre H3 et fermeture carrée de 24 px, corps de 18 px, pied avec filet. Empilement `{zIndex.overlay}`.
 - **Comportement.** `role="dialog"`, `aria-modal="true"`, `aria-labelledby`. `Échap`, clic sur le fond et la croix ferment. Piège à focus : le focus entre sur le premier contrôle et revient au déclencheur à la fermeture.
-- **Confirmation destructive** (`{component.confirm-dialog}`, proposé) : titre nommant l'objet, corps disant la conséquence, annulation (fantôme) puis confirmation en `{component.button.danger}` ; le navigateur (`window.confirm`) n'est jamais utilisé.
+- **Confirmation destructive** (`{component.confirm-dialog}`) : titre nommant l'objet, corps disant la conséquence, annulation (fantôme) puis confirmation en `{component.button.danger}` ; le navigateur (`window.confirm`) n'est jamais utilisé.
 - **À faire.** Pied : annulation (fantôme) puis confirmation (primaire) à droite ; action destructrice avec le bouton danger. **À ne pas faire.** Une modale dans une modale ; une modale qui s'ouvre seule sans action de l'utilisateur.
 
 ### 3.12 Toast
@@ -519,15 +519,15 @@ Tous les composants sont rectangulaires, bordés de 1 px, sans ombre, et lisent 
 
 ### 3.16 Lien d'évitement et entrée d'aide
 
-- **Lien d'évitement** (`{component.skip-link}`, proposé) : premier élément focalisable de chaque page, invisible au repos, visible au focus (bordure 2 px `{semantic.border.strong}`, `{states.focus}`). Il place le focus sur le contenu principal (`main`, `tabindex="-1"`) et évite les arrêts de tabulation de la navigation.
-- **Entrée d'aide** (`{component.help-entry}`, proposé) : dernière entrée de la navigation, à la même place sur toutes les pages ; la page liste les raccourcis clavier, la syntaxe de recherche et les rôles.
+- **Lien d'évitement** (`{component.skip-link}`) : premier élément focalisable de chaque page, invisible au repos, visible au focus (bordure 2 px `{semantic.border.strong}`, `{states.focus}`). Il place le focus sur le contenu principal (`main`, `tabindex="-1"`) et évite les arrêts de tabulation de la navigation.
+- **Entrée d'aide** (`{component.help-entry}`) : dernière entrée de la navigation, à la même place sur toutes les pages ; la page liste les raccourcis clavier, la syntaxe de recherche et les rôles.
 - **Tableau** (`{component.table.row.clip}`, proposé) : un titre long est tronqué sur une ligne avec son texte complet dans `title` ; une clé ne se coupe jamais (`white-space: nowrap`).
 
 ### 3.17 Disposition de la vue détails
 
 - **Usage.** Choisir comment les attributs d'un tracker s'affichent sur la fiche d'un artefact : sections titrées, attributs sur 1, 2 ou 3 colonnes.
-- **Grille** (`{component.layout-grid}`, proposé) : 3 colonnes, une seule colonne sous `{breakpoints.md}`. Un attribut absent de la disposition est ajouté à la suite : un champ créé plus tard n'est jamais masqué.
-- **Éditeur** (`{component.layout-editor}`, proposé). Automatique par défaut (titre en pleine largeur, attributs courts sur 1 colonne, textes longs en pleine largeur) ; « Personnaliser » ouvre un aperçu fidèle, avec les mêmes grille et gabarits que la fiche.
+- **Grille** (`{component.layout-grid}`) : 3 colonnes, une seule colonne sous `{breakpoints.md}`. Un attribut absent de la disposition est ajouté à la suite : un champ créé plus tard n'est jamais masqué.
+- **Éditeur** (`{component.layout-editor}`). Automatique par défaut (titre en pleine largeur, attributs courts sur 1 colonne, textes longs en pleine largeur) ; « Personnaliser » ouvre un aperçu fidèle, avec les mêmes grille et gabarits que la fiche.
 - **Interactions.** Glisser un attribut pour le déplacer ; chaque déplacement a un équivalent bouton (reculer, avancer, largeur 1/3 2/3 3/3, déplacer vers une section, retirer), conformément à WCAG 2.5.7. Les attributs non placés sont listés avec un bouton « Placer ».
 - **À ne pas faire.** Obliger à configurer la disposition ; proposer le glisser-déposer sans bouton ; empiler les sections sans titre.
 
@@ -828,6 +828,7 @@ Modèle de proposition :
 | D-014 | 2026-11-01 | Le contour d'un champ utilise `{semantic.border.control}` (3:1) ; `{semantic.border.default}` est réservé aux filets décoratifs ; le focus ring sur surface inverse utilise `{semantic.focus.ring-on-inverse}` ; l'en-tête de tableau passe à 11 px. | WCAG 1.4.11 et plancher de 11 px ; toutes les paires par défaut atteignent leur seuil. | Exempter le contour des champs comme séparateur décoratif. |
 | D-015 | 2026-11-01 | Corrections de l’audit Athena : confirmation des suppressions irréversibles, toasts d’erreur persistants, lien d’évitement, entrée d’aide, état loading des boutons, tailles 11 px minimum, troncature des titres, volet de navigation sous 768 px, suggestion des valeurs ATQL, page Administration réservée. Nouveaux tokens de composant en proposed : skip-link, confirm-dialog, help-entry, table.row.clip. | Chaque changement corrige un constat F-01 à F-13 de design-audit-work/AUDIT_athena.md ; aucun token existant n’est supprimé. | Laisser les écarts en known-issue ; créer des composants sans les déclarer. |
 | D-016 | 2026-11-02 | Disposition de la vue détails d'un tracker : sections titrées, grille de 3 colonnes, largeur 1 à 3 par attribut, éditeur WYSIWYG avec glisser-déposer et boutons équivalents, disposition automatique par défaut. Nouveaux tokens de composant en proposed : layout-grid, layout-editor. | Demande produit : maîtriser la disposition des attributs à la création d'un tracker ; la disposition automatique évite d'imposer la configuration. | Configuration par liste d'ordre seule (pas de largeur) ; glisser-déposer sans alternative au clavier. |
+| D-017 | 2026-11-02 | Passent de proposed à stable les tokens que l'interface d'Athena utilise : primitive.zIndex.sticky, primitive.zIndex.toast, primitive.sizes.sidebar, states.loading, component.skip-link, component.confirm-dialog, component.help-entry, component.layout-grid, component.layout-editor. Les autres tokens proposed (thème sombre, densités, surcouches) restent en attente. | Ces tokens sont livrés, testés (unitaires et e2e) et audités ; les laisser proposed faussait l'état de la charte. | Tout passer en stable, y compris le thème sombre qu'aucune feuille de style ne consomme. |
 
 ### Décisions en attente (`proposed`)
 
@@ -1027,8 +1028,8 @@ Généré par `scripts/validate-design.mjs --write`. Ne pas modifier à la main.
 |---|---|---|
 | `{zIndex.base}` | 0 | proposed |
 | `{zIndex.overlay}` | 1000 | stable |
-| `{zIndex.sticky}` | 100 | proposed |
-| `{zIndex.toast}` | 1100 | proposed |
+| `{zIndex.sticky}` | 100 | stable |
+| `{zIndex.toast}` | 1100 | stable |
 
 #### sizes
 
@@ -1043,7 +1044,7 @@ Généré par `scripts/validate-design.mjs --write`. Ne pas modifier à la main.
 | `{sizes.icon-button}` | 28px | stable |
 | `{sizes.icon-button-compact}` | 24px | stable |
 | `{sizes.prose-max}` | 75ch | stable |
-| `{sizes.sidebar}` | 232px | proposed |
+| `{sizes.sidebar}` | 232px | stable |
 | `{sizes.sidebar-collapsed}` | 64px | stable |
 | `{sizes.tag-height}` | 18px | stable |
 | `{sizes.toast-max}` | 420px | stable |
@@ -1127,7 +1128,7 @@ Généré par `scripts/validate-design.mjs --write`. Ne pas modifier à la main.
 | `{states.error}` | — | stable |
 | `{states.focus}` | — | stable |
 | `{states.hover}` | — | stable |
-| `{states.loading}` | — | proposed |
+| `{states.loading}` | — | stable |
 | `{states.selected}` | — | stable |
 
 #### density
@@ -1150,16 +1151,16 @@ Généré par `scripts/validate-design.mjs --write`. Ne pas modifier à la main.
 | `{component.button.ghost}` | — | stable |
 | `{component.button.primary}` | — | stable |
 | `{component.card}` | — | stable |
-| `{component.confirm-dialog}` | — | proposed |
+| `{component.confirm-dialog}` | — | stable |
 | `{component.empty-state}` | — | stable |
 | `{component.field}` | — | stable |
-| `{component.help-entry}` | — | proposed |
-| `{component.layout-editor}` | — | proposed |
-| `{component.layout-grid}` | — | proposed |
+| `{component.help-entry}` | — | stable |
+| `{component.layout-editor}` | — | stable |
+| `{component.layout-grid}` | — | stable |
 | `{component.modal}` | — | stable |
 | `{component.nav-item}` | — | stable |
 | `{component.page-header}` | — | stable |
-| `{component.skip-link}` | — | proposed |
+| `{component.skip-link}` | — | stable |
 | `{component.stat-card}` | — | stable |
 | `{component.tab}` | — | stable |
 | `{component.table.cell-mono}` | — | stable |
