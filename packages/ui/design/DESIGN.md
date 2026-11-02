@@ -877,6 +877,15 @@ Gabarit de rapport d'audit : contexte, grille notée, constats au format imposé
 
 `packages/ui/scripts/build-tokens.mjs` lit quatre blocs du front matter de `DESIGN.md` (couleurs, espacement, arrondis, typographie) et `lint-design.mjs` en tire sa palette. Après une modification : exécuter `pnpm --filter @athena/ui build` puis `pnpm check` (qui inclut `design:check`).
 
+### 10.4 Écarts connus d'Athena
+
+État constaté de l'interface d'Athena par rapport à cette charte, au 2026-11-02. À corriger ou à décider ; cette liste n'est pas une dérogation.
+
+- **Thème sombre.** Les tokens `semantic.themes.dark` sont définis (en `proposed`) mais `packages/ui/src/styles.css` n'a aucune règle de thème sombre : seul le thème clair est livré.
+- **Raccourci de recherche.** Le composant de recherche prévoit un indice de raccourci toujours visible ; l'en-tête d'Athena ne l'affiche plus (décision produit).
+- **Dimensions non tokenisées.** `styles.css` lit `--ath-space-*` pour les marges, espacements et écarts de 4, 8, 12, 20 et 24 px. Restent en dur les valeurs sans token correspondant (bordures de 1 et 2 px, 6, 10 et 14 px, hauteurs de contrôles), qui n'ont pas d'équivalent dans l'échelle `{spacing.*}`.
+- **Tokens `proposed` restants.** Thème sombre, densités compacte et confortable, surcouches, quelques couleurs et jalons de breakpoints : aucun n'est consommé par Athena.
+
 ## 11. Registre des tokens
 
 Généré par `scripts/validate-design.mjs --write`. Ne pas modifier à la main.
