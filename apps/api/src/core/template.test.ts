@@ -44,7 +44,7 @@ suite('templates de projet (intégration)', () => {
 
   it('crée un projet sans tracker sans template, et refuse un template inconnu sans rien créer', async () => {
     await templates.createProject(org, 'VID', 'Vide', undefined, admin);
-    expect(await trackerKeys('VID')).toEqual([]);
+    expect(await trackerKeys('BGM')).toEqual([]);
     expect(await code(templates.createProject(org, 'ZZ', 'Zz', 'inconnu', admin))).toMatch(/^not_found/);
     expect((await db.tx(org, (c) => c.query("select 1 from project where key = 'ZZ'"))).rowCount).toBe(0);
   });
@@ -104,7 +104,38 @@ suite('templates de projet (intégration)', () => {
   it('supprime un template de l’organisation, jamais un template livré', async () => {
     await templates.remove(org, 'mon-modele', admin);
     expect((await templates.list(org)).some((t) => t.key === 'mon-modele')).toBe(false);
-    expect(await code(templates.remove(org, 'bugs', admin))).toMatch(/^conflict/);
+    expect(await code(templates.remove(org, 'bugs', admin))).toMatch(/^conflict/); // livré et non modifié : rien à réinitialiser
     expect(await code(templates.remove(org, 'mon-modele', admin))).toMatch(/^not_found/);
+  });
+
+  it('modifie un template de tracker livré, l’utilise pour créer un projet, puis le réinitialise', async () => {
+    const original = (await templates.listTrackerTemplates(org)).find((t) => t.key === 'tache')!;
+    expect(original).toMatchObject({ builtin: true, modified: false });
+    const changed: TemplateTracker = { ...original.tracker, name: 'Tâches maison', statuses: [...original.tracker.statuses, { key: 'bloque', name: 'Bloqué', category: 'in_progress' }] };
+    await templates.updateTrackerTemplate(org, 'tache', { name: 'Tâches maison', description: 'Avec un statut Bloqué', tracker: changed }, admin);
+    const after = (await templates.listTrackerTemplates(org)).filter((t) => t.key === 'tache');
+    expect(after).toHaveLength(1);
+    expect(after[0]).toMatchObject({ builtin: true, modified: true, name: 'Tâches maison' });
+    expect((await templates.trackersFromTemplates(org, ['tache']))[0]!.statuses.map((x) => x.key)).toContain('bloque');
+    await templates.updateTrackerTemplate(org, 'tache', { name: 'Tâches v2', tracker: changed }, admin); // deuxième modification : mise à jour, pas de doublon
+    expect((await templates.listTrackerTemplates(org)).filter((t) => t.key === 'tache')).toHaveLength(1);
+    await templates.removeTrackerTemplate(org, 'tache', admin); // réinitialise
+    expect((await templates.listTrackerTemplates(org)).find((t) => t.key === 'tache')).toMatchObject({ builtin: true, modified: false, name: original.name });
+    expect(await code(templates.updateTrackerTemplate(org, 'absent', { name: 'x', tracker: changed }, admin))).toMatch(/^not_found/);
+    expect(await code(templates.updateTrackerTemplate(org, 'tache', { name: 'x', tracker: { ...changed, transitions: [{ name: 'x', from: 'todo', to: 'zzz' }] } }, admin))).toMatch(/^validation/);
+  });
+
+  it('modifie un template de projet livré et un template de l’organisation', async () => {
+    const bugs = (await templates.list(org)).find((t) => t.key === 'bugs')!;
+    await templates.update(org, 'bugs', { name: 'Bugs maison', trackers: [] }, admin);
+    expect((await templates.list(org)).find((t) => t.key === 'bugs')).toMatchObject({ builtin: true, modified: true, name: 'Bugs maison', trackers: [] });
+    await templates.createProject(org, 'BGM', 'Bugs maison', 'bugs', admin);
+    expect(await trackerKeys('BGM')).toEqual([]);
+    await templates.remove(org, 'bugs', admin);
+    expect((await templates.list(org)).find((t) => t.key === 'bugs')).toMatchObject({ modified: false, trackers: bugs.trackers });
+    await templates.create(org, { key: 'perso', name: 'Perso', trackers: bugs.trackers }, admin);
+    await templates.update(org, 'perso', { name: 'Perso 2', description: 'd', trackers: bugs.trackers.slice(0, 1) }, admin);
+    expect((await templates.list(org)).find((t) => t.key === 'perso')).toMatchObject({ builtin: false, name: 'Perso 2', description: 'd' });
+    expect(await code(templates.update(org, 'absent', { name: 'x', trackers: [] }, admin))).toMatch(/^not_found/);
   });
 });

@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, Inject, Param, Post, Req } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Inject, Param, Post, Put, Req } from '@nestjs/common';
 import { z } from 'zod';
 import { Roles, type AuthedRequest } from '../auth/auth.guard';
 import { BodySchema } from '../openapi/body-schema';
@@ -14,6 +14,18 @@ const TemplateBody = z.object({
   fromProject: z.object({ project: z.string().min(1).max(10), trackers: z.array(z.string()).max(30).optional() }).optional(),
   /** Clés de templates de tracker (livrés ou de l'organisation) à inclure. */
   trackerTemplates: z.array(z.string().max(40)).max(30).optional(),
+});
+
+const TemplateUpdateBody = z.object({
+  name: z.string().trim().min(1).max(200),
+  description: z.string().max(2000).optional(),
+  trackers: z.array(TemplateTrackerSchema).max(30),
+});
+
+const TrackerTemplateUpdateBody = z.object({
+  name: z.string().trim().min(1).max(200),
+  description: z.string().max(2000).optional(),
+  tracker: TemplateTrackerSchema,
 });
 
 const TrackerTemplateBody = z.object({
@@ -53,6 +65,17 @@ export class TemplateController {
   }
 
   @Roles('athena-admin')
+  @Put(':key')
+  @BodySchema(TemplateUpdateBody)
+  async update(@Req() request: AuthedRequest, @Param('key') key: string, @Body() body: unknown) {
+    const { organizationId, actor } = await this.orgs.resolve(request.principal!);
+    const input = parseBody(TemplateUpdateBody, body);
+    await this.templates.update(organizationId, key, { name: input.name, ...(input.description !== undefined ? { description: input.description } : {}), trackers: input.trackers }, actor);
+    return { key, trackers: input.trackers.map((t) => t.key) };
+  }
+
+  /** Supprime un template de l'organisation ; pour un template livré, rétablit sa version d'origine. */
+  @Roles('athena-admin')
   @HttpCode(204)
   @Delete(':key')
   async remove(@Req() request: AuthedRequest, @Param('key') key: string) {
@@ -85,6 +108,17 @@ export class TrackerTemplateController {
     return { key: input.key, tracker: tracker.key };
   }
 
+  @Roles('athena-admin')
+  @Put(':key')
+  @BodySchema(TrackerTemplateUpdateBody)
+  async update(@Req() request: AuthedRequest, @Param('key') key: string, @Body() body: unknown) {
+    const { organizationId, actor } = await this.orgs.resolve(request.principal!);
+    const input = parseBody(TrackerTemplateUpdateBody, body);
+    await this.templates.updateTrackerTemplate(organizationId, key, { name: input.name, ...(input.description !== undefined ? { description: input.description } : {}), tracker: input.tracker }, actor);
+    return { key, tracker: input.tracker.key };
+  }
+
+  /** Supprime un template de l'organisation ; pour un template livré, rétablit sa version d'origine. */
   @Roles('athena-admin')
   @HttpCode(204)
   @Delete(':key')
