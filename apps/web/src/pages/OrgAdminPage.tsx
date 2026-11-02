@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { Btn, Card, EmptyState, Field, PageHeader, Table, Tabs, Tag, Td, Th, useToast } from '@athena/ui';
 import { api, type Session } from '../api';
+import { ProjectTemplateEditor } from '../components/ProjectTemplateEditor';
 import { TrackerTemplateForm, type TrackerTemplateEntry } from '../components/TrackerTemplateForm';
 import { useConfirm } from '../components/ConfirmDialog';
 import { useBusy, useFailure } from '../hooks';
@@ -9,7 +10,7 @@ import { fr } from '../i18n';
 export interface UserEntry { subject: string; username: string; displayName: string; email: string | null }
 export interface MemberEntry extends UserEntry { role: 'manager' | 'member' }
 export interface TemplateEntry {
-  key: string; name: string; description: string; builtin: boolean;
+  key: string; name: string; description: string; builtin: boolean; modified?: boolean;
   trackers: Array<{ key: string; name: string; fields: Array<{ label: string }>; statuses: unknown[]; transitions: unknown[] }>;
 }
 interface PluginEntry { id: string; name: string; version: string; enabled: boolean; permissions: string[] }
@@ -128,25 +129,41 @@ function ProjectTemplates({ templates, trackerTemplates, reload, reloadTrackerTe
     } catch (error) { fail(error); }
   };
   const confirm = useConfirm();
-  const remove = async (key: string) => {
-    if (!(await confirm.ask({ title: fr.confirm.deleteTitle(key), body: fr.confirm.deleteTemplate, confirm: fr.confirm.delete }))) return;
-    try { await api('DELETE', `/v1/project-templates/${key}`); toast('success', fr.org.templateDeleted); await reload(); } catch (error) { fail(error); }
+  const [editing, setEditing] = useState<string | null>(null);
+  const remove = async (t: TemplateEntry) => {
+    const reset = t.builtin;
+    if (!(await confirm.ask(reset
+      ? { title: fr.builder.resetTitle(t.name), body: fr.builder.resetBody, confirm: fr.builder.reset }
+      : { title: fr.confirm.deleteTitle(t.key), body: fr.confirm.deleteTemplate, confirm: fr.confirm.delete }))) return;
+    try { await api('DELETE', `/v1/project-templates/${t.key}`); toast('success', reset ? fr.builder.resetDone : fr.org.templateDeleted); setEditing(null); await reload(); } catch (error) { fail(error); }
   };
   const nothing = form.picked.length === 0 && form.tplPicked.length === 0;
   return (
     <div className="ath-stack">
       {confirm.dialog}
       <Table>
-        <thead><tr><Th>{fr.config.name}</Th><Th>{fr.org.trackersCount}</Th><Th>{fr.org.attributes}</Th><Th>{fr.org.deleteTemplate}</Th></tr></thead>
+        <thead><tr><Th>{fr.config.name}</Th><Th>{fr.org.trackersCount}</Th><Th>{fr.org.attributes}</Th><Th>{fr.builder.edit}</Th></tr></thead>
         <tbody>{templates.map((t) => (
           <tr key={t.key}>
-            <Td>{t.name} <span className="ath-mono">{t.key}</span>{t.builtin && <> <Tag>{fr.org.builtin}</Tag></>}</Td>
+            <Td>{t.name} <span className="ath-mono">{t.key}</span>{t.builtin && <> <Tag>{fr.org.builtin}</Tag></>}{t.modified && <> <Tag>{fr.builder.modified}</Tag></>}</Td>
             <Td>{t.trackers.length === 0 ? '—' : t.trackers.map((k) => <div key={k.key}><span className="ath-mono">{k.key}</span> {k.name}</div>)}</Td>
             <Td>{t.trackers.length === 0 ? '—' : t.trackers.map((k) => <div key={k.key}>{k.fields.map((f) => f.label).join(', ')}</div>)}</Td>
-            <Td>{!t.builtin && <Btn size="sm" variant="ghost" aria-label={`${fr.org.deleteTemplate} ${t.name}`} onClick={() => remove(t.key)}>{fr.org.deleteTemplate}</Btn>}</Td>
+            <Td>
+              <span className="ath-row">
+                <Btn size="sm" variant="ghost" aria-label={`${fr.builder.edit} ${t.name}`} onClick={() => setEditing(t.key)}>{fr.builder.edit}</Btn>
+                {t.builtin ? (t.modified && <Btn size="sm" variant="ghost" aria-label={`${fr.builder.reset} ${t.name}`} onClick={() => remove(t)}>{fr.builder.reset}</Btn>)
+                  : <Btn size="sm" variant="ghost" aria-label={`${fr.org.deleteTemplate} ${t.name}`} onClick={() => remove(t)}>{fr.org.deleteTemplate}</Btn>}
+              </span>
+            </Td>
           </tr>
         ))}</tbody>
       </Table>
+      {editing && templates.some((t) => t.key === editing) && (
+        <section className="ath-stack" aria-label={fr.builder.editing(editing)}>
+          <ProjectTemplateEditor key={editing} template={templates.find((t) => t.key === editing)!} trackerTemplates={trackerTemplates}
+            onSaved={async () => { setEditing(null); await reload(); }} onCancel={() => setEditing(null)} />
+        </section>
+      )}
       <form className="ath-stack" onSubmit={create}>
         <div className="ath-toolbar">
           <Field label={fr.org.templateKey} value={form.key} onChange={(e) => setForm({ ...form, key: e.target.value })} mono />
@@ -199,25 +216,42 @@ function TrackerTemplates({ templates, reload }: { templates: TrackerTemplateEnt
   const toast = useToast();
   const fail = useFailure();
   const confirm = useConfirm();
-  const remove = async (key: string) => {
-    if (!(await confirm.ask({ title: fr.confirm.deleteTitle(key), body: fr.confirm.deleteTemplate, confirm: fr.confirm.delete }))) return;
-    try { await api('DELETE', `/v1/tracker-templates/${key}`); toast('success', fr.builder.trackerTemplateDeleted); await reload(); } catch (error) { fail(error); }
+  const [editing, setEditing] = useState<string | null>(null);
+  const remove = async (t: TrackerTemplateEntry) => {
+    const reset = t.builtin;
+    if (!(await confirm.ask(reset
+      ? { title: fr.builder.resetTitle(t.name), body: fr.builder.resetBody, confirm: fr.builder.reset }
+      : { title: fr.confirm.deleteTitle(t.key), body: fr.confirm.deleteTemplate, confirm: fr.confirm.delete }))) return;
+    try { await api('DELETE', `/v1/tracker-templates/${t.key}`); toast('success', reset ? fr.builder.resetDone : fr.builder.trackerTemplateDeleted); setEditing(null); await reload(); } catch (error) { fail(error); }
   };
   return (
     <div className="ath-stack">
       {confirm.dialog}
       <Table>
-        <thead><tr><Th>{fr.config.name}</Th><Th>{fr.org.attributes}</Th><Th>{fr.config.statuses}</Th><Th>{fr.org.deleteTemplate}</Th></tr></thead>
+        <thead><tr><Th>{fr.config.name}</Th><Th>{fr.org.attributes}</Th><Th>{fr.config.statuses}</Th><Th>{fr.builder.edit}</Th></tr></thead>
         <tbody>{templates.map((t) => (
           <tr key={t.key}>
-            <Td>{t.name} <span className="ath-mono">{t.key}</span>{t.builtin && <> <Tag>{fr.org.builtin}</Tag></>}</Td>
+            <Td>{t.name} <span className="ath-mono">{t.key}</span>{t.builtin && <> <Tag>{fr.org.builtin}</Tag></>}{t.modified && <> <Tag>{fr.builder.modified}</Tag></>}</Td>
             <Td>{t.tracker.fields.map((f) => f.label).join(', ')}</Td>
             <Td>{t.tracker.statuses.map((x) => x.name).join(' → ')}</Td>
-            <Td>{!t.builtin && <Btn size="sm" variant="ghost" aria-label={`${fr.org.deleteTemplate} ${t.name}`} onClick={() => remove(t.key)}>{fr.org.deleteTemplate}</Btn>}</Td>
+            <Td>
+              <span className="ath-row">
+                <Btn size="sm" variant="ghost" aria-label={`${fr.builder.edit} ${t.name}`} onClick={() => setEditing(t.key)}>{fr.builder.edit}</Btn>
+                {t.builtin ? (t.modified && <Btn size="sm" variant="ghost" aria-label={`${fr.builder.reset} ${t.name}`} onClick={() => remove(t)}>{fr.builder.reset}</Btn>)
+                  : <Btn size="sm" variant="ghost" aria-label={`${fr.org.deleteTemplate} ${t.name}`} onClick={() => remove(t)}>{fr.org.deleteTemplate}</Btn>}
+              </span>
+            </Td>
           </tr>
         ))}</tbody>
       </Table>
-      <TrackerTemplateForm templates={templates} onCreated={reload} />
+      {editing && templates.find((t) => t.key === editing) ? (
+        <section className="ath-stack" aria-label={fr.builder.editing(editing)}>
+          <h2 className="ath-label">{fr.builder.editing(templates.find((t) => t.key === editing)!.name)}</h2>
+          {templates.find((t) => t.key === editing)!.builtin && <p className="ath-eyebrow">{fr.builder.builtinNote}</p>}
+          <TrackerTemplateForm key={editing} templates={templates} edit={templates.find((t) => t.key === editing)!}
+            onCreated={async () => { setEditing(null); await reload(); }} onCancel={() => setEditing(null)} />
+        </section>
+      ) : <TrackerTemplateForm templates={templates} onCreated={reload} />}
     </div>
   );
 }

@@ -69,6 +69,10 @@ const frDict = {
     adminOnly: 'Réservé aux administrateurs.', projectTemplates: 'Templates de projet', trackerTemplates: 'Templates de tracker', templateTrackers: 'Trackers du template',
     createTrackerTemplate: 'Créer le template de tracker', trackerTemplateCreated: 'Template de tracker créé.', trackerTemplateDeleted: 'Template de tracker supprimé.', newTrackerForTemplate: 'Nouveau tracker pour ce template',
     templateKey: 'Clé du template de tracker (minuscules)', templateName: 'Nom du template de tracker', addedTracker: (k: string) => `Template ${k} ajouté aux trackers du template.`,
+    edit: 'Modifier', modified: 'Modifié', reset: 'Réinitialiser', save: 'Enregistrer', cancel: 'Annuler', templateSaved: 'Template enregistré.', resetDone: 'Template rétabli dans son état d’origine.',
+    editing: (n: string) => `Modification de « ${n} »`, builtinNote: 'Template livré avec Athena : votre modification le remplace pour votre organisation. « Réinitialiser » rétablit la version d’origine.',
+    resetTitle: (n: string) => `Réinitialiser « ${n} »`, resetBody: 'Les modifications de ce template livré sont abandonnées. Les projets déjà créés ne changent pas.',
+    trackersOfTemplate: 'Trackers du template', addFromTemplate: 'Ajouter ce tracker', removeTracker: 'Retirer le tracker', editTracker: 'Éditer le tracker', closeTracker: 'Replier le tracker', duplicateTracker: 'Deux trackers du template ont la même clé.', noTrackers: 'Aucun tracker : les projets créés avec ce template seront vides.', pickTemplateToAdd: 'Ajouter un tracker depuis un template de tracker',
   },
   confirm: {
     cancel: 'Annuler', delete: 'Supprimer', uninstall: 'Désinstaller',
@@ -169,6 +173,10 @@ const enDict: Dictionary = {
     adminOnly: 'Administrators only.', projectTemplates: 'Project templates', trackerTemplates: 'Tracker templates', templateTrackers: 'Template trackers',
     createTrackerTemplate: 'Create tracker template', trackerTemplateCreated: 'Tracker template created.', trackerTemplateDeleted: 'Tracker template deleted.', newTrackerForTemplate: 'New tracker for this template',
     templateKey: 'Tracker template key (lowercase)', templateName: 'Tracker template name', addedTracker: (k: string) => `Template ${k} added to the template trackers.`,
+    edit: 'Edit', modified: 'Modified', reset: 'Reset', save: 'Save', cancel: 'Cancel', templateSaved: 'Template saved.', resetDone: 'Template restored to its original state.',
+    editing: (n: string) => `Editing “${n}”`, builtinNote: 'Template shipped with Athena: your change replaces it for your organization. “Reset” restores the original version.',
+    resetTitle: (n: string) => `Reset “${n}”`, resetBody: 'Changes to this built-in template are discarded. Projects already created are unchanged.',
+    trackersOfTemplate: 'Template trackers', addFromTemplate: 'Add this tracker', removeTracker: 'Remove the tracker', editTracker: 'Edit the tracker', closeTracker: 'Collapse the tracker', duplicateTracker: 'Two trackers of the template share the same key.', noTrackers: 'No tracker: projects created with this template will be empty.', pickTemplateToAdd: 'Add a tracker from a tracker template',
   },
   confirm: {
     cancel: 'Cancel', delete: 'Delete', uninstall: 'Uninstall',

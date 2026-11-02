@@ -134,6 +134,55 @@ describe('templates de tracker et de projet', () => {
     await waitFor(() => expect(calls.find((c) => c.method === 'POST')?.body).toMatchObject({ key: 'bug-plus', name: 'Bugs plus', tracker: { key: 'BUG', fields: expect.any(Array) } }));
   });
 
+  it('modifie un template de tracker livré, puis propose de le réinitialiser', async () => {
+    base();
+    routes.push(['PUT', /\/v1\/tracker-templates\/bug$/, { key: 'bug' }]);
+    app();
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole('tab', { name: 'Templates' }));
+    await user.click(await screen.findByRole('tab', { name: 'Templates de tracker' }));
+    expect(screen.queryByRole('button', { name: 'Réinitialiser Bugs' })).toBeNull(); // livré et intact : rien à réinitialiser
+    await user.click(await screen.findByRole('button', { name: 'Modifier Bugs' }));
+    expect(screen.getByLabelText('Clé du template de tracker (minuscules)')).toHaveAttribute('readonly');
+    await user.clear(screen.getByLabelText('Nom du template de tracker'));
+    await user.type(screen.getByLabelText('Nom du template de tracker'), 'Bugs maison');
+    await user.click(screen.getByRole('button', { name: 'Supprimer severity' }));
+    await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
+    await waitFor(() => expect(calls.find((c) => c.method === 'PUT')?.body).toMatchObject({ name: 'Bugs maison', tracker: { key: 'BUG', fields: [{ key: 'title' }] } }));
+    expect(calls.find((c) => c.method === 'PUT')?.body).not.toHaveProperty('key');
+  });
+
+  it('propose de réinitialiser un template livré modifié', async () => {
+    routes.push(['GET', /\/v1\/users$/, []], ['GET', /\/v1\/projects$/, []], ['GET', /\/v1\/project-templates$/, []],
+      ['GET', /\/v1\/tracker-templates$/, [{ ...templates[0], modified: true, name: 'Bugs maison' }]], ['DELETE', /\/v1\/tracker-templates\/bug$/, {}]);
+    app();
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole('tab', { name: 'Templates' }));
+    await user.click(await screen.findByRole('tab', { name: 'Templates de tracker' }));
+    expect(await screen.findByText('Modifié')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Réinitialiser Bugs maison' }));
+    await user.click(await screen.findByRole('button', { name: 'Réinitialiser' }));
+    await waitFor(() => expect(calls.some((c) => c.method === 'DELETE' && c.url.endsWith('/v1/tracker-templates/bug'))).toBe(true));
+  });
+
+  it('modifie un template de projet : renomme, retire un tracker et en ajoute un depuis un template de tracker', async () => {
+    routes.push(['GET', /\/v1\/users$/, []], ['GET', /\/v1\/projects$/, []], ['GET', /\/v1\/tracker-templates$/, templates],
+      ['GET', /\/v1\/project-templates$/, [{ key: 'qualite', name: 'Qualité', description: '', builtin: true, modified: false, trackers: [{ ...templates[0]!.tracker, key: 'REQ', name: 'Exigences' }] }]],
+      ['PUT', /\/v1\/project-templates\/qualite$/, { key: 'qualite' }]);
+    app();
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole('tab', { name: 'Templates' }));
+    await user.click(await screen.findByRole('button', { name: 'Modifier Qualité' }));
+    const editor = within(screen.getByRole('form', { name: /Modification de/ }));
+    await user.clear(editor.getByLabelText('Nom du template'));
+    await user.type(editor.getByLabelText('Nom du template'), 'Qualité+');
+    await user.selectOptions(editor.getByLabelText('Ajouter un tracker depuis un template de tracker'), 'bug');
+    await user.click(editor.getByRole('button', { name: 'Ajouter ce tracker' }));
+    await user.click(editor.getByRole('button', { name: 'Retirer le tracker REQ' }));
+    await user.click(editor.getByRole('button', { name: 'Enregistrer' }));
+    await waitFor(() => expect(calls.find((c) => c.method === 'PUT')?.body).toMatchObject({ name: 'Qualité+', trackers: [{ key: 'BUG' }] }));
+  });
+
   it('crée un template de projet avec un template de tracker coché et un nouveau tracker', async () => {
     base();
     routes.push(['POST', /\/v1\/tracker-templates$/, { key: 'risques' }], ['POST', /\/v1\/project-templates$/, { key: 'assemble' }]);

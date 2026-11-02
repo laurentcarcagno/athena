@@ -181,3 +181,26 @@ test('administrateur : personnalise la disposition de la vue détails à la cré
   await expect(first).toHaveClass(/ath-span-3/);
   expect(await axeViolations(page)).toEqual([]);
 });
+
+test('administrateur : modifie un template livré (tracker et projet), l’utilise, puis le réinitialise', async ({ page }) => {
+  await login(page, 'admin.dev', 'dev-only-admin');
+  await page.goto('/org');
+  await page.getByRole('tab', { name: 'Templates' }).click();
+  await page.getByRole('tab', { name: 'Templates de tracker' }).click();
+  await expect(page.getByRole('button', { name: 'Réinitialiser Tâches' })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Modifier Tâches' }).click();
+  await page.getByLabel('Nom du template de tracker').fill('Tâches maison');
+  expect(await axeViolations(page)).toEqual([]);
+  await page.getByRole('button', { name: 'Enregistrer' }).click();
+  await expect(page.getByRole('row', { name: /Tâches maison/ })).toContainText('Modifié');
+
+  await page.getByRole('tab', { name: 'Templates de projet' }).click();
+  await page.getByRole('button', { name: 'Modifier Suivi de bugs' }).click();
+  await page.getByRole('form', { name: /Modification de/ }).getByLabel('Nom du template', { exact: true }).fill('Bugs maison');
+  await page.getByRole('button', { name: 'Enregistrer' }).click();
+  await expect(page.getByRole('row', { name: /Bugs maison/ })).toContainText('Modifié');
+  await page.getByRole('button', { name: 'Réinitialiser Bugs maison' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Réinitialiser' }).click();
+  await expect(page.getByRole('row', { name: /Suivi de bugs/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Réinitialiser Suivi de bugs' })).toHaveCount(0);
+});
