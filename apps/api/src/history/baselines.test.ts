@@ -30,7 +30,7 @@ suite('tracker.yaml, restauration et baselines (GitLab réel)', () => {
   let gitlab: GitLabClient;
   let repoId: number;
   const org = crypto.randomUUID();
-  const orgKey = `bl${Date.now().toString(36)}`;
+  const orgKey = `bl${Date.now().toString(36)}${process.pid.toString(36)}`;
 
   beforeAll(async () => {
     testDb = await createTestDb('athena_test_baselines');

@@ -27,7 +27,7 @@ suite('synchronisation inverse et reconstruction (GitLab réel)', () => {
   let gitlab: GitLabClient;
   let repo: number;
   const org = crypto.randomUUID();
-  const orgKey = `rv${Date.now().toString(36)}`;
+  const orgKey = `rv${Date.now().toString(36)}${process.pid.toString(36)}`;
   const path = (key: string) => `trackers/BUG/artifacts/${key}.yaml`;
 
   /** Simule un commit fait par un humain directement dans GitLab, et le webhook push correspondant. */

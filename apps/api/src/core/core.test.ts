@@ -28,8 +28,9 @@ const reachable =
 if (!reachable && process.env['CI']) throw new Error('PostgreSQL requis en CI');
 const suite = reachable ? describe : describe.skip;
 
-const DB = 'athena_test_core';
-const APP_USER = 'athena_app_core';
+// Noms uniques par processus (voir core-http.test.ts).
+const DB = `athena_test_core_${process.pid.toString(36)}`;
+const APP_USER = `athena_app_core_${process.pid.toString(36)}`;
 const withDb = (database: string, user?: string, password?: string) => {
   const url = new URL(ADMIN!);
   url.pathname = `/${database}`;

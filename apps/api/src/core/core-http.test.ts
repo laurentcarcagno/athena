@@ -30,8 +30,9 @@ const reachable =
 if (!reachable && process.env['CI']) throw new Error('PostgreSQL requis en CI');
 const suite = reachable ? describe : describe.skip;
 
-const DB = 'athena_test_http';
-const APP_USER = 'athena_app_http';
+// Noms uniques par processus : deux séries qui se chevauchent ne se coupent plus les connexions (drop ... with (force)).
+const DB = `athena_test_http_${process.pid.toString(36)}`;
+const APP_USER = `athena_app_http_${process.pid.toString(36)}`;
 const ISSUER = 'http://kc.test/realms/athena';
 const withDb = (database: string, user?: string, password?: string) => {
   const url = new URL(ADMIN!);

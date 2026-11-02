@@ -30,8 +30,8 @@ const reachable =
 if (!reachable && process.env['CI']) throw new Error('PostgreSQL requis en CI');
 const suite = reachable ? describe : describe.skip;
 
-const DB = 'athena_test';
-const APP_USER = 'athena_app_test';
+const DB = `athena_test_${process.pid.toString(36)}`;
+const APP_USER = `athena_app_test_${process.pid.toString(36)}`;
 const APP_PASSWORD = 'test-only-app-role';
 
 function urlFor(base: string, database: string, user?: string, password?: string): string {

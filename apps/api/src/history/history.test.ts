@@ -49,9 +49,10 @@ describe('sérialisation déterministe', () => {
 });
 
 suite('historique GitLab (intégration)', () => {
-  const DB = 'athena_test_history';
-  const APP_USER = 'athena_app_history';
-  const orgKey = `hist${Date.now().toString(36)}`;
+  // Noms uniques par processus (voir core-http.test.ts).
+  const DB = `athena_test_history_${process.pid.toString(36)}`;
+  const APP_USER = `athena_app_history_${process.pid.toString(36)}`;
+  const orgKey = `hist${Date.now().toString(36)}${process.pid.toString(36)}`;
   const org = crypto.randomUUID();
   const alice: Actor = { id: 'sub-alice', roles: ['athena-user', 'athena-admin'] };
   const bob: Actor = { id: 'sub-bob', roles: ['athena-user'] };

@@ -54,7 +54,9 @@ export interface TestDb {
 }
 
 /** Crée une base jetable migrée, et un rôle applicatif sans privilège particulier. */
-export async function createTestDb(database: string): Promise<TestDb> {
+export async function createTestDb(name: string): Promise<TestDb> {
+  // Nom unique par processus : deux exécutions simultanées de la série ne se détruisent plus mutuellement la base.
+  const database = `${name}_${process.pid.toString(36)}`.slice(0, 55);
   const role = `${database}_app`.slice(0, 60);
   const secret = 'harness-test-only';
   const root = new Client({ connectionString: ADMIN_URL });
