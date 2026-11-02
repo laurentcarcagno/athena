@@ -25,3 +25,4 @@ design-audit-work/evidence/
 design-audit-work/*.mjs
 design-redesign-work/after/
 design-redesign-work/*.mjs
+.admin-required-actions.json

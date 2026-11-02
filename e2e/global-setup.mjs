@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -24,8 +24,13 @@ async function relaxAdminLogin() {
   const token = (await (await fetch(`${base}/realms/master/protocol/openid-connect/token`, { method: 'POST', body: form })).json()).access_token;
   const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
   const users = await (await fetch(`${base}/admin/realms/athena/users?username=admin.dev&exact=true`, { headers })).json();
-  const res = await fetch(`${base}/admin/realms/athena/users/${users[0].id}`, { method: 'PUT', headers, body: JSON.stringify({ requiredActions: [] }) });
+  const target = `${base}/admin/realms/athena/users/${users[0].id}`;
+  const previous = users[0].requiredActions ?? [];
+  const put = (requiredActions) => fetch(target, { method: 'PUT', headers, body: JSON.stringify({ requiredActions }) });
+  const res = await put([]);
   if (!res.ok) throw new Error(`Keycloak : mise à jour de admin.dev impossible (${res.status})`);
+  // Mémorise les actions requises d'origine : global-teardown.mjs les restaure après les tests.
+  writeFileSync(join(here, '.admin-required-actions.json'), JSON.stringify({ id: users[0].id, requiredActions: previous }));
 }
 
 async function globalSetup() {

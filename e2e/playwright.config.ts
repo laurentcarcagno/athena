@@ -22,6 +22,7 @@ export default defineConfig({
   fullyParallel: false,
   workers: 1,
   timeout: 60_000,
+  globalTeardown: './global-teardown.mjs',
   reporter: [['list']],
   use: { baseURL: 'http://localhost:3000', trace: 'retain-on-failure', locale: 'fr-FR' },
   webServer: [
