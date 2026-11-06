@@ -146,6 +146,7 @@ suite('synchronisation inverse et reconstruction (GitLab réel)', () => {
     await trackers.createTracker(org, bugTemplate('LEG'), alice);
     await artifacts.create(org, 'LEG', 'BUG', { title: 'Hérité', severity: 'majeure' }, alice);
     await trackers.setType(org, 'LEG', 'BUG', 'bug', alice);
+    await trackers.updateField(org, 'LEG', 'BUG', 'severity', { isContent: false }, alice);
     await sync.runOnce();
     const legRepo = await gitlab.ensureRepository('root', `athena-history-${orgKey}-leg`);
     const newPath = 'trackers/BUG/artifacts/LEG-BUG-0001.yaml';
@@ -164,6 +165,7 @@ suite('synchronisation inverse et reconstruction (GitLab réel)', () => {
     await trackers.createProject(target, 'LEG', 'Ancien', alice);
     expect(await rebuild.rebuild(target, 'LEG', orgKey, 'rebuild')).toEqual({ trackers: 1, artifacts: 1 });
     expect((await db.tx(target, (c) => c.query('select type_key from tracker'))).rows).toEqual([{ type_key: 'bug' }]); // tracker.yaml porte le type
+    expect((await db.tx(target, (c) => c.query("select key, is_content from field_definition where key in ('severity', 'title') order by key"))).rows).toEqual([{ key: 'severity', is_content: false }, { key: 'title', is_content: true }]); // et le drapeau « champ de contenu »
     expect((await db.tx(target, (c) => c.query('select a.key, al.alias from artifact a join artifact_key_alias al on al.artifact_id = a.id'))).rows).toEqual([{ key: 'LEG-BUG-0001', alias: 'BUG-1' }]);
 
     const first = await rebuild.migrateKeys(org, 'LEG', orgKey);

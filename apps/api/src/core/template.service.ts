@@ -19,7 +19,7 @@ export const TemplateTrackerSchema = z.object({
   fields: z.array(z.object({
     key: z.string().min(1).max(60), label: z.string().min(1).max(100), type: z.string(),
     config: z.record(z.string(), z.unknown()).optional(), required: z.boolean().optional(),
-    semanticRole: z.enum(['title', 'description', 'status', 'assignee', 'due_date', 'estimate']).optional(),
+    semanticRole: z.enum(['title', 'description', 'status', 'assignee', 'due_date', 'estimate']).optional(), isContent: z.boolean().optional(),
     readRoles: z.array(Role).max(20).optional(), writeRoles: z.array(Role).max(20).optional(),
   })).max(100),
   statuses: z.array(z.object({ key: z.string().min(1), name: z.string().min(1), category: z.enum(['todo', 'in_progress', 'done']) })).min(1).max(50),
@@ -51,9 +51,9 @@ export function builtinTrackerTemplates(): TrackerTemplateView[] {
     fields: [
       { key: 'title', label: 'Titre', type: 'text', required: true, semanticRole: 'title' },
       { key: 'description', label: 'Description', type: 'richtext', semanticRole: 'description' },
-      { key: 'assignee', label: 'Responsable', type: 'user', semanticRole: 'assignee' },
-      { key: 'due', label: 'Échéance', type: 'date', semanticRole: 'due_date' },
-      { key: 'points', label: 'Points', type: 'number', semanticRole: 'estimate' },
+      { key: 'assignee', label: 'Responsable', type: 'user', semanticRole: 'assignee', isContent: false },
+      { key: 'due', label: 'Échéance', type: 'date', semanticRole: 'due_date', isContent: false },
+      { key: 'points', label: 'Points', type: 'number', semanticRole: 'estimate', isContent: false },
     ],
     statuses: [{ key: 'todo', name: 'À faire', category: 'todo' }, { key: 'doing', name: 'En cours', category: 'in_progress' }, { key: 'done', name: 'Terminé', category: 'done' }],
     transitions: [{ name: 'Démarrer', from: 'todo', to: 'doing' }, { name: 'Terminer', from: 'doing', to: 'done' }, { name: 'Rouvrir', from: null, to: 'todo' }],
@@ -167,7 +167,7 @@ export class TemplateService {
         const keyOf = (id: string | null) => (id === null ? null : d.statuses.find((s) => s.id === id)!.key);
         out.push(TemplateTrackerSchema.parse(JSON.parse(JSON.stringify({
           key: d.key, name: d.name, ...(d.layout ? { layout: d.layout } : {}), ...(d.typeKey ? { typeKey: d.typeKey } : {}),
-          fields: d.fields.map((f) => ({ key: f.key, label: f.label, type: f.type, config: f.config, required: f.required, ...(f.semanticRole ? { semanticRole: f.semanticRole } : {}), ...(f.readRoles ? { readRoles: f.readRoles } : {}), ...(f.writeRoles ? { writeRoles: f.writeRoles } : {}) })),
+          fields: d.fields.map((f) => ({ key: f.key, label: f.label, type: f.type, config: f.config, required: f.required, ...(f.isContent === false ? { isContent: false } : {}), ...(f.semanticRole ? { semanticRole: f.semanticRole } : {}), ...(f.readRoles ? { readRoles: f.readRoles } : {}), ...(f.writeRoles ? { writeRoles: f.writeRoles } : {}) })),
           statuses: [...d.statuses].sort((a, b) => a.position - b.position).map((s) => ({ key: s.key, name: s.name, category: s.category })),
           transitions: d.transitions.map((t) => ({ name: t.name, from: keyOf(t.fromStatusId), to: keyOf(t.toStatusId)!, conditions: t.conditions, validators: t.validators, postActions: t.postActions })),
         }))));

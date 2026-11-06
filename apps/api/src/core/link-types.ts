@@ -1,5 +1,5 @@
 export interface LinkPair { from: string; to: string }
-export interface BuiltinLinkType { key: string; outwardLabel: string; inwardLabel: string; hierarchical: boolean; pairs: LinkPair[] }
+export interface BuiltinLinkType { key: string; outwardLabel: string; inwardLabel: string; hierarchical: boolean; propagatesSuspect: boolean; pairs: LinkPair[] }
 
 const pairs = (...p: Array<[string, string]>): LinkPair[] => p.map(([from, to]) => ({ from, to }));
 
@@ -9,11 +9,11 @@ const pairs = (...p: Array<[string, string]>): LinkPair[] => p.map(([from, to]) 
  */
 export function builtinLinkTypes(): BuiltinLinkType[] {
   return [
-    { key: 'refines', outwardLabel: 'raffine', inwardLabel: 'est raffiné par', hierarchical: true, pairs: pairs(['requirement', 'requirement'], ['design', 'requirement'], ['interface', 'requirement']) },
-    { key: 'satisfies', outwardLabel: 'satisfait', inwardLabel: 'est satisfait par', hierarchical: false, pairs: pairs(['design', 'requirement'], ['interface', 'requirement'], ['task', 'requirement']) },
-    { key: 'verifies', outwardLabel: 'vérifie', inwardLabel: 'est vérifié par', hierarchical: false, pairs: pairs(['test', 'requirement'], ['campaign', 'requirement']) },
-    { key: 'implements', outwardLabel: 'implémente', inwardLabel: 'est implémenté par', hierarchical: false, pairs: pairs(['task', 'design'], ['task', 'requirement'], ['task', 'interface']) },
-    { key: 'blocks', outwardLabel: 'bloque', inwardLabel: 'est bloqué par', hierarchical: false, pairs: [] },
-    { key: 'duplicates', outwardLabel: 'duplique', inwardLabel: 'duplique', hierarchical: false, pairs: [] },
+    { key: 'refines', outwardLabel: 'raffine', inwardLabel: 'est raffiné par', hierarchical: true, propagatesSuspect: true, pairs: pairs(['requirement', 'requirement'], ['design', 'requirement'], ['interface', 'requirement']) },
+    { key: 'satisfies', outwardLabel: 'satisfait', inwardLabel: 'est satisfait par', hierarchical: false, propagatesSuspect: true, pairs: pairs(['design', 'requirement'], ['interface', 'requirement'], ['task', 'requirement']) },
+    { key: 'verifies', outwardLabel: 'vérifie', inwardLabel: 'est vérifié par', hierarchical: false, propagatesSuspect: true, pairs: pairs(['test', 'requirement'], ['campaign', 'requirement']) },
+    { key: 'implements', outwardLabel: 'implémente', inwardLabel: 'est implémenté par', hierarchical: false, propagatesSuspect: true, pairs: pairs(['task', 'design'], ['task', 'requirement'], ['task', 'interface']) },
+    { key: 'blocks', outwardLabel: 'bloque', inwardLabel: 'est bloqué par', hierarchical: false, propagatesSuspect: false, pairs: [] },
+    { key: 'duplicates', outwardLabel: 'duplique', inwardLabel: 'duplique', hierarchical: false, propagatesSuspect: true, pairs: [] },
   ];
 }

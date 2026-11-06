@@ -21,7 +21,7 @@ export function TrackerConfigPage({ session }: { session: Session }) {
   const [layout, setLayout] = useState<Layout | null>(null);
   const [trackerTypes, setTrackerTypes] = useState<TrackerTypeEntry[]>([]);
   const { busy, guard } = useBusy();
-  const [field, setField] = useState({ key: '', label: '', type: 'text', required: false, readRoles: '', writeRoles: '' });
+  const [field, setField] = useState({ key: '', label: '', type: 'text', required: false, isContent: true, readRoles: '', writeRoles: '' });
   const [status, setStatus] = useState({ key: '', name: '', category: 'todo' });
   const [transition, setTransition] = useState({ name: '', from: '', to: '', roles: '' });
   const base = `/v1/projects/${project}/trackers/${tracker}`;
@@ -52,10 +52,13 @@ export function TrackerConfigPage({ session }: { session: Session }) {
 
   const roleList = (raw: string) => raw.split(',').map((r) => r.trim()).filter(Boolean);
   const fieldBody = () => ({
-    key: field.key, label: field.label, type: field.type, required: field.required,
+    key: field.key, label: field.label, type: field.type, required: field.required, ...(field.isContent ? {} : { isContent: false }),
     ...(roleList(field.readRoles).length ? { readRoles: roleList(field.readRoles) } : {}),
     ...(roleList(field.writeRoles).length ? { writeRoles: roleList(field.writeRoles) } : {}),
   });
+  const setContent = async (key: string, isContent: boolean) => {
+    try { await api('PATCH', `${base}/fields/${key}`, { isContent }); toast('success', fr.suspicion.contentSaved); await reload(); } catch (error) { fail(error); }
+  };
   const removeField = async (key: string) => {
     try {
       try {
@@ -100,15 +103,16 @@ export function TrackerConfigPage({ session }: { session: Session }) {
       <div className="ath-stack">
         <Card title={fr.config.fields} meta={String(def.fields.length)}>
           <Table>
-            <thead><tr><Th>{fr.config.key}</Th><Th>{fr.config.label}</Th><Th>{fr.config.type}</Th><Th>{fr.config.required}</Th><Th>{fr.config.roles}</Th>{admin && <Th>{fr.config.remove}</Th>}</tr></thead>
+            <thead><tr><Th>{fr.config.key}</Th><Th>{fr.config.label}</Th><Th>{fr.config.type}</Th><Th>{fr.config.required}</Th><Th>{fr.suspicion.column}</Th><Th>{fr.config.roles}</Th>{admin && <Th>{fr.config.remove}</Th>}</tr></thead>
             <tbody>{def.fields.map((f) => (
               <tr key={f.key}><Td mono>{f.key}</Td><Td>{f.label}</Td><Td mono>{f.type}</Td><Td>{f.required ? '✓' : ''}</Td>
+                <Td>{admin ? <input type="checkbox" aria-label={`${fr.suspicion.toggle} ${f.key}`} checked={f.isContent !== false} onChange={(e) => void setContent(f.key, e.target.checked)} /> : (f.isContent === false ? '' : '✓')}</Td>
                 <Td mono>{f.readRoles || f.writeRoles ? `R: ${f.readRoles?.join(', ') ?? fr.config.everyone} · W: ${f.writeRoles?.join(', ') ?? fr.config.everyone}` : fr.config.everyone}</Td>
                 {admin && <Td>{f.semanticRole !== 'title' && <Btn size="sm" variant="ghost" aria-label={`${fr.config.remove} ${f.key}`} onClick={() => removeField(f.key)}>{fr.config.remove}</Btn>}</Td>}</tr>
             ))}</tbody>
           </Table>
           {admin && (
-            <form className="ath-toolbar" onSubmit={submit('fields', fieldBody(), () => setField({ key: '', label: '', type: 'text', required: false, readRoles: '', writeRoles: '' }))}>
+            <form className="ath-toolbar" onSubmit={submit('fields', fieldBody(), () => setField({ key: '', label: '', type: 'text', required: false, isContent: true, readRoles: '', writeRoles: '' }))}>
               <TextField label={fr.config.key} value={field.key} onChange={(e) => setField({ ...field, key: e.target.value })} mono />
               <TextField label={fr.config.label} value={field.label} onChange={(e) => setField({ ...field, label: e.target.value })} />
               <div className="ath-field">
@@ -117,6 +121,7 @@ export function TrackerConfigPage({ session }: { session: Session }) {
                   {types.map((t) => <option key={t} value={t}>{t}</option>)}
                 </select>
               </div>
+              <label className="ath-row" title={fr.suspicion.contentHelp}><input type="checkbox" checked={field.isContent} onChange={(e) => setField({ ...field, isContent: e.target.checked })} />{fr.suspicion.content}</label>
               <TextField label={fr.config.readRoles} value={field.readRoles} onChange={(e) => setField({ ...field, readRoles: e.target.value })} />
               <TextField label={fr.config.writeRoles} value={field.writeRoles} onChange={(e) => setField({ ...field, writeRoles: e.target.value })} />
               <Btn type="submit" disabled={!field.key || !field.label}>{fr.config.add}</Btn>

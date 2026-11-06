@@ -5,9 +5,9 @@ import { useBusy, useFailure } from '../hooks';
 import { fr } from '../i18n';
 import { useConfirm } from './ConfirmDialog';
 
-export interface OrgLinkType { key: string; outwardLabel: string; inwardLabel: string; hierarchical: boolean; pairs: Array<{ from: string; to: string }>; builtin: boolean; modified: boolean }
-interface Draft { key: string; outwardLabel: string; inwardLabel: string; hierarchical: boolean; pairs: Array<{ from: string; to: string }> }
-const blank = (): Draft => ({ key: '', outwardLabel: '', inwardLabel: '', hierarchical: false, pairs: [] });
+export interface OrgLinkType { key: string; outwardLabel: string; inwardLabel: string; hierarchical: boolean; propagatesSuspect: boolean; pairs: Array<{ from: string; to: string }>; builtin: boolean; modified: boolean }
+interface Draft { key: string; outwardLabel: string; inwardLabel: string; hierarchical: boolean; propagatesSuspect: boolean; pairs: Array<{ from: string; to: string }> }
+const blank = (): Draft => ({ key: '', outwardLabel: '', inwardLabel: '', hierarchical: false, propagatesSuspect: true, pairs: [] });
 const KEY = /^[a-z][a-z0-9_]{0,39}$/;
 
 /** Types de liens de l'organisation et paires de types de tracker qu'ils relient (administrateurs). */
@@ -28,9 +28,9 @@ export function LinkTypesTab() {
   }, [load, fail]);
 
   const nameOf = (key: string) => trackerTypes.find((t) => t.key === key)?.name ?? key;
-  const startEdit = (t: OrgLinkType) => { setEditing(t.key); setDraft({ key: t.key, outwardLabel: t.outwardLabel, inwardLabel: t.inwardLabel, hierarchical: t.hierarchical, pairs: t.pairs.map((p) => ({ ...p })) }); };
+  const startEdit = (t: OrgLinkType) => { setEditing(t.key); setDraft({ key: t.key, outwardLabel: t.outwardLabel, inwardLabel: t.inwardLabel, hierarchical: t.hierarchical, propagatesSuspect: t.propagatesSuspect, pairs: t.pairs.map((p) => ({ ...p })) }); };
   const stopEdit = () => { setEditing(null); setDraft(blank()); setPair({ from: '', to: '' }); };
-  const body = () => ({ outwardLabel: draft.outwardLabel, inwardLabel: draft.inwardLabel, hierarchical: draft.hierarchical, pairs: draft.pairs });
+  const body = () => ({ outwardLabel: draft.outwardLabel, inwardLabel: draft.inwardLabel, hierarchical: draft.hierarchical, propagatesSuspect: draft.propagatesSuspect, pairs: draft.pairs });
   const submit = (event: FormEvent) => { event.preventDefault(); void guard(async () => {
     try {
       if (editing) await api('PUT', `/v1/link-types/${editing}`, body());
@@ -60,7 +60,7 @@ export function LinkTypesTab() {
           <thead><tr><Th>{fr.types.key}</Th><Th>{fr.linkTypes.outward}</Th><Th>{fr.linkTypes.inward}</Th><Th>{fr.linkTypes.pairs}</Th><Th>{fr.builder.edit}</Th></tr></thead>
           <tbody>{items.map((t) => (
             <tr key={t.key}>
-              <Td mono>{t.key} {t.builtin && <Tag>{t.modified ? fr.types.modified : fr.types.builtin}</Tag>} {t.hierarchical && <Tag>{fr.linkTypes.hierarchical}</Tag>}</Td>
+              <Td mono>{t.key} {t.builtin && <Tag>{t.modified ? fr.types.modified : fr.types.builtin}</Tag>} {t.hierarchical && <Tag>{fr.linkTypes.hierarchical}</Tag>} {!t.propagatesSuspect && <Tag>{fr.suspicion.noPropagation}</Tag>}</Td>
               <Td>{t.outwardLabel}</Td>
               <Td>{t.inwardLabel}</Td>
               <Td>{t.pairs.length === 0 ? fr.linkTypes.anyPair : t.pairs.map((p) => `${nameOf(p.from)} → ${nameOf(p.to)}`).join(' ; ')}</Td>
@@ -81,6 +81,7 @@ export function LinkTypesTab() {
             <Field label={fr.linkTypes.outward} value={draft.outwardLabel} onChange={(e) => setDraft({ ...draft, outwardLabel: e.target.value })} />
             <Field label={fr.linkTypes.inward} value={draft.inwardLabel} onChange={(e) => setDraft({ ...draft, inwardLabel: e.target.value })} />
             <label className="ath-row"><input type="checkbox" checked={draft.hierarchical} onChange={(e) => setDraft({ ...draft, hierarchical: e.target.checked })} />{fr.linkTypes.hierarchical}</label>
+            <label className="ath-row"><input type="checkbox" checked={draft.propagatesSuspect} onChange={(e) => setDraft({ ...draft, propagatesSuspect: e.target.checked })} />{fr.suspicion.propagates}</label>
           </div>
           <span className="ath-eyebrow">{fr.linkTypes.pairsHelp}</span>
           <ul className="ath-taglist" aria-label={fr.linkTypes.pairs}>

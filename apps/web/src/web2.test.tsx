@@ -438,3 +438,32 @@ describe('mode d’écriture de l’historique', () => {
     await waitFor(() => expect(calls.find((c) => c.method === 'PATCH')?.body).toEqual({ mode: 'merge_request' }));
   });
 });
+
+describe('champ de contenu (suspicion des liens)', () => {
+  const content = { key: 'BUG', name: 'Bugs', fields: [
+    { id: '1', key: 'title', label: 'Titre', type: 'text', config: {}, required: true, isContent: true, semanticRole: 'title' },
+    { id: '2', key: 'priority', label: 'Priorité', type: 'text', config: {}, required: false, isContent: false, semanticRole: null },
+  ], statuses: [{ id: 's1', key: 'open', name: 'Ouvert', category: 'todo' }], transitions: [] };
+  const base = () => [on('GET', '/v1/projects/ARI/trackers/BUG', { body: content }), on('GET', '/v1/field-types', { body: ['text'] })];
+
+  it('affiche le drapeau de chaque champ et le change d’un clic (administrateur)', async () => {
+    handlers = [...base(), on('PATCH', /\/fields\/priority$/, { status: 204 })];
+    wrap('/p/ARI/trackers/BUG/config', <TrackerConfigPage session={admin} />, '/p/:project/trackers/:tracker/config');
+    const priority = await screen.findByRole('checkbox', { name: 'Champ de contenu : priority' });
+    expect(priority).not.toBeChecked();
+    expect(screen.getByRole('checkbox', { name: 'Champ de contenu : title' })).toBeChecked();
+    await userEvent.click(priority);
+    await waitFor(() => expect(calls.find((c) => c.method === 'PATCH')?.body).toEqual({ isContent: true }));
+  });
+
+  it('envoie isContent: false quand un nouveau champ n’est pas de contenu', async () => {
+    handlers = [...base(), on('POST', /\/fields$/, { status: 201, body: {} })];
+    wrap('/p/ARI/trackers/BUG/config', <TrackerConfigPage session={admin} />, '/p/:project/trackers/:tracker/config');
+    const fields = (await screen.findByRole('heading', { name: 'Champs' })).closest('section')!;
+    await userEvent.type(within(fields).getByLabelText('Clé'), 'cost');
+    await userEvent.type(within(fields).getByLabelText('Libellé'), 'Coût');
+    await userEvent.click(within(fields).getByRole('checkbox', { name: 'Champ de contenu' }));
+    await userEvent.click(within(fields).getByRole('button', { name: 'Ajouter' }));
+    await waitFor(() => expect(calls.find((c) => c.method === 'POST' && c.url.endsWith('/fields'))?.body).toMatchObject({ key: 'cost', isContent: false }));
+  });
+});

@@ -104,8 +104,16 @@ export class ArtifactService {
       await c.query(`update artifact set "values" = $1, version = $2, updated_at = now() where id = $3`, [
         JSON.stringify(next), version, row.id,
       ]);
-      // Les liens pointant vers cet artefact deviennent suspects tant qu'un humain ne les a pas revus.
-      await c.query('update artifact_link set suspect = true where to_artifact_id = $1 and not suspect', [row.id]);
+      // Les liens pointant vers cet artefact deviennent suspects tant qu'un humain ne les a pas revus, mais seulement si un champ
+      // de contenu a changé (pas la priorité ou le responsable) et si le type du lien propage la suspicion.
+      const contentChanged = Object.keys(diff).some((k) => def.fields.find((f) => f.key === k)?.isContent !== false);
+      if (contentChanged) {
+        await c.query(
+          `update artifact_link l set suspect = true from link_type t
+           where t.id = l.link_type_id and t.propagates_suspect and l.to_artifact_id = $1 and not l.suspect`,
+          [row.id],
+        );
+      }
       await this.record(c, organizationId, row.id, version, diff, actor, 'artifact.updated', row.key, { changes: diff },
         { key: row.key, tracker: row.tracker_key, status: row.status_key, version, values: next });
       return { ...this.toArtifact(row), values: next, version };

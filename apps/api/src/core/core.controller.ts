@@ -23,7 +23,7 @@ const TrackerBody = z.object({
   description: z.string().max(2000).optional(),
   fields: z.array(z.object({
     key: z.string(), label: z.string().min(1), type: z.string(),
-    config: z.record(z.string(), z.unknown()).optional(), required: z.boolean().optional(),
+    config: z.record(z.string(), z.unknown()).optional(), required: z.boolean().optional(), isContent: z.boolean().optional(),
     semanticRole: z.enum(['title', 'description', 'status', 'assignee', 'due_date', 'estimate']).optional(),
   })).max(100),
   statuses: z.array(z.object({
@@ -55,13 +55,13 @@ const principalOf =(request: AuthedRequest): Principal => request.principal!;
 const SetHistoryModeBody = z.object({ mode: z.enum(['direct', 'merge_request']) });
 const SetLayoutBody = z.object({ layout: LayoutSchema.nullable() });
 const UpdateFieldBody = z.object({
-      label: z.string().min(1).max(100).optional(), required: z.boolean().optional(),
+      label: z.string().min(1).max(100).optional(), required: z.boolean().optional(), isContent: z.boolean().optional(),
       readRoles: z.array(z.string().max(60)).min(1).max(20).nullable().optional(), writeRoles: z.array(z.string().max(60)).min(1).max(20).nullable().optional(),
     });
 const AddFieldBody = z.object({
       key: z.string(), label: z.string().min(1).max(100), type: z.string(), config: z.record(z.string(), z.unknown()).optional(),
       readRoles: z.array(z.string().max(60)).min(1).max(20).optional(), writeRoles: z.array(z.string().max(60)).min(1).max(20).optional(),
-      required: z.boolean().optional(), semanticRole: z.enum(['title', 'description', 'status', 'assignee', 'due_date', 'estimate']).optional(),
+      required: z.boolean().optional(), isContent: z.boolean().optional(), semanticRole: z.enum(['title', 'description', 'status', 'assignee', 'due_date', 'estimate']).optional(),
     });
 const AddStatusBody = z.object({ key: z.string(), name: z.string().min(1).max(100), category: z.enum(['todo', 'in_progress', 'done']) });
 const AddTransitionBody = z.object({

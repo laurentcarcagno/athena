@@ -14,9 +14,9 @@ const types = [
   { key: 'design', name: 'Conception', description: '', category: 'engineering', defaultViews: ['tableau'], baseFields: [], builtin: true, modified: false },
 ];
 const linkTypes = [
-  { key: 'blocks', outwardLabel: 'bloque', inwardLabel: 'est bloqué par', hierarchical: false, pairs: [], builtin: true, modified: false },
-  { key: 'refines', outwardLabel: 'raffine', inwardLabel: 'est raffiné par', hierarchical: true, pairs: [{ from: 'requirement', to: 'requirement' }], builtin: true, modified: true },
-  { key: 'tests', outwardLabel: 'teste', inwardLabel: 'est testé par', hierarchical: false, pairs: [{ from: 'test', to: 'design' }], builtin: false, modified: false },
+  { key: 'blocks', outwardLabel: 'bloque', inwardLabel: 'est bloqué par', hierarchical: false, propagatesSuspect: false, pairs: [], builtin: true, modified: false },
+  { key: 'refines', outwardLabel: 'raffine', inwardLabel: 'est raffiné par', hierarchical: true, propagatesSuspect: true, pairs: [{ from: 'requirement', to: 'requirement' }], builtin: true, modified: true },
+  { key: 'tests', outwardLabel: 'teste', inwardLabel: 'est testé par', hierarchical: false, propagatesSuspect: true, pairs: [{ from: 'test', to: 'design' }], builtin: false, modified: false },
 ];
 
 beforeEach(() => {
@@ -49,6 +49,7 @@ describe('administration des types de liens', () => {
     const blocks = rows.find((r) => r.textContent!.startsWith('blocks'))!;
     expect(within(blocks).getByText('Tous les trackers')).toBeInTheDocument();
     expect(within(blocks).getByText('Livré')).toBeInTheDocument();
+    expect(within(blocks).getByText('Sans suspicion')).toBeInTheDocument(); // « bloque » ne propage pas la suspicion
     expect(within(blocks).queryByRole('button', { name: /Supprimer|Réinitialiser/ })).not.toBeInTheDocument();
     const refines = rows.find((r) => r.textContent!.startsWith('refines'))!;
     expect(within(refines).getByText('Hiérarchique')).toBeInTheDocument();
@@ -70,7 +71,7 @@ describe('administration des types de liens', () => {
     expect(within(screen.getByRole('list', { name: 'Paires de types de tracker' })).getByText('Cas de test → Exigence')).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Créer le type de lien' }));
     await waitFor(() => expect(sent.find((s) => s.method === 'POST' && s.url === '/v1/link-types')?.body).toEqual({
-      key: 'covers', outwardLabel: 'couvre', inwardLabel: 'est couvert par', hierarchical: false, pairs: [{ from: 'test', to: 'requirement' }],
+      key: 'covers', outwardLabel: 'couvre', inwardLabel: 'est couvert par', hierarchical: false, propagatesSuspect: true, pairs: [{ from: 'test', to: 'requirement' }],
     }));
     expect(await screen.findByText('Type de lien créé.')).toBeInTheDocument();
   });
@@ -90,6 +91,16 @@ describe('administration des types de liens', () => {
     await userEvent.click(within(table).getByRole('button', { name: 'Réinitialiser refines' }));
     await userEvent.click(within(await screen.findByRole('dialog', { name: /Réinitialiser le type de lien/ })).getByRole('button', { name: 'Réinitialiser' }));
     await waitFor(() => expect(sent.find((s) => s.method === 'DELETE')?.url).toBe('/v1/link-types/refines'));
+  });
+
+  it('règle la propagation de la suspicion par type', async () => {
+    const table = await openTab();
+    await userEvent.click(within(table).getByRole('button', { name: 'Modifier tests' }));
+    const box = screen.getByRole('checkbox', { name: 'Propage la suspicion' });
+    expect(box).toBeChecked();
+    await userEvent.click(box);
+    await userEvent.click(screen.getByRole('button', { name: 'Enregistrer' }));
+    await waitFor(() => expect(sent.find((s) => s.method === 'PUT')?.body).toMatchObject({ propagatesSuspect: false }));
   });
 
   it('n’a aucune violation d’accessibilité', async () => {

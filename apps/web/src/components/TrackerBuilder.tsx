@@ -6,7 +6,7 @@ import type { Layout } from '../lib/layout';
 import { LayoutEditor } from './LayoutEditor';
 import { WorkflowEditor } from './WorkflowEditor';
 
-export interface DraftField { key: string; label: string; type: string; required?: boolean; config?: Record<string, unknown>; semanticRole?: string; readRoles?: string[]; writeRoles?: string[] }
+export interface DraftField { key: string; label: string; type: string; required?: boolean; isContent?: boolean; config?: Record<string, unknown>; semanticRole?: string; readRoles?: string[]; writeRoles?: string[] }
 export interface DraftStatus { key: string; name: string; category: 'todo' | 'in_progress' | 'done' }
 export interface DraftTransition { name: string; from: string | null; to: string; conditions?: unknown[]; validators?: unknown[]; postActions?: unknown[] }
 export interface DraftTracker { layout?: Layout | null; typeKey?: string | null; key: string; name: string; description?: string; fields: DraftField[]; statuses: DraftStatus[]; transitions: DraftTransition[] }
@@ -27,7 +27,7 @@ export function TrackerBuilder({ value, onChange }: { value: DraftTracker; onCha
   const id = useId();
   const [types, setTypes] = useState<string[]>(['text']);
   const [trackerTypes, setTrackerTypes] = useState<TrackerTypeEntry[]>([]);
-  const [field, setField] = useState({ key: '', label: '', type: 'text', required: false, options: '', role: '' });
+  const [field, setField] = useState({ key: '', label: '', type: 'text', required: false, isContent: true, options: '', role: '' });
   const [status, setStatus] = useState({ key: '', name: '', category: 'todo' as DraftStatus['category'] });
   useEffect(() => { api<string[]>('GET', '/v1/field-types').then(setTypes).catch(() => undefined); }, []);
   useEffect(() => { api<TrackerTypeEntry[]>('GET', '/v1/tracker-types').then((t) => setTrackerTypes(Array.isArray(t) ? t : [])).catch(() => undefined); }, []);
@@ -45,11 +45,11 @@ export function TrackerBuilder({ value, onChange }: { value: DraftTracker; onCha
     const key = sameKey(field.key);
     const options = field.options.split(',').map((o) => o.trim()).filter(Boolean);
     onChange({ ...value, fields: [...value.fields, {
-      key, label: field.label.trim(), type: field.type, ...(field.required ? { required: true } : {}),
+      key, label: field.label.trim(), type: field.type, ...(field.required ? { required: true } : {}), ...(field.isContent ? {} : { isContent: false }),
       ...(field.type === 'select' || field.type === 'multiselect' ? { config: { options } } : {}),
       ...(field.role ? { semanticRole: field.role } : {}),
     }] });
-    setField({ key: '', label: '', type: 'text', required: false, options: '', role: '' });
+    setField({ key: '', label: '', type: 'text', required: false, isContent: true, options: '', role: '' });
   };
   const fieldInvalid = !KEY.test(sameKey(field.key)) || !field.label.trim() || value.fields.some((f) => f.key === sameKey(field.key))
     || ((field.type === 'select' || field.type === 'multiselect') && field.options.trim() === '')
@@ -79,10 +79,10 @@ export function TrackerBuilder({ value, onChange }: { value: DraftTracker; onCha
       <Card title={fr.config.fields} meta={String(value.fields.length)}>
         <div className="ath-stack">
           <Table>
-            <thead><tr><Th>{fr.config.key}</Th><Th>{fr.config.label}</Th><Th>{fr.config.type}</Th><Th>{fr.config.required}</Th><Th>{fr.builder.options}</Th><Th>{fr.builder.role}</Th><Th>{fr.config.remove}</Th></tr></thead>
+            <thead><tr><Th>{fr.config.key}</Th><Th>{fr.config.label}</Th><Th>{fr.config.type}</Th><Th>{fr.config.required}</Th><Th>{fr.suspicion.column}</Th><Th>{fr.builder.options}</Th><Th>{fr.builder.role}</Th><Th>{fr.config.remove}</Th></tr></thead>
             <tbody>{value.fields.map((f) => (
               <tr key={f.key}>
-                <Td mono>{f.key}</Td><Td>{f.label}</Td><Td mono>{f.type}</Td><Td>{f.required ? '✓' : ''}</Td>
+                <Td mono>{f.key}</Td><Td>{f.label}</Td><Td mono>{f.type}</Td><Td>{f.required ? '✓' : ''}</Td><Td>{f.isContent === false ? '' : '✓'}</Td>
                 <Td>{((f.config?.['options'] as string[] | undefined) ?? []).join(', ')}</Td><Td mono>{f.semanticRole ?? ''}</Td>
                 <Td><Btn size="sm" variant="ghost" aria-label={`${fr.config.remove} ${f.key}`} onClick={() => onChange({ ...value, fields: value.fields.filter((x) => x.key !== f.key) })}>{fr.config.remove}</Btn></Td>
               </tr>
@@ -101,6 +101,7 @@ export function TrackerBuilder({ value, onChange }: { value: DraftTracker; onCha
               <select id={`${id}-role`} className="ath-select" value={field.role} onChange={(e) => setField({ ...field, role: e.target.value })}>{ROLES.map((r) => <option key={r} value={r}>{r || '—'}</option>)}</select>
             </div>
             <label className="ath-row"><input type="checkbox" checked={field.required} onChange={(e) => setField({ ...field, required: e.target.checked })} />{fr.config.required}</label>
+            <label className="ath-row" title={fr.suspicion.contentHelp}><input type="checkbox" checked={field.isContent} onChange={(e) => setField({ ...field, isContent: e.target.checked })} />{fr.suspicion.content}</label>
             <Btn type="button" disabled={fieldInvalid} onClick={addField}>{fr.builder.addField}</Btn>
           </div>
         </div>

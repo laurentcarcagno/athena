@@ -35,6 +35,9 @@ Dans l'onglet **Liens** d'une fiche (raccourci **L**, qui place le focus sur la 
 ### Types de liens
 Les administrateurs gèrent les **types de liens** de l'organisation dans Organisation > Liens : raffine, satisfait, vérifie, implémente, bloque, duplique sont livrés (modifiables et réinitialisables) et l'on peut en créer. Un type est utilisable dans tous les projets ; un type de projet de même clé le surcharge dans son projet. Un type peut déclarer des **paires de types de tracker** (par exemple « vérifie » : Cas de test → Exigence) : le lien est alors refusé entre d'autres types, dans le sens inverse, et le message nomme les paires autorisées. Un type sans paire relie n'importe quels trackers, et un tracker sans type n'est jamais contraint.
 
+### Liens suspects
+Un lien devient **suspect** quand la **cible** change au point de remettre en cause ce qui a été vérifié. Seule la modification d'un **champ de contenu** le provoque : dans l'éditeur de tracker et dans sa page de configuration, chaque champ a une case « Champ de contenu » (cochée par défaut ; décochez la priorité, le responsable, les dates, les versions). Un changement d'état ne rend jamais un lien suspect. Chaque type de lien règle en outre s'il **propage la suspicion** (Organisation > Liens ; « bloque » ne la propage pas par défaut). Une personne acquitte le lien depuis la fiche une fois la vérification faite.
+
 ## Lier le code
 Dans un message de commit, une merge request ou un nom de branche, citez la clé : `Fixes SAT1-BUG-0142`, `Refs SAT1-BUG-0142`, `Closes`, `Implements`, `Reverts`. La branche conseillée est `bugfix/SAT1-BUG-0142-resume`. Les anciennes clés (`Fixes BUG-142`) sont encore reconnues dans le projet concerné. Athena fait avancer l'artefact (démarrage, revue, résolution à la fusion) en respectant le workflow : un message de commit ne contourne jamais les droits ou les champs obligatoires.
 

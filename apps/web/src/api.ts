@@ -64,7 +64,7 @@ export const loginUrl = (returnTo: string) => `/auth/login?returnTo=${encodeURIC
 // --- Types de l'API ---
 export interface Hit { key: string; tracker: string; status: string; statusName: string; category: string; values: Record<string, unknown>; version: number; updatedAt: string }
 export interface SearchResult { total: number; totalCapped?: boolean; hits: Hit[] }
-export interface Field { id: string; key: string; label: string; type: string; config: Record<string, unknown>; required: boolean; semanticRole: string | null; readRoles?: string[] | null; writeRoles?: string[] | null }
+export interface Field { id: string; key: string; label: string; type: string; config: Record<string, unknown>; required: boolean; isContent?: boolean; semanticRole: string | null; readRoles?: string[] | null; writeRoles?: string[] | null }
 export interface TrackerTypeEntry {
   key: string; name: string; description: string; category: 'engineering' | 'development' | 'verification' | 'management';
   defaultViews: string[]; baseFields: Array<{ key: string; label: string; type: string; required?: boolean; config?: Record<string, unknown>; semanticRole?: string }>;

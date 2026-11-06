@@ -107,27 +107,27 @@ suite('types de liens d’organisation', () => {
   });
 
   it('crée, modifie (y compris un type livré) et supprime un type, avec ses paires', async () => {
-    await types.create(org, 'tests', { outwardLabel: 'teste', inwardLabel: 'est testé par', hierarchical: false, pairs: [{ from: 'test', to: 'design' }] }, actor);
-    expect(await code(types.create(org, 'tests', { outwardLabel: 'x', inwardLabel: 'y', hierarchical: false, pairs: [] }, actor))).toMatch(/^conflict/);
-    expect(await code(types.create(org, 'verifies', { outwardLabel: 'x', inwardLabel: 'y', hierarchical: false, pairs: [] }, actor))).toMatch(/^conflict/);
-    expect(await code(types.create(org, 'autre', { outwardLabel: 'x', inwardLabel: 'y', hierarchical: false, pairs: [{ from: 'inconnu', to: 'test' }] }, actor))).toMatch(/^validation: .*inconnu/);
+    await types.create(org, 'tests', { outwardLabel: 'teste', inwardLabel: 'est testé par', hierarchical: false, propagatesSuspect: true, pairs: [{ from: 'test', to: 'design' }] }, actor);
+    expect(await code(types.create(org, 'tests', { outwardLabel: 'x', inwardLabel: 'y', hierarchical: false, propagatesSuspect: true, pairs: [] }, actor))).toMatch(/^conflict/);
+    expect(await code(types.create(org, 'verifies', { outwardLabel: 'x', inwardLabel: 'y', hierarchical: false, propagatesSuspect: true, pairs: [] }, actor))).toMatch(/^conflict/);
+    expect(await code(types.create(org, 'autre', { outwardLabel: 'x', inwardLabel: 'y', hierarchical: false, propagatesSuspect: true, pairs: [{ from: 'inconnu', to: 'test' }] }, actor))).toMatch(/^validation: .*inconnu/);
     expect((await types.list(org)).find((t) => t.key === 'tests')).toMatchObject({ builtin: false, pairs: [{ from: 'test', to: 'design' }] });
 
-    await types.update(org, 'blocks', { outwardLabel: 'bloque (org)', inwardLabel: 'est bloqué par', hierarchical: false, pairs: [{ from: 'bug', to: 'bug' }] }, actor);
+    await types.update(org, 'blocks', { outwardLabel: 'bloque (org)', inwardLabel: 'est bloqué par', hierarchical: false, propagatesSuspect: true, pairs: [{ from: 'bug', to: 'bug' }] }, actor);
     expect((await types.list(org)).find((t) => t.key === 'blocks')).toMatchObject({ builtin: true, modified: true, outwardLabel: 'bloque (org)' });
     const a = await make('ARI', 'BUG', { title: 'x', severity: 'mineure' });
     const r = await make('ARI', 'REQ', { title: 'y', statement: 's' });
     expect(await code(links.link(org, 'ARI', a.key, r.key, 'blocks', actor))).toMatch(/^validation: .*bug à requirement/); // les nouvelles paires s'appliquent
 
-    expect(await code(types.update(org, 'inconnu', { outwardLabel: 'x', inwardLabel: 'y', hierarchical: false, pairs: [] }, actor))).toMatch(/^not_found/);
+    expect(await code(types.update(org, 'inconnu', { outwardLabel: 'x', inwardLabel: 'y', hierarchical: false, propagatesSuspect: true, pairs: [] }, actor))).toMatch(/^not_found/);
     await types.remove(org, 'tests', actor);
     expect((await types.list(org)).some((t) => t.key === 'tests')).toBe(false);
   });
 
   it('refuse de supprimer ou de rendre hiérarchique un type qui porte des liens, et rétablit un type livré inutilisé', async () => {
     expect(await code(types.remove(org, 'refines', actor))).toMatch(/^conflict: .*lien/);
-    expect(await code(types.update(org, 'refines', { outwardLabel: 'raffine', inwardLabel: 'est raffiné par', hierarchical: false, pairs: [] }, actor))).toMatch(/^conflict: .*hiérarchique/);
-    await types.update(org, 'duplicates', { outwardLabel: 'copie', inwardLabel: 'copie', hierarchical: false, pairs: [] }, actor);
+    expect(await code(types.update(org, 'refines', { outwardLabel: 'raffine', inwardLabel: 'est raffiné par', hierarchical: false, propagatesSuspect: true, pairs: [] }, actor))).toMatch(/^conflict: .*hiérarchique/);
+    await types.update(org, 'duplicates', { outwardLabel: 'copie', inwardLabel: 'copie', hierarchical: false, propagatesSuspect: true, pairs: [] }, actor);
     expect((await types.list(org)).find((t) => t.key === 'duplicates')).toMatchObject({ outwardLabel: 'copie', modified: true });
     await types.remove(org, 'duplicates', actor); // réinitialisation
     expect((await types.list(org)).find((t) => t.key === 'duplicates')).toMatchObject({ outwardLabel: 'duplique', modified: false });

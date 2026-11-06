@@ -128,6 +128,10 @@ const frDict = {
     deleteTitle: (k: string) => `Supprimer le type de lien « ${k} »`, deleteBody: 'Le type est supprimé définitivement. Il est refusé tant que des liens l’utilisent.',
     resetTitle: (k: string) => `Réinitialiser le type de lien « ${k} »`, resetBody: 'Vos modifications de ce type livré sont abandonnées. Refusé tant que des liens l’utilisent.',
   },
+  suspicion: {
+    column: 'Contenu', content: 'Champ de contenu', contentHelp: 'Sa modification rend suspects les liens vers l’item', toggle: 'Champ de contenu :', propagates: 'Propage la suspicion', noPropagation: 'Sans suspicion',
+    contentSaved: 'Champ de contenu enregistré.',
+  },
   types: {
     title: 'Types de tracker', note: 'Un type fixe la catégorie, les vues proposées et le socle de champs des trackers qui en dérivent. Les types livrés se modifient et se réinitialisent.',
     key: 'Clé du type (minuscules)', name: 'Nom du type', description: 'Description', category: 'Catégorie',
@@ -299,6 +303,10 @@ const enDict: Dictionary = {
     saved: 'Link type saved.', created: 'Link type created.', deleted: 'Link type deleted.', resetDone: 'Link type restored to its original state.', empty: 'No link type.',
     deleteTitle: (k: string) => `Delete link type “${k}”`, deleteBody: 'The type is deleted permanently. Refused while links use it.',
     resetTitle: (k: string) => `Reset link type “${k}”`, resetBody: 'Your changes to this built-in type are discarded. Refused while links use it.',
+  },
+  suspicion: {
+    column: 'Content', content: 'Content field', contentHelp: 'Changing it makes the links to the item suspect', toggle: 'Content field:', propagates: 'Propagates suspicion', noPropagation: 'No suspicion',
+    contentSaved: 'Content field saved.',
   },
   types: {
     title: 'Tracker types', note: 'A type sets the category, the proposed views and the base fields of the trackers derived from it. Built-in types can be edited and reset.',
