@@ -1,0 +1,21 @@
+# T-0072 : Tracker « Exigences normatives », import CSV et matrice de conformité
+
+- **Lot** : 3 (reprise IHM, voir `docs/dev/DECISIONS/ADR-0002-ihm-cible.md`)
+- **Objectif** : Importer les clauses d'une norme en items et calculer la matrice de conformité clause × preuve.
+- **Fichiers concernés** :
+  - `apps/api/src/db/migrations/037_conformity.sql`
+  - `apps/api/src/core/normative.service.ts`
+  - `apps/api/src/import/clause-csv.ts`
+  - `apps/web/src/pages/project/ConformityTab.tsx`
+- **Migration** : 037 : `tailoring` (organization_id, project_id, clause_key, category, applicability, justification) ; RLS forcée.
+- **Critères d'acceptation** (testables) :
+  - Import CSV (référence, titre, texte) avec rapport ligne par ligne, idempotent
+  - Tailoring par clause et catégorie avec justification obligatoire pour « non applicable »
+  - Chaque clause applicable est liée à une preuve ; taux de conformité affiché et exportable (CSV)
+- **Tests à écrire** :
+  - Vitest : CSV (BOM, séparateurs, doublons)
+  - API : import, tailoring, taux
+  - axe
+- **Règles communes** : interface Hemeria (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
+- **Hors périmètre** : tout ce qui relève d'une autre tâche de la liste « Reprise IHM » de `docs/dev/STATE.md`.
+- **Dépendances** : T-0069

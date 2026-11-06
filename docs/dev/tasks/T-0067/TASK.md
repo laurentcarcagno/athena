@@ -1,0 +1,21 @@
+# T-0067 : Vue Matrice
+
+- **Lot** : 2 (reprise IHM, voir `docs/dev/DECISIONS/ADR-0002-ihm-cible.md`)
+- **Objectif** : Matrice tracker × tracker par type de lien, cases vides mises en évidence, export CSV.
+- **Fichiers concernés** :
+  - `apps/api/src/core/matrix.service.ts`
+  - `apps/api/src/core/core.controller.ts`
+  - `apps/web/src/components/MatrixView.tsx`
+- **Migration** : aucune
+- **Critères d'acceptation** (testables) :
+  - `GET .../matrix?rows=REQ&cols=TST&type=verifies` renvoie lignes, colonnes, cellules
+  - Case vide signalée par texte et motif (pas par la couleur seule)
+  - Lien suspect distingué ; clic sur une case ouvre la création ou le lien
+  - Limite d'affichage documentée, virtualisation au-delà de 200 colonnes
+- **Tests à écrire** :
+  - API : matrice, droits par champ, volumétrie
+  - Vitest/RTL
+  - axe
+- **Règles communes** : interface Hemeria (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
+- **Hors périmètre** : tout ce qui relève d'une autre tâche de la liste « Reprise IHM » de `docs/dev/STATE.md`.
+- **Dépendances** : T-0063

@@ -1,0 +1,24 @@
+# T-0061 : Fil d'Ariane, redirections finales, constats d'audit, critère de lot
+
+- **Lot** : 1 (reprise IHM, voir `docs/dev/DECISIONS/ADR-0002-ihm-cible.md`)
+- **Objectif** : Fil d'Ariane persistant `Projet › Tracker › Vue › Item` à segments cliquables ; vérifier et verrouiller par tests les constats F-01, F-02, F-07 (déjà corrigés par le commit ee3b0a2) ; mesurer le critère « moins de 3 actions ».
+- **Fichiers concernés** :
+  - `apps/web/src/components/Breadcrumb.tsx`
+  - `apps/web/src/App.tsx`
+  - `apps/web/src/pages/ArtifactPage.tsx`
+  - `e2e/tests/navigation.spec.ts`  (nouveau)
+  - `docs/user/GUIDE.md`
+- **Migration** : aucune
+- **Critères d'acceptation** (testables) :
+  - Fil d'Ariane présent sur toutes les pages projet, dernier segment non lié (`aria-current="page"`)
+  - Mesure : depuis « Mon travail », tout item atteint en 3 actions au plus (palette, rail ou fil d'Ariane) sur le jeu de données de dev, sans écrire de requête
+  - F-01 : toute suppression passe par `ConfirmDialog` (test qui échoue si un `DELETE` part sans confirmation) ; F-02 : un toast `danger` ne disparaît pas seul ; F-07 : un titre de 140 caractères ne crée pas de défilement horizontal
+  - Toutes les anciennes URL (`/p/:p`, `/manage`, `/dashboard`) redirigent
+- **Tests à écrire** :
+  - Playwright : parcours à 3 actions, redirections
+  - Vitest/RTL : fil d'Ariane
+  - axe sur toutes les pages touchées
+  - Tests de non-régression F-01/F-02/F-07
+- **Règles communes** : interface Hemeria (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
+- **Hors périmètre** : tout ce qui relève d'une autre tâche de la liste « Reprise IHM » de `docs/dev/STATE.md`.
+- **Dépendances** : T-0053 à T-0060

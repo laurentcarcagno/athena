@@ -1,0 +1,22 @@
+# T-0065 : ATQL : suspect(), linkedTo(), notLinked()
+
+- **Lot** : 2 (reprise IHM, voir `docs/dev/DECISIONS/ADR-0002-ihm-cible.md`)
+- **Objectif** : Ajouter les fonctions de traçabilité à l'ATQL.
+- **Fichiers concernés** :
+  - `apps/api/src/atql/parser.ts`
+  - `apps/api/src/atql/compile.ts`
+  - `apps/api/src/atql/atql.test.ts`
+  - `apps/web/src/pages/ListPage.tsx`  (suggestions)
+  - `docs/user/GUIDE.md`  (référence ATQL)
+- **Migration** : aucune
+- **Critères d'acceptation** (testables) :
+  - `suspect()` : items ayant au moins un lien suspect ; `linkedTo(SAT1-REQ-0042, "verifies")` ; `notLinked("verifies")` ; combinables avec AND/OR/NOT
+  - Compilation en sous-requêtes paramétrées, aucune concaténation
+  - Les types inconnus donnent une erreur lisible ; les liens vers des items non visibles ne fuient pas
+  - Suggestions et documentation à jour
+- **Tests à écrire** :
+  - Vitest : parseur et compilation (cas passants, injections, types inconnus)
+  - API : exigences sans test sur un jeu de données
+- **Règles communes** : interface Hemeria (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
+- **Hors périmètre** : tout ce qui relève d'une autre tâche de la liste « Reprise IHM » de `docs/dev/STATE.md`.
+- **Dépendances** : T-0063

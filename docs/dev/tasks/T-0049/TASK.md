@@ -1,0 +1,25 @@
+# T-0049 : Clés d'item `SAT1-REQ-0042` : migration, génération, alias
+
+- **Lot** : 0 (reprise IHM, voir `docs/dev/DECISIONS/ADR-0002-ihm-cible.md`)
+- **Objectif** : Générer les clés au format `<PROJET>-<TRACKER>-<n sur 4 chiffres minimum>`, rendre la clé unique dans l'organisation, migrer les clés existantes en gardant l'ancienne comme alias résolu par l'API.
+- **Fichiers concernés** :
+  - `apps/api/src/db/migrations/030_item_keys.sql`
+  - `apps/api/src/core/artifact.service.ts`
+  - `apps/api/src/core/link.service.ts`
+  - `apps/api/src/core/core.controller.ts`
+  - `apps/api/src/core/key.ts`  (nouveau : format, analyse, résolution)
+- **Migration** : 030 : table `artifact_key_alias` (organization_id, artifact_id, project_id, alias, RLS forcée, `org_isolation`, droits `athena_app`, unique (project_id, alias)) ; contrainte unique (organization_id, key) sur `artifact` ; fonction SQL `resolve_artifact(project, key)` ; réécriture des clés existantes (`project.key || '-' || tracker.key || '-' || lpad(number, 4, '0')`) avec insertion de l'ancienne clé en alias, dans la même transaction.
+- **Critères d'acceptation** (testables) :
+  - Un artefact créé dans SAT1/REQ reçoit `SAT1-REQ-0001`, puis `-0002` ; au-delà de 9999 la clé passe à 5 chiffres sans erreur
+  - Après migration, tout artefact existant a la nouvelle clé et son ancienne clé en alias
+  - `GET /v1/projects/:p/artifacts/REQ-42` (alias) renvoie l'artefact avec la clé canonique ; la réponse porte `canonicalKey`
+  - Deux projets ayant tous deux `REQ-42` gardent chacun leur alias, résolu dans le contexte du projet
+  - La clé stockée ne change plus si le nom du tracker change
+  - Les lectures, modifications, transitions et liens acceptent clé ou alias
+- **Tests à écrire** :
+  - Vitest : formatage et analyse de clé (bornes 9999/10000, alias, non-clé)
+  - API : création, lecture par alias, collision d'alias entre projets, RLS de la table d'alias entre deux organisations
+  - Migration : jeu de données ancien format vers nouveau format (test sur base réelle, comme `core.test.ts`)
+- **Règles communes** : interface Hemeria (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
+- **Hors périmètre** : tout ce qui relève d'une autre tâche de la liste « Reprise IHM » de `docs/dev/STATE.md`.
+- **Dépendances** : T-0048

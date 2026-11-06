@@ -1,0 +1,24 @@
+# T-0060 : Rail latéral contextuel, favoris et récents
+
+- **Lot** : 1 (reprise IHM, voir `docs/dev/DECISIONS/ADR-0002-ihm-cible.md`)
+- **Objectif** : Rail : favoris et récents, puis projet courant → onglets → trackers → vues partagées ; épingler et réordonner.
+- **Fichiers concernés** :
+  - `apps/web/src/App.tsx`  (Shell)
+  - `apps/web/src/components/Rail.tsx`
+  - `apps/api/src/db/migrations/032_user_pins.sql`
+  - `apps/api/src/core/pin.service.ts`
+  - `apps/api/src/core/core.controller.ts`
+  - `packages/ui`  (Sidebar : arborescence)
+- **Migration** : 032 : `user_pin` (organization_id, user_subject, kind projet/tracker/vue/item, ref, position, pinned bool, last_opened_at) ; RLS forcée, `org_isolation`, droits `athena_app`.
+- **Critères d'acceptation** (testables) :
+  - Les cinq derniers éléments ouverts apparaissent en récents ; un favori épinglé reste et se réordonne au clavier
+  - Hors projet, le rail ne montre que favoris, récents et entrées globales
+  - Les rubriques ne se déplacent pas (seul l'ordre des favoris est libre)
+  - Repliable, état mémorisé par utilisateur
+- **Tests à écrire** :
+  - API : épingler, ordre, isolation entre utilisateurs
+  - Vitest/RTL : arborescence, repli, clavier
+  - axe
+- **Règles communes** : interface Hemeria (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
+- **Hors périmètre** : tout ce qui relève d'une autre tâche de la liste « Reprise IHM » de `docs/dev/STATE.md`.
+- **Dépendances** : T-0056, T-0057

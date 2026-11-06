@@ -1,0 +1,21 @@
+# T-0071 : Montée de version avec rapport d'impact
+
+- **Lot** : 3 (reprise IHM, voir `docs/dev/DECISIONS/ADR-0002-ihm-cible.md`)
+- **Objectif** : Calculer et afficher le rapport d'impact (champs ajoutés, états modifiés, items concernés) avant une montée de version ; appliquer par migration de tracker prévisualisée.
+- **Fichiers concernés** :
+  - `apps/api/src/core/template-upgrade.service.ts`
+  - `apps/api/src/core/template.controller.ts`
+  - `apps/web/src/components/UpgradeReport.tsx`
+- **Migration** : aucune
+- **Critères d'acceptation** (testables) :
+  - `POST .../template/upgrade-preview` ne modifie rien et renvoie le rapport
+  - L'application réutilise les évolutions de tracker (nouvelle `schema_version`, historique GitLab)
+  - Un état supprimé portant des items bloque la montée avec la liste
+  - Dérive du projet par rapport au gabarit calculée (champs/états ajoutés)
+- **Tests à écrire** :
+  - API : aperçu sans effet de bord, application, blocage
+  - Vitest/RTL : rapport
+  - Historique : commit tracker.yaml
+- **Règles communes** : interface Hemeria (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
+- **Hors périmètre** : tout ce qui relève d'une autre tâche de la liste « Reprise IHM » de `docs/dev/STATE.md`.
+- **Dépendances** : T-0069, T-0070

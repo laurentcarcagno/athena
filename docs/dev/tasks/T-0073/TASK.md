@@ -1,0 +1,21 @@
+# T-0073 : Gabarit Spatial (ECSS)
+
+- **Lot** : 3 (reprise IHM, voir `docs/dev/DECISIONS/ADR-0002-ihm-cible.md`)
+- **Objectif** : Livrer en données le gabarit Spatial : ECSS-E-ST-40C Rev.1, ECSS-Q-ST-80C Rev.2, catégories A à D, SRR/PDR/CDR/QR/AR, trackers dont RID et SPR/NCR.
+- **Fichiers concernés** :
+  - `apps/api/src/core/templates/spatial.ts`
+  - `apps/api/src/core/templates.ts`
+  - `docs/user/GUIDE.md`
+- **Migration** : aucune
+- **Critères d'acceptation** (testables) :
+  - Trackers : exigences système, exigences logicielles, interfaces, conception, vérification, SPR, NCR, demandes de modification, RFD/RFW, RID (ouvert → réponse → décision → action → clos)
+  - Règles : exigence logicielle tracée vers la RB et vérifiée ; RID clos avant clôture de revue
+  - Seuils de couverture de code laissés en paramètres vides (à fixer avec l'assurance produit)
+  - Projet créé depuis le gabarit : trackers, workflows, phases et règles présents
+- **Tests à écrire** :
+  - Vitest : validité du schéma
+  - API : création de projet depuis le gabarit
+  - Montée de version v1 → v1.1 (jeu de test)
+- **Règles communes** : interface Hemeria (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
+- **Hors périmètre** : tout ce qui relève d'une autre tâche de la liste « Reprise IHM » de `docs/dev/STATE.md`.
+- **Dépendances** : T-0070, T-0071

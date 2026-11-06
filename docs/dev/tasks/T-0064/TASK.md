@@ -1,0 +1,23 @@
+# T-0064 : Suspicion limitée aux champs de contenu
+
+- **Lot** : 2 (reprise IHM, voir `docs/dev/DECISIONS/ADR-0002-ihm-cible.md`)
+- **Objectif** : Ne marquer un lien suspect que si un champ marqué « contenu » a changé.
+- **Fichiers concernés** :
+  - `apps/api/src/db/migrations/034_field_content_flag.sql`
+  - `apps/api/src/core/artifact.service.ts`
+  - `apps/api/src/core/tracker.service.ts`
+  - `apps/api/src/history/serialize.ts`  (tracker.yaml)
+  - `apps/web/src/components/TrackerBuilder.tsx`
+- **Migration** : 034 : `field_definition.is_content boolean not null default true` (défaut conservateur : le comportement actuel est préservé tant que rien n'est décoché).
+- **Critères d'acceptation** (testables) :
+  - Modifier un champ non-contenu (priorité, responsable) ne crée aucun lien suspect ; modifier un champ de contenu le fait
+  - Le drapeau est éditable dans l'éditeur de tracker, exporté dans `tracker.yaml`, repris par les templates
+  - Un changement de statut ne rend jamais suspect
+  - L'analyse porte sur les liens dont l'item modifié est l'amont (voir ADR : sens du lien)
+- **Tests à écrire** :
+  - API : matrice champ de contenu/non-contenu
+  - Vitest : TrackerBuilder, templates
+  - Historique : round-trip YAML
+- **Règles communes** : interface Hemeria (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
+- **Hors périmètre** : tout ce qui relève d'une autre tâche de la liste « Reprise IHM » de `docs/dev/STATE.md`.
+- **Dépendances** : T-0062

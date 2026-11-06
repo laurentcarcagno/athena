@@ -1,0 +1,22 @@
+# T-0069 : Modèle de gabarit normatif versionné
+
+- **Lot** : 3 (reprise IHM, voir `docs/dev/DECISIONS/ADR-0002-ihm-cible.md`)
+- **Objectif** : Étendre le gabarit de projet (référentiel, criticité, tailoring, phases, livrables, types de liens, règles) et le versionner ; le projet garde `gabarit + version`.
+- **Fichiers concernés** :
+  - `apps/api/src/db/migrations/036_normative_templates.sql`
+  - `apps/api/src/core/normative-template.ts`  (schéma zod)
+  - `apps/api/src/core/template.service.ts`
+  - `apps/api/src/core/template.controller.ts`
+- **Migration** : 036 : `project_template` gagne `parent_key`, `normative jsonb`, `version`, `status` (brouillon/publié) ; table `project_template_version` (snapshot immuable) ; `project` gagne `template_key`, `template_version` ; RLS forcée sur la nouvelle table.
+- **Critères d'acceptation** (testables) :
+  - Publier fige une version immuable ; un projet créé référence cette version
+  - Les gabarits existants (champ `trackers`) restent valides (rétrocompatibilité)
+  - Export/import YAML d'un gabarit
+  - Schéma de validation rejette un gabarit incohérent (phase sans revue, livrable inconnu)
+- **Tests à écrire** :
+  - Vitest : schéma, YAML round-trip
+  - API : publication, immuabilité, création de projet
+  - Migration des gabarits existants
+- **Règles communes** : interface Hemeria (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
+- **Hors périmètre** : tout ce qui relève d'une autre tâche de la liste « Reprise IHM » de `docs/dev/STATE.md`.
+- **Dépendances** : T-0068

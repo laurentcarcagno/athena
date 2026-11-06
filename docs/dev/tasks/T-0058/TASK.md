@@ -1,0 +1,21 @@
+# T-0058 : Vue Board dans l'écran Tracker
+
+- **Lot** : 1 (reprise IHM, voir `docs/dev/DECISIONS/ADR-0002-ihm-cible.md`)
+- **Objectif** : Exposer le board existant comme vue du tracker (`/t/:tracker/board`).
+- **Fichiers concernés** :
+  - `apps/web/src/pages/BoardPage.tsx`  (composant extrait)
+  - `apps/web/src/pages/tracker/TrackerScreen.tsx`
+  - `apps/api/src/agile/board.service.ts`
+  - `apps/api/src/agile/agile.controller.ts`
+- **Migration** : selon la décision de l'ADR (question 1) : par défaut aucune, un board de projet est filtré sur les statuts du tracker ; sinon `board.tracker_key`
+- **Critères d'acceptation** (testables) :
+  - La vue Board d'un tracker montre ses items dans les colonnes de statut du tracker, glisser-déposer et « Déplacer vers » conservés
+  - `/p/:p/board/:b` continue de fonctionner (board de projet)
+  - La barre de vues n'affiche Board que pour les types où il a un sens (configurable, défaut : tous)
+- **Tests à écrire** :
+  - API : board filtré par tracker
+  - Vitest/RTL : déplacement clavier
+  - axe
+- **Règles communes** : interface Hemeria (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
+- **Hors périmètre** : tout ce qui relève d'une autre tâche de la liste « Reprise IHM » de `docs/dev/STATE.md`.
+- **Dépendances** : T-0056

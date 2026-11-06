@@ -1,0 +1,23 @@
+# T-0057 : Filtres en puces, bascule ATQL, vues enregistrées du tracker
+
+- **Lot** : 1 (reprise IHM, voir `docs/dev/DECISIONS/ADR-0002-ihm-cible.md`)
+- **Objectif** : Barre de filtres (état, responsable, version, assigné à moi) synchronisée avec l'ATQL ; vues enregistrées rattachées au tracker (personnelle, partagée, par défaut).
+- **Fichiers concernés** :
+  - `apps/web/src/components/FilterBar.tsx`
+  - `apps/web/src/lib/filter-query.ts`  (puces ⇄ ATQL)
+  - `apps/api/src/db/migrations/031_saved_filter_tracker.sql`
+  - `apps/api/src/atql/saved-filter.service.ts`
+  - `apps/api/src/atql/saved-filter.controller.ts`
+- **Migration** : 031 : `saved_filter` reçoit `tracker_key` (nullable), `view` (`tableau`/`board`/…), `columns` jsonb, `is_default` ; unicité d'une vue par défaut par tracker ; RLS déjà en place sur la table.
+- **Critères d'acceptation** (testables) :
+  - Une puce produit une requête ATQL équivalente et inversement pour les requêtes simples ; une requête non représentable bascule en mode texte avec un message
+  - Valeurs de puces issues des statuts et listes du tracker (libellé + clé en mono)
+  - Les vues partagées d'un tracker sont listées pour ce tracker uniquement ; l'ancien filtre sans tracker continue de fonctionner (rétrocompatibilité)
+  - Vue par défaut choisie par un responsable
+- **Tests à écrire** :
+  - Vitest : conversion puces ⇄ ATQL (table de cas, aller-retour)
+  - API : droits personnel/partagé/défaut, migration d'un filtre ancien
+  - axe + Playwright : enregistrer puis rouvrir une vue
+- **Règles communes** : interface Hemeria (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
+- **Hors périmètre** : tout ce qui relève d'une autre tâche de la liste « Reprise IHM » de `docs/dev/STATE.md`.
+- **Dépendances** : T-0056

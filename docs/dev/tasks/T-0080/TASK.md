@@ -1,0 +1,21 @@
+# T-0080 : Rôle « Assurance qualité étatique »
+
+- **Lot** : 4 (reprise IHM, voir `docs/dev/DECISIONS/ADR-0002-ihm-cible.md`)
+- **Objectif** : Rôle en lecture seule avec approbation des jalons et baselines.
+- **Fichiers concernés** :
+  - `apps/api/src/auth/roles.ts`
+  - `apps/api/src/history/baseline.service.ts`
+  - `apps/api/src/agile/*`
+  - `apps/web/src/pages/project/PlanningTab.tsx`
+- **Migration** : selon T-0078 (table d'approbation à définir)
+- **Critères d'acceptation** (testables) :
+  - Le rôle lit tout ce que sa liste d'ayants droit autorise et n'écrit rien
+  - Il approuve un jalon ou une baseline : approbation nominative horodatée, auditée
+  - Une baseline requérant une approbation ne passe « approuvée » qu'avec elle
+- **Tests à écrire** :
+  - API : droits (lecture, approbation, refus d'écriture)
+  - Vitest/RTL
+  - axe
+- **Règles communes** : interface Hemeria (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
+- **Hors périmètre** : tout ce qui relève d'une autre tâche de la liste « Reprise IHM » de `docs/dev/STATE.md`.
+- **Dépendances** : T-0079

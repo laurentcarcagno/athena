@@ -1,0 +1,23 @@
+# T-0054 : Onglets Vue d'ensemble et Trackers
+
+- **Lot** : 1 (reprise IHM, voir `docs/dev/DECISIONS/ADR-0002-ihm-cible.md`)
+- **Objectif** : Vue d'ensemble (jalons à venir, mes items, items bloqués, activité récente, jamais vide) et carte des trackers groupés par catégorie avec barre empilée par statut.
+- **Fichiers concernés** :
+  - `apps/api/src/core/project-overview.service.ts`
+  - `apps/api/src/core/core.controller.ts`
+  - `apps/web/src/pages/project/OverviewTab.tsx`
+  - `apps/web/src/pages/project/TrackersTab.tsx`
+  - `apps/web/src/pages/ProjectsPage.tsx`  (simplification)
+- **Migration** : aucune. Catégorie de tracker : voir ADR-0002 (question 3) ; par défaut déduite du gabarit, « Autres » sinon
+- **Critères d'acceptation** (testables) :
+  - `GET /v1/projects/:p/overview` : compteurs par statut et par tracker, mes items, dernière activité, en un seul appel
+  - Un clic sur une carte ouvre la vue Tableau du tracker
+  - Chaque widget de la Vue d'ensemble renvoie vers une requête ATQL (pas de widget opaque)
+  - Barre empilée accessible (texte alternatif avec les chiffres)
+- **Tests à écrire** :
+  - API : agrégats (RLS, rôle sans accès à un tracker)
+  - Vitest/RTL : cartes, état vide
+  - axe
+- **Règles communes** : interface Hemeria (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
+- **Hors périmètre** : tout ce qui relève d'une autre tâche de la liste « Reprise IHM » de `docs/dev/STATE.md`.
+- **Dépendances** : T-0053

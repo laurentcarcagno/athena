@@ -1,0 +1,25 @@
+# T-0052 : Clés d'item : interface, redirections, e2e, documentation
+
+- **Lot** : 0 (reprise IHM, voir `docs/dev/DECISIONS/ADR-0002-ihm-cible.md`)
+- **Objectif** : Afficher la clé canonique partout (IBM Plex Mono, sans coupure), rediriger les URL à alias vers l'URL canonique, mettre à jour documentation et parcours e2e.
+- **Fichiers concernés** :
+  - `apps/web/src/pages/ArtifactPage.tsx`
+  - `apps/web/src/App.tsx`
+  - `apps/web/src/components/CommandPalette.tsx`
+  - `e2e/tests/parcours.spec.ts`
+  - `docs/user/GUIDE.md`
+  - `docs/api/REFERENCE.md`
+  - `docs/user/FORMATION.md`
+- **Migration** : aucune
+- **Critères d'acceptation** (testables) :
+  - `/p/ARI/a/BUG-1` redirige (remplacement d'historique) vers `/p/ARI/a/ARI-BUG-0001`
+  - La palette trouve un artefact par ancienne ou nouvelle clé
+  - Aucune clé ne se coupe à 375 px (`white-space: nowrap`)
+  - Guide, référence API et formation citent le nouveau format et expliquent l'alias
+- **Tests à écrire** :
+  - Vitest/RTL : redirection d'alias
+  - axe sur la fiche
+  - Playwright : ouvrir par ancienne clé, vérifier l'URL finale
+- **Règles communes** : interface Hemeria (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
+- **Hors périmètre** : tout ce qui relève d'une autre tâche de la liste « Reprise IHM » de `docs/dev/STATE.md`.
+- **Dépendances** : T-0049, T-0050

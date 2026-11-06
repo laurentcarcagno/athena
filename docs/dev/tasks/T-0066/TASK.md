@@ -1,0 +1,22 @@
+# T-0066 : Vue Arbre
+
+- **Lot** : 2 (reprise IHM, voir `docs/dev/DECISIONS/ADR-0002-ihm-cible.md`)
+- **Objectif** : Vue hiérarchique (liens `hierarchical`) avec numérotation de chapitres et dépliage.
+- **Fichiers concernés** :
+  - `apps/api/src/core/tree.service.ts`
+  - `apps/api/src/core/core.controller.ts`
+  - `apps/web/src/components/TreeView.tsx`
+  - `apps/web/src/pages/tracker/TrackerScreen.tsx`
+- **Migration** : aucune
+- **Critères d'acceptation** (testables) :
+  - `GET .../t/:tracker/tree` renvoie racines et enfants paginés par niveau
+  - Numérotation 1, 1.1, 1.2… stable selon l'ordre de création
+  - Navigation clavier (flèches, `*`), `role="tree"`
+  - Aucun cycle possible (déjà refusé par `reaches`) ; un enfant à parents multiples apparaît sous chacun
+- **Tests à écrire** :
+  - API : arbre, cycles, enfants multiples
+  - Vitest/RTL : navigation clavier
+  - axe
+- **Règles communes** : interface Hemeria (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
+- **Hors périmètre** : tout ce qui relève d'une autre tâche de la liste « Reprise IHM » de `docs/dev/STATE.md`.
+- **Dépendances** : T-0063

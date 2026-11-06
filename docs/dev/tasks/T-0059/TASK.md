@@ -1,0 +1,23 @@
+# T-0059 : Panneau de détail scindé
+
+- **Lot** : 1 (reprise IHM, voir `docs/dev/DECISIONS/ADR-0002-ihm-cible.md`)
+- **Objectif** : Un clic sur un item ouvre la fiche à droite sans quitter la liste ; J/K naviguent ; bouton d'agrandissement vers la fiche complète.
+- **Fichiers concernés** :
+  - `apps/web/src/components/DetailPanel.tsx`
+  - `apps/web/src/pages/ArtifactPage.tsx`  (corps extrait en ArtifactView)
+  - `apps/web/src/pages/tracker/TrackerScreen.tsx`
+  - `apps/web/src/hooks.ts`  (raccourcis)
+- **Migration** : aucune
+- **Critères d'acceptation** (testables) :
+  - `?i=SAT1-REQ-0042` ouvre le panneau et reste partageable ; Échap le ferme et rend le focus à la ligne
+  - J/K changent d'item (ignorés dans un champ de saisie), le panneau garde le focus clavier prévisible
+  - « Agrandir » ouvre `/p/:p/a/:key`
+  - Édition en place et transitions identiques à la fiche complète (même composant)
+  - Sous 768 px le panneau occupe l'écran
+- **Tests à écrire** :
+  - Vitest/RTL : ouverture, J/K, Échap, URL
+  - axe (panneau ouvert)
+  - Playwright : parcours liste → panneau → agrandir
+- **Règles communes** : interface Hemeria (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
+- **Hors périmètre** : tout ce qui relève d'une autre tâche de la liste « Reprise IHM » de `docs/dev/STATE.md`.
+- **Dépendances** : T-0056

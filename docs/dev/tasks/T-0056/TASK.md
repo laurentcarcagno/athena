@@ -1,0 +1,24 @@
+# T-0056 : Écran Tracker : en-tête, routes, vue Tableau
+
+- **Lot** : 1 (reprise IHM, voir `docs/dev/DECISIONS/ADR-0002-ihm-cible.md`)
+- **Objectif** : Créer `/p/:projet/t/:tracker/:vue` : en-tête (nom, préfixe, mini-workflow cliquable, compteurs par statut, « + Nouvel item »), barre de vues, vue Tableau (liste ATQL préfiltrée sur le tracker).
+- **Fichiers concernés** :
+  - `apps/web/src/pages/tracker/TrackerScreen.tsx`
+  - `apps/web/src/components/ArtifactTable.tsx`  (extrait de ListPage)
+  - `apps/web/src/components/MiniWorkflow.tsx`
+  - `apps/web/src/pages/ListPage.tsx`
+  - `apps/web/src/App.tsx`
+- **Migration** : aucune
+- **Critères d'acceptation** (testables) :
+  - `/p/ARI/t/BUG/tableau` affiche les items de BUG uniquement (requête `tracker = BUG` imposée, non modifiable dans la barre)
+  - « + Nouvel item » est pré-rempli sur le tracker
+  - Clic sur un état du mini-workflow filtre le tableau sur cet état
+  - Tri, pagination, clés en mono sans coupure, titres tronqués avec `title` (F-07)
+  - `/p/ARI/recherche` conserve le comportement actuel de la liste
+- **Tests à écrire** :
+  - Vitest/RTL : filtre imposé, mini-workflow, création pré-remplie
+  - axe
+  - Playwright : parcours projet → tracker → tableau
+- **Règles communes** : interface Hemeria (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
+- **Hors périmètre** : tout ce qui relève d'une autre tâche de la liste « Reprise IHM » de `docs/dev/STATE.md`.
+- **Dépendances** : T-0053

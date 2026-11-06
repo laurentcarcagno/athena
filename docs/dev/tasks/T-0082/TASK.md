@@ -1,0 +1,21 @@
+# T-0082 : Onglet Documents : consultation en lecture seule
+
+- **Lot** : 5 (reprise IHM, voir `docs/dev/DECISIONS/ADR-0002-ihm-cible.md`)
+- **Objectif** : Navigation par section, recherche par UID ou texte, affichage d'un document.
+- **Fichiers concernés** :
+  - `apps/web/src/pages/project/DocumentsTab.tsx`
+  - `apps/web/src/components/DocTree.tsx`
+  - `apps/web/src/components/DocNodeView.tsx`
+- **Migration** : aucune
+- **Critères d'acceptation** (testables) :
+  - Onglet masqué sans source documentaire indexée
+  - URL stable par exigence (`/p/:p/documents/:doc#UID`)
+  - UID en mono, bannière « lecture seule : modifier dans StrictDoc » avec lien vers la source
+  - Chaque nœud rendu sans HTML brut non assaini
+- **Tests à écrire** :
+  - Vitest/RTL
+  - axe
+  - Playwright : ouvrir un document, chercher une UID
+- **Règles communes** : interface Hemeria (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
+- **Hors périmètre** : tout ce qui relève d'une autre tâche de la liste « Reprise IHM » de `docs/dev/STATE.md`.
+- **Dépendances** : T-0081

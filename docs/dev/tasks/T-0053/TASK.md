@@ -1,0 +1,23 @@
+# T-0053 : Coquille de projet : routes, onglets fixes, modules actifs
+
+- **Lot** : 1 (reprise IHM, voir `docs/dev/DECISIONS/ADR-0002-ihm-cible.md`)
+- **Objectif** : Créer la page d'accueil de projet `/p/:projet` avec les huit onglets fixes et ordonnés ; un onglet sans module actif est masqué sans décaler les autres. Déplacer la recherche vers `/p/:projet/recherche` et rediriger les anciennes URL.
+- **Fichiers concernés** :
+  - `apps/api/src/core/project-overview.service.ts`  (nouveau : modules actifs)
+  - `apps/api/src/core/core.controller.ts`
+  - `apps/web/src/pages/project/ProjectShell.tsx`  (nouveau)
+  - `apps/web/src/App.tsx`
+  - `apps/web/src/i18n.ts`
+- **Migration** : aucune (modules déduits des données : sprints/boards, source documentaire, dépôt de code, types de liens)
+- **Critères d'acceptation** (testables) :
+  - Ordre fixe : Vue d'ensemble, Trackers, Planification, Traçabilité, Documents, Code et intégration, Activité, Membres
+  - `GET /v1/projects/:p/modules` renvoie les modules actifs ; un projet sans dépôt n'affiche pas « Code et intégration » et les autres onglets ne bougent pas
+  - `/p/ARI?q=status%3Dopen` redirige vers `/p/ARI/recherche?q=status%3Dopen` ; `/p/ARI/manage`, `/dashboard` redirigent vers les nouveaux onglets
+  - Onglets en `role="tablist"`/liens avec `aria-current`, navigables au clavier
+- **Tests à écrire** :
+  - API : modules selon données et rôle
+  - Vitest/RTL : ordre, masquage, redirections
+  - axe sur la coquille
+- **Règles communes** : interface Hemeria (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
+- **Hors périmètre** : tout ce qui relève d'une autre tâche de la liste « Reprise IHM » de `docs/dev/STATE.md`.
+- **Dépendances** : T-0052

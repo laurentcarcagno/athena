@@ -1,0 +1,23 @@
+# T-0051 : Clés d'item : historique GitLab (chemins, messages, reconstruction)
+
+- **Lot** : 0 (reprise IHM, voir `docs/dev/DECISIONS/ADR-0002-ihm-cible.md`)
+- **Objectif** : Écrire l'historique avec les nouvelles clés, renommer les fichiers existants dans un commit unique par projet, garder la reconstruction et la synchronisation inverse compatibles avec les deux formats.
+- **Fichiers concernés** :
+  - `apps/api/src/history/serialize.ts`
+  - `apps/api/src/history/history-sync.ts`
+  - `apps/api/src/history/rebuild.ts`
+  - `apps/api/src/history/reverse-sync.ts`
+  - `apps/api/src/history/baseline.service.ts`  (si noms de tags)
+- **Migration** : aucune
+- **Critères d'acceptation** (testables) :
+  - Chemin d'un artefact : `trackers/REQ/artifacts/SAT1-REQ-0042.yaml`, le YAML contient `aliases: [REQ-42]`
+  - Message de commit : `SAT1-REQ-0042: mise à jour (…)`
+  - Un commit « migration des clés » par projet renomme les fichiers (git détecte des renommages, historique de fichier conservé)
+  - `rebuild` d'un dépôt ancien format produit le même état que la migration
+  - `reverse-sync` accepte les deux chemins et résout les alias
+  - Idempotent : relancer la migration ne produit aucun commit
+- **Tests à écrire** :
+  - API + GitLab simulé (comme `history.test.ts`, `reverse-rebuild.test.ts`) : création, renommage, reconstruction, synchronisation inverse sur ancien chemin
+- **Règles communes** : interface Hemeria (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
+- **Hors périmètre** : tout ce qui relève d'une autre tâche de la liste « Reprise IHM » de `docs/dev/STATE.md`.
+- **Dépendances** : T-0049

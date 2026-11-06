@@ -1,0 +1,21 @@
+# T-0068 : Règles de couverture et onglet Traçabilité
+
+- **Lot** : 2 (reprise IHM, voir `docs/dev/DECISIONS/ADR-0002-ihm-cible.md`)
+- **Objectif** : Règles configurables (organisation ou projet) et taux de respect affiché dans l'onglet Traçabilité ; ouvrir l'onglet (module actif dès qu'un type de lien existe).
+- **Fichiers concernés** :
+  - `apps/api/src/db/migrations/035_coverage_rules.sql`
+  - `apps/api/src/core/coverage.service.ts`
+  - `apps/web/src/pages/project/TraceabilityTab.tsx`
+- **Migration** : 035 : `coverage_rule` (organization_id, project_id nullable, key, name, from_tracker_key, link_type_key, direction, min_count, status_filter, threshold jsonb) ; RLS forcée.
+- **Critères d'acceptation** (testables) :
+  - Règle type : « toute exigence validée est vérifiée par au moins un test »
+  - Le taux, la liste des items en défaut et les liens suspects s'affichent ; chaque nombre ouvre la vue ATQL correspondante
+  - La couverture StrictDoc existante (`doc-link.service.ts`) est conservée
+  - Résultat calculé en moins de 2 s sur 100 000 artefacts
+- **Tests à écrire** :
+  - API : règles, calcul, performance (script de charge)
+  - Vitest/RTL
+  - axe + Playwright
+- **Règles communes** : interface Hemeria (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
+- **Hors périmètre** : tout ce qui relève d'une autre tâche de la liste « Reprise IHM » de `docs/dev/STATE.md`.
+- **Dépendances** : T-0063, T-0067

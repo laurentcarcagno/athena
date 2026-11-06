@@ -1,0 +1,23 @@
+# T-0055 : Onglets Planification, Code et intégration, Activité, Membres
+
+- **Lot** : 1 (reprise IHM, voir `docs/dev/DECISIONS/ADR-0002-ihm-cible.md`)
+- **Objectif** : Réutiliser le contenu existant dans les nouveaux onglets : sprints, boards, versions (Gestion de projet), dépôts et pipelines, flux d'activité, membres.
+- **Fichiers concernés** :
+  - `apps/web/src/pages/ProjectManagePage.tsx`  (découpé)
+  - `apps/web/src/pages/project/PlanningTab.tsx`
+  - `apps/web/src/pages/project/CodeTab.tsx`
+  - `apps/web/src/pages/project/ActivityTab.tsx`
+  - `apps/web/src/pages/project/MembersTab.tsx`
+  - `apps/api/src/core/project-overview.service.ts`  (flux d'activité)
+- **Migration** : aucune
+- **Critères d'acceptation** (testables) :
+  - Aucune fonction de ProjectManagePage ne disparaît (inventaire dans CONTEXT.md)
+  - Flux d'activité filtrable par tracker, personne, type d'événement, alimenté par `audit_log` filtré par droits
+  - Les onglets Traçabilité et Documents n'existent pas encore : masqués (Lots 2 et 5)
+- **Tests à écrire** :
+  - Vitest/RTL : reprise des tests de ProjectManagePage
+  - API : flux d'activité filtré
+  - axe
+- **Règles communes** : interface Hemeria (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
+- **Hors périmètre** : tout ce qui relève d'une autre tâche de la liste « Reprise IHM » de `docs/dev/STATE.md`.
+- **Dépendances** : T-0053

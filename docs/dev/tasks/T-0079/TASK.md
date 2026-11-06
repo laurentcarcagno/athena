@@ -1,0 +1,22 @@
+# T-0079 : Contrôle export et ayants droit
+
+- **Lot** : 4 (reprise IHM, voir `docs/dev/DECISIONS/ADR-0002-ihm-cible.md`)
+- **Objectif** : Marquage de contrôle export (ITAR/EAR, double usage) par item, listes d'ayants droit par projet ou tracker en plus des rôles.
+- **Fichiers concernés** :
+  - `apps/api/src/db/migrations/038_access_lists.sql`
+  - `apps/api/src/core/access.service.ts`
+  - `apps/api/src/core/artifact.service.ts`
+  - `apps/api/src/atql/search.service.ts`
+  - `apps/web/src/components/MarkingEditor.tsx`
+- **Migration** : 038 : `access_list` + `access_list_member` (organization_id, project_id/tracker_id, RLS forcée) ; `artifact` gagne `export_control text` ; champs chiffrés OpenBao conservés.
+- **Critères d'acceptation** (testables) :
+  - Un item marqué n'est visible que des membres de la liste ; la recherche, l'ATQL, la palette, le plein texte, les webhooks et les exports respectent la liste (aucune fuite par comptage)
+  - Les modifications de marquage sont auditées (journal chaîné)
+  - Le marquage est signalé sur les items liés sans en révéler le contenu
+- **Tests à écrire** :
+  - API : matrice rôle × liste × recherche (cas de fuite)
+  - Vitest/RTL
+  - Test d'intégration webhooks
+- **Règles communes** : interface Hemeria (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
+- **Hors périmètre** : tout ce qui relève d'une autre tâche de la liste « Reprise IHM » de `docs/dev/STATE.md`.
+- **Dépendances** : T-0078

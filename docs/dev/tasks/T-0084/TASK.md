@@ -1,0 +1,21 @@
+# T-0084 : Citer une exigence documentaire depuis un artefact
+
+- **Lot** : 5 (reprise IHM, voir `docs/dev/DECISIONS/ADR-0002-ihm-cible.md`)
+- **Objectif** : Sélecteur avec autocomplétion par UID ou titre, lien dans l'onglet Liens, lien suspect quand l'exigence change.
+- **Fichiers concernés** :
+  - `apps/api/src/docs/doc-link.service.ts`
+  - `apps/api/src/core/artifact.service.ts`  (types de champ sdocRef)
+  - `apps/web/src/components/DocRefPicker.tsx`
+  - `apps/web/src/pages/ArtifactPage.tsx`
+- **Migration** : aucune (mécanisme `doc_link` existant ; extension si une citation est portée par un champ)
+- **Critères d'acceptation** (testables) :
+  - Citation possible sur tout tracker (ex. action de sprint cite une exigence de l'URD)
+  - Modification de l'exigence dans StrictDoc puis ré-indexation : le lien devient suspect et le webhook `link.suspect` part
+  - Acquittement par un humain, avec audit
+- **Tests à écrire** :
+  - API : citation, ré-indexation, suspicion, acquittement
+  - Vitest/RTL : sélecteur
+  - Playwright : le critère de sortie du lot 5 (action de sprint)
+- **Règles communes** : interface Hemeria (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
+- **Hors périmètre** : tout ce qui relève d'une autre tâche de la liste « Reprise IHM » de `docs/dev/STATE.md`.
+- **Dépendances** : T-0082, T-0083

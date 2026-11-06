@@ -1,0 +1,21 @@
+# T-0081 : API de consultation des documents StrictDoc
+
+- **Lot** : 5 (reprise IHM, voir `docs/dev/DECISIONS/ADR-0002-ihm-cible.md`)
+- **Objectif** : Exposer en lecture seule documents, sections et exigences indexés (arborescence, texte, recherche par UID/texte).
+- **Fichiers concernés** :
+  - `apps/api/src/docs/doc-read.service.ts`
+  - `apps/api/src/docs/doc.controller.ts`
+  - `apps/api/src/docs/sdoc-parser.ts`  (ordre et profondeur des sections)
+  - `apps/api/src/db/migrations/039_doc_node_order.sql`
+- **Migration** : 039 : `doc_node` gagne `position`, `parent_uid`, `depth` (déjà indexé : ré-indexation à prévoir).
+- **Critères d'acceptation** (testables) :
+  - `GET .../docs` liste les documents ; `GET .../docs/:doc/tree` renvoie l'arborescence ; recherche par UID exact/préfixe et texte (index plein texte)
+  - Énoncés assainis avant renvoi (même chaîne que les commentaires)
+  - Aucun point d'écriture ajouté
+  - Ré-indexation incrémentale conservée
+- **Tests à écrire** :
+  - API : arbre, recherche, assainissement (XSS)
+  - Parseur : ordre et profondeur
+- **Règles communes** : interface Hemeria (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
+- **Hors périmètre** : tout ce qui relève d'une autre tâche de la liste « Reprise IHM » de `docs/dev/STATE.md`.
+- **Dépendances** : T-0052

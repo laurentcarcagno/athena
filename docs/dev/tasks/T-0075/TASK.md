@@ -1,0 +1,21 @@
+# T-0075 : Interface : choix, édition et suivi des gabarits normatifs
+
+- **Lot** : 3 (reprise IHM, voir `docs/dev/DECISIONS/ADR-0002-ihm-cible.md`)
+- **Objectif** : Sélection à la création de projet, éditeur par étapes (parent, référentiel, criticité, trackers, phases, règles, publication), indicateur de dérive.
+- **Fichiers concernés** :
+  - `apps/web/src/components/NormativeTemplateEditor.tsx`
+  - `apps/web/src/pages/OrgAdminPage.tsx`
+  - `apps/web/src/pages/project/OverviewTab.tsx`  (phase, dérive)
+- **Migration** : aucune
+- **Critères d'acceptation** (testables) :
+  - Création de projet : choix de gabarit et version, catégorie de criticité
+  - Éditeur : étapes validées, aperçu en direct du formulaire d'item
+  - Projet : phase en cours et écart au gabarit visibles
+  - Aucun texte en dur, FR/EN
+- **Tests à écrire** :
+  - Vitest/RTL
+  - axe
+  - Playwright : un projet créé depuis chaque gabarit
+- **Règles communes** : interface Hemeria (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
+- **Hors périmètre** : tout ce qui relève d'une autre tâche de la liste « Reprise IHM » de `docs/dev/STATE.md`.
+- **Dépendances** : T-0072, T-0073, T-0074

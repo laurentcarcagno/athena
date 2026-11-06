@@ -1,0 +1,22 @@
+# T-0078 : Niveau de protection de l'instance : bandeau et exports
+
+- **Lot** : 4 (reprise IHM, voir `docs/dev/DECISIONS/ADR-0002-ihm-cible.md`)
+- **Objectif** : Paramètre de déploiement du niveau de protection, bandeau sur toutes les pages, report sur tous les exports.
+- **Fichiers concernés** :
+  - `apps/api/src/config.ts`
+  - `apps/api/src/core/export-marking.ts`
+  - `apps/web/src/components/ProtectionBanner.tsx`
+  - `apps/web/src/App.tsx`
+  - `deploy/helm/athena/values.yaml`
+- **Migration** : aucune (paramètre de configuration, pas de donnée par organisation : une instance = un niveau)
+- **Critères d'acceptation** (testables) :
+  - `ATHENA_PROTECTION_LEVEL` vide : aucun bandeau ; renseigné : bandeau fixe en tête de chaque page, lu par les lecteurs d'écran
+  - Exports (CSV, YAML, PDF/documents générés, API d'export) portent la mention en en-tête et pied
+  - Le bandeau n'est pas rouge (réservé à la cérémonie) : voir DESIGN.md
+- **Tests à écrire** :
+  - API : en-têtes d'export
+  - Vitest/RTL : bandeau
+  - axe
+- **Règles communes** : interface Hemeria (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
+- **Hors périmètre** : tout ce qui relève d'une autre tâche de la liste « Reprise IHM » de `docs/dev/STATE.md`.
+- **Dépendances** : T-0076

@@ -1,0 +1,23 @@
+# T-0062 : Liens depuis la fiche : création, suppression, acquittement
+
+- **Lot** : 2 (reprise IHM, voir `docs/dev/DECISIONS/ADR-0002-ihm-cible.md`)
+- **Objectif** : Créer, supprimer et acquitter un lien depuis l'onglet Liens ; ajouter la route de suppression.
+- **Fichiers concernés** :
+  - `apps/api/src/core/link.service.ts`  (delete)
+  - `apps/api/src/core/core.controller.ts`
+  - `apps/web/src/pages/ArtifactPage.tsx`
+  - `apps/web/src/components/LinkEditor.tsx`
+  - `apps/web/src/api.ts`
+- **Migration** : aucune
+- **Critères d'acceptation** (testables) :
+  - `DELETE /v1/projects/:p/links/:id` supprime le lien, audit et outbox `link.deleted`
+  - Le sélecteur propose type puis item cible avec autocomplétion (clé ou titre)
+  - Suppression avec `ConfirmDialog` ; acquittement d'un lien suspect en un clic
+  - Raccourci `L` ouvre la création de lien
+- **Tests à écrire** :
+  - API : suppression, droits, RLS
+  - Vitest/RTL : création, suppression, acquittement
+  - axe + Playwright
+- **Règles communes** : interface Hemeria (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
+- **Hors périmètre** : tout ce qui relève d'une autre tâche de la liste « Reprise IHM » de `docs/dev/STATE.md`.
+- **Dépendances** : T-0061

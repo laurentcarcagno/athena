@@ -1,0 +1,22 @@
+# T-0076 : Instance en réseau isolé : images, registre interne, Helm
+
+- **Lot** : 4 (reprise IHM, voir `docs/dev/DECISIONS/ADR-0002-ihm-cible.md`)
+- **Objectif** : Rendre l'instance déployable sans accès Internet : images et dépendances transférables, polices et ressources embarquées, Keycloak et OpenBao locaux, valeurs Helm dédiées, procédure documentée.
+- **Fichiers concernés** :
+  - `deploy/helm/athena/values-isolated.yaml`
+  - `deploy/docker/*`
+  - `packages/ui`  (polices locales)
+  - `docs/admin/INSTALLATION.md`  (section « Réseau isolé »)
+  - `tools/export-bundle.mjs`  (archive d'images et de charts)
+- **Migration** : aucune
+- **Critères d'acceptation** (testables) :
+  - Aucune URL externe dans le code, les feuilles de style, le HTML et les images (script de contrôle en CI)
+  - Archive transférable (images, chart, dépendances) avec sommes de contrôle ; procédure de chargement dans un registre interne
+  - Keycloak et OpenBao inclus, politiques réseau par défaut « tout refuser »
+  - Section « Réseau isolé » testée sur le cluster `kind` coupé de l'extérieur
+- **Tests à écrire** :
+  - Script de contrôle des URL externes
+  - Recette sur `kind` sans route sortante (documentée dans CONTEXT.md)
+- **Règles communes** : interface Hemeria (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
+- **Hors périmètre** : tout ce qui relève d'une autre tâche de la liste « Reprise IHM » de `docs/dev/STATE.md`.
+- **Dépendances** : T-0061
