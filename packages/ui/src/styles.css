@@ -229,6 +229,7 @@
 
 /* Audit F-07 : un identifiant ne se coupe pas, un titre long se tronque (texte complet dans l'attribut title). */
 .ath-table .ath-link.ath-mono, .ath-table .ath-mono, .ath-ticket .ath-link { white-space: nowrap; }
+.ath-nowrap { white-space: nowrap; }
 .ath-clip { display: block; max-width: 60ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ath-ticket__title { overflow-wrap: anywhere; }
 .ath-input, .ath-select { max-width: 100%; }

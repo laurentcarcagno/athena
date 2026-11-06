@@ -2,7 +2,7 @@
 
 ## Principes
 - Un **projet** contient plusieurs **trackers** (Bugs, Exigences, Stories…). Chaque tracker définit ses champs, ses statuts et son workflow.
-- Un **artefact** est un élément d'un tracker. Sa clé (`BUG-142`) est unique dans le projet.
+- Un **artefact** est un élément d'un tracker. Sa clé (`SAT1-BUG-0142`, soit projet, tracker et numéro sur 4 chiffres au moins) est unique dans toute l'organisation et ne change jamais. Les anciennes clés (`BUG-142`) restent valables : elles ouvrent le même artefact dans leur projet, et l'adresse affichée devient celle de la nouvelle clé.
 - Chaque modification est enregistrée dans l'historique (révision) et écrite dans GitLab sous votre nom.
 
 ## Navigation
@@ -29,7 +29,7 @@ Champs natifs : `key`, `tracker`, `status`, `project`, `created_by`, `created`, 
 - **Développement** : branches, commits, merge requests et état des pipelines liés à l'artefact.
 
 ## Lier le code
-Dans un message de commit, une merge request ou un nom de branche, citez la clé : `Fixes BUG-142`, `Refs BUG-142`, `Closes`, `Implements`, `Reverts`. La branche conseillée est `bugfix/BUG-142-resume`. Athena fait avancer l'artefact (démarrage, revue, résolution à la fusion) en respectant le workflow : un message de commit ne contourne jamais les droits ou les champs obligatoires.
+Dans un message de commit, une merge request ou un nom de branche, citez la clé : `Fixes SAT1-BUG-0142`, `Refs SAT1-BUG-0142`, `Closes`, `Implements`, `Reverts`. La branche conseillée est `bugfix/SAT1-BUG-0142-resume`. Les anciennes clés (`Fixes BUG-142`) sont encore reconnues dans le projet concerné. Athena fait avancer l'artefact (démarrage, revue, résolution à la fusion) en respectant le workflow : un message de commit ne contourne jamais les droits ou les champs obligatoires.
 
 ## Boards, sprints, tableau de bord
 - **Board** : colonnes liées aux statuts, limites WIP. Glisser une carte, ou utiliser « Déplacer vers » au clavier. Le déplacement suit les transitions du workflow.

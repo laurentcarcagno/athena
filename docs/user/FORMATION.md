@@ -16,7 +16,7 @@ Exercice : créer 3 bugs, lier l'un à un autre (`bloque`), le déplacer jusqu'�
 2. Tableau de bord, vélocité, flux.
 3. Intégration GitLab : clés dans les messages de commit, branche et merge request depuis une fiche, déploiements, rétroportages, notes de version.
 4. Documentation StrictDoc : liens, liens suspects, couverture, report par merge request.
-Exercice : un commit `BUG-1: …` fait passer l'artefact « En revue » ; produire les notes de version d'une version.
+Exercice : un commit `ARI-BUG-0001: …` fait passer l'artefact « En revue » ; produire les notes de version d'une version.
 
 ## Session 3 : administrateur (2 h)
 1. Configuration d'un tracker : champs, statuts, transitions, rôles par champ et par transition, mode d'historique (direct ou merge request), aperçu d'impact avant suppression d'un champ.

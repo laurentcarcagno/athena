@@ -16,7 +16,7 @@ Authentification : cookie de session (application web, écritures avec en-tête 
 | Méthode | Chemin |
 |---|---|
 | POST | `/v1/projects/:p/trackers/:t/artifacts` `{values}` |
-| GET / PATCH | `/v1/projects/:p/artifacts/:key` (PATCH : `{values, version}`) |
+| GET / PATCH | `/v1/projects/:p/artifacts/:key` (PATCH : `{values, version}`) ; `:key` est la clé canonique ou une ancienne clé, la réponse porte toujours la clé canonique |
 | POST | `…/artifacts/:key/transitions` `{name, version}` · `/restore` `{version, expectedVersion}` |
 | GET | `…/history` · `…/links` · `…/comments` · `…/doc-links` · `…/code-refs` |
 | POST | `…/links` `{to, type}` · `/comments` `{body}` · `/doc-links` `{source, uid}` · `/branch` · `/merge-request` |
@@ -47,3 +47,7 @@ Santé : `GET /healthz`. Un schéma OpenAPI généré n'est pas encore publié.
 ## Schéma OpenAPI
 
 `GET /v1/openapi.json` (authentifié) renvoie le document OpenAPI 3.1 généré depuis les contrôleurs : routes, paramètres, codes de succès, rôles requis (`x-athena-roles`) et schémas de sécurité. Les corps sont décrits (JSON Schema, via `@BodySchema(schema)`) pour toutes les routes qui reçoivent un corps JSON validé ; l envoi de fichier est décrit en `application/octet-stream` ; les routes sans corps (actions) n en ont pas ; un test vérifie qu aucune nouvelle écriture n est ajoutée sans corps documenté.
+
+## Clés d'item
+
+Format `<PROJET>-<TRACKER>-<n>` avec `n` sur 4 chiffres au moins (`SAT1-REQ-0042`), unique dans l'organisation, jamais modifiée. Les clés `<TRACKER>-<n>` d'avant la migration 030 sont conservées comme **alias**, uniques dans leur projet : toute route qui prend une clé d'artefact accepte l'une ou l'autre, et l'ATQL `key = …` / `key IN (…)` de même. Les réponses, les événements, les webhooks sortants (champ `key`) et l'historique Git portent la clé canonique (changement visible pour les intégrations qui lisaient l'ancienne). Une ancienne clé citée hors d'un contexte de projet n'est pas résolue. `POST /v1/projects/:p/history/migrate-keys` (administrateur, idempotent) renomme en un commit les fichiers d'historique de l'ancien format ; le YAML d'un artefact porte alors `aliases: [REQ-42]`.

@@ -38,7 +38,7 @@ export function CommandPalette({ project }: { project: string | undefined }) {
     if (!open || !project || query.trim().length < 2) { setHits([]); return; }
     const q = query.trim().replace(/["\\]/g, '');
     const timer = setTimeout(() => {
-      api<SearchResult>('GET', `/v1/projects/${project}/search?q=${encodeURIComponent(`key ~ "${q}" OR title ~ "${q}"`)}&limit=8`)
+      api<SearchResult>('GET', `/v1/projects/${project}/search?q=${encodeURIComponent(`key = "${q}" OR key ~ "${q}" OR title ~ "${q}"`)}&limit=8`)
         .then((r) => setHits(r.hits.map((h) => ({ id: h.key, label: h.key, hint: String(h.values['title'] ?? ''), to: `/p/${project}/a/${h.key}` }))))
         .catch(() => setHits([]));
     }, 150);

@@ -89,3 +89,10 @@ La CI produit `dist-cli/athena-cli-<version>.tgz` (job `package-cli`). Installat
 ## Démarrage local
 
 `node tools/dev-start.mjs` (infra `deploy/dev` démarrée, API construite) crée et amorce la base `athena_dev` au premier lancement puis lance API (3001), worker et web (3000). Connexion : `user.dev` / `dev-only-user`.
+
+## Montée de version : clés d'item (migration 030)
+La migration 030 réécrit les clés des artefacts au format `PROJET-TRACKER-0042` et garde les anciennes comme alias (table `artifact_key_alias`). Elle s'applique au démarrage de l'API ou du job de migration, dans une transaction. Ensuite, pour chaque projet dont l'historique est dans GitLab, lancer une fois (compte administrateur) :
+```
+curl -X POST -H "Authorization: Bearer $TOKEN" https://<athena>/v1/projects/<PROJET>/history/migrate-keys
+```
+La réponse indique les fichiers renommés (`moved`), les anciens fichiers supprimés parce que le nouveau existait déjà (`removed`) et le SHA du commit (`null` si rien à faire). L'appel est idempotent. Tant qu'il n'est pas fait, les nouveaux événements s'écrivent déjà au nouveau chemin ; seuls les anciens fichiers restent à l'ancien nom. La clé d'un projet ne peut plus être modifiée dès qu'il contient des items.

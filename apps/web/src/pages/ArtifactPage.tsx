@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Btn, Card, EmptyState, Id, PageHeader, StatusPill, Table, Tabs, Td, Th, Tag, useToast } from '@athena/ui';
 import { ApiError, api, upload, type Artifact, type AttachmentView, type Field, type Revision, type Session, type TrackerDefinition } from '../api';
 import { useBusy, useFailure } from '../hooks';
@@ -59,6 +59,7 @@ function FieldEditor({ field, value, onCommit }: { field: Field; value: unknown;
 
 export function ArtifactPage({ session }: { session: Session }) {
   const { project, key } = useParams();
+  const navigate = useNavigate();
   const toast = useToast();
   const fail = useFailure();
   const { busy, guard } = useBusy();
@@ -76,6 +77,8 @@ export function ArtifactPage({ session }: { session: Session }) {
 
   const reload = useCallback(async () => {
     const a = await api<Artifact>('GET', base);
+    // Ancienne clé (alias) : l'adresse canonique remplace l'adresse saisie (ADR-0002 § 2).
+    if (key && a.key !== key) navigate(`/p/${project}/a/${a.key}`, { replace: true });
     setArtifact(a);
     setDef(await api<TrackerDefinition>('GET', `/v1/projects/${project}/trackers/${a.trackerKey}`));
     const [l, d, c, h, r] = await Promise.all([
@@ -83,7 +86,7 @@ export function ArtifactPage({ session }: { session: Session }) {
       api<Revision[]>('GET', `${base}/history`), api<CodeRef[]>('GET', `${base}/code-refs`),
     ]);
     setLinks(l); setDocs(d); setComments(c); setHistory(h); setCode(r);
-  }, [base, project]);
+  }, [base, project, key, navigate]);
   useEffect(() => { reload().catch(fail); }, [reload, fail]);
   useEffect(() => {
     if (tab === 'attachments') api<AttachmentView[]>('GET', `${base}/attachments`).then(setFiles).catch(fail);
@@ -158,7 +161,7 @@ export function ArtifactPage({ session }: { session: Session }) {
     <>
       <PageHeader
         eyebrow={def.name}
-        title={`${artifact.key} · ${title}`}
+        title={<><span className="ath-mono ath-nowrap">{artifact.key}</span> · {title}</>}
         sub={<><StatusPill kind={pillKind(status?.category ?? '')}>{status?.name ?? artifact.status}</StatusPill> <Link className="ath-link" to={`/p/${project}`}>{project}</Link></>}
         actions={<div className="ath-row" role="group" aria-label={fr.artifact.transitions}>{available.map((t) => <Btn key={t.id} variant="deep" onClick={() => transition(t.name)}>{t.name}</Btn>)}</div>}
       />

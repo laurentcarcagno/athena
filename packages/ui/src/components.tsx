@@ -262,7 +262,7 @@ export function EmptyState({ eyebrow, title, action }: { eyebrow: string; title:
   );
 }
 
-export function PageHeader({ eyebrow, title, sub, actions }: { eyebrow?: string; title: string; sub?: ReactNode; actions?: ReactNode }) {
+export function PageHeader({ eyebrow, title, sub, actions }: { eyebrow?: string; title: ReactNode; sub?: ReactNode; actions?: ReactNode }) {
   // L'en-tête reste visible au défilement : sa hauteur est publiée pour décaler les en-têtes de tableau collants.
   const header = useRef<HTMLElement>(null);
   useEffect(() => {

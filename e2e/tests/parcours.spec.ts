@@ -26,9 +26,9 @@ test('connexion Keycloak, liste des projets, ouverture d’un artefact et transi
   await login(page, 'user.dev', 'dev-only-user');
   await expect(page.getByText('Ariane')).toBeVisible();
   await page.getByRole('link', { name: /Bugs|BUG/ }).first().click();
-  await expect(page.getByText('BUG-1')).toBeVisible();
-  await page.getByText('BUG-1').first().click();
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('BUG-1');
+  await expect(page.getByText('ARI-BUG-0001')).toBeVisible();
+  await page.getByText('ARI-BUG-0001').first().click();
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('ARI-BUG-0001');
   await expect(page.getByText('Crash au démarrage').first()).toBeVisible();
   await page.getByRole('button', { name: 'Terminer' }).click();
   await expect(page.getByText('Fini').first()).toBeVisible();
@@ -46,16 +46,16 @@ test('accessibilité réelle (contraste inclus) : projets, liste et fiche', asyn
   await expect(page.getByText('Ariane')).toBeVisible();
   expect(await axeViolations(page)).toEqual([]);
   await page.getByRole('link', { name: /Bugs|BUG/ }).first().click();
-  await expect(page.getByText('BUG-1')).toBeVisible();
+  await expect(page.getByText('ARI-BUG-0001')).toBeVisible();
   expect(await axeViolations(page)).toEqual([]);
-  await page.getByText('BUG-1').first().click();
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('BUG-1');
+  await page.getByText('ARI-BUG-0001').first().click();
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('ARI-BUG-0001');
   expect(await axeViolations(page)).toEqual([]);
 });
 
 test('pièces jointes : envoi, liste, téléchargement identique, suppression', async ({ page }) => {
   await login(page, 'user.dev', 'dev-only-user');
-  await page.goto('/p/ARI/a/BUG-1');
+  await page.goto('/p/ARI/a/ARI-BUG-0001');
   await page.getByRole('tab', { name: 'Pièces jointes' }).click();
   await expect(page.getByText('Aucune pièce jointe.')).toBeVisible();
   await page.locator('#attachment-file').setInputFiles({ name: 'capture.txt', mimeType: 'text/plain', buffer: Buffer.from('contenu de test') });

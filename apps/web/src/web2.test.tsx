@@ -203,7 +203,7 @@ describe('palette de commandes', () => {
     await userEvent.keyboard('{ArrowDown}{ArrowDown}');
     await userEvent.click(option);
     expect(screen.getByTestId('where')).toHaveTextContent('/p/ARI/a/BUG-12');
-    expect(decodeURIComponent(calls.find((c) => c.url.includes('/search'))!.url)).toContain('key ~ "crash" OR title ~ "crash"');
+    expect(decodeURIComponent(calls.find((c) => c.url.includes('/search'))!.url)).toContain('key = "crash" OR key ~ "crash" OR title ~ "crash"');
   });
   it('échappe les guillemets de la saisie et se ferme avec Échap', async () => {
     handlers = [on('GET', '/v1/projects', { body: [] }), on('GET', /\/search\?/, { body: { total: 0, hits: [] } })];
@@ -234,6 +234,21 @@ describe('restauration depuis l’historique', () => {
     await userEvent.click(buttons[0]!);
     await waitFor(() => expect(calls.find((c) => c.url.endsWith('/restore'))?.body).toEqual({ version: 1, expectedVersion: 3 }));
     expect(await screen.findByText('Révision 1 restaurée.')).toBeInTheDocument();
+  });
+});
+
+describe('clés d’item', () => {
+  it('remplace l’adresse d’une ancienne clé par l’adresse canonique', async () => {
+    const def = { key: 'BUG', name: 'Bugs', fields: [{ id: 'f', key: 'title', label: 'Titre', type: 'text', config: {}, required: true, semanticRole: 'title' }], statuses: [{ id: 's1', key: 'open', name: 'Ouvert', category: 'todo' }], transitions: [] };
+    handlers = [
+      on('GET', /\/v1\/projects\/ARI\/artifacts\/(BUG-1|ARI-BUG-0001)$/, { body: { id: 'a', key: 'ARI-BUG-0001', trackerKey: 'BUG', status: 'open', version: 1, values: { title: 'Crash' } } }),
+      on('GET', '/v1/projects/ARI/trackers/BUG', { body: def }),
+      on('GET', /\/(links|doc-links|comments|code-refs|history)$/, { body: [] }),
+    ];
+    const Where = () => <span data-testid="where">{useLocation().pathname}</span>;
+    render(<ToastProvider><MemoryRouter initialEntries={['/p/ARI/a/BUG-1']}><Where /><Routes><Route path="/p/:project/a/:key" element={<ArtifactPage session={simple} />} /></Routes></MemoryRouter></ToastProvider>);
+    await waitFor(() => expect(screen.getByTestId('where')).toHaveTextContent('/p/ARI/a/ARI-BUG-0001'));
+    expect(await screen.findByRole('heading', { level: 1 })).toHaveTextContent('ARI-BUG-0001');
   });
 });
 
