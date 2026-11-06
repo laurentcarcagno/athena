@@ -46,3 +46,30 @@ test('colonnes du tableau et sélecteur de frères du fil d’Ariane', async ({ 
   await expect(page.getByRole('list', { name: 'Changer de tracker' }).getByRole('link', { name: 'BUG' })).toBeVisible();
 });
 
+test.describe('téléphone (375 px) : tiroir du rail', () => {
+  test.use({ viewport: { width: 375, height: 700 } });
+
+  test('le rail est fermé, s’ouvre en tiroir, se ferme à la navigation ; la page ne déborde pas', async ({ page }) => {
+    await login(page, 'user.dev', 'dev-only-user');
+    await page.goto('/p/ARI/recherche');
+    await expect(page.getByRole('link', { name: 'ARI-BUG-0001' })).toBeVisible();
+    const noOverflow = () => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth);
+    expect(await noOverflow()).toBe(true);
+    const rail = page.locator('#rail');
+    await expect(rail).toBeHidden();
+    await page.getByRole('button', { name: 'Menu' }).click();
+    await expect(rail).toBeVisible();
+    const box = (await rail.boundingBox())!;
+    expect(box.x).toBe(0);
+    expect(box.width).toBeLessThanOrEqual(375 * 0.86 + 1);
+    expect(box.height).toBeGreaterThanOrEqual(699);
+    await page.keyboard.press('Escape');
+    await expect(rail).toBeHidden();
+    await page.getByRole('button', { name: 'Menu' }).click();
+    await rail.getByRole('button', { name: 'Projets' }).click();
+    await expect(page).toHaveURL(/\/$/);
+    await expect(rail).toBeHidden();
+    expect(await noOverflow()).toBe(true);
+  });
+});
+

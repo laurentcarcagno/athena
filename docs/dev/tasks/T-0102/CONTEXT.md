@@ -13,6 +13,11 @@
 - Tests périmés corrigés : clic sur la clé via le lien du tableau (le rail propose aussi la clé dans les récents), onglet Acteurs devenu page Membres, clé `ARI-LAY-0001`, case à cocher pilotée par l'adresse (`click` puis `toBeChecked`).
 - Lancer les e2e par `pnpm --filter @athena/e2e test` (remise à zéro de la base) et non `npx playwright test` seul.
 
+## Tiroir mobile du rail (constat F-09)
+- Sous 768 px le rail devient un tiroir modal : fermé, il n'occupe aucune place ; ouvert, il est fixé à gauche (86 % de la largeur, 320 px au plus) au-dessus d'un fond ; le focus y entre, Tab y reste, Échap / fond / navigation le ferment et rendent le focus au bouton Menu ; la page derrière est inerte (`inert`). Sans `transform`, sans ombre (charte). Le bouton de repli de bureau est masqué.
+- Tests : `web11.test.tsx` (5 tests), `components.test.tsx` (CSS), e2e à 375 px (rail masqué, tiroir 0 px à gauche, pas de débordement horizontal).
+- Course corrigée au passage : le gestionnaire clavier J / K / Échap de l'écran Tracker est enregistré une fois et lit l'état du dernier rendu (un Échap tapé juste après un rendu était perdu) ; c'était l'échec e2e intermittent vu plus tôt.
+
 ## Reste à faire
 Rien.
 

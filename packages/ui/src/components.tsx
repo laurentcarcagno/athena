@@ -312,11 +312,11 @@ export interface NavItem {
 }
 /** Rubrique du rail : un titre facultatif et ses entrées. */
 export interface NavSection { id: string; title?: string; items: NavItem[] }
-export function Sidebar({ items, sections, current, onNavigate, user, userActions, collapsed = false, open = false }: { items?: NavItem[]; sections?: NavSection[]; current: string; onNavigate?: (id: string) => void; user?: { name: string; role: string }; userActions?: ReactNode; collapsed?: boolean; open?: boolean }) {
+export function Sidebar({ id, items, sections, current, onNavigate, user, userActions, collapsed = false, open = false }: { id?: string; items?: NavItem[]; sections?: NavSection[]; current: string; onNavigate?: (id: string) => void; user?: { name: string; role: string }; userActions?: ReactNode; collapsed?: boolean; open?: boolean }) {
   const groups: NavSection[] = sections ?? [{ id: 'main', items: items ?? [] }];
   const initials = user?.name.split(/\s+/).map((p) => p[0]).slice(0, 2).join('').toUpperCase() ?? '';
   return (
-    <aside className={cx('ath-sidebar', collapsed && 'ath-sidebar--collapsed', open && 'ath-sidebar--open')}>
+    <aside id={id} className={cx('ath-sidebar', collapsed && 'ath-sidebar--collapsed', open && 'ath-sidebar--open')}>
       <div className="ath-sidebar__brand">
         ATHENA<span className="ath-sidebar__dot">·</span>BOARD
         <span className="ath-sidebar__sub">Suivi de projet</span>

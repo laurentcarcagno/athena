@@ -152,6 +152,7 @@
 .ath-breadcrumb__menu li { padding: var(--ath-space-xs) var(--ath-space-sm); }
 .ath-breadcrumb__menu a[aria-current="true"] { font-weight: 700; }
 .ath-breadcrumb__sep { color: var(--ath-text-mute); }
+.ath-drawer-backdrop { display: none; }
 .ath-nav__section { display: flex; flex-direction: column; }
 .ath-nav__title { margin: 0; padding: var(--ath-space-md) 16px var(--ath-space-xs); font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: color-mix(in srgb, var(--ath-color-instrument-white) 65%, var(--ath-color-sovereign-deep-blue)); }
 .ath-nav__row { display: flex; align-items: stretch; }
@@ -295,8 +296,14 @@
 .ath-pageheader { position: sticky; top: 0; z-index: 50; background: var(--ath-color-cold-mist); margin-top: -24px; padding-top: var(--ath-space-xl); }
 .ath-th { position: sticky; top: var(--ath-pageheader-h, 0px); z-index: 2; }
 @media (max-width: 768px) {
-  .ath-sidebar { position: static; height: auto; overflow: visible; }
-  .ath-sidebar--open .ath-nav { max-height: 60vh; }
+  /* Tiroir : fermé, le rail n'occupe aucune place ; ouvert, il couvre la gauche de l'écran au-dessus d'un fond (le panneau de détail est à 900). */
+  .ath-sidebar:not(.ath-sidebar--open) { display: none; }
+  .ath-sidebar--open { position: fixed; top: 0; left: 0; bottom: 0; width: min(86vw, 320px); height: 100dvh; z-index: 950; border-right: 1px solid rgba(255, 255, 255, 0.2); }
+  .ath-sidebar--open .ath-nav { max-height: none; }
+  .ath-sidebar--collapsed .ath-nav, .ath-sidebar--collapsed .ath-sidebar__sub, .ath-sidebar--collapsed .ath-sidebar__who { display: revert; }
+  .ath-sidebar--collapsed { width: min(86vw, 320px); }
+  .ath-collapse-btn { display: none; }
+  .ath-drawer-backdrop { position: fixed; inset: 0; z-index: 940; background: rgba(0, 20, 35, 0.55); }
   .ath-pageheader { position: static; margin-top: 0; padding-top: 0; }
   .ath-th { top: 0; }
 }

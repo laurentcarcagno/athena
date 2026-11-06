@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Btn, EmptyState, PageHeader, Sidebar, ToastProvider } from '@athena/ui';
 import { loadSession, loginUrl, logout, type Session } from './api';
@@ -64,18 +64,42 @@ function Shell({ session, children }: { session: Session; children: ReactNode })
   const toggleRail = () => { const next = !collapsed; setCollapsed(next); try { localStorage.setItem('athena.rail.collapsed', next ? '1' : '0'); } catch { /* préférence facultative */ } };
   const out = async () => { window.location.assign(await logout()); };
   const [menuOpen, setMenuOpen] = useState(false);
+  const mainRef = useRef<HTMLElement>(null);
+  const closeMenu = () => { setMenuOpen(false); document.querySelector<HTMLElement>('.ath-menu-btn')?.focus(); };
+  // Tiroir (sous 768 px) : le focus y entre, Tab y reste, Échap le ferme et rend le focus au bouton ; la page derrière est inerte.
+  useEffect(() => {
+    const main = mainRef.current;
+    if (!menuOpen) { main?.removeAttribute('inert'); return undefined; }
+    main?.setAttribute('inert', '');
+    const rail = document.getElementById('rail');
+    const focusable = () => [...(rail?.querySelectorAll<HTMLElement>('button:not([disabled]), a[href]') ?? [])];
+    focusable()[0]?.focus();
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') { event.preventDefault(); closeMenu(); return; }
+      if (event.key !== 'Tab') return;
+      const items = focusable();
+      if (items.length === 0) return;
+      const first = items[0]!;
+      const last = items[items.length - 1]!;
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => { document.removeEventListener('keydown', onKey); main?.removeAttribute('inert'); };
+  }, [menuOpen]);
   const other = getLocale() === 'fr' ? 'en' : 'fr';
   return (
     <div className="ath-page">
       <a className="ath-skip" href="#contenu" onClick={(e) => { e.preventDefault(); document.getElementById('contenu')?.focus(); }}>{fr.nav.skip}</a>
-      <Btn variant="ghost" size="sm" className="ath-menu-btn" aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)}>{fr.nav.menu}</Btn>
-      <Sidebar open={menuOpen} collapsed={collapsed} sections={sections} current={current} onNavigate={(id) => { setMenuOpen(false); navigate(id); }} user={{ name: session.user!.name, role: admin ? 'Admin' : manager ? 'Chef de projet' : 'Utilisateur' }}
+      <Btn variant="ghost" size="sm" className="ath-menu-btn" aria-expanded={menuOpen} aria-controls="rail" onClick={() => setMenuOpen(!menuOpen)}>{fr.nav.menu}</Btn>
+      {menuOpen && <div className="ath-drawer-backdrop" data-testid="drawer-backdrop" onClick={closeMenu} />}
+      <Sidebar id="rail" open={menuOpen} collapsed={collapsed} sections={sections} current={current} onNavigate={(id) => { setMenuOpen(false); navigate(id); }} user={{ name: session.user!.name, role: admin ? 'Admin' : manager ? 'Chef de projet' : 'Utilisateur' }}
         userActions={<>
-          <button type="button" className="ath-iconbtn" onClick={toggleRail} aria-expanded={!collapsed} aria-label={collapsed ? fr.rail.expand : fr.rail.collapse} title={collapsed ? fr.rail.expand : fr.rail.collapse}>{collapsed ? '»' : '«'}</button>
+          <button type="button" className="ath-iconbtn ath-collapse-btn" onClick={toggleRail} aria-expanded={!collapsed} aria-label={collapsed ? fr.rail.expand : fr.rail.collapse} title={collapsed ? fr.rail.expand : fr.rail.collapse}>{collapsed ? '»' : '«'}</button>
           <button type="button" className="ath-iconbtn" onClick={() => setLocale(other)} aria-label={fr.language} title={fr.language}><Flag locale={other} /></button>
           <button type="button" className="ath-iconbtn" onClick={out} aria-label={fr.nav.logout} title={fr.nav.logout}><LogoutIcon /></button>
         </>} />
-      <main id="contenu" tabIndex={-1} className="ath-page__main">
+      <main id="contenu" ref={mainRef} tabIndex={-1} className="ath-page__main">
         <Breadcrumb pathname={location.pathname} search={location.search} />
         {children}
         <CommandPalette project={project} />

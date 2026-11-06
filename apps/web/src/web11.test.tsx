@@ -158,3 +158,58 @@ describe('rail contextuel', () => {
     expect(result.violations.map((v) => `${v.id} : ${v.help}`)).toEqual([]);
   });
 });
+
+describe('tiroir mobile du rail (constat F-09)', () => {
+  const menu = () => screen.getByRole('button', { name: 'Menu' });
+  const drawer = () => document.getElementById('rail')!;
+
+  it('le bouton Menu ouvre le rail : le focus entre dans le tiroir, la page derrière devient inerte', async () => {
+    app('/p/ARI/t/BUG/tableau');
+    await screen.findByRole('heading', { level: 1, name: 'BUG' }).catch(() => screen.findByRole('heading', { level: 1 }));
+    expect(menu()).toHaveAttribute('aria-expanded', 'false');
+    expect(menu()).toHaveAttribute('aria-controls', 'rail');
+    await userEvent.click(menu());
+    expect(menu()).toHaveAttribute('aria-expanded', 'true');
+    expect(drawer()).toHaveClass('ath-sidebar--open');
+    expect(drawer().contains(document.activeElement)).toBe(true);
+    expect(document.getElementById('contenu')).toHaveAttribute('inert');
+    expect(screen.getByTestId('drawer-backdrop')).toBeInTheDocument();
+  });
+
+  it('Échap ferme le tiroir et rend le focus au bouton Menu', async () => {
+    app('/me');
+    await userEvent.click(menu());
+    await userEvent.keyboard('{Escape}');
+    expect(menu()).toHaveAttribute('aria-expanded', 'false');
+    expect(menu()).toHaveFocus();
+    expect(document.getElementById('contenu')).not.toHaveAttribute('inert');
+    expect(screen.queryByTestId('drawer-backdrop')).not.toBeInTheDocument();
+  });
+
+  it('un clic sur le fond ferme le tiroir', async () => {
+    app('/me');
+    await userEvent.click(menu());
+    await userEvent.click(screen.getByTestId('drawer-backdrop'));
+    expect(menu()).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('naviguer depuis le tiroir le ferme', async () => {
+    app('/me');
+    await userEvent.click(menu());
+    await userEvent.click(within(rail()).getByRole('button', { name: 'Projets' }));
+    await waitFor(() => expect(screen.getByTestId('where')).toHaveTextContent(/^\/$/));
+    expect(menu()).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('Tab ne sort pas du tiroir : du dernier contrôle on revient au premier, et inversement avec Maj+Tab', async () => {
+    app('/me');
+    await userEvent.click(menu());
+    const controls = [...drawer().querySelectorAll<HTMLElement>('button:not([disabled]), a[href]')];
+    controls.at(-1)!.focus();
+    await userEvent.tab();
+    expect(document.activeElement).toBe(controls[0]);
+    await userEvent.tab({ shift: true });
+    expect(document.activeElement).toBe(controls.at(-1));
+  });
+});
+

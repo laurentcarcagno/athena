@@ -224,6 +224,20 @@ describe('contenus longs (constat F-07)', () => {
   });
 });
 
+describe('tiroir mobile (constat F-09, charte : sans transform ni ombre)', () => {
+  const css = readFileSync(join(__dirname, 'styles.css'), 'utf8');
+  const mobile = css.slice(css.indexOf('Tiroir : fermé'), css.indexOf('}', css.indexOf('.ath-drawer-backdrop {', css.indexOf('Tiroir : fermé'))) + 1);
+  it('masque le rail fermé et le fixe au-dessus du panneau de détail quand il est ouvert', () => {
+    expect(mobile).toContain('.ath-sidebar:not(.ath-sidebar--open) { display: none; }');
+    expect(mobile).toMatch(/\.ath-sidebar--open \{[^}]*position: fixed[^}]*z-index: 950/);
+    expect(mobile).toMatch(/\.ath-drawer-backdrop \{[^}]*position: fixed[^}]*z-index: 940/);
+    expect(mobile).toContain('.ath-collapse-btn { display: none; }');
+  });
+  it('n’utilise ni transform, ni ombre, ni dégradé', () => {
+    expect(mobile).not.toMatch(/transform|box-shadow|gradient/);
+  });
+});
+
 describe('structure de page', () => {
   it('rend le bandeau tricolore, le titre, les actions et le cadre', () => {
     const { container } = render(

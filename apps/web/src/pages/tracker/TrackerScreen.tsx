@@ -89,24 +89,28 @@ export function TrackerScreen({ session }: { session: Session }) {
     if (was) setTimeout(() => document.getElementById(`row-${was}`)?.focus(), 0);
   };
   // J / K : item suivant / précédent ; Échap : ferme le panneau. Ignorés dans un champ de saisie ou avec un modificateur.
+  // Le gestionnaire est enregistré une fois et lit l'état du dernier rendu : un raccourci tapé juste après un rendu n'est jamais perdu.
+  const latest = useRef({ item, rows, closePanel, select: (key: string) => setParams(withItem(key), { replace: true }) });
+  latest.current = { item, rows, closePanel, select: (key: string) => setParams(withItem(key), { replace: true }) };
   useEffect(() => {
     if (vue === 'board') return undefined;
     const onKey = (event: KeyboardEvent) => {
+      const { item: open, rows: list, closePanel: close, select } = latest.current;
       const target = event.target as HTMLElement | null;
       if (event.ctrlKey || event.metaKey || event.altKey) return;
       if (target && (['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) || target.isContentEditable)) return;
       if (document.querySelector('[role="dialog"]')) return;
-      if (event.key === 'Escape' && item) { event.preventDefault(); closePanel(); return; }
+      if (event.key === 'Escape' && open) { event.preventDefault(); close(); return; }
       const step = event.key === 'j' || event.key === 'J' ? 1 : event.key === 'k' || event.key === 'K' ? -1 : 0;
-      if (step === 0 || rows.length === 0) return;
-      const index = item ? rows.findIndex((h) => h.key === item) : -1;
-      const nextIndex = index < 0 ? (step > 0 ? 0 : rows.length - 1) : Math.min(rows.length - 1, Math.max(0, index + step));
+      if (step === 0 || list.length === 0) return;
+      const index = open ? list.findIndex((h) => h.key === open) : -1;
+      const nextIndex = index < 0 ? (step > 0 ? 0 : list.length - 1) : Math.min(list.length - 1, Math.max(0, index + step));
       event.preventDefault();
-      setParams(withItem(rows[nextIndex]!.key), { replace: true });
+      select(list[nextIndex]!.key);
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  });
+  }, [vue]);
 
   const views = viewsFor(def?.typeKey ? types.find((t) => t.key === def.typeKey) : undefined);
   const known = (TRACKER_VIEWS as readonly string[]).includes(vue ?? 'tableau');
