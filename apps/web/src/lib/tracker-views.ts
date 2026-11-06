@@ -1,6 +1,6 @@
 import type { TrackerTypeEntry } from '../api';
 
-export const TRACKER_VIEWS = ['tableau', 'board', 'arbre'] as const;
+export const TRACKER_VIEWS = ['tableau', 'board', 'arbre', 'matrice'] as const;
 export type TrackerViewId = (typeof TRACKER_VIEWS)[number];
 
 /**

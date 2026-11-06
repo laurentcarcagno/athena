@@ -92,7 +92,7 @@ const frDict = {
   },
   trackerScreen: {
     eyebrow: 'Tracker', newItem: '+ Nouvel item', configure: 'Configurer', views: 'Vues du tracker', workflow: 'Workflow', empty: 'Aucun item.',
-    total: (n: number) => (n === 1 ? '1 item' : `${n} items`), viewNames: { tableau: 'Tableau', board: 'Board', arbre: 'Arbre' } as Record<string, string>,
+    total: (n: number) => (n === 1 ? '1 item' : `${n} items`), viewNames: { tableau: 'Tableau', board: 'Board', arbre: 'Arbre', matrice: 'Matrice' } as Record<string, string>,
   },
   filters: {
     bar: 'Filtres du tracker', mine: 'Assigné à moi', suspect: 'Liens suspects', all: 'Tous', text: 'Recherche dans le tracker', apply: 'Appliquer', clear: 'Effacer les filtres',
@@ -131,6 +131,13 @@ const frDict = {
   suspicion: {
     column: 'Contenu', content: 'Champ de contenu', contentHelp: 'Sa modification rend suspects les liens vers l’item', toggle: 'Champ de contenu :', propagates: 'Propage la suspicion', noPropagation: 'Sans suspicion',
     contentSaved: 'Champ de contenu enregistré.',
+  },
+  matrix: {
+    columns: 'Tracker en colonnes', linkType: 'Type de lien', exportCsv: 'Exporter en CSV', uncovered: 'non couvert', noOther: 'Ce projet n’a pas d’autre tracker à croiser.',
+    linked: 'lien existant', linkedSuspect: 'lien suspect', link: (row: string, col: string) => `Lier ${row} et ${col}`,
+    summary: (covered: number, shown: number, total: number) => `${covered} lignes couvertes sur ${shown} affichées (${total} items)`,
+    caption: (rows: string, cols: string, label: string) => `Matrice de traçabilité : ${rows} en lignes, ${cols} en colonnes, lien « ${label} »`,
+    rowsTruncated: (shown: number, total: number) => `${shown} lignes affichées sur ${total}.`,
   },
   tree: { label: 'Arbre des items', empty: 'Aucun item dans ce tracker.' },
   types: {
@@ -269,7 +276,7 @@ const enDict: Dictionary = {
   },
   trackerScreen: {
     eyebrow: 'Tracker', newItem: '+ New item', configure: 'Configure', views: 'Tracker views', workflow: 'Workflow', empty: 'No item.',
-    total: (n: number) => (n === 1 ? '1 item' : `${n} items`), viewNames: { tableau: 'Table', board: 'Board', arbre: 'Tree' } as Record<string, string>,
+    total: (n: number) => (n === 1 ? '1 item' : `${n} items`), viewNames: { tableau: 'Table', board: 'Board', arbre: 'Tree', matrice: 'Matrix' } as Record<string, string>,
   },
   filters: {
     bar: 'Tracker filters', mine: 'Assigned to me', suspect: 'Suspect links', all: 'All', text: 'Search in the tracker', apply: 'Apply', clear: 'Clear filters',
@@ -308,6 +315,13 @@ const enDict: Dictionary = {
   suspicion: {
     column: 'Content', content: 'Content field', contentHelp: 'Changing it makes the links to the item suspect', toggle: 'Content field:', propagates: 'Propagates suspicion', noPropagation: 'No suspicion',
     contentSaved: 'Content field saved.',
+  },
+  matrix: {
+    columns: 'Tracker in columns', linkType: 'Link type', exportCsv: 'Export as CSV', uncovered: 'not covered', noOther: 'This project has no other tracker to cross.',
+    linked: 'existing link', linkedSuspect: 'suspect link', link: (row: string, col: string) => `Link ${row} and ${col}`,
+    summary: (covered: number, shown: number, total: number) => `${covered} of ${shown} displayed rows covered (${total} items)`,
+    caption: (rows: string, cols: string, label: string) => `Traceability matrix: ${rows} in rows, ${cols} in columns, link “${label}”`,
+    rowsTruncated: (shown: number, total: number) => `${shown} rows displayed out of ${total}.`,
   },
   tree: { label: 'Item tree', empty: 'No item in this tracker.' },
   types: {

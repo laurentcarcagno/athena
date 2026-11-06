@@ -10,6 +10,7 @@ import { FilterBar } from '../../components/FilterBar';
 import { SavedViews, viewOf, viewToParams } from '../../components/SavedViews';
 import { MiniWorkflow } from '../../components/MiniWorkflow';
 import { PinToggle } from '../../components/PinToggle';
+import { MatrixView } from '../../components/MatrixView';
 import { TreeView } from '../../components/TreeView';
 import { useFailure } from '../../hooks';
 import { BoardView } from '../BoardPage';
@@ -30,6 +31,7 @@ export function TrackerScreen({ session }: { session: Session }) {
   const [params, setParams] = useSearchParams();
   const [def, setDef] = useState<TrackerDefinition | null>(null);
   const [counts, setCounts] = useState<TrackerOverview | null>(null);
+  const [siblings, setSiblings] = useState<string[]>([]);
   const [result, setResult] = useState<SearchResult | null>(null);
   const [creating, setCreating] = useState(false);
   const [types, setTypes] = useState<TrackerTypeEntry[]>([]);
@@ -50,7 +52,7 @@ export function TrackerScreen({ session }: { session: Session }) {
     api<TrackerDefinition>('GET', `/v1/projects/${project}/trackers/${tracker}`).then(setDef).catch(fail);
   }, [project, tracker, fail]);
   useEffect(() => {
-    api<{ trackers: TrackerOverview[] }>('GET', `/v1/projects/${project}/overview`).then((r) => setCounts(r.trackers.find((t) => t.key === tracker) ?? null)).catch(fail);
+    api<{ trackers: TrackerOverview[] }>('GET', `/v1/projects/${project}/overview`).then((r) => { setCounts(r.trackers.find((t) => t.key === tracker) ?? null); setSiblings(r.trackers.map((t) => t.key)); }).catch(fail);
   }, [project, tracker, fail]);
 
   useEffect(() => { api<TrackerTypeEntry[]>('GET', '/v1/tracker-types').then((t) => setTypes(Array.isArray(t) ? t : [])).catch(() => setTypes([])); }, []);
@@ -94,7 +96,7 @@ export function TrackerScreen({ session }: { session: Session }) {
   const latest = useRef({ item, rows, closePanel, select: (key: string) => setParams(withItem(key), { replace: true }) });
   latest.current = { item, rows, closePanel, select: (key: string) => setParams(withItem(key), { replace: true }) };
   useEffect(() => {
-    if (vue === 'board' || vue === 'arbre') return undefined;
+    if (vue === 'board' || vue === 'arbre' || vue === 'matrice') return undefined;
     const onKey = (event: KeyboardEvent) => {
       const { item: open, rows: list, closePanel: close, select } = latest.current;
       const target = event.target as HTMLElement | null;
@@ -150,7 +152,10 @@ export function TrackerScreen({ session }: { session: Session }) {
           <Link key={v} to={`${base}/${v}`} className="ath-tab" aria-current={v === current ? 'page' : undefined}>{fr.trackerScreen.viewNames[v]}</Link>
         ))}
       </nav>
-      {current === 'board' ? <BoardView project={String(project)} board={`~${tracker}`} header={false} /> : current === 'arbre' ? (
+      {current === 'board' ? <BoardView project={String(project)} board={`~${tracker}`} header={false} /> : current === 'matrice' ? (
+        <MatrixView project={String(project)} tracker={String(tracker)} columnsTracker={params.get('mx')} linkType={params.get('mt')} offset={Number(params.get('mo') ?? '0') || 0}
+          trackers={siblings} onChange={next} />
+      ) : current === 'arbre' ? (
         <div className={item ? 'ath-split' : undefined}>
           <div><TreeView project={String(project)} tracker={String(tracker)} selected={item} onOpen={(key) => setParams(withItem(key))} /></div>
           {item && <DetailPanel session={session} project={String(project)} itemKey={item} onClose={closePanel}

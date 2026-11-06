@@ -315,7 +315,7 @@ describe('vue Board du tracker', () => {
     typeKey = null;
     app('/p/ARI/t/BUG/tableau');
     await screen.findByRole('link', { name: 'ARI-BUG-0001' });
-    expect(viewTabs()).toEqual(['Tableau', 'Board', 'Arbre']);
+    expect(viewTabs()).toEqual(['Tableau', 'Board', 'Arbre', 'Matrice']);
   });
 
   it('la page d’un board de projet est inchangée', async () => {

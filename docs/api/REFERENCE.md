@@ -90,3 +90,5 @@ Un champ de tracker porte `isContent` (vrai par défaut), accepté à la créati
 
 `GET /v1/projects/:p/trackers/:t/tree[?parent=CLÉ]` renvoie `{items, total}` : les racines du tracker (items sans parent dans ce tracker) ou les enfants directs de `parent`, dans l'ordre de création. Chaque item porte `key`, `title` (la clé si le champ titre est à lecture restreinte), `status`, `statusName`, `category`, `childCount` et `suspect`. Convention : pour un type de lien `hierarchical`, le lien va de l'enfant vers le parent ; seuls les liens entre items du même tracker comptent.
 
+`GET /v1/projects/:p/matrix?rows=TRACKER&cols=TRACKER&type=CLÉ[&offset=N]` renvoie la matrice de traçabilité `{type, rows, cols, totalRows, totalCols, links}` : les items de `rows` (500 au plus, avec `linked`, vrai si la ligne a un lien de ce type avec un item de `cols`, même hors de la fenêtre affichée) croisés avec ceux de `cols` par fenêtres de 200 (`offset`). `links` liste les cases remplies de la fenêtre (`row`, `col`, `suspect`), que le lien ait été créé dans un sens ou dans l'autre. Titres restreints remplacés par la clé. 404 si un tracker ou le type de lien est inconnu.
+

@@ -86,7 +86,7 @@ describe('sélecteur de frères du fil d’Ariane', () => {
   it('propose les vues que le type du tracker offre : toutes les vues sans type, Tableau et Arbre pour une exigence', async () => {
     const first = show('/p/ARI/t/BUG/tableau');
     await userEvent.click(screen.getByRole('button', { name: 'Changer de vue' }));
-    expect(within(await screen.findByRole('list', { name: 'Changer de vue' })).getAllByRole('link').map((l) => l.textContent)).toEqual(['Tableau', 'Board', 'Arbre']);
+    expect(within(await screen.findByRole('list', { name: 'Changer de vue' })).getAllByRole('link').map((l) => l.textContent)).toEqual(['Tableau', 'Board', 'Arbre', 'Matrice']);
     first.unmount();
     show('/p/ARI/t/REQ/tableau');
     await userEvent.click(screen.getByRole('button', { name: 'Changer de vue' }));
