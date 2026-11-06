@@ -26,8 +26,8 @@ test('connexion Keycloak, liste des projets, ouverture d’un artefact et transi
   await login(page, 'user.dev', 'dev-only-user');
   await expect(page.getByText('Ariane')).toBeVisible();
   await page.getByRole('link', { name: /Bugs|BUG/ }).first().click();
-  await expect(page.getByText('ARI-BUG-0001')).toBeVisible();
-  await page.getByText('ARI-BUG-0001').first().click();
+  await expect(page.getByRole('link', { name: 'ARI-BUG-0001' })).toBeVisible();
+  await page.getByRole('link', { name: 'ARI-BUG-0001' }).click(); // le lien du tableau (le rail propose aussi la clé dans les récents)
   await expect(page.getByRole('complementary', { name: 'Détail de l’item' })).toBeVisible(); // panneau de détail à droite de la liste
   await page.getByRole('button', { name: 'Agrandir' }).click();
   await expect(page.getByRole('heading', { level: 1 })).toContainText('ARI-BUG-0001');
@@ -48,9 +48,9 @@ test('accessibilité réelle (contraste inclus) : projets, liste et fiche', asyn
   await expect(page.getByText('Ariane')).toBeVisible();
   expect(await axeViolations(page)).toEqual([]);
   await page.getByRole('link', { name: /Bugs|BUG/ }).first().click();
-  await expect(page.getByText('ARI-BUG-0001')).toBeVisible();
+  await expect(page.getByRole('link', { name: 'ARI-BUG-0001' })).toBeVisible();
   expect(await axeViolations(page)).toEqual([]);
-  await page.getByText('ARI-BUG-0001').first().click();
+  await page.getByRole('link', { name: 'ARI-BUG-0001' }).click(); // le lien du tableau (le rail propose aussi la clé dans les récents)
   await expect(page.getByRole('complementary', { name: 'Détail de l’item' })).toBeVisible(); // panneau de détail à droite de la liste
   await page.getByRole('button', { name: 'Agrandir' }).click();
   await expect(page.getByRole('heading', { level: 1 })).toContainText('ARI-BUG-0001');
@@ -124,8 +124,8 @@ test('administrateur : crée un projet, nomme un chef de projet et gère les act
   await page.getByRole('tab', { name: 'Templates' }).click();
   await expect(page.getByRole('row', { name: /Qualité/ })).toBeVisible();
   expect(await axeViolations(page)).toEqual([]);
-  await page.goto('/p/PAY/manage');
-  await expect(page.getByRole('tab', { name: 'Acteurs' })).toBeVisible();
+  await page.goto('/p/PAY/membres');
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Membres · PAY');
   expect(await axeViolations(page)).toEqual([]);
 });
 
@@ -178,7 +178,7 @@ test('administrateur : personnalise la disposition de la vue détails à la cré
   const token = (await (await request.post('http://localhost:8080/realms/athena/protocol/openid-connect/token', { form: { grant_type: 'password', client_id: 'athena-dev-cli', username: 'admin.dev', password: 'dev-only-admin' } })).json()).access_token as string;
   const created = await request.post('http://127.0.0.1:3001/v1/projects/ARI/trackers/LAY/artifacts', { headers: { Authorization: `Bearer ${token}` }, data: { values: { title: 'Panne', severity: 'majeure' } } });
   expect(created.status()).toBe(201);
-  await page.goto('/p/ARI/a/LAY-1');
+  await page.goto('/p/ARI/a/ARI-LAY-0001');
   const resume = page.getByRole('region', { name: 'Résumé' });
   await expect(resume).toBeVisible();
   const first = resume.locator('[class*="ath-span-"]').first();

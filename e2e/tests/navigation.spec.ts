@@ -38,7 +38,8 @@ test('colonnes du tableau et sélecteur de frères du fil d’Ariane', async ({ 
   await login(page, 'user.dev', 'dev-only-user');
   await page.goto('/p/ARI/t/BUG/tableau');
   await page.getByRole('button', { name: 'Colonnes' }).click();
-  await page.getByRole('checkbox', { name: 'Sévérité' }).check();
+  await page.getByRole('checkbox', { name: 'Sévérité' }).click();
+  await expect(page.getByRole('checkbox', { name: 'Sévérité' })).toBeChecked(); // état piloté par l'adresse : il se met à jour juste après le clic
   await expect(page.getByRole('columnheader', { name: /Sévérité/ })).toBeVisible();
   await expect(page).toHaveURL(/cols=/);
   await page.getByRole('button', { name: 'Changer de tracker' }).click();
