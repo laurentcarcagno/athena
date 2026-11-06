@@ -107,7 +107,8 @@ function PluginWidgets({ project }: { project: string }) {
   );
 }
 
-export function DashboardPage() {
+/** Indicateurs du projet ; `embedded` retire l'en-tête quand la page est une partie de la Vue d'ensemble. */
+export function DashboardPage({ embedded = false }: { embedded?: boolean } = {}) {
   const { project } = useParams();
   const fail = useFailure();
   const [data, setData] = useState<DashboardData | null>(null);
@@ -129,7 +130,7 @@ export function DashboardPage() {
 
   return (
     <>
-      <PageHeader eyebrow={fr.dashboard.eyebrow} title={`${fr.dashboard.title} · ${project}`} />
+      {!embedded && <PageHeader eyebrow={fr.dashboard.eyebrow} title={`${fr.dashboard.title} · ${project}`} />}
       {/* Composition asymétrique : un indicateur principal large, deux secondaires (pas de grille de tuiles identiques). */}
       <div className="ath-dash">
         <div className="ath-dash__main"><StatCard label={fr.dashboard.open} value={data.byCategory.todo + data.byCategory.in_progress} delta={`${total} ${fr.dashboard.total.toLowerCase()}`} /></div>

@@ -7,7 +7,6 @@ import { fr, getLocale, setLocale, useLocale } from './i18n';
 import { AdminPage } from './pages/AdminPage';
 import { ArtifactPage } from './pages/ArtifactPage';
 import { BoardPage } from './pages/BoardPage';
-import { DashboardPage } from './pages/DashboardPage';
 import { ListPage } from './pages/ListPage';
 import { MyWorkPage } from './pages/MyWorkPage';
 import { HelpPage } from './pages/HelpPage';
@@ -15,6 +14,8 @@ import { OrgAdminPage } from './pages/OrgAdminPage';
 import { ProjectManagePage } from './pages/ProjectManagePage';
 import { ProjectsPage } from './pages/ProjectsPage';
 import { OverviewOrLegacySearch, ProjectShell } from './pages/project/ProjectShell';
+import { OverviewTab } from './pages/project/OverviewTab';
+import { TrackersTab } from './pages/project/TrackersTab';
 import { TrackerConfigPage } from './pages/TrackerConfigPage';
 import { TrackerCreatePage } from './pages/TrackerCreatePage';
 
@@ -106,7 +107,8 @@ export function AuthenticatedApp({ session }: { session: Session }) {
         <Route path="/me" element={<MyWorkPage session={session} />} />
         <Route path="/org" element={<OrgAdminPage session={session} />} />
         <Route path="/p/:project" element={<ProjectShell />}>
-          <Route index element={<OverviewOrLegacySearch><DashboardPage /></OverviewOrLegacySearch>} />
+          <Route index element={<OverviewOrLegacySearch><OverviewTab session={session} /></OverviewOrLegacySearch>} />
+          <Route path="trackers" element={<TrackersTab />} />
           <Route path="planification" element={<ProjectManagePage session={session} />} />
         </Route>
         <Route path="/p/:project/recherche" element={<ListPage session={session} />} />

@@ -70,6 +70,10 @@ export interface TrackerTypeEntry {
   defaultViews: string[]; baseFields: Array<{ key: string; label: string; type: string; required?: boolean; config?: Record<string, unknown>; semanticRole?: string }>;
   builtin: boolean; modified: boolean;
 }
+export interface TrackerOverview {
+  key: string; name: string; typeKey: string | null; category: string; artifacts: number; mine: number; lastActivity: string | null;
+  statuses: Array<{ key: string; name: string; category: string; count: number }>;
+}
 export interface TrackerDefinition {
   key: string; name: string; typeKey?: string | null; historyMode?: 'direct' | 'merge_request'; layout?: import('./lib/layout').Layout | null;
   fields: Field[];

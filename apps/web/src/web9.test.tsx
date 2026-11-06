@@ -7,6 +7,11 @@ import { AuthenticatedApp } from './App';
 import type { Session } from './api';
 import { PROJECT_TABS, visibleTabs, type ProjectTabId } from './pages/project/ProjectShell';
 
+const OVERVIEW = [
+  { key: 'REQ', name: 'Exigences', typeKey: 'requirement', category: 'engineering', artifacts: 10, mine: 0, lastActivity: '2026-11-05T10:00:00.000Z', statuses: [{ key: 'draft', name: 'Brouillon', category: 'todo', count: 2 }, { key: 'approved', name: 'Approuvée', category: 'in_progress', count: 3 }, { key: 'verified', name: 'Vérifiée', category: 'done', count: 5 }] },
+  { key: 'BUG', name: 'Anomalies', typeKey: 'bug', category: 'development', artifacts: 4, mine: 2, lastActivity: null, statuses: [{ key: 'open', name: 'Ouvert', category: 'todo', count: 4 }] },
+  { key: 'NOTE', name: 'Notes', typeKey: null, category: 'other', artifacts: 0, mine: 0, lastActivity: null, statuses: [{ key: 'new', name: 'Nouveau', category: 'todo', count: 0 }] },
+];
 const calls: string[] = [];
 let modules: string[] | 'error' = ['overview', 'trackers', 'planning', 'traceability', 'documents', 'code', 'activity', 'members'];
 
@@ -17,6 +22,7 @@ beforeEach(() => {
     calls.push(input);
     const ok = (body: unknown) => new Response(JSON.stringify(body), { status: 200 });
     if (/\/modules$/.test(input)) return modules === 'error' ? new Response('{}', { status: 500 }) : ok({ modules });
+    if (/\/overview$/.test(input)) return ok({ trackers: OVERVIEW });
     if (/\/dashboard$/.test(input)) return ok({ byCategory: { todo: 3, in_progress: 2, done: 7 }, byTracker: [{ tracker: 'BUG', total: 12, open: 5 }], distribution: null, recent: [] });
     if (/\/velocity$/.test(input)) return ok({ sprints: [], average: 0, forecast: 0 });
     if (/\/flow/.test(input) || /\/roadmap$/.test(input)) return ok([]);
@@ -49,8 +55,8 @@ describe('onglets d’un projet', () => {
 describe('coquille de projet', () => {
   it('affiche la barre d’onglets avec l’onglet courant signalé', async () => {
     app('/p/ARI');
-    await screen.findByRole('heading', { level: 1, name: 'Tableau de bord · ARI' });
-    expect(tabNames()).toEqual(['Vue d’ensemble', 'Planification']);
+    await screen.findByRole('heading', { level: 1, name: 'Vue d’ensemble · ARI' });
+    expect(tabNames()).toEqual(['Vue d’ensemble', 'Trackers', 'Planification']);
     expect(screen.getByRole('link', { name: 'Vue d’ensemble' })).toHaveAttribute('aria-current', 'page');
     expect(screen.getByRole('link', { name: 'Planification' })).not.toHaveAttribute('aria-current');
   });
@@ -58,19 +64,19 @@ describe('coquille de projet', () => {
   it('masque l’onglet dont le module est inactif, sans décaler les autres', async () => {
     modules = ['overview', 'trackers', 'activity', 'members']; // planification inactive
     app('/p/ARI');
-    await waitFor(() => expect(tabNames()).toEqual(['Vue d’ensemble']));
+    await waitFor(() => expect(tabNames()).toEqual(['Vue d’ensemble', 'Trackers']));
   });
 
   it('garde les onglets existants quand la liste des modules est indisponible', async () => {
     modules = 'error';
     app('/p/ARI');
-    await screen.findByRole('heading', { level: 1, name: 'Tableau de bord · ARI' });
-    expect(tabNames()).toEqual(['Vue d’ensemble', 'Planification']);
+    await screen.findByRole('heading', { level: 1, name: 'Vue d’ensemble · ARI' });
+    expect(tabNames()).toEqual(['Vue d’ensemble', 'Trackers', 'Planification']);
   });
 
   it('se parcourt au clavier : chaque onglet est un lien, atteint par Tab', async () => {
     app('/p/ARI');
-    await screen.findByRole('heading', { level: 1, name: 'Tableau de bord · ARI' });
+    await screen.findByRole('heading', { level: 1, name: 'Vue d’ensemble · ARI' });
     const link = screen.getByRole('link', { name: 'Planification' });
     link.focus();
     expect(link).toHaveFocus();
@@ -79,7 +85,7 @@ describe('coquille de projet', () => {
 
   it('n’a aucune violation d’accessibilité', async () => {
     const { container } = app('/p/ARI');
-    await screen.findByRole('heading', { level: 1, name: 'Tableau de bord · ARI' });
+    await screen.findByRole('heading', { level: 1, name: 'Vue d’ensemble · ARI' });
     const result = await axe.run(container, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] }, rules: { 'color-contrast': { enabled: false }, region: { enabled: false } } });
     expect(result.violations.map((v) => `${v.id} : ${v.help}`)).toEqual([]);
   });
@@ -103,7 +109,43 @@ describe('anciennes adresses', () => {
     expect(screen.getByRole('link', { name: 'Planification' })).toHaveAttribute('aria-current', 'page');
     first.unmount();
     app('/p/ARI/dashboard');
-    expect(await screen.findByRole('heading', { level: 1, name: 'Tableau de bord · ARI' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { level: 1, name: 'Vue d’ensemble · ARI' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Vue d’ensemble' })).toHaveAttribute('aria-current', 'page');
+  });
+});
+
+describe('onglet Trackers', () => {
+  it('groupe les trackers par catégorie dans l’ordre fixe, avec compteurs par état et éléments à moi', async () => {
+    app('/p/ARI/trackers');
+    await screen.findByRole('heading', { level: 1, name: 'Trackers · ARI' });
+    const groups = (await screen.findAllByRole('heading', { level: 2 })).map((h) => h.textContent).filter((t) => ['Ingénierie', 'Développement', 'Autres', 'Pilotage'].includes(String(t)));
+    expect(groups).toEqual(['Ingénierie', 'Développement', 'Autres']); // catégories vides absentes
+    const req = screen.getByRole('region', { name: 'Ingénierie' });
+    expect(within(req).getByText('Exigences')).toBeInTheDocument();
+    expect(within(req).getByText('10 items')).toHaveClass('ath-mono');
+    expect(within(req).getByRole('img', { name: /Brouillon 2, Approuvée 3, Vérifiée 5/ })).toBeInTheDocument();
+    expect(within(screen.getByRole('region', { name: 'Développement' })).getByText('2 à moi')).toBeInTheDocument();
+    expect(within(screen.getByRole('region', { name: 'Autres' })).getByText(/Aucune activité/)).toBeInTheDocument();
+    expect(within(req).getByRole('link', { name: 'Ouvrir Exigences' })).toHaveAttribute('href', '/p/ARI/recherche?q=tracker%20%3D%20REQ');
+  });
+  it('n’a aucune violation d’accessibilité', async () => {
+    const { container } = app('/p/ARI/trackers');
+    await screen.findByRole('heading', { level: 1, name: 'Trackers · ARI' });
+    await screen.findByRole('region', { name: 'Ingénierie' });
+    const result = await axe.run(container, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] }, rules: { 'color-contrast': { enabled: false }, region: { enabled: false } } });
+    expect(result.violations.map((v) => `${v.id} : ${v.help}`)).toEqual([]);
+  });
+});
+
+describe('Vue d’ensemble', () => {
+  it('liste les trackers et mes items, même sans aucune donnée', async () => {
+    app('/p/ARI');
+    await screen.findByRole('heading', { level: 1, name: 'Vue d’ensemble · ARI' });
+    expect(await screen.findByText('Rien n’est assigné à votre nom.')).toBeInTheDocument();
+    const card = screen.getByRole('link', { name: 'REQ' }).closest('section')!;
+    expect(within(card).getByRole('link', { name: 'REQ' })).toHaveAttribute('href', '/p/ARI/recherche?q=tracker%20%3D%20REQ');
+    expect(within(card).getByText('5 ouverts / 10')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Tout voir dans la Recherche' })).toHaveAttribute('href', '/p/ARI/recherche?q=assignee%20%3D%20%22u%22');
+    expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
   });
 });

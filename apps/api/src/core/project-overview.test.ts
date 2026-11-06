@@ -3,7 +3,9 @@ import { createTestDb, pgUp, type TestDb } from '../testing/harness';
 import { Db, type Actor } from './db';
 import { DomainError } from './errors';
 import { FieldTypeRegistry } from './field-types';
+import { ArtifactService } from './artifact.service';
 import { LinkService } from './link.service';
+import { bugTemplate, requirementTemplate } from './templates';
 import { PROJECT_MODULES, ProjectOverviewService } from './project-overview.service';
 import { TrackerService } from './tracker.service';
 
@@ -14,13 +16,18 @@ suite('modules actifs d’un projet', () => {
   let testDb: TestDb;
   let overview: ProjectOverviewService;
   let links: LinkService;
+  let artifacts: ArtifactService;
+  let trackerSvc: TrackerService;
   const org = crypto.randomUUID();
   const other = crypto.randomUUID();
 
   beforeAll(async () => {
     testDb = await createTestDb('athena_test_modules');
     const db = new Db(testDb.pool);
-    const trackers = new TrackerService(db, new FieldTypeRegistry());
+    const registry = new FieldTypeRegistry();
+    const trackers = new TrackerService(db, registry);
+    trackerSvc = trackers;
+    artifacts = new ArtifactService(db, trackers, registry);
     overview = new ProjectOverviewService(db);
     links = new LinkService(db);
     for (const [id, key] of [[org, 'mod-a'], [other, 'mod-b']] as const) await db.tx(id, (c) => c.query('insert into organization (id, key, name) values ($1,$2,$2)', [id, key]));
@@ -53,5 +60,25 @@ suite('modules actifs d’un projet', () => {
       expect(error).toBeInstanceOf(DomainError);
       expect((error as DomainError).code).toBe('not_found');
     }
+  });
+
+  it('résume les trackers : compteurs par statut, éléments à moi, catégorie du type, dernière activité', async () => {
+    await trackerSvc.createTracker(org, { ...bugTemplate('OTH'), typeKey: 'bug' }, actor);
+    await trackerSvc.createTracker(org, requirementTemplate('OTH'), actor); // sans type
+    const a = await artifacts.create(org, 'OTH', 'BUG', { title: 'Un', severity: 'majeure', assignee: 'alice' }, actor);
+    await artifacts.create(org, 'OTH', 'BUG', { title: 'Deux', severity: 'mineure', assignee: 'bob' }, actor);
+    await artifacts.create(org, 'OTH', 'BUG', { title: 'Trois', severity: 'mineure' }, actor);
+    await artifacts.update(org, 'OTH', a.key, { assignee: 'alice', root_cause: 'x' }, 1, actor);
+    const { trackers } = await overview.overview(org, 'OTH', 'alice');
+    expect(trackers.map((t) => t.key)).toEqual(['BUG', 'REQ']);
+    const bug = trackers[0]!;
+    expect(bug).toMatchObject({ typeKey: 'bug', category: 'development', artifacts: 3, mine: 1 });
+    expect(bug.statuses.find((s) => s.key === 'open')).toMatchObject({ count: 3, category: 'todo' });
+    expect(bug.statuses.every((s) => typeof s.name === 'string')).toBe(true);
+    expect(bug.lastActivity).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+    expect(trackers[1]).toMatchObject({ typeKey: null, category: 'other', artifacts: 0, mine: 0, lastActivity: null });
+    expect((await overview.overview(org, 'OTH', 'bob')).trackers[0]!.mine).toBe(1);
+    await trackerSvc.setType(org, 'OTH', 'REQ', 'requirement', actor);
+    expect((await overview.overview(org, 'OTH', 'alice')).trackers[1]!.category).toBe('engineering');
   });
 });

@@ -16,4 +16,12 @@ export class ProjectOverviewController {
   async modules(@Req() request: AuthedRequest, @Param('project') project: string) {
     return this.overview.modules((await this.orgs.resolve(request.principal!)).organizationId, project);
   }
+
+  /** Carte des trackers : compteurs par statut, éléments à moi, dernière activité. */
+  @Roles('athena-user', 'athena-admin')
+  @Get(':project/overview')
+  async overviewOf(@Req() request: AuthedRequest, @Param('project') project: string) {
+    const { organizationId } = await this.orgs.resolve(request.principal!);
+    return this.overview.overview(organizationId, project, request.principal!.username);
+  }
 }
