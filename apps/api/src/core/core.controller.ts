@@ -13,7 +13,7 @@ import { KeySchema, OrgResolver, parseBody } from './http';
 import { TrackerService } from './tracker.service';
 
 const SetTypeBody = z.object({ typeKey: z.string().regex(/^[a-z][a-z0-9-]{1,39}$/).nullable() });
-const ProjectBody = z.object({ key: KeySchema, name: z.string().min(1).max(200), template: z.string().max(40).optional() });
+const ProjectBody = z.object({ key: KeySchema, name: z.string().min(1).max(200), template: z.string().max(40).optional(), templateVersion: z.string().regex(/^[0-9]+(\.[0-9]+)?$/).optional(), criticality: z.string().max(20).optional() });
 
 const TrackerBody = z.object({
   layout: LayoutSchema.optional(),
@@ -139,8 +139,8 @@ export class CoreController {
   async createProject(@Req() request: AuthedRequest, @Body() body: unknown) {
     const { organizationId, actor } = await this.orgs.resolve(principalOf(request));
     const input = parseBody(ProjectBody, body);
-    const created = await this.templates.createProject(organizationId, input.key, input.name, input.template, actor);
-    return { key: input.key, name: input.name, trackers: created.trackers };
+    const created = await this.templates.createProject(organizationId, input.key, input.name, input.template, actor, { ...(input.templateVersion ? { version: input.templateVersion } : {}), ...(input.criticality ? { criticality: input.criticality } : {}) });
+    return { key: input.key, name: input.name, trackers: created.trackers, templateVersion: created.templateVersion };
   }
 
   @Roles('athena-admin')

@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { Roles, type AuthedRequest } from '../auth/auth.guard';
 import { BodySchema } from '../openapi/body-schema';
 import { OrgResolver, parseBody } from './http';
+import { NormativeSchema } from './normative-template';
 import { TemplateService, TemplateTrackerSchema } from './template.service';
 
 const TemplateBody = z.object({
@@ -14,12 +15,17 @@ const TemplateBody = z.object({
   fromProject: z.object({ project: z.string().min(1).max(10), trackers: z.array(z.string()).max(30).optional() }).optional(),
   /** Clés de templates de tracker (livrés ou de l'organisation) à inclure. */
   trackerTemplates: z.array(z.string().max(40)).max(30).optional(),
+  normative: NormativeSchema.optional(),
 });
+
+const PublishBody = z.object({ version: z.string().regex(/^[0-9]+(\.[0-9]+)?$/).optional() });
+const ImportBody = z.object({ yaml: z.string().min(1).max(2_000_000) });
 
 const TemplateUpdateBody = z.object({
   name: z.string().trim().min(1).max(200),
   description: z.string().max(2000).optional(),
   trackers: z.array(TemplateTrackerSchema).max(30),
+  normative: NormativeSchema.optional(),
 });
 
 const TrackerTemplateUpdateBody = z.object({
@@ -60,7 +66,7 @@ export class TemplateController {
       ...(input.fromProject ? await this.templates.trackersOf(organizationId, input.fromProject.project, input.fromProject.trackers) : []),
       ...(input.trackerTemplates?.length ? await this.templates.trackersFromTemplates(organizationId, input.trackerTemplates) : []),
     ];
-    await this.templates.create(organizationId, { key: input.key, name: input.name, ...(input.description ? { description: input.description } : {}), trackers }, actor);
+    await this.templates.create(organizationId, { key: input.key, name: input.name, ...(input.description ? { description: input.description } : {}), trackers, ...(input.normative ? { normative: input.normative } : {}) }, actor);
     return { key: input.key, trackers: trackers.map((t) => t.key) };
   }
 
@@ -70,8 +76,38 @@ export class TemplateController {
   async update(@Req() request: AuthedRequest, @Param('key') key: string, @Body() body: unknown) {
     const { organizationId, actor } = await this.orgs.resolve(request.principal!);
     const input = parseBody(TemplateUpdateBody, body);
-    await this.templates.update(organizationId, key, { name: input.name, ...(input.description !== undefined ? { description: input.description } : {}), trackers: input.trackers }, actor);
+    await this.templates.update(organizationId, key, { name: input.name, ...(input.description !== undefined ? { description: input.description } : {}), trackers: input.trackers, ...(input.normative ? { normative: input.normative } : {}) }, actor);
     return { key, trackers: input.trackers.map((t) => t.key) };
+  }
+
+  @Roles('athena-admin')
+  @Get(':key/versions')
+  async versions(@Req() request: AuthedRequest, @Param('key') key: string) {
+    return this.templates.versions((await this.orgs.resolve(request.principal!)).organizationId, key);
+  }
+
+  /** Publie le gabarit : fige une version immuable. */
+  @Roles('athena-admin')
+  @Post(':key/publish')
+  @BodySchema(PublishBody)
+  async publish(@Req() request: AuthedRequest, @Param('key') key: string, @Body() body: unknown) {
+    const { organizationId, actor } = await this.orgs.resolve(request.principal!);
+    const snapshot = await this.templates.publish(organizationId, key, parseBody(PublishBody, body ?? {}).version, actor);
+    return { key, version: snapshot.version };
+  }
+
+  @Roles('athena-admin')
+  @Get(':key/export')
+  async exportYaml(@Req() request: AuthedRequest, @Param('key') key: string) {
+    return { key, yaml: await this.templates.exportYaml((await this.orgs.resolve(request.principal!)).organizationId, key) };
+  }
+
+  @Roles('athena-admin')
+  @Post('import')
+  @BodySchema(ImportBody)
+  async importYaml(@Req() request: AuthedRequest, @Body() body: unknown) {
+    const { organizationId, actor } = await this.orgs.resolve(request.principal!);
+    return this.templates.importYaml(organizationId, parseBody(ImportBody, body).yaml, actor);
   }
 
   /** Supprime un template de l'organisation ; pour un template livré, rétablit sa version d'origine. */
