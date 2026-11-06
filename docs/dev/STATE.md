@@ -18,6 +18,11 @@ Dernière mise à jour : 2026-11-01
 
 Objectif : amener le prototype vers `docs/dev/SPEC_IHM.md`. Plan et décisions : `docs/dev/DECISIONS/ADR-0002-ihm-cible.md`. **Phase 1 (planification) terminée ; aucun code avant validation.** Une tâche par session, dans l'ordre ci-dessous ; arrêt et compte rendu à la fin de chaque lot.
 
+## Changement de lot (règle de l'utilisateur, 2026-11-06)
+- À la fin d'un lot : s'arrêter et faire un compte rendu court ; l'utilisateur décide d'ouvrir le lot suivant.
+- **Aucun lot ne s'ouvre tant que les écarts du lot précédent ne sont pas comblés.** Un écart n'est toléré que s'il est infaisable, et l'utilisateur l'accepte alors explicitement.
+- Décisions : « moins de 3 actions » signifie **au plus 3** ; l'écriture des règles de couverture reste réservée aux administrateurs.
+
 - **Fait** : T-0048 (c541516) ; T-0049, T-0050, T-0098 (un seul commit, voir leurs CONTEXT.md). T-0051 et T-0052 faits : **Lot 0 terminé, arrêt pour compte rendu**. **Lot 1 ouvert par l'utilisateur** : T-0097, T-0100, T-0053, T-0054 et T-0055 à T-0061, T-0101 et T-0102 faits : **Lot 1 terminé, arrêt pour compte rendu**; e2e rejoués : 13 sur 13. **Lot 2 ouvert** : T-0062 à T-0068 faits : **Lot 2 terminé, arrêt pour compte rendu** (T-0101 Activité plus tard dans le lot).
 - **Environnement** : `pnpm install` fait ; `deploy/dev/.env` créé (ignoré par Git) avec un jeton GitLab local ; e2e à rejouer quand les ports 3000/3001 sont libres.
 - **Lot 0, hygiène et clés** : T-0048 hygiène (.turbo, spécification) · T-0049 clés : migration 030, génération, alias · T-0050 clés : analyse dans les textes (refs, branches, StrictDoc, webhooks, CLI) · T-0098 clés : résolution des alias dans les autres services et l'ATQL · T-0051 clés : historique GitLab · T-0052 clés : interface, redirections, e2e, documentation.

@@ -18,13 +18,14 @@ let rules: unknown[] = [];
 
 beforeEach(() => {
   calls.length = 0;
-  rules = [rule(), rule({ key: 'deux', scope: 'project', name: 'Deux tests', minCount: 2, atql: { total: 'tracker = REQ', gaps: null, suspect: 'tracker = REQ AND suspect()' }, gaps: [], covered: 4, rate: 100, level: 'ok', suspect: 0 })];
+  rules = [rule(), rule({ key: 'deux', scope: 'project', name: 'Deux tests', minCount: 2, direction: 'in', atql: { total: 'tracker = REQ', gaps: 'tracker = REQ AND NOT linkCount("verifies", 2, "in")', suspect: 'tracker = REQ AND suspect()' }, gaps: [], covered: 4, rate: 100, level: 'ok', suspect: 0 })];
   vi.stubGlobal('fetch', vi.fn(async (input: string, init?: RequestInit) => {
     calls.push({ method: init?.method ?? 'GET', url: input, body: init?.body as string | undefined });
     const ok = (body: unknown, status = 200) => new Response(status === 204 ? null : JSON.stringify(body), { status });
     if (/\/coverage$/.test(input)) return ok(rules);
     if (/\/coverage-rules/.test(input) && init?.method === 'POST') return ok({ key: 'nouvelle' }, 201);
     if (/\/coverage-rules\//.test(input) && init?.method === 'DELETE') return ok(null, 204);
+    if (/\/coverage-rules\//.test(input) && init?.method === 'PUT') return ok({ key: 'deux' });
     if (/\/link-types$/.test(input)) return ok([{ key: 'verifies', outwardLabel: 'vérifie' }]);
     if (/\/projects\/ARI\/trackers$/.test(input)) return ok([{ key: 'REQ' }, { key: 'TST' }]);
     if (/\/modules$/.test(input)) return ok({ modules: ['overview', 'trackers', 'planning', 'traceability', 'activity', 'members'] });
@@ -54,11 +55,28 @@ describe('onglet Traçabilité', () => {
     expect(screen.queryByRole('button', { name: 'Ajouter une règle' })).toBeNull(); // réservé aux administrateurs
   });
 
-  it('un nombre sans requête ATQL exacte n’est pas un lien', async () => {
+  it('chaque nombre est un lien, y compris pour une règle à deux liens minimum', async () => {
     app(user);
     const section = (await screen.findByRole('heading', { name: /Deux tests/ })).closest('section')!;
-    expect(within(section).queryByRole('link', { name: '0 en défaut' })).toBeNull();
-    expect(within(section).getByText('0 en défaut')).toBeInTheDocument();
+    expect(within(section).getByRole('link', { name: '0 en défaut' })).toHaveAttribute('href', `/p/ARI/t/REQ/tableau?f=${encodeURIComponent('NOT linkCount("verifies", 2, "in")')}`);
+  });
+
+  it('l’administrateur modifie une règle : formulaire prérempli, clé et portée figées, PUT sur la règle', async () => {
+    app(admin);
+    const section = (await screen.findByRole('heading', { name: /Deux tests/ })).closest('section')!;
+    await userEvent.click(within(section).getByRole('button', { name: 'Modifier' }));
+    const form = screen.getByRole('form', { name: 'Modifier la règle « Deux tests »' });
+    expect(within(form).getByLabelText('Clé de la règle (minuscules)')).toHaveValue('deux');
+    expect(within(form).getByLabelText('Clé de la règle (minuscules)')).toHaveAttribute('readonly');
+    expect(within(form).getByLabelText('Portée')).toBeDisabled();
+    expect(within(form).getByLabelText('Nombre minimal de liens')).toHaveValue(2);
+    await userEvent.clear(within(form).getByLabelText('Nombre minimal de liens'));
+    await userEvent.type(within(form).getByLabelText('Nombre minimal de liens'), '3');
+    await userEvent.click(within(form).getByRole('button', { name: 'Enregistrer la règle' }));
+    await waitFor(() => expect(calls.some((c) => c.method === 'PUT' && /projects\/ARI\/coverage-rules\/deux$/.test(c.url))).toBe(true));
+    const sent = JSON.parse(calls.find((c) => c.method === 'PUT')!.body!);
+    expect(sent).toMatchObject({ name: 'Deux tests', minCount: 3, fromTracker: 'REQ' });
+    expect(sent.key).toBeUndefined();
   });
 
   it('l’administrateur crée une règle avec ses seuils', async () => {

@@ -133,7 +133,7 @@ const frDict = {
     contentSaved: 'Champ de contenu enregistré.',
   },
   traceability: {
-    title: 'Traçabilité', addRule: 'Ajouter une règle', createRule: 'Créer la règle', created: 'Règle créée.', deleted: 'Règle supprimée.', empty: 'Aucune règle de couverture. Une règle dit, par exemple, que toute exigence validée est vérifiée par au moins un test.',
+    title: 'Traçabilité', addRule: 'Ajouter une règle', createRule: 'Créer la règle', created: 'Règle créée.', saved: 'Règle enregistrée.', edit: 'Modifier', saveRule: 'Enregistrer la règle', editRule: (n: string) => `Modifier la règle « ${n} »`, deleted: 'Règle supprimée.', empty: 'Aucune règle de couverture. Une règle dit, par exemple, que toute exigence validée est vérifiée par au moins un test.',
     ruleKey: 'Clé de la règle (minuscules)', ruleName: 'Nom de la règle', scope: 'Portée', fromTracker: 'Tracker visé', linkType: 'Type de lien', direction: 'Sens du lien', minCount: 'Nombre minimal de liens',
     statuses: 'États visés (clés séparées par des virgules, tous si vide)', targetLabel: 'Objectif (%)', warningLabel: 'Seuil d’alerte (%)',
     scopes: { project: 'Projet', organization: 'Organisation' }, directions: { any: 'Dans les deux sens', in: 'Vers l’item (entrant)', out: 'Depuis l’item (sortant)' },
@@ -148,9 +148,9 @@ const frDict = {
   matrix: {
     columns: 'Tracker en colonnes', linkType: 'Type de lien', exportCsv: 'Exporter en CSV', uncovered: 'non couvert', noOther: 'Ce projet n’a pas d’autre tracker à croiser.',
     linked: 'lien existant', linkedSuspect: 'lien suspect', link: (row: string, col: string) => `Lier ${row} et ${col}`,
-    summary: (covered: number, shown: number, total: number) => `${covered} lignes couvertes sur ${shown} affichées (${total} items)`,
+    summary: (covered: number, rows: number, cols: number) => `${covered} lignes couvertes sur ${rows} (${cols} colonnes)`,
+    region: 'Matrice de traçabilité, zone défilante',
     caption: (rows: string, cols: string, label: string) => `Matrice de traçabilité : ${rows} en lignes, ${cols} en colonnes, lien « ${label} »`,
-    rowsTruncated: (shown: number, total: number) => `${shown} lignes affichées sur ${total}.`,
   },
   tree: { label: 'Arbre des items', empty: 'Aucun item dans ce tracker.' },
   types: {
@@ -330,7 +330,7 @@ const enDict: Dictionary = {
     contentSaved: 'Content field saved.',
   },
   traceability: {
-    title: 'Traceability', addRule: 'Add a rule', createRule: 'Create the rule', created: 'Rule created.', deleted: 'Rule deleted.', empty: 'No coverage rule. A rule says, for instance, that every validated requirement is verified by at least one test.',
+    title: 'Traceability', addRule: 'Add a rule', createRule: 'Create the rule', created: 'Rule created.', saved: 'Rule saved.', edit: 'Edit', saveRule: 'Save the rule', editRule: (n: string) => `Edit the rule “${n}”`, deleted: 'Rule deleted.', empty: 'No coverage rule. A rule says, for instance, that every validated requirement is verified by at least one test.',
     ruleKey: 'Rule key (lowercase)', ruleName: 'Rule name', scope: 'Scope', fromTracker: 'Target tracker', linkType: 'Link type', direction: 'Link direction', minCount: 'Minimum number of links',
     statuses: 'Target statuses (keys separated by commas, all if empty)', targetLabel: 'Target (%)', warningLabel: 'Warning threshold (%)',
     scopes: { project: 'Project', organization: 'Organisation' }, directions: { any: 'Either direction', in: 'Towards the item (incoming)', out: 'From the item (outgoing)' },
@@ -345,9 +345,9 @@ const enDict: Dictionary = {
   matrix: {
     columns: 'Tracker in columns', linkType: 'Link type', exportCsv: 'Export as CSV', uncovered: 'not covered', noOther: 'This project has no other tracker to cross.',
     linked: 'existing link', linkedSuspect: 'suspect link', link: (row: string, col: string) => `Link ${row} and ${col}`,
-    summary: (covered: number, shown: number, total: number) => `${covered} of ${shown} displayed rows covered (${total} items)`,
+    summary: (covered: number, rows: number, cols: number) => `${covered} of ${rows} rows covered (${cols} columns)`,
+    region: 'Traceability matrix, scrollable area',
     caption: (rows: string, cols: string, label: string) => `Traceability matrix: ${rows} in rows, ${cols} in columns, link “${label}”`,
-    rowsTruncated: (shown: number, total: number) => `${shown} rows displayed out of ${total}.`,
   },
   tree: { label: 'Item tree', empty: 'No item in this tracker.' },
   types: {

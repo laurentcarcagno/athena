@@ -153,7 +153,7 @@ export function TrackerScreen({ session }: { session: Session }) {
         ))}
       </nav>
       {current === 'board' ? <BoardView project={String(project)} board={`~${tracker}`} header={false} /> : current === 'matrice' ? (
-        <MatrixView project={String(project)} tracker={String(tracker)} columnsTracker={params.get('mx')} linkType={params.get('mt')} offset={Number(params.get('mo') ?? '0') || 0}
+        <MatrixView project={String(project)} tracker={String(tracker)} columnsTracker={params.get('mx')} linkType={params.get('mt')}
           trackers={siblings} onChange={next} />
       ) : current === 'arbre' ? (
         <div className={item ? 'ath-split' : undefined}>

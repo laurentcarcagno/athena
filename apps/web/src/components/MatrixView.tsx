@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type UIEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { Btn, Tag, useToast } from '@athena/ui';
 import { ApiError, api } from '../api';
@@ -9,14 +9,26 @@ interface Item { key: string; title: string; status: string; statusName: string;
 interface Row extends Item { linked: boolean }
 export interface MatrixData {
   type: { key: string; outwardLabel: string; inwardLabel: string };
-  rows: Row[]; cols: Item[]; totalRows: number; totalCols: number;
+  rows: Row[]; cols: Item[]; totalRows: number; totalCols: number; uncoveredRows: number;
   links: Array<{ row: string; col: string; suspect: boolean }>;
 }
 interface LinkType { key: string; outwardLabel: string; inwardLabel: string }
+interface Store {
+  rows: Map<number, Row>; cols: Map<number, Item>; links: Map<string, boolean>; tiles: Set<string>;
+  meta: { type: MatrixData['type']; totalRows: number; totalCols: number; uncoveredRows: number } | null;
+}
 
-const WINDOW = 200;
+const ROW_H = 32;
+const COL_W = 44;
+const HEAD_W = 220;
+const TILE_ROWS = 500;
+const TILE_COLS = 200;
+const OVERSCAN = 4;
+const FALLBACK_VIEW = { w: 1000, h: 600 }; // pas de mise en page (tests) : une fenêtre raisonnable
 
-/** Contenu CSV d'une matrice : une ligne par item, une colonne par item de l'autre tracker, « 1 » (ou « 1!» si suspect) dans les cases remplies. */
+const emptyStore = (): Store => ({ rows: new Map(), cols: new Map(), links: new Map(), tiles: new Set(), meta: null });
+
+/** Contenu CSV d'une matrice : une ligne par item, une colonne par item de l'autre tracker, « 1 » (ou « 1! » si suspect) dans les cases remplies. */
 export function matrixCsv(data: Pick<MatrixData, 'rows' | 'cols' | 'links'>): string {
   const cell = (value: string) => (/[",;\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value);
   const filled = new Map(data.links.map((l) => [`${l.row}|${l.col}`, l.suspect]));
@@ -27,55 +39,130 @@ export function matrixCsv(data: Pick<MatrixData, 'rows' | 'cols' | 'links'>): st
 
 /**
  * Matrice de traçabilité du tracker courant (lignes) croisé avec un autre tracker (colonnes) par un type de lien.
- * Les lignes sans aucun lien sont signalées par un texte (« non couvert ») et un pointillé, jamais par la couleur seule.
+ * Défilement virtuel : seules les cellules visibles existent dans la page, les données arrivent par tuiles (500 lignes × 200 colonnes)
+ * au fil du défilement. Les lignes sans aucun lien sont signalées par un texte (« non couvert »), jamais par la couleur seule.
+ * La CSP interdit les attributs `style` : les dimensions passent par des propriétés CSS posées sur l'élément (CSSOM).
  */
-export function MatrixView({ project, tracker, columnsTracker, linkType, offset, trackers, onChange }: {
-  project: string; tracker: string; columnsTracker: string | null; linkType: string | null; offset: number;
-  trackers: string[]; onChange: (changes: { mx?: string | null; mt?: string | null; mo?: string | null }) => void;
+export function MatrixView({ project, tracker, columnsTracker, linkType, trackers, onChange }: {
+  project: string; tracker: string; columnsTracker: string | null; linkType: string | null;
+  trackers: string[]; onChange: (changes: { mx?: string | null; mt?: string | null }) => void;
 }) {
   const fail = useFailure();
   const toast = useToast();
   const [types, setTypes] = useState<LinkType[]>([]);
-  const [data, setData] = useState<MatrixData | null>(null);
+  const [, bump] = useState(0);
   const [version, setVersion] = useState(0);
+  const [view, setView] = useState({ top: 0, left: 0, ...FALLBACK_VIEW });
+  const store = useRef<Store>(emptyStore());
+  const generation = useRef(0);
+  const scroller = useRef<HTMLDivElement>(null);
+  const grid = useRef<HTMLDivElement>(null);
   const others = trackers.filter((t) => t !== tracker);
   const cols = columnsTracker ?? others[0] ?? tracker;
   const type = linkType ?? types.find((t) => t.key === 'verifies')?.key ?? types[0]?.key ?? null;
+  const configKey = `${project}|${tracker}|${cols}|${type}`;
 
   useEffect(() => { api<LinkType[]>('GET', `/v1/projects/${project}/link-types`).then((t) => setTypes(Array.isArray(t) ? t : [])).catch(() => setTypes([])); }, [project]);
+
+  const url = useCallback((ro: number, co: number) => `/v1/projects/${project}/matrix?rows=${tracker}&cols=${cols}&type=${type}&offset=${co}&rowOffset=${ro}`, [project, tracker, cols, type]);
+
+  const loadTile = useCallback(async (ro: number, co: number) => {
+    const key = `${ro}:${co}`;
+    if (!type || store.current.tiles.has(key)) return;
+    store.current.tiles.add(key);
+    const mine = generation.current;
+    try {
+      const d = await api<MatrixData>('GET', url(ro, co));
+      if (mine !== generation.current) return; // la matrice a changé entre-temps
+      const s = store.current;
+      s.meta = { type: d.type, totalRows: d.totalRows, totalCols: d.totalCols, uncoveredRows: d.uncoveredRows };
+      d.rows.forEach((r, i) => s.rows.set(ro + i, r));
+      d.cols.forEach((c, i) => s.cols.set(co + i, c));
+      for (const l of d.links) s.links.set(`${l.row}|${l.col}`, l.suspect);
+      bump((n) => n + 1);
+    } catch (error) {
+      if (mine === generation.current) store.current.tiles.delete(key);
+      fail(error);
+    }
+  }, [type, url, fail]);
+
+  // Nouvelle matrice (autre tracker, type de lien ou lien créé) : on repart de la première tuile.
   useEffect(() => {
     if (!type) return;
-    setData(null);
-    api<MatrixData>('GET', `/v1/projects/${project}/matrix?rows=${tracker}&cols=${cols}&type=${type}&offset=${offset}`).then(setData).catch(fail);
-  }, [project, tracker, cols, type, offset, version, fail]);
+    generation.current += 1;
+    store.current = emptyStore();
+    bump((n) => n + 1);
+    void loadTile(0, 0);
+  }, [configKey, version]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (scroller.current) { scroller.current.scrollTop = 0; scroller.current.scrollLeft = 0; } setView((v) => ({ ...v, top: 0, left: 0 })); }, [configKey]);
 
-  const exportCsv = useCallback(async () => {
-    if (!data || !type) return;
+  const measure = useCallback(() => {
+    const el = scroller.current;
+    if (!el) return;
+    setView({ top: el.scrollTop, left: el.scrollLeft, w: el.clientWidth || FALLBACK_VIEW.w, h: el.clientHeight || FALLBACK_VIEW.h });
+  }, []);
+  useLayoutEffect(measure, [measure]);
+  useEffect(() => { window.addEventListener('resize', measure); return () => window.removeEventListener('resize', measure); }, [measure]);
+  const onScroll = (e: UIEvent<HTMLDivElement>) => setView({ top: e.currentTarget.scrollTop, left: e.currentTarget.scrollLeft, w: e.currentTarget.clientWidth || FALLBACK_VIEW.w, h: e.currentTarget.clientHeight || FALLBACK_VIEW.h });
+
+  const meta = store.current.meta;
+  const totalRows = meta?.totalRows ?? 0;
+  const totalCols = meta?.totalCols ?? 0;
+  const r0 = Math.max(0, Math.floor(view.top / ROW_H) - OVERSCAN);
+  const r1 = Math.min(totalRows, Math.ceil((view.top + view.h) / ROW_H) + OVERSCAN);
+  const c0 = Math.max(0, Math.floor(view.left / COL_W) - OVERSCAN);
+  const c1 = Math.min(totalCols, Math.ceil((view.left + view.w - HEAD_W) / COL_W) + OVERSCAN);
+
+  // Tuiles couvrant les quatre coins de la fenêtre visible.
+  useEffect(() => {
+    if (!meta || r1 <= r0 || c1 <= c0) return;
+    const tile = (n: number, size: number) => Math.floor(n / size) * size;
+    for (const ro of new Set([tile(r0, TILE_ROWS), tile(r1 - 1, TILE_ROWS)])) for (const co of new Set([tile(c0, TILE_COLS), tile(c1 - 1, TILE_COLS)])) void loadTile(ro, co);
+  }, [meta, r0, r1, c0, c1, loadTile]);
+
+  // Dimensions du défilement virtuel : propriétés CSS posées sur la grille (jamais d'attribut style).
+  useLayoutEffect(() => {
+    const el = grid.current;
+    if (!el) return;
+    const px = (n: number) => `${n}px`;
+    el.style.setProperty('--mx-head', px(HEAD_W));
+    el.style.setProperty('--mx-colw', px(COL_W));
+    el.style.setProperty('--mx-n', String(Math.max(0, c1 - c0)));
+    el.style.setProperty('--mx-left', px(c0 * COL_W));
+    el.style.setProperty('--mx-right', px(Math.max(0, totalCols - c1) * COL_W));
+    el.style.setProperty('--mx-top', px(r0 * ROW_H));
+    el.style.setProperty('--mx-bottom', px(Math.max(0, totalRows - r1) * ROW_H));
+  });
+
+  const exportCsv = async () => {
+    if (!meta || !type) return;
     try {
-      const all: MatrixData = { ...data, cols: [...data.cols], links: [...data.links] };
-      for (let o = WINDOW; o < data.totalCols; o += WINDOW) {
-        const next = await api<MatrixData>('GET', `/v1/projects/${project}/matrix?rows=${tracker}&cols=${cols}&type=${type}&offset=${o}`);
-        all.cols.push(...next.cols); all.links.push(...next.links);
+      const rows: Row[] = [];
+      const colsAll: Item[] = [];
+      const links = new Map<string, { row: string; col: string; suspect: boolean }>();
+      for (let ro = 0; ro < meta.totalRows; ro += TILE_ROWS) {
+        for (let co = 0; co < meta.totalCols; co += TILE_COLS) {
+          const d = await api<MatrixData>('GET', url(ro, co));
+          if (co === 0) rows.push(...d.rows);
+          if (ro === 0) colsAll.push(...d.cols);
+          for (const l of d.links) links.set(`${l.row}|${l.col}`, l);
+        }
       }
-      if (offset > 0) { // la fenêtre affichée n'est pas la première : repartir de zéro
-        const first = await api<MatrixData>('GET', `/v1/projects/${project}/matrix?rows=${tracker}&cols=${cols}&type=${type}&offset=0`);
-        all.cols = [...first.cols, ...all.cols.filter((c) => !first.cols.some((x) => x.key === c.key))];
-        all.links = [...first.links, ...all.links.filter((l) => !first.links.some((x) => x.row === l.row && x.col === l.col))];
-      }
-      const url = URL.createObjectURL(new Blob([matrixCsv(all)], { type: 'text/csv;charset=utf-8' }));
-      const link = document.createElement('a');
-      link.href = url; link.download = `matrice-${tracker}-${cols}-${type}.csv`; link.click();
-      URL.revokeObjectURL(url);
+      const blob = new Blob([matrixCsv({ rows, cols: colsAll, links: [...links.values()] })], { type: 'text/csv;charset=utf-8' });
+      const href = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = href; a.download = `matrice-${tracker}-${cols}-${type}.csv`; a.click();
+      URL.revokeObjectURL(href);
     } catch (error) { fail(error); }
-  }, [data, type, project, tracker, cols, offset, fail]);
+  };
 
   const create = async (row: Item, col: Item) => {
-    if (!data) return;
+    if (!meta) return;
     try {
-      try { await api('POST', `/v1/projects/${project}/artifacts/${col.key}/links`, { to: row.key, type: data.type.key }); }
+      try { await api('POST', `/v1/projects/${project}/artifacts/${col.key}/links`, { to: row.key, type: meta.type.key }); }
       catch (error) {
         if (!(error instanceof ApiError) || error.status !== 422) throw error;
-        await api('POST', `/v1/projects/${project}/artifacts/${row.key}/links`, { to: col.key, type: data.type.key }); // le type n'autorise que l'autre sens
+        await api('POST', `/v1/projects/${project}/artifacts/${row.key}/links`, { to: col.key, type: meta.type.key }); // le type n'autorise que l'autre sens
       }
       toast('success', fr.links.created);
       setVersion((v) => v + 1);
@@ -83,72 +170,78 @@ export function MatrixView({ project, tracker, columnsTracker, linkType, offset,
   };
 
   if (others.length === 0) return <p>{fr.matrix.noOther}</p>;
-  const filled = new Map((data?.links ?? []).map((l) => [`${l.row}|${l.col}`, l.suspect]));
-  const uncovered = data?.rows.filter((r) => !r.linked).length ?? 0;
-  const windowEnd = data ? Math.min(offset + WINDOW, data.totalCols) : 0;
+  const s = store.current;
+  const visibleRows = Array.from({ length: Math.max(0, r1 - r0) }, (_, i) => r0 + i);
+  const visibleCols = Array.from({ length: Math.max(0, c1 - c0) }, (_, i) => c0 + i);
 
   return (
     <div className="ath-stack">
       <div className="ath-toolbar">
         <div className="ath-field">
           <label className="ath-field__label" htmlFor="mx-cols">{fr.matrix.columns}</label>
-          <select id="mx-cols" className="ath-select" value={cols} onChange={(e) => onChange({ mx: e.target.value, mo: null })}>
+          <select id="mx-cols" className="ath-select" value={cols} onChange={(e) => onChange({ mx: e.target.value })}>
             {others.map((t) => <option key={t} value={t}>{t}</option>)}
           </select>
         </div>
         <div className="ath-field">
           <label className="ath-field__label" htmlFor="mx-type">{fr.matrix.linkType}</label>
-          <select id="mx-type" className="ath-select" value={type ?? ''} onChange={(e) => onChange({ mt: e.target.value, mo: null })}>
+          <select id="mx-type" className="ath-select" value={type ?? ''} onChange={(e) => onChange({ mt: e.target.value })}>
             {types.map((t) => <option key={t.key} value={t.key}>{t.outwardLabel} ({t.key})</option>)}
           </select>
         </div>
-        <Btn type="button" variant="ghost" size="sm" disabled={!data} onClick={() => void exportCsv()}>{fr.matrix.exportCsv}</Btn>
+        <Btn type="button" variant="ghost" size="sm" disabled={!meta} onClick={() => void exportCsv()}>{fr.matrix.exportCsv}</Btn>
       </div>
-      {data === null ? <p role="status">{fr.loading}</p> : (
-        <>
-          <p className="ath-eyebrow">{fr.matrix.summary(data.rows.length - uncovered, data.rows.length, data.totalRows)}</p>
-          <div className="ath-matrix-wrap">
-            <table className="ath-matrix">
-              <caption className="ath-table__caption">{fr.matrix.caption(tracker, cols, data.type.outwardLabel)}</caption>
-              <thead>
-                <tr>
-                  <th scope="col">{tracker} \ {cols}</th>
-                  {data.cols.map((c) => <th key={c.key} scope="col" title={c.title}><Link className="ath-link ath-mono" to={`/p/${project}/a/${c.key}`}>{c.key}</Link></th>)}
-                </tr>
-              </thead>
-              <tbody>
-                {data.rows.map((r) => (
-                  <tr key={r.key}>
-                    <th scope="row" title={r.title}>
-                      <Link className="ath-link ath-mono" to={`/p/${project}/a/${r.key}`}>{r.key}</Link>
-                      {!r.linked && <> <Tag>{fr.matrix.uncovered}</Tag></>}
-                    </th>
-                    {data.cols.map((c) => {
-                      const suspect = filled.get(`${r.key}|${c.key}`);
-                      if (suspect !== undefined) {
-                        return <td key={c.key} className={`ath-matrix__cell ath-matrix__cell--linked${suspect ? ' ath-matrix__cell--suspect' : ''}`}><span aria-label={suspect ? fr.matrix.linkedSuspect : fr.matrix.linked}>{suspect ? '✓!' : '✓'}</span></td>;
-                      }
-                      return (
-                        <td key={c.key} className={`ath-matrix__cell ath-matrix__cell--empty${r.linked ? '' : ' ath-matrix__cell--gap'}`}>
-                          <button type="button" className="ath-matrix__add" aria-label={fr.matrix.link(r.key, c.key)} onClick={() => void create(r, c)}>{r.linked ? '·' : '—'}</button>
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      {meta === null && <p role="status">{fr.loading}</p>}
+      {meta !== null && <p className="ath-eyebrow">{fr.matrix.summary(meta.totalRows - meta.uncoveredRows, meta.totalRows, meta.totalCols)}</p>}
+      <div className="ath-mxscroll" ref={scroller} onScroll={onScroll} tabIndex={0} role="region" aria-label={fr.matrix.region}>
+        <div className="ath-mxgrid" ref={grid} role="grid" aria-label={meta ? fr.matrix.caption(tracker, cols, meta.type.outwardLabel) : fr.matrix.region}
+          aria-rowcount={totalRows + 1} aria-colcount={totalCols + 1}>
+          <div className="ath-mxgrid__row ath-mxgrid__head" role="row" aria-rowindex={1}>
+            <div className="ath-mxgrid__corner" role="columnheader" aria-colindex={1}>{tracker} \ {cols}</div>
+            <div role="presentation" />
+            {visibleCols.map((c) => {
+              const item = s.cols.get(c);
+              return (
+                <div key={c} className="ath-mxgrid__colhead" role="columnheader" aria-colindex={c + 2} title={item?.title}>
+                  {item ? <Link className="ath-link ath-mono" to={`/p/${project}/a/${item.key}`}>{item.key}</Link> : <span aria-busy="true">…</span>}
+                </div>
+              );
+            })}
+            <div role="presentation" />
           </div>
-          {data.totalRows > data.rows.length && <p className="ath-eyebrow">{fr.matrix.rowsTruncated(data.rows.length, data.totalRows)}</p>}
-          {data.totalCols > WINDOW && (
-            <div className="ath-toolbar">
-              <Btn variant="ghost" size="sm" disabled={offset === 0} onClick={() => onChange({ mo: String(Math.max(0, offset - WINDOW)) })}>{fr.list.previous}</Btn>
-              <span className="ath-mono">{offset + 1}–{windowEnd} / {data.totalCols}</span>
-              <Btn variant="ghost" size="sm" disabled={windowEnd >= data.totalCols} onClick={() => onChange({ mo: String(offset + WINDOW) })}>{fr.list.next}</Btn>
-            </div>
-          )}
-        </>
-      )}
+          <div className="ath-mxgrid__top" role="presentation" />
+          {visibleRows.map((r) => {
+            const row = s.rows.get(r);
+            return (
+              <div key={r} className="ath-mxgrid__row" role="row" aria-rowindex={r + 2}>
+                <div className="ath-mxgrid__rowhead" role="rowheader" aria-colindex={1} title={row?.title}>
+                  {row ? <><Link className="ath-link ath-mono" to={`/p/${project}/a/${row.key}`}>{row.key}</Link>{!row.linked && <> <Tag>{fr.matrix.uncovered}</Tag></>}</> : <span aria-busy="true">…</span>}
+                </div>
+                <div role="presentation" />
+                {visibleCols.map((c) => {
+                  const col = s.cols.get(c);
+                  if (!row || !col) return <div key={c} className="ath-mxgrid__cell" role="gridcell" aria-colindex={c + 2} aria-busy="true">…</div>;
+                  const suspect = s.links.get(`${row.key}|${col.key}`);
+                  if (suspect !== undefined) {
+                    return (
+                      <div key={c} className={`ath-mxgrid__cell ath-matrix__cell--linked${suspect ? ' ath-matrix__cell--suspect' : ''}`} role="gridcell" aria-colindex={c + 2}>
+                        <span aria-label={suspect ? fr.matrix.linkedSuspect : fr.matrix.linked}>{suspect ? '✓!' : '✓'}</span>
+                      </div>
+                    );
+                  }
+                  return (
+                    <div key={c} className={`ath-mxgrid__cell${row.linked ? '' : ' ath-matrix__cell--gap'}`} role="gridcell" aria-colindex={c + 2}>
+                      <button type="button" className="ath-matrix__add" aria-label={fr.matrix.link(row.key, col.key)} onClick={() => void create(row, col)}>{row.linked ? '·' : '—'}</button>
+                    </div>
+                  );
+                })}
+                <div role="presentation" />
+              </div>
+            );
+          })}
+          <div className="ath-mxgrid__bottom" role="presentation" />
+        </div>
+      </div>
     </div>
   );
 }

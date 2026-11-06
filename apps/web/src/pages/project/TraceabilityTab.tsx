@@ -12,7 +12,7 @@ interface Rule {
   key: string; scope: 'project' | 'organization'; name: string; fromTracker: string; linkType: string; direction: 'in' | 'out' | 'any'; minCount: number; statuses: string[]; threshold: Threshold;
   total: number; covered: number; rate: number | null; level: Level; suspect: number;
   gaps: Array<{ key: string; title: string }>;
-  atql: { total: string; gaps: string | null; suspect: string };
+  atql: { total: string; gaps: string; suspect: string };
   error: string | null;
 }
 interface LinkType { key: string; outwardLabel: string }
@@ -36,6 +36,7 @@ export function TraceabilityTab({ session }: { session: Session }) {
   const [trackers, setTrackers] = useState<string[]>([]);
   const [types, setTypes] = useState<LinkType[]>([]);
   const [adding, setAdding] = useState(false);
+  const [editing, setEditing] = useState<Rule | null>(null);
   const t = fr.traceability;
 
   const load = useCallback(() => { api<Rule[]>('GET', `/v1/projects/${project}/coverage`).then(setRules).catch(fail); }, [project, fail]);
@@ -54,8 +55,9 @@ export function TraceabilityTab({ session }: { session: Session }) {
   return (
     <>
       {confirm.dialog}
-      <PageHeader eyebrow={fr.overview.eyebrow} title={`${t.title} · ${project}`} actions={admin ? <Btn onClick={() => setAdding(true)}>{t.addRule}</Btn> : undefined} />
-      {adding && <RuleForm project={String(project)} trackers={trackers} types={types} onCancel={() => setAdding(false)} onSaved={() => { setAdding(false); toast('success', t.created); load(); }} />}
+      <PageHeader eyebrow={fr.overview.eyebrow} title={`${t.title} · ${project}`} actions={admin ? <Btn onClick={() => { setEditing(null); setAdding(true); }}>{t.addRule}</Btn> : undefined} />
+      {(adding || editing) && <RuleForm key={editing?.key ?? 'new'} project={String(project)} trackers={trackers} types={types} editing={editing} onCancel={() => { setAdding(false); setEditing(null); }}
+        onSaved={() => { toast('success', editing ? t.saved : t.created); setAdding(false); setEditing(null); load(); }} />}
       {rules === null ? <p role="status">{fr.loading}</p> : rules.length === 0 ? (
         <EmptyState eyebrow={t.title} title={t.empty} />
       ) : rules.map((r) => (
@@ -72,7 +74,7 @@ export function TraceabilityTab({ session }: { session: Session }) {
               <ul className="ath-rule__numbers">
                 <li><Link className="ath-link ath-mono" to={listHref(String(project), r.fromTracker, r.atql.total)}>{t.nTotal(r.total)}</Link></li>
                 <li>{t.nCovered(r.covered)}</li>
-                <li>{r.atql.gaps ? <Link className="ath-link ath-mono" to={listHref(String(project), r.fromTracker, r.atql.gaps)}>{t.nGaps(r.total - r.covered)}</Link> : <span className="ath-mono">{t.nGaps(r.total - r.covered)}</span>}</li>
+                <li><Link className="ath-link ath-mono" to={listHref(String(project), r.fromTracker, r.atql.gaps)}>{t.nGaps(r.total - r.covered)}</Link></li>
                 <li><Link className="ath-link ath-mono" to={listHref(String(project), r.fromTracker, r.atql.suspect)}>{t.nSuspect(r.suspect)}</Link></li>
               </ul>
               {r.gaps.length > 0 && (
@@ -89,17 +91,19 @@ export function TraceabilityTab({ session }: { session: Session }) {
               {r.total - r.covered > Math.min(SHOWN_GAPS, r.gaps.length) && <p className="ath-eyebrow">{t.moreGaps(r.total - r.covered - Math.min(SHOWN_GAPS, r.gaps.length))}</p>}
             </>
           )}
-          {admin && <div className="ath-toolbar"><Btn variant="ghost" size="sm" onClick={() => void remove(r)}>{fr.confirm.delete}</Btn></div>}
+          {admin && <div className="ath-toolbar"><Btn variant="ghost" size="sm" onClick={() => { setAdding(false); setEditing(r); }}>{t.edit}</Btn><Btn variant="ghost" size="sm" onClick={() => void remove(r)}>{fr.confirm.delete}</Btn></div>}
         </section>
       ))}
     </>
   );
 }
 
-function RuleForm({ project, trackers, types, onCancel, onSaved }: { project: string; trackers: string[]; types: LinkType[]; onCancel: () => void; onSaved: () => void }) {
+function RuleForm({ project, trackers, types, editing, onCancel, onSaved }: { project: string; trackers: string[]; types: LinkType[]; editing: Rule | null; onCancel: () => void; onSaved: () => void }) {
   const fail = useFailure();
   const t = fr.traceability;
-  const [form, setForm] = useState({ key: '', name: '', fromTracker: trackers[0] ?? '', linkType: types.find((x) => x.key === 'verifies')?.key ?? types[0]?.key ?? 'verifies', direction: 'any', minCount: '1', statuses: '', target: '100', warning: '', scope: 'project' });
+  const [form, setForm] = useState(editing
+    ? { key: editing.key, name: editing.name, fromTracker: editing.fromTracker, linkType: editing.linkType, direction: editing.direction as string, minCount: String(editing.minCount), statuses: editing.statuses.join(', '), target: String(editing.threshold.target), warning: editing.threshold.warning === undefined ? '' : String(editing.threshold.warning), scope: editing.scope as string }
+    : { key: '', name: '', fromTracker: trackers[0] ?? '', linkType: types.find((x) => x.key === 'verifies')?.key ?? types[0]?.key ?? 'verifies', direction: 'any', minCount: '1', statuses: '', target: '100', warning: '', scope: 'project' });
   const set = (name: string, value: string) => setForm((f) => ({ ...f, [name]: value }));
   const submit = async (event: FormEvent) => {
     event.preventDefault();
@@ -108,15 +112,19 @@ function RuleForm({ project, trackers, types, onCancel, onSaved }: { project: st
       statuses: form.statuses.split(',').map((s) => s.trim()).filter(Boolean),
       threshold: { target: Number(form.target), ...(form.warning === '' ? {} : { warning: Number(form.warning) }) },
     };
-    try { await api('POST', form.scope === 'organization' ? '/v1/coverage-rules' : `/v1/projects/${project}/coverage-rules`, body); onSaved(); } catch (error) { fail(error); }
+    const base = form.scope === 'organization' ? '/v1/coverage-rules' : `/v1/projects/${project}/coverage-rules`;
+    try {
+      if (editing) { const { key, ...rest } = body; await api('PUT', `${base}/${key}`, rest); } else await api('POST', base, body);
+      onSaved();
+    } catch (error) { fail(error); }
   };
   const field = (id: string, label: string, control: JSX.Element) => <div className="ath-field"><label className="ath-field__label" htmlFor={id}>{label}</label>{control}</div>;
   return (
-    <form className="ath-card ath-rule ath-stack" onSubmit={(e) => void submit(e)} aria-label={t.addRule}>
+    <form className="ath-card ath-rule ath-stack" onSubmit={(e) => void submit(e)} aria-label={editing ? t.editRule(editing.name) : t.addRule}>
       <div className="ath-toolbar">
-        {field('cr-key', t.ruleKey, <input id="cr-key" className="ath-input ath-mono" required pattern="[a-z][a-z0-9_\-]{0,39}" value={form.key} onChange={(e) => set('key', e.target.value)} />)}
+        {field('cr-key', t.ruleKey, <input id="cr-key" className="ath-input ath-mono" required readOnly={editing !== null} pattern="[a-z][a-z0-9_\-]{0,39}" value={form.key} onChange={(e) => set('key', e.target.value)} />)}
         {field('cr-name', t.ruleName, <input id="cr-name" className="ath-input" required maxLength={200} value={form.name} onChange={(e) => set('name', e.target.value)} />)}
-        {field('cr-scope', t.scope, <select id="cr-scope" className="ath-select" value={form.scope} onChange={(e) => set('scope', e.target.value)}><option value="project">{t.scopes.project}</option><option value="organization">{t.scopes.organization}</option></select>)}
+        {field('cr-scope', t.scope, <select id="cr-scope" className="ath-select" disabled={editing !== null} value={form.scope} onChange={(e) => set('scope', e.target.value)}><option value="project">{t.scopes.project}</option><option value="organization">{t.scopes.organization}</option></select>)}
       </div>
       <div className="ath-toolbar">
         {field('cr-tracker', t.fromTracker, <select id="cr-tracker" className="ath-select" value={form.fromTracker} onChange={(e) => set('fromTracker', e.target.value)}>{trackers.map((k) => <option key={k} value={k}>{k}</option>)}</select>)}
@@ -129,7 +137,7 @@ function RuleForm({ project, trackers, types, onCancel, onSaved }: { project: st
         {field('cr-target', t.targetLabel, <input id="cr-target" className="ath-input ath-mono" type="number" min={0} max={100} step="0.1" required value={form.target} onChange={(e) => set('target', e.target.value)} />)}
         {field('cr-warning', t.warningLabel, <input id="cr-warning" className="ath-input ath-mono" type="number" min={0} max={100} step="0.1" value={form.warning} onChange={(e) => set('warning', e.target.value)} />)}
       </div>
-      <div className="ath-toolbar"><Btn type="submit">{t.createRule}</Btn><Btn type="button" variant="ghost" onClick={onCancel}>{fr.confirm.cancel}</Btn></div>
+      <div className="ath-toolbar"><Btn type="submit">{editing ? t.saveRule : t.createRule}</Btn><Btn type="button" variant="ghost" onClick={onCancel}>{fr.confirm.cancel}</Btn></div>
     </form>
   );
 }

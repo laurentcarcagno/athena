@@ -285,14 +285,20 @@
 .ath-rule { padding: var(--ath-space-md); margin-bottom: var(--ath-space-md); }
 .ath-rule__numbers { display: flex; flex-wrap: wrap; gap: var(--ath-space-md); list-style: none; margin: 0; padding: 0; }
 
-/* Matrice de traçabilité : lignes sans lien en pointillé et avec le texte « non couvert » (jamais la couleur seule). */
-.ath-matrix-wrap { overflow: auto; max-width: 100%; border: 1px solid var(--ath-color-console-border); }
-.ath-matrix { border-collapse: collapse; background: var(--ath-color-instrument-white); }
-.ath-matrix th, .ath-matrix td { border: 1px solid var(--ath-color-console-border); padding: 0 var(--ath-space-sm); min-height: 32px; text-align: center; white-space: nowrap; }
-.ath-matrix tbody th { text-align: left; position: sticky; left: 0; background: var(--ath-color-instrument-white); }
+/* Matrice de traçabilité (défilement virtuel) : lignes sans lien en pointillé et avec le texte « non couvert » (jamais la couleur seule).
+   Les tailles viennent de propriétés CSS posées par le script (--mx-*), la CSP interdisant les attributs style. */
+.ath-mxscroll { overflow: auto; max-width: 100%; max-height: 70vh; border: 1px solid var(--ath-color-console-border); background: var(--ath-color-instrument-white); }
+.ath-mxscroll:focus-visible { outline: 2px solid var(--ath-color-console-sky); outline-offset: -2px; }
+.ath-mxgrid { width: max-content; min-width: 100%; }
+.ath-mxgrid__row { display: grid; height: 32px; grid-template-columns: var(--mx-head, 220px) var(--mx-left, 0px) repeat(var(--mx-n, 0), var(--mx-colw, 44px)) var(--mx-right, 0px); }
+.ath-mxgrid__top { height: var(--mx-top, 0px); } .ath-mxgrid__bottom { height: var(--mx-bottom, 0px); }
+.ath-mxgrid__head { position: sticky; top: 0; z-index: 2; background: var(--ath-color-instrument-white); }
+.ath-mxgrid__corner, .ath-mxgrid__colhead, .ath-mxgrid__rowhead, .ath-mxgrid__cell { display: flex; align-items: center; justify-content: center; overflow: hidden; white-space: nowrap; box-sizing: border-box; border-right: 1px solid var(--ath-color-console-border); border-bottom: 1px solid var(--ath-color-console-border); padding: 0 var(--ath-space-xs, 4px); }
+.ath-mxgrid__corner, .ath-mxgrid__rowhead { position: sticky; left: 0; z-index: 1; background: var(--ath-color-instrument-white); justify-content: flex-start; gap: var(--ath-space-xs, 4px); }
+.ath-mxgrid__corner { z-index: 3; }
 .ath-matrix__cell--linked { background: var(--ath-color-hover-mist); font-weight: 700; }
 .ath-matrix__cell--suspect { border: 2px dashed var(--ath-color-console-sky); }
-.ath-matrix__cell--gap { border-style: dashed; }
+.ath-matrix__cell--gap { border-bottom-style: dashed; }
 .ath-matrix__add { min-width: 32px; min-height: 32px; background: none; border: 0; cursor: pointer; color: var(--ath-text-mute); }
 .ath-matrix__add:hover { color: var(--ath-color-console-sky); }
 .ath-matrix__add:focus-visible { outline: 2px solid var(--ath-color-console-sky); outline-offset: -2px; }

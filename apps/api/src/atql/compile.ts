@@ -116,6 +116,10 @@ export function compile(input: string | Query, context: CompileContext, leading:
         return `not exists (select 1 from artifact_link l join link_type t on t.id = l.link_type_id
           where (l.from_artifact_id = a.id or l.to_artifact_id = a.id)${byType})`;
       }
+      case 'linkCount': {
+        const side = e.direction === 'in' ? 'l.to_artifact_id = a.id' : e.direction === 'out' ? 'l.from_artifact_id = a.id' : '(l.from_artifact_id = a.id or l.to_artifact_id = a.id)';
+        return `((select count(*) from artifact_link l join link_type t on t.id = l.link_type_id where t.key = ${bindText(e.link)} and ${side}) >= ${bind(e.min)}::int)`;
+      }
       case 'in': {
         const inner = `(${e.values.map((v) => cmp(e.field, '=', v)).join(' or ')})`;
         return e.negated ? `(not ${inner})` : inner;

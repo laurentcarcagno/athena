@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, Inject, Param, Post, Req } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Inject, Param, Post, Put, Req } from '@nestjs/common';
 import { z } from 'zod';
 import { Roles, type AuthedRequest } from '../auth/auth.guard';
 import { BodySchema } from '../openapi/body-schema';
@@ -33,6 +33,15 @@ export class CoverageController {
   }
 
   @Roles('athena-admin')
+  @Put('coverage-rules/:key')
+  @BodySchema(CoverageRuleInput)
+  async updateOrg(@Req() request: AuthedRequest, @Param('key') key: string, @Body() body: unknown) {
+    const { organizationId, actor } = await this.orgs.resolve(request.principal!);
+    await this.coverage.update(organizationId, null, key, parseBody(CoverageRuleInput, body), actor);
+    return { key };
+  }
+
+  @Roles('athena-admin')
   @HttpCode(204)
   @Delete('coverage-rules/:key')
   async removeOrg(@Req() request: AuthedRequest, @Param('key') key: string) {
@@ -55,6 +64,15 @@ export class CoverageController {
     const { organizationId, actor } = await this.orgs.resolve(request.principal!);
     const { key, ...input } = parseBody(CreateBody, body);
     await this.coverage.create(organizationId, project, key, input, actor);
+    return { key };
+  }
+
+  @Roles('athena-admin')
+  @Put('projects/:project/coverage-rules/:key')
+  @BodySchema(CoverageRuleInput)
+  async updateProject(@Req() request: AuthedRequest, @Param('project') project: string, @Param('key') key: string, @Body() body: unknown) {
+    const { organizationId, actor } = await this.orgs.resolve(request.principal!);
+    await this.coverage.update(organizationId, project, key, parseBody(CoverageRuleInput, body), actor);
     return { key };
   }
 

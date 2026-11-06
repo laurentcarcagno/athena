@@ -12,17 +12,19 @@ export interface Matrix {
   cols: MatrixItem[];
   totalRows: number;
   totalCols: number;
+  /** Lignes du tracker (toutes, pas seulement la tuile) sans aucun lien de ce type avec le tracker en colonnes. */
+  uncoveredRows: number;
   /** Cases remplies de la fenêtre affichée. */
   links: Array<{ row: string; col: string; suspect: boolean }>;
 }
-export interface MatrixOptions { colOffset?: number; colLimit?: number; rowLimit?: number }
+export interface MatrixOptions { colOffset?: number; colLimit?: number; rowOffset?: number; rowLimit?: number }
 
 export const MATRIX_MAX_COLS = 200;
 export const MATRIX_MAX_ROWS = 500;
 
 /**
  * Matrice de traçabilité : les items d'un tracker (lignes) croisés avec ceux d'un autre (colonnes) par un type de lien,
- * dans un sens comme dans l'autre. Les colonnes se paginent par fenêtres de 200 ; l'indicateur « couvert » des lignes,
+ * dans un sens comme dans l'autre. Lignes (500) et colonnes (200) se chargent par tuiles pour qu'un client les affiche en défilement virtuel ; l'indicateur « couvert » des lignes,
  * lui, porte sur toutes les colonnes.
  */
 export class MatrixService {
@@ -32,7 +34,8 @@ export class MatrixService {
     const colLimit = Math.min(Math.max(options.colLimit ?? MATRIX_MAX_COLS, 1), MATRIX_MAX_COLS);
     const rowLimit = Math.min(Math.max(options.rowLimit ?? MATRIX_MAX_ROWS, 1), MATRIX_MAX_ROWS);
     const colOffset = Math.max(options.colOffset ?? 0, 0);
-    if (!Number.isInteger(colOffset)) throw validation(['décalage de colonnes invalide']);
+    const rowOffset = Math.max(options.rowOffset ?? 0, 0);
+    if (!Number.isInteger(colOffset) || !Number.isInteger(rowOffset)) throw validation(['décalage de colonnes invalide']);
     return this.db.tx(organizationId, async (c) => {
       const project = (await c.query('select id from project where key = $1', [projectKey])).rows[0];
       if (!project) throw notFound(`Projet ${projectKey}`);
@@ -62,12 +65,17 @@ export class MatrixService {
       const rows = (await c.query(
         `select ${select}, exists (select 1 from artifact_link l join artifact o on o.id = case when l.from_artifact_id = a.id then l.to_artifact_id else l.from_artifact_id end
                                    where l.link_type_id = $2 and (l.from_artifact_id = a.id or l.to_artifact_id = a.id) and o.tracker_id = $3) as linked
-         from artifact a join status s on s.id = a.status_id where a.tracker_id = $1 order by a.number limit ${rowLimit}`,
+         from artifact a join status s on s.id = a.status_id where a.tracker_id = $1 order by a.number offset ${rowOffset} limit ${rowLimit}`,
         [rowsId, type.id, colsId],
       )).rows;
       const cols = (await c.query(`select ${select} from artifact a join status s on s.id = a.status_id where a.tracker_id = $1 order by a.number offset $2 limit ${colLimit}`, [colsId, colOffset])).rows;
       const totalRows = Number((await c.query('select count(*) n from artifact where tracker_id = $1', [rowsId])).rows[0].n);
       const totalCols = Number((await c.query('select count(*) n from artifact where tracker_id = $1', [colsId])).rows[0].n);
+      const uncoveredRows = Number((await c.query(
+        `select count(*) n from artifact a where a.tracker_id = $1 and not exists (select 1 from artifact_link l join artifact o on o.id = case when l.from_artifact_id = a.id then l.to_artifact_id else l.from_artifact_id end
+                                   where l.link_type_id = $2 and (l.from_artifact_id = a.id or l.to_artifact_id = a.id) and o.tracker_id = $3)`,
+        [rowsId, type.id, colsId],
+      )).rows[0].n);
       const rowIds = rows.map((r) => r.id as string);
       const colIds = cols.map((r) => r.id as string);
       const linkRows = rowIds.length === 0 || colIds.length === 0 ? [] : (await c.query(
@@ -86,7 +94,7 @@ export class MatrixService {
       return {
         type: { key: type.key as string, outwardLabel: type.outward_label as string, inwardLabel: type.inward_label as string },
         rows: rows.map((r) => ({ ...item(r, rowTitle), linked: r.linked as boolean })), cols: cols.map((r) => item(r, colTitle)),
-        totalRows, totalCols, links: [...links.values()],
+        totalRows, totalCols, uncoveredRows, links: [...links.values()],
       };
     });
   }

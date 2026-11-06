@@ -49,7 +49,7 @@ suite('matrice de traçabilité', () => {
     expect(m.cols.map((c) => c.key)).toEqual(['ARI-TST-0001', 'ARI-TST-0002']);
     expect(m.links).toEqual(expect.arrayContaining([{ row: 'ARI-REQ-0001', col: 'ARI-TST-0001', suspect: false }, { row: 'ARI-REQ-0001', col: 'ARI-TST-0002', suspect: false }]));
     expect(m.links).toHaveLength(2);
-    expect([m.totalRows, m.totalCols]).toEqual([3, 2]);
+    expect([m.totalRows, m.totalCols, m.uncoveredRows]).toEqual([3, 2, 2]);
     expect(m.rows[0]).toMatchObject({ title: 'Exigence 1', statusName: 'Brouillon', category: 'todo' });
     // Matrice inversée : tests en lignes, exigences en colonnes.
     const inverse = await matrix.matrix(org, 'ARI', 'TST', 'REQ', 'verifies', roles);
@@ -83,6 +83,17 @@ suite('matrice de traçabilité', () => {
     // Fenêtre hors des liens : la ligne reste « couverte » puisqu'elle l'est dans une autre fenêtre.
     expect((await matrix.matrix(org, 'ARI', 'REQ', 'TST', 'verifies', roles, { colOffset: 5 })).rows[0]!.linked).toBe(true);
     expect((await matrix.matrix(org, 'ARI', 'REQ', 'TST', 'verifies', roles, { colLimit: 9999 })).cols).toHaveLength(2); // plafonné à 200
+  });
+
+  it('charge les lignes par tuiles : décalage de lignes, totaux inchangés, liens limités aux lignes de la tuile', async () => {
+    const tile = await matrix.matrix(org, 'ARI', 'REQ', 'TST', 'verifies', roles, { rowOffset: 1, rowLimit: 1 });
+    expect(tile.rows.map((r) => r.key)).toEqual(['ARI-REQ-0002']);
+    expect(tile.totalRows).toBe(3);
+    expect(tile.uncoveredRows).toBe(2); // calculé sur toutes les lignes, pas sur la tuile
+    expect(tile.links).toEqual([]); // R2 n'a pas de lien « verifies »
+    const first = await matrix.matrix(org, 'ARI', 'REQ', 'TST', 'verifies', roles, { rowOffset: 0, rowLimit: 1 });
+    expect(first.links.map((l) => l.row)).toEqual(['ARI-REQ-0001', 'ARI-REQ-0001']);
+    expect((await matrix.matrix(org, 'ARI', 'REQ', 'TST', 'verifies', roles, { rowOffset: 50 })).rows).toEqual([]);
   });
 
   it('masque les titres restreints, refuse trackers et types inconnus, isole les organisations', async () => {

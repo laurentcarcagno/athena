@@ -31,7 +31,7 @@ test('vue Matrice : ligne non couverte, création d’un lien depuis une case, e
 
   await login(page, 'user.dev', 'dev-only-user');
   await page.goto('/p/ARI/t/EXI/matrice?mx=VER&mt=verifies');
-  const table = page.getByRole('table', { name: /Matrice de traçabilité/ });
+  const table = page.getByRole('grid', { name: /Matrice de traçabilité/ });
   await expect(table).toBeVisible();
   await expect(table.getByRole('row').filter({ hasText: gap })).toContainText('non couvert');
   await expect(table.getByRole('row').filter({ hasText: covered })).not.toContainText('non couvert');

@@ -24,3 +24,6 @@ Athena : suivi de projet (trackers configurables, type JIRA + Tuleap), historiqu
 
 ## Taille des tâches
 Une tâche tient dans une session (≈ 5 fichiers, ≈ 400 lignes). Plus gros : découper d'abord dans `docs/dev/tasks/`.
+
+## Changement de lot (reprise IHM)
+Fin de lot : arrêt et compte rendu. Aucun lot ne s'ouvre tant que les écarts du lot précédent ne sont pas comblés (sauf écart infaisable, accepté explicitement par l'utilisateur). Détail : `docs/dev/STATE.md`.

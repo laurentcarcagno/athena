@@ -45,6 +45,11 @@ test('onglet Traçabilité : règle de couverture, taux, items en défaut et ouv
   await expect(section.getByRole('link', { name: gap })).toBeVisible();
   await expect(section.getByRole('link', { name: covered })).toHaveCount(0);
 
+  await section.getByRole('button', { name: 'Modifier' }).click();
+  await page.getByLabel('Seuil d’alerte (%)').fill('30');
+  await page.getByRole('button', { name: 'Enregistrer la règle' }).click();
+  await expect(section.getByText('objectif 100 %, alerte 30 %')).toBeVisible();
+
   await section.getByRole('link', { name: '1 en défaut' }).click();
   await expect(page).toHaveURL(/\/p\/ARI\/t\/COU\/tableau\?f=/);
   await expect(page.getByRole('link', { name: gap, exact: true }).first()).toBeVisible();

@@ -24,8 +24,8 @@ export interface CoverageResult extends CoverageRuleView {
   /** Items visés ayant au moins un lien suspect (de n'importe quel type), comme le prédicat ATQL `suspect()`. */
   suspect: number;
   gaps: Array<{ key: string; title: string }>;
-  /** Requêtes ATQL ouvrant la liste derrière chaque nombre ; `gaps` vaut `null` quand ATQL ne sait pas exprimer exactement la règle. */
-  atql: { total: string; gaps: string | null; suspect: string };
+  /** Requêtes ATQL ouvrant la liste derrière chaque nombre. */
+  atql: { total: string; gaps: string; suspect: string };
   error: string | null;
 }
 
@@ -86,6 +86,21 @@ export class CoverageService {
     });
   }
 
+  /** Remplace les paramètres d'une règle (la clé et la portée ne changent pas). */
+  async update(organizationId: string, projectKey: string | null, key: string, input: CoverageRuleInput, actor: Actor): Promise<void> {
+    await this.db.tx(organizationId, async (c) => {
+      const projectId = projectKey === null ? null : await this.project(c, projectKey);
+      if (input.threshold.warning !== undefined && input.threshold.warning > input.threshold.target) throw validation(['le seuil d’alerte ne peut pas dépasser l’objectif']);
+      const done = await c.query(
+        `update coverage_rule set name = $3, from_tracker_key = $4, link_type_key = $5, direction = $6, min_count = $7, status_filter = $8, threshold = $9
+         where key = $2 and project_id is not distinct from $1`,
+        [projectId, key, input.name, input.fromTracker, input.linkType, input.direction, input.minCount, input.statuses, JSON.stringify(input.threshold)],
+      );
+      if (!done.rowCount) throw notFound(`Règle ${key}`);
+      await audit(c, organizationId, actor, 'coverage_rule.update', `coverage_rule:${projectKey ?? '*'}:${key}`);
+    });
+  }
+
   async remove(organizationId: string, projectKey: string | null, key: string, actor: Actor): Promise<void> {
     await this.db.tx(organizationId, async (c) => {
       const projectId = projectKey === null ? null : await this.project(c, projectKey);
@@ -103,7 +118,9 @@ export class CoverageService {
       for (const view of await this.rules(c, projectId)) {
         const atql = {
           total: scopeQuery(view),
-          gaps: view.minCount === 1 && view.direction === 'any' ? `${scopeQuery(view)} AND notLinked(${quote(view.linkType)})` : null,
+          gaps: view.minCount === 1 && view.direction === 'any'
+            ? `${scopeQuery(view)} AND notLinked(${quote(view.linkType)})`
+            : `${scopeQuery(view)} AND NOT linkCount(${quote(view.linkType)}, ${view.minCount}${view.direction === 'any' ? '' : `, ${quote(view.direction)}`})`,
           suspect: `${scopeQuery(view)} AND suspect()`,
         };
         const empty: CoverageResult = { ...view, total: 0, covered: 0, rate: null, level: 'none', suspect: 0, gaps: [], atql, error: null };
@@ -117,17 +134,17 @@ export class CoverageService {
           view.direction !== 'in' ? 'select from_artifact_id as aid from artifact_link where link_type_id = $2' : null,
           view.direction !== 'out' ? 'select to_artifact_id as aid from artifact_link where link_type_id = $2' : null,
         ].filter(Boolean).join(' union all ');
-        const base = `with scope as (select a.id, a.key, a."values" as values from artifact a join status s on s.id = a.status_id where a.tracker_id = $1 ${filtered ? 'and s.key = any($4)' : ''}),
+        // Un seul balayage : chaque item visé avec son nombre de liens et son drapeau « suspect », puis totaux et premiers défauts.
+        const joined = `with scope as (select a.id, a.key, a."values" as values from artifact a join status s on s.id = a.status_id where a.tracker_id = $1 ${filtered ? 'and s.key = any($4)' : ''}),
           counts as (select aid, count(*) n from (${sides}) x where aid in (select id from scope) group by aid),
-          suspects as (select from_artifact_id as aid from artifact_link where suspect union select to_artifact_id from artifact_link where suspect)`;
+          suspects as (select from_artifact_id as aid from artifact_link where suspect union select to_artifact_id from artifact_link where suspect),
+          j as materialized (select sc.key, sc.values, coalesce(cn.n, 0) >= $3 as ok, su.aid is not null as suspect from scope sc left join counts cn on cn.aid = sc.id left join suspects su on su.aid = sc.id)`;
         const totals = (await c.query(
-          `${base} select count(*) as total, count(*) filter (where coalesce(cn.n, 0) >= $3) as covered,
-             count(*) filter (where sc.id in (select aid from suspects)) as suspect
-           from scope sc left join counts cn on cn.aid = sc.id`, params,
+          `${joined} select count(*) as total, count(*) filter (where ok) as covered, count(*) filter (where suspect) as suspect,
+             (select coalesce(jsonb_agg(jsonb_build_object('key', g.key, 'values', g.values)), '[]'::jsonb) from (select key, values from j where not ok order by key limit ${COVERAGE_MAX_GAPS}) g) as gaps
+           from j`, params,
         )).rows[0];
-        const gapRows = (await c.query(
-          `${base} select sc.key, sc.values from scope sc left join counts cn on cn.aid = sc.id where coalesce(cn.n, 0) < $3 order by sc.key limit ${COVERAGE_MAX_GAPS}`, params,
-        )).rows;
+        const gapRows = totals.gaps as Array<{ key: string; values: Record<string, unknown> }>;
         const titleField = (await c.query("select key, read_roles from field_definition where tracker_id = $1 and semantic_role = 'title'", [tracker.id])).rows[0];
         const visible = !titleField?.read_roles || roles.includes('athena-admin') || (titleField.read_roles as string[]).some((r) => roles.includes(r));
         const total = Number(totals.total);
@@ -135,7 +152,7 @@ export class CoverageService {
         const rate = total === 0 ? null : Math.round((covered / total) * 1000) / 10;
         results.push({
           ...empty, total, covered, rate, level: levelOf(rate, view.threshold), suspect: Number(totals.suspect),
-          gaps: gapRows.map((g) => ({ key: g.key as string, title: visible ? String((g.values as Record<string, unknown>)[(titleField?.key as string | undefined) ?? 'title'] ?? g.key) : (g.key as string) })),
+          gaps: gapRows.map((g) => ({ key: g.key, title: visible ? String((g.values)[(titleField?.key as string | undefined) ?? 'title'] ?? g.key) : (g.key) })),
         });
       }
       return results;

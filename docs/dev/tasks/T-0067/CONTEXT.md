@@ -1,14 +1,14 @@
 # Journal de la tâche T-0067
 
 ## Fait
-- API : `MatrixService` / `MatrixController` (`GET /v1/projects/:p/matrix`), lignes limitées à 500, colonnes paginées par 200, indicateur `linked` calculé sur toutes les colonnes, titres restreints masqués, aucune migration ; `matrix.test.ts` (5).
-- Web : `MatrixView` (sélecteurs de tracker en colonnes et de type de lien dans l'adresse `mx`, `mt`, `mo`), ligne « non couvert » signalée par texte et pointillé, lien suspect au nom accessible, création de lien depuis une case vide, export CSV côté client ; vue `matrice` dans `TRACKER_VIEWS` ; `web15.test.tsx` (5, dont axe), e2e `matrice.spec.ts`.
+- API : `MatrixService` / `MatrixController` (`GET /v1/projects/:p/matrix`), tuiles de 500 lignes (`rowOffset`) sur 200 colonnes (`offset`), indicateur `linked` par ligne et `uncoveredRows` calculés sur tout le tracker, titres restreints masqués, aucune migration ; `matrix.test.ts` (6).
+- Web : `MatrixView` en **défilement virtuel** (grille ARIA, seules les cellules visibles sont dans la page, tuiles chargées au défilement, dimensions posées par propriétés CSS car la CSP interdit `style`), sélecteurs de tracker en colonnes et de type de lien dans l'adresse (`mx`, `mt`), ligne « non couvert » signalée par texte et pointillé, lien suspect au nom accessible, création de lien depuis une case vide, export CSV complet côté client ; `web15.test.tsx` (6, dont 10 000 × 5 000 et axe), e2e `matrice.spec.ts`.
 
-## Écart à signaler
-- Les colonnes sont paginées par fenêtres de 200, non virtualisées : l'affichage reste borné, mais le défilement horizontal ne charge pas en continu.
+## Écarts
+- Aucun. La pagination par 200 colonnes de la première version a été remplacée par le défilement virtuel (règle de changement de lot : pas d'écart toléré).
 
 ## Décisions
-- Créer un lien depuis la matrice ne demande pas de confirmation (action réversible, pas de style danger) ; si le type n'autorise que l'autre sens, le lien est créé dans ce sens.
+- Créer un lien depuis la matrice ne demande pas de confirmation (action réversible) ; si le type n'autorise que l'autre sens, le lien est créé dans ce sens.
 
 ## Prompt de reprise
-Lire `docs/dev/STATE.md`, puis T-0068 (règles de couverture et onglet Traçabilité, migration suivante).
+Lire `docs/dev/STATE.md`.

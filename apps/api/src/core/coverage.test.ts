@@ -58,7 +58,8 @@ suite('règles de couverture', () => {
     await coverage.create(org, 'ARI', 'brouillons', rule({ name: 'Brouillons', statuses: ['draft', 'validated'] }), actor);
     const by = Object.fromEntries((await coverage.evaluate(org, 'ARI', ['athena-user'])).map((x) => [x.key, x]));
     expect(by['deux-tests']).toMatchObject({ total: 4, covered: 1, rate: 25, level: 'warning' });
-    expect(by['deux-tests']!.atql.gaps).toBeNull(); // « au moins 2 » n'est pas exprimable en ATQL
+    expect(by['deux-tests']!.atql.gaps).toBe('tracker = REQ AND NOT linkCount("verifies", 2, "in")');
+    expect(by['sens-sortant']!.atql.gaps).toBe('tracker = REQ AND NOT linkCount("verifies", 1, "out")');
     expect(by['sens-sortant']).toMatchObject({ covered: 0, rate: 0, level: 'critical' }); // les liens vont du test vers l'exigence
     expect(by['brouillons']!.atql.total).toBe('tracker = REQ AND (status = "draft" OR status = "validated")');
     expect(scopeQuery({ fromTracker: 'REQ', statuses: ['draft'] })).toBe('tracker = REQ AND status = "draft"');
@@ -93,7 +94,12 @@ suite('règles de couverture', () => {
     expect(await code(coverage.create(org, 'ARI', 'incoherent', rule({ threshold: { target: 50, warning: 60 } }), actor))).toBe('validation');
     expect(await code(coverage.create(org, 'NOPE', 'x', rule(), actor))).toBe('not_found');
     expect(CoverageRuleInput.safeParse({ name: 'n', fromTracker: 'req', linkType: 'verifies' }).success).toBe(false);
-    await coverage.remove(org, 'ARI', 'incoherent', actor).catch(() => undefined);
+    await coverage.update(org, 'ARI', 'deux-tests', rule({ name: 'Trois tests', minCount: 3, direction: 'in', threshold: { target: 80 } }), actor);
+    const updated = (await coverage.list(org, 'ARI')).find((r) => r.key === 'deux-tests');
+    expect(updated).toMatchObject({ name: 'Trois tests', minCount: 3, scope: 'project', threshold: { target: 80 } });
+    expect(await code(coverage.update(org, 'ARI', 'deux-tests', rule({ threshold: { target: 50, warning: 60 } }), actor))).toBe('validation');
+    expect(await code(coverage.update(org, 'ARI', 'absente', rule(), actor))).toBe('not_found');
+    expect(await code(coverage.update(org, null, 'deux-tests', rule(), actor))).toBe('not_found'); // la règle est au niveau projet
     await coverage.remove(org, 'ARI', 'sans-type', actor);
     expect(await code(coverage.remove(org, 'ARI', 'sans-type', actor))).toBe('not_found');
   });

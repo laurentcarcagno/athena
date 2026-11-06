@@ -23,7 +23,8 @@ export type Expr =
   /** Traçabilité : items ayant un lien suspect, lié à un item donné (éventuellement par un type), ou sans lien (éventuellement d'un type). */
   | { type: 'suspect' }
   | { type: 'linkedTo'; target: string; link?: string }
-  | { type: 'notLinked'; link?: string };
+  | { type: 'notLinked'; link?: string }
+  | { type: 'linkCount'; link: string; min: number; direction: 'in' | 'out' | 'any' };
 
 export interface OrderBy {
   field: string;
@@ -35,7 +36,7 @@ export interface Query {
   orderBy: OrderBy[];
 }
 
-const LINK_FUNCTIONS = new Set(['suspect', 'linkedto', 'notlinked']);
+const LINK_FUNCTIONS = new Set(['suspect', 'linkedto', 'notlinked', 'linkcount']);
 const LINK_TYPE = /^[a-z][a-z0-9_]{0,39}$/;
 const ITEM_REF = /^[A-Za-z0-9_.-]{1,60}$/;
 export const LIMITS = { maxLength: 2000, maxDepth: 12, maxConditions: 50, maxInValues: 100 };
@@ -114,14 +115,14 @@ export function parse(input: string): Query {
     throw new AtqlError('Valeur attendue', token.pos);
   }
 
-  /** `suspect()`, `linkedTo(CLÉ[, "type"])`, `notLinked(["type"])` : prédicats de traçabilité sans opérateur. */
+  /** `suspect()`, `linkedTo(CLÉ[, "type"])`, `notLinked(["type"])`, `linkCount("type", n[, "in"|"out"])` : prédicats de traçabilité sans opérateur. */
   function linkFunction(): Expr {
     const name = next();
     expectPunct('(');
     const args: Array<{ value: string; pos: number }> = [];
     while (!(peek().t === 'punct' && peek().v === ')')) {
       const token = next();
-      if (token.t !== 'str' && token.t !== 'word') throw new AtqlError('Clé ou type de lien attendu', token.pos);
+      if (token.t !== 'str' && token.t !== 'word' && !(token.t === 'num' && name.v.toLowerCase() === 'linkcount')) throw new AtqlError('Clé ou type de lien attendu', token.pos);
       args.push({ value: token.v, pos: token.pos });
       if (peek().t === 'punct' && peek().v === ',') next();
       else if (!(peek().t === 'punct' && peek().v === ')')) throw new AtqlError('« , » ou « ) » attendu', peek().pos);
@@ -142,6 +143,17 @@ export function parse(input: string): Query {
       if (!ITEM_REF.test(args[0]!.value)) throw new AtqlError(`Clé d’item invalide : ${args[0]!.value}`, args[0]!.pos);
       const link = linkType(args[1]);
       return link === undefined ? { type: 'linkedTo', target: args[0]!.value } : { type: 'linkedTo', target: args[0]!.value, link };
+    }
+    if (kind === 'linkcount') {
+      if (args.length < 2 || args.length > 3) throw new AtqlError('linkCount() attend un type de lien, un nombre minimal de liens et, facultatif, « in » ou « out »', name.pos);
+      const link = linkType(args[0])!;
+      const min = Number(args[1]!.value);
+      if (!/^\d+$/.test(args[1]!.value) || min < 1 || min > 100) throw new AtqlError('Nombre minimal de liens invalide (1 à 100)', args[1]!.pos);
+      const direction = args[2]?.value ?? 'any';
+      if (direction !== 'in' && direction !== 'out') {
+        if (args[2]) throw new AtqlError('Sens attendu : « in » ou « out »', args[2].pos);
+      }
+      return { type: 'linkCount', link, min, direction: direction as 'in' | 'out' | 'any' };
     }
     if (args.length > 1) throw new AtqlError('notLinked() attend au plus un type de lien', name.pos);
     const link = linkType(args[0]);

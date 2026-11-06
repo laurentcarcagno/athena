@@ -23,6 +23,15 @@ describe('ATQL : fonctions de traçabilité (analyse et compilation)', () => {
     expect(parse('notLinked(verifies)').where).toEqual({ type: 'notLinked', link: 'verifies' });
   });
 
+  it('analyse linkCount("type", n[, "in"|"out"]) et refuse ses arguments invalides', () => {
+    expect(parse('linkCount("verifies", 2)').where).toEqual({ type: 'linkCount', link: 'verifies', min: 2, direction: 'any' });
+    expect(parse('NOT linkcount(verifies, 1, "in")').where).toEqual({ type: 'not', operand: { type: 'linkCount', link: 'verifies', min: 1, direction: 'in' } });
+    expect(parse('linkCount("verifies", 3, out)').where).toMatchObject({ direction: 'out' });
+    for (const bad of ['linkCount()', 'linkCount("verifies")', 'linkCount("verifies", 0)', 'linkCount("verifies", 101)', 'linkCount("verifies", 1.5)', 'linkCount("verifies", 2, "both")', 'linkCount("verifies", 2, "in", 1)', 'linkCount(3, 2)']) {
+      expect(() => parse(bad), bad).toThrow(AtqlError);
+    }
+  });
+
   it('se combine avec les conditions, la négation et le tri', () => {
     const q = parse('tracker = REQ AND (suspect() OR NOT notLinked("verifies")) ORDER BY key');
     expect(q.where).toMatchObject({ type: 'and', right: { type: 'or', left: { type: 'suspect' }, right: { type: 'not', operand: { type: 'notLinked', link: 'verifies' } } } });
@@ -94,6 +103,14 @@ suite('ATQL : fonctions de traçabilité (intégration)', () => {
     expect(await keys('tracker = REQ AND notLinked("verifies")')).toEqual(['ARI-REQ-0002', 'ARI-REQ-0003']); // R3 n'a qu'un lien « refines »
     expect(await keys('notLinked()')).toEqual(['ARI-REQ-0002']); // aucun lien du tout
     expect(await keys('tracker = REQ AND notLinked("blocks")')).toEqual(['ARI-REQ-0001', 'ARI-REQ-0002', 'ARI-REQ-0003']);
+  });
+
+  it('linkCount("type", n, sens) : au moins n liens, entrants, sortants ou les deux', async () => {
+    expect(await keys('tracker = REQ AND linkCount("verifies", 2)')).toEqual(['ARI-REQ-0001']);
+    expect(await keys('tracker = REQ AND linkCount("verifies", 2, "in")')).toEqual(['ARI-REQ-0001']);
+    expect(await keys('tracker = REQ AND linkCount("verifies", 1, "out")')).toEqual([]); // les liens vont du test vers l'exigence
+    expect(await keys('tracker = TST AND linkCount("verifies", 1, "out")')).toEqual(['ARI-TST-0001', 'ARI-TST-0002']);
+    expect(await keys('tracker = REQ AND NOT linkCount("verifies", 2, "in")')).toEqual(['ARI-REQ-0002', 'ARI-REQ-0003']);
   });
 
   it('linkedTo(CLÉ) et linkedTo(CLÉ, "type") : dans les deux sens', async () => {
