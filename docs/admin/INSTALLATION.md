@@ -70,6 +70,44 @@ Variables : `S3_ENDPOINT`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`, `S3_BUCKET`, `S3_RE
 
 `POST /v1/projects/:p/docs/:source/writeback` {repo, ref} crée une branche `athena/doc-refs/*` et une merge request qui ajoutent le champ `ATHENA_REFS` aux exigences liées. Le champ doit être déclaré dans la grammaire du document (`[GRAMMAR]`). Jamais d écriture directe.
 
+## Réseau isolé
+
+Une instance destinée à un réseau sans accès Internet (par exemple l'instance Défense) se déploie sans aucune dépendance extérieure : images et chart transférés par un support autorisé, polices embarquées, Keycloak et OpenBao dans le cluster, politiques réseau « tout refuser ».
+
+### 1. Préparer le lot (poste connecté)
+```
+docker build -f deploy/docker/Dockerfile --target api -t athena-api:0.1.0 .
+docker build -f deploy/docker/Dockerfile --target web -t athena-web:0.1.0 .
+node tools/check-external-urls.mjs --dist          # aucune URL externe dans le code, les feuilles de style, le HTML, les images
+node tools/export-bundle.mjs --out dist-bundle --version 0.1.0
+node tools/export-bundle.mjs --verify dist-bundle  # sommes de contrôle
+tar -cf athena-isolated-0.1.0.tar dist-bundle
+```
+Le lot contient `images/*.tar` (Athena, PostgreSQL, Keycloak, OpenBao), `chart/athena-<version>.tgz`, `values-isolated.yaml`, `load-bundle.sh`, `manifest.json` et `SHA256SUMS`. Figer les versions des images tierces avant l'export (`--images`). Les dépendances applicatives sont dans les images : rien n'est téléchargé à l'installation.
+
+### 2. Charger dans le registre interne (réseau isolé)
+```
+tar -xf athena-isolated-0.1.0.tar && cd dist-bundle
+REGISTRY=registre.interne.lan/athena sh load-bundle.sh      # vérifie SHA256SUMS, charge, étiquette et pousse
+```
+
+### 3. Installer
+Créer les secrets (jamais dans le dépôt) : `athena-env`, `athena-migration`, `athena-keycloak` (`KC_DB_URL`, `KC_DB_USERNAME`, `KC_DB_PASSWORD`, `KEYCLOAK_ADMIN`, `KEYCLOAK_ADMIN_PASSWORD`) et `athena-openbao-tls` (certificat émis par l'autorité interne). Puis :
+```
+helm upgrade --install athena chart/athena-0.1.0.tgz -f values-isolated.yaml -f mes-valeurs.yaml --set image.registry=$REGISTRY
+```
+`values-isolated.yaml` active `isolated.enabled` : le chart crée Keycloak (importe le royaume depuis la ConfigMap `isolated.keycloak.realmConfigMap`) et OpenBao (stockage fichier, TLS interne), et remplace les politiques réseau par des politiques sans sortie HTTPS générique. L'API et le worker ne joignent que PostgreSQL (`networkPolicy.databaseCidr`), Keycloak, OpenBao et les hôtes listés dans `networkPolicy.internalCidrs`.
+
+### 4. Initialiser OpenBao
+Initialiser et desceller OpenBao (`bao operator init`, clés de descellement réparties entre plusieurs personnes), activer le moteur `secret`, charger la politique `deploy/dev/openbao/athena-api.hcl`, puis placer le jeton applicatif dans `athena-env` (`OPENBAO_TOKEN`).
+
+### 5. Contrôles
+- `node tools/check-external-urls.mjs` (aussi exécuté par `pnpm check`) échoue si une URL externe apparaît dans le code livré.
+- Les tests `no-egress` (API et navigateur) échouent si l'application tente une requête vers un hôte public.
+- Recette sur `kind` coupé de l'extérieur : voir le journal de la tâche T-0076 (`docs/dev/tasks/T-0076/CONTEXT.md`).
+
+Le niveau de protection de l'instance (bandeau et mention des exports) se règle par `protectionLevel` (variable `ATHENA_PROTECTION_LEVEL`).
+
 ## Recette Kubernetes locale (kind)
 
 Un déploiement réel du chart a été réalisé le 2026-10-31 sur un cluster `kind` (Kubernetes 1.32) : PostgreSQL 16 en pod, images `athena-api` et `athena-web` chargées avec `kind load docker-image`, rendu du chart avec `helm template` puis `kubectl apply`.

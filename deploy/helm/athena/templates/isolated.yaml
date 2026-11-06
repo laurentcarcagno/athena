@@ -1,0 +1,145 @@
+{{- if .Values.isolated.enabled }}
+# Services d'identité et de secrets locaux du mode « réseau isolé » : aucune dépendance à un service extérieur au cluster.
+# Keycloak (base PostgreSQL dédiée, identifiants dans le secret existant `isolated.keycloak.existingSecret`) et OpenBao (stockage fichier).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: athena-keycloak
+  labels:
+    {{- include "athena.labels" . | nindent 4 }}
+    app.kubernetes.io/component: keycloak
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app.kubernetes.io/instance: {{ .Release.Name }}, app.kubernetes.io/component: keycloak }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: athena, app.kubernetes.io/instance: {{ .Release.Name }}, app.kubernetes.io/component: keycloak }
+    spec:
+      {{- include "athena.podSecurity" . | nindent 6 }}
+      automountServiceAccountToken: false
+      {{- with .Values.image.pullSecrets }}
+      imagePullSecrets: {{ toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: keycloak
+          image: {{ include "athena.image" (dict "root" . "spec" .Values.isolated.keycloak.image) }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args: ["start", "--optimized=false", "--http-enabled=true", "--proxy-headers=xforwarded", "--hostname={{ .Values.isolated.keycloak.host }}", "--health-enabled=true"{{ if .Values.isolated.keycloak.realmConfigMap }}, "--import-realm"{{ end }}]
+          ports: [{ name: http, containerPort: 8080 }]
+          envFrom: [{ secretRef: { name: {{ .Values.isolated.keycloak.existingSecret }} } }]  # KC_DB_URL, KC_DB_USERNAME, KC_DB_PASSWORD, KEYCLOAK_ADMIN, KEYCLOAK_ADMIN_PASSWORD
+          env:
+            - { name: KC_DB, value: postgres }
+          readinessProbe: { httpGet: { path: /health/ready, port: 9000 }, periodSeconds: 10, failureThreshold: 12, initialDelaySeconds: 30 }
+          resources:
+            {{- toYaml .Values.isolated.keycloak.resources | nindent 12 }}
+          {{- include "athena.containerSecurity" . | nindent 10 }}
+          volumeMounts:
+            - { name: tmp, mountPath: /tmp }
+            - { name: data, mountPath: /opt/keycloak/data }
+            {{- if .Values.isolated.keycloak.realmConfigMap }}
+            - { name: realm, mountPath: /opt/keycloak/data/import, readOnly: true }
+            {{- end }}
+      volumes:
+        - { name: tmp, emptyDir: { sizeLimit: 128Mi } }
+        - { name: data, emptyDir: { sizeLimit: 256Mi } }
+        {{- if .Values.isolated.keycloak.realmConfigMap }}
+        - { name: realm, configMap: { name: {{ .Values.isolated.keycloak.realmConfigMap }} } }
+        {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: athena-keycloak
+  labels:
+    {{- include "athena.labels" . | nindent 4 }}
+spec:
+  selector: { app.kubernetes.io/instance: {{ .Release.Name }}, app.kubernetes.io/component: keycloak }
+  ports: [{ name: http, port: 8080, targetPort: http }]
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: athena-openbao-config
+data:
+  openbao.hcl: |
+    ui = false
+    disable_mlock = true
+    listener "tcp" {
+      address = "0.0.0.0:8200"
+      tls_cert_file = "/openbao/tls/tls.crt"
+      tls_key_file  = "/openbao/tls/tls.key"
+    }
+    storage "file" { path = "/openbao/data" }
+    api_addr = "https://athena-openbao:8200"
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: athena-openbao
+  labels:
+    {{- include "athena.labels" . | nindent 4 }}
+    app.kubernetes.io/component: openbao
+spec:
+  serviceName: athena-openbao
+  replicas: 1
+  selector:
+    matchLabels: { app.kubernetes.io/instance: {{ .Release.Name }}, app.kubernetes.io/component: openbao }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: athena, app.kubernetes.io/instance: {{ .Release.Name }}, app.kubernetes.io/component: openbao }
+    spec:
+      {{- include "athena.podSecurity" . | nindent 6 }}
+      automountServiceAccountToken: false
+      {{- with .Values.image.pullSecrets }}
+      imagePullSecrets: {{ toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: openbao
+          image: {{ include "athena.image" (dict "root" . "spec" .Values.isolated.openbao.image) }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args: ["server", "-config=/openbao/config/openbao.hcl"]
+          ports: [{ name: https, containerPort: 8200 }]
+          resources:
+            {{- toYaml .Values.isolated.openbao.resources | nindent 12 }}
+          {{- include "athena.containerSecurity" . | nindent 10 }}
+          volumeMounts:
+            - { name: config, mountPath: /openbao/config, readOnly: true }
+            - { name: tls, mountPath: /openbao/tls, readOnly: true }
+            - { name: data, mountPath: /openbao/data }
+            - { name: tmp, mountPath: /tmp }
+      volumes:
+        - { name: config, configMap: { name: athena-openbao-config } }
+        - { name: tls, secret: { secretName: {{ .Values.isolated.openbao.tlsSecret }} } }
+        - { name: tmp, emptyDir: { sizeLimit: 32Mi } }
+  volumeClaimTemplates:
+    - metadata: { name: data }
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources: { requests: { storage: {{ .Values.isolated.openbao.storage }} } }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: athena-openbao
+  labels:
+    {{- include "athena.labels" . | nindent 4 }}
+spec:
+  selector: { app.kubernetes.io/instance: {{ .Release.Name }}, app.kubernetes.io/component: openbao }
+  ports: [{ name: https, port: 8200, targetPort: https }]
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: athena-keycloak
+  labels:
+    {{- include "athena.labels" . | nindent 4 }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  tls: [{ hosts: [{{ .Values.isolated.keycloak.host | quote }}], secretName: {{ .Values.ingress.tlsSecret }} }]
+  rules:
+    - host: {{ .Values.isolated.keycloak.host | quote }}
+      http:
+        paths:
+          - { path: /, pathType: Prefix, backend: { service: { name: athena-keycloak, port: { name: http } } } }
+{{- end }}

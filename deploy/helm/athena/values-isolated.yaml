@@ -1,0 +1,40 @@
+# Valeurs du déploiement en réseau isolé (sans accès Internet). À combiner avec les valeurs propres au site :
+#   helm upgrade --install athena chart/athena-<version>.tgz -f values-isolated.yaml -f mes-valeurs.yaml
+# Toutes les images viennent du registre interne ; Keycloak et OpenBao tournent dans le cluster ; politiques réseau « tout refuser ».
+image:
+  registry: registre.interne.lan/athena      # registre interne (voir load-bundle.sh)
+  pullPolicy: IfNotPresent
+  pullSecrets: []
+
+publicUrl: https://athena.interne.lan
+ingress:
+  host: athena.interne.lan
+
+config:
+  keycloakIssuer: https://keycloak.interne.lan/realms/athena
+  openbaoAddr: https://athena-openbao:8200
+  gitlabUrl: ""                  # GitLab interne éventuel (hôte du réseau isolé)
+  webhookAllowPrivate: false
+
+isolated:
+  enabled: true
+  keycloak:
+    host: keycloak.interne.lan
+    image: { repository: keycloak, tag: "26.0" }
+    existingSecret: athena-keycloak            # KC_DB_URL, KC_DB_USERNAME, KC_DB_PASSWORD, KEYCLOAK_ADMIN, KEYCLOAK_ADMIN_PASSWORD
+    realmConfigMap: ""                         # ConfigMap contenant le royaume Athena (import au démarrage)
+    resources:
+      requests: { cpu: 200m, memory: 512Mi }
+      limits: { memory: 1Gi }
+  openbao:
+    image: { repository: openbao, tag: "2.1" }
+    tlsSecret: athena-openbao-tls              # certificat de l'autorité interne
+    storage: 1Gi
+    resources:
+      requests: { cpu: 50m, memory: 128Mi }
+      limits: { memory: 256Mi }
+
+networkPolicy:
+  enabled: true
+  databaseCidr: 10.0.0.0/8                     # à restreindre à l'adresse de PostgreSQL
+  internalCidrs: []                            # autres services internes joints en HTTPS (GitLab interne…)

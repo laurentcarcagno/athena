@@ -1,5 +1,7 @@
 {{- if .Values.networkPolicy.enabled }}
 # Refus par défaut ; ouvertures minimales : ingress -> web -> api ; sorties vers DNS, base, Keycloak/GitLab (HTTPS), OpenBao.
+# Mode isolé (`isolated.enabled`) : aucune sortie HTTPS générique (port 443 vers n'importe où) ; l'API et le worker ne joignent que
+# la base (`networkPolicy.databaseCidr`), Keycloak et OpenBao du cluster, et les hôtes internes listés dans `networkPolicy.internalCidrs`.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -19,8 +21,81 @@ spec:
   egress:
     - to: [{ podSelector: { matchLabels: { app.kubernetes.io/instance: {{ .Release.Name }}, app.kubernetes.io/component: api } } }]
       ports: [{ port: 3001 }]
-    - ports: [{ port: 53, protocol: UDP }, { port: 53, protocol: TCP }]
+    - to: [{ namespaceSelector: { matchLabels: { kubernetes.io/metadata.name: {{ .Values.networkPolicy.dnsNamespace }} } } }]
+      ports: [{ port: 53, protocol: UDP }, { port: 53, protocol: TCP }]
 ---
+{{- if .Values.isolated.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: athena-api-allow
+spec:
+  podSelector: { matchLabels: { app.kubernetes.io/instance: {{ .Release.Name }}, app.kubernetes.io/component: api } }
+  policyTypes: [Ingress, Egress]
+  ingress:
+    - from: [{ podSelector: { matchLabels: { app.kubernetes.io/instance: {{ .Release.Name }}, app.kubernetes.io/component: web } } }]
+      ports: [{ port: 3001 }]
+  egress:
+    - to: [{ namespaceSelector: { matchLabels: { kubernetes.io/metadata.name: {{ .Values.networkPolicy.dnsNamespace }} } } }]
+      ports: [{ port: 53, protocol: UDP }, { port: 53, protocol: TCP }]
+    - to: [{ ipBlock: { cidr: {{ .Values.networkPolicy.databaseCidr | quote }} } }]
+      ports: [{ port: 5432 }]
+    - to: [{ podSelector: { matchLabels: { app.kubernetes.io/instance: {{ .Release.Name }}, app.kubernetes.io/component: keycloak } } }]
+      ports: [{ port: 8080 }]
+    - to: [{ podSelector: { matchLabels: { app.kubernetes.io/instance: {{ .Release.Name }}, app.kubernetes.io/component: openbao } } }]
+      ports: [{ port: 8200 }]
+    {{- range .Values.networkPolicy.internalCidrs }}
+    - to: [{ ipBlock: { cidr: {{ . | quote }} } }]
+      ports: [{ port: 443 }]
+    {{- end }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: athena-worker-allow
+spec:
+  podSelector: { matchLabels: { app.kubernetes.io/instance: {{ .Release.Name }}, app.kubernetes.io/component: worker } }
+  policyTypes: [Egress]
+  egress:
+    - to: [{ namespaceSelector: { matchLabels: { kubernetes.io/metadata.name: {{ .Values.networkPolicy.dnsNamespace }} } } }]
+      ports: [{ port: 53, protocol: UDP }, { port: 53, protocol: TCP }]
+    - to: [{ ipBlock: { cidr: {{ .Values.networkPolicy.databaseCidr | quote }} } }]
+      ports: [{ port: 5432 }]
+    - to: [{ podSelector: { matchLabels: { app.kubernetes.io/instance: {{ .Release.Name }}, app.kubernetes.io/component: openbao } } }]
+      ports: [{ port: 8200 }]
+    {{- range .Values.networkPolicy.internalCidrs }}
+    - to: [{ ipBlock: { cidr: {{ . | quote }} } }]
+      ports: [{ port: 443 }]
+    {{- end }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: athena-keycloak-allow
+spec:
+  podSelector: { matchLabels: { app.kubernetes.io/instance: {{ .Release.Name }}, app.kubernetes.io/component: keycloak } }
+  policyTypes: [Ingress, Egress]
+  ingress: [{ ports: [{ port: 8080 }] }]
+  egress:
+    - to: [{ namespaceSelector: { matchLabels: { kubernetes.io/metadata.name: {{ .Values.networkPolicy.dnsNamespace }} } } }]
+      ports: [{ port: 53, protocol: UDP }, { port: 53, protocol: TCP }]
+    - to: [{ ipBlock: { cidr: {{ .Values.networkPolicy.databaseCidr | quote }} } }]
+      ports: [{ port: 5432 }]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: athena-openbao-allow
+spec:
+  podSelector: { matchLabels: { app.kubernetes.io/instance: {{ .Release.Name }}, app.kubernetes.io/component: openbao } }
+  policyTypes: [Ingress, Egress]
+  ingress:
+    - from:
+        - podSelector: { matchLabels: { app.kubernetes.io/instance: {{ .Release.Name }}, app.kubernetes.io/component: api } }
+        - podSelector: { matchLabels: { app.kubernetes.io/instance: {{ .Release.Name }}, app.kubernetes.io/component: worker } }
+      ports: [{ port: 8200 }]
+  egress: []
+{{- else }}
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -43,4 +118,5 @@ spec:
   policyTypes: [Egress]
   egress:
     - ports: [{ port: 53, protocol: UDP }, { port: 53, protocol: TCP }, { port: 5432 }, { port: 443 }, { port: 8200 }]
+{{- end }}
 {{- end }}

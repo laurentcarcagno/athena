@@ -59,6 +59,24 @@ ingress:
 
 networkPolicy:
   enabled: true
+  dnsNamespace: kube-system    # espace de noms du DNS du cluster (les requêtes DNS ne sortent que vers lui)
+  databaseCidr: 0.0.0.0/0      # mode isolé : adresse de PostgreSQL
+  internalCidrs: []            # mode isolé : autres services internes joints en HTTPS
+
+# Mode « réseau isolé » : voir values-isolated.yaml et docs/admin/INSTALLATION.md
+isolated:
+  enabled: false
+  keycloak:
+    host: ""
+    image: { repository: keycloak, tag: "26.0" }
+    existingSecret: athena-keycloak
+    realmConfigMap: ""
+    resources: { requests: { cpu: 200m, memory: 512Mi }, limits: { memory: 1Gi } }
+  openbao:
+    image: { repository: openbao, tag: "2.1" }
+    tlsSecret: athena-openbao-tls
+    storage: 1Gi
+    resources: { requests: { cpu: 50m, memory: 128Mi }, limits: { memory: 256Mi } }
 
 migrations:
   enabled: true
