@@ -51,3 +51,11 @@ Chaque critère d'acceptation des fiches T-0076, T-0077, T-0078, T-0079, T-0099 
 | Lit ce que sa liste autorise, n'écrit rien | `auth.test.ts` (lecture 200, écritures 403, jamais administrateur), `approval.test.ts` (liste d'ayants droit) |
 | Approuve un jalon ou une baseline : nominatif, horodaté, audité | `approval.test.ts` (décisions, remplacement, journal d'audit), `web22.test.tsx` |
 | Une baseline requérant une approbation ne passe « approuvée » qu'avec elle | `approval.test.ts` (état « en attente » puis « approuvée » ; refus l'emporte ; publication d'un jalon bloquée) |
+
+## Test instable corrigé
+Le test d'historique « mode merge request » a échoué une fois dans un `pnpm check` : cause trouvée, c'était un délai fixe de 1,5 s en attendant la fusion asynchrone de GitLab, insuffisant sous charge. Il attend maintenant l'arrivée du fichier sur `main` (jusqu'à 30 s). Le test passe 3 fois de suite seul et `pnpm check` 17/17 deux fois de suite.
+
+## Rappel des trois critères de T-0078, revérifiés
+1. Niveau vide : aucun bandeau ; renseigné : bandeau fixe lu par les lecteurs d'écran, avant et après connexion : `web19.test.tsx`, `bff.test.ts`.
+2. Mention en en-tête et pied de tous les exports et documents générés : CSV de conformité, YAML de gabarit, notes de version (`export-marking.test.ts`), CSV de la matrice (`web19.test.tsx`), fichiers YAML de l'historique Git générés par Athena, `tracker.yaml` compris (`history.test.ts`), en-tête HTTP sur chaque réponse.
+3. Bandeau jamais rouge : test sur le CSS (`web19.test.tsx`).

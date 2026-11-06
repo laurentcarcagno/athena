@@ -245,7 +245,8 @@ suite('historique GitLab (intégration)', () => {
     expect((await gitlab.openMergeRequest(projectId, branch, 'main'))!.iid).toBe(mr!.iid);
 
     await gitlab.mergeMergeRequest(projectId, mr!.iid);
-    await new Promise((resolve) => setTimeout(resolve, 1500)); // GitLab fusionne de façon asynchrone
+    // GitLab fusionne de façon asynchrone : on attend l'arrivée du fichier sur main (jusqu'à 30 s) plutôt qu'un délai fixe, qui échouait sous charge.
+    for (let i = 0; i < 60 && !(await gitlab.fileExists(projectId, path, 'main')); i++) await new Promise((resolve) => setTimeout(resolve, 500));
     expect(parse(await gitlab.fileContent(projectId, path, 'main'))).toMatchObject({ version: 2 });
     // Les trackers en mode direct continuent d'écrire sur main.
     const direct = await artifacts.create(org, 'ARI', 'BUG', { title: 'Direct', severity: 'mineure' }, alice);
