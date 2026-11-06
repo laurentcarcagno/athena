@@ -50,18 +50,18 @@ describe('fenêtres par rôle', () => {
     expect(nav()).not.toContain('Gestion de projet');
   });
 
-  it('le chef de projet voit Gestion de projet, pas Organisation ni Administration', () => {
+  it('le chef de projet ne voit ni Organisation ni Administration', () => {
     routes.push(['GET', /\/v1\/projects$/, []]);
     app('/p/ARI', ['athena-user', 'athena-pm']);
-    expect(nav()).toContain('Gestion de projet');
+    expect(nav()).toContain('Vue d’ensemble');
     expect(nav()).not.toContain('Organisation');
     expect(nav()).not.toContain('Administration');
   });
 
-  it('l’administrateur voit Organisation, Gestion de projet et Administration', () => {
+  it('l’administrateur voit Organisation et Administration', () => {
     routes.push(['GET', /\/v1\/projects$/, []]);
     app('/p/ARI', ['athena-user', 'athena-admin']);
-    expect(nav()).toEqual(expect.arrayContaining(['Organisation', 'Gestion de projet', 'Administration']));
+    expect(nav()).toEqual(expect.arrayContaining(['Organisation', 'Administration']));
   });
 
   it('refuse la gestion de projet à un simple utilisateur', () => {

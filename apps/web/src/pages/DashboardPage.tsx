@@ -183,7 +183,7 @@ export function DashboardPage() {
           <div className="ath-stack">
             {data.byTracker.map((t) => (
               <div key={t.tracker} className="ath-row">
-                <Link className="ath-link ath-mono" to={`/p/${project}?q=${encodeURIComponent(`tracker = ${t.tracker}`)}`}>{t.tracker}</Link>
+                <Link className="ath-link ath-mono" to={`/p/${project}/recherche?q=${encodeURIComponent(`tracker = ${t.tracker}`)}`}>{t.tracker}</Link>
                 <span className="ath-mono">{t.open} / {t.total}</span>
               </div>
             ))}

@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { BrowserRouter, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Btn, EmptyState, PageHeader, Sidebar, ToastProvider } from '@athena/ui';
 import { loadSession, loginUrl, logout, type Session } from './api';
 import { CommandPalette } from './components/CommandPalette';
@@ -14,6 +14,7 @@ import { HelpPage } from './pages/HelpPage';
 import { OrgAdminPage } from './pages/OrgAdminPage';
 import { ProjectManagePage } from './pages/ProjectManagePage';
 import { ProjectsPage } from './pages/ProjectsPage';
+import { OverviewOrLegacySearch, ProjectShell } from './pages/project/ProjectShell';
 import { TrackerConfigPage } from './pages/TrackerConfigPage';
 import { TrackerCreatePage } from './pages/TrackerCreatePage';
 
@@ -54,9 +55,8 @@ function Shell({ session, children }: { session: Session; children: ReactNode })
     { id: '/me', label: fr.nav.work },
     ...(admin ? [{ id: '/org', label: fr.nav.organization }] : []),
     ...(project ? [
-      { id: `/p/${project}`, label: fr.nav.search },
-      { id: `/p/${project}/dashboard`, label: fr.nav.dashboard },
-      ...(manager ? [{ id: `/p/${project}/manage`, label: fr.nav.manage }] : []),
+      { id: `/p/${project}`, label: fr.nav.overview },
+      { id: `/p/${project}/recherche`, label: fr.nav.search },
       ...(admin ? [{ id: `/p/${project}/admin`, label: fr.nav.admin }] : []),
     ] : []),
     { id: '/help', label: fr.nav.help },
@@ -92,6 +92,12 @@ function NotFound() {
   );
 }
 
+/** Ancienne adresse d'un projet : redirige vers sa nouvelle place (relative à `/p/:projet`). */
+function RedirectTo({ to }: { to: string }) {
+  const { project } = useParams();
+  return <Navigate replace to={to === '' ? `/p/${project}` : `/p/${project}/${to}`} />;
+}
+
 export function AuthenticatedApp({ session }: { session: Session }) {
   return (
     <Shell session={session}>
@@ -99,9 +105,13 @@ export function AuthenticatedApp({ session }: { session: Session }) {
         <Route path="/" element={<ProjectsPage session={session} />} />
         <Route path="/me" element={<MyWorkPage session={session} />} />
         <Route path="/org" element={<OrgAdminPage session={session} />} />
-        <Route path="/p/:project" element={<ListPage session={session} />} />
-        <Route path="/p/:project/manage" element={<ProjectManagePage session={session} />} />
-        <Route path="/p/:project/dashboard" element={<DashboardPage />} />
+        <Route path="/p/:project" element={<ProjectShell />}>
+          <Route index element={<OverviewOrLegacySearch><DashboardPage /></OverviewOrLegacySearch>} />
+          <Route path="planification" element={<ProjectManagePage session={session} />} />
+        </Route>
+        <Route path="/p/:project/recherche" element={<ListPage session={session} />} />
+        <Route path="/p/:project/manage" element={<RedirectTo to="planification" />} />
+        <Route path="/p/:project/dashboard" element={<RedirectTo to="" />} />
         <Route path="/p/:project/admin" element={<AdminPage session={session} />} />
         <Route path="/help" element={<HelpPage />} />
         <Route path="/p/:project/a/:key" element={<ArtifactPage session={session} />} />

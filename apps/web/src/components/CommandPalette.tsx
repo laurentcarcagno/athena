@@ -49,8 +49,8 @@ export function CommandPalette({ project }: { project: string | undefined }) {
     const nav: Entry[] = [{ id: 'projects', label: fr.nav.projects, to: '/' }];
     if (project) {
       nav.push(
-        { id: 'search', label: `${fr.nav.search} · ${project}`, to: `/p/${project}` },
-        { id: 'dashboard', label: `${fr.nav.dashboard} · ${project}`, to: `/p/${project}/dashboard` },
+        { id: 'overview', label: `${fr.nav.overview} · ${project}`, to: `/p/${project}` },
+        { id: 'search', label: `${fr.nav.search} · ${project}`, to: `/p/${project}/recherche` },
         { id: 'admin', label: `${fr.nav.admin} · ${project}`, to: `/p/${project}/admin` },
       );
     }

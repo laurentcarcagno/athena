@@ -185,10 +185,10 @@ describe('palette de commandes', () => {
     handlers = [on('GET', '/v1/projects', { body: [{ key: 'ARI', name: 'Ariane' }, { key: 'HAK', name: 'Hakuna' }] })];
     mount();
     const input = await open();
-    await userEvent.type(input, 'tableau');
-    expect(screen.getByRole('option', { name: /Tableau de bord · ARI/ })).toHaveAttribute('aria-selected', 'true');
+    await userEvent.type(input, 'recherche');
+    expect(screen.getByRole('option', { name: /Recherche · ARI/ })).toHaveAttribute('aria-selected', 'true');
     await userEvent.keyboard('{Enter}');
-    expect(screen.getByTestId('where')).toHaveTextContent('/p/ARI/dashboard');
+    expect(screen.getByTestId('where')).toHaveTextContent('/p/ARI/recherche');
     expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
   });
   it('cherche des artefacts du projet et ouvre celui qui est sélectionné', async () => {

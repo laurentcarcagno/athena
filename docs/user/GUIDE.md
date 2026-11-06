@@ -7,7 +7,8 @@
 
 ## Navigation
 - **Ctrl+K** (ou ⌘K) ouvre la palette de commandes : aller à un projet ou une page, chercher un artefact par clé ou titre.
-- La barre latérale donne : Projets, Recherche, Tableau de bord, Administration (administrateurs).
+- La barre latérale donne : Projets, Mon travail, et pour le projet courant la Vue d'ensemble, la Recherche et l'Administration (administrateurs).
+- Chaque projet s'ouvre sur une barre d'onglets à l'ordre fixe : Vue d'ensemble, Trackers, Planification, Traçabilité, Documents, Code et intégration, Activité, Membres. Un onglet dont le module n'est pas actif (pas de dépôt de code, pas de source documentaire, pas de type de lien) est masqué, sans déplacer les autres. La Recherche (requêtes ATQL) est une vue du projet, à l'adresse `/p/<projet>/recherche` ; les anciennes adresses (`/p/<projet>?q=…`, `/manage`, `/dashboard`) redirigent.
 - Le bouton en haut change la langue (français / anglais).
 
 ## Rechercher : le langage ATQL

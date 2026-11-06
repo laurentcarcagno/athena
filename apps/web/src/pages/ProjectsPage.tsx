@@ -45,7 +45,7 @@ export function ProjectsPage({ session }: { session?: Session } = {}) {
                       {p.trackers.map((t) => (
                         <tr key={t.key}>
                           <Td>
-                            <Link className="ath-link" to={`/p/${p.key}?q=${encodeURIComponent(`tracker = ${t.key}`)}`}><Tag variant="solid">{t.key}</Tag> {t.name}</Link>
+                            <Link className="ath-link" to={`/p/${p.key}/recherche?q=${encodeURIComponent(`tracker = ${t.key}`)}`}><Tag variant="solid">{t.key}</Tag> {t.name}</Link>
                           </Td>
                           <Td mono>{t.artifacts}</Td>
                           <Td>
@@ -67,7 +67,7 @@ export function ProjectsPage({ session }: { session?: Session } = {}) {
                   </div>
                 )}
                 <div className="ath-row">
-                  <Link className="ath-link" to={`/p/${p.key}`}><Id>{p.key}</Id> · {fr.nav.search}</Link>
+                  <Link className="ath-link" to={`/p/${p.key}`}><Id>{p.key}</Id> · {fr.nav.overview}</Link>
                   {admin && <Btn size="sm" variant="ghost" onClick={() => navigate(`/p/${p.key}/trackers/new`)}>{fr.builder.addTracker}</Btn>}
                 </div>
               </div>

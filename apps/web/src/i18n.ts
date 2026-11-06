@@ -7,7 +7,7 @@ import { useSyncExternalStore } from 'react';
 const frDict = {
   loading: 'Chargement…',
   language: 'English',
-  nav: { projects: 'Projets', search: 'Recherche', dashboard: 'Tableau de bord', admin: 'Administration', logout: 'Déconnexion', palette: 'Commandes', work: 'Mon travail', manage: 'Gestion de projet', organization: 'Organisation', help: 'Aide', menu: 'Menu', skip: 'Aller au contenu' },
+  nav: { overview: 'Vue d’ensemble', projects: 'Projets', search: 'Recherche', dashboard: 'Tableau de bord', admin: 'Administration', logout: 'Déconnexion', palette: 'Commandes', work: 'Mon travail', manage: 'Gestion de projet', organization: 'Organisation', help: 'Aide', menu: 'Menu', skip: 'Aller au contenu' },
   projects: { eyebrow: 'Mission console', title: 'Projets', empty: 'Aucun projet.', emptyEyebrow: 'Aucun résultat', trackers: 'Trackers', boards: 'Boards', trackerName: 'Tracker', artifacts: 'Artefacts', attributes: 'Attributs', noTracker: 'Aucun tracker.', noAttribute: 'Aucun attribut.' },
   list: {
     eyebrow: 'Recherche', placeholder: 'Requête ATQL, par exemple status = open AND severity = majeure', run: 'Rechercher',
@@ -74,6 +74,10 @@ const frDict = {
     resetTitle: (n: string) => `Réinitialiser « ${n} »`, resetBody: 'Les modifications de ce template livré sont abandonnées. Les projets déjà créés ne changent pas.',
     trackersOfTemplate: 'Trackers du template', addFromTemplate: 'Ajouter ce tracker', removeTracker: 'Retirer le tracker', editTracker: 'Éditer le tracker', closeTracker: 'Replier le tracker', duplicateTracker: 'Deux trackers du template ont la même clé.', noTrackers: 'Aucun tracker : les projets créés avec ce template seront vides.', pickTemplateToAdd: 'Ajouter un tracker depuis un template de tracker',
   },
+  project: {
+    navLabel: (p: string) => `Projet ${p}`,
+    tabs: { overview: 'Vue d’ensemble', trackers: 'Trackers', planning: 'Planification', traceability: 'Traçabilité', documents: 'Documents', code: 'Code et intégration', activity: 'Activité', members: 'Membres' },
+  },
   types: {
     title: 'Types de tracker', note: 'Un type fixe la catégorie, les vues proposées et le socle de champs des trackers qui en dérivent. Les types livrés se modifient et se réinitialisent.',
     key: 'Clé du type (minuscules)', name: 'Nom du type', description: 'Description', category: 'Catégorie',
@@ -123,7 +127,7 @@ export type Dictionary = typeof frDict;
 const enDict: Dictionary = {
   loading: 'Loading…',
   language: 'Français',
-  nav: { projects: 'Projects', search: 'Search', dashboard: 'Dashboard', admin: 'Administration', logout: 'Sign out', palette: 'Commands', work: 'My work', manage: 'Project management', organization: 'Organization', help: 'Help', menu: 'Menu', skip: 'Skip to content' },
+  nav: { overview: 'Overview', projects: 'Projects', search: 'Search', dashboard: 'Dashboard', admin: 'Administration', logout: 'Sign out', palette: 'Commands', work: 'My work', manage: 'Project management', organization: 'Organization', help: 'Help', menu: 'Menu', skip: 'Skip to content' },
   projects: { eyebrow: 'Mission console', title: 'Projects', empty: 'No project.', emptyEyebrow: 'No result', trackers: 'Trackers', boards: 'Boards', trackerName: 'Tracker', artifacts: 'Artifacts', attributes: 'Attributes', noTracker: 'No tracker.', noAttribute: 'No attribute.' },
   list: {
     eyebrow: 'Search', placeholder: 'ATQL query, for example status = open AND severity = major', run: 'Search',
@@ -189,6 +193,10 @@ const enDict: Dictionary = {
     editing: (n: string) => `Editing “${n}”`, builtinNote: 'Template shipped with Athena: your change replaces it for your organization. “Reset” restores the original version.',
     resetTitle: (n: string) => `Reset “${n}”`, resetBody: 'Changes to this built-in template are discarded. Projects already created are unchanged.',
     trackersOfTemplate: 'Template trackers', addFromTemplate: 'Add this tracker', removeTracker: 'Remove the tracker', editTracker: 'Edit the tracker', closeTracker: 'Collapse the tracker', duplicateTracker: 'Two trackers of the template share the same key.', noTrackers: 'No tracker: projects created with this template will be empty.', pickTemplateToAdd: 'Add a tracker from a tracker template',
+  },
+  project: {
+    navLabel: (p: string) => `Project ${p}`,
+    tabs: { overview: 'Overview', trackers: 'Trackers', planning: 'Planning', traceability: 'Traceability', documents: 'Documents', code: 'Code and integration', activity: 'Activity', members: 'Members' },
   },
   types: {
     title: 'Tracker types', note: 'A type sets the category, the proposed views and the base fields of the trackers derived from it. Built-in types can be edited and reset.',
