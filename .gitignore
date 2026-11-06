@@ -26,3 +26,4 @@ design-audit-work/*.mjs
 design-redesign-work/after/
 design-redesign-work/*.mjs
 .admin-required-actions.json
+.recette-kind-tmp/

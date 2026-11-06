@@ -7,13 +7,33 @@
 - `tools/helm-docker.sh` : helm dans un conteneur. Documentation : section « Réseau isolé » de `docs/admin/INSTALLATION.md`.
 - Tests : `isolated.test.ts` (9).
 
-## Recette sur `kind` (2026-11-06), déploiement complet
-Cluster `kind` v0.27 (Kubernetes 1.32.2), Calico 3.29.1, images chargées depuis un « registre interne » simulé (`reg.test/athena/*`, `imagePullPolicy: Never`), chart rendu par `helm template -f values-isolated.yaml`.
-- Déployés : PostgreSQL (hors chart), migrations (41 appliquées), API (2), worker, web (2), **Keycloak** (royaume de développement importé depuis une ConfigMap), **OpenBao** (initialisé, descellé, moteurs `secret` et `transit`, politique `athena-api`, jeton applicatif dans `athena-env`).
-- Défauts du chart trouvés par la recette et corrigés : OpenBao tourne sous l'utilisateur nommé `openbao` (uid 100, gid 1000), donc `runAsNonRoot` échouait → identifiants numériques fixés ; le script d'entrée de l'image charge déjà `/openbao/config`, notre `-config` ouvrait un second écouteur (« address already in use ») → retiré ; Keycloak construit au démarrage avec l'image standard et exige un système de fichiers inscriptible → `isolated.keycloak.optimizedImage` (lecture seule avec une image optimisée).
-- Parcours de bout en bout dans le cluster : jeton Keycloak du cluster pour `admin.dev` (API : `/v1/me` 200, gabarits livrés listés), création d'un projet Spatial (11 trackers, version 1.1, criticité B, phase `requirements`) et d'un projet Défense (12 trackers) ; `qa.dev` lit les approbations (200) et ne peut rien écrire (403).
-- Sorties depuis le **vrai pod API** (binaire node du conteneur) : 1.1.1.1:443 et 8.8.8.8:53 bloqués ; Keycloak:8080 et OpenBao:8200 ouverts ; web:8080 bloqué. Matrice complète des politiques (pods de test étiquetés) : api/web/worker/keycloak/openbao n'atteignent que ce que le chart autorise.
-- **DNS** : avec le `forward` par défaut de CoreDNS, le pod API résout `example.com` (canal de sortie par le DNS). Après `coredns-isolated.yaml` : `example.com` échoue (`EAI_AGAIN`), `athena-keycloak` et `athena-openbao` se résolvent.
+## Recette sur `kind` (2026-11-06) : `tools/recette-kind.sh`, reproductible, d'un seul tenant
+Le script crée le cluster (kind v0.27, Kubernetes 1.32.2, sans CNI par défaut, Calico 3.29.1), **isole le DNS (`coredns-isolated.yaml`) avant tout déploiement**, charge les images comme depuis un registre interne (`reg.test/athena`, `imagePullPolicy: Never`), déploie le chart `values-isolated.yaml` (PostgreSQL hors chart, 41 migrations, API ×2, worker, web ×2, Keycloak avec le royaume importé, OpenBao initialisé), joue un parcours de bout en bout avec un jeton du Keycloak du cluster, puis **mesure la connectivité depuis les vrais pods du chart** (aucun pod de test) et détruit le cluster. Dernière exécution :
+
+- Parcours : `admin.dev` `/v1/me` 200 ; projet Spatial créé (version 1.1) ; projet Défense créé (1.0) ; `qa.dev` lit 200 et écrit 403.
+- Connectivité et DNS, mesurés depuis les pods api, worker, web, keycloak et openbao :
+
+```
+== 5. Connectivité mesurée depuis les vrais pods du chart
+  api       -> 1.1.1.1:443            : BLOQUE
+  api       -> 8.8.8.8:53             : BLOQUE
+  api       -> 10.96.84.183:8080      : OUVERT
+  api       -> 10.96.168.48:8200      : OUVERT
+  api       -> 10.96.193.172:8080     : BLOQUE
+  worker    -> 1.1.1.1:443            : BLOQUE
+  worker    -> 10.96.84.183:8080      : BLOQUE
+  worker    -> 10.96.168.48:8200      : OUVERT
+  web       -> 10.96.35.80:3001       : OUVERT
+  web       -> 1.1.1.1:443            : BLOQUE
+  web       -> 10.96.84.183:8080      : BLOQUE
+  keycloak  -> 1.1.1.1:443            : BLOQUE
+  keycloak  -> 10.96.168.48:8200      : BLOQUE
+  openbao   -> 1.1.1.1:443            : BLOQUE
+  openbao   -> 10.96.84.183:8080      : BLOQUE
+  DNS depuis le pod API : example.com = ECHEC EAI_AGAIN ; athena-keycloak = RESOLU 10.96.84.183
+```
+
+Défauts du chart trouvés par les recettes successives et corrigés : OpenBao sous l'utilisateur nommé `openbao` (identifiants numériques requis), second écouteur dû à `-config` redondant, Keycloak qui construit au démarrage (système de fichiers inscriptible, `optimizedImage`), DNS qui relayait vers l'extérieur (`coredns-isolated.yaml`).
 
 ## Écarts
 - Aucun.
