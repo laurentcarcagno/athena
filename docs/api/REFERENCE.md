@@ -61,3 +61,8 @@ Chaque tracker peut dériver d'un **type d'organisation** (`typeKey`). `GET /v1/
 `GET /v1/projects/:p/modules` renvoie `{modules: [...]}` : les onglets actifs du projet, toujours dans l'ordre fixe `overview`, `trackers`, `planning`, `traceability`, `documents`, `code`, `activity`, `members`. `overview`, `trackers`, `planning`, `activity` et `members` sont toujours présents ; `traceability` suppose au moins un type de lien dans le projet, `documents` une source documentaire indexée, `code` un dépôt de code lié.
 
 `GET /v1/projects/:p/overview` renvoie `{trackers: [{key, name, typeKey, category, artifacts, mine, lastActivity, statuses: [{key, name, category, count}]}]}` : la carte des trackers du projet. `category` vient du type du tracker (`engineering`, `development`, `verification`, `management`) ou vaut `other` sans type ; `mine` compte les items non terminés dont le champ de rôle assignee vaut l'identifiant de l'appelant.
+
+## Vues enregistrées d'un tracker
+
+`GET /v1/projects/:p/filters?tracker=KEY` liste les vues personnelles et partagées de ce tracker (la vue par défaut en premier) ; sans `tracker`, les filtres de projet de la page Recherche, comme avant. `POST …/filters` accepte en plus `trackerKey`, `view` (`tableau`…), `columns` et `isDefault` ; la `query` ne contient pas la clause `tracker =` (l'écran Tracker l'ajoute), et peut porter un `ORDER BY`. Une vue par défaut est partagée et rattachée à un tracker, il n'y en a qu'une par tracker, et seuls les chefs de projet et les administrateurs la choisissent. `PATCH …/filters/:id` avec `{isDefault: true|false}` la définit ou la retire.
+

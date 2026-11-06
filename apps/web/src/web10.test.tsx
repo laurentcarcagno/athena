@@ -8,10 +8,18 @@ import { AuthenticatedApp } from './App';
 import type { Session } from './api';
 
 const calls: string[] = [];
+const bodies: Array<{ method: string; url: string; body: unknown }> = [];
+let views: Array<Record<string, unknown>> = [];
+let badQuery = false;
+const view = (id: string, name: string, query: string, extra: Record<string, unknown> = {}) => ({ id, name, query, owner: 'u', shared: false, trackerKey: 'BUG', view: 'tableau', columns: null, isDefault: false, ...extra });
 const hit = (n: number, status = 'open') => ({ key: `ARI-BUG-${String(n).padStart(4, '0')}`, tracker: 'BUG', status, statusName: status === 'open' ? 'Ouvert' : 'En cours', category: status === 'open' ? 'todo' : 'in_progress', version: 1, updatedAt: '2026-11-05T10:00:00.000Z', values: { title: `Anomalie ${n}` } });
 const def = {
   key: 'BUG', name: 'Anomalies', typeKey: 'bug',
-  fields: [{ id: 'f', key: 'title', label: 'Titre', type: 'text', config: {}, required: true, semanticRole: 'title' }],
+  fields: [
+    { id: 'f', key: 'title', label: 'Titre', type: 'text', config: {}, required: true, semanticRole: 'title' },
+    { id: 'g', key: 'assignee', label: 'Responsable', type: 'user', config: {}, required: false, semanticRole: 'assignee' },
+    { id: 'h', key: 'severity', label: 'Sévérité', type: 'select', config: { options: ['mineure', 'majeure', 'très haute'] }, required: false, semanticRole: null },
+  ],
   statuses: [{ id: 's1', key: 'open', name: 'Ouvert', category: 'todo' }, { id: 's2', key: 'in_progress', name: 'En cours', category: 'in_progress' }, { id: 's3', key: 'done', name: 'Fini', category: 'done' }],
   transitions: [],
 };
@@ -19,9 +27,16 @@ const overview = { trackers: [{ key: 'BUG', name: 'Anomalies', typeKey: 'bug', c
 
 beforeEach(() => {
   calls.length = 0;
+  bodies.length = 0;
+  views = [];
+  badQuery = false;
   vi.stubGlobal('fetch', vi.fn(async (input: string, init: RequestInit = {}) => {
     calls.push(`${init.method ?? 'GET'} ${input}`);
+    if (init.body) bodies.push({ method: init.method ?? 'GET', url: input, body: JSON.parse(String(init.body)) });
     const ok = (body: unknown) => new Response(JSON.stringify(body), { status: 200 });
+    if (/\/filters\?tracker=BUG$/.test(input)) return ok(views);
+    if (/\/filters/.test(input) && init.method && init.method !== 'GET') return new Response(init.method === 'POST' ? JSON.stringify({ id: 'new' }) : null, { status: init.method === 'POST' ? 201 : 204 });
+    if (/\/search\?/.test(input) && badQuery && /status = open/.test(decodeURIComponent(input)) === false && /nope/.test(decodeURIComponent(input))) return new Response(JSON.stringify({ error: 'validation', message: 'Requête invalide.', details: ['Champ inconnu ou invalide : nope'] }), { status: 422 });
     if (/\/search\?/.test(input)) {
       const q = decodeURIComponent(/q=([^&]*)/.exec(input)![1]!);
       const offset = Number(/offset=(\d+)/.exec(input)?.[1] ?? '0');
@@ -63,9 +78,9 @@ describe('écran Tracker', () => {
     await screen.findByRole('link', { name: 'ARI-BUG-0001' });
     await userEvent.click(screen.getByRole('button', { name: 'En cours 10' }));
     await screen.findByRole('link', { name: 'ARI-BUG-0003' });
-    expect(lastSearch()).toContain('tracker = BUG AND status = in_progress');
+    expect(lastSearch()).toContain('tracker = BUG AND (status = in_progress)');
     expect(screen.getByRole('button', { name: 'En cours 10' })).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.getByTestId('where')).toHaveTextContent('?s=in_progress');
+    expect(decodeURIComponent(screen.getByTestId('where').textContent!.replace(/\+/g, ' '))).toContain('?f=status = in_progress');
     await userEvent.click(screen.getByRole('button', { name: 'En cours 10' }));
     await screen.findByRole('link', { name: 'ARI-BUG-0001' });
     expect(lastSearch()).toContain('q=tracker = BUG&');
@@ -114,6 +129,120 @@ describe('écran Tracker', () => {
   });
 
   it('n’a aucune violation d’accessibilité', async () => {
+    const { container } = app('/p/ARI/t/BUG/tableau');
+    await screen.findByRole('link', { name: 'ARI-BUG-0001' });
+    const result = await axe.run(container, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] }, rules: { 'color-contrast': { enabled: false }, region: { enabled: false } } });
+    expect(result.violations.map((v) => `${v.id} : ${v.help}`)).toEqual([]);
+  });
+});
+
+describe('barre de filtres', () => {
+  it('« Assigné à moi », un champ à liste et le texte écrivent un fragment ATQL dans l’adresse', async () => {
+    app('/p/ARI/t/BUG/tableau');
+    await screen.findByRole('link', { name: 'ARI-BUG-0001' });
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Assigné à moi' }));
+    await waitFor(() => expect(lastSearch()).toContain('tracker = BUG AND (assignee = "u")'));
+    await userEvent.selectOptions(screen.getByLabelText('Sévérité'), 'très haute');
+    await waitFor(() => expect(lastSearch()).toContain('(assignee = "u" AND severity = "très haute")'));
+    await userEvent.type(screen.getByLabelText('Recherche dans le tracker'), 'crash{enter}');
+    await waitFor(() => expect(lastSearch()).toContain('AND text ~ "crash")'));
+    expect(screen.getAllByText('très haute').length).toBeGreaterThan(1); // l’option et la puce active
+    await userEvent.click(screen.getByRole('button', { name: 'Effacer les filtres' }));
+    await waitFor(() => expect(lastSearch()).toContain('q=tracker = BUG&'));
+    expect(screen.getByTestId('where')).not.toHaveTextContent('f=');
+  });
+
+  it('bascule en mode requête : le fragment est affiché, modifiable et reste synchronisé avec les puces', async () => {
+    app('/p/ARI/t/BUG/tableau?f=status%20%3D%20open');
+    await screen.findByRole('link', { name: 'ARI-BUG-0001' });
+    await userEvent.click(screen.getByRole('button', { name: 'Mode requête' }));
+    const input = screen.getByLabelText('Requête ATQL du tracker');
+    expect(input).toHaveValue('status = open');
+    await userEvent.clear(input);
+    await userEvent.type(input, 'status = open AND severity = majeure{enter}');
+    await waitFor(() => expect(lastSearch()).toContain('(status = open AND severity = majeure)'));
+    expect(screen.getByLabelText('Sévérité')).toHaveValue('majeure'); // retour automatique aux puces
+  });
+
+  it('une requête non représentable reste en mode requête, avec un message', async () => {
+    app('/p/ARI/t/BUG/tableau?f=status%20%3D%20open%20OR%20status%20%3D%20done');
+    await screen.findByRole('link', { name: 'ARI-BUG-0001' });
+    expect(screen.getByLabelText('Requête ATQL du tracker')).toHaveValue('status = open OR status = done');
+    expect(screen.getByText(/ne s’affiche pas en filtres/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Mode filtres' })).toBeDisabled();
+    expect(lastSearch()).toContain('(status = open OR status = done)');
+  });
+
+  it('affiche l’erreur de syntaxe du serveur sans perdre la saisie', async () => {
+    badQuery = true;
+    app('/p/ARI/t/BUG/tableau?f=nope%20%3D%20x');
+    expect(await screen.findByRole('alert')).toHaveTextContent('Champ inconnu ou invalide : nope');
+    await userEvent.click(screen.getByRole('button', { name: 'Mode requête' }));
+    expect(screen.getByLabelText('Requête ATQL du tracker')).toHaveValue('nope = x');
+  });
+});
+
+describe('vues enregistrées du tracker', () => {
+  it('liste les vues du tracker, applique une vue (filtre et tri) et signale la vue par défaut', async () => {
+    views = [view('v1', 'Bloquants', 'severity = majeure ORDER BY key desc', { shared: true, isDefault: true }), view('v2', 'Mes ouverts', 'status = open')];
+    app('/p/ARI/t/BUG/tableau');
+    // Première visite sans filtre : la vue par défaut s'applique.
+    await waitFor(() => expect(lastSearch()).toContain('(severity = majeure) ORDER BY key desc'));
+    expect(screen.getByLabelText('Vues enregistrées')).toHaveValue('v1');
+    expect(calls).toContain('GET /v1/projects/ARI/filters?tracker=BUG');
+    await userEvent.selectOptions(screen.getByLabelText('Vues enregistrées'), 'v2');
+    await waitFor(() => expect(lastSearch()).toContain('(status = open)'));
+    expect(lastSearch()).not.toContain('ORDER BY');
+    expect(screen.getByTestId('where')).not.toHaveTextContent('sort=');
+  });
+
+  it('n’applique pas la vue par défaut quand l’adresse porte déjà un filtre', async () => {
+    views = [view('v1', 'Défaut', 'severity = majeure', { shared: true, isDefault: true })];
+    app('/p/ARI/t/BUG/tableau?f=status%20%3D%20open');
+    await screen.findByRole('link', { name: 'ARI-BUG-0001' });
+    expect(lastSearch()).toContain('(status = open)');
+    expect(lastSearch()).not.toContain('severity');
+  });
+
+  it('enregistre la combinaison filtre et tri en vue partagée', async () => {
+    app('/p/ARI/t/BUG/tableau?f=status%20%3D%20open&sort=key%3Adesc');
+    await screen.findByRole('link', { name: 'ARI-BUG-0001' });
+    await userEvent.click(screen.getByRole('button', { name: 'Enregistrer la vue' }));
+    await userEvent.type(screen.getByLabelText('Nom de la vue'), 'Ouverts récents');
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Partager avec le projet' }));
+    await userEvent.click(screen.getAllByRole('button', { name: 'Enregistrer la vue' }).at(-1)!);
+    await waitFor(() => expect(bodies.find((b) => b.method === 'POST' && b.url.endsWith('/filters'))?.body).toEqual({
+      name: 'Ouverts récents', query: 'status = open ORDER BY key desc', trackerKey: 'BUG', shared: true,
+    }));
+    expect(await screen.findByText('Vue enregistrée.')).toBeInTheDocument();
+  });
+
+  it('un responsable définit la vue par défaut ; un utilisateur ne voit pas ce choix', async () => {
+    views = [view('v1', 'Équipe', 'status = open', { shared: true })];
+    const user = app('/p/ARI/t/BUG/tableau?f=status%20%3D%20open');
+    await screen.findByLabelText('Vues enregistrées');
+    await waitFor(() => expect(screen.getByLabelText('Vues enregistrées')).toHaveValue('v1'));
+    expect(screen.queryByRole('button', { name: 'Définir par défaut' })).not.toBeInTheDocument();
+    user.unmount();
+    app('/p/ARI/t/BUG/tableau?f=status%20%3D%20open', ['athena-user', 'athena-pm']);
+    await userEvent.click(await screen.findByRole('button', { name: 'Définir par défaut' }));
+    await waitFor(() => expect(bodies.find((b) => b.method === 'PATCH')?.body).toEqual({ isDefault: true }));
+  });
+
+  it('demande confirmation avant de supprimer une vue', async () => {
+    views = [view('v2', 'Mes ouverts', 'status = open')];
+    app('/p/ARI/t/BUG/tableau?f=status%20%3D%20open');
+    await userEvent.click(await screen.findByRole('button', { name: 'Supprimer la vue' }));
+    const dialog = await screen.findByRole('dialog', { name: /Supprimer la vue/ });
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Annuler' }));
+    expect(calls.some((c) => c.startsWith('DELETE'))).toBe(false);
+    await userEvent.click(screen.getByRole('button', { name: 'Supprimer la vue' }));
+    await userEvent.click(within(await screen.findByRole('dialog', { name: /Supprimer la vue/ })).getByRole('button', { name: 'Supprimer' }));
+    await waitFor(() => expect(calls).toContain('DELETE /v1/projects/ARI/filters/v2'));
+  });
+
+  it('n’a aucune violation d’accessibilité avec la barre de filtres et les vues', async () => {
+    views = [view('v1', 'Équipe', 'status = open', { shared: true })];
     const { container } = app('/p/ARI/t/BUG/tableau');
     await screen.findByRole('link', { name: 'ARI-BUG-0001' });
     const result = await axe.run(container, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] }, rules: { 'color-contrast': { enabled: false }, region: { enabled: false } } });

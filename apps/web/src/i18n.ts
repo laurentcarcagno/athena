@@ -94,6 +94,15 @@ const frDict = {
     eyebrow: 'Tracker', newItem: '+ Nouvel item', configure: 'Configurer', views: 'Vues du tracker', workflow: 'Workflow', empty: 'Aucun item.',
     total: (n: number) => (n === 1 ? '1 item' : `${n} items`), viewNames: { tableau: 'Tableau' } as Record<string, string>,
   },
+  filters: {
+    bar: 'Filtres du tracker', mine: 'Assigné à moi', all: 'Tous', text: 'Recherche dans le tracker', apply: 'Appliquer', clear: 'Effacer les filtres',
+    atqlMode: 'Mode requête', chipsMode: 'Mode filtres', atqlLabel: 'Requête ATQL du tracker', atqlPlaceholder: 'status = open AND severity = majeure',
+    notRepresentable: 'Cette requête ne s’affiche pas en filtres : modifiez-la en mode requête.',
+    views: 'Vues enregistrées', noView: 'Aucune vue', saveView: 'Enregistrer la vue', viewName: 'Nom de la vue', sharedView: 'Partager avec le projet', defaultView: 'Vue par défaut du tracker',
+    deleteView: 'Supprimer la vue', makeDefault: 'Définir par défaut', unsetDefault: 'Retirer le défaut', defaultTag: 'Par défaut',
+    viewSaved: 'Vue enregistrée.', viewDeleted: 'Vue supprimée.', defaultSet: 'Vue par défaut enregistrée.', defaultUnset: 'Vue par défaut retirée.',
+    deleteViewTitle: (n: string) => `Supprimer la vue « ${n} »`, deleteViewBody: 'La vue est supprimée définitivement, y compris pour ceux avec qui elle est partagée.', badQuery: 'Requête invalide.',
+  },
   types: {
     title: 'Types de tracker', note: 'Un type fixe la catégorie, les vues proposées et le socle de champs des trackers qui en dérivent. Les types livrés se modifient et se réinitialisent.',
     key: 'Clé du type (minuscules)', name: 'Nom du type', description: 'Description', category: 'Catégorie',
@@ -229,6 +238,15 @@ const enDict: Dictionary = {
   trackerScreen: {
     eyebrow: 'Tracker', newItem: '+ New item', configure: 'Configure', views: 'Tracker views', workflow: 'Workflow', empty: 'No item.',
     total: (n: number) => (n === 1 ? '1 item' : `${n} items`), viewNames: { tableau: 'Table' } as Record<string, string>,
+  },
+  filters: {
+    bar: 'Tracker filters', mine: 'Assigned to me', all: 'All', text: 'Search in the tracker', apply: 'Apply', clear: 'Clear filters',
+    atqlMode: 'Query mode', chipsMode: 'Filter mode', atqlLabel: 'Tracker ATQL query', atqlPlaceholder: 'status = open AND severity = major',
+    notRepresentable: 'This query cannot be shown as filters: edit it in query mode.',
+    views: 'Saved views', noView: 'No view', saveView: 'Save view', viewName: 'View name', sharedView: 'Share with the project', defaultView: 'Default view of the tracker',
+    deleteView: 'Delete view', makeDefault: 'Make default', unsetDefault: 'Remove default', defaultTag: 'Default',
+    viewSaved: 'View saved.', viewDeleted: 'View deleted.', defaultSet: 'Default view saved.', defaultUnset: 'Default view removed.',
+    deleteViewTitle: (n: string) => `Delete view “${n}”`, deleteViewBody: 'The view is deleted permanently, including for those it is shared with.', badQuery: 'Invalid query.',
   },
   types: {
     title: 'Tracker types', note: 'A type sets the category, the proposed views and the base fields of the trackers derived from it. Built-in types can be edited and reset.',
