@@ -1,36 +1,14 @@
-import { LayoutSchema } from './layout';
+import { TemplateTrackerSchema, type TemplateTracker } from './template-tracker';
 import { z } from 'zod';
 import { Db, type Actor } from './db';
 import { DomainError, conflict, notFound, validation } from './errors';
 import { bugTemplate, requirementTemplate } from './templates';
 import { TrackerService, audit, type TrackerSpec } from './tracker.service';
+import { BUILTIN_NORMATIVE, builtinNormative } from './templates/index';
 import { chainProblems, resolveLayers, type Layer } from './template-inherit';
 import { NormativeSchema, VERSION, compareVersions, emptyNormative, nextMinor, normativeProblems, templateToYaml, yamlToTemplate, type Normative, type TemplateDefinition } from './normative-template';
 
-const TrackerKey = z.string().regex(/^[A-Z][A-Z0-9]{1,9}$/, 'clé en majuscules, 2 à 10 caractères');
-const Role = z.string().max(60);
-
-/** Un tracker d'un template : même forme qu'un tracker, sans le projet. */
-export const TemplateTrackerSchema = z.object({
-  layout: LayoutSchema.nullish(),
-  /** Type de tracker d'organisation (T-0097). */
-  typeKey: z.string().regex(/^[a-z][a-z0-9-]{1,39}$/).nullish(),
-  key: TrackerKey,
-  name: z.string().min(1).max(200),
-  description: z.string().max(2000).optional(),
-  fields: z.array(z.object({
-    key: z.string().min(1).max(60), label: z.string().min(1).max(100), type: z.string(),
-    config: z.record(z.string(), z.unknown()).optional(), required: z.boolean().optional(),
-    semanticRole: z.enum(['title', 'description', 'status', 'assignee', 'due_date', 'estimate']).optional(), isContent: z.boolean().optional(),
-    readRoles: z.array(Role).max(20).optional(), writeRoles: z.array(Role).max(20).optional(),
-  })).max(100),
-  statuses: z.array(z.object({ key: z.string().min(1), name: z.string().min(1), category: z.enum(['todo', 'in_progress', 'done']) })).min(1).max(50),
-  transitions: z.array(z.object({
-    name: z.string().min(1), from: z.string().nullable(), to: z.string(),
-    conditions: z.array(z.unknown()).optional(), validators: z.array(z.unknown()).optional(), postActions: z.array(z.unknown()).optional(),
-  })).max(200),
-});
-export type TemplateTracker = z.infer<typeof TemplateTrackerSchema>;
+export { TemplateTrackerSchema, type TemplateTracker };
 
 export interface TrackerTemplateView { key: string; name: string; description: string; builtin: boolean; modified: boolean; tracker: TemplateTracker }
 export interface TemplateView {
@@ -51,6 +29,17 @@ const legacy = (v: Pick<TemplateView, 'key' | 'name' | 'description' | 'builtin'
   ({ ...v, normative: emptyNormative(), parent: null, version: null, status: 'draft', versions: [] });
 
 const strip = ({ projectKey: _p, ...rest }: TrackerSpec): TemplateTracker => JSON.parse(JSON.stringify(rest)) as TemplateTracker;
+
+const BUILTIN_PUBLISHED_AT = '2026-11-06T00:00:00.000Z';
+const lastOf = <T>(xs: T[]): T => xs[xs.length - 1]!;
+const builtinSnapshot = (key: string, version?: string): TemplateSnapshot | undefined => {
+  const b = builtinNormative(key);
+  const v = b && (version ? b.versions.find((x) => x.version === version) : lastOf(b.versions));
+  return b && v ? { key, name: b.name, description: b.description, version: v.version, parent: null, trackers: v.trackers, normative: v.normative } : undefined;
+};
+/** Version livrée d'un gabarit normatif (utilisée aussi hors du service, ex. pour lire les catégories d'un projet). */
+export { builtinSnapshot };
+const builtinReadOnly = () => conflict('Ce gabarit est livré avec Athena et ne se modifie pas : créez un gabarit dérivé.');
 
 /** Templates livrés avec Athena : ils ne sont que des données, comme les templates de l'organisation. */
 export function builtinTemplates(): TemplateView[] {
@@ -99,9 +88,14 @@ export class TemplateService {
     const versionsOf = (key: string) => versions.filter((v) => v.template_key === key).map((v) => v.version).sort(compareVersions);
     const shipped = builtinTemplates();
     const overrides = new Map(rows.map((r) => [r.key, r]));
+    const normativeViews: TemplateView[] = BUILTIN_NORMATIVE.map((b) => ({
+      key: b.key, name: b.name, description: b.description, builtin: true, modified: false, trackers: lastOf(b.versions).trackers, normative: lastOf(b.versions).normative,
+      parent: null, version: lastOf(b.versions).version, status: 'published' as const, versions: b.versions.map((v) => v.version),
+    }));
     return [
       ...shipped.map((b) => { const o = overrides.get(b.key); return o ? { ...o, builtin: true, modified: true, versions: versionsOf(o.key) } : b; }),
-      ...rows.filter((r) => !shipped.some((b) => b.key === r.key)).map((r) => ({ ...r, builtin: false, modified: false, versions: versionsOf(r.key) })),
+      ...normativeViews,
+      ...rows.filter((r) => !shipped.some((b) => b.key === r.key) && !builtinNormative(r.key)).map((r) => ({ ...r, builtin: false, modified: false, versions: versionsOf(r.key) })),
     ];
   }
 
@@ -166,7 +160,7 @@ export class TemplateService {
   }
 
   async create(organizationId: string, input: { key: string; name: string; description?: string; trackers: TemplateTracker[]; normative?: Normative; parent?: { key: string; version?: string } | null }, actor: Actor): Promise<void> {
-    if (builtinTemplates().some((t) => t.key === input.key)) throw conflict('Cette clé est réservée à un template livré avec Athena.');
+    if (builtinTemplates().some((t) => t.key === input.key) || builtinNormative(input.key)) throw conflict('Cette clé est réservée à un template livré avec Athena.');
     const keys = input.trackers.map((t) => t.key);
     if (new Set(keys).size !== keys.length) throw validation(['deux trackers du template ont la même clé']);
     for (const t of input.trackers) this.trackers.validateSpec({ ...t, projectKey: '' } as TrackerSpec);
@@ -204,6 +198,7 @@ export class TemplateService {
   }
 
   async remove(organizationId: string, key: string, actor: Actor): Promise<void> {
+    if (builtinNormative(key)) throw builtinReadOnly();
     const shipped = builtinTemplates().some((t) => t.key === key);
     await this.db.tx(organizationId, async (c) => {
       const result = await c.query('delete from project_template where key = $1', [key]);
@@ -214,6 +209,7 @@ export class TemplateService {
 
   /** Modifie un template de projet, y compris un template livré (enregistré alors comme version de l'organisation). */
   async update(organizationId: string, key: string, input: { name: string; description?: string; trackers: TemplateTracker[]; normative?: Normative; parent?: { key: string; version?: string } | null }, actor: Actor): Promise<void> {
+    if (builtinNormative(key)) throw builtinReadOnly();
     const keys = input.trackers.map((t) => t.key);
     if (new Set(keys).size !== keys.length) throw validation(['deux trackers du template ont la même clé']);
     for (const t of input.trackers) this.trackers.validateSpec({ ...t, projectKey: '' } as TrackerSpec);
@@ -267,6 +263,8 @@ export class TemplateService {
 
   /** Versions publiées, de la plus ancienne à la plus récente. */
   async versions(organizationId: string, key: string): Promise<Array<{ version: string; publishedBy: string; publishedAt: string }>> {
+    const shipped = builtinNormative(key);
+    if (shipped) return shipped.versions.map((v) => ({ version: v.version, publishedBy: 'athena', publishedAt: BUILTIN_PUBLISHED_AT }));
     const rows = await this.db.tx(organizationId, async (c) => (await c.query('select version, published_by, published_at from project_template_version where template_key = $1', [key])).rows);
     return rows.map((r) => ({ version: r.version as string, publishedBy: r.published_by as string, publishedAt: (r.published_at as Date).toISOString() }))
       .sort((a, b) => compareVersions(a.version, b.version));
@@ -274,6 +272,11 @@ export class TemplateService {
 
   /** Instantané publié d'un gabarit (dernière version par défaut). */
   async snapshot(organizationId: string, key: string, version?: string): Promise<TemplateSnapshot> {
+    if (builtinNormative(key)) {
+      const shipped = builtinSnapshot(key, version);
+      if (!shipped) throw notFound(`Version ${version} du template ${key}`);
+      return shipped;
+    }
     const rows = await this.db.tx(organizationId, async (c) => (await c.query('select version, snapshot from project_template_version where template_key = $1', [key])).rows);
     const sorted = rows.sort((a, b) => compareVersions(a.version as string, b.version as string));
     const row = version ? sorted.find((r) => r.version === version) : sorted[sorted.length - 1];
@@ -283,6 +286,7 @@ export class TemplateService {
 
   /** Publie le gabarit : fige une version immuable. Sans numéro, la version suivante (1.0, puis 1.1, 1.2…). */
   async publish(organizationId: string, key: string, version: string | undefined, actor: Actor): Promise<TemplateSnapshot> {
+    if (builtinNormative(key)) throw builtinReadOnly();
     const view = await this.get(organizationId, key);
     if (version !== undefined && !VERSION.test(version)) throw validation(['numéro de version invalide (ex. 1.0, 2.1)']);
     const last = view.versions.length ? view.versions[view.versions.length - 1]! : null;

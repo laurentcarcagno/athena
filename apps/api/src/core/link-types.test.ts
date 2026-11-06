@@ -22,9 +22,9 @@ const code = async (p: Promise<unknown>) => {
 };
 
 describe('types de liens livrés', () => {
-  it('sont les six de la spécification, avec libellé inverse', () => {
+  it('sont les six de la spécification plus « concerne » (gabarit Défense), avec libellé inverse', () => {
     const types = builtinLinkTypes();
-    expect(types.map((t) => t.key)).toEqual(['refines', 'satisfies', 'verifies', 'implements', 'blocks', 'duplicates']);
+    expect(types.map((t) => t.key)).toEqual(['refines', 'satisfies', 'verifies', 'implements', 'concerns', 'blocks', 'duplicates']);
     expect(types.every((t) => t.outwardLabel && t.inwardLabel)).toBe(true);
     expect(types.find((t) => t.key === 'refines')!.hierarchical).toBe(true);
     expect(types.find((t) => t.key === 'blocks')!.pairs).toEqual([]);
@@ -64,7 +64,7 @@ suite('types de liens d’organisation', () => {
 
   it('liste les types livrés d’une organisation neuve, utilisables sans création préalable', async () => {
     const list = await types.list(other);
-    expect(list.map((t) => t.key)).toEqual(['blocks', 'duplicates', 'implements', 'refines', 'satisfies', 'verifies']);
+    expect(list.map((t) => t.key)).toEqual(['blocks', 'concerns', 'duplicates', 'implements', 'refines', 'satisfies', 'verifies']);
     expect(list.every((t) => t.builtin && !t.modified)).toBe(true);
     expect((await links.listTypes(other, 'ARI').catch(() => null))).toBeNull(); // projet inexistant dans cette organisation
   });

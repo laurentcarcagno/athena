@@ -4,6 +4,7 @@ import { parseClauses, type ClauseRowError } from '../import/clause-csv';
 import type { ArtifactService } from './artifact.service';
 import { Db, type Actor } from './db';
 import { notFound, validation } from './errors';
+import { builtinSnapshot } from './template.service';
 import { audit } from './tracker.service';
 
 export const CLAUSE_TRACKER = 'NORM';
@@ -59,6 +60,8 @@ export class NormativeService {
   /** Catégories de criticité du gabarit du projet (vide si le gabarit n'en définit pas). */
   private async categories(c: PoolClient, p: { template_key: string | null; template_version: string | null }): Promise<string[]> {
     if (!p.template_key || !p.template_version) return [];
+    const shipped = builtinSnapshot(p.template_key, p.template_version);
+    if (shipped) return (shipped.normative.criticality?.categories ?? []).map((x) => x.key);
     const row = (await c.query('select snapshot from project_template_version where template_key = $1 and version = $2', [p.template_key, p.template_version])).rows[0];
     return ((row?.snapshot?.normative?.criticality?.categories ?? []) as Array<{ key: string }>).map((x) => x.key);
   }

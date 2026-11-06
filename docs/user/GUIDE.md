@@ -59,6 +59,23 @@ Dans un message de commit, une merge request ou un nom de branche, citez la clé
 ### Types de tracker
 Un **type de tracker** (Exigence, Interface, Conception, Tâche, Anomalie, Évolution, Cas de test, Campagne, Non-conformité, Risque, Action, Décision, Revue) est défini pour toute l'organisation. Il fixe la catégorie (Ingénierie, Développement, Vérification, Pilotage), les vues proposées et un socle de champs. Les administrateurs les gèrent dans Organisation > Types : les types livrés se modifient et se réinitialisent, et l'on peut en créer d'autres. À la création d'un tracker, choisir un type ajoute son socle de champs (les champs déjà présents sont conservés) ; la page de configuration d'un tracker permet de le rattacher à un type plus tard ou de le détacher. Un tracker sans type reste valide et classé « Autres ».
 
+## Gabarits normatifs
+
+Athena livre deux gabarits prêts à l'emploi, **Spatial (ECSS)** et **Défense (AQAP)**. Un projet créé depuis un gabarit reste rattaché à une **version** de ce gabarit (par exemple Spatial 1.1) : il reçoit ses trackers, ses workflows, ses phases et ses règles de couverture, et il choisit sa **catégorie de criticité** à la création.
+
+- **Spatial** : ECSS-E-ST-40C Rev.1 et ECSS-Q-ST-80C Rev.2, catégories A à D, revues SRR, PDR, CDR, QR et AR, trackers d'exigences système et logicielles, interfaces, conception, vérification, SPR, NCR, demandes de modification, RFD/RFW et RID (ouvert, réponse, décision, action, clos).
+- **Défense** : AQAP-2110 et AQAP-2210 éd. B, exigences client, faits techniques, dérogations et concessions, remarques de revue, articles de configuration. Les revues et les niveaux de criticité se paramètrent par programme. Chaque tracker porte les champs *mention de protection* et *contrôle export* (sans effet tant que l'instance Défense n'est pas en place).
+
+Une phase se termine par une revue : on ne passe à la phase suivante que si ses critères de sortie sont remplis (par exemple tous les RID de la revue sont clos).
+
+**Créer un gabarit dérivé** (par exemple « Spatial — catégorie B ») : on choisit un parent publié, on ajoute des trackers, des revues, des livrables ou des règles. Un dérivé ne peut ni retirer ni renommer un élément que son parent déclare obligatoire ; la liste des éléments en cause est donnée en cas de refus. Un gabarit se publie : chaque version est figée et ne change plus. Il s'exporte et s'importe en YAML.
+
+**Seuils** : les seuils de couverture de code par catégorie sont des paramètres du gabarit, vides par défaut. Le responsable méthodes les renseigne dans un gabarit dérivé ; ils sont versionnés avec lui.
+
+**Monter de version** : un administrateur demande l'aperçu de la montée. Le rapport d'impact liste les champs et états ajoutés, renommés ou supprimés, les règles et les phases concernées, et le nombre d'items touchés. Un état supprimé qui porte encore des items bloque la montée ; l'application passe par les évolutions de tracker habituelles (versionnées dans Git). Les ajouts propres au projet ne sont jamais supprimés : ils forment la **dérive** par rapport au gabarit.
+
+**Conformité** : l'onglet *Conformité* apparaît quand le projet a un tracker d'exigences normatives (NORM). On y importe les clauses d'une norme depuis un CSV (référence, titre, texte), on indique pour chaque clause et chaque catégorie si elle est applicable, non applicable ou modifiée (avec justification), et on lie chaque clause applicable à une preuve. Le taux de conformité s'exporte en CSV pour un audit.
+
 ## Fenêtres selon le rôle
 - **Utilisateur** (`athena-user`) : **Mon travail** liste les artefacts qui vous sont assignés (hors terminés) et ceux à prendre (non assignés, à faire) ; **Prendre** vous assigne l'artefact.
 - **Chef de projet** (`athena-pm`) : **Gestion de projet** (`/p/<projet>/manage`) : acteurs du projet (chef ou membre, choisis parmi les comptes déjà connectés), sprints (créer, démarrer, clore), versions (créer, publier), boards (créer). Un chef de projet ne gère que les projets dont il est désigné **chef**.

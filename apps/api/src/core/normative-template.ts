@@ -11,7 +11,11 @@ const Text = z.string().trim().min(1).max(200);
 export const CriterionSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('manual'), label: Text }),
   /** Tous les items du tracker sont dans l'un des états listés (ex. RID clos avant clôture de revue). */
-  z.object({ kind: z.literal('tracker_status'), tracker: TrackerRef, statuses: z.array(StatusRef).min(1).max(20), label: Text.optional() }),
+  z.object({
+    kind: z.literal('tracker_status'), tracker: TrackerRef, statuses: z.array(StatusRef).min(1).max(20), label: Text.optional(),
+    /** Limite le contrôle aux items dont ce champ vaut cette valeur (ex. les RID de la revue PDR). */
+    where: z.object({ field: z.string().regex(/^[a-z][a-z0-9_]{0,39}$/), value: z.string().max(100) }).optional(),
+  }),
 ]);
 export type Criterion = z.infer<typeof CriterionSchema>;
 

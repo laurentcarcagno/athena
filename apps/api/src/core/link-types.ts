@@ -13,6 +13,7 @@ export function builtinLinkTypes(): BuiltinLinkType[] {
     { key: 'satisfies', outwardLabel: 'satisfait', inwardLabel: 'est satisfait par', hierarchical: false, propagatesSuspect: true, pairs: pairs(['design', 'requirement'], ['interface', 'requirement'], ['task', 'requirement']) },
     { key: 'verifies', outwardLabel: 'vérifie', inwardLabel: 'est vérifié par', hierarchical: false, propagatesSuspect: true, pairs: pairs(['test', 'requirement'], ['campaign', 'requirement']) },
     { key: 'implements', outwardLabel: 'implémente', inwardLabel: 'est implémenté par', hierarchical: false, propagatesSuspect: true, pairs: pairs(['task', 'design'], ['task', 'requirement'], ['task', 'interface']) },
+    { key: 'concerns', outwardLabel: 'concerne', inwardLabel: 'est concerné par', hierarchical: false, propagatesSuspect: false, pairs: [] },
     { key: 'blocks', outwardLabel: 'bloque', inwardLabel: 'est bloqué par', hierarchical: false, propagatesSuspect: false, pairs: [] },
     { key: 'duplicates', outwardLabel: 'duplique', inwardLabel: 'duplique', hierarchical: false, propagatesSuspect: true, pairs: [] },
   ];
