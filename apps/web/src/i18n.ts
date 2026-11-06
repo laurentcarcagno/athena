@@ -47,7 +47,7 @@ const frDict = {
   },
   work: { eyebrow: 'Traitement', title: 'Mon travail', assigned: 'Assignés à moi', available: 'À prendre', take: 'Prendre', taken: (k: string) => `${k} vous est assigné.`, none: 'Rien à traiter.', project: 'Projet' },
   org: {
-    eyebrow: 'Organisation', title: 'Administration de l’organisation', projects: 'Projets', users: 'Utilisateurs', plugins: 'Plugins', trackerTypes: 'Types',
+    eyebrow: 'Organisation', title: 'Administration de l’organisation', projects: 'Projets', users: 'Utilisateurs', plugins: 'Plugins', trackerTypes: 'Types', linkTypes: 'Liens',
     templates: 'Templates', template: 'Template du projet', noTemplate: 'Projet vide', templateKey: 'Clé du template (minuscules)', templateName: 'Nom du template', templateDescription: 'Description', fromProject: 'Reprendre les trackers du projet', pickTrackers: 'Trackers à inclure', createTemplate: 'Créer le template', templateCreated: 'Template créé.', deleteTemplate: 'Supprimer', templateDeleted: 'Template supprimé.', builtin: 'Livré', trackersCount: 'Trackers', attributes: 'Attributs',
     projectKey: 'Clé du projet (2 à 10 majuscules)', projectName: 'Nom du projet', createProject: 'Créer le projet', projectCreated: (k: string) => `Projet ${k} créé.`,
     managers: 'Chefs de projet', assignManager: 'Nommer chef de projet', chooseUser: 'Choisir un compte', noManager: 'Aucun chef de projet', revoke: 'Retirer', managerSet: 'Chef de projet nommé.', managerRemoved: 'Chef de projet retiré.',
@@ -119,6 +119,14 @@ const frDict = {
     type: 'Type de lien', target: 'Item cible (clé ou titre)', results: 'Items proposés', link: 'Lier', unlink: 'Supprimer le lien', acknowledge: 'Acquitter',
     created: 'Lien créé.', removed: 'Lien supprimé.', acknowledged: 'Lien acquitté.', noTypes: 'Aucun type de lien n’est défini pour ce projet.',
     deleteTitle: (label: string, other: string) => `Supprimer le lien « ${label} ${other} »`, deleteBody: 'Le lien est supprimé des deux côtés. Il pourra être recréé.',
+  },
+  linkTypes: {
+    title: 'Types de liens', note: 'Un type de lien de l’organisation est utilisable dans tous les projets (un type du projet de même clé le surcharge). Sans paire, il relie n’importe quels trackers ; avec des paires, il ne relie que les types de tracker déclarés, dans ce sens (un tracker sans type n’est jamais contraint).',
+    key: 'Clé du type de lien (minuscules)', outward: 'Libellé sortant (ex. vérifie)', inward: 'Libellé entrant (ex. est vérifié par)', hierarchical: 'Hiérarchique', pairs: 'Paires de types de tracker', anyPair: 'Tous les trackers',
+    pairsHelp: 'Paires autorisées (type source → type cible)', fromType: 'Type source', toType: 'Type cible', addPair: 'Ajouter la paire', create: 'Créer le type de lien', editing: (k: string) => `Modification du type de lien « ${k} »`,
+    saved: 'Type de lien enregistré.', created: 'Type de lien créé.', deleted: 'Type de lien supprimé.', resetDone: 'Type de lien rétabli dans son état d’origine.', empty: 'Aucun type de lien.',
+    deleteTitle: (k: string) => `Supprimer le type de lien « ${k} »`, deleteBody: 'Le type est supprimé définitivement. Il est refusé tant que des liens l’utilisent.',
+    resetTitle: (k: string) => `Réinitialiser le type de lien « ${k} »`, resetBody: 'Vos modifications de ce type livré sont abandonnées. Refusé tant que des liens l’utilisent.',
   },
   types: {
     title: 'Types de tracker', note: 'Un type fixe la catégorie, les vues proposées et le socle de champs des trackers qui en dérivent. Les types livrés se modifient et se réinitialisent.',
@@ -211,7 +219,7 @@ const enDict: Dictionary = {
   },
   work: { eyebrow: 'Work', title: 'My work', assigned: 'Assigned to me', available: 'To pick up', take: 'Take', taken: (k: string) => `${k} is now assigned to you.`, none: 'Nothing to process.', project: 'Project' },
   org: {
-    eyebrow: 'Organization', title: 'Organization administration', projects: 'Projects', users: 'Users', plugins: 'Plugins', trackerTypes: 'Types',
+    eyebrow: 'Organization', title: 'Organization administration', projects: 'Projects', users: 'Users', plugins: 'Plugins', trackerTypes: 'Types', linkTypes: 'Links',
     templates: 'Templates', template: 'Project template', noTemplate: 'Empty project', templateKey: 'Template key (lowercase)', templateName: 'Template name', templateDescription: 'Description', fromProject: 'Reuse the trackers of project', pickTrackers: 'Trackers to include', createTemplate: 'Create template', templateCreated: 'Template created.', deleteTemplate: 'Delete', templateDeleted: 'Template deleted.', builtin: 'Built-in', trackersCount: 'Trackers', attributes: 'Attributes',
     projectKey: 'Project key (2 to 10 capitals)', projectName: 'Project name', createProject: 'Create project', projectCreated: (k: string) => `Project ${k} created.`,
     managers: 'Project managers', assignManager: 'Appoint project manager', chooseUser: 'Choose an account', noManager: 'No project manager', revoke: 'Remove', managerSet: 'Project manager appointed.', managerRemoved: 'Project manager removed.',
@@ -283,6 +291,14 @@ const enDict: Dictionary = {
     type: 'Link type', target: 'Target item (key or title)', results: 'Suggested items', link: 'Link', unlink: 'Delete link', acknowledge: 'Acknowledge',
     created: 'Link created.', removed: 'Link deleted.', acknowledged: 'Link acknowledged.', noTypes: 'No link type is defined for this project.',
     deleteTitle: (label: string, other: string) => `Delete link “${label} ${other}”`, deleteBody: 'The link is deleted on both sides. It can be created again.',
+  },
+  linkTypes: {
+    title: 'Link types', note: 'An organization link type can be used in every project (a project type with the same key overrides it). Without pairs it links any trackers; with pairs it only links the declared tracker types, in that direction (an untyped tracker is never constrained).',
+    key: 'Link type key (lowercase)', outward: 'Outward label (e.g. verifies)', inward: 'Inward label (e.g. is verified by)', hierarchical: 'Hierarchical', pairs: 'Tracker type pairs', anyPair: 'All trackers',
+    pairsHelp: 'Allowed pairs (source type → target type)', fromType: 'Source type', toType: 'Target type', addPair: 'Add pair', create: 'Create link type', editing: (k: string) => `Editing link type “${k}”`,
+    saved: 'Link type saved.', created: 'Link type created.', deleted: 'Link type deleted.', resetDone: 'Link type restored to its original state.', empty: 'No link type.',
+    deleteTitle: (k: string) => `Delete link type “${k}”`, deleteBody: 'The type is deleted permanently. Refused while links use it.',
+    resetTitle: (k: string) => `Reset link type “${k}”`, resetBody: 'Your changes to this built-in type are discarded. Refused while links use it.',
   },
   types: {
     title: 'Tracker types', note: 'A type sets the category, the proposed views and the base fields of the trackers derived from it. Built-in types can be edited and reset.',

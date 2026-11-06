@@ -81,10 +81,10 @@ suite('liens et commentaires', () => {
   });
 
   it('liste les types de liens du projet pour le sélecteur de création', async () => {
-    expect(await links.listTypes(org, 'ARI')).toEqual([
-      { key: 'parent', outwardLabel: 'parent de', inwardLabel: 'enfant de', hierarchical: true },
-      { key: 'verifies', outwardLabel: 'vérifie', inwardLabel: 'vérifié par', hierarchical: false },
-    ]);
+    const types = await links.listTypes(org, 'ARI');
+    // Les types du projet d'abord par clé avec les types livrés de l'organisation, sans doublon : « verifies » du projet surcharge celui de l'organisation.
+    expect(types.map((t) => [t.key, t.scope])).toEqual([['blocks', 'organization'], ['duplicates', 'organization'], ['implements', 'organization'], ['parent', 'project'], ['refines', 'organization'], ['satisfies', 'organization'], ['verifies', 'project']]);
+    expect(types.find((t) => t.key === 'verifies')).toMatchObject({ outwardLabel: 'vérifie', inwardLabel: 'vérifié par' });
   });
 
   it('supprime un lien (événement, audit), refuse un lien d’un autre projet ou inconnu', async () => {

@@ -32,6 +32,9 @@ Champs natifs : `key`, `tracker`, `status`, `project`, `created_by`, `created`, 
 ## Lier des items entre eux
 Dans l'onglet **Liens** d'une fiche (raccourci **L**, qui place le focus sur la création), choisissez le type de lien dans le sens voulu (« vérifie » ou « est vérifié par »), tapez la clé ou un mot du titre de l'item cible, choisissez-le dans la liste proposée puis **Lier**. Chaque ligne permet de **supprimer** le lien (avec confirmation, il disparaît des deux côtés) ; un lien **suspect** (la cible a changé depuis la dernière revue) s'**acquitte** en un clic une fois la vérification faite.
 
+### Types de liens
+Les administrateurs gèrent les **types de liens** de l'organisation dans Organisation > Liens : raffine, satisfait, vérifie, implémente, bloque, duplique sont livrés (modifiables et réinitialisables) et l'on peut en créer. Un type est utilisable dans tous les projets ; un type de projet de même clé le surcharge dans son projet. Un type peut déclarer des **paires de types de tracker** (par exemple « vérifie » : Cas de test → Exigence) : le lien est alors refusé entre d'autres types, dans le sens inverse, et le message nomme les paires autorisées. Un type sans paire relie n'importe quels trackers, et un tracker sans type n'est jamais contraint.
+
 ## Lier le code
 Dans un message de commit, une merge request ou un nom de branche, citez la clé : `Fixes SAT1-BUG-0142`, `Refs SAT1-BUG-0142`, `Closes`, `Implements`, `Reverts`. La branche conseillée est `bugfix/SAT1-BUG-0142-resume`. Les anciennes clés (`Fixes BUG-142`) sont encore reconnues dans le projet concerné. Athena fait avancer l'artefact (démarrage, revue, résolution à la fusion) en respectant le workflow : un message de commit ne contourne jamais les droits ou les champs obligatoires.
 

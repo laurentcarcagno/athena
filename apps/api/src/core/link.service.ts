@@ -1,6 +1,7 @@
 import type { PoolClient } from 'pg';
 import { Db, type Actor } from './db';
 import { conflict, notFound, validation } from './errors';
+import { assertPairAllowed, orgLinkTypes, resolveLinkType } from './link-type.service';
 import { audit, outbox } from './tracker.service';
 
 export interface LinkView {
@@ -17,6 +18,8 @@ export interface LinkTypeView {
   outwardLabel: string;
   inwardLabel: string;
   hierarchical: boolean;
+  /** `project` : type propre au projet (il surcharge celui de l'organisation) ; `organization` : type de l'organisation ou livré. */
+  scope: 'project' | 'organization';
 }
 
 export interface CommentView {
@@ -55,9 +58,10 @@ export class LinkService {
       const toRow = await this.artifactRow(c, project, toKey);
       const from = fromRow.id;
       const to = toRow.id;
-      const type = (await c.query('select id, hierarchical from link_type where project_id = $1 and key = $2', [project, typeKey])).rows[0];
+      const type = await resolveLinkType(c, organizationId, project, typeKey);
       if (!type) throw notFound(`Type de lien ${typeKey}`);
       if (from === to) throw validation(['un artefact ne peut pas être lié à lui-même']);
+      await assertPairAllowed(c, type, typeKey, from, to);
       if (type.hierarchical && (await this.reaches(c, to, from, type.id))) {
         throw conflict('Ce lien créerait un cycle dans la hiérarchie.');
       }
@@ -95,13 +99,16 @@ export class LinkService {
     });
   }
 
-  /** Types de liens du projet, pour proposer le choix à la création d'un lien. */
+  /** Types de liens utilisables dans le projet : les siens, puis ceux de l'organisation qu'ils ne surchargent pas. */
   async listTypes(organizationId: string, projectKey: string): Promise<LinkTypeView[]> {
     return this.db.tx(organizationId, async (c) => {
       const project = await this.project(c, projectKey);
-      return (await c.query('select key, outward_label, inward_label, hierarchical from link_type where project_id = $1 order by key', [project])).rows.map(
-        (r) => ({ key: r.key as string, outwardLabel: r.outward_label as string, inwardLabel: r.inward_label as string, hierarchical: r.hierarchical as boolean }),
+      const own = (await c.query('select key, outward_label, inward_label, hierarchical from link_type where project_id = $1', [project])).rows.map(
+        (r): LinkTypeView => ({ key: r.key as string, outwardLabel: r.outward_label as string, inwardLabel: r.inward_label as string, hierarchical: r.hierarchical as boolean, scope: 'project' }),
       );
+      const shared = (await orgLinkTypes(c)).filter((t) => !own.some((o) => o.key === t.key))
+        .map((t): LinkTypeView => ({ key: t.key, outwardLabel: t.outwardLabel, inwardLabel: t.inwardLabel, hierarchical: t.hierarchical, scope: 'organization' }));
+      return [...own, ...shared].sort((a, b) => a.key.localeCompare(b.key));
     });
   }
 
