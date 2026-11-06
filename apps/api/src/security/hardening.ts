@@ -33,6 +33,8 @@ export interface HardeningOptions {
   /** Requêtes par minute et par client pour /auth et /hooks (authentification, webhooks entrants). */
   sensitivePerMinute: number;
   hsts: boolean;
+  /** Niveau de protection de l'instance, reporté dans l'en-tête X-Athena-Protection-Level de chaque réponse. */
+  protectionLevel?: string;
 }
 
 interface FastifyLike {
@@ -70,6 +72,7 @@ export function applyHardening(fastify: FastifyLike, options: HardeningOptions, 
     reply.header('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
     reply.header('Cross-Origin-Resource-Policy', 'same-origin');
     if (options.hsts) reply.header('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+    if (options.protectionLevel) reply.header('X-Athena-Protection-Level', options.protectionLevel.replace(/[^\x20-\x7E]/g, '?'));
     return payload;
   });
   return { api, sensitive };

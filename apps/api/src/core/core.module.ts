@@ -39,6 +39,7 @@ import { SavedFilterController } from '../atql/saved-filter.controller';
 import { SavedFilterService } from '../atql/saved-filter.service';
 import { LinkService } from './link.service';
 import { MemberController } from './member.controller';
+import { ExportMarker } from './export-marking';
 import { NormativeController } from './normative.controller';
 import { NormativeService } from './normative.service';
 import { ProjectTemplateController, TemplateController, TrackerTemplateController } from './template.controller';
@@ -120,6 +121,7 @@ export { PG_POOL } from './core.tokens';
     { provide: TrackerTypeService, useFactory: (db: Db) => new TrackerTypeService(db), inject: [Db] },
     { provide: TemplateService, useFactory: (db: Db, t: TrackerService) => new TemplateService(db, t), inject: [Db, TrackerService] },
     { provide: TemplateUpgradeService, useFactory: (db: Db, t: TrackerService, tpl: TemplateService) => new TemplateUpgradeService(db, t, tpl), inject: [Db, TrackerService, TemplateService] },
+    { provide: ExportMarker, useFactory: () => new ExportMarker(loadConfig().ATHENA_PROTECTION_LEVEL), inject: [] },
     { provide: NormativeService, useFactory: (db: Db, a: ArtifactService) => new NormativeService(db, a), inject: [Db, ArtifactService] },
     { provide: MemberService, useFactory: (db: Db) => new MemberService(db), inject: [Db] },
     { provide: SprintService, useFactory: (db: Db) => new SprintService(db), inject: [Db] },

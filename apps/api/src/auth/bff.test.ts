@@ -90,7 +90,7 @@ describe('BFF OIDC (fournisseur simulé)', () => {
 
     Object.assign(process.env, {
       KEYCLOAK_ISSUER: issuer, DATABASE_URL: 'postgres://unused:unused@127.0.0.1:1/none', SESSION_SECRET: SECRET,
-      KEYCLOAK_WEB_CLIENT_SECRET: 'web-client-secret', COOKIE_SECURE: 'false', WEB_ORIGIN: WEB, PUBLIC_URL: 'http://localhost:3001',
+      KEYCLOAK_WEB_CLIENT_SECRET: 'web-client-secret', COOKIE_SECURE: 'false', ATHENA_PROTECTION_LEVEL: 'Diffusion Restreinte', WEB_ORIGIN: WEB, PUBLIC_URL: 'http://localhost:3001',
     });
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
       .overrideProvider(TOKEN_VERIFIER).useValue(new TokenVerifier(issuer, 'athena-api', createLocalJWKSet({ keys: [jwk] })))
@@ -102,6 +102,7 @@ describe('BFF OIDC (fournisseur simulé)', () => {
   });
   afterAll(async () => {
     await app?.close();
+    delete process.env['ATHENA_PROTECTION_LEVEL'];
     await new Promise((resolve) => provider.close(resolve));
   });
 
@@ -143,7 +144,8 @@ describe('BFF OIDC (fournisseur simulé)', () => {
 
     const jar = cookieHeader(callback.headers['set-cookie']);
     const state = (await inject('GET', '/auth/session', { cookie: jar })).json();
-    expect(state).toMatchObject({ authenticated: true, user: { username: 'alice', name: 'Alice Martin', roles: ['athena-user'] } });
+    expect(state).toMatchObject({ authenticated: true, user: { username: 'alice', name: 'Alice Martin', roles: ['athena-user'] }, protectionLevel: 'Diffusion Restreinte' });
+    expect((await inject('GET', '/auth/session')).json()).toEqual({ authenticated: false, protectionLevel: 'Diffusion Restreinte' }); // le bandeau s'affiche aussi avant connexion
     expect(JSON.stringify(state)).not.toMatch(/eyJ/); // aucun jeton
     const me = await inject('GET', '/v1/me', { cookie: jar });
     expect(me.statusCode).toBe(200);
@@ -178,7 +180,7 @@ describe('BFF OIDC (fournisseur simulé)', () => {
 
   it('refuse un cookie de session forgé ou inconnu', async () => {
     expect((await inject('GET', '/v1/me', { cookie: 'athena_session=forge' })).statusCode).toBe(401);
-    expect((await inject('GET', '/auth/session', { cookie: 'athena_session=forge' })).json()).toEqual({ authenticated: false });
+    expect((await inject('GET', '/auth/session', { cookie: 'athena_session=forge' })).json()).toEqual({ authenticated: false, protectionLevel: 'Diffusion Restreinte' });
   });
 
   it('se déconnecte (CSRF obligatoire) et révoque la session', async () => {

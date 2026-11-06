@@ -370,3 +370,7 @@ html, body { margin: 0; }
 /* Dans la grille de disposition, un champ remplit sa cellule : la largeur choisie (1/3, 2/3, 3/3) se voit. */
 .ath-layout-view .ath-field { display: flex; min-width: 0; width: 100%; }
 .ath-layout-view .ath-input, .ath-layout-view .ath-select { width: 100%; box-sizing: border-box; }
+
+/* Bandeau du niveau de protection de l'instance : fixe en tête de page, bleu profond (jamais le rouge de cérémonie), sans ombre. */
+.ath-protection { position: sticky; top: 0; z-index: 1300; display: flex; align-items: center; justify-content: center; min-height: 28px; padding: 0 var(--ath-space-md); background: var(--ath-color-sovereign-deep-blue); color: var(--ath-color-instrument-white); border-bottom: 2px solid var(--ath-color-console-sky); font-weight: 700; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; text-align: center; }
+.ath-root--protected .ath-sidebar { top: 28px; height: calc(100vh - 28px); height: calc(100dvh - 28px); }

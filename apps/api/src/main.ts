@@ -15,6 +15,7 @@ async function bootstrap() {
     apiPerMinute: config.RATE_LIMIT_API_PER_MINUTE,
     sensitivePerMinute: config.RATE_LIMIT_SENSITIVE_PER_MINUTE,
     hsts: config.COOKIE_SECURE,
+    protectionLevel: config.ATHENA_PROTECTION_LEVEL,
   });
   registerBinaryUpload(app.getHttpAdapter().getInstance());
   await app.listen(config.PORT, config.HOST);

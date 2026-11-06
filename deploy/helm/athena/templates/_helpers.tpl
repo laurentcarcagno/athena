@@ -37,6 +37,9 @@ securityContext:
 - { name: WEBHOOK_ALLOW_PRIVATE, value: {{ .Values.config.webhookAllowPrivate | quote }} }
 - { name: RATE_LIMIT_API_PER_MINUTE, value: {{ .Values.config.rateLimitApiPerMinute | quote }} }
 - { name: RATE_LIMIT_SENSITIVE_PER_MINUTE, value: {{ .Values.config.rateLimitSensitivePerMinute | quote }} }
+{{- with .Values.protectionLevel }}
+- { name: ATHENA_PROTECTION_LEVEL, value: {{ . | quote }} }
+{{- end }}
 {{- with .Values.config.openbaoAddr }}
 - { name: OPENBAO_ADDR, value: {{ . | quote }} }
 {{- end }}

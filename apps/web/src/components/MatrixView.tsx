@@ -1,3 +1,4 @@
+import { getProtectionLevel, markCsv } from '../lib/protection';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type UIEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { Btn, Tag, useToast } from '@athena/ui';
@@ -29,12 +30,12 @@ const FALLBACK_VIEW = { w: 1000, h: 600 }; // pas de mise en page (tests) : une 
 const emptyStore = (): Store => ({ rows: new Map(), cols: new Map(), links: new Map(), tiles: new Set(), meta: null });
 
 /** Contenu CSV d'une matrice : une ligne par item, une colonne par item de l'autre tracker, « 1 » (ou « 1! » si suspect) dans les cases remplies. */
-export function matrixCsv(data: Pick<MatrixData, 'rows' | 'cols' | 'links'>): string {
+export function matrixCsv(data: Pick<MatrixData, 'rows' | 'cols' | 'links'>, protection = getProtectionLevel()): string {
   const cell = (value: string) => (/[",;\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value);
   const filled = new Map(data.links.map((l) => [`${l.row}|${l.col}`, l.suspect]));
   const header = ['', ...data.cols.map((c) => cell(c.key))].join(',');
   const lines = data.rows.map((r) => [cell(r.key), ...data.cols.map((c) => (filled.has(`${r.key}|${c.key}`) ? (filled.get(`${r.key}|${c.key}`) ? '1!' : '1') : ''))].join(','));
-  return [header, ...lines].join('\n') + '\n';
+  return markCsv([header, ...lines].join('\n') + '\n', protection);
 }
 
 /**

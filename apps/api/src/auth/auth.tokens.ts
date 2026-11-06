@@ -14,4 +14,6 @@ export interface WebConfig {
   webOrigin: string;
   cookieSecure: boolean;
   sessionTtlSeconds: number;
+  /** Niveau de protection de l'instance (vide : aucun) ; affiché en bandeau par l'application web. */
+  protectionLevel?: string;
 }

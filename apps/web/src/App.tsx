@@ -1,3 +1,5 @@
+import { ProtectionBanner } from './components/ProtectionBanner';
+import { setProtectionLevel } from './lib/protection';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Btn, EmptyState, PageHeader, Sidebar, ToastProvider } from '@athena/ui';
@@ -175,12 +177,15 @@ export function App() {
     loadSession().then((s) => {
       if (!s.authenticated) window.location.assign(loginUrl(window.location.pathname + window.location.search));
       else setSession(s);
+      setProtectionLevel(s.protectionLevel);
     }).catch(() => setSession({ authenticated: false }));
   }, []);
   if (!session) return <div className="ath-root ath-page__main" role="status">{fr.loading}</div>;
-  if (!session.authenticated) return <div className="ath-root ath-page__main"><EmptyState eyebrow={fr.errors.unavailableEyebrow} title={fr.errors.unavailable} /></div>;
+  setProtectionLevel(session.protectionLevel);
+  if (!session.authenticated) return <div className="ath-root"><ProtectionBanner level={session.protectionLevel} /><div className="ath-page__main"><EmptyState eyebrow={fr.errors.unavailableEyebrow} title={fr.errors.unavailable} /></div></div>;
   return (
-    <div className="ath-root" key={locale}>
+    <div className={session.protectionLevel ? 'ath-root ath-root--protected' : 'ath-root'} key={locale}>
+      <ProtectionBanner level={session.protectionLevel} />
       <ToastProvider>
         <BrowserRouter>
           <AuthenticatedApp session={session} />

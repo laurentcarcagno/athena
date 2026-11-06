@@ -2,6 +2,7 @@ import { Body, Controller, Delete, Get, HttpCode, Inject, Param, Post, Put, Quer
 import { z } from 'zod';
 import { Roles, type AuthedRequest } from '../auth/auth.guard';
 import { BodySchema } from '../openapi/body-schema';
+import { ExportMarker } from './export-marking';
 import { OrgResolver, parseBody } from './http';
 import { NormativeService, TailoringInput } from './normative.service';
 
@@ -14,6 +15,7 @@ export class NormativeController {
   constructor(
     @Inject(NormativeService) private readonly normative: NormativeService,
     @Inject(OrgResolver) private readonly orgs: OrgResolver,
+    @Inject(ExportMarker) private readonly marker: ExportMarker,
   ) {}
 
   @Roles('athena-admin', 'athena-pm')
@@ -59,6 +61,7 @@ export class NormativeController {
   @Roles('athena-user', 'athena-admin', 'athena-pm')
   @Get(':project/conformity/export')
   async conformityExport(@Req() request: AuthedRequest, @Param('project') project: string, @Query('category') category?: string) {
-    return this.normative.conformityCsv((await this.orgs.resolve(request.principal!)).organizationId, project, Category.parse(category || undefined));
+    const out = await this.normative.conformityCsv((await this.orgs.resolve(request.principal!)).organizationId, project, Category.parse(category || undefined));
+    return this.marker.json({ ...out, csv: this.marker.csv(out.csv) });
   }
 }

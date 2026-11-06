@@ -255,6 +255,7 @@ const frDict = {
     upgradeAvailable: (v: string) => `La version ${v} du gabarit est disponible.`, upToDate: 'Le projet est à la dernière version publiée.',
     preview: 'Aperçu de la montée', unversioned: 'Gabarit non versionné',
   },
+  protection: { label: 'Niveau de protection de l’instance' },
 };
 
 export type Dictionary = typeof frDict;
@@ -510,6 +511,7 @@ const enDict: Dictionary = {
     upgradeAvailable: (v: string) => `Template version ${v} is available.`, upToDate: 'The project is on the latest published version.',
     preview: 'Preview the upgrade', unversioned: 'Unversioned template',
   },
+  protection: { label: 'Instance protection level' },
 };
 
 export type Locale = 'fr' | 'en';

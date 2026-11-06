@@ -1,3 +1,4 @@
+import { ExportMarker } from '../core/export-marking';
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import { Body, Controller, Delete, Get, Headers, HttpCode, HttpException, Inject, Param, Post, Query, Req } from '@nestjs/common';
 import type { Pool } from 'pg';
@@ -75,6 +76,7 @@ export class IntegrationsController {
     @Inject(SECRET_STORE) private readonly secrets: SecretStore,
     @Inject(PG_POOL) private readonly pool: Pool,
     @Inject(BASELINES) private readonly baselines: BaselineService | null,
+    private readonly marker: ExportMarker,
     @Inject(REVERSE_SYNC) private readonly reverse: ReverseSync | null,
     @Inject(REBUILD) private readonly rebuilder: RebuildService | null,
     @Inject(CODE_ACTIONS) private readonly code: CodeActions | null,
@@ -460,7 +462,7 @@ export class IntegrationsController {
   @Roles('athena-user', 'athena-admin')
   @Get('v1/projects/:project/releases/:id/notes')
   async releaseNotes(@Req() request: AuthedRequest, @Param('project') project: string, @Param('id') id: string) {
-    return { markdown: await this.delivery.releaseNotes((await this.ctx(request)).organizationId, project, id) };
+    return this.marker.json({ markdown: this.marker.markdown(await this.delivery.releaseNotes((await this.ctx(request)).organizationId, project, id)) });
   }
 
   // --- Baselines ---

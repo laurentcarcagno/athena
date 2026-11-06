@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { Roles, type AuthedRequest } from '../auth/auth.guard';
 import { BodySchema } from '../openapi/body-schema';
 import { OrgResolver, parseBody } from './http';
+import { ExportMarker } from './export-marking';
 import { NormativeSchema } from './normative-template';
 import { TemplateService, TemplateTrackerSchema } from './template.service';
 import { TemplateUpgradeService } from './template-upgrade.service';
@@ -52,6 +53,7 @@ export class TemplateController {
   constructor(
     @Inject(TemplateService) private readonly templates: TemplateService,
     @Inject(OrgResolver) private readonly orgs: OrgResolver,
+    @Inject(ExportMarker) private readonly marker: ExportMarker,
   ) {}
 
   @Roles('athena-admin')
@@ -111,7 +113,7 @@ export class TemplateController {
   @Roles('athena-admin')
   @Get(':key/export')
   async exportYaml(@Req() request: AuthedRequest, @Param('key') key: string) {
-    return { key, yaml: await this.templates.exportYaml((await this.orgs.resolve(request.principal!)).organizationId, key) };
+    return this.marker.json({ key, yaml: this.marker.yaml(await this.templates.exportYaml((await this.orgs.resolve(request.principal!)).organizationId, key)) });
   }
 
   @Roles('athena-admin')

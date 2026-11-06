@@ -32,6 +32,8 @@ const schema = z.object({
   RATE_LIMIT_SENSITIVE_PER_MINUTE: z.coerce.number().int().min(5).max(10_000).default(60),
   TRUST_PROXY: z.enum(['true', 'false']).default('false').transform((v) => v === 'true'),
   CORS_ORIGIN: z.string().default('http://localhost:3000'),
+  /** Niveau de protection de l'instance (ex. « Diffusion Restreinte ») : bandeau sur chaque page et mention sur les exports. Vide : aucun. */
+  ATHENA_PROTECTION_LEVEL: z.string().trim().max(80).default(''),
 });
 
 export type AppConfig = z.infer<typeof schema>;

@@ -115,11 +115,12 @@ export class BffController {
     reply.header('Cache-Control', 'no-store');
     const id = parseCookies(firstHeader(request.headers['cookie']))[SESSION_COOKIE];
     const principal = id ? await this.sessions.get(id) : null;
-    if (!id || !principal || !this.config.sessionSecret) { reply.status(200).send({ authenticated: false }); return; }
+    if (!id || !principal || !this.config.sessionSecret) { reply.status(200).send({ authenticated: false, ...(this.config.protectionLevel ? { protectionLevel: this.config.protectionLevel } : {}) }); return; }
     reply.status(200).send({
       authenticated: true,
       user: { username: principal.username, name: principal.name ?? principal.username, email: principal.email ?? null, roles: principal.roles, groups: principal.groups },
       csrf: csrfToken(this.config.sessionSecret, id),
+      ...(this.config.protectionLevel ? { protectionLevel: this.config.protectionLevel } : {}),
     });
   }
 

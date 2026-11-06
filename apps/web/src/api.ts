@@ -18,6 +18,8 @@ export interface Session {
   authenticated: boolean;
   user?: { username: string; name: string; email: string | null; roles: string[]; groups: string[] };
   csrf?: string;
+  /** Niveau de protection de l'instance (absent : aucun bandeau). */
+  protectionLevel?: string;
 }
 
 let csrf: string | null = null;

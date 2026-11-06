@@ -20,6 +20,9 @@ existingSecret: athena-env
 # Secret du job de migration : MIGRATION_DATABASE_URL (compte propriétaire du schéma, distinct du compte applicatif).
 migrationSecret: athena-migration
 
+# Niveau de protection de l'instance (ex. "Diffusion Restreinte") : bandeau sur chaque page et mention sur les exports. Vide : aucun.
+protectionLevel: ""
+
 config:
   keycloakIssuer: https://keycloak.exemple.lan/realms/athena
   keycloakWebClientId: athena-web

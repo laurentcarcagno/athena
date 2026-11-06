@@ -37,7 +37,7 @@ import { HealthController } from './health/health.controller';
         });
         return {
           issuer: c.KEYCLOAK_ISSUER, clientId: c.KEYCLOAK_WEB_CLIENT_ID, clientSecret: c.KEYCLOAK_WEB_CLIENT_SECRET,
-          sessionSecret, publicUrl: c.PUBLIC_URL, webOrigin: c.WEB_ORIGIN, cookieSecure: c.COOKIE_SECURE,
+          sessionSecret, publicUrl: c.PUBLIC_URL, webOrigin: c.WEB_ORIGIN, cookieSecure: c.COOKIE_SECURE, protectionLevel: c.ATHENA_PROTECTION_LEVEL,
           sessionTtlSeconds: c.SESSION_TTL_SECONDS,
         };
       },
