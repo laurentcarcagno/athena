@@ -93,7 +93,8 @@ suite('marquage de contrôle export', () => {
     expect((await as('u-lead', () => artifacts.get(org, 'DEF', 'DEF-REQ-0002'))).exportControl).toBe('ITAR');
     expect(await total('u-reader')).toBe(2);
     expect(await total('u-lead')).toBe(3);
-    expect(await total('u-reader', 'text ~ "confidentiel"')).toBeGreaterThanOrEqual(0);
+    expect(await total('u-reader', 'text ~ "confidentiel"')).toBe(2); // plein texte : l’item marqué n’est pas trouvé
+    expect(await total('u-lead', 'text ~ "confidentiel"')).toBe(3);
     expect(await total('u-admin')).toBe(2); // administrateur d’organisation non ayant droit : même règle
     const count = (s: string) => as(s, () => db.tx(org, async (c) => Number((await c.query("select count(*) n from artifact where tracker_id = (select id from tracker where key = 'REQ')")).rows[0].n)));
     expect([await count('u-reader'), await count('u-lead')]).toEqual([2, 3]);

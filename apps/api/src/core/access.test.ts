@@ -104,6 +104,20 @@ suite('listes d’ayants droit : la base filtre toutes les lectures', () => {
     expect((await as('u-alice', () => overview.overview(org, 'SEC', 'u-alice'))).trackers.map((t) => [t.key, t.artifacts])).toEqual([['REQ', 3], ['TST', 1]]);
   });
 
+  it('plein texte, palette (recherche par clé ou titre) et journal des automatisations respectent la liste', async () => {
+    const hits = (s: string, q: string) => as(s, () => search.search(org, 'SEC', q, s)).then((r) => r.hits.map((h) => h.key));
+    expect(await hits('u-bob', 'text ~ "sec"')).toEqual([]);
+    expect((await hits('u-alice', 'text ~ "sec"')).length).toBeGreaterThan(0);
+    expect(await hits('u-bob', 'key ~ "SEC" OR title ~ "SEC"')).toEqual([]); // requête de la palette et de l’autocomplétion des liens
+    expect((await hits('u-alice', 'key ~ "SEC" OR title ~ "SEC"')).length).toBeGreaterThan(0);
+    await db.tx(org, async (c) => {
+      const rule = (await c.query("insert into automation_rule (organization_id, project_id, name, trigger_type, condition, actions, created_by) select organization_id, id, 'r', 'artifact.created', '', '[]', 'u-admin' from project where key = 'SEC' returning id")).rows[0];
+      await c.query("insert into automation_run (organization_id, rule_id, event_id, artifact_key, status) select organization_id, id, gen_random_uuid(), 'SEC-REQ-0001', 'done' from automation_rule where id = $1", [rule.id]);
+    }, { system: true });
+    const runs = (s: string) => as(s, () => db.tx(org, async (c) => Number((await c.query('select count(*) n from automation_run')).rows[0].n)));
+    expect([await runs('u-bob'), await runs('u-alice')]).toEqual([0, 1]);
+  });
+
   it('couverture, favoris et écritures respectent la liste', async () => {
     expect(await as('u-bob', () => code(coverage.evaluate(org, 'SEC', ['athena-user'])))).toBe('not_found');
     expect((await as('u-alice', () => coverage.evaluate(org, 'SEC', ['athena-user'])))[0]).toMatchObject({ total: 3, covered: 1 });

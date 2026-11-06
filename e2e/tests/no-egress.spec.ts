@@ -33,10 +33,15 @@ test('preuve : le garde du navigateur consigne une requête vers un hôte public
 test('aucune requête ne sort de l’origine sur les pages principales', async ({ page }) => {
   const egress = watchEgress(page);
   await login(page, 'admin.dev', 'dev-only-admin');
+  // Après la connexion, toute requête du navigateur reste sur l'origine de l'application (API et identité relayées par elle) :
+  // aucun autre hôte, pas même local.
+  const origins = new Set<string>();
+  page.on('request', (request) => { const u = new URL(request.url()); if (!['data:', 'blob:', 'about:'].includes(u.protocol)) origins.add(u.origin); });
   for (const path of ['/', '/p/ARI', '/p/ARI/trackers', '/p/ARI/tracabilite', '/p/ARI/planification', '/p/ARI/activite', '/p/ARI/membres', '/p/ARI/recherche', '/org', '/aide']) {
     await page.goto(path);
     await page.waitForLoadState('networkidle');
     await expect(page.locator('main, [role="main"], #root').first()).toBeVisible();
   }
   expect(egress, `requêtes sortantes : ${egress.join(', ')}`).toEqual([]);
+  expect([...origins]).toEqual(['http://localhost:3000']);
 });
