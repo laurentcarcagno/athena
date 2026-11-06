@@ -12,7 +12,7 @@
 ## Décisions
 - Un administrateur d'organisation non ayant droit ne lit pas un item marqué (même règle que pour les listes).
 - Les événements d'un item marqué sont exclus (et non masqués) des abonnements non habilités : un événement masqué révélerait quand même qu'un item sensible a changé.
-- L'historique GitLab (instance interne) reçoit tous les items : le contrôle d'accès du dépôt d'historique relève du GitLab de l'instance.
+- L'historique GitLab est un canal d'export : un item marqué y est écrit chiffré (OpenBao) ou, sans OpenBao, sans valeurs (`masked`), avec son marquage ; la reconstruction depuis Git le rétablit. Les commits antérieurs au marquage restent dans Git (historique immuable) et la confirmation de marquage le dit.
 
 ## Écarts
 - Aucun.

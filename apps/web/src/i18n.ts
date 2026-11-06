@@ -267,7 +267,7 @@ const frDict = {
   marking: {
     title: 'Contrôle export', current: 'Marquage', none: 'Aucun', labels: { ITAR: 'ITAR', EAR: 'EAR', dual_use: 'Double usage' } as Record<string, string>, set: 'Appliquer le marquage',
     restrictedLink: 'lien vers un item sous contrôle export', restrictedUnlink: 'Retirer le lien vers un item sous contrôle export',
-    confirmTitle: (k: string, v: string) => `Marquer ${k} : ${v}`, confirmBody: 'L’item ne sera lisible que des ayants droit du marquage du projet, y compris dans la recherche, les compteurs et les exports. Webhooks : seuls les abonnements habilités le recevront. Le changement est audité.',
+    confirmTitle: (k: string, v: string) => `Marquer ${k} : ${v}`, confirmBody: 'L’item ne sera lisible que des ayants droit du marquage du projet, y compris dans la recherche, les compteurs et les exports. Webhooks : seuls les abonnements habilités le recevront. Dans l’historique Git, le contenu est chiffré dès le prochain commit ; les commits antérieurs au marquage restent inchangés. Le changement est audité.',
     confirmClear: (k: string) => `Retirer le marquage de ${k}`, confirmClearBody: 'L’item redevient lisible selon les droits habituels du projet. Le changement est audité.', applied: 'Marquage enregistré.',
     managersOnly: 'Seuls les responsables changent le marquage.',
     membersTitle: 'Ayants droit du contrôle export', membersHelp: 'Seuls ces comptes lisent les items marqués du projet. Sans ayant droit, aucun item ne peut être marqué.', markedCount: (n: number) => `${n} item${n > 1 ? 's' : ''} marqué${n > 1 ? 's' : ''}`,
@@ -548,7 +548,7 @@ const enDict: Dictionary = {
   marking: {
     title: 'Export control', current: 'Marking', none: 'None', labels: { ITAR: 'ITAR', EAR: 'EAR', dual_use: 'Dual use' } as Record<string, string>, set: 'Apply the marking',
     restrictedLink: 'link to an export-controlled item', restrictedUnlink: 'Remove the link to an export-controlled item',
-    confirmTitle: (k: string, v: string) => `Mark ${k}: ${v}`, confirmBody: 'The item will only be readable by the project’s export-control entitled users, including in search, counters and exports. Webhooks: only cleared subscriptions will receive it. The change is audited.',
+    confirmTitle: (k: string, v: string) => `Mark ${k}: ${v}`, confirmBody: 'The item will only be readable by the project’s export-control entitled users, including in search, counters and exports. Webhooks: only cleared subscriptions will receive it. In the Git history the content is encrypted from the next commit; commits made before the marking stay unchanged. The change is audited.',
     confirmClear: (k: string) => `Remove the marking of ${k}`, confirmClearBody: 'The item becomes readable according to the project’s usual rights. The change is audited.', applied: 'Marking saved.',
     managersOnly: 'Only managers change the marking.',
     membersTitle: 'Export-control entitled users', membersHelp: 'Only these accounts read the project’s marked items. Without any entitled user, no item can be marked.', markedCount: (n: number) => `${n} marked item${n > 1 ? 's' : ''}`,

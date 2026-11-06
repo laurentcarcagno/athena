@@ -1,3 +1,4 @@
+import { ExportMarker } from './core/export-marking';
 import { Pool } from 'pg';
 import { z } from 'zod';
 import { SearchService } from './atql/search.service';
@@ -30,6 +31,7 @@ const env = z
     WEBHOOKS_INTERVAL_MS: z.coerce.number().int().min(500).default(2000),
     SESSIONS_INTERVAL_MS: z.coerce.number().int().min(10_000).default(600_000),
     PLUGIN_TRUSTED_KEYS: z.string().optional(),
+    ATHENA_PROTECTION_LEVEL: z.string().trim().max(80).default(''),
     WORKER_HEALTH_PORT: z.coerce.number().int().min(1).max(65535).default(3002),
   })
   .parse(process.env);
@@ -46,7 +48,7 @@ if (!bao) {
 
 const history =
   env.GITLAB_URL && env.GITLAB_TOKEN && env.GITLAB_NAMESPACE
-    ? new HistorySync(pool, new GitLabClient(env.GITLAB_URL, env.GITLAB_TOKEN), env.GITLAB_NAMESPACE, 'main', bao ? new ConfidentialFields(bao) : undefined)
+    ? new HistorySync(pool, new GitLabClient(env.GITLAB_URL, env.GITLAB_TOKEN), env.GITLAB_NAMESPACE, 'main', bao ? new ConfidentialFields(bao) : undefined, new ExportMarker(env.ATHENA_PROTECTION_LEVEL))
     : undefined;
 if (!history) log("GitLab non configuré : synchronisation de l'historique désactivée.");
 const webhooks = bao ? new WebhookService(pool, new OpenBaoSecretStore(bao), { allowPrivate: env.WEBHOOK_ALLOW_PRIVATE }) : undefined;

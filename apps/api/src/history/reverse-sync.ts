@@ -6,7 +6,8 @@ import { Db, type Actor } from '../core/db';
 import { DomainError } from '../core/errors';
 import type { ConfidentialFields } from '../secrets/confidential';
 import { GitLabClient } from './gitlab-client';
-import { repositoryName, serializeArtifact } from './serialize';
+import type { ExportMarker } from '../core/export-marking';
+import { repositoryName, serializeArtifact, valuesForGit } from './serialize';
 
 export interface PushCommit {
   id: string;
@@ -45,6 +46,7 @@ export class ReverseSync {
     private readonly artifacts: ArtifactService,
     private readonly confidential?: ConfidentialFields,
     private readonly branch = 'main',
+    private readonly marker?: ExportMarker,
   ) {}
 
   async handlePush(organizationId: string, projectKey: string, payload: PushPayload): Promise<ImportResult[]> {
@@ -74,7 +76,7 @@ export class ReverseSync {
       const row = await new Db(this.pool).tx(organizationId, async (c) =>
         (
           await c.query(
-            `select a.version, a."values" as values, s.key as status, t.key as tracker,
+            `select a.version, a."values" as values, a.export_control, s.key as status, t.key as tracker,
                     coalesce((select array_agg(f.key) from field_definition f where f.tracker_id = a.tracker_id and f.config->>'confidential' = 'true'), '{}') as confidential
              from artifact a join status s on s.id = a.status_id join tracker t on t.id = a.tracker_id join project p on p.id = a.project_id
              where p.key = $1 and a.id = resolve_artifact(p.id, $2)`,
@@ -83,8 +85,9 @@ export class ReverseSync {
         ).rows[0],
       );
       if (!row) return;
-      const values = this.confidential ? await this.confidential.protect(orgKey, row.values, row.confidential) : row.values;
-      const canonical = serializeArtifact({ key, tracker: row.tracker, status: row.status, version: row.version, values });
+      const stored = await valuesForGit(this.confidential, orgKey, row.values, row.confidential, row.export_control);
+      const generated = serializeArtifact({ key, tracker: row.tracker, status: row.status, version: row.version, values: stored.values }, [], { exportControl: row.export_control, masked: stored.masked });
+      const canonical = this.marker ? this.marker.yaml(generated) : generated;
       if (why === 'normalisé' && (await this.gitlab.fileContent(repo, path, commitId)) === canonical) return;
       await this.gitlab.commit(repo, {
         branch: this.branch,

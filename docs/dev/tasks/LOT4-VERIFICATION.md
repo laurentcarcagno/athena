@@ -21,7 +21,7 @@ Chaque critère d'acceptation des fiches T-0076, T-0077, T-0078, T-0079, T-0099 
 | Critère | Preuve |
 |---|---|
 | Niveau vide : aucun bandeau ; renseigné : bandeau fixe en tête de chaque page, lu par les lecteurs d'écran | `web19.test.tsx` (vide, renseigné, rôle `note` étiqueté, premier élément de l'application, avant connexion aussi), `bff.test.ts` (session) |
-| Exports (CSV, YAML, documents générés, API d'export) portent la mention en en-tête et pied | `export-marking.test.ts` (CSV avec BOM, YAML, Markdown, JSON, en-tête HTTP, neutralisation des sauts de ligne) ; CSV de la matrice dans `web19.test.tsx`. Athena ne génère pas de PDF : les « documents générés » sont les notes de version et les exports |
+| Exports (CSV, YAML, documents générés, API d'export) portent la mention en en-tête et pied |  `export-marking.test.ts` (CSV avec BOM, YAML, Markdown, JSON, en-tête HTTP, neutralisation des sauts de ligne) ; CSV de la matrice dans `web19.test.tsx`. Athena ne génère pas de PDF : les documents qu'elle génère sont les notes de version, les exports et les fichiers YAML de l'historique Git (`tracker.yaml`, fichiers d'items), qui portent la mention en tête et en pied (`history.test.ts`) |
 | Le bandeau n'est pas rouge | `web19.test.tsx` (CSS sans rouge de cérémonie, ombre, dégradé ni arrondi) |
 | Tests : API en-têtes, RTL bandeau, axe | `export-marking.test.ts`, `web19.test.tsx` (axe) |
 
@@ -38,6 +38,7 @@ Chaque critère d'acceptation des fiches T-0076, T-0077, T-0078, T-0079, T-0099 
 |---|---|
 | Item marqué lisible des seuls ayants droit ; liens affichent « lien vers un item sous contrôle export » sans titre ni contenu | `export-control.test.ts` (lecture, recherche, plein texte, compteurs, couverture, liens), `web21.test.tsx` (libellé, axe) |
 | Webhooks et exports excluent ou masquent selon les droits du destinataire | `export-control.test.ts` (abonnement habilité ou non, livraison réelle) ; exports lus sous la même politique que la recherche |
+| Historique GitLab (canal d'export) : l'item n'y est ni lisible ni exposé | `history.test.ts` (« item sous contrôle export… ») : valeurs chiffrées par OpenBao dans Git (titre et contenu absents en clair), retirées (`masked`) sans OpenBao, marquage inscrit dans le fichier, retour en clair au démarquage, **reconstruction depuis Git qui rétablit marquage et contenu** ; la correction de la synchronisation inverse applique la même règle. Les commits antérieurs au marquage restent dans l'historique Git (immuable) : annoncé dans la confirmation de marquage |
 | Changement réservé aux responsables, audité | `export-control.test.ts` (route réservée, révision, événement, audit), `web21.test.tsx` |
 
 ## T-0080 Assurance qualité étatique

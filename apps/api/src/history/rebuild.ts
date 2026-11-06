@@ -28,6 +28,9 @@ interface ArtifactFile {
   status: string;
   version: number;
   aliases?: string[];
+  /** Marquage de contrôle export et indicateur de valeurs absentes (voir `valuesForGit`). */
+  exportControl?: string;
+  masked?: boolean;
   values: Record<string, unknown>;
 }
 
@@ -89,6 +92,8 @@ export class RebuildService {
 
       const last = new Map<string, number>();
       for (const a of artifactFiles) {
+        // Item sous contrôle export dont Git ne garde pas les valeurs (instance sans OpenBao) : non reconstructible depuis Git, la sauvegarde de la base en reste la source.
+        if (a.masked) continue;
         const tracker = trackerIds.get(a.tracker);
         const status = tracker?.statusIds.get(a.status);
         const number = Number(/-(\d+)$/.exec(a.key)?.[1]);
@@ -100,6 +105,7 @@ export class RebuildService {
         const aliases = new Set((a.aliases ?? []).filter((x) => isLegacyKey(x)));
         if (key !== a.key && isLegacyKey(a.key)) aliases.add(a.key);
         const id = await insertArtifact(c, organizationId, project.id, tracker.id, status, number, { ...a, key }, values, actorId);
+        if (a.exportControl) await c.query('update artifact set export_control = $2 where id = $1', [id, a.exportControl]);
         for (const alias of aliases) {
           await c.query('insert into artifact_key_alias (organization_id, artifact_id, project_id, alias) values ($1,$2,$3,$4) on conflict do nothing', [organizationId, id, project.id, alias]);
         }

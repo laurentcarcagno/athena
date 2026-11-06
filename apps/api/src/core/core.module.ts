@@ -143,7 +143,7 @@ export { PG_POOL } from './core.tokens';
       provide: REVERSE_SYNC,
       useFactory: (pool: Pool, a: ArtifactService): ReverseSync | null => {
         const c = loadConfig();
-        return c.GITLAB_URL && c.GITLAB_TOKEN && c.GITLAB_NAMESPACE ? new ReverseSync(pool, new GitLabClient(c.GITLAB_URL, c.GITLAB_TOKEN), c.GITLAB_NAMESPACE, a) : null;
+        return c.GITLAB_URL && c.GITLAB_TOKEN && c.GITLAB_NAMESPACE ? new ReverseSync(pool, new GitLabClient(c.GITLAB_URL, c.GITLAB_TOKEN), c.GITLAB_NAMESPACE, a, undefined, 'main', new ExportMarker(c.ATHENA_PROTECTION_LEVEL)) : null;
       },
       inject: [PG_POOL, ArtifactService],
     },

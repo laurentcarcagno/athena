@@ -3,7 +3,8 @@ import { Db } from '../core/db';
 import type { Snapshot } from '../core/artifact.service';
 import { GitLabClient } from './gitlab-client';
 import type { ConfidentialFields } from '../secrets/confidential';
-import { artifactPath, repositoryName, serializeArtifact, serializeTracker, trackerPath, type TrackerYaml } from './serialize';
+import type { ExportMarker } from '../core/export-marking';
+import { artifactPath, repositoryName, serializeArtifact, serializeTracker, trackerPath, valuesForGit, type TrackerYaml } from './serialize';
 
 export interface SyncResult {
   committed: number;
@@ -24,6 +25,7 @@ interface PendingEvent {
   tracker_key: string | null;
   current_key: string | null;
   aliases: string[];
+  export_control: string | null;
 }
 
 const FALLBACK_AUTHOR = { name: 'Athena', email: 'athena@localhost' };
@@ -41,6 +43,7 @@ export class HistorySync {
     private readonly namespace: string,
     private readonly branch = 'main',
     private readonly confidential?: ConfidentialFields,
+    private readonly marker?: ExportMarker,
   ) {}
 
   /** Traite les événements en attente de toutes les organisations, dans l'ordre. */
@@ -91,7 +94,7 @@ export class HistorySync {
               coalesce(tk.key, o.payload->>'key') as tracker_key,
               coalesce((select array_agg(f.key) from field_definition f
                         where f.tracker_id = a.tracker_id and f.config->>'confidential' = 'true'), '{}') as confidential_fields,
-              a.key as current_key,
+              a.key as current_key, a.export_control,
               coalesce((select array_agg(al.alias order by al.alias) from artifact_key_alias al where al.artifact_id = a.id), '{}') as aliases
        from outbox_event o
        left join artifact_revision r on r.event_id = nullif(o.payload->>'eventId','')::uuid
@@ -115,10 +118,10 @@ export class HistorySync {
     // Un événement antérieur à la migration des clés porte l'ancienne clé : le fichier suit toujours la clé courante.
     const snapshot = { ...event.snapshot, key: event.current_key ?? event.snapshot.key };
     const path = artifactPath(snapshot);
-    const protectedValues = this.confidential
-      ? await this.confidential.protect(orgKey, event.snapshot.values, event.confidential_fields)
-      : event.snapshot.values;
-    const content = serializeArtifact({ ...snapshot, values: protectedValues }, event.aliases ?? []);
+    const stored = await valuesForGit(this.confidential, orgKey, event.snapshot.values, event.confidential_fields, event.export_control);
+    // Fichier généré par Athena : la mention de protection de l'instance en tête et en pied (commentaires YAML, sans effet sur la lecture).
+    const generated = serializeArtifact({ ...snapshot, values: stored.values }, event.aliases ?? [], { exportControl: event.export_control, masked: stored.masked });
+    const content = this.marker ? this.marker.yaml(generated) : generated;
     const branch = await this.writeBranch(projectId, event);
     const exists = await this.gitlab.fileExists(projectId, path, branch);
     const summary = summarize(event);
@@ -152,7 +155,7 @@ Athena-Event-Id: ${event.id}
 Athena-Actor: ${event.payload.actor ?? 'inconnu'}`,
       authorName: event.display_name ?? FALLBACK_AUTHOR.name,
       authorEmail: event.email ?? FALLBACK_AUTHOR.email,
-      actions: [{ action: exists ? 'update' : 'create', file_path: path, content: serializeTracker(def) }],
+      actions: [{ action: exists ? 'update' : 'create', file_path: path, content: this.marker ? this.marker.yaml(serializeTracker(def)) : serializeTracker(def) }],
     });
     await this.ensureReview(projectId, event, branch);
     return sha;

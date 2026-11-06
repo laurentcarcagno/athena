@@ -5,7 +5,9 @@ import { Client, Pool } from 'pg';
 import { parse } from 'yaml';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { ArtifactService } from '../core/artifact.service';
+import { AccessService } from '../core/access.service';
 import { Db, type Actor } from '../core/db';
+import { ExportMarker } from '../core/export-marking';
 import { FieldTypeRegistry } from '../core/field-types';
 import { bugTemplate } from '../core/templates';
 import { TrackerService } from '../core/tracker.service';
@@ -14,6 +16,7 @@ import { ConfidentialFields } from '../secrets/confidential';
 import { OpenBao } from '../secrets/openbao';
 import { GitLabClient } from './gitlab-client';
 import { HistorySync } from './history-sync';
+import { RebuildService } from './rebuild';
 import { artifactPath, serializeArtifact } from './serialize';
 
 const envFile = (() => {
@@ -174,6 +177,50 @@ suite('historique GitLab (intégration)', () => {
     const revealed = await new ConfidentialFields(bao).reveal(orgKey, stored.values);
     expect(revealed['note']).toBe('Mot de passe du coffre-fort');
   }, 60_000);
+
+  it.runIf(baoUp)('item sous contrôle export : Git ne reçoit ni titre ni contenu en clair, avec la mention de protection ; la reconstruction les retrouve', async () => {
+    const db = new Db(pool);
+    const access = new AccessService(db);
+    await db.tx(org, (c) => c.query("insert into export_control_member (organization_id, project_id, subject, added_by) select organization_id, id, 'sub-alice', 'sub-alice' from project where key = 'ARI' on conflict do nothing"));
+    const secret = await artifacts.create(org, 'ARI', 'SEC', { title: 'Titre ITAR confidentiel', note: 'Contenu sensible' }, alice);
+    await access.setMarking(org, 'ARI', secret.key, 'ITAR', alice);
+    await new TrackerService(db, new FieldTypeRegistry()).addField(org, 'ARI', 'SEC', { key: 'extra', label: 'Extra', type: 'text' }, alice); // un nouveau commit de tracker.yaml, sous mention
+    const bao = new OpenBao(BAO_ADDR, BAO_TOKEN!);
+    const protectedSync = new HistorySync(pool, gitlab, 'root', 'main', new ConfidentialFields(bao), new ExportMarker('Diffusion Restreinte'));
+    await protectedSync.runOnce();
+    const path = `trackers/SEC/artifacts/${secret.key}.yaml`;
+    const raw = await gitlab.fileContent(projectId, path, 'main');
+    expect(raw.startsWith('# Diffusion Restreinte\n')).toBe(true);
+    expect(raw.trimEnd().endsWith('# Diffusion Restreinte')).toBe(true);
+    expect(raw).not.toContain('Titre ITAR confidentiel');
+    expect(raw).not.toContain('Contenu sensible');
+    const stored = parse(raw) as { exportControl: string; masked?: boolean; values: Record<string, unknown> };
+    expect(stored).toMatchObject({ exportControl: 'ITAR' });
+    expect(stored.masked).toBeUndefined();
+    expect(String(stored.values['title'])).toMatch(/^bao:v1:vault:v1:/);
+    expect(await new ConfidentialFields(bao).reveal(orgKey, stored.values)).toMatchObject({ title: 'Titre ITAR confidentiel', note: 'Contenu sensible' });
+    // les fichiers générés par Athena portent aussi la mention : tracker.yaml
+    expect((await gitlab.fileContent(projectId, 'trackers/SEC/tracker.yaml', 'main')).startsWith('# Diffusion Restreinte\n')).toBe(true);
+    // sans OpenBao, les valeurs sont retirées plutôt qu'écrites en clair
+    const second = await artifacts.create(org, 'ARI', 'SEC', { title: 'Autre titre ITAR', note: 'Autre contenu' }, alice);
+    await access.setMarking(org, 'ARI', second.key, 'EAR', alice);
+    await new HistorySync(pool, gitlab, 'root', 'main').runOnce();
+    const masked = await gitlab.fileContent(projectId, `trackers/SEC/artifacts/${second.key}.yaml`, 'main');
+    expect(masked).not.toContain('Autre titre ITAR');
+    expect(parse(masked)).toMatchObject({ exportControl: 'EAR', masked: true, values: {} });
+    // la reconstruction depuis Git rétablit le marquage et déchiffre le contenu
+    const other = crypto.randomUUID();
+    await db.tx(other, (c) => c.query("insert into organization (id, key, name) values ($1, 'hist-rebuilt', 'hist-rebuilt')", [other]));
+    await db.tx(other, (c) => c.query("insert into user_account (organization_id, subject, username, display_name) values ($1,'sub-alice','alice','Alice')", [other]));
+    await new TrackerService(db, new FieldTypeRegistry()).createProject(other, 'ARI', 'Reconstruit', alice);
+    await new RebuildService(pool, gitlab, 'root', new ConfidentialFields(bao)).rebuild(other, 'ARI', orgKey, 'sub-alice');
+    const rebuilt = await db.tx(other, async (c) => (await c.query("select a.export_control, a.\"values\" as values from artifact a where a.\"values\"->>'title' = 'Titre ITAR confidentiel'")).rows, { system: true });
+    expect(rebuilt).toEqual([{ export_control: 'ITAR', values: expect.objectContaining({ title: 'Titre ITAR confidentiel', note: 'Contenu sensible' }) }]);
+    // démarqué, l'item revient en clair au commit suivant
+    await access.setMarking(org, 'ARI', second.key, null, alice);
+    await new HistorySync(pool, gitlab, 'root', 'main').runOnce();
+    expect(parse(await gitlab.fileContent(projectId, `trackers/SEC/artifacts/${second.key}.yaml`, 'main'))).toMatchObject({ values: { title: 'Autre titre ITAR' } });
+  }, 90_000);
 
   it('mode « merge request » : les commits vont sur une branche de revue avec une MR ouverte, la fusion les intègre à main', async () => {
     const db = new Db(pool);
