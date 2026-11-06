@@ -17,6 +17,7 @@ const ProjectBody = z.object({ key: KeySchema, name: z.string().min(1).max(200),
 
 const TrackerBody = z.object({
   layout: LayoutSchema.optional(),
+  typeKey: z.string().regex(/^[a-z][a-z0-9-]{1,39}$/).nullish(),
   key: KeySchema,
   name: z.string().min(1).max(200),
   description: z.string().max(2000).optional(),

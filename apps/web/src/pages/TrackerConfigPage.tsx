@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { useParams } from 'react-router-dom';
 import { Btn, Card, Field as TextField, PageHeader, StatusPill, Table, Td, Th, useToast } from '@athena/ui';
-import { ApiError, api, type Session, type TrackerDefinition } from '../api';
+import { ApiError, api, type Session, type TrackerDefinition, type TrackerTypeEntry } from '../api';
 import { useConfirm } from '../components/ConfirmDialog';
 import { useBusy, useFailure } from '../hooks';
 import { WorkflowEditor } from '../components/WorkflowEditor';
@@ -19,6 +19,7 @@ export function TrackerConfigPage({ session }: { session: Session }) {
   const [def, setDef] = useState<TrackerDefinition | null>(null);
   const [types, setTypes] = useState<string[]>([]);
   const [layout, setLayout] = useState<Layout | null>(null);
+  const [trackerTypes, setTrackerTypes] = useState<TrackerTypeEntry[]>([]);
   const { busy, guard } = useBusy();
   const [field, setField] = useState({ key: '', label: '', type: 'text', required: false, readRoles: '', writeRoles: '' });
   const [status, setStatus] = useState({ key: '', name: '', category: 'todo' });
@@ -32,6 +33,10 @@ export function TrackerConfigPage({ session }: { session: Session }) {
     setTypes(await api<string[]>('GET', '/v1/field-types'));
   }, [base]);
   useEffect(() => { reload().catch(fail); }, [reload, fail]);
+  useEffect(() => { if (admin) api<TrackerTypeEntry[]>('GET', '/v1/tracker-types').then((t) => setTrackerTypes(Array.isArray(t) ? t : [])).catch(() => undefined); }, [admin]);
+  const saveType = async (typeKey: string) => {
+    try { await api('PATCH', `${base}/type`, { typeKey: typeKey || null }); toast('success', fr.types.typeSaved); await reload(); } catch (error) { fail(error); }
+  };
 
   const submit = (path: string, body: unknown, reset: () => void) => async (event: FormEvent) => {
     event.preventDefault();
@@ -118,6 +123,17 @@ export function TrackerConfigPage({ session }: { session: Session }) {
             </form>
           )}
         </Card>
+        {admin && trackerTypes.length > 0 && (
+          <Card title={fr.types.trackerType}>
+            <div className="ath-field">
+              <label className="ath-field__label" htmlFor="cfg-tracker-type">{fr.types.trackerType}</label>
+              <select id="cfg-tracker-type" className="ath-select" value={def.typeKey ?? ''} onChange={(e) => void saveType(e.target.value)}>
+                <option value="">{fr.types.noType}</option>
+                {trackerTypes.map((t) => <option key={t.key} value={t.key}>{t.name}</option>)}
+              </select>
+            </div>
+          </Card>
+        )}
         {admin && (
           <Card title={fr.layout.title}>
             <div className="ath-stack">

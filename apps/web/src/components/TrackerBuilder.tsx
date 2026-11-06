@@ -1,6 +1,6 @@
 import { useEffect, useId, useState } from 'react';
 import { Btn, Card, Field, StatusPill, Table, Td, Th } from '@athena/ui';
-import { api } from '../api';
+import { api, type TrackerTypeEntry } from '../api';
 import { fr } from '../i18n';
 import type { Layout } from '../lib/layout';
 import { LayoutEditor } from './LayoutEditor';
@@ -9,7 +9,7 @@ import { WorkflowEditor } from './WorkflowEditor';
 export interface DraftField { key: string; label: string; type: string; required?: boolean; config?: Record<string, unknown>; semanticRole?: string; readRoles?: string[]; writeRoles?: string[] }
 export interface DraftStatus { key: string; name: string; category: 'todo' | 'in_progress' | 'done' }
 export interface DraftTransition { name: string; from: string | null; to: string; conditions?: unknown[]; validators?: unknown[]; postActions?: unknown[] }
-export interface DraftTracker { layout?: Layout | null; key: string; name: string; description?: string; fields: DraftField[]; statuses: DraftStatus[]; transitions: DraftTransition[] }
+export interface DraftTracker { layout?: Layout | null; typeKey?: string | null; key: string; name: string; description?: string; fields: DraftField[]; statuses: DraftStatus[]; transitions: DraftTransition[] }
 
 export const emptyTracker = (): DraftTracker => ({
   key: '', name: '',
@@ -26,9 +26,20 @@ const sameKey = (s: string) => s.trim().toLowerCase().replace(/[^a-z0-9_]/g, '_'
 export function TrackerBuilder({ value, onChange }: { value: DraftTracker; onChange: (next: DraftTracker) => void }) {
   const id = useId();
   const [types, setTypes] = useState<string[]>(['text']);
+  const [trackerTypes, setTrackerTypes] = useState<TrackerTypeEntry[]>([]);
   const [field, setField] = useState({ key: '', label: '', type: 'text', required: false, options: '', role: '' });
   const [status, setStatus] = useState({ key: '', name: '', category: 'todo' as DraftStatus['category'] });
   useEffect(() => { api<string[]>('GET', '/v1/field-types').then(setTypes).catch(() => undefined); }, []);
+  useEffect(() => { api<TrackerTypeEntry[]>('GET', '/v1/tracker-types').then((t) => setTrackerTypes(Array.isArray(t) ? t : [])).catch(() => undefined); }, []);
+  /** Choisir un type propose son socle de champs : les champs absents sont ajoutés, ceux déjà présents sont conservés. */
+  const pickType = (typeKey: string) => {
+    const chosen = trackerTypes.find((t) => t.key === typeKey);
+    if (!chosen) { onChange({ ...value, typeKey: null }); return; }
+    const present = new Set(value.fields.map((f) => f.key));
+    const roles = new Set(value.fields.map((f) => f.semanticRole).filter(Boolean));
+    const added = chosen.baseFields.filter((f) => !present.has(f.key) && !(f.semanticRole && roles.has(f.semanticRole)));
+    onChange({ ...value, typeKey: chosen.key, fields: [...value.fields, ...added] });
+  };
 
   const addField = () => {
     const key = sameKey(field.key);
@@ -56,6 +67,13 @@ export function TrackerBuilder({ value, onChange }: { value: DraftTracker; onCha
       <div className="ath-toolbar">
         <Field label={fr.builder.trackerKey} value={value.key} onChange={(e) => onChange({ ...value, key: e.target.value.toUpperCase() })} mono />
         <Field label={fr.builder.trackerName} value={value.name} onChange={(e) => onChange({ ...value, name: e.target.value })} />
+        <div className="ath-field">
+          <label className="ath-field__label" htmlFor={`${id}-trackertype`}>{fr.types.trackerType}</label>
+          <select id={`${id}-trackertype`} className="ath-select" value={value.typeKey ?? ''} onChange={(e) => pickType(e.target.value)}>
+            <option value="">{fr.types.noType}</option>
+            {trackerTypes.map((t) => <option key={t.key} value={t.key}>{t.name}</option>)}
+          </select>
+        </div>
       </div>
 
       <Card title={fr.config.fields} meta={String(value.fields.length)}>

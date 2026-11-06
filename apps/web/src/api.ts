@@ -65,8 +65,13 @@ export const loginUrl = (returnTo: string) => `/auth/login?returnTo=${encodeURIC
 export interface Hit { key: string; tracker: string; status: string; statusName: string; category: string; values: Record<string, unknown>; version: number; updatedAt: string }
 export interface SearchResult { total: number; totalCapped?: boolean; hits: Hit[] }
 export interface Field { id: string; key: string; label: string; type: string; config: Record<string, unknown>; required: boolean; semanticRole: string | null; readRoles?: string[] | null; writeRoles?: string[] | null }
+export interface TrackerTypeEntry {
+  key: string; name: string; description: string; category: 'engineering' | 'development' | 'verification' | 'management';
+  defaultViews: string[]; baseFields: Array<{ key: string; label: string; type: string; required?: boolean; config?: Record<string, unknown>; semanticRole?: string }>;
+  builtin: boolean; modified: boolean;
+}
 export interface TrackerDefinition {
-  key: string; name: string; historyMode?: 'direct' | 'merge_request'; layout?: import('./lib/layout').Layout | null;
+  key: string; name: string; typeKey?: string | null; historyMode?: 'direct' | 'merge_request'; layout?: import('./lib/layout').Layout | null;
   fields: Field[];
   statuses: Array<{ id: string; key: string; name: string; category: string }>;
   transitions: Array<{ id: string; name: string; fromStatusId: string | null; toStatusId: string; conditions?: Array<{ type: string; roles?: string[] }> }>;

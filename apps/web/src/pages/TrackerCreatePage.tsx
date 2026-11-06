@@ -24,7 +24,7 @@ export function TrackerCreatePage({ session }: { session: Session }) {
   const submit = (event: FormEvent) => { event.preventDefault(); void guard(() => submitRun()); };
   const submitRun = async () => {
     try {
-      await api('POST', `/v1/projects/${project}/trackers`, { key: draft.key, name: draft.name, fields: draft.fields, statuses: draft.statuses, transitions: draft.transitions, ...(draft.layout ? { layout: forSave(draft.layout, draft.fields) } : {}) });
+      await api('POST', `/v1/projects/${project}/trackers`, { key: draft.key, name: draft.name, ...(draft.typeKey ? { typeKey: draft.typeKey } : {}), fields: draft.fields, statuses: draft.statuses, transitions: draft.transitions, ...(draft.layout ? { layout: forSave(draft.layout, draft.fields) } : {}) });
       toast('success', fr.builder.trackerCreated(draft.key));
       navigate(`/p/${project}/trackers/${draft.key}/config`);
     } catch (error) { fail(error); }
