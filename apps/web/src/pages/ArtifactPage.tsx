@@ -5,6 +5,7 @@ import { ApiError, api, upload, type Artifact, type AttachmentView, type Field, 
 import { useBusy, useFailure } from '../hooks';
 import { fr } from '../i18n';
 import { useConfirm } from '../components/ConfirmDialog';
+import { LinkEditor } from '../components/LinkEditor';
 import { resolveLayout } from '../lib/layout';
 import { pillKind } from './ListPage';
 
@@ -77,6 +78,21 @@ export function ArtifactView({ session, project, itemKey: key, embedded = false,
   const [artifact, setArtifact] = useState<Artifact | null>(null);
   const [def, setDef] = useState<TrackerDefinition | null>(null);
   const [tab, setTab] = useState('details');
+  const [focusLinks, setFocusLinks] = useState(0);
+  // Raccourci L : ouvre l'onglet Liens et place le focus sur la création d'un lien (ignoré pendant une saisie).
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key.toLowerCase() !== 'l' || event.ctrlKey || event.metaKey || event.altKey) return;
+      const target = event.target as HTMLElement | null;
+      if (target && (['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) || target.isContentEditable)) return;
+      if (document.querySelector('[role="dialog"]')) return;
+      event.preventDefault();
+      setTab('links');
+      setFocusLinks((n) => n + 1);
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, []);
   const [links, setLinks] = useState<LinkView[]>([]);
   const [docs, setDocs] = useState<DocLink[]>([]);
   const [comments, setComments] = useState<Comment[]>([]);
@@ -219,15 +235,10 @@ export function ArtifactView({ session, project, itemKey: key, embedded = false,
             </div>
           </Card>
         )}
-        {tab === 'links' && (links.length + docs.length === 0 ? <EmptyState eyebrow={fr.artifact.links} title={fr.artifact.noLinks} /> : (
+        {tab === 'links' && (
           <Card title={fr.artifact.links}>
             <div className="ath-stack">
-              {links.map((l) => (
-                <div key={l.id} className="ath-row">
-                  <span>{l.label}</span> <Link className="ath-link ath-mono" to={`/p/${project}/a/${l.other}`}>{l.other}</Link>
-                  {l.suspect && <StatusPill kind="warning">{fr.artifact.suspect}</StatusPill>}
-                </div>
-              ))}
+              <LinkEditor focusSignal={focusLinks} project={project} itemKey={artifact.key} links={links} onChanged={reload} />
               {docs.length > 0 && <span className="ath-eyebrow">{fr.artifact.docs}</span>}
               {docs.map((d) => (
                 <div key={d.uid} className="ath-row">
@@ -238,7 +249,7 @@ export function ArtifactView({ session, project, itemKey: key, embedded = false,
               ))}
             </div>
           </Card>
-        ))}
+        )}
         {tab === 'history' && (history.length === 0 ? <EmptyState eyebrow={fr.artifact.history} title={fr.artifact.noHistory} /> : (
           <Table>
             <thead><tr><Th>{fr.artifact.version}</Th><Th>{fr.artifact.author}</Th><Th>{fr.artifact.date}</Th><Th>{fr.artifact.changes}</Th><Th>{fr.artifact.commit}</Th><Th>{fr.artifact.restore}</Th></tr></thead>

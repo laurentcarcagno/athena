@@ -115,6 +115,11 @@ const frDict = {
     created: 'a créé l’item', updated: 'a modifié', transitioned: 'a fait passer de', to: 'à', commented: 'a commenté',
   },
   columns: { button: 'Colonnes', legend: 'Colonnes affichées' },
+  links: {
+    type: 'Type de lien', target: 'Item cible (clé ou titre)', results: 'Items proposés', link: 'Lier', unlink: 'Supprimer le lien', acknowledge: 'Acquitter',
+    created: 'Lien créé.', removed: 'Lien supprimé.', acknowledged: 'Lien acquitté.', noTypes: 'Aucun type de lien n’est défini pour ce projet.',
+    deleteTitle: (label: string, other: string) => `Supprimer le lien « ${label} ${other} »`, deleteBody: 'Le lien est supprimé des deux côtés. Il pourra être recréé.',
+  },
   types: {
     title: 'Types de tracker', note: 'Un type fixe la catégorie, les vues proposées et le socle de champs des trackers qui en dérivent. Les types livrés se modifient et se réinitialisent.',
     key: 'Clé du type (minuscules)', name: 'Nom du type', description: 'Description', category: 'Catégorie',
@@ -274,6 +279,11 @@ const enDict: Dictionary = {
     created: 'created the item', updated: 'changed', transitioned: 'moved from', to: 'to', commented: 'commented',
   },
   columns: { button: 'Columns', legend: 'Displayed columns' },
+  links: {
+    type: 'Link type', target: 'Target item (key or title)', results: 'Suggested items', link: 'Link', unlink: 'Delete link', acknowledge: 'Acknowledge',
+    created: 'Link created.', removed: 'Link deleted.', acknowledged: 'Link acknowledged.', noTypes: 'No link type is defined for this project.',
+    deleteTitle: (label: string, other: string) => `Delete link “${label} ${other}”`, deleteBody: 'The link is deleted on both sides. It can be created again.',
+  },
   types: {
     title: 'Tracker types', note: 'A type sets the category, the proposed views and the base fields of the trackers derived from it. Built-in types can be edited and reset.',
     key: 'Type key (lowercase)', name: 'Type name', description: 'Description', category: 'Category',

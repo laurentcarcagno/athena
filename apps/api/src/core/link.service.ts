@@ -12,6 +12,13 @@ export interface LinkView {
   suspect: boolean;
 }
 
+export interface LinkTypeView {
+  key: string;
+  outwardLabel: string;
+  inwardLabel: string;
+  hierarchical: boolean;
+}
+
 export interface CommentView {
   id: string;
   author: string;
@@ -85,6 +92,35 @@ export class LinkService {
         id: r.id, type: r.type, direction: r.outward ? 'outward' : 'inward',
         label: r.outward ? r.outward_label : r.inward_label, other: r.other, suspect: r.suspect,
       }));
+    });
+  }
+
+  /** Types de liens du projet, pour proposer le choix à la création d'un lien. */
+  async listTypes(organizationId: string, projectKey: string): Promise<LinkTypeView[]> {
+    return this.db.tx(organizationId, async (c) => {
+      const project = await this.project(c, projectKey);
+      return (await c.query('select key, outward_label, inward_label, hierarchical from link_type where project_id = $1 order by key', [project])).rows.map(
+        (r) => ({ key: r.key as string, outwardLabel: r.outward_label as string, inwardLabel: r.inward_label as string, hierarchical: r.hierarchical as boolean }),
+      );
+    });
+  }
+
+  /** Supprime un lien du projet (dans un sens comme dans l'autre : le lien est le même objet). */
+  async remove(organizationId: string, projectKey: string, linkId: string, actor: Actor): Promise<void> {
+    await this.db.tx(organizationId, async (c) => {
+      const project = await this.project(c, projectKey);
+      const row = (
+        await c.query(
+          `select l.id, f.key as from_key, t.key as to_key, ty.key as type from artifact_link l
+           join artifact f on f.id = l.from_artifact_id join artifact t on t.id = l.to_artifact_id join link_type ty on ty.id = l.link_type_id
+           where l.id::text = $1 and f.project_id = $2`,
+          [linkId, project],
+        )
+      ).rows[0];
+      if (!row) throw notFound('Lien');
+      await c.query('delete from artifact_link where id = $1', [row.id]);
+      await outbox(c, organizationId, 'artifact', row.id as string, 'link.deleted', { from: row.from_key, to: row.to_key, type: row.type, actor: actor.id });
+      await audit(c, organizationId, actor, 'link.delete', `artifact:${row.from_key}`, { to: row.to_key, type: row.type });
     });
   }
 

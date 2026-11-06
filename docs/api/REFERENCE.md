@@ -74,3 +74,4 @@ Chaque utilisateur a ses favoris et ses récents (rail latéral), isolés par or
 
 `GET /v1/projects/:p/activity` renvoie `{items, next, people}` : le flux du projet, du plus récent au plus ancien. Paramètres : `tracker`, `actor` (identifiant), `kind` (`created`, `updated`, `transition`, `comment`), `limit` (30 par défaut, 100 au plus) et `before` (curseur opaque renvoyé dans `next`). Chaque élément porte `kind`, `at`, `key`, `tracker`, `actor`, `actorName`, `fields` (champs modifiés, sans les champs à lecture restreinte pour le lecteur) et, pour une transition, `from` et `to` ; `people` liste les auteurs du projet pour alimenter le filtre.
 
+`GET /v1/projects/:p/link-types` liste les types de liens du projet (`key`, `outwardLabel`, `inwardLabel`, `hierarchical`). `DELETE /v1/projects/:p/links/:id` supprime un lien du projet (404 pour un lien d'un autre projet) ; l'événement sortant est `link.deleted` (`from`, `to`, `type`, `actor`) et l'action d'audit `link.delete`.

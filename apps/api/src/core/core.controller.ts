@@ -327,6 +327,21 @@ export class CoreController {
   }
 
   @Roles('athena-user', 'athena-admin')
+  @Get(':project/link-types')
+  async listLinkTypes(@Req() request: AuthedRequest, @Param('project') project: string) {
+    const { organizationId } = await this.orgs.resolve(principalOf(request));
+    return this.links.listTypes(organizationId, project);
+  }
+
+  @Roles('athena-user', 'athena-admin')
+  @HttpCode(204)
+  @Delete(':project/links/:id')
+  async removeLink(@Req() request: AuthedRequest, @Param('project') project: string, @Param('id') id: string) {
+    const { organizationId, actor } = await this.orgs.resolve(principalOf(request));
+    await this.links.remove(organizationId, project, id, actor);
+  }
+
+  @Roles('athena-user', 'athena-admin')
   @Get(':project/artifacts/:key/links')
   async listLinks(@Req() request: AuthedRequest, @Param('project') project: string, @Param('key') key: string) {
     const { organizationId } = await this.orgs.resolve(principalOf(request));

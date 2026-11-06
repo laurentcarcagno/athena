@@ -29,6 +29,9 @@ Champs natifs : `key`, `tracker`, `status`, `project`, `created_by`, `created`, 
 - **Historique** : qui a changé quoi, quand, et le commit GitLab correspondant. **Restaurer** recrée les valeurs d'une ancienne révision par une nouvelle révision (rien n'est effacé).
 - **Développement** : branches, commits, merge requests et état des pipelines liés à l'artefact.
 
+## Lier des items entre eux
+Dans l'onglet **Liens** d'une fiche (raccourci **L**, qui place le focus sur la création), choisissez le type de lien dans le sens voulu (« vérifie » ou « est vérifié par »), tapez la clé ou un mot du titre de l'item cible, choisissez-le dans la liste proposée puis **Lier**. Chaque ligne permet de **supprimer** le lien (avec confirmation, il disparaît des deux côtés) ; un lien **suspect** (la cible a changé depuis la dernière revue) s'**acquitte** en un clic une fois la vérification faite.
+
 ## Lier le code
 Dans un message de commit, une merge request ou un nom de branche, citez la clé : `Fixes SAT1-BUG-0142`, `Refs SAT1-BUG-0142`, `Closes`, `Implements`, `Reverts`. La branche conseillée est `bugfix/SAT1-BUG-0142-resume`. Les anciennes clés (`Fixes BUG-142`) sont encore reconnues dans le projet concerné. Athena fait avancer l'artefact (démarrage, revue, résolution à la fusion) en respectant le workflow : un message de commit ne contourne jamais les droits ou les champs obligatoires.
 

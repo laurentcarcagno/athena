@@ -79,4 +79,27 @@ suite('liens et commentaires', () => {
     expect((await links.comments(org, 'ARI', 'ARI-BUG-0001')).map((c) => c.body)).toEqual(['Premier', 'Second']);
     expect(await code(links.addComment(org, 'ARI', 'ARI-BUG-0001', '   ', actor))).toBe('validation');
   });
+
+  it('liste les types de liens du projet pour le sélecteur de création', async () => {
+    expect(await links.listTypes(org, 'ARI')).toEqual([
+      { key: 'parent', outwardLabel: 'parent de', inwardLabel: 'enfant de', hierarchical: true },
+      { key: 'verifies', outwardLabel: 'vérifie', inwardLabel: 'vérifié par', hierarchical: false },
+    ]);
+  });
+
+  it('supprime un lien (événement, audit), refuse un lien d’un autre projet ou inconnu', async () => {
+    const [mine] = await links.list(org, 'ARI', 'ARI-BUG-0001');
+    const db = new Db(testDb.pool);
+    await new TrackerService(db, new FieldTypeRegistry()).createProject(org, 'OTH', 'Autre', actor);
+    expect(await code(links.remove(org, 'OTH', mine!.id, actor))).toBe('not_found'); // le lien n'appartient pas à ce projet
+    await links.remove(org, 'ARI', mine!.id, actor);
+    expect(await links.list(org, 'ARI', 'ARI-BUG-0001')).toEqual([]);
+    expect(await links.list(org, 'ARI', 'ARI-REQ-0001')).toEqual([]); // l'autre extrémité ne le voit plus non plus
+    expect(await code(links.remove(org, 'ARI', mine!.id, actor))).toBe('not_found');
+    const event = await db.tx(org, async (c) => (await c.query("select payload from outbox_event where type = 'link.deleted'")).rows[0]?.payload);
+    expect(event).toMatchObject({ from: 'ARI-BUG-0001', to: 'ARI-REQ-0001', type: 'verifies', actor: 'u1' });
+    const audited = await db.tx(org, async (c) => Number((await c.query("select count(*) n from audit_log where action = 'link.delete'")).rows[0].n));
+    expect(audited).toBe(1);
+    await links.link(org, 'ARI', 'ARI-BUG-0001', 'ARI-REQ-0001', 'verifies', actor); // le même lien peut être recréé
+  });
 });
