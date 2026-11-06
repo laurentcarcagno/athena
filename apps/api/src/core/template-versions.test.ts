@@ -123,4 +123,44 @@ suite('gabarits normatifs versionnés (intégration)', () => {
     expect(await code(templates.importYaml(org, 'athenaTemplate: 1\nkey: x1\nname: X\nnormative:\n  phases:\n    - key: p\n      name: P\n      review: absente\n', admin))).toMatch(/^validation/);
     expect(await code(templates.importYaml(org, 'pas du yaml: [', admin))).toMatch(/^validation/);
   });
+
+  it('dérive d’un gabarit publié : fusion, version du parent épinglée, retrait obligatoire refusé', async () => {
+    await templates.create(org, { key: 'socle', name: 'Socle', trackers: [tracker('REQ')], normative: normative({ mandatory: ['tracker:REQ', 'field:REQ.title', 'review:pdr', 'phase:design'] }) }, admin);
+    expect(await code(templates.create(org, { key: 'fils0', name: 'Fils', trackers: [], parent: { key: 'socle' } }, admin))).toMatch(/pas de version publiée/);
+    await templates.publish(org, 'socle', undefined, admin);
+    await templates.create(org, { key: 'fils', name: 'Fils', trackers: [tracker('NCR')], normative: NormativeSchema.parse({ reviews: [{ key: 'cdr', name: 'CDR' }], phases: [{ key: 'build', name: 'Réalisation', review: 'cdr' }] }), parent: { key: 'socle' } }, admin);
+    const resolved = await templates.resolve(org, 'fils');
+    expect(resolved.trackers.map((t) => t.key)).toEqual(['REQ', 'NCR']);
+    expect(resolved.normative.phases.map((p) => p.key)).toEqual(['design', 'build']);
+    expect(resolved.parent).toEqual({ key: 'socle', version: '1.0' });
+    // un retrait ou un renommage obligatoire est refusé avec la liste
+    const removal = await code(templates.update(org, 'fils', { name: 'Fils', trackers: [tracker('NCR')], normative: NormativeSchema.parse({ remove: ['tracker:REQ', 'phase:design'] }) }, admin));
+    expect(removal).toMatch(/retrait interdit : tracker:REQ/);
+    expect(removal).toMatch(/retrait interdit : phase:design/);
+    const renamed = await code(templates.update(org, 'fils', { name: 'Fils', trackers: [tracker('REQ', { name: 'Autre nom' })] }, admin));
+    expect(renamed).toMatch(/renommage interdit : tracker:REQ/);
+    // la publication fige le gabarit résolu et la version du parent
+    const snap = await templates.publish(org, 'fils', undefined, admin);
+    expect(snap).toMatchObject({ version: '1.0', parent: { key: 'socle', version: '1.0' } });
+    expect(snap.trackers.map((t) => t.key)).toEqual(['REQ', 'NCR']);
+    // une nouvelle version du parent n'altère pas la version déjà publiée du dérivé
+    await templates.update(org, 'socle', { name: 'Socle', trackers: [tracker('REQ'), tracker('ADD')], normative: normative({ mandatory: ['tracker:REQ'] }) }, admin);
+    await templates.publish(org, 'socle', undefined, admin);
+    expect((await templates.snapshot(org, 'fils', '1.0')).trackers.map((t) => t.key)).toEqual(['REQ', 'NCR']);
+    expect((await templates.createProject(org, 'FIL', 'Fils', 'fils', admin, { criticality: 'A' })).trackers).toEqual(['REQ', 'NCR']);
+  });
+
+  it('refuse un cycle d’héritage et une chaîne de plus de 5 niveaux', async () => {
+    await templates.create(org, { key: 'c1', name: 'C1', trackers: [] }, admin);
+    await templates.publish(org, 'c1', undefined, admin);
+    await templates.create(org, { key: 'c2', name: 'C2', trackers: [], parent: { key: 'c1' } }, admin);
+    await templates.publish(org, 'c2', undefined, admin);
+    expect(await code(templates.update(org, 'c1', { name: 'C1', trackers: [], parent: { key: 'c2' } }, admin))).toMatch(/cycle d’héritage : c1 → c2 → c1/);
+    expect(await code(templates.update(org, 'c1', { name: 'C1', trackers: [], parent: { key: 'c1' } }, admin))).toMatch(/cycle d’héritage/);
+    for (const [k, parent] of [['c3', 'c2'], ['c4', 'c3'], ['c5', 'c4']] as const) {
+      await templates.create(org, { key: k, name: k, trackers: [], parent: { key: parent } }, admin);
+      await templates.publish(org, k, undefined, admin);
+    }
+    expect(await code(templates.create(org, { key: 'c6', name: 'C6', trackers: [], parent: { key: 'c5' } }, admin))).toMatch(/héritage trop profond : 6 niveaux/);
+  });
 });

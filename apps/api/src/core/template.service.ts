@@ -1,9 +1,10 @@
 import { LayoutSchema } from './layout';
 import { z } from 'zod';
 import { Db, type Actor } from './db';
-import { conflict, notFound, validation } from './errors';
+import { DomainError, conflict, notFound, validation } from './errors';
 import { bugTemplate, requirementTemplate } from './templates';
 import { TrackerService, audit, type TrackerSpec } from './tracker.service';
+import { chainProblems, resolveLayers, type Layer } from './template-inherit';
 import { NormativeSchema, VERSION, compareVersions, emptyNormative, nextMinor, normativeProblems, templateToYaml, yamlToTemplate, type Normative, type TemplateDefinition } from './normative-template';
 
 const TrackerKey = z.string().regex(/^[A-Z][A-Z0-9]{1,9}$/, 'clé en majuscules, 2 à 10 caractères');
@@ -164,16 +165,17 @@ export class TemplateService {
     return found;
   }
 
-  async create(organizationId: string, input: { key: string; name: string; description?: string; trackers: TemplateTracker[]; normative?: Normative }, actor: Actor): Promise<void> {
+  async create(organizationId: string, input: { key: string; name: string; description?: string; trackers: TemplateTracker[]; normative?: Normative; parent?: { key: string; version?: string } | null }, actor: Actor): Promise<void> {
     if (builtinTemplates().some((t) => t.key === input.key)) throw conflict('Cette clé est réservée à un template livré avec Athena.');
     const keys = input.trackers.map((t) => t.key);
     if (new Set(keys).size !== keys.length) throw validation(['deux trackers du template ont la même clé']);
     for (const t of input.trackers) this.trackers.validateSpec({ ...t, projectKey: '' } as TrackerSpec);
     if ((await this.list(organizationId)).some((t) => t.key === input.key)) throw conflict(`Un template « ${input.key} » existe déjà.`);
-    const normative = this.checkNormative(input.trackers, input.normative);
+    const parent = input.parent ?? null;
+    const normative = (await this.check(organizationId, input.key, input.trackers, input.normative, parent)).normative;
     await this.db.tx(organizationId, async (c) => {
-      await c.query('insert into project_template (organization_id, key, name, description, trackers, normative, created_by) values ($1,$2,$3,$4,$5,$6,$7)',
-        [organizationId, input.key, input.name, input.description ?? '', JSON.stringify(input.trackers), JSON.stringify(normative), actor.id]);
+      await c.query('insert into project_template (organization_id, key, name, description, trackers, normative, parent_key, parent_version, created_by) values ($1,$2,$3,$4,$5,$6,$7,$8,$9)',
+        [organizationId, input.key, input.name, input.description ?? '', JSON.stringify(input.trackers), JSON.stringify(normative), parent?.key ?? null, parent?.version ?? null, actor.id]);
       await audit(c, organizationId, actor, 'project_template.create', `template:${input.key}`, { trackers: keys });
     });
   }
@@ -211,16 +213,17 @@ export class TemplateService {
   }
 
   /** Modifie un template de projet, y compris un template livré (enregistré alors comme version de l'organisation). */
-  async update(organizationId: string, key: string, input: { name: string; description?: string; trackers: TemplateTracker[]; normative?: Normative }, actor: Actor): Promise<void> {
+  async update(organizationId: string, key: string, input: { name: string; description?: string; trackers: TemplateTracker[]; normative?: Normative; parent?: { key: string; version?: string } | null }, actor: Actor): Promise<void> {
     const keys = input.trackers.map((t) => t.key);
     if (new Set(keys).size !== keys.length) throw validation(['deux trackers du template ont la même clé']);
     for (const t of input.trackers) this.trackers.validateSpec({ ...t, projectKey: '' } as TrackerSpec);
     const current = (await this.list(organizationId)).find((t) => t.key === key);
     if (!current) throw notFound(`Template ${key}`);
-    const normative = this.checkNormative(input.trackers, input.normative ?? current.normative);
+    const parent = input.parent === undefined ? current.parent : input.parent;
+    const normative = (await this.check(organizationId, key, input.trackers, input.normative ?? current.normative, parent)).normative;
     await this.db.tx(organizationId, async (c) => {
       // Toute modification repasse le gabarit en brouillon : les projets restent sur leur version publiée.
-      const updated = await c.query("update project_template set name = $2, description = $3, trackers = $4, normative = $5, status = 'draft', updated_at = now() where key = $1", [key, input.name, input.description ?? '', JSON.stringify(input.trackers), JSON.stringify(normative)]);
+      const updated = await c.query("update project_template set name = $2, description = $3, trackers = $4, normative = $5, parent_key = $6, parent_version = $7, status = 'draft', updated_at = now() where key = $1", [key, input.name, input.description ?? '', JSON.stringify(input.trackers), JSON.stringify(normative), parent?.key ?? null, parent?.version ?? null]);
       if (updated.rowCount === 0) {
         await c.query('insert into project_template (organization_id, key, name, description, trackers, normative, created_by, updated_at) values ($1,$2,$3,$4,$5,$6,$7, now())',
           [organizationId, key, input.name, input.description ?? '', JSON.stringify(input.trackers), JSON.stringify(normative), actor.id]);
@@ -229,13 +232,37 @@ export class TemplateService {
     });
   }
 
-  /** Valide le modèle normatif d'un gabarit : un gabarit incohérent (phase sans revue, livrable inconnu…) est refusé. */
-  private checkNormative(trackers: TemplateTracker[], input: Normative | undefined): Normative {
+  /** Couche du parent (dernière version publiée ou version épinglée), après contrôle des cycles et de la profondeur. */
+  private async parentLayer(organizationId: string, key: string, parent: { key: string; version?: string } | null): Promise<{ layer: Layer; version: string } | null> {
+    if (parent === null) return null;
+    const views = new Map((await this.list(organizationId)).map((t) => [t.key, t]));
+    const chain = [key];
+    for (let cur: string | undefined = parent.key; cur !== undefined && chain.length <= 12; cur = views.get(cur)?.parent?.key) chain.push(cur);
+    const bad = chainProblems(chain);
+    if (bad.length) throw validation(bad);
+    if (!views.has(parent.key)) throw notFound(`Template parent ${parent.key}`);
+    const snap = await this.snapshot(organizationId, parent.key, parent.version).catch((e: unknown) => {
+      if (e instanceof DomainError && e.code === 'not_found') throw validation([`le gabarit parent ${parent.key} n’a pas de version publiée${parent.version ? ` ${parent.version}` : ''}`]);
+      throw e;
+    });
+    return { layer: { trackers: snap.trackers, normative: snap.normative }, version: snap.version };
+  }
+
+  /** Valide un gabarit (modèle, héritage, cohérence du résultat fusionné) : incohérent, il est refusé avec la liste des écarts. */
+  private async check(organizationId: string, key: string, trackers: TemplateTracker[], input: Normative | undefined, parent: { key: string; version?: string } | null): Promise<{ normative: Normative; resolved: Layer; parentVersion: string | null }> {
     const parsed = NormativeSchema.safeParse(input ?? {});
     if (!parsed.success) throw validation(parsed.error.issues.map((i) => `${i.path.join('.')} : ${i.message}`));
-    const problems = normativeProblems(trackers, parsed.data);
+    const p = await this.parentLayer(organizationId, key, parent);
+    const { resolved, problems } = resolveLayers(p?.layer ?? null, { trackers, normative: parsed.data });
     if (problems.length) throw validation(problems);
-    return parsed.data;
+    return { normative: parsed.data, resolved, parentVersion: p?.version ?? null };
+  }
+
+  /** Gabarit résolu (héritage fusionné) tel qu'il serait publié maintenant : aperçu de l'éditeur. */
+  async resolve(organizationId: string, key: string): Promise<{ trackers: TemplateTracker[]; normative: Normative; parent: { key: string; version: string } | null }> {
+    const v = await this.get(organizationId, key);
+    const { resolved, parentVersion } = await this.check(organizationId, key, v.trackers, v.normative, v.parent);
+    return { trackers: resolved.trackers, normative: resolved.normative, parent: v.parent ? { key: v.parent.key, version: parentVersion! } : null };
   }
 
   /** Versions publiées, de la plus ancienne à la plus récente. */
@@ -261,7 +288,8 @@ export class TemplateService {
     const last = view.versions.length ? view.versions[view.versions.length - 1]! : null;
     const next = version ?? nextMinor(last);
     if (last !== null && compareVersions(next, last) <= 0) throw conflict(`La version ${next} n’est pas postérieure à la dernière version publiée (${last}).`);
-    const snapshot: TemplateSnapshot = { key, name: view.name, description: view.description, version: next, parent: null, trackers: view.trackers, normative: this.checkNormative(view.trackers, view.normative) };
+    const checked = await this.check(organizationId, key, view.trackers, view.normative, view.parent);
+    const snapshot: TemplateSnapshot = { key, name: view.name, description: view.description, version: next, parent: view.parent ? { key: view.parent.key, version: checked.parentVersion! } : null, trackers: checked.resolved.trackers, normative: checked.resolved.normative };
     await this.db.tx(organizationId, async (c) => {
       await c.query('insert into project_template_version (organization_id, template_key, version, snapshot, published_by) values ($1,$2,$3,$4,$5)', [organizationId, key, next, JSON.stringify(snapshot), actor.id]);
       const updated = await c.query("update project_template set version = $2, status = 'published' where key = $1", [key, next]);
@@ -288,7 +316,7 @@ export class TemplateService {
       return parsed.data;
     });
     const exists = (await this.list(organizationId)).some((t) => t.key === doc.key && !t.builtin);
-    const input = { name: doc.name, description: doc.description, trackers, normative: doc.normative };
+    const input = { name: doc.name, description: doc.description, trackers, normative: doc.normative, parent: doc.parent ?? null };
     if (exists) await this.update(organizationId, doc.key, input, actor);
     else await this.create(organizationId, { key: doc.key, ...input }, actor);
     return { key: doc.key, created: !exists };
@@ -298,7 +326,7 @@ export class TemplateService {
   async createProject(organizationId: string, key: string, name: string, templateKey: string | undefined, actor: Actor, options: { version?: string; criticality?: string } = {}): Promise<{ trackers: string[]; templateVersion: string | null }> {
     const view = templateKey ? await this.get(organizationId, templateKey) : undefined;
     const pinned = view && (options.version !== undefined || view.version !== null) ? await this.snapshot(organizationId, view.key, options.version) : undefined;
-    const source = pinned ?? view;
+    const source = pinned ?? (view?.parent ? { ...(await this.resolve(organizationId, view.key)) } : view);
     const categories = source?.normative.criticality?.categories.map((c) => c.key) ?? [];
     if (options.criticality !== undefined && !categories.includes(options.criticality)) throw validation([`catégorie de criticité inconnue : ${options.criticality}`]);
     await this.trackers.createProject(organizationId, key, name, actor);
