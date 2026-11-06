@@ -1,3 +1,4 @@
+import { formatKey } from '../core/key';
 import type { PoolClient } from 'pg';
 import { Db, type Actor } from '../core/db';
 import { notFound } from '../core/errors';
@@ -118,7 +119,7 @@ export class ImportService {
   ): Promise<void> {
     const { record, def, statusId } = item;
     const number = Number((await c.query('select next_artifact_number($1) n', [def.id])).rows[0].n);
-    const key = `${def.key}-${number}`;
+    const key = formatKey(projectKey, def.key, number);
     const created = record.createdAt ?? new Date().toISOString();
     const id = (
       await c.query(
@@ -135,7 +136,6 @@ export class ImportService {
     ).rows[0];
     await outbox(c, org, 'artifact', id, 'artifact.created', { eventId: revision.event_id, key, version: 1, actor: `import:${source}`, values: record.values, imported: record.externalKey });
     await c.query('insert into import_map (organization_id, project_id, source, external_key, artifact_key) values ($1,$2,$3,$4,$5)', [org, projectId, source, record.externalKey, key]);
-    void projectKey;
     void actor;
   }
 

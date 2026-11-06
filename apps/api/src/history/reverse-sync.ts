@@ -1,3 +1,4 @@
+import { ITEM_KEY_PATTERN } from '../core/key';
 import type { Pool } from 'pg';
 import { parse } from 'yaml';
 import { ArtifactService } from '../core/artifact.service';
@@ -27,7 +28,8 @@ export interface ImportResult {
   reason?: string;
 }
 
-const ARTIFACT_PATH = /^trackers\/([A-Z][A-Z0-9]{1,9})\/artifacts\/([A-Z][A-Z0-9]{1,9}-\d+)\.yaml$/;
+// Ancien (REQ-42.yaml) ou nouveau (SAT1-REQ-0042.yaml) nom de fichier : voir core/key.ts.
+const ARTIFACT_PATH = new RegExp(`^trackers/([A-Z][A-Z0-9]{1,9})/artifacts/(${ITEM_KEY_PATTERN})\\.yaml$`);
 
 /**
  * Synchronisation inverse : importe dans Athena les commits faits directement dans le dépôt d'historique.
@@ -75,7 +77,7 @@ export class ReverseSync {
             `select a.version, a."values" as values, s.key as status, t.key as tracker,
                     coalesce((select array_agg(f.key) from field_definition f where f.tracker_id = a.tracker_id and f.config->>'confidential' = 'true'), '{}') as confidential
              from artifact a join status s on s.id = a.status_id join tracker t on t.id = a.tracker_id join project p on p.id = a.project_id
-             where p.key = $1 and a.key = $2`,
+             where p.key = $1 and a.id = resolve_artifact(p.id, $2)`,
             [projectKey, key],
           )
         ).rows[0],
@@ -109,7 +111,7 @@ Athena-Actor: athena`,
           ? (await c.query('select subject from user_account where lower(email) = lower($1)', [commit.author.email])).rows[0]
           : undefined;
         const artifact = (
-          await c.query('select a.id, a.version, a."values" as values from artifact a join project p on p.id = a.project_id where p.key = $1 and a.key = $2', [projectKey, key])
+          await c.query('select a.id, a.version, a."values" as values from artifact a join project p on p.id = a.project_id where p.key = $1 and a.id = resolve_artifact(p.id, $2)', [projectKey, key])
         ).rows[0];
         const pending = artifact
           ? Number((await c.query("select count(*) n from outbox_event where history_synced_at is null and aggregate_id = $1", [artifact.id])).rows[0].n)

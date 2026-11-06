@@ -91,8 +91,8 @@ suite('services du noyau', () => {
     expect(n.rowCount).toBe(1);
     const bug = await artifacts.create(org, 'ARI', 'BUG', { title: 'Crash', severity: 'majeure' }, dev);
     const req = await artifacts.create(org, 'ARI', 'REQ', { title: 'Journal', statement: 'Le système journalise.' }, dev);
-    expect(bug.key).toBe('BUG-1');
-    expect(req.key).toBe('REQ-1');
+    expect(bug.key).toBe('ARI-BUG-0001');
+    expect(req.key).toBe('ARI-REQ-0001');
     expect(bug.status).toBe('open');
     expect(req.status).toBe('draft');
   });

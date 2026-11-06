@@ -53,7 +53,7 @@ suite('report des références vers GitLab (intégration)', () => {
     repoId = await gitlab.ensureRepository('root', repoName);
     await gitlab.commit(repoId, { branch: 'main', message: 'docs: initial', authorName: 'Doc', authorEmail: 'doc@example.test', actions: [{ action: 'create', file_path: 'spec.sdoc', content: SDOC }] });
     await docs.index(org, 'ARI', 'spec', [{ path: 'spec.sdoc', content: SDOC }], null, alice);
-    await docs.link(org, 'ARI', 'BUG-1', 'spec', 'SYS-1', alice);
+    await docs.link(org, 'ARI', 'ARI-BUG-0001', 'spec', 'SYS-1', alice);
   }, 60_000);
   afterAll(async () => { await testDb?.drop(); });
 
@@ -68,7 +68,7 @@ suite('report des références vers GitLab (intégration)', () => {
     expect(commits[0]!.author_name).toBe('Alice Martin');
     await gitlab.mergeMergeRequest(repoId, mr!.iid);
     await new Promise((resolve) => setTimeout(resolve, 1500));
-    expect(await gitlab.fileContent(repoId, 'spec.sdoc', 'main')).toContain('ATHENA_REFS: BUG-1');
+    expect(await gitlab.fileContent(repoId, 'spec.sdoc', 'main')).toContain('ATHENA_REFS: ARI-BUG-0001');
     expect(await writeback.proposeRefs(org, 'ARI', 'spec', `root/${repoName}`, 'main', alice)).toEqual({ files: 0, updatedNodes: 0, mergeRequest: null });
   }, 60_000);
 

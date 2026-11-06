@@ -127,7 +127,7 @@ suite('livraison des webhooks (intégration)', () => {
     expect(verify(secret, String(hit.headers['athena-signature']), hit.body)).toBe(true);
     expect(hit.headers['athena-event-type']).toBe('artifact.created');
     const payload = JSON.parse(hit.body);
-    expect(payload).toMatchObject({ type: 'artifact.created', version: '1', organization: 'hooks', data: { key: 'BUG-1' } });
+    expect(payload).toMatchObject({ type: 'artifact.created', version: '1', organization: 'hooks', data: { key: 'ARI-BUG-0001' } });
 
     expect(await service.enqueue(org)).toBe(0); // l'événement n'est plus en attente
     expect(await service.deliverDue(org)).toEqual({ delivered: 0, retried: 0, failed: 0 });
@@ -142,7 +142,7 @@ suite('livraison des webhooks (intégration)', () => {
     const { endpoint } = await service.createEndpoint(org, { url, eventTypes: ['artifact.updated'] }, actor);
     await keepOnly(endpoint.id);
     respondWith = 500;
-    await artifacts.update(org, 'ARI', 'BUG-1', { severity: 'bloquante' }, 1, actor);
+    await artifacts.update(org, 'ARI', 'ARI-BUG-0001', { severity: 'bloquante' }, 1, actor);
     await service.enqueue(org);
     expect(await service.deliverDue(org)).toEqual({ delivered: 0, retried: 1, failed: 0 });
     expect(await service.deliverDue(org)).toEqual({ delivered: 0, retried: 1, failed: 0 });

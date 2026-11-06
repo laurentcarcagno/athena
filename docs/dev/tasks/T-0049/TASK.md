@@ -13,7 +13,7 @@
 - **Critères d'acceptation** (testables) :
   - Un artefact créé dans SAT1/REQ reçoit `SAT1-REQ-0001`, puis `-0002` ; au-delà de 9999 la clé passe à 5 chiffres sans erreur
   - Après migration, tout artefact existant a la nouvelle clé et son ancienne clé en alias
-  - `GET /v1/projects/:p/artifacts/REQ-42` (alias) renvoie l'artefact avec la clé canonique ; la réponse porte `canonicalKey`
+  - `GET /v1/projects/:p/artifacts/REQ-42` (alias) renvoie l'artefact avec la clé canonique ; le champ `key` de la réponse est toujours la clé canonique (le web compare avec l'URL pour rediriger, T-0052)
   - Deux projets ayant tous deux `REQ-42` gardent chacun leur alias, résolu dans le contexte du projet
   - La clé stockée ne change plus si le nom du tracker change
   - Les lectures, modifications, transitions et liens acceptent clé ou alias (`artifact.service`, `link.service`, contrôleur ; les autres services sont traités par T-0098)

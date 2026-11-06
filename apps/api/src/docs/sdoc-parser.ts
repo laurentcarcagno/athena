@@ -1,3 +1,4 @@
+import { ITEM_KEY } from '../core/key';
 import { createHash } from 'node:crypto';
 
 export interface DocNode {
@@ -36,7 +37,7 @@ export function parseSdoc(content: string): DocNode[] {
       const statement = current.fields.get('STATEMENT') ?? '';
       const status = current.fields.get('STATUS') ?? '';
       const parents = current.relations.filter((r) => r.type === 'Parent').map((r) => r.value);
-      const refs = (current.fields.get('ATHENA_REFS') ?? '').split(',').map((r) => r.trim()).filter((r) => /^[A-Z][A-Z0-9]{1,9}-\d+$/.test(r));
+      const refs = (current.fields.get('ATHENA_REFS') ?? '').split(',').map((r) => r.trim()).filter((r) => ITEM_KEY.test(r));
       nodes.push({
         uid, type: current.type, document: documentTitle, title, statement, status, parents, athenaRefs: refs,
         contentHash: createHash('sha256').update(JSON.stringify([current.type, title, statement, status, parents, refs])).digest('hex'),

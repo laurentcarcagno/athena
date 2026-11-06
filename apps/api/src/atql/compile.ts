@@ -73,6 +73,11 @@ export function compile(input: string | Query, context: CompileContext, leading:
     const { builtin, name } = fieldRef(field);
     const v = scalar(value);
     if (builtin) {
+      // Clé d'item : la clé canonique ou l'ancienne clé (alias) désigne le même artefact.
+      if (name === 'key' && (op === '=' || op === '!=')) {
+        const resolved = `a.id = resolve_artifact(a.project_id, ${bind(String(v))}::text)`;
+        return op === '=' ? `(${resolved})` : `(not ${resolved})`;
+      }
       if (builtin.type === 'time') {
         if (op === '~') throw new AtqlError(`L'opérateur ~ ne s'applique pas à ${name}`, 0);
         return `${builtin.column} ${SQL_OP[op]} ${bind(String(v))}::timestamptz`;

@@ -92,9 +92,9 @@ suite('hooks de plugins déclenchés par l’outbox (intégration)', () => {
     await artifacts.update(org, 'ARI', created.key, { severity: 'mineure' }, 1, admin);
     const delivered = await plugins.dispatchHooks(org);
     expect(delivered).toBe(1); // created exécuté ; updated en échec (journalisé), non compté
-    const stored = (await db.tx(org, (c) => c.query("select value from plugin_storage where key = 'creation:BUG-1'"))).rows[0].value as string;
+    const stored = (await db.tx(org, (c) => c.query("select value from plugin_storage where key = 'creation:ARI-BUG-0001'"))).rows[0].value as string;
     const payload = JSON.parse(stored);
-    expect(payload).toMatchObject({ type: 'artifact.created', key: 'BUG-1', project: 'ARI', version: 1, actor: 'u-admin' });
+    expect(payload).toMatchObject({ type: 'artifact.created', key: 'ARI-BUG-0001', project: 'ARI', version: 1, actor: 'u-admin' });
     expect(payload.changedFields.sort()).toEqual(['severity', 'title']);
     expect(stored).not.toContain('Secret commercial'); // jamais les valeurs
     expect(await plugins.dispatchHooks(org)).toBe(0); // événements marqués : pas de rejeu

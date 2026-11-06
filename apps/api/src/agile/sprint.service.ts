@@ -55,7 +55,7 @@ export class SprintService {
       const sprint = await this.sprint(c, sprintId);
       if (sprint.state === 'closed') throw conflict('Sprint terminé : ajout impossible.');
       const artifact = (
-        await c.query('select a.id from artifact a join project p on p.id = a.project_id where p.key = $1 and a.key = $2', [projectKey, artifactKey])
+        await c.query('select a.id from artifact a join project p on p.id = a.project_id where p.key = $1 and a.id = resolve_artifact(p.id, $2)', [projectKey, artifactKey])
       ).rows[0];
       if (!artifact) throw notFound(`Artefact ${artifactKey}`);
       const other = (

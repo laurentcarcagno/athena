@@ -82,7 +82,7 @@ suite('acteurs de projet et rôles (intégration)', () => {
   });
 
   it('affiche le nom de l’auteur d’un commentaire', async () => {
-    await links.addComment(org, 'ARI', 'BUG-1', 'Reproduit.', user);
-    expect((await links.comments(org, 'ARI', 'BUG-1'))[0]).toMatchObject({ author: 'sub-user', authorName: 'User Dev' });
+    await links.addComment(org, 'ARI', 'ARI-BUG-0001', 'Reproduit.', user);
+    expect((await links.comments(org, 'ARI', 'ARI-BUG-0001'))[0]).toMatchObject({ author: 'sub-user', authorName: 'User Dev' });
   });
 });

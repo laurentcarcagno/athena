@@ -179,12 +179,12 @@ suite('persistance PostgreSQL', () => {
       const artifact = (await c.query(
         `insert into artifact (organization_id, project_id, tracker_id, number, key, status_id, "values", created_by)
          values ($1,$2,$3,$4,$5,$6,'{"title":"Fuite mémoire"}','u1') returning id`,
-        [orgA, t.project_id, t.id, n, `BUG-${n}`, status],
+        [orgA, t.project_id, t.id, n, `ARI-BUG-${String(n).padStart(4, '0')}`, status],
       )).rows[0].id;
       await c.query("insert into artifact_revision (organization_id, artifact_id, version, diff, actor) values ($1,$2,1,'{}','u1')", [orgA, artifact]);
       await c.query("insert into outbox_event (organization_id, aggregate_type, aggregate_id, type, payload) values ($1,'artifact',$2,'artifact.created','{}')", [orgA, artifact]);
       const found = await c.query(`select key from artifact where "values" @> '{"title":"Fuite mémoire"}'`);
-      expect(found.rows[0].key).toBe('BUG-1');
+      expect(found.rows[0].key).toBe('ARI-BUG-0001');
     });
   });
 

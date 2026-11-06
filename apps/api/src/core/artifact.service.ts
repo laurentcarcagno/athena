@@ -2,6 +2,7 @@ import type { PoolClient } from 'pg';
 import { Db, type Actor } from './db';
 import { conflict, forbidden, notFound, validation } from './errors';
 import { FieldTypeRegistry } from './field-types';
+import { formatKey } from './key';
 import { audit, outbox, TrackerService, type TrackerDefinition } from './tracker.service';
 
 export interface Artifact {
@@ -55,7 +56,7 @@ export class ArtifactService {
       const initial = def.statuses.find((s) => s.category === 'todo');
       if (!initial) throw validation(['aucun statut initial']);
       const number = Number((await c.query('select next_artifact_number($1) n', [def.id])).rows[0].n);
-      const key = `${def.key}-${number}`;
+      const key = formatKey(projectKey, def.key, number);
       const id = (
         await c.query(
           `insert into artifact (organization_id, project_id, tracker_id, number, key, status_id, "values", created_by)
@@ -105,8 +106,8 @@ export class ArtifactService {
       ]);
       // Les liens pointant vers cet artefact deviennent suspects tant qu'un humain ne les a pas revus.
       await c.query('update artifact_link set suspect = true where to_artifact_id = $1 and not suspect', [row.id]);
-      await this.record(c, organizationId, row.id, version, diff, actor, 'artifact.updated', key, { changes: diff },
-        { key, tracker: row.tracker_key, status: row.status_key, version, values: next });
+      await this.record(c, organizationId, row.id, version, diff, actor, 'artifact.updated', row.key, { changes: diff },
+        { key: row.key, tracker: row.tracker_key, status: row.status_key, version, values: next });
       return { ...this.toArtifact(row), values: next, version };
     });
   }
@@ -122,7 +123,7 @@ export class ArtifactService {
       const row = (
         await c.query(
           `select r.snapshot, a."values" as current from artifact_revision r join artifact a on a.id = r.artifact_id
-           join project p on p.id = a.project_id where p.key = $1 and a.key = $2 and r.version = $3`,
+           join project p on p.id = a.project_id where p.key = $1 and a.id = resolve_artifact(p.id, $2) and r.version = $3`,
           [projectKey, key, targetVersion],
         )
       ).rows[0];
@@ -133,7 +134,7 @@ export class ArtifactService {
     const patch: Values = { ...snapshot.values };
     for (const k of Object.keys(snapshot.current)) if (!(k in snapshot.values)) patch[k] = null;
     const restored = await this.update(organizationId, projectKey, key, patch, expectedVersion, actor);
-    await this.db.tx(organizationId, (c) => audit(c, organizationId, actor, 'artifact.restore', `artifact:${key}`, { fromVersion: targetVersion, toVersion: restored.version }));
+    await this.db.tx(organizationId, (c) => audit(c, organizationId, actor, 'artifact.restore', `artifact:${restored.key}`, { fromVersion: targetVersion, toVersion: restored.version }));
     return restored;
   }
 
@@ -175,8 +176,8 @@ export class ArtifactService {
         to.id, version, row.id,
       ]);
       await this.record(c, organizationId, row.id, version, { status: { from: from.key, to: to.key } }, actor,
-        'artifact.transitioned', key, { transition: transitionName, from: from.key, to: to.key, postActions: transition.postActions },
-        { key, tracker: row.tracker_key, status: to.key, version, values: row.values });
+        'artifact.transitioned', row.key, { transition: transitionName, from: from.key, to: to.key, postActions: transition.postActions },
+        { key: row.key, tracker: row.tracker_key, status: to.key, version, values: row.values });
       return { ...this.toArtifact(row), status: to.key, version };
     });
   }
@@ -202,7 +203,7 @@ export class ArtifactService {
         `select a.id, a.key, a.version, a.status_id, a."values" as values, s.key as status_key, t.key as tracker_key
          from artifact a join project p on p.id = a.project_id
          join tracker t on t.id = a.tracker_id join status s on s.id = a.status_id
-         where p.key = $1 and a.key = $2 ${lock ? 'for update of a' : ''}`,
+         where p.key = $1 and a.id = resolve_artifact(p.id, $2) ${lock ? 'for update of a' : ''}`,
         [projectKey, key],
       )
     ).rows[0];

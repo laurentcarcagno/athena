@@ -1,3 +1,4 @@
+import { ARTIFACT_FILE } from '../core/key';
 import type { Pool, PoolClient } from 'pg';
 import { parse } from 'yaml';
 import { Db } from '../core/db';
@@ -47,7 +48,7 @@ export class RebuildService {
     const repo = await this.gitlab.ensureRepository(this.namespace, repositoryName(sourceOrgKey, projectKey));
     const paths = await this.gitlab.tree(repo, this.ref);
     const trackerPaths = paths.filter((p) => /^trackers\/[A-Z0-9]+\/tracker\.yaml$/.test(p)).sort();
-    const artifactPaths = paths.filter((p) => /^trackers\/[A-Z0-9]+\/artifacts\/[A-Z0-9]+-\d+\.yaml$/.test(p)).sort();
+    const artifactPaths = paths.filter((p) => ARTIFACT_FILE.test(p)).sort();
     const trackerFiles = await Promise.all(trackerPaths.map(async (p) => parse(await this.gitlab.fileContent(repo, p, this.ref)) as TrackerFile));
     const artifactFiles = await Promise.all(artifactPaths.map(async (p) => parse(await this.gitlab.fileContent(repo, p, this.ref)) as ArtifactFile));
 

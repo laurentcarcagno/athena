@@ -1,3 +1,4 @@
+import { ITEM_KEY_PATTERN } from '../core/key';
 import { Db, type Actor } from '../core/db';
 import { conflict, notFound, validation } from '../core/errors';
 import { audit, outbox } from '../core/tracker.service';
@@ -56,7 +57,7 @@ export class CodeActions {
 
   /** Ouvre une merge request (la clé est dans le titre et la description : les transitions se feront au merge). */
   async createMergeRequest(organizationId: string, projectKey: string, artifactKey: string, branch: string, repoPath: string | undefined, actor: Actor) {
-    if (!/^(bugfix|feature)\/[A-Z][A-Z0-9]{1,9}-\d+(-[a-z0-9-]*)?$/.test(branch) || !branch.includes(artifactKey)) {
+    if (!new RegExp(`^(bugfix|feature)\\/${ITEM_KEY_PATTERN}(-[a-z0-9-]*)?$`).test(branch) || !branch.includes(artifactKey)) {
       throw validation(['la branche doit être celle créée pour cet artefact (bugfix/ ou feature/ suivi de la clé)']);
     }
     const { repo, artifact } = await this.context(organizationId, projectKey, artifactKey, repoPath);
@@ -75,7 +76,7 @@ export class CodeActions {
         await c.query(
           `select a.id, a."values" as values,
                   (select f.key from field_definition f where f.tracker_id = a.tracker_id and f.semantic_role = 'title') as title_field
-           from artifact a join project p on p.id = a.project_id where p.key = $1 and a.key = $2`,
+           from artifact a join project p on p.id = a.project_id where p.key = $1 and a.id = resolve_artifact(p.id, $2)`,
           [projectKey, artifactKey],
         )
       ).rows[0];

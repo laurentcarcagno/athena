@@ -124,7 +124,7 @@ export class BoardService {
       const artifact = (
         await c.query(
           `select a.status_id, s.key as status, t.key as tracker from artifact a join tracker t on t.id = a.tracker_id
-           join status s on s.id = a.status_id join project p on p.id = a.project_id where p.key = $1 and a.key = $2`,
+           join status s on s.id = a.status_id join project p on p.id = a.project_id where p.key = $1 and a.id = resolve_artifact(p.id, $2)`,
           [projectKey, artifactKey],
         )
       ).rows[0];

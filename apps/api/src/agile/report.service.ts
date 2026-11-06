@@ -106,7 +106,7 @@ export class ReportService {
       const release = (await c.query('select state from release where id = $1', [releaseId])).rows[0];
       if (!release) throw notFound('Release');
       if (release.state === 'released') throw conflict('Release publiée : ajout impossible.');
-      const artifact = (await c.query('select a.id from artifact a join project p on p.id = a.project_id where p.key = $1 and a.key = $2', [projectKey, artifactKey])).rows[0];
+      const artifact = (await c.query('select a.id from artifact a join project p on p.id = a.project_id where p.key = $1 and a.id = resolve_artifact(p.id, $2)', [projectKey, artifactKey])).rows[0];
       if (!artifact) throw notFound(`Artefact ${artifactKey}`);
       await c.query('insert into release_item (release_id, artifact_id, organization_id) values ($1,$2,$3) on conflict do nothing', [releaseId, artifact.id, organizationId]);
       await audit(c, organizationId, actor, 'release.assign', `release:${releaseId}`, { artifact: artifactKey });

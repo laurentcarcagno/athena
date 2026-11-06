@@ -59,10 +59,10 @@ suite('permissions par champ (intégration)', () => {
   });
 
   it('retire les champs à lecture restreinte pour les lecteurs sans le rôle', async () => {
-    expect((await artifacts.get(org, 'ARI', 'STAFF-1', dev)).values).toEqual({ title: 'Alice', notes: 'RAS' });
-    expect((await artifacts.get(org, 'ARI', 'STAFF-1', hr)).values).toMatchObject({ salary: 5000 });
-    expect((await artifacts.get(org, 'ARI', 'STAFF-1', admin)).values).toMatchObject({ salary: 5000 });
-    expect((await artifacts.get(org, 'ARI', 'STAFF-1')).values).toMatchObject({ salary: 5000 }); // usage interne sans lecteur
+    expect((await artifacts.get(org, 'ARI', 'ARI-STAFF-0001', dev)).values).toEqual({ title: 'Alice', notes: 'RAS' });
+    expect((await artifacts.get(org, 'ARI', 'ARI-STAFF-0001', hr)).values).toMatchObject({ salary: 5000 });
+    expect((await artifacts.get(org, 'ARI', 'ARI-STAFF-0001', admin)).values).toMatchObject({ salary: 5000 });
+    expect((await artifacts.get(org, 'ARI', 'ARI-STAFF-0001')).values).toMatchObject({ salary: 5000 }); // usage interne sans lecteur
   });
 
   it('filtre les résultats de recherche et empêche de déduire un champ caché par filtre ou tri', async () => {
@@ -73,14 +73,14 @@ suite('permissions par champ (intégration)', () => {
     expect(await code(search.search(org, 'ARI', 'ORDER BY salary DESC', 'u-dev', 50, 0, dev.roles))).toMatch(/Champ non accessible/);
     expect(await code(search.search(org, 'ARI', 'salary IS EMPTY', 'u-dev', 50, 0, dev.roles))).toMatch(/Champ non accessible/);
     const asHr = await search.search(org, 'ARI', 'salary > 4000', 'u-hr', 50, 0, hr.roles);
-    expect(asHr.hits.map((h) => h.key)).toEqual(['STAFF-1']);
+    expect(asHr.hits.map((h) => h.key)).toEqual(['ARI-STAFF-0001']);
     expect(asHr.hits[0]!.values).toMatchObject({ salary: 5000 });
     expect((await search.search(org, 'ARI', 'salary > 4000', 'x', 50, 0, ['athena-admin'])).total).toBe(1);
   });
 
   it('refuse le plein texte aux lecteurs qui ont des champs masqués, et l’autorise sinon', async () => {
     expect(await code(search.search(org, 'ARI', 'text ~ "5000"', 'u-dev', 50, 0, dev.roles))).toMatch(/validation.*plein texte indisponible/i);
-    expect((await search.search(org, 'ARI', 'text ~ "alice"', 'u-hr', 50, 0, hr.roles)).hits.map((h) => h.key)).toEqual(['STAFF-1']);
+    expect((await search.search(org, 'ARI', 'text ~ "alice"', 'u-hr', 50, 0, hr.roles)).hits.map((h) => h.key)).toEqual(['ARI-STAFF-0001']);
   });
 
   it('applique les rôles aux champs ajoutés ensuite et les expose dans la définition', async () => {

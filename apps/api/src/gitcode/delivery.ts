@@ -147,7 +147,7 @@ export class DeliveryService {
   }
 
   private async artifact(c: PoolClient, projectKey: string, key: string): Promise<string> {
-    const row = (await c.query('select a.id from artifact a join project p on p.id = a.project_id where p.key = $1 and a.key = $2', [projectKey, key])).rows[0];
+    const row = (await c.query('select a.id from artifact a join project p on p.id = a.project_id where p.key = $1 and a.id = resolve_artifact(p.id, $2)', [projectKey, key])).rows[0];
     if (!row) throw notFound(`Artefact ${key}`);
     return row.id as string;
   }

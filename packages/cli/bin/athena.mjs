@@ -7,7 +7,7 @@
 import { execFileSync } from 'node:child_process';
 import { chmodSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { branchTypeFor, checkMessage, ensureKeyInMessage, extractKeys, parseGitLog } from '../src/lib.js';
+import { branchTypeFor, checkMessage, ensureKeyInMessage, extractKeys, isItemKey, parseGitLog } from '../src/lib.js';
 
 const [, , command, ...args] = process.argv;
 const option = (name, fallback) => {
@@ -38,7 +38,7 @@ async function main() {
   switch (command) {
     case 'branch': {
       const key = args[0];
-      if (!key || !/^[A-Z][A-Z0-9]{1,9}-\d+$/.test(key)) fail('clé d’artefact attendue (ex. BUG-12)');
+      if (!key || !isItemKey(key)) fail('clé d’artefact attendue (ex. SAT1-BUG-0012)');
       if (!project) fail('--project ou ATHENA_PROJECT requis');
       const response = await api('POST', `/v1/projects/${project}/artifacts/${key}/branch`, { type: branchTypeFor(option('--type', 'bugfix')) });
       const payload = await response.json().catch(() => ({}));

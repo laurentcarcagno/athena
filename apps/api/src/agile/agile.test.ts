@@ -80,7 +80,7 @@ suite('boards et sprints (intégration)', () => {
   it('affiche les cartes par colonne avec titre et responsable', async () => {
     const view = await boards.view(org, 'ARI', 'kanban');
     expect(view.columns.map((c) => c.count)).toEqual([4, 0, 0, 0]);
-    expect(view.columns[0]!.cards[0]).toMatchObject({ key: 'STORY-1', title: 'A', assignee: 'u1', status: 'todo' });
+    expect(view.columns[0]!.cards[0]).toMatchObject({ key: 'ARI-STORY-0001', title: 'A', assignee: 'u1', status: 'todo' });
   });
 
   it('masque titre et responsable à lecture restreinte aux lecteurs sans le rôle', async () => {
@@ -91,35 +91,35 @@ suite('boards et sprints (intégration)', () => {
     expect(hr.columns[0]!.cards[0]).toMatchObject({ assignee: 'u1' });
     expect((await boards.view(org, 'ARI', 'kanban', ['athena-admin'])).columns[0]!.cards[0]).toMatchObject({ assignee: 'u1' });
     await testDb.exec("update field_definition set read_roles = '{hr}' where key = 'title'");
-    expect((await boards.view(org, 'ARI', 'kanban', ['athena-user'])).columns[0]!.cards[0]).toMatchObject({ title: 'STORY-1' });
+    expect((await boards.view(org, 'ARI', 'kanban', ['athena-user'])).columns[0]!.cards[0]).toMatchObject({ title: 'ARI-STORY-0001' });
     await testDb.exec("update field_definition set read_roles = null where key in ('title', 'assignee')");
   });
 
   it('déplace une carte via les transitions du workflow et applique la limite WIP', async () => {
-    const m1 = await boards.moveCard(org, 'ARI', 'kanban', 'STORY-1', 'En cours', 1, user);
+    const m1 = await boards.moveCard(org, 'ARI', 'kanban', 'ARI-STORY-0001', 'En cours', 1, user);
     expect(m1.status).toBe('doing');
-    await boards.moveCard(org, 'ARI', 'kanban', 'STORY-2', 'En cours', 1, user);
-    expect(await code(boards.moveCard(org, 'ARI', 'kanban', 'STORY-3', 'En cours', 1, user))).toMatch(/conflict.*WIP/);
-    expect(await code(boards.moveCard(org, 'ARI', 'kanban', 'STORY-3', 'Terminé', 1, user))).toMatch(/conflict.*Aucune transition/);
-    expect((await boards.moveCard(org, 'ARI', 'kanban', 'STORY-1', 'En cours', 2, user)).status).toBe('doing'); // déjà dans la colonne : sans effet
+    await boards.moveCard(org, 'ARI', 'kanban', 'ARI-STORY-0002', 'En cours', 1, user);
+    expect(await code(boards.moveCard(org, 'ARI', 'kanban', 'ARI-STORY-0003', 'En cours', 1, user))).toMatch(/conflict.*WIP/);
+    expect(await code(boards.moveCard(org, 'ARI', 'kanban', 'ARI-STORY-0003', 'Terminé', 1, user))).toMatch(/conflict.*Aucune transition/);
+    expect((await boards.moveCard(org, 'ARI', 'kanban', 'ARI-STORY-0001', 'En cours', 2, user)).status).toBe('doing'); // déjà dans la colonne : sans effet
     const view = await boards.view(org, 'ARI', 'kanban');
     expect(view.columns.map((c) => c.count)).toEqual([2, 2, 0, 0]);
     expect(view.columns[1]!.overLimit).toBe(false);
   });
 
   it('respecte les conditions de rôle du workflow au déplacement', async () => {
-    await boards.moveCard(org, 'ARI', 'kanban', 'STORY-1', 'Revue', 2, user);
-    expect(await code(boards.moveCard(org, 'ARI', 'kanban', 'STORY-1', 'Terminé', 3, user))).toMatch(/forbidden/);
-    expect((await boards.moveCard(org, 'ARI', 'kanban', 'STORY-1', 'Terminé', 3, admin)).status).toBe('done');
-    expect(await code(boards.moveCard(org, 'ARI', 'kanban', 'STORY-1', 'Inconnue', 4, admin))).toMatch(/not_found/);
+    await boards.moveCard(org, 'ARI', 'kanban', 'ARI-STORY-0001', 'Revue', 2, user);
+    expect(await code(boards.moveCard(org, 'ARI', 'kanban', 'ARI-STORY-0001', 'Terminé', 3, user))).toMatch(/forbidden/);
+    expect((await boards.moveCard(org, 'ARI', 'kanban', 'ARI-STORY-0001', 'Terminé', 3, admin)).status).toBe('done');
+    expect(await code(boards.moveCard(org, 'ARI', 'kanban', 'ARI-STORY-0001', 'Inconnue', 4, admin))).toMatch(/not_found/);
   });
 
   it('gère le cycle de vie du sprint et refuse les conflits', async () => {
     const id = await sprints.create(org, 'ARI', { name: 'Sprint 1', goal: 'MVP', startsOn: dayOffset(-3), endsOn: dayOffset(3) }, admin);
     expect(await code(sprints.start(org, id, admin))).toMatch(/validation.*vide/);
-    for (const k of ['STORY-1', 'STORY-2', 'STORY-3']) await sprints.addItem(org, id, k, 'ARI', admin);
+    for (const k of ['ARI-STORY-0001', 'ARI-STORY-0002', 'ARI-STORY-0003']) await sprints.addItem(org, id, k, 'ARI', admin);
     const other = await sprints.create(org, 'ARI', { name: 'Sprint 2', startsOn: dayOffset(4), endsOn: dayOffset(10) }, admin);
-    expect(await code(sprints.addItem(org, other, 'STORY-2', 'ARI', admin))).toMatch(/conflict.*déjà dans le sprint « Sprint 1 »/);
+    expect(await code(sprints.addItem(org, other, 'ARI-STORY-0002', 'ARI', admin))).toMatch(/conflict.*déjà dans le sprint « Sprint 1 »/);
     await sprints.start(org, id, admin);
     expect(await code(sprints.start(org, other, admin).then(() => sprints.start(org, other, admin)))).toMatch(/conflict|validation/);
     const view = await sprints.get(org, id);
@@ -130,10 +130,10 @@ suite('boards et sprints (intégration)', () => {
     const [sprint] = (await testDb.pool.query('select 1')).rows; // pool applicatif sans org : aucune donnée visible
     void sprint;
     const id = (await new Db(testDb.pool).tx(org, (c) => c.query("select id from sprint where name = 'Sprint 1'"))).rows[0].id as string;
-    // Antidate : créations il y a 3 jours, STORY-1 terminé il y a 1 jour.
+    // Antidate : créations il y a 3 jours, ARI-STORY-0001 terminé il y a 1 jour.
     await testDb.exec("update artifact_revision set created_at = now() - interval '3 days'");
     await testDb.exec(
-      "update artifact_revision r set created_at = now() - interval '1 day' from artifact a where a.id = r.artifact_id and a.key = 'STORY-1' and (r.snapshot ->> 'status') = 'done'",
+      "update artifact_revision r set created_at = now() - interval '1 day' from artifact a where a.id = r.artifact_id and a.key = 'ARI-STORY-0001' and (r.snapshot ->> 'status') = 'done'",
     );
     const points = await sprints.burndown(org, id);
     expect(points.length).toBeGreaterThanOrEqual(5);
@@ -147,9 +147,9 @@ suite('boards et sprints (intégration)', () => {
   it('clôt le sprint : le terminé reste, le reste retourne au backlog', async () => {
     const id = (await new Db(testDb.pool).tx(org, (c) => c.query("select id from sprint where name = 'Sprint 1'"))).rows[0].id as string;
     const result = await sprints.close(org, id, admin);
-    expect(result).toEqual({ completed: 1, returned: ['STORY-2', 'STORY-3'] });
+    expect(result).toEqual({ completed: 1, returned: ['ARI-STORY-0002', 'ARI-STORY-0003'] });
     expect(await code(sprints.close(org, id, admin))).toMatch(/conflict/);
     const other = (await new Db(testDb.pool).tx(org, (c) => c.query("select id from sprint where name = 'Sprint 2'"))).rows[0].id as string;
-    await sprints.addItem(org, other, 'STORY-2', 'ARI', admin); // à nouveau disponible
+    await sprints.addItem(org, other, 'ARI-STORY-0002', 'ARI', admin); // à nouveau disponible
   });
 });

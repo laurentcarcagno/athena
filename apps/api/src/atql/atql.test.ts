@@ -99,42 +99,42 @@ suite('recherche ATQL (intégration)', () => {
     await make({ title: 'Lenteur de la liste', severity: 'majeure', points: 3, tags: ['ui'] });
     await make({ title: '100% de CPU', severity: 'mineure', points: 10 }, { id: 'u2', roles: [] });
     await make({ title: 'Faute de frappe', severity: 'mineure', points: 1, tags: ['ui'], assignee: 'bob' });
-    await artifacts.transition(org, 'ARI', 'BUG-4', 'Terminer', 1, actor);
+    await artifacts.transition(org, 'ARI', 'ARI-BUG-0004', 'Terminer', 1, actor);
   });
   afterAll(async () => { await testDb?.drop(); });
 
   it('filtre par champs natifs et personnalisés', async () => {
-    expect(await keys('status = open ORDER BY key')).toEqual(['BUG-1', 'BUG-2', 'BUG-3']);
-    expect(await keys('severity = mineure ORDER BY key')).toEqual(['BUG-3', 'BUG-4']);
-    expect(await keys('severity != mineure ORDER BY key')).toEqual(['BUG-1', 'BUG-2']);
-    expect(await keys('severity IN (majeure, bloquante) ORDER BY key')).toEqual(['BUG-1', 'BUG-2']);
-    expect(await keys('severity NOT IN (mineure) ORDER BY key')).toEqual(['BUG-1', 'BUG-2']);
+    expect(await keys('status = open ORDER BY key')).toEqual(['ARI-BUG-0001', 'ARI-BUG-0002', 'ARI-BUG-0003']);
+    expect(await keys('severity = mineure ORDER BY key')).toEqual(['ARI-BUG-0003', 'ARI-BUG-0004']);
+    expect(await keys('severity != mineure ORDER BY key')).toEqual(['ARI-BUG-0001', 'ARI-BUG-0002']);
+    expect(await keys('severity IN (majeure, bloquante) ORDER BY key')).toEqual(['ARI-BUG-0001', 'ARI-BUG-0002']);
+    expect(await keys('severity NOT IN (mineure) ORDER BY key')).toEqual(['ARI-BUG-0001', 'ARI-BUG-0002']);
     expect(await keys('tracker = BUG AND project = ARI ORDER BY key')).toHaveLength(4);
   });
   it('compare les nombres numériquement', async () => {
-    expect(await keys('points > 3 ORDER BY points')).toEqual(['BUG-1', 'BUG-3']);
-    expect(await keys('points <= 3 ORDER BY points DESC')).toEqual(['BUG-2', 'BUG-4']);
-    expect(await keys('points = 10')).toEqual(['BUG-3']);
+    expect(await keys('points > 3 ORDER BY points')).toEqual(['ARI-BUG-0001', 'ARI-BUG-0003']);
+    expect(await keys('points <= 3 ORDER BY points DESC')).toEqual(['ARI-BUG-0002', 'ARI-BUG-0004']);
+    expect(await keys('points = 10')).toEqual(['ARI-BUG-0003']);
   });
   it('cherche dans les listes, par texte et gère les caractères spéciaux', async () => {
-    expect(await keys('tags = ui ORDER BY key')).toEqual(['BUG-2', 'BUG-4']);
-    expect(await keys('title ~ "démarrage"')).toEqual(['BUG-1']);
-    expect(await keys('title ~ "100%"')).toEqual(['BUG-3']);
-    expect(await keys('title ~ "%"')).toEqual(['BUG-3']); // le joker est échappé
+    expect(await keys('tags = ui ORDER BY key')).toEqual(['ARI-BUG-0002', 'ARI-BUG-0004']);
+    expect(await keys('title ~ "démarrage"')).toEqual(['ARI-BUG-0001']);
+    expect(await keys('title ~ "100%"')).toEqual(['ARI-BUG-0003']);
+    expect(await keys('title ~ "%"')).toEqual(['ARI-BUG-0003']); // le joker est échappé
   });
   it('gère vide, négation, parenthèses et currentUser()', async () => {
-    expect(await keys('assignee IS EMPTY ORDER BY key')).toEqual(['BUG-2', 'BUG-3']);
-    expect(await keys('assignee IS NOT EMPTY ORDER BY key')).toEqual(['BUG-1', 'BUG-4']);
-    expect(await keys('tags IS EMPTY')).toEqual(['BUG-3']);
-    expect(await keys('NOT (severity = mineure OR severity = majeure)')).toEqual(['BUG-1']);
-    expect(await keys('(severity = mineure OR points > 7) AND status = open ORDER BY key')).toEqual(['BUG-1', 'BUG-3']);
-    expect(await keys('created_by = currentUser() ORDER BY key')).toEqual(['BUG-1', 'BUG-2', 'BUG-4']);
-    expect(await (await run('created_by = currentUser()', 'u2')).hits.map((h) => h.key)).toEqual(['BUG-3']);
+    expect(await keys('assignee IS EMPTY ORDER BY key')).toEqual(['ARI-BUG-0002', 'ARI-BUG-0003']);
+    expect(await keys('assignee IS NOT EMPTY ORDER BY key')).toEqual(['ARI-BUG-0001', 'ARI-BUG-0004']);
+    expect(await keys('tags IS EMPTY')).toEqual(['ARI-BUG-0003']);
+    expect(await keys('NOT (severity = mineure OR severity = majeure)')).toEqual(['ARI-BUG-0001']);
+    expect(await keys('(severity = mineure OR points > 7) AND status = open ORDER BY key')).toEqual(['ARI-BUG-0001', 'ARI-BUG-0003']);
+    expect(await keys('created_by = currentUser() ORDER BY key')).toEqual(['ARI-BUG-0001', 'ARI-BUG-0002', 'ARI-BUG-0004']);
+    expect(await (await run('created_by = currentUser()', 'u2')).hits.map((h) => h.key)).toEqual(['ARI-BUG-0003']);
   });
   it('trie, pagine et compte', async () => {
     const page = await search.search(org, 'ARI', 'ORDER BY points DESC', 'u1', 2, 1);
     expect(page.total).toBe(4);
-    expect(page.hits.map((h) => h.key)).toEqual(['BUG-1', 'BUG-2']);
+    expect(page.hits.map((h) => h.key)).toEqual(['ARI-BUG-0001', 'ARI-BUG-0002']);
     expect((await run('created > "2000-01-01"')).total).toBe(4);
     expect((await run('created < "2000-01-01"')).total).toBe(0);
   });
@@ -153,13 +153,13 @@ suite('recherche ATQL (intégration)', () => {
   });
 
   it('recherche en plein texte sur toutes les valeurs, avec expressions exactes et exclusions', async () => {
-    expect(await keys('text ~ "démarrage"')).toEqual(['BUG-1']);
-    expect(await keys('text ~ "crash"')).toEqual(['BUG-1']);
-    expect(await keys('text ~ "lenteur liste" ORDER BY key')).toEqual(['BUG-2']); // tous les mots, dans n'importe quel champ
-    expect(await keys('text ~ "faute OR cpu" ORDER BY key')).toEqual(['BUG-3', 'BUG-4']);
-    expect(await keys('text ~ "ui -lenteur"')).toEqual(['BUG-4']); // « ui » est une étiquette de BUG-2 et BUG-4
-    expect(await keys('text ~ "\\"faute de frappe\\"" AND status = done')).toEqual(['BUG-4']);
-    expect(await keys('text ~ "api" AND severity = bloquante')).toEqual(['BUG-1']);
+    expect(await keys('text ~ "démarrage"')).toEqual(['ARI-BUG-0001']);
+    expect(await keys('text ~ "crash"')).toEqual(['ARI-BUG-0001']);
+    expect(await keys('text ~ "lenteur liste" ORDER BY key')).toEqual(['ARI-BUG-0002']); // tous les mots, dans n'importe quel champ
+    expect(await keys('text ~ "faute OR cpu" ORDER BY key')).toEqual(['ARI-BUG-0003', 'ARI-BUG-0004']);
+    expect(await keys('text ~ "ui -lenteur"')).toEqual(['ARI-BUG-0004']); // « ui » est une étiquette de ARI-BUG-0002 et ARI-BUG-0004
+    expect(await keys('text ~ "\\"faute de frappe\\"" AND status = done')).toEqual(['ARI-BUG-0004']);
+    expect(await keys('text ~ "api" AND severity = bloquante')).toEqual(['ARI-BUG-0001']);
   });
   it('limite l’opérateur du plein texte et le refuse quand des champs sont masqués au lecteur', async () => {
     const code = async (p: Promise<unknown>) => {

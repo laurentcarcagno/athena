@@ -69,8 +69,8 @@ export class DocLinkService {
       let created = 0;
       for (const n of nodes.values()) {
         for (const ref of n.athenaRefs) {
-          const artifact = (await c.query('select id from artifact where project_id = $1 and key = $2', [project.id, ref])).rows[0];
-          if (!artifact) continue;
+          const artifact = (await c.query('select resolve_artifact($1, $2) as id', [project.id, ref])).rows[0];
+          if (!artifact?.id) continue;
           const inserted = await c.query(
             `insert into doc_link (organization_id, artifact_id, source_id, uid, linked_hash, origin)
              values ($1,$2,$3,$4,$5,'document') on conflict do nothing`,
@@ -134,7 +134,7 @@ export class DocLinkService {
           `select l.uid, l.suspect, l.origin, d.title, d.status, (d.uid is null) as orphan
            from doc_link l join artifact a on a.id = l.artifact_id join project p on p.id = a.project_id
            left join doc_node d on d.source_id = l.source_id and d.uid = l.uid
-           where p.key = $1 and a.key = $2 order by l.created_at, l.uid`,
+           where p.key = $1 and a.id = resolve_artifact(p.id, $2) order by l.created_at, l.uid`,
           [projectKey, artifactKey],
         )
       ).rows;
@@ -172,7 +172,7 @@ export class DocLinkService {
 
   private async resolve(c: PoolClient, projectKey: string, artifactKey: string, sourceName: string) {
     const artifact = (
-      await c.query('select a.id from artifact a join project p on p.id = a.project_id where p.key = $1 and a.key = $2', [projectKey, artifactKey])
+      await c.query('select a.id from artifact a join project p on p.id = a.project_id where p.key = $1 and a.id = resolve_artifact(p.id, $2)', [projectKey, artifactKey])
     ).rows[0];
     if (!artifact) throw notFound(`Artefact ${artifactKey}`);
     const source = (

@@ -115,14 +115,14 @@ export class CoreController {
                   coalesce(u.display_name, r.actor) as actor
            from artifact_revision r join artifact a on a.id = r.artifact_id join project p on p.id = a.project_id
            left join user_account u on u.subject = r.actor
-           where p.key = $1 and a.key = $2 order by r.version desc`,
+           where p.key = $1 and a.id = resolve_artifact(p.id, $2) order by r.version desc`,
           [project, key],
         )
       ).rows,
     );
     // Les champs à lecture restreinte n'apparaissent pas non plus dans les différences de l'historique.
     const hidden = await this.db.tx(organizationId, async (c) => {
-      const tracker = (await c.query('select t.key from artifact a join tracker t on t.id = a.tracker_id join project p on p.id = a.project_id where p.key = $1 and a.key = $2', [project, key])).rows[0]?.key as string | undefined;
+      const tracker = (await c.query('select t.key from artifact a join tracker t on t.id = a.tracker_id join project p on p.id = a.project_id where p.key = $1 and a.id = resolve_artifact(p.id, $2)', [project, key])).rows[0]?.key as string | undefined;
       if (!tracker) return new Set<string>();
       const def = await this.trackers.getDefinition(c, project, tracker);
       return new Set(def.fields.filter((f) => f.readRoles && !actor.roles.includes('athena-admin') && !f.readRoles.some((r) => actor.roles.includes(r))).map((f) => f.key));

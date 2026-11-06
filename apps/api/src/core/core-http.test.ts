@@ -124,18 +124,18 @@ suite('API REST du noyau', () => {
     const user = await token(['athena-user']);
     const created = await call('POST', '/v1/projects/ARI/trackers/BUG/artifacts', user, { values: { title: 'Crash au démarrage', severity: 'majeure' } });
     expect(created.statusCode).toBe(201);
-    expect(created.json()).toMatchObject({ key: 'BUG-1', status: 'open', version: 1 });
+    expect(created.json()).toMatchObject({ key: 'ARI-BUG-0001', status: 'open', version: 1 });
 
-    const patched = await call('PATCH', '/v1/projects/ARI/artifacts/BUG-1', user, { values: { assignee: 'u-test' }, version: 1 });
+    const patched = await call('PATCH', '/v1/projects/ARI/artifacts/ARI-BUG-0001', user, { values: { assignee: 'u-test' }, version: 1 });
     expect(patched.json().version).toBe(2);
-    const stale = await call('PATCH', '/v1/projects/ARI/artifacts/BUG-1', user, { values: { assignee: 'x' }, version: 1 });
+    const stale = await call('PATCH', '/v1/projects/ARI/artifacts/ARI-BUG-0001', user, { values: { assignee: 'x' }, version: 1 });
     expect(stale.statusCode).toBe(409);
 
-    const started = await call('POST', '/v1/projects/ARI/artifacts/BUG-1/transitions', user, { name: 'Démarrer', version: 2 });
+    const started = await call('POST', '/v1/projects/ARI/artifacts/ARI-BUG-0001/transitions', user, { name: 'Démarrer', version: 2 });
     expect(started.statusCode).toBe(200);
     expect(started.json().status).toBe('in_progress');
-    expect((await call('GET', '/v1/projects/ARI/artifacts/BUG-1', user)).json().status).toBe('in_progress');
-    expect((await call('GET', '/v1/projects/ARI/artifacts/BUG-99', user)).statusCode).toBe(404);
+    expect((await call('GET', '/v1/projects/ARI/artifacts/ARI-BUG-0001', user)).json().status).toBe('in_progress');
+    expect((await call('GET', '/v1/projects/ARI/artifacts/ARI-BUG-0099', user)).statusCode).toBe(404);
     expect((await call('GET', '/v1/projects/ARI/trackers/INC', user)).json().fields.length).toBeGreaterThan(3);
   });
 
@@ -143,7 +143,7 @@ suite('API REST du noyau', () => {
     const user = await token(['athena-user']);
     const ok = await call('GET', '/v1/projects/ARI/search?q=' + encodeURIComponent('status = in_progress AND tracker = BUG'), user);
     expect(ok.statusCode).toBe(200);
-    expect(ok.json().hits.map((h: { key: string }) => h.key)).toEqual(['BUG-1']);
+    expect(ok.json().hits.map((h: { key: string }) => h.key)).toEqual(['ARI-BUG-0001']);
     const bad = await call('GET', '/v1/projects/ARI/search?q=' + encodeURIComponent('status ='), user);
     expect(bad.statusCode).toBe(422);
     expect(bad.json().details[0]).toMatch(/Valeur attendue/);
@@ -152,6 +152,6 @@ suite('API REST du noyau', () => {
 
   it("isole les organisations : l'autre organisation ne voit rien", async () => {
     const other = await token(['athena-user'], ['/org-autre']);
-    expect((await call('GET', '/v1/projects/ARI/artifacts/BUG-1', other)).statusCode).toBe(404);
+    expect((await call('GET', '/v1/projects/ARI/artifacts/ARI-BUG-0001', other)).statusCode).toBe(404);
   });
 });

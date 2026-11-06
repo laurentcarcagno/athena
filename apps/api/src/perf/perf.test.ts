@@ -37,7 +37,7 @@ suite(`performance ATQL (${ROWS} artefacts)`, () => {
     const started = Date.now();
     await testDb.exec(
       `insert into artifact (organization_id, project_id, tracker_id, number, key, status_id, "values", created_by, created_at, updated_at)
-       select t.organization_id, t.project_id, t.id, g, 'BUG-' || g,
+       select t.organization_id, t.project_id, t.id, g, 'ARI-BUG-' || lpad(g::text, 4, '0'),
               (select id from status s where s.tracker_id = t.id order by s.position offset (g % 5) limit 1),
               jsonb_build_object('title', 'Bug numéro ' || g, 'severity', (array['mineure','majeure','bloquante'])[1 + g % 3],
                                  'assignee', case when g % 4 = 0 then 'user' || (g % 50) else null end, 'points', g % 13),
@@ -60,7 +60,7 @@ suite(`performance ATQL (${ROWS} artefacts)`, () => {
     ['recherche textuelle (ILIKE)', 'title ~ "numéro 4242"', 3000],
     ['tracker + date', 'tracker = BUG AND created > "2026-01-01"', 1500],
     ['champ vide', 'assignee IS EMPTY', 1500],
-    ['clé exacte', 'key = "BUG-4242"', 300],
+    ['clé exacte', 'key = "ARI-BUG-4242"', 300],
     ['liste complète, première page', '', 1000],
   ];
 

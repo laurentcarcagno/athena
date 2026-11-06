@@ -1,3 +1,5 @@
+import { ITEM_KEY_PATTERN, itemKeyScanner } from '../core/key';
+
 export type Action = 'refs' | 'fixes' | 'closes' | 'implements' | 'reverts';
 
 export interface KeyAction {
@@ -5,8 +7,8 @@ export interface KeyAction {
   action: Action;
 }
 
-const KEY = /\b([A-Z][A-Z0-9]{1,9}-\d{1,9})\b/g;
-const KEYWORD = /\b(refs?|fix(?:es|ed)?|close[sd]?|implements?|reverts?)\b[:\s]+((?:[A-Z][A-Z0-9]{1,9}-\d{1,9}(?:\s*(?:,|et|and|&)\s*)?)+)/gi;
+// La forme canonique (SAT1-REQ-0042) est essayée avant l'ancienne (REQ-42) : voir core/key.ts.
+const KEYWORD = new RegExp(`\\b(refs?|fix(?:es|ed)?|close[sd]?|implements?|reverts?)\\b[:\\s]+((?:${ITEM_KEY_PATTERN}(?:\\s*(?:,|et|and|&)\\s*)?)+)`, 'gi');
 
 const canonical = (word: string): Action => {
   const w = word.toLowerCase();
@@ -27,15 +29,15 @@ export function extractKeyActions(text: string, limit = 50): KeyAction[] {
   const result = new Map<string, Action>();
   for (const match of bounded.matchAll(KEYWORD)) {
     const action = canonical(match[1]!);
-    for (const key of match[2]!.match(KEY) ?? []) result.set(key, action);
+    for (const key of match[2]!.match(itemKeyScanner()) ?? []) result.set(key, action);
   }
-  for (const match of bounded.matchAll(KEY)) if (!result.has(match[1]!)) result.set(match[1]!, 'refs');
+  for (const match of bounded.matchAll(itemKeyScanner())) if (!result.has(match[1]!)) result.set(match[1]!, 'refs');
   return [...result.entries()].slice(0, limit).map(([key, action]) => ({ key, action }));
 }
 
 /** Clés présentes dans un nom de branche (`bugfix/BUG-12-resume`). Jamais d'action : une branche ne résout rien. */
 export function keysFromBranch(branch: string): string[] {
-  return [...new Set(branch.slice(0, 255).match(KEY) ?? [])];
+  return [...new Set(branch.slice(0, 255).match(itemKeyScanner()) ?? [])];
 }
 
 export const branchName = (type: 'bugfix' | 'feature', key: string, summary: string): string => {

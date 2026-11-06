@@ -1,3 +1,4 @@
+import { ARTIFACT_FILE } from '../core/key';
 import type { Pool } from 'pg';
 import { Db, type Actor } from '../core/db';
 import { conflict, notFound, validation } from '../core/errors';
@@ -93,7 +94,7 @@ export class BaselineService {
     const { diffs } = await this.gitlab.compare(repo, a.gitTag, b.gitTag);
     const result: BaselineDiff = { created: [], modified: [], deleted: [], trackers: [] };
     for (const d of diffs) {
-      const artifact = /^trackers\/[A-Z0-9]+\/artifacts\/([A-Z0-9]+-\d+)\.yaml$/.exec(d.new_path);
+      const artifact = ARTIFACT_FILE.exec(d.new_path);
       if (artifact) (d.new_file ? result.created : d.deleted_file ? result.deleted : result.modified).push(artifact[1]!);
       const tracker = /^trackers\/([A-Z0-9]+)\/tracker\.yaml$/.exec(d.new_path);
       if (tracker) result.trackers.push(tracker[1]!);

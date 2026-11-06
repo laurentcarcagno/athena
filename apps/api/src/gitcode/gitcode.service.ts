@@ -80,7 +80,7 @@ export class GitCodeService {
         await c.query(
           `select r.kind, r.ref, r.title, r.url, r.state, r.pipeline from code_ref r
            join artifact a on a.id = r.artifact_id join project p on p.id = a.project_id
-           where p.key = $1 and a.key = $2 order by r.created_at, r.ref`,
+           where p.key = $1 and a.id = resolve_artifact(p.id, $2) order by r.created_at, r.ref`,
           [projectKey, key],
         )
       ).rows,
@@ -136,7 +136,7 @@ export class GitCodeService {
   /** Mémorise la fusion (SHA, date, branche cible) et solde le rétroportage si la cible est une branche de maintenance. */
   private async recordMerge(org: string, project: string, key: string, a: MergeRequestEvent['object_attributes']): Promise<void> {
     await this.db.tx(org, async (c) => {
-      const artifact = (await c.query('select a.id from artifact a join project p on p.id = a.project_id where p.key = $1 and a.key = $2', [project, key])).rows[0];
+      const artifact = (await c.query('select a.id from artifact a join project p on p.id = a.project_id where p.key = $1 and a.id = resolve_artifact(p.id, $2)', [project, key])).rows[0];
       if (!artifact) return;
       await c.query(
         `update code_ref set merge_sha = $3, merged_at = coalesce($4::timestamptz, now()), target_branch = $5, updated_at = now()
@@ -195,7 +195,7 @@ export class GitCodeService {
   ): Promise<Result> {
     return this.db.tx(org, async (c) => {
       const artifact = (
-        await c.query('select a.id from artifact a join project p on p.id = a.project_id where p.key = $1 and a.key = $2', [project, key])
+        await c.query('select a.id from artifact a join project p on p.id = a.project_id where p.key = $1 and a.id = resolve_artifact(p.id, $2)', [project, key])
       ).rows[0];
       if (!artifact) return { key, outcome: 'unknown_artifact' as Outcome };
       const inserted = await c.query(
@@ -213,7 +213,7 @@ export class GitCodeService {
     try {
       const current = await this.artifacts.get(org, project, key);
       const category = await this.db.tx(org, async (c: PoolClient) =>
-        (await c.query('select s.category from artifact a join status s on s.id = a.status_id join project p on p.id = a.project_id where p.key=$1 and a.key=$2', [project, key])).rows[0]?.category as string,
+        (await c.query('select s.category from artifact a join status s on s.id = a.status_id join project p on p.id = a.project_id where p.key=$1 and a.id = resolve_artifact(p.id, $2)', [project, key])).rows[0]?.category as string,
       );
       if (category !== fromCategory) return { key, outcome: 'ignored', detail: `statut ${current.status} : transition « ${name} » non applicable` };
       await this.artifacts.transition(org, project, key, name, current.version, actor);

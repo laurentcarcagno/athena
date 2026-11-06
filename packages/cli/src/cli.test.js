@@ -4,7 +4,7 @@ import http from 'node:http';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { checkMessage, ensureKeyInMessage, extractKeys, keysFromBranch, parseGitLog } from './lib.js';
+import { checkMessage, ensureKeyInMessage, extractKeys, isItemKey, keysFromBranch, parseGitLog } from './lib.js';
 
 const CLI = join(import.meta.dirname, '..', 'bin', 'athena.mjs');
 
@@ -13,6 +13,10 @@ describe('références', () => {
     expect(extractKeys('Fixes BUG-12 et REQ-3, voir BUG-12 ; utf-8, sha-256, bug-1')).toEqual(['BUG-12', 'REQ-3']);
     expect(keysFromBranch('bugfix/BUG-12-crash')).toEqual(['BUG-12']);
     expect(keysFromBranch('main')).toEqual([]);
+    expect(extractKeys('Fixes SAT1-BUG-0012, REQ-3 et SAT1-REQ-0042')).toEqual(['SAT1-BUG-0012', 'REQ-3', 'SAT1-REQ-0042']);
+    expect(keysFromBranch('bugfix/SAT1-BUG-0012-crash')).toEqual(['SAT1-BUG-0012']);
+    expect(isItemKey('SAT1-REQ-0042') && isItemKey('REQ-42')).toBe(true);
+    expect(isItemKey('sat1-req-0042') || isItemKey('REQ-')).toBe(false);
   });
   it('ajoute Refs depuis la branche, sans toucher aux messages déjà référencés, aux fusions ni aux commentaires', () => {
     expect(ensureKeyInMessage('Corrige le crash\n', 'bugfix/BUG-12-crash')).toBe('Corrige le crash\n\nRefs BUG-12\n');

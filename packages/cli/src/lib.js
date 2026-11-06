@@ -1,6 +1,10 @@
 // Fonctions pures du CLI athena (références de tickets dans le code). Aucune dépendance.
 
-const KEY = /\b([A-Z][A-Z0-9]{1,9}-\d{1,9})\b/g;
+// Clé canonique (SAT1-REQ-0042) essayée avant l'ancienne (REQ-42) ; même motif que apps/api/src/core/key.ts.
+const SEGMENT = '[A-Z][A-Z0-9]{1,9}';
+export const KEY_PATTERN = `(?:${SEGMENT}-${SEGMENT}-\\d{4,9}|${SEGMENT}-\\d{1,9})`;
+export const isItemKey = (text) => new RegExp(`^${KEY_PATTERN}$`).test(String(text));
+const KEY = new RegExp(`\\b(${KEY_PATTERN})\\b`, 'g');
 
 /** Clés d'artefact présentes dans un texte (message, nom de branche), dans l'ordre, sans doublon. */
 export function extractKeys(text) {

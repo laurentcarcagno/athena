@@ -115,13 +115,13 @@ suite('import JIRA et Tuleap (intégration)', () => {
     const report = await importer.run(org, 'ARI', 'jira', parsed(), { dryRun: false, statusMap }, admin);
     expect(report).toMatchObject({ created: 2, linked: 1, skipped: 0 });
     expect(report.errors).toHaveLength(3);
-    const first = await artifacts.get(org, 'ARI', 'BUG-1');
+    const first = await artifacts.get(org, 'ARI', 'ARI-BUG-0001');
     expect(first).toMatchObject({ status: 'open', version: 1, values: { title: 'Crash au démarrage', severity: 'bloquante', description: 'Ligne 1\nLigne 2 "citée"' } });
-    expect((await artifacts.get(org, 'ARI', 'BUG-2')).status).toBe('in_progress');
-    const meta = (await db.tx(org, (c) => c.query("select created_by, created_at from artifact where key = 'BUG-1'"))).rows[0];
+    expect((await artifacts.get(org, 'ARI', 'ARI-BUG-0002')).status).toBe('in_progress');
+    const meta = (await db.tx(org, (c) => c.query("select created_by, created_at from artifact where key = 'ARI-BUG-0001'"))).rows[0];
     expect(meta.created_by).toBe('import:jira');
     expect(meta.created_at.toISOString()).toBe('2026-01-05T10:00:00.000Z');
-    expect(await links.list(org, 'ARI', 'BUG-1')).toMatchObject([{ label: 'bloque', other: 'BUG-2' }]);
+    expect(await links.list(org, 'ARI', 'ARI-BUG-0001')).toMatchObject([{ label: 'bloque', other: 'ARI-BUG-0002' }]);
     const events = await db.tx(org, (c) => c.query("select count(*)::int n from outbox_event where type = 'artifact.created' and payload->>'actor' = 'import:jira'"));
     expect(events.rows[0].n).toBe(2); // l'historique Git recevra l'import comme n'importe quelle création
   });
@@ -142,7 +142,7 @@ suite('import JIRA et Tuleap (intégration)', () => {
     const report = await importer.run(org, 'ARI', 'jira', records, { dryRun: false, statusMap }, admin);
     expect(report).toMatchObject({ created: 2, linked: 1 });
     expect(report.warnings.join(' ')).toMatch(/PRJ-10 → PRJ-404 ignoré/);
-    expect(await links.list(org, 'ARI', 'BUG-3')).toMatchObject([{ other: 'BUG-1', direction: 'outward' }]);
+    expect(await links.list(org, 'ARI', 'ARI-BUG-0003')).toMatchObject([{ other: 'ARI-BUG-0001', direction: 'outward' }]);
   });
 
   it('importe depuis Tuleap avec la clé d’origine conservée dans un champ', async () => {
@@ -152,7 +152,7 @@ suite('import JIRA et Tuleap (intégration)', () => {
     const { records } = parseTuleapArtifacts([{ id: 4821, status: 'New', values: [{ label: 'Summary', value: 'Erreur 500' }, { label: 'Severity', bind_value_objects: [{ label: 'Critical' }] }] }], config);
     const report = await importer.run(org, 'ARI', 'tuleap', records, { dryRun: false, statusMap: { New: 'open' } }, admin);
     expect(report.created).toBe(1);
-    expect((await artifacts.get(org, 'ARI', 'BUG-5')).values).toMatchObject({ title: 'Erreur 500', tuleap_id: '4821' });
+    expect((await artifacts.get(org, 'ARI', 'ARI-BUG-0005')).values).toMatchObject({ title: 'Erreur 500', tuleap_id: '4821' });
   });
 
   it('refuse un projet inconnu', async () => {

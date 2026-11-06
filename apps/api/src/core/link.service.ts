@@ -44,8 +44,10 @@ export class LinkService {
   ): Promise<string> {
     return this.db.tx(organizationId, async (c) => {
       const project = await this.project(c, projectKey);
-      const from = await this.artifact(c, project, fromKey);
-      const to = await this.artifact(c, project, toKey);
+      const fromRow = await this.artifactRow(c, project, fromKey);
+      const toRow = await this.artifactRow(c, project, toKey);
+      const from = fromRow.id;
+      const to = toRow.id;
       const type = (await c.query('select id, hierarchical from link_type where project_id = $1 and key = $2', [project, typeKey])).rows[0];
       if (!type) throw notFound(`Type de lien ${typeKey}`);
       if (from === to) throw validation(['un artefact ne peut pas être lié à lui-même']);
@@ -59,8 +61,8 @@ export class LinkService {
           [organizationId, from, to, type.id],
         )
       ).rows[0].id as string;
-      await outbox(c, organizationId, 'artifact', from, 'link.created', { from: fromKey, to: toKey, type: typeKey, actor: actor.id });
-      await audit(c, organizationId, actor, 'link.create', `artifact:${fromKey}`, { to: toKey, type: typeKey });
+      await outbox(c, organizationId, 'artifact', from, 'link.created', { from: fromRow.key, to: toRow.key, type: typeKey, actor: actor.id });
+      await audit(c, organizationId, actor, 'link.create', `artifact:${fromRow.key}`, { to: toRow.key, type: typeKey });
       return id;
     });
   }
@@ -99,14 +101,14 @@ export class LinkService {
     if (body.trim().length === 0 || body.length > 100_000) throw validation(['commentaire vide ou trop long']);
     return this.db.tx(organizationId, async (c) => {
       const project = await this.project(c, projectKey);
-      const artifact = await this.artifact(c, project, key);
+      const { id: artifact, key: canonical } = await this.artifactRow(c, project, key);
       const row = (
         await c.query('insert into comment (organization_id, artifact_id, author, body) values ($1,$2,$3,$4) returning id, created_at', [
           organizationId, artifact, actor.id, body,
         ])
       ).rows[0];
-      await outbox(c, organizationId, 'artifact', artifact, 'comment.created', { key, actor: actor.id, commentId: row.id });
-      await audit(c, organizationId, actor, 'comment.create', `artifact:${key}`);
+      await outbox(c, organizationId, 'artifact', artifact, 'comment.created', { key: canonical, actor: actor.id, commentId: row.id });
+      await audit(c, organizationId, actor, 'comment.create', `artifact:${canonical}`);
       return { id: row.id, author: actor.id, authorName: actor.id, body, createdAt: row.created_at.toISOString() };
     });
   }
@@ -125,10 +127,15 @@ export class LinkService {
     return row.id as string;
   }
 
+  /** Identifiant d'un artefact par clé canonique ou ancienne clé (alias) dans le projet. */
   private async artifact(c: PoolClient, project: string, key: string): Promise<string> {
-    const row = (await c.query('select id from artifact where project_id = $1 and key = $2', [project, key])).rows[0];
+    return (await this.artifactRow(c, project, key)).id;
+  }
+
+  private async artifactRow(c: PoolClient, project: string, key: string): Promise<{ id: string; key: string }> {
+    const row = (await c.query('select id, key from artifact where id = resolve_artifact($1, $2)', [project, key])).rows[0];
     if (!row) throw notFound(`Artefact ${key}`);
-    return row.id as string;
+    return { id: row.id as string, key: row.key as string };
   }
 
   /** Vrai si `start` atteint `target` en suivant des liens de ce type (détection de cycle). */

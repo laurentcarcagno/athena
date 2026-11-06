@@ -56,64 +56,64 @@ suite('synchronisation inverse et reconstruction (GitLab réel)', () => {
     await trackers.createTracker(org, bugTemplate('ARI'), alice);
     await artifacts.create(org, 'ARI', 'BUG', { title: 'Premier', severity: 'majeure' }, alice);
     await artifacts.create(org, 'ARI', 'BUG', { title: 'Second', severity: 'mineure' }, alice);
-    await artifacts.update(org, 'ARI', 'BUG-2', { assignee: 'sub-bob' }, 1, alice);
+    await artifacts.update(org, 'ARI', 'ARI-BUG-0002', { assignee: 'sub-bob' }, 1, alice);
     await sync.runOnce();
     repo = await gitlab.ensureRepository('root', `athena-history-${orgKey}-ari`);
   }, 90_000);
   afterAll(async () => { await testDb?.drop(); });
 
   it('importe une édition faite dans Git sous l’identité de son auteur, sans écho', async () => {
-    const push = await externalEdit('BUG-1', (d) => { d.values['title'] = 'Titre corrigé dans Git'; });
+    const push = await externalEdit('ARI-BUG-0001', (d) => { d.values['title'] = 'Titre corrigé dans Git'; });
     const [result] = await reverse.handlePush(org, 'ARI', push);
     expect(result).toMatchObject({ outcome: 'imported' });
-    const art = await artifacts.get(org, 'ARI', 'BUG-1');
+    const art = await artifacts.get(org, 'ARI', 'ARI-BUG-0001');
     expect(art.values['title']).toBe('Titre corrigé dans Git');
     expect(art.version).toBe(2);
-    const rev = await new Db(testDb.pool).tx(org, (c) => c.query("select r.actor, r.git_sha from artifact_revision r join artifact a on a.id = r.artifact_id where a.key = 'BUG-1' and r.version = 2"));
+    const rev = await new Db(testDb.pool).tx(org, (c) => c.query("select r.actor, r.git_sha from artifact_revision r join artifact a on a.id = r.artifact_id where a.key = 'ARI-BUG-0001' and r.version = 2"));
     expect(rev.rows[0]).toMatchObject({ actor: 'sub-bob', git_sha: push.commits[0]!.id });
     expect(await sync.runOnce()).toEqual({ committed: 0, failed: 0 }); // l'événement est déjà couvert : pas de commit d'écho
-    const commits = await gitlab.commits(repo, path('BUG-1'), 'main');
+    const commits = await gitlab.commits(repo, path('ARI-BUG-0001'), 'main');
     expect(commits[0]!.message).toContain('normalisé'); // Athena remet le fichier sous forme canonique (version à jour)
-    expect(parse(await gitlab.fileContent(repo, path('BUG-1'), 'main')).version).toBe(2);
+    expect(parse(await gitlab.fileContent(repo, path('ARI-BUG-0001'), 'main')).version).toBe(2);
   }, 60_000);
 
   it('est idempotent et ignore les commits d’Athena', async () => {
-    const push = await externalEdit('BUG-1', (d) => { d.values['title'] = 'Autre titre'; });
+    const push = await externalEdit('ARI-BUG-0001', (d) => { d.values['title'] = 'Autre titre'; });
     expect((await reverse.handlePush(org, 'ARI', push))[0]).toMatchObject({ outcome: 'imported' });
     expect((await reverse.handlePush(org, 'ARI', push))[0]).toMatchObject({ outcome: 'ignored', reason: 'commit déjà importé' });
-    const own = await gitlab.commits(repo, path('BUG-2'), 'main');
-    const athena = { commits: [{ id: own[0]!.id, message: own[0]!.message, author: { email: 'alice@example.test' }, modified: [path('BUG-2')] }] };
+    const own = await gitlab.commits(repo, path('ARI-BUG-0002'), 'main');
+    const athena = { commits: [{ id: own[0]!.id, message: own[0]!.message, author: { email: 'alice@example.test' }, modified: [path('ARI-BUG-0002')] }] };
     expect((await reverse.handlePush(org, 'ARI', athena))[0]).toMatchObject({ outcome: 'ignored', reason: "commit d'Athena" });
   }, 60_000);
 
   it('rejette auteur inconnu, valeur invalide et artefact inconnu', async () => {
-    const unknown = await externalEdit('BUG-1', (d) => { d.values['title'] = 'Par un inconnu'; }, 'inconnu@example.test');
+    const unknown = await externalEdit('ARI-BUG-0001', (d) => { d.values['title'] = 'Par un inconnu'; }, 'inconnu@example.test');
     expect((await reverse.handlePush(org, 'ARI', unknown))[0]).toMatchObject({ outcome: 'rejected', reason: expect.stringContaining('auteur inconnu') });
-    const invalid = await externalEdit('BUG-1', (d) => { d.values['severity'] = 'catastrophique'; });
+    const invalid = await externalEdit('ARI-BUG-0001', (d) => { d.values['severity'] = 'catastrophique'; });
     expect((await reverse.handlePush(org, 'ARI', invalid))[0]).toMatchObject({ outcome: 'rejected', reason: expect.stringContaining('hors liste') });
-    expect((await artifacts.get(org, 'ARI', 'BUG-1')).values['severity']).toBe('majeure');
+    expect((await artifacts.get(org, 'ARI', 'ARI-BUG-0001')).values['severity']).toBe('majeure');
     // Git est rétabli à l'état validé par un commit d'Athena.
-    const restored = parse(await gitlab.fileContent(repo, path('BUG-1'), 'main'));
+    const restored = parse(await gitlab.fileContent(repo, path('ARI-BUG-0001'), 'main'));
     expect(restored.values).toMatchObject({ severity: 'majeure' });
     expect(restored.values.title).not.toBe('Par un inconnu');
-    expect((await gitlab.commits(repo, path('BUG-1'), 'main'))[0]!.message).toContain("rétablit l'état validé");
-    const ghost = { commits: [{ id: 'f'.repeat(40), message: 'x', author: { email: 'bob@example.test' }, modified: [path('BUG-77')] }] };
+    expect((await gitlab.commits(repo, path('ARI-BUG-0001'), 'main'))[0]!.message).toContain("rétablit l'état validé");
+    const ghost = { commits: [{ id: 'f'.repeat(40), message: 'x', author: { email: 'bob@example.test' }, modified: [path('ARI-BUG-0077')] }] };
     expect((await reverse.handlePush(org, 'ARI', ghost))[0]).toMatchObject({ outcome: 'rejected', reason: expect.stringContaining('inconnu') });
     expect((await reverse.handlePush(org, 'ARI', { commits: [{ id: 'a'.repeat(40), message: 'x', modified: ['README.md'] }] }))[0]).toMatchObject({ outcome: 'ignored' });
   }, 60_000);
 
   it('n’importe que les valeurs : un changement de statut dans le fichier est ignoré', async () => {
-    const push = await externalEdit('BUG-1', (d) => { d.status = 'delivered'; d.values['title'] = 'Statut forcé'; });
+    const push = await externalEdit('ARI-BUG-0001', (d) => { d.status = 'delivered'; d.values['title'] = 'Statut forcé'; });
     expect((await reverse.handlePush(org, 'ARI', push))[0]).toMatchObject({ outcome: 'imported' });
-    expect((await artifacts.get(org, 'ARI', 'BUG-1')).status).toBe('open');
+    expect((await artifacts.get(org, 'ARI', 'ARI-BUG-0001')).status).toBe('open');
   }, 60_000);
 
   it('signale un conflit quand Athena a des modifications pas encore écrites dans Git', async () => {
-    const push = await externalEdit('BUG-2', (d) => { d.values['title'] = 'Édition Git'; });
-    const current = await artifacts.get(org, 'ARI', 'BUG-2');
-    await artifacts.update(org, 'ARI', 'BUG-2', { title: 'Édition Athena' }, current.version, alice);
+    const push = await externalEdit('ARI-BUG-0002', (d) => { d.values['title'] = 'Édition Git'; });
+    const current = await artifacts.get(org, 'ARI', 'ARI-BUG-0002');
+    await artifacts.update(org, 'ARI', 'ARI-BUG-0002', { title: 'Édition Athena' }, current.version, alice);
     expect((await reverse.handlePush(org, 'ARI', push))[0]).toMatchObject({ outcome: 'conflict' });
-    expect((await artifacts.get(org, 'ARI', 'BUG-2')).values['title']).toBe('Édition Athena'); // rien n'est écrasé
+    expect((await artifacts.get(org, 'ARI', 'ARI-BUG-0002')).values['title']).toBe('Édition Athena'); // rien n'est écrasé
     await sync.runOnce();
   }, 60_000);
 
@@ -135,7 +135,7 @@ suite('synchronisation inverse et reconstruction (GitLab réel)', () => {
 
     const copyArtifacts = new ArtifactService(db, new TrackerService(db, new FieldTypeRegistry()), new FieldTypeRegistry());
     const next = await copyArtifacts.create(other, 'ARI', 'BUG', { title: 'Après reconstruction', severity: 'mineure' }, alice);
-    expect(next.key).toBe('BUG-3');
+    expect(next.key).toBe('ARI-BUG-0003');
     await expect(rebuild.rebuild(other, 'ARI', orgKey, 'rebuild')).rejects.toBeInstanceOf(DomainError);
   }, 90_000);
 });

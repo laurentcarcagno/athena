@@ -1,3 +1,4 @@
+import { ITEM_KEY } from '../core/key';
 import { randomBytes } from 'node:crypto';
 import { ArtifactService } from '../core/artifact.service';
 import { Db, type Actor } from '../core/db';
@@ -97,7 +98,7 @@ export class InboundService {
 
   private key(spec: string, payload: unknown): string {
     const key = spec.startsWith('$') ? String(pointer(payload, spec) ?? '') : spec;
-    if (!/^[A-Z][A-Z0-9]{1,9}-\d{1,9}$/.test(key)) throw validation(['clé d’artefact absente ou invalide dans la charge utile']);
+    if (!ITEM_KEY.test(key)) throw validation(['clé d’artefact absente ou invalide dans la charge utile']);
     return key;
   }
 

@@ -123,9 +123,9 @@ describe('exécution isolée des plugins', () => {
   }, 30_000);
 
   it('interdit l’accès aux artefacts sans permission artifacts:read', async () => {
-    const code = `plugin = { fieldTypes: { 'hex-color': { validate: async () => JSON.stringify(await athena.artifacts.get('BUG-1')) } } };`;
+    const code = `plugin = { fieldTypes: { 'hex-color': { validate: async () => JSON.stringify(await athena.artifacts.get('ARI-BUG-0001')) } } };`;
     await expect((await start(code)).validateFieldType('hex-color', 'x', {})).rejects.toThrow(/permission refusée/);
-    expect(await (await start(code, {}, ['artifacts:read'])).validateFieldType('hex-color', 'x', {})).toBe('{"key":"BUG-1"}');
+    expect(await (await start(code, {}, ['artifacts:read'])).validateFieldType('hex-color', 'x', {})).toBe('{"key":"ARI-BUG-0001"}');
   }, 30_000);
 
   it('signale un plugin sans définition `plugin` et une erreur levée par le plugin', async () => {

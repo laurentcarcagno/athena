@@ -65,19 +65,19 @@ suite('tracker.yaml, restauration et baselines (GitLab réel)', () => {
 
   it('restaure une révision antérieure par une nouvelle révision, sans réécrire l’historique', async () => {
     await artifacts.create(org, 'ARI', 'BUG', { title: 'Version A', severity: 'mineure' }, alice);
-    await artifacts.update(org, 'ARI', 'BUG-1', { title: 'Version B', root_cause: 'cause' }, 1, alice);
-    await artifacts.update(org, 'ARI', 'BUG-1', { title: 'Version C' }, 2, alice);
+    await artifacts.update(org, 'ARI', 'ARI-BUG-0001', { title: 'Version B', root_cause: 'cause' }, 1, alice);
+    await artifacts.update(org, 'ARI', 'ARI-BUG-0001', { title: 'Version C' }, 2, alice);
 
-    const restored = await artifacts.restore(org, 'ARI', 'BUG-1', 1, 3, alice);
+    const restored = await artifacts.restore(org, 'ARI', 'ARI-BUG-0001', 1, 3, alice);
     expect(restored.version).toBe(4);
     expect(restored.values).toEqual({ title: 'Version A', severity: 'mineure' }); // root_cause retiré, comme à la révision 1
-    expect(await code(artifacts.restore(org, 'ARI', 'BUG-1', 99, 4, alice))).toMatch(/not_found/);
-    expect(await code(artifacts.restore(org, 'ARI', 'BUG-1', 1, 3, alice))).toMatch(/conflict/);
+    expect(await code(artifacts.restore(org, 'ARI', 'ARI-BUG-0001', 99, 4, alice))).toMatch(/not_found/);
+    expect(await code(artifacts.restore(org, 'ARI', 'ARI-BUG-0001', 1, 3, alice))).toMatch(/conflict/);
 
     await sync.runOnce();
-    const commits = await gitlab.commits(repoId, 'trackers/BUG/artifacts/BUG-1.yaml', 'main');
+    const commits = await gitlab.commits(repoId, 'trackers/BUG/artifacts/ARI-BUG-0001.yaml', 'main');
     expect(commits).toHaveLength(4); // création, 2 mises à jour, restauration : historique en ajout seul
-    expect(parse(await gitlab.fileContent(repoId, 'trackers/BUG/artifacts/BUG-1.yaml', 'main'))).toMatchObject({ version: 4, values: { title: 'Version A' } });
+    expect(parse(await gitlab.fileContent(repoId, 'trackers/BUG/artifacts/ARI-BUG-0001.yaml', 'main'))).toMatchObject({ version: 4, values: { title: 'Version A' } });
   }, 90_000);
 
   it('crée une baseline, tag Git couplé aux SHA documentaires', async () => {
@@ -96,11 +96,11 @@ suite('tracker.yaml, restauration et baselines (GitLab réel)', () => {
   });
 
   it('compare deux baselines : artefacts créés et modifiés', async () => {
-    await artifacts.update(org, 'ARI', 'BUG-1', { severity: 'bloquante' }, 4, alice);
+    await artifacts.update(org, 'ARI', 'ARI-BUG-0001', { severity: 'bloquante' }, 4, alice);
     await sync.runOnce();
     await baselines.create(org, 'ARI', 'v1.1', alice);
     const diff = await baselines.diff(org, 'ARI', 'v1.0', 'v1.1');
-    expect(diff).toEqual({ created: ['BUG-2'], modified: ['BUG-1'], deleted: [], trackers: [] });
+    expect(diff).toEqual({ created: ['ARI-BUG-0002'], modified: ['ARI-BUG-0001'], deleted: [], trackers: [] });
     expect(await code(baselines.diff(org, 'ARI', 'v1.0', 'inconnue'))).toMatch(/not_found/);
   }, 90_000);
 

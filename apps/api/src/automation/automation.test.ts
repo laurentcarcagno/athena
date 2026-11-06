@@ -73,11 +73,11 @@ suite('automatisations (intégration)', () => {
     await artifacts.create(org, 'ARI', 'BUG', { title: 'Détail', severity: 'mineure' }, admin);
     await settle();
 
-    const first = await artifacts.get(org, 'ARI', 'BUG-1');
+    const first = await artifacts.get(org, 'ARI', 'ARI-BUG-0001');
     expect(first.values['assignee']).toBe('sub-astreinte');
     expect(first.status).toBe('in_progress'); // règle 2 déclenchée par la mise à jour de la règle 1
-    expect((await artifacts.get(org, 'ARI', 'BUG-2')).status).toBe('open'); // condition non satisfaite
-    expect((await links.comments(org, 'ARI', 'BUG-1')).map((c) => c.body)).toEqual(['Bug bloquant : escalade automatique.']);
+    expect((await artifacts.get(org, 'ARI', 'ARI-BUG-0002')).status).toBe('open'); // condition non satisfaite
+    expect((await links.comments(org, 'ARI', 'ARI-BUG-0001')).map((c) => c.body)).toEqual(['Bug bloquant : escalade automatique.']);
     expect((await automation.runs(org, escalate)).map((r) => r.status).sort()).toEqual(['done', 'skipped']);
   }, 60_000);
 
@@ -85,7 +85,7 @@ suite('automatisations (intégration)', () => {
     await automation.createRule(org, 'ARI', { name: 'Livraison forcée', trigger: 'artifact.created', condition: 'title ~ "Livrable"', actions: [{ type: 'transition', name: 'Livrer' }] }, admin);
     await artifacts.create(org, 'ARI', 'BUG', { title: 'Livrable', severity: 'mineure' }, admin);
     await settle();
-    expect((await artifacts.get(org, 'ARI', 'BUG-3')).status).toBe('open');
+    expect((await artifacts.get(org, 'ARI', 'ARI-BUG-0003')).status).toBe('open');
     const rules = await automation.list(org, 'ARI');
     const runs = await automation.runs(org, rules.find((r) => r.name === 'Livraison forcée')!.id);
     expect(runs[0]).toMatchObject({ status: 'failed' });
@@ -95,9 +95,9 @@ suite('automatisations (intégration)', () => {
     await automation.createRule(org, 'ARI', { name: 'Ping', trigger: 'artifact.updated', condition: 'title ~ "pingpong" AND severity = mineure', actions: [{ type: 'update', values: { severity: 'majeure' } }] }, admin);
     await automation.createRule(org, 'ARI', { name: 'Pong', trigger: 'artifact.updated', condition: 'title ~ "pingpong" AND severity = majeure', actions: [{ type: 'update', values: { severity: 'mineure' } }] }, admin);
     await artifacts.create(org, 'ARI', 'BUG', { title: 'pingpong', severity: 'mineure' }, admin);
-    await artifacts.update(org, 'ARI', 'BUG-4', { assignee: 'x' }, 1, admin); // déclenche Ping
+    await artifacts.update(org, 'ARI', 'ARI-BUG-0004', { assignee: 'x' }, 1, admin); // déclenche Ping
     await settle(20);
-    const revisions = Number((await db.tx(org, (c) => c.query("select count(*) n from artifact_revision r join artifact a on a.id = r.artifact_id where a.key = 'BUG-4'"))).rows[0].n);
+    const revisions = Number((await db.tx(org, (c) => c.query("select count(*) n from artifact_revision r join artifact a on a.id = r.artifact_id where a.key = 'ARI-BUG-0004'"))).rows[0].n);
     // Chaîne bornée par la profondeur (création, mise à jour, au plus une révision par niveau et par règle déclenchée).
     expect(revisions).toBeLessThanOrEqual(3 + LIMITS.maxDepth * 2);
     expect(revisions).toBeGreaterThan(2); // les règles se sont bien enchaînées avant d'être arrêtées

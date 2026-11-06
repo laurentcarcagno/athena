@@ -80,7 +80,7 @@ suite('webhooks entrants (intégration)', () => {
   it('valide le mappage à la création, chemins compris', async () => {
     expect(await code(inbound.createSource(org, 'ARI', 'x1', { action: 'inconnue' }, admin))).toMatch(/validation/);
     expect(await code(inbound.createSource(org, 'ARI', 'x2', { action: 'create', tracker: 'BUG', values: { title: '$.a; drop' } }, admin))).toMatch(/chemin invalide/);
-    expect(await code(inbound.createSource(org, 'NOPE', 'x3', { action: 'comment', key: 'BUG-1', body: 'x' }, admin))).toMatch(/not_found/);
+    expect(await code(inbound.createSource(org, 'NOPE', 'x3', { action: 'comment', key: 'ARI-BUG-0001', body: 'x' }, admin))).toMatch(/not_found/);
   });
 
   it('crée un artefact depuis une charge utile externe, avec traduction de priorité', async () => {
@@ -92,8 +92,8 @@ suite('webhooks entrants (intégration)', () => {
     expect(created.secret).toMatch(/^inb_[0-9a-f]{64}$/);
     const body = { project: 'api', event: { id: 'evt-1', title: 'NullPointer', level: 'fatal' } };
     const result = await send('sentry', body);
-    expect(result).toEqual({ duplicate: false, action: 'create', key: 'BUG-1' });
-    expect(await artifacts.get(org, 'ARI', 'BUG-1')).toMatchObject({ values: { title: '[api] NullPointer', severity: 'bloquante' } });
+    expect(result).toEqual({ duplicate: false, action: 'create', key: 'ARI-BUG-0001' });
+    expect(await artifacts.get(org, 'ARI', 'ARI-BUG-0001')).toMatchObject({ values: { title: '[api] NullPointer', severity: 'bloquante' } });
     const revision = await testDb.pool.query('select 1');
     expect(revision.rowCount).toBe(1);
   });
@@ -125,16 +125,16 @@ suite('webhooks entrants (intégration)', () => {
     await inbound.createSource(org, 'ARI', 'triage', { action: 'update', key: '$.bug', values: { severity: { from: '$.p', map: { high: 'majeure' } }, assignee: '$.owner' } }, admin);
     await inbound.createSource(org, 'ARI', 'flow', { action: 'transition', key: '$.bug', name: 'Démarrer' }, admin);
 
-    await send('ci', { bug: 'BUG-1', status: 'échoué', url: 'http://ci/1' });
-    expect((await links.comments(org, 'ARI', 'BUG-1')).map((c) => [c.author, c.body])).toEqual([['inbound:ci', 'Pipeline échoué (http://ci/1)']]);
+    await send('ci', { bug: 'ARI-BUG-0001', status: 'échoué', url: 'http://ci/1' });
+    expect((await links.comments(org, 'ARI', 'ARI-BUG-0001')).map((c) => [c.author, c.body])).toEqual([['inbound:ci', 'Pipeline échoué (http://ci/1)']]);
 
-    expect(await code(send('flow', { bug: 'BUG-1' }))).toMatch(/validation.*assignee/); // validateur du workflow appliqué
-    await send('triage', { bug: 'BUG-1', p: 'high', owner: 'sub-dev' });
-    expect(await artifacts.get(org, 'ARI', 'BUG-1')).toMatchObject({ values: { severity: 'majeure', assignee: 'sub-dev' } });
-    await send('flow', { bug: 'BUG-1' });
-    expect((await artifacts.get(org, 'ARI', 'BUG-1')).status).toBe('in_progress');
+    expect(await code(send('flow', { bug: 'ARI-BUG-0001' }))).toMatch(/validation.*assignee/); // validateur du workflow appliqué
+    await send('triage', { bug: 'ARI-BUG-0001', p: 'high', owner: 'sub-dev' });
+    expect(await artifacts.get(org, 'ARI', 'ARI-BUG-0001')).toMatchObject({ values: { severity: 'majeure', assignee: 'sub-dev' } });
+    await send('flow', { bug: 'ARI-BUG-0001' });
+    expect((await artifacts.get(org, 'ARI', 'ARI-BUG-0001')).status).toBe('in_progress');
 
     expect(await code(send('ci', { bug: 'pas-une-clé', status: 'x', url: 'y' }))).toMatch(/validation.*clé/);
-    expect(await code(send('ci', { bug: 'BUG-999', status: 'x', url: 'y' }))).toMatch(/not_found/);
+    expect(await code(send('ci', { bug: 'ARI-BUG-0999', status: 'x', url: 'y' }))).toMatch(/not_found/);
   }, 30_000);
 });

@@ -34,7 +34,7 @@ STATEMENT: >>>
 Le système shall journaliser les actions.
 Sur plusieurs lignes.
 <<<
-ATHENA_REFS: REQ-1, BUG-9, invalide
+ATHENA_REFS: ARI-REQ-0001, ARI-BUG-0009, invalide
 RELATIONS:
 - TYPE: Parent
   VALUE: SYS-0
@@ -57,7 +57,7 @@ describe('analyseur .sdoc', () => {
     expect(nodes.map((n) => n.uid)).toEqual(['SYS-1', 'SYS-2']);
     expect(nodes[0]).toMatchObject({
       type: 'REQUIREMENT', document: 'Spécification système', title: "Journal d'audit", status: 'Active',
-      parents: ['SYS-0'], athenaRefs: ['REQ-1', 'BUG-9'],
+      parents: ['SYS-0'], athenaRefs: ['ARI-REQ-0001', 'ARI-BUG-0009'],
     });
     expect(nodes[0]!.statement).toBe('Le système shall journaliser les actions.\nSur plusieurs lignes.');
   });
@@ -109,30 +109,30 @@ suite('liaison documentaire (intégration)', () => {
 
   it('indexe une source et crée les liens déclarés dans ATHENA_REFS', async () => {
     const result = await docs.index(org, 'ARI', 'spec', file(SAMPLE), 'sha1', actor);
-    expect(result).toEqual({ nodes: 2, linksCreated: 1, linksSuspected: 0 }); // BUG-9 n'existe pas
-    expect(await docs.links(org, 'ARI', 'REQ-1')).toMatchObject([{ uid: 'SYS-1', origin: 'document', suspect: false, orphan: false, title: "Journal d'audit" }]);
+    expect(result).toEqual({ nodes: 2, linksCreated: 1, linksSuspected: 0 }); // ARI-BUG-0009 n'existe pas
+    expect(await docs.links(org, 'ARI', 'ARI-REQ-0001')).toMatchObject([{ uid: 'SYS-1', origin: 'document', suspect: false, orphan: false, title: "Journal d'audit" }]);
   });
 
   it('lie depuis Athena et refuse un nœud inconnu ou un doublon', async () => {
-    await docs.link(org, 'ARI', 'REQ-2', 'spec', 'SYS-2', actor);
-    await expect(docs.link(org, 'ARI', 'REQ-2', 'spec', 'SYS-404', actor)).rejects.toBeInstanceOf(DomainError);
-    await expect(docs.link(org, 'ARI', 'REQ-2', 'spec', 'SYS-2', actor)).rejects.toThrow(/duplicate/);
+    await docs.link(org, 'ARI', 'ARI-REQ-0002', 'spec', 'SYS-2', actor);
+    await expect(docs.link(org, 'ARI', 'ARI-REQ-0002', 'spec', 'SYS-404', actor)).rejects.toBeInstanceOf(DomainError);
+    await expect(docs.link(org, 'ARI', 'ARI-REQ-0002', 'spec', 'SYS-2', actor)).rejects.toThrow(/duplicate/);
   });
 
   it("rend un lien suspect quand l'exigence change, puis acquitte", async () => {
     const changed = await docs.index(org, 'ARI', 'spec', file(SAMPLE.replace('Texte court.', 'Texte révisé.')), 'sha2', actor);
     expect(changed.linksSuspected).toBe(1);
-    expect((await docs.links(org, 'ARI', 'REQ-2'))[0]).toMatchObject({ uid: 'SYS-2', suspect: true });
-    expect((await docs.links(org, 'ARI', 'REQ-1'))[0]!.suspect).toBe(false);
-    await docs.acknowledge(org, 'ARI', 'REQ-2', 'spec', 'SYS-2', actor);
-    expect((await docs.links(org, 'ARI', 'REQ-2'))[0]!.suspect).toBe(false);
+    expect((await docs.links(org, 'ARI', 'ARI-REQ-0002'))[0]).toMatchObject({ uid: 'SYS-2', suspect: true });
+    expect((await docs.links(org, 'ARI', 'ARI-REQ-0001'))[0]!.suspect).toBe(false);
+    await docs.acknowledge(org, 'ARI', 'ARI-REQ-0002', 'spec', 'SYS-2', actor);
+    expect((await docs.links(org, 'ARI', 'ARI-REQ-0002'))[0]!.suspect).toBe(false);
   });
 
   it("signale orphelin et suspect un lien dont l'exigence a disparu", async () => {
     const result = await docs.index(org, 'ARI', 'spec', file(SAMPLE.split('[REQUIREMENT]\nUID: SYS-2')[0]!), 'sha3', actor);
     expect(result.nodes).toBe(1);
     expect(result.linksSuspected).toBe(1);
-    expect((await docs.links(org, 'ARI', 'REQ-2'))[0]).toMatchObject({ suspect: true, orphan: true });
+    expect((await docs.links(org, 'ARI', 'ARI-REQ-0002'))[0]).toMatchObject({ suspect: true, orphan: true });
   });
 
   it('calcule la couverture de traçabilité', async () => {
@@ -140,7 +140,7 @@ suite('liaison documentaire (intégration)', () => {
     const coverage = await docs.coverage(org, 'ARI', 'spec', 'REQ');
     expect(coverage).toEqual({ requirementsWithoutArtifact: [], artifactsWithoutRequirement: [], covered: 2, total: 2 });
     const bug = await docs.coverage(org, 'ARI', 'spec', 'BUG');
-    expect(bug.artifactsWithoutRequirement).toEqual(['BUG-1']);
+    expect(bug.artifactsWithoutRequirement).toEqual(['ARI-BUG-0001']);
   });
 
   it('refuse deux nœuds de même UID', async () => {
@@ -152,16 +152,16 @@ suite('liaison documentaire (intégration)', () => {
 describe('report des références dans le .sdoc', () => {
   it('insère ATHENA_REFS avant RELATIONS, met à jour une ligne existante et reste idempotent', async () => {
     const { setAthenaRefs } = await import('./doc-writeback');
-    const doc = '[REQUIREMENT]\nUID: SYS-1\nTITLE: A\nRELATIONS:\n- TYPE: Parent\n  VALUE: SYS-0\n\n[REQUIREMENT]\nUID: SYS-2\nTITLE: B\n\n[REQUIREMENT]\nUID: SYS-3\nATHENA_REFS: BUG-1\n';
-    const a = setAthenaRefs(doc, 'SYS-1', ['BUG-2', 'BUG-1'])!;
-    expect(a).toContain('TITLE: A\nATHENA_REFS: BUG-1, BUG-2\nRELATIONS:');
-    expect(setAthenaRefs(a, 'SYS-1', ['BUG-1', 'BUG-2'])).toBeNull();
-    const b = setAthenaRefs(doc, 'SYS-2', ['REQ-5'])!;
-    expect(b).toContain('TITLE: B\nATHENA_REFS: REQ-5\n\n[REQUIREMENT]\nUID: SYS-3');
-    expect(setAthenaRefs(doc, 'SYS-3', ['BUG-1', 'BUG-9'])).toContain('ATHENA_REFS: BUG-1, BUG-9');
-    expect(setAthenaRefs(doc, 'SYS-404', ['BUG-1'])).toBeNull();
+    const doc = '[REQUIREMENT]\nUID: SYS-1\nTITLE: A\nRELATIONS:\n- TYPE: Parent\n  VALUE: SYS-0\n\n[REQUIREMENT]\nUID: SYS-2\nTITLE: B\n\n[REQUIREMENT]\nUID: SYS-3\nATHENA_REFS: ARI-BUG-0001\n';
+    const a = setAthenaRefs(doc, 'SYS-1', ['ARI-BUG-0002', 'ARI-BUG-0001'])!;
+    expect(a).toContain('TITLE: A\nATHENA_REFS: ARI-BUG-0001, ARI-BUG-0002\nRELATIONS:');
+    expect(setAthenaRefs(a, 'SYS-1', ['ARI-BUG-0001', 'ARI-BUG-0002'])).toBeNull();
+    const b = setAthenaRefs(doc, 'SYS-2', ['ARI-REQ-0005'])!;
+    expect(b).toContain('TITLE: B\nATHENA_REFS: ARI-REQ-0005\n\n[REQUIREMENT]\nUID: SYS-3');
+    expect(setAthenaRefs(doc, 'SYS-3', ['ARI-BUG-0001', 'ARI-BUG-0009'])).toContain('ATHENA_REFS: ARI-BUG-0001, ARI-BUG-0009');
+    expect(setAthenaRefs(doc, 'SYS-404', ['ARI-BUG-0001'])).toBeNull();
     expect(setAthenaRefs(doc, 'SYS-2', [])).toBeNull();
-    expect(setAthenaRefs(doc.replace(/\n/g, '\r\n'), 'SYS-2', ['REQ-5'])).toContain('\r\nATHENA_REFS: REQ-5\r\n');
-    expect(parseSdoc(b).find((n) => n.uid === 'SYS-2')!.athenaRefs).toEqual(['REQ-5']);
+    expect(setAthenaRefs(doc.replace(/\n/g, '\r\n'), 'SYS-2', ['ARI-REQ-0005'])).toContain('\r\nATHENA_REFS: ARI-REQ-0005\r\n');
+    expect(parseSdoc(b).find((n) => n.uid === 'SYS-2')!.athenaRefs).toEqual(['ARI-REQ-0005']);
   });
 });

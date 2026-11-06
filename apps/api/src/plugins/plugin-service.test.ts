@@ -74,7 +74,7 @@ suite('service de plugins (intégration)', () => {
       statuses: [{ key: 'open', name: 'Ouvert', category: 'todo' }], transitions: [],
     }, admin);
     const ok = await artifacts.create(org, 'ARI', 'BRAND', { title: 'Bleu', color: '#12293A' }, admin);
-    expect(ok.key).toBe('BRAND-1');
+    expect(ok.key).toBe('ARI-BRAND-0001');
     expect(await code(artifacts.create(org, 'ARI', 'BRAND', { title: 'Rouge', color: 'rouge' }, admin))).toMatch(/validation.*couleur #RRGGBB attendue/);
   }, 30_000);
 
@@ -128,7 +128,7 @@ suite('service de plugins (intégration)', () => {
       widgets: { stats: async (ctx) => ({ kind: 'stat', label: 'Projet ' + ctx.project, value: 42 }) },
     };`;
     await plugins.install(org, pkg(m, extCode), ['storage'], admin);
-    expect(await plugins.runAction(org, 'com.acme.ext', 'notifier', { key: 'BRAND-1', version: 1 }, admin)).toEqual({ ok: true, key: 'BRAND-1', by: 'u-admin' });
+    expect(await plugins.runAction(org, 'com.acme.ext', 'notifier', { key: 'ARI-BRAND-0001', version: 1 }, admin)).toEqual({ ok: true, key: 'ARI-BRAND-0001', by: 'u-admin' });
     expect(await plugins.widget(org, 'com.acme.ext', 'stats', 'ARI')).toEqual({ kind: 'stat', label: 'Projet ARI', value: 42 });
     expect(await plugins.widgets(org)).toEqual([{ plugin: 'com.acme.ext', name: 'stats', title: 'Couleurs · stats' }]);
     expect(await code(plugins.runAction(org, 'com.acme.ext', 'secret', {}, admin))).toMatch(/validation.*inconnu/);

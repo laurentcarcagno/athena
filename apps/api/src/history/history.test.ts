@@ -35,16 +35,16 @@ const baoUp = !!BAO_TOKEN && probe("fetch(process.env.U+'/v1/sys/health',{signal
 const suite = pgUp && gitlabUp ? describe : describe.skip;
 
 describe('sérialisation déterministe', () => {
-  const snapshot = { key: 'BUG-1', tracker: 'BUG', status: 'open', version: 3, values: { z: 1, a: 'x', m: ['b', 'a'] } };
+  const snapshot = { key: 'ARI-BUG-0001', tracker: 'BUG', status: 'open', version: 3, values: { z: 1, a: 'x', m: ['b', 'a'] } };
   it('est stable et triée', () => {
     const a = serializeArtifact(snapshot);
     const b = serializeArtifact({ ...snapshot, values: { m: ['b', 'a'], a: 'x', z: 1 } });
     expect(a).toBe(b);
     expect(a.indexOf('a: x')).toBeLessThan(a.indexOf('z: 1'));
-    expect(parse(a)).toMatchObject({ key: 'BUG-1', version: 3, values: { a: 'x' } });
+    expect(parse(a)).toMatchObject({ key: 'ARI-BUG-0001', version: 3, values: { a: 'x' } });
   });
   it('place le fichier sous trackers/<tracker>/artifacts', () => {
-    expect(artifactPath(snapshot)).toBe('trackers/BUG/artifacts/BUG-1.yaml');
+    expect(artifactPath(snapshot)).toBe('trackers/BUG/artifacts/ARI-BUG-0001.yaml');
   });
 });
 
@@ -113,7 +113,7 @@ suite('historique GitLab (intégration)', () => {
     expect(result).toEqual({ committed: 4, failed: 0 }); // tracker.yaml + 3 révisions de l'artefact
 
     projectId = await gitlab.ensureRepository('root', `athena-history-${orgKey}-ari`);
-    const path = 'trackers/BUG/artifacts/BUG-1.yaml';
+    const path = 'trackers/BUG/artifacts/ARI-BUG-0001.yaml';
     const commits = await gitlab.commits(projectId, path, 'main');
     expect(commits.length).toBe(3);
     // Plus récent en premier : transition (Bob), mise à jour (Bob), création (Alice).
@@ -124,7 +124,7 @@ suite('historique GitLab (intégration)', () => {
     expect(commits[0]!.committer_name).not.toBe('Bob Durand'); // committer = compte de service
 
     const stored = parse(await gitlab.fileContent(projectId, path, 'main'));
-    expect(stored).toMatchObject({ key: 'BUG-1', status: 'in_progress', version: 3, values: { assignee: 'sub-bob', title: 'Crash' } });
+    expect(stored).toMatchObject({ key: 'ARI-BUG-0001', status: 'in_progress', version: 3, values: { assignee: 'sub-bob', title: 'Crash' } });
   }, 60_000);
 
   it('enregistre le SHA du commit dans la révision', async () => {
@@ -134,7 +134,7 @@ suite('historique GitLab (intégration)', () => {
 
   it("est idempotent : un second passage ne recommit rien", async () => {
     expect(await sync.runOnce()).toEqual({ committed: 0, failed: 0 });
-    const commits = await gitlab.commits(projectId, 'trackers/BUG/artifacts/BUG-1.yaml', 'main');
+    const commits = await gitlab.commits(projectId, 'trackers/BUG/artifacts/ARI-BUG-0001.yaml', 'main');
     expect(commits.length).toBe(3);
   });
 
@@ -145,7 +145,7 @@ suite('historique GitLab (intégration)', () => {
     expect(failed.failed).toBe(1);
     expect(failed.committed).toBe(0);
     expect(await sync.runOnce()).toEqual({ committed: 1, failed: 0 });
-    const commits = await gitlab.commits(projectId, 'trackers/BUG/artifacts/BUG-2.yaml', 'main');
+    const commits = await gitlab.commits(projectId, 'trackers/BUG/artifacts/ARI-BUG-0002.yaml', 'main');
     expect(commits.length).toBe(1);
   }, 60_000);
 
@@ -166,7 +166,7 @@ suite('historique GitLab (intégration)', () => {
     const secured = new HistorySync(pool, gitlab, 'root', 'main', new ConfidentialFields(bao));
     expect(await secured.runOnce()).toEqual({ committed: 2, failed: 0 }); // tracker.yaml + artefact
 
-    const raw = await gitlab.fileContent(projectId, 'trackers/SEC/artifacts/SEC-1.yaml', 'main');
+    const raw = await gitlab.fileContent(projectId, 'trackers/SEC/artifacts/ARI-SEC-0001.yaml', 'main');
     expect(raw).toContain('Visible');
     expect(raw).not.toContain('coffre-fort');
     const stored = parse(raw) as { values: Record<string, unknown> };
