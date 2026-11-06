@@ -261,6 +261,26 @@ export class TrackerService {
     });
   }
 
+  /** Renomme un statut ou change sa catégorie (la clé est immuable : les artefacts y sont rattachés). */
+  async updateStatus(organizationId: string, projectKey: string, trackerKey: string, statusKey: string, patch: { name?: string; category?: StatusSpec['category'] }, actor: Actor): Promise<void> {
+    await this.mutate(organizationId, projectKey, trackerKey, actor, `statut ${statusKey} modifié`, async (c, tracker) => {
+      const updated = await c.query('update status set name = coalesce($3, name), category = coalesce($4, category) where tracker_id = $1 and key = $2', [tracker, statusKey, patch.name ?? null, patch.category ?? null]);
+      if (updated.rowCount === 0) throw notFound(`Statut ${statusKey}`);
+    });
+  }
+
+  /** Supprime un statut sans artefact, avec les transitions qui y mènent ou en partent. */
+  async removeStatus(organizationId: string, projectKey: string, trackerKey: string, statusKey: string, actor: Actor): Promise<void> {
+    await this.mutate(organizationId, projectKey, trackerKey, actor, `statut ${statusKey} supprimé`, async (c, tracker) => {
+      const status = (await c.query('select id from status where tracker_id = $1 and key = $2', [tracker, statusKey])).rows[0];
+      if (!status) throw notFound(`Statut ${statusKey}`);
+      const used = Number((await c.query('select count(*) n from artifact where tracker_id = $1 and status_id = $2', [tracker, status.id])).rows[0].n);
+      if (used > 0) throw conflict(`${used} artefact(s) sont dans le statut ${statusKey} : il ne peut pas être supprimé.`);
+      await c.query('delete from transition where tracker_id = $1 and (from_status_id = $2 or to_status_id = $2)', [tracker, status.id]);
+      await c.query('delete from status where id = $1', [status.id]);
+    });
+  }
+
   async addTransition(organizationId: string, projectKey: string, trackerKey: string, t: TransitionSpec, actor: Actor): Promise<void> {
     await this.mutate(organizationId, projectKey, trackerKey, actor, `transition ${t.name}`, async (c, tracker) => {
       const ids = new Map((await c.query('select key, id from status where tracker_id = $1', [tracker])).rows.map((r) => [r.key as string, r.id as string]));

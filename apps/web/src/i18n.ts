@@ -197,6 +197,21 @@ const frDict = {
     generic: 'Une erreur est survenue. Réessayez.', notFoundTitle: 'Page introuvable', notFoundEyebrow: 'Erreur 404', notFound: 'Cette adresse ne correspond à aucune page.',
     unavailableEyebrow: 'Connexion', unavailable: 'Authentification indisponible.',
   },
+  upgrade: {
+    title: (from: string, to: string) => `Montée de version du gabarit : ${from} → ${to}`,
+    summary: (trackers: number, items: number) => `${trackers} tracker${trackers > 1 ? 's' : ''} concerné${trackers > 1 ? 's' : ''}, ${items} item${items > 1 ? 's' : ''} touché${items > 1 ? 's' : ''} par une évolution de schéma.`,
+    nothing: 'Aucun tracker ne change.',
+    blockers: 'Montée bloquée', warnings: 'Points d’attention',
+    tracker: 'Tracker', action: 'Action', details: 'Changements', itemsCol: 'Items',
+    actions: { create: 'À créer', update: 'À modifier', unchanged: 'Inchangé' } as Record<string, string>,
+    fieldsAdded: (l: string) => `Champs ajoutés : ${l}`, fieldsRelabeled: (l: string) => `Champs renommés : ${l}`, fieldsKept: (l: string) => `Champs retirés du gabarit, conservés : ${l}`,
+    statusesAdded: (l: string) => `États ajoutés : ${l}`, statusesRenamed: (l: string) => `États renommés : ${l}`, statusesRemoved: (l: string) => `États supprimés : ${l}`,
+    transitionsAdded: (l: string) => `Transitions ajoutées : ${l}`,
+    rules: 'Règles de couverture', rulesAdded: (l: string) => `Ajoutées : ${l}`, rulesUpdated: (l: string) => `Mises à jour : ${l}`, rulesKept: (l: string) => `Modifiées dans le projet, conservées : ${l}`, rulesRetired: (l: string) => `Retirées du gabarit, conservées : ${l}`,
+    phases: 'Phases', phasesAdded: (l: string) => `Ajoutées : ${l}`, phasesRemoved: (l: string) => `Retirées : ${l}`, phaseNext: (l: string) => `Phase courante après la montée : ${l}`,
+    apply: 'Appliquer la montée', applying: 'Application…', cancel: 'Annuler', applied: (v: string) => `Projet monté en version ${v}.`,
+    preview: 'Aperçu de la montée', previewFor: (v: string) => `Aperçu de la version ${v}`,
+  },
 };
 
 export type Dictionary = typeof frDict;
@@ -393,6 +408,21 @@ const enDict: Dictionary = {
   errors: {
     generic: 'An error occurred. Try again.', notFoundTitle: 'Page not found', notFoundEyebrow: 'Error 404', notFound: 'This address does not match any page.',
     unavailableEyebrow: 'Sign in', unavailable: 'Authentication unavailable.',
+  },
+  upgrade: {
+    title: (from: string, to: string) => `Template upgrade: ${from} → ${to}`,
+    summary: (trackers: number, items: number) => `${trackers} tracker${trackers > 1 ? 's' : ''} affected, ${items} item${items > 1 ? 's' : ''} touched by a schema change.`,
+    nothing: 'No tracker changes.',
+    blockers: 'Upgrade blocked', warnings: 'Points of attention',
+    tracker: 'Tracker', action: 'Action', details: 'Changes', itemsCol: 'Items',
+    actions: { create: 'To create', update: 'To update', unchanged: 'Unchanged' } as Record<string, string>,
+    fieldsAdded: (l: string) => `Fields added: ${l}`, fieldsRelabeled: (l: string) => `Fields renamed: ${l}`, fieldsKept: (l: string) => `Fields removed from the template, kept: ${l}`,
+    statusesAdded: (l: string) => `States added: ${l}`, statusesRenamed: (l: string) => `States renamed: ${l}`, statusesRemoved: (l: string) => `States removed: ${l}`,
+    transitionsAdded: (l: string) => `Transitions added: ${l}`,
+    rules: 'Coverage rules', rulesAdded: (l: string) => `Added: ${l}`, rulesUpdated: (l: string) => `Updated: ${l}`, rulesKept: (l: string) => `Changed in the project, kept: ${l}`, rulesRetired: (l: string) => `Retired from the template, kept: ${l}`,
+    phases: 'Phases', phasesAdded: (l: string) => `Added: ${l}`, phasesRemoved: (l: string) => `Removed: ${l}`, phaseNext: (l: string) => `Current phase after the upgrade: ${l}`,
+    apply: 'Apply the upgrade', applying: 'Applying…', cancel: 'Cancel', applied: (v: string) => `Project upgraded to version ${v}.`,
+    preview: 'Preview the upgrade', previewFor: (v: string) => `Preview of version ${v}`,
   },
 };
 

@@ -5,6 +5,7 @@ import { BodySchema } from '../openapi/body-schema';
 import { OrgResolver, parseBody } from './http';
 import { NormativeSchema } from './normative-template';
 import { TemplateService, TemplateTrackerSchema } from './template.service';
+import { TemplateUpgradeService } from './template-upgrade.service';
 
 const ParentSchema = z.object({ key: z.string().regex(/^[a-z][a-z0-9-]{1,39}$/), version: z.string().regex(/^[0-9]+(\.[0-9]+)?$/).optional() });
 
@@ -172,5 +173,40 @@ export class TrackerTemplateController {
   async remove(@Req() request: AuthedRequest, @Param('key') key: string) {
     const { organizationId, actor } = await this.orgs.resolve(request.principal!);
     await this.templates.removeTrackerTemplate(organizationId, key, actor);
+  }
+}
+
+const UpgradeBody = z.object({ version: z.string().regex(/^[0-9]+(\.[0-9]+)?$/).optional() });
+
+/** Gabarit d'un projet : version, phase, dérive, aperçu et application d'une montée de version. */
+@Controller('v1/projects')
+export class ProjectTemplateController {
+  constructor(
+    @Inject(TemplateUpgradeService) private readonly upgrades: TemplateUpgradeService,
+    @Inject(OrgResolver) private readonly orgs: OrgResolver,
+  ) {}
+
+  @Roles('athena-user', 'athena-admin')
+  @Get(':project/template')
+  async status(@Req() request: AuthedRequest, @Param('project') project: string) {
+    return this.upgrades.status((await this.orgs.resolve(request.principal!)).organizationId, project);
+  }
+
+  /** Rapport d'impact : ne modifie rien. */
+  @Roles('athena-admin')
+  @Post(':project/template/upgrade-preview')
+  @HttpCode(200)
+  @BodySchema(UpgradeBody)
+  async preview(@Req() request: AuthedRequest, @Param('project') project: string, @Body() body: unknown) {
+    return this.upgrades.preview((await this.orgs.resolve(request.principal!)).organizationId, project, parseBody(UpgradeBody, body ?? {}).version);
+  }
+
+  @Roles('athena-admin')
+  @Post(':project/template/upgrade')
+  @HttpCode(200)
+  @BodySchema(UpgradeBody)
+  async upgrade(@Req() request: AuthedRequest, @Param('project') project: string, @Body() body: unknown) {
+    const { organizationId, actor } = await this.orgs.resolve(request.principal!);
+    return this.upgrades.apply(organizationId, project, parseBody(UpgradeBody, body ?? {}).version, actor);
   }
 }

@@ -1,0 +1,217 @@
+import type { PoolClient } from 'pg';
+import { Db, type Actor } from './db';
+import { DomainError, notFound, validation } from './errors';
+import { compareVersions, type Normative } from './normative-template';
+import type { TemplateService, TemplateSnapshot, TemplateTracker } from './template.service';
+import { TrackerService, audit, type TrackerSpec } from './tracker.service';
+
+export interface TrackerUpgrade {
+  key: string; name: string; action: 'create' | 'update' | 'unchanged';
+  /** Artefacts du tracker : tous voient leur `schema_version` évoluer si le tracker change. */
+  items: number;
+  fieldsAdded: Array<{ key: string; label: string; type: string; required: boolean }>;
+  fieldsRelabeled: Array<{ key: string; from: string; to: string }>;
+  /** Champs que le gabarit a retirés : conservés dans le projet (leurs valeurs sont des données). */
+  fieldsKept: string[];
+  statusesAdded: Array<{ key: string; name: string }>;
+  statusesRenamed: Array<{ key: string; from: string; to: string }>;
+  statusesRemoved: Array<{ key: string; name: string; items: number }>;
+  transitionsAdded: string[];
+}
+export interface UpgradeReport {
+  project: string; template: string; from: string | null; to: string;
+  trackers: TrackerUpgrade[];
+  rules: { added: string[]; updated: string[]; keptLocal: string[]; /** Règles retirées du gabarit, conservées dans le projet. */ retired: string[] };
+  phases: { added: string[]; removed: string[]; current: string | null; nextCurrent: string | null };
+  /** Éléments qui empêchent la montée (état supprimé qui porte encore des items). */
+  blockers: string[];
+  warnings: string[];
+  /** Nombre total d'items concernés par une évolution de tracker. */
+  itemsConcerned: number;
+}
+export interface TrackerDrift { key: string; name: string; fieldsAdded: string[]; statusesAdded: string[]; transitionsAdded: string[] }
+export interface ProjectTemplateStatus {
+  templateKey: string | null; version: string | null; latest: string | null; upgradable: boolean; versions: string[];
+  criticality: string | null; phase: string | null; phases: Array<{ key: string; name: string; review: string }>;
+  /** Écart du projet par rapport à la version du gabarit : ce qu'il a ajouté. */
+  drift: { trackersAdded: string[]; trackers: TrackerDrift[]; total: number };
+}
+
+const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
+
+/** Montée de version d'un projet vers une version plus récente de son gabarit, avec rapport d'impact préalable. */
+export class TemplateUpgradeService {
+  constructor(private readonly db: Db, private readonly trackers: TrackerService, private readonly templates: TemplateService) {}
+
+  private async projectRow(c: PoolClient, key: string) {
+    const p = (await c.query('select id, template_key, template_version, criticality, current_phase from project where key = $1', [key])).rows[0];
+    if (!p) throw notFound(`Projet ${key}`);
+    return p as { id: string; template_key: string | null; template_version: string | null; criticality: string | null; current_phase: string | null };
+  }
+
+  /** Trackers du projet, sous la forme d'un gabarit (statuts, champs, transitions) et leur nombre d'items par statut. */
+  private async projectTrackers(organizationId: string, projectKey: string) {
+    return this.db.tx(organizationId, async (c) => {
+      const keys = (await c.query('select t.key from tracker t join project p on p.id = t.project_id where p.key = $1 order by t.key', [projectKey])).rows.map((r) => r.key as string);
+      const out = new Map<string, { name: string; fields: Array<{ key: string; label: string; type: string; required: boolean }>; statuses: Array<{ key: string; name: string; category: string; items: number }>; transitions: string[]; items: number }>();
+      for (const key of keys) {
+        const d = await this.trackers.getDefinition(c, projectKey, key);
+        const counts = new Map((await c.query('select status_id, count(*)::int n from artifact where tracker_id = $1 group by status_id', [d.id])).rows.map((r) => [r.status_id as string, r.n as number]));
+        out.set(key, {
+          name: d.name, fields: d.fields.map((f) => ({ key: f.key, label: f.label, type: f.type, required: f.required })),
+          statuses: d.statuses.map((s) => ({ key: s.key, name: s.name, category: s.category, items: counts.get(s.id) ?? 0 })),
+          transitions: d.transitions.map((t) => t.name), items: [...counts.values()].reduce((a, b) => a + b, 0),
+        });
+      }
+      return out;
+    });
+  }
+
+  /** Version du gabarit, rattachement du projet, phase et dérive (ce que le projet a ajouté au gabarit). */
+  async status(organizationId: string, projectKey: string): Promise<ProjectTemplateStatus> {
+    const p = await this.db.tx(organizationId, (c) => this.projectRow(c, projectKey));
+    const empty = { trackersAdded: [], trackers: [], total: 0 };
+    if (!p.template_key) return { templateKey: null, version: null, latest: null, upgradable: false, versions: [], criticality: p.criticality, phase: p.current_phase, phases: [], drift: empty };
+    const versions = (await this.templates.versions(organizationId, p.template_key)).map((v) => v.version);
+    const latest = versions.length ? versions[versions.length - 1]! : null;
+    if (!p.template_version) return { templateKey: p.template_key, version: null, latest, upgradable: false, versions, criticality: p.criticality, phase: p.current_phase, phases: [], drift: empty };
+    const snap = await this.templates.snapshot(organizationId, p.template_key, p.template_version);
+    return {
+      templateKey: p.template_key, version: p.template_version, latest, upgradable: latest !== null && compareVersions(latest, p.template_version) > 0, versions,
+      criticality: p.criticality, phase: p.current_phase, phases: snap.normative.phases.map((x) => ({ key: x.key, name: x.name, review: x.review })),
+      drift: await this.drift(organizationId, projectKey, snap),
+    };
+  }
+
+  /** Ce que le projet contient en plus de son gabarit : trackers, champs, états et transitions ajoutés. */
+  private async drift(organizationId: string, projectKey: string, snap: TemplateSnapshot): Promise<ProjectTemplateStatus['drift']> {
+    const actual = await this.projectTrackers(organizationId, projectKey);
+    const byKey = new Map(snap.trackers.map((t) => [t.key, t]));
+    const trackersAdded = [...actual.keys()].filter((k) => !byKey.has(k));
+    const trackers: TrackerDrift[] = [];
+    for (const [key, a] of actual) {
+      const t = byKey.get(key);
+      if (!t) continue;
+      const d: TrackerDrift = {
+        key, name: a.name,
+        fieldsAdded: a.fields.filter((f) => !t.fields.some((x) => x.key === f.key)).map((f) => f.key),
+        statusesAdded: a.statuses.filter((s) => !t.statuses.some((x) => x.key === s.key)).map((s) => s.key),
+        transitionsAdded: a.transitions.filter((n) => !t.transitions.some((x) => x.name === n)),
+      };
+      if (d.fieldsAdded.length + d.statusesAdded.length + d.transitionsAdded.length > 0) trackers.push(d);
+    }
+    const total = trackersAdded.length + trackers.reduce((n, d) => n + d.fieldsAdded.length + d.statusesAdded.length + d.transitionsAdded.length, 0);
+    return { trackersAdded, trackers, total };
+  }
+
+  /** Rapport d'impact : ne modifie rien. Sans version cible, la dernière version publiée. */
+  async preview(organizationId: string, projectKey: string, target?: string): Promise<UpgradeReport> {
+    const p = await this.db.tx(organizationId, (c) => this.projectRow(c, projectKey));
+    if (!p.template_key || !p.template_version) throw validation(['ce projet n’est pas rattaché à une version de gabarit']);
+    const to = await this.templates.snapshot(organizationId, p.template_key, target);
+    if (compareVersions(to.version, p.template_version) <= 0) throw validation([`la version ${to.version} n’est pas postérieure à la version du projet (${p.template_version})`]);
+    const from = await this.templates.snapshot(organizationId, p.template_key, p.template_version);
+    const actual = await this.projectTrackers(organizationId, projectKey);
+    const report: UpgradeReport = {
+      project: projectKey, template: p.template_key, from: p.template_version, to: to.version, trackers: [],
+      rules: { added: [], updated: [], keptLocal: [], retired: [] }, phases: { added: [], removed: [], current: p.current_phase, nextCurrent: p.current_phase },
+      blockers: [], warnings: [], itemsConcerned: 0,
+    };
+    const fromTrackers = new Map(from.trackers.map((t) => [t.key, t]));
+    for (const t of to.trackers) {
+      const a = actual.get(t.key);
+      if (!a) {
+        report.trackers.push({ key: t.key, name: t.name, action: 'create', items: 0, fieldsAdded: t.fields.map((f) => ({ key: f.key, label: f.label, type: f.type, required: f.required ?? false })), fieldsRelabeled: [], fieldsKept: [], statusesAdded: t.statuses.map((s) => ({ key: s.key, name: s.name })), statusesRenamed: [], statusesRemoved: [], transitionsAdded: t.transitions.map((x) => x.name) });
+        continue;
+      }
+      const old = fromTrackers.get(t.key);
+      const u: TrackerUpgrade = { key: t.key, name: t.name, action: 'unchanged', items: a.items, fieldsAdded: [], fieldsRelabeled: [], fieldsKept: [], statusesAdded: [], statusesRenamed: [], statusesRemoved: [], transitionsAdded: [] };
+      for (const f of t.fields) {
+        const mine = a.fields.find((x) => x.key === f.key);
+        if (!mine) u.fieldsAdded.push({ key: f.key, label: f.label, type: f.type, required: f.required ?? false });
+        else if (mine.type !== f.type) report.warnings.push(`${t.key}.${f.key} : le type passe de ${mine.type} à ${f.type} dans le gabarit ; il n’est pas modifié (les valeurs stockées en dépendent)`);
+        else if (mine.label !== f.label && old?.fields.find((x) => x.key === f.key)?.label === mine.label) u.fieldsRelabeled.push({ key: f.key, from: mine.label, to: f.label });
+      }
+      for (const f of old?.fields ?? []) if (!t.fields.some((x) => x.key === f.key) && a.fields.some((x) => x.key === f.key)) u.fieldsKept.push(f.key);
+      for (const s of t.statuses) {
+        const mine = a.statuses.find((x) => x.key === s.key);
+        if (!mine) u.statusesAdded.push({ key: s.key, name: s.name });
+        else if (mine.name !== s.name && old?.statuses.find((x) => x.key === s.key)?.name === mine.name) u.statusesRenamed.push({ key: s.key, from: mine.name, to: s.name });
+      }
+      for (const s of old?.statuses ?? []) {
+        const mine = a.statuses.find((x) => x.key === s.key);
+        if (mine && !t.statuses.some((x) => x.key === s.key)) {
+          u.statusesRemoved.push({ key: s.key, name: mine.name, items: mine.items });
+          if (mine.items > 0) report.blockers.push(`${t.key} : l’état « ${mine.name} » (${s.key}) est supprimé par le gabarit et porte ${mine.items} item(s) ; déplacez-les avant la montée`);
+        }
+      }
+      u.transitionsAdded = t.transitions.filter((x) => !a.transitions.includes(x.name)).map((x) => x.name);
+      if (u.fieldsAdded.length + u.fieldsRelabeled.length + u.statusesAdded.length + u.statusesRenamed.length + u.statusesRemoved.length + u.transitionsAdded.length > 0) u.action = 'update';
+      if (u.action === 'update' && a.items > 0 && u.fieldsAdded.some((f) => f.required)) report.warnings.push(`${t.key} : les champs obligatoires ajoutés (${u.fieldsAdded.filter((f) => f.required).map((f) => f.key).join(', ')}) sont créés facultatifs car le tracker contient déjà des items`);
+      report.trackers.push(u);
+    }
+    for (const t of from.trackers) if (!to.trackers.some((x) => x.key === t.key) && actual.has(t.key)) report.warnings.push(`${t.key} : tracker retiré du gabarit, conservé dans le projet`);
+    report.itemsConcerned = report.trackers.filter((t) => t.action === 'update').reduce((n, t) => n + t.items, 0);
+
+    const rules = await this.db.tx(organizationId, async (c) => (await c.query('select key, name, from_tracker_key, link_type_key, direction, min_count, status_filter, threshold from coverage_rule where project_id = $1', [p.id])).rows);
+    const asRule = (r: Normative['rules'][number]) => ({ name: r.name, fromTracker: r.fromTracker, linkType: r.linkType, direction: r.direction, minCount: r.minCount, statuses: r.statuses, threshold: r.threshold });
+    const row = (r: Record<string, unknown>) => ({ name: r.name, fromTracker: r.from_tracker_key, linkType: r.link_type_key, direction: r.direction, minCount: r.min_count, statuses: r.status_filter, threshold: r.threshold });
+    for (const r of to.normative.rules) {
+      const mine = rules.find((x) => x.key === r.key);
+      const was = from.normative.rules.find((x) => x.key === r.key);
+      if (!mine) report.rules.added.push(r.key);
+      else if (same(row(mine), asRule(r))) continue;
+      else if (was && same(row(mine), asRule(was))) report.rules.updated.push(r.key);
+      else report.rules.keptLocal.push(r.key);
+    }
+    for (const r of from.normative.rules) if (!to.normative.rules.some((x) => x.key === r.key) && rules.some((x) => x.key === r.key)) report.rules.retired.push(r.key);
+    report.phases.added = to.normative.phases.filter((x) => !from.normative.phases.some((y) => y.key === x.key)).map((x) => x.key);
+    report.phases.removed = from.normative.phases.filter((x) => !to.normative.phases.some((y) => y.key === x.key)).map((x) => x.key);
+    if (p.current_phase && !to.normative.phases.some((x) => x.key === p.current_phase)) {
+      report.phases.nextCurrent = to.normative.phases[0]?.key ?? null;
+      report.warnings.push(`la phase courante « ${p.current_phase} » n’existe plus dans la version ${to.version} ; le projet passe en phase « ${report.phases.nextCurrent ?? '—'} »`);
+    }
+    return report;
+  }
+
+  /**
+   * Applique la montée : chaque tracker évolue par les évolutions de configuration habituelles (nouvelle `schema_version`,
+   * événement `tracker.updated`, donc un commit de `tracker.yaml`). Bloquée tant qu'un état supprimé porte des items.
+   */
+  async apply(organizationId: string, projectKey: string, target: string | undefined, actor: Actor): Promise<UpgradeReport> {
+    const report = await this.preview(organizationId, projectKey, target);
+    if (report.blockers.length) throw new DomainError('Montée de version bloquée.', 'conflict', report.blockers);
+    const to = await this.templates.snapshot(organizationId, report.template, report.to);
+    const snapTracker = (key: string) => to.trackers.find((t) => t.key === key) as TemplateTracker;
+    for (const u of report.trackers) {
+      if (u.action === 'unchanged') continue;
+      const t = snapTracker(u.key);
+      if (u.action === 'create') { await this.trackers.createTracker(organizationId, { ...t, projectKey } as TrackerSpec, actor); continue; }
+      for (const f of u.fieldsAdded) {
+        const spec = t.fields.find((x) => x.key === f.key)!;
+        await this.trackers.addField(organizationId, projectKey, u.key, { ...spec, required: spec.required && u.items === 0 }, actor);
+      }
+      for (const f of u.fieldsRelabeled) await this.trackers.updateField(organizationId, projectKey, u.key, f.key, { label: f.to }, actor);
+      for (const s of u.statusesAdded) await this.trackers.addStatus(organizationId, projectKey, u.key, t.statuses.find((x) => x.key === s.key)!, actor);
+      for (const s of u.statusesRenamed) await this.trackers.updateStatus(organizationId, projectKey, u.key, s.key, { name: s.to }, actor);
+      for (const name of u.transitionsAdded) await this.trackers.addTransition(organizationId, projectKey, u.key, t.transitions.find((x) => x.name === name)!, actor);
+      for (const s of u.statusesRemoved) await this.trackers.removeStatus(organizationId, projectKey, u.key, s.key, actor);
+    }
+    await this.db.tx(organizationId, async (c) => {
+      const p = await this.projectRow(c, projectKey);
+      for (const key of [...report.rules.added, ...report.rules.updated]) {
+        const r = to.normative.rules.find((x) => x.key === key)!;
+        await c.query(
+          `insert into coverage_rule (organization_id, project_id, key, name, from_tracker_key, link_type_key, direction, min_count, status_filter, threshold)
+           values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+           on conflict (project_id, key) where project_id is not null do update set name = excluded.name, from_tracker_key = excluded.from_tracker_key,
+             link_type_key = excluded.link_type_key, direction = excluded.direction, min_count = excluded.min_count, status_filter = excluded.status_filter, threshold = excluded.threshold`,
+          [organizationId, p.id, r.key, r.name, r.fromTracker, r.linkType, r.direction, r.minCount, r.statuses, JSON.stringify(r.threshold)],
+        );
+      }
+      await c.query('update project set template_version = $2, current_phase = $3 where id = $1', [p.id, report.to, report.phases.nextCurrent]);
+      await audit(c, organizationId, actor, 'project.template_upgrade', `project:${projectKey}`, { template: report.template, from: report.from, to: report.to });
+    });
+    return report;
+  }
+}
