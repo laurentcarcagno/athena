@@ -1,4 +1,4 @@
-# T-0055 : Onglets Planification, Code et intégration, Activité, Membres
+# T-0055 : Onglets Planification, Code et intégration, Membres (l'Activité passe à T-0101)
 
 - **Lot** : 1 (reprise IHM, voir `docs/dev/DECISIONS/ADR-0002-ihm-cible.md`)
 - **Objectif** : Réutiliser le contenu existant dans les nouveaux onglets : sprints, boards, versions (Gestion de projet), dépôts et pipelines, flux d'activité, membres.

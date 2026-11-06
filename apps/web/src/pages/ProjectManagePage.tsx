@@ -19,7 +19,8 @@ export function parseColumns(raw: string): Array<{ name: string; statuses: strin
   });
 }
 
-function ActorsTab({ project }: { project: string }) {
+/** Acteurs du projet (onglet Membres). */
+export function ActorsTab({ project }: { project: string }) {
   const toast = useToast();
   const fail = useFailure();
   const [members, setMembers] = useState<MemberEntry[]>([]);
@@ -187,7 +188,7 @@ function BoardsTab({ project }: { project: string }) {
 /** Fenêtre du chef de projet : acteurs du projet, sprints, versions, boards. */
 export function ProjectManagePage({ session }: { session: Session }) {
   const { project } = useParams();
-  const [tab, setTab] = useState('actors');
+  const [tab, setTab] = useState('sprints');
   const roles = session.user?.roles ?? [];
   if (!roles.includes('athena-admin') && !roles.includes('athena-pm')) {
     return <><PageHeader eyebrow={fr.manage.eyebrow} title={`${fr.manage.title} · ${project}`} /><p className="ath-field__error">{fr.manage.restricted}</p></>;
@@ -195,9 +196,8 @@ export function ProjectManagePage({ session }: { session: Session }) {
   return (
     <>
       <PageHeader eyebrow={fr.manage.eyebrow} title={`${fr.manage.title} · ${project}`} />
-      <Tabs tabs={[{ id: 'actors', label: fr.manage.actors }, { id: 'sprints', label: fr.manage.sprints }, { id: 'releases', label: fr.manage.releases }, { id: 'boards', label: fr.manage.boards }]} active={tab} onChange={setTab} />
+      <Tabs tabs={[{ id: 'sprints', label: fr.manage.sprints }, { id: 'releases', label: fr.manage.releases }, { id: 'boards', label: fr.manage.boards }]} active={tab} onChange={setTab} />
       <div role="tabpanel" className="ath-stack">
-        {tab === 'actors' && <ActorsTab project={project!} />}
         {tab === 'sprints' && <SprintsTab project={project!} />}
         {tab === 'releases' && <ReleasesTab project={project!} />}
         {tab === 'boards' && <BoardsTab project={project!} />}

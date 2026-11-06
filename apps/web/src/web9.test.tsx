@@ -13,15 +13,19 @@ const OVERVIEW = [
   { key: 'NOTE', name: 'Notes', typeKey: null, category: 'other', artifacts: 0, mine: 0, lastActivity: null, statuses: [{ key: 'new', name: 'Nouveau', category: 'todo', count: 0 }] },
 ];
 const calls: string[] = [];
+let repos: Array<{ path: string; defaultBranch: string }> = [];
 let modules: string[] | 'error' = ['overview', 'trackers', 'planning', 'traceability', 'documents', 'code', 'activity', 'members'];
 
 beforeEach(() => {
   calls.length = 0;
+  repos = [];
   modules = ['overview', 'trackers', 'planning', 'traceability', 'documents', 'code', 'activity', 'members'];
   vi.stubGlobal('fetch', vi.fn(async (input: string) => {
     calls.push(input);
     const ok = (body: unknown) => new Response(JSON.stringify(body), { status: 200 });
     if (/\/modules$/.test(input)) return modules === 'error' ? new Response('{}', { status: 500 }) : ok({ modules });
+    if (/\/code-repos$/.test(input)) return ok(repos);
+    if (/\/dora\?/.test(input)) return ok({ windowDays: 30, deployments: 6, deploymentFrequency: 0.2, leadTimeHours: 12.5, changeFailureRate: 0.25, mttrHours: null });
     if (/\/overview$/.test(input)) return ok({ trackers: OVERVIEW });
     if (/\/dashboard$/.test(input)) return ok({ byCategory: { todo: 3, in_progress: 2, done: 7 }, byTracker: [{ tracker: 'BUG', total: 12, open: 5 }], distribution: null, recent: [] });
     if (/\/velocity$/.test(input)) return ok({ sprints: [], average: 0, forecast: 0 });
@@ -56,13 +60,13 @@ describe('coquille de projet', () => {
   it('affiche la barre d’onglets avec l’onglet courant signalé', async () => {
     app('/p/ARI');
     await screen.findByRole('heading', { level: 1, name: 'Vue d’ensemble · ARI' });
-    expect(tabNames()).toEqual(['Vue d’ensemble', 'Trackers', 'Planification']);
+    expect(tabNames()).toEqual(['Vue d’ensemble', 'Trackers', 'Planification', 'Code et intégration', 'Membres']);
     expect(screen.getByRole('link', { name: 'Vue d’ensemble' })).toHaveAttribute('aria-current', 'page');
     expect(screen.getByRole('link', { name: 'Planification' })).not.toHaveAttribute('aria-current');
   });
 
   it('masque l’onglet dont le module est inactif, sans décaler les autres', async () => {
-    modules = ['overview', 'trackers', 'activity', 'members']; // planification inactive
+    modules = ['overview', 'trackers', 'activity']; // planification, code et membres inactifs
     app('/p/ARI');
     await waitFor(() => expect(tabNames()).toEqual(['Vue d’ensemble', 'Trackers']));
   });
@@ -71,7 +75,7 @@ describe('coquille de projet', () => {
     modules = 'error';
     app('/p/ARI');
     await screen.findByRole('heading', { level: 1, name: 'Vue d’ensemble · ARI' });
-    expect(tabNames()).toEqual(['Vue d’ensemble', 'Trackers', 'Planification']);
+    expect(tabNames()).toEqual(['Vue d’ensemble', 'Trackers', 'Planification', 'Code et intégration', 'Membres']);
   });
 
   it('se parcourt au clavier : chaque onglet est un lien, atteint par Tab', async () => {
@@ -105,7 +109,7 @@ describe('anciennes adresses', () => {
   });
   it('redirige /manage vers Planification et /dashboard vers la Vue d’ensemble', async () => {
     const first = app('/p/ARI/manage');
-    expect(await screen.findByRole('heading', { level: 1, name: 'Gestion du projet · ARI' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { level: 1, name: 'Planification · ARI' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Planification' })).toHaveAttribute('aria-current', 'page');
     first.unmount();
     app('/p/ARI/dashboard');
@@ -147,5 +151,38 @@ describe('Vue d’ensemble', () => {
     expect(within(card).getByText('5 ouverts / 10')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Tout voir dans la Recherche' })).toHaveAttribute('href', '/p/ARI/recherche?q=assignee%20%3D%20%22u%22');
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
+  });
+});
+
+describe('onglets Planification, Membres et Code', () => {
+  it('Membres : les acteurs sont réservés aux chefs de projet et administrateurs', async () => {
+    app('/p/ARI/membres');
+    await screen.findByRole('heading', { level: 1, name: 'Membres · ARI' });
+    expect(screen.getByText('Réservé aux chefs de projet et aux administrateurs.')).toBeInTheDocument();
+  });
+  it('Membres : un chef de projet voit la liste des acteurs', async () => {
+    app('/p/ARI/membres', ['athena-user', 'athena-pm']);
+    await screen.findByRole('heading', { level: 1, name: 'Membres · ARI' });
+    expect(screen.queryByText('Réservé aux chefs de projet et aux administrateurs.')).not.toBeInTheDocument();
+    await waitFor(() => expect(calls.some((c) => c.endsWith('/v1/projects/ARI/members'))).toBe(true));
+  });
+  it('Planification n’affiche plus les acteurs : sprints, versions, boards', async () => {
+    app('/p/ARI/planification', ['athena-user', 'athena-pm']);
+    await screen.findByRole('heading', { level: 1, name: 'Planification · ARI' });
+    const tabs = screen.getAllByRole('tab').map((t) => t.textContent);
+    expect(tabs).toEqual(['Sprints', 'Versions', 'Boards']);
+  });
+  it('Code : dépôts liés et indicateurs de livraison, vide sinon', async () => {
+    app('/p/ARI/code');
+    await screen.findByRole('heading', { level: 1, name: 'Code et intégration · ARI' });
+    expect(await screen.findByText('Aucun dépôt lié à ce projet.')).toBeInTheDocument();
+  });
+  it('Code : liste les dépôts en mono et les indicateurs DORA', async () => {
+    repos = [{ path: 'ariane/obc', defaultBranch: 'main' }];
+    app('/p/ARI/code');
+    expect(await screen.findByText('ariane/obc')).toHaveClass('ath-mono');
+    const row = (await screen.findByText('Taux d’échec')).closest('tr')!;
+    expect(within(row).getByText('25 %')).toBeInTheDocument();
+    expect(within(screen.getByText('Rétablissement (h)').closest('tr')!).getByText('—')).toBeInTheDocument();
   });
 });

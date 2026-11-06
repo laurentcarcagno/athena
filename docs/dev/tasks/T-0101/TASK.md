@@ -1,0 +1,21 @@
+# T-0101 : Onglet Activité (flux chronologique)
+
+- **Lot** : 1 (reprise IHM ; découpée de T-0055, exécutée juste après)
+- **Objectif** : flux chronologique des événements du projet, filtrable par tracker, personne et type d'événement.
+- **Fichiers concernés** :
+  - `apps/api/src/core/project-overview.service.ts` (flux)
+  - `apps/api/src/core/project-overview.controller.ts` (`GET /v1/projects/:p/activity`)
+  - `apps/web/src/pages/project/ActivityTab.tsx`
+  - `apps/web/src/pages/project/ProjectShell.tsx` (`IMPLEMENTED_TABS`), `apps/web/src/App.tsx`, `apps/web/src/i18n.ts`
+- **Migration** : aucune (révisions d'artefacts et commentaires existants ; transitions déduites du diff de statut).
+- **Critères d'acceptation** (testables) :
+  - Le flux liste créations, modifications, transitions et commentaires, du plus récent au plus ancien, avec auteur (nom affiché), clé en mono, tracker, date
+  - Filtres : tracker, personne, type d'événement ; pagination par curseur
+  - Les champs à lecture restreinte n'apparaissent pas dans le résumé pour un lecteur sans le rôle ; les artefacts non lisibles n'y figurent pas
+  - Une entrée renvoie à la fiche de l'artefact
+- **Tests à écrire** :
+  - API : ordre, filtres, pagination, champs masqués, RLS
+  - Vitest/RTL : filtres, état vide, lien vers la fiche ; axe
+- **Règles communes** : interface Hemeria (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
+- **Hors périmètre** : notifications (Lot 7).
+- **Dépendances** : T-0055

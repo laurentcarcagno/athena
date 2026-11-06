@@ -16,6 +16,8 @@ import { ProjectsPage } from './pages/ProjectsPage';
 import { OverviewOrLegacySearch, ProjectShell } from './pages/project/ProjectShell';
 import { OverviewTab } from './pages/project/OverviewTab';
 import { TrackersTab } from './pages/project/TrackersTab';
+import { CodeTab } from './pages/project/CodeTab';
+import { MembersTab } from './pages/project/MembersTab';
 import { TrackerConfigPage } from './pages/TrackerConfigPage';
 import { TrackerCreatePage } from './pages/TrackerCreatePage';
 
@@ -110,6 +112,8 @@ export function AuthenticatedApp({ session }: { session: Session }) {
           <Route index element={<OverviewOrLegacySearch><OverviewTab session={session} /></OverviewOrLegacySearch>} />
           <Route path="trackers" element={<TrackersTab />} />
           <Route path="planification" element={<ProjectManagePage session={session} />} />
+          <Route path="code" element={<CodeTab />} />
+          <Route path="membres" element={<MembersTab session={session} />} />
         </Route>
         <Route path="/p/:project/recherche" element={<ListPage session={session} />} />
         <Route path="/p/:project/manage" element={<RedirectTo to="planification" />} />

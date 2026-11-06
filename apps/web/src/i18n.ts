@@ -55,7 +55,7 @@ const frDict = {
     install: 'Installer un plugin', packageJson: 'Paquet signé (JSON : manifest, code, signature)', grants: 'Permissions accordées', installAction: 'Installer', installed: 'Plugin installé.', uninstall: 'Désinstaller', uninstalled: 'Plugin désinstallé.', badPackage: 'Le paquet n’est pas un JSON valide.',
   },
   manage: {
-    eyebrow: 'Gestion de projet', title: 'Gestion du projet', actors: 'Acteurs', sprints: 'Sprints', releases: 'Versions', boards: 'Boards',
+    eyebrow: 'Gestion de projet', title: 'Planification', actors: 'Acteurs', sprints: 'Sprints', releases: 'Versions', boards: 'Boards',
     addActor: 'Ajouter l’acteur', role: 'Rôle', manager: 'Chef de projet', member: 'Membre', removeActor: 'Retirer', actorSet: 'Acteur enregistré.', actorRemoved: 'Acteur retiré.', restricted: 'Réservé aux chefs de projet et aux administrateurs.',
     sprintName: 'Nom du sprint', goal: 'Objectif', starts: 'Début', ends: 'Fin', createSprint: 'Créer le sprint', start: 'Démarrer', close: 'Clore', state: 'État', saved: 'Enregistré.',
     releaseName: 'Nom de la version', createRelease: 'Créer la version', publish: 'Publier',
@@ -85,6 +85,10 @@ const frDict = {
   trackersTab: {
     title: 'Trackers', empty: 'Aucun tracker dans ce projet.', items: (n: number) => (n === 1 ? '1 item' : `${n} items`), mine: (n: number) => (n === 1 ? '1 à moi' : `${n} à moi`),
     lastActivity: 'Dernière activité', never: 'Aucune activité', statusSummary: 'Répartition par état', openTracker: 'Ouvrir',
+  },
+  codeTab: {
+    title: 'Code et intégration', repos: 'Dépôts liés', noRepos: 'Aucun dépôt lié à ce projet.', path: 'Dépôt', branch: 'Branche par défaut', delivery: 'Livraison (30 derniers jours)',
+    metric: 'Indicateur', value: 'Valeur', deployments: 'Déploiements', frequency: 'Fréquence par jour', leadTime: 'Délai de livraison (h)', failureRate: 'Taux d’échec', mttr: 'Rétablissement (h)', none: '—',
   },
   types: {
     title: 'Types de tracker', note: 'Un type fixe la catégorie, les vues proposées et le socle de champs des trackers qui en dérivent. Les types livrés se modifient et se réinitialisent.',
@@ -183,7 +187,7 @@ const enDict: Dictionary = {
     install: 'Install a plugin', packageJson: 'Signed package (JSON: manifest, code, signature)', grants: 'Granted permissions', installAction: 'Install', installed: 'Plugin installed.', uninstall: 'Uninstall', uninstalled: 'Plugin uninstalled.', badPackage: 'The package is not valid JSON.',
   },
   manage: {
-    eyebrow: 'Project management', title: 'Project management', actors: 'Actors', sprints: 'Sprints', releases: 'Releases', boards: 'Boards',
+    eyebrow: 'Project management', title: 'Planning', actors: 'Actors', sprints: 'Sprints', releases: 'Releases', boards: 'Boards',
     addActor: 'Add actor', role: 'Role', manager: 'Project manager', member: 'Member', removeActor: 'Remove', actorSet: 'Actor saved.', actorRemoved: 'Actor removed.', restricted: 'Restricted to project managers and administrators.',
     sprintName: 'Sprint name', goal: 'Goal', starts: 'Start', ends: 'End', createSprint: 'Create sprint', start: 'Start', close: 'Close', state: 'State', saved: 'Saved.',
     releaseName: 'Release name', createRelease: 'Create release', publish: 'Publish',
@@ -213,6 +217,10 @@ const enDict: Dictionary = {
   trackersTab: {
     title: 'Trackers', empty: 'No tracker in this project.', items: (n: number) => (n === 1 ? '1 item' : `${n} items`), mine: (n: number) => `${n} mine`,
     lastActivity: 'Last activity', never: 'No activity', statusSummary: 'Breakdown by status', openTracker: 'Open',
+  },
+  codeTab: {
+    title: 'Code and integration', repos: 'Linked repositories', noRepos: 'No repository linked to this project.', path: 'Repository', branch: 'Default branch', delivery: 'Delivery (last 30 days)',
+    metric: 'Metric', value: 'Value', deployments: 'Deployments', frequency: 'Per day', leadTime: 'Lead time (h)', failureRate: 'Failure rate', mttr: 'Time to restore (h)', none: '—',
   },
   types: {
     title: 'Tracker types', note: 'A type sets the category, the proposed views and the base fields of the trackers derived from it. Built-in types can be edited and reset.',
