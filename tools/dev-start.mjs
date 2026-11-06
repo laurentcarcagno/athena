@@ -59,25 +59,32 @@ async function prepare() {
   await pool.end();
 }
 
-/** Garantit le rôle athena-pm et le compte pm.dev sur un Keycloak déjà initialisé (l'import du royaume n'a lieu qu'une fois). */
+/** Garantit les rôles athena-pm et athena-qa et les comptes pm.dev et qa.dev sur un Keycloak déjà initialisé (l'import du royaume n'a lieu qu'une fois). */
 async function ensureKeycloak() {
   const base = 'http://localhost:8080';
   const form = new URLSearchParams({ grant_type: 'password', client_id: 'admin-cli', username: get('KEYCLOAK_ADMIN'), password: get('KEYCLOAK_ADMIN_PASSWORD') });
   const token = (await (await fetch(`${base}/realms/master/protocol/openid-connect/token`, { method: 'POST', body: form })).json()).access_token;
-  if (!token) { console.log('Keycloak : jeton administrateur indisponible, rôle athena-pm non vérifié'); return; }
+  if (!token) { console.log('Keycloak : jeton administrateur indisponible, rôles athena-pm et athena-qa non vérifiés'); return; }
   const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
   const api = (path, init = {}) => fetch(`${base}/admin/realms/athena${path}`, { headers, ...init });
-  if ((await api('/roles/athena-pm')).status === 404) await api('/roles', { method: 'POST', body: JSON.stringify({ name: 'athena-pm', description: 'Chef de projet' }) });
-  let users = await (await api('/users?username=pm.dev&exact=true')).json();
-  if (users.length === 0) {
-    await api('/users', { method: 'POST', body: JSON.stringify({ username: 'pm.dev', enabled: true, email: 'pm.dev@example.test', emailVerified: true, firstName: 'Chef', lastName: 'Projet', credentials: [{ type: 'password', value: 'dev-only-pm', temporary: false }] }) });
-    users = await (await api('/users?username=pm.dev&exact=true')).json();
+  for (const [name, description] of [['athena-pm', 'Chef de projet'], ['athena-qa', 'Assurance qualité étatique (lecture seule, approbation des jalons et baselines)']]) {
+    if ((await api(`/roles/${name}`)).status === 404) await api('/roles', { method: 'POST', body: JSON.stringify({ name, description }) });
   }
-  const id = users[0].id;
-  const roles = await Promise.all(['athena-pm', 'athena-user'].map(async (n) => (await api(`/roles/${n}`)).json()));
-  await api(`/users/${id}/role-mappings/realm`, { method: 'POST', body: JSON.stringify(roles) });
   const group = (await (await api('/groups?search=org-demo')).json())[0];
-  if (group) await api(`/users/${id}/groups/${group.id}`, { method: 'PUT' });
+  for (const { username, password, firstName, lastName, roles: wanted } of [
+    { username: 'pm.dev', password: 'dev-only-pm', firstName: 'Chef', lastName: 'Projet', roles: ['athena-pm', 'athena-user'] },
+    { username: 'qa.dev', password: 'dev-only-qa', firstName: 'Assurance', lastName: 'Qualité', roles: ['athena-qa'] },
+  ]) {
+    let users = await (await api(`/users?username=${username}&exact=true`)).json();
+    if (users.length === 0) {
+      await api('/users', { method: 'POST', body: JSON.stringify({ username, enabled: true, email: `${username}@example.test`, emailVerified: true, firstName, lastName, credentials: [{ type: 'password', value: password, temporary: false }] }) });
+      users = await (await api(`/users?username=${username}&exact=true`)).json();
+    }
+    const id = users[0].id;
+    const roles = await Promise.all(wanted.map(async (n) => (await api(`/roles/${n}`)).json()));
+    await api(`/users/${id}/role-mappings/realm`, { method: 'POST', body: JSON.stringify(roles) });
+    if (group) await api(`/users/${id}/groups/${group.id}`, { method: 'PUT' });
+  }
 }
 
 await ensureKeycloak().catch((e) => console.log(`Keycloak : ${e.message}`));
@@ -108,7 +115,7 @@ const procs = [
   child.on('exit', (code) => console.log(`[${name}] arrêté (${code})`));
   return child;
 });
-console.log('Athena démarre : http://localhost:3000  (utilisateurs : user.dev / dev-only-user ; admin.dev / dev-only-admin, TOTP à configurer ; pm.dev / dev-only-pm)');
+console.log('Athena démarre : http://localhost:3000  (utilisateurs : user.dev / dev-only-user ; admin.dev / dev-only-admin, TOTP à configurer ; pm.dev / dev-only-pm ; qa.dev / dev-only-qa, assurance qualité étatique)');
 const stop = () => { procs.forEach((p) => p.kill()); process.exit(0); };
 process.on('SIGINT', stop);
 process.on('SIGTERM', stop);

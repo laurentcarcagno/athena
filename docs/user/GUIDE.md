@@ -76,6 +76,16 @@ Une phase se termine par une revue : on ne passe à la phase suivante que si ses
 
 **Conformité** : l'onglet *Conformité* apparaît quand le projet a un tracker d'exigences normatives (NORM). On y importe les clauses d'une norme depuis un CSV (référence, titre, texte), on indique pour chaque clause et chaque catégorie si elle est applicable, non applicable ou modifiée (avec justification), et on lie chaque clause applicable à une preuve. Le taux de conformité s'exporte en CSV pour un audit.
 
+## Instance Défense : protection, besoin d'en connaître, contrôle export
+
+**Niveau de protection.** Une instance a un niveau de protection (par exemple « Diffusion Restreinte »), réglé par l'administrateur à l'installation (`ATHENA_PROTECTION_LEVEL`). Un bandeau le rappelle en tête de chaque page, et la mention figure en en-tête et en pied de tous les exports (CSV, YAML, notes de version). Sans niveau, il n'y a ni bandeau ni mention.
+
+**Besoin d'en connaître.** Dans l'onglet *Membres*, un administrateur ou un chef de projet crée la liste d'ayants droit d'un projet ou d'un tracker. Dès qu'une liste existe, seuls ses membres lisent la portée, administrateurs d'organisation compris ; la recherche, les compteurs, les tableaux de bord et les liens la respectent. Une liste garde toujours au moins un membre ; pour lever la restriction, on supprime la liste. Chaque changement est consigné dans le journal d'audit.
+
+**Contrôle export.** Un responsable marque un item ITAR, EAR ou double usage depuis sa fiche. L'item n'est alors lisible que des ayants droit du contrôle export du projet (liste distincte, dans l'onglet *Membres*). Les items liés affichent seulement « lien vers un item sous contrôle export », sans titre ni contenu ; les webhooks sortants n'envoient ses événements qu'aux abonnements déclarés habilités.
+
+**Assurance qualité étatique.** Ce rôle lit ce que sa liste d'ayants droit autorise et n'écrit rien. Il approuve ou refuse, sous son nom et avec horodatage, les jalons et les baselines pour lesquels un responsable a exigé une approbation (page *Planification*, onglet *Approbations*). Un jalon qui requiert une approbation ne peut pas être publié sans elle.
+
 ## Fenêtres selon le rôle
 - **Utilisateur** (`athena-user`) : **Mon travail** liste les artefacts qui vous sont assignés (hors terminés) et ceux à prendre (non assignés, à faire) ; **Prendre** vous assigne l'artefact.
 - **Chef de projet** (`athena-pm`) : **Gestion de projet** (`/p/<projet>/manage`) : acteurs du projet (chef ou membre, choisis parmi les comptes déjà connectés), sprints (créer, démarrer, clore), versions (créer, publier), boards (créer). Un chef de projet ne gère que les projets dont il est désigné **chef**.

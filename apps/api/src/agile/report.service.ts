@@ -1,3 +1,4 @@
+import { approvalState } from '../core/approval.service';
 import type { PoolClient } from 'pg';
 import { Db, type Actor } from '../core/db';
 import { conflict, notFound, validation } from '../core/errors';
@@ -115,6 +116,12 @@ export class ReportService {
 
   async publish(organizationId: string, releaseId: string, actor: Actor): Promise<void> {
     await this.db.tx(organizationId, async (c) => {
+      const gate = (await c.query('select requires_approval from release where id = $1', [releaseId])).rows[0];
+      if (gate?.requires_approval) {
+        const decisions = (await c.query("select decision from approval where object_type = 'release' and object_id = $1", [releaseId])).rows as Array<{ decision: string }>;
+        const state = approvalState(true, decisions);
+        if (state !== 'approved') throw conflict(state === 'rejected' ? 'Ce jalon a été refusé par l’assurance qualité étatique.' : 'Ce jalon requiert l’approbation de l’assurance qualité étatique avant publication.');
+      }
       const result = await c.query("update release set state = 'released' where id = $1 and state = 'planned'", [releaseId]);
       if (result.rowCount === 0) throw conflict('Release inconnue ou déjà publiée.');
       await audit(c, organizationId, actor, 'release.publish', `release:${releaseId}`);

@@ -179,11 +179,11 @@ describe('onglets Planification, Membres et Code', () => {
     expect(screen.queryByText('Réservé aux chefs de projet et aux administrateurs.')).not.toBeInTheDocument();
     await waitFor(() => expect(calls.some((c) => c.endsWith('/v1/projects/ARI/members'))).toBe(true));
   });
-  it('Planification n’affiche plus les acteurs : sprints, versions, boards', async () => {
+  it('Planification n’affiche plus les acteurs : sprints, versions, boards, approbations', async () => {
     app('/p/ARI/planification', ['athena-user', 'athena-pm']);
     await screen.findByRole('heading', { level: 1, name: 'Planification · ARI' });
     const tabs = screen.getAllByRole('tab').map((t) => t.textContent);
-    expect(tabs).toEqual(['Sprints', 'Versions', 'Boards']);
+    expect(tabs).toEqual(['Sprints', 'Versions', 'Boards', 'Approbations']);
   });
   it('Code : dépôts liés et indicateurs de livraison, vide sinon', async () => {
     app('/p/ARI/code');

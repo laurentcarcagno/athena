@@ -1,3 +1,4 @@
+import { ApprovalsPanel } from '../components/ApprovalsPanel';
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { useParams } from 'react-router-dom';
 import { Btn, Card, EmptyState, Field, PageHeader, StatusPill, Table, Tabs, Td, Th, useToast } from '@athena/ui';
@@ -191,17 +192,23 @@ export function ProjectManagePage({ session }: { session: Session }) {
   const { project } = useParams();
   const [tab, setTab] = useState('sprints');
   const roles = session.user?.roles ?? [];
-  if (!roles.includes('athena-admin') && !roles.includes('athena-pm')) {
+  const manager = roles.includes('athena-admin') || roles.includes('athena-pm');
+  const qa = roles.includes('athena-qa');
+  if (!manager && qa) {
+    return <><PageHeader eyebrow={fr.manage.eyebrow} title={`${fr.manage.title} · ${project}`} /><p className="ath-eyebrow">{fr.approvals.qaOnly}</p><ApprovalsPanel project={project!} canRequire={false} canDecide /></>;
+  }
+  if (!manager) {
     return <><PageHeader eyebrow={fr.manage.eyebrow} title={`${fr.manage.title} · ${project}`} /><p className="ath-field__error">{fr.manage.restricted}</p></>;
   }
   return (
     <>
       <PageHeader eyebrow={fr.manage.eyebrow} title={`${fr.manage.title} · ${project}`} />
-      <Tabs tabs={[{ id: 'sprints', label: fr.manage.sprints }, { id: 'releases', label: fr.manage.releases }, { id: 'boards', label: fr.manage.boards }]} active={tab} onChange={setTab} />
+      <Tabs tabs={[{ id: 'sprints', label: fr.manage.sprints }, { id: 'releases', label: fr.manage.releases }, { id: 'boards', label: fr.manage.boards }, { id: 'approvals', label: fr.approvals.title }]} active={tab} onChange={setTab} />
       <div role="tabpanel" className="ath-stack">
         {tab === 'sprints' && <SprintsTab project={project!} />}
         {tab === 'releases' && <ReleasesTab project={project!} />}
         {tab === 'boards' && <BoardsTab project={project!} />}
+        {tab === 'approvals' && <ApprovalsPanel project={project!} canRequire canDecide={false} />}
       </div>
     </>
   );

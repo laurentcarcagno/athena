@@ -273,6 +273,14 @@ const frDict = {
     membersTitle: 'Ayants droit du contrôle export', membersHelp: 'Seuls ces comptes lisent les items marqués du projet. Sans ayant droit, aucun item ne peut être marqué.', markedCount: (n: number) => `${n} item${n > 1 ? 's' : ''} marqué${n > 1 ? 's' : ''}`,
     noMembers: 'Aucun ayant droit.', add: 'Ajouter', addMember: 'Ajouter un ayant droit du marquage', remove: 'Retirer', saved: 'Ayants droit enregistrés.', lastWithMarked: 'Des items sont marqués : la liste garde au moins un membre.',
   },
+  approvals: {
+    title: 'Approbations', empty: 'Aucun jalon ni baseline.', object: 'Objet', required: 'Approbation requise', state: 'État', decisions: 'Décisions', actions: 'Actions', yes: 'Oui', no: 'Non',
+    types: { release: 'Jalon', baseline: 'Baseline' } as Record<string, string>, states: { not_required: 'Non requise', pending: 'En attente', approved: 'Approuvée', rejected: 'Refusée' } as Record<string, string>,
+    approvedBy: (n: string) => `Approuvée par ${n}`, rejectedBy: (n: string) => `Refusée par ${n}`,
+    requireApproval: 'Exiger l’approbation', dropRequirement: 'Ne plus exiger', approve: 'Approuver', reject: 'Refuser', comment: 'Commentaire', saved: 'Exigence enregistrée.', decided: 'Décision enregistrée.',
+    approveTitle: (r: string) => `Approuver ${r}`, rejectTitle: (r: string) => `Refuser ${r}`, decideBody: 'La décision est nominative, horodatée et consignée dans le journal d’audit.',
+    qaOnly: 'Rôle assurance qualité étatique : lecture seule, avec approbation des jalons et des baselines.',
+  },
 };
 
 export type Dictionary = typeof frDict;
@@ -545,6 +553,14 @@ const enDict: Dictionary = {
     managersOnly: 'Only managers change the marking.',
     membersTitle: 'Export-control entitled users', membersHelp: 'Only these accounts read the project’s marked items. Without any entitled user, no item can be marked.', markedCount: (n: number) => `${n} marked item${n > 1 ? 's' : ''}`,
     noMembers: 'No entitled user.', add: 'Add', addMember: 'Add an export-control entitled user', remove: 'Remove', saved: 'Entitled users saved.', lastWithMarked: 'Items are marked: the list keeps at least one member.',
+  },
+  approvals: {
+    title: 'Approvals', empty: 'No milestone or baseline.', object: 'Object', required: 'Approval required', state: 'State', decisions: 'Decisions', actions: 'Actions', yes: 'Yes', no: 'No',
+    types: { release: 'Milestone', baseline: 'Baseline' } as Record<string, string>, states: { not_required: 'Not required', pending: 'Pending', approved: 'Approved', rejected: 'Rejected' } as Record<string, string>,
+    approvedBy: (n: string) => `Approved by ${n}`, rejectedBy: (n: string) => `Rejected by ${n}`,
+    requireApproval: 'Require approval', dropRequirement: 'No longer require', approve: 'Approve', reject: 'Reject', comment: 'Comment', saved: 'Requirement saved.', decided: 'Decision saved.',
+    approveTitle: (r: string) => `Approve ${r}`, rejectTitle: (r: string) => `Reject ${r}`, decideBody: 'The decision is named, timestamped and recorded in the audit log.',
+    qaOnly: 'State quality assurance role: read-only, with approval of milestones and baselines.',
   },
 };
 

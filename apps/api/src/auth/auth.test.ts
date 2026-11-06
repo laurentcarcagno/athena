@@ -126,4 +126,18 @@ describe('garde HTTP', () => {
     const token = await sign({ realm_access: { roles: ['athena-admin'] } });
     expect((await get('/v1/admin/ping', token)).statusCode).toBe(200);
   });
+
+  const send = (url: string, token: string, method: 'POST' | 'PUT' | 'DELETE' = 'POST') => app.inject({ method, url, headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' }, payload: '{}' });
+
+  it('assurance qualité étatique : lit comme un utilisateur, n’écrit rien, et réserve la décision d’approbation à son rôle', async () => {
+    const qa = await sign({ preferred_username: 'qa', realm_access: { roles: ['athena-qa'] } });
+    expect((await get('/v1/me', qa)).statusCode).toBe(200); // lecture : vaut « utilisateur »
+    expect((await get('/v1/admin/ping', qa)).statusCode).toBe(403); // jamais administrateur
+    for (const url of ['/v1/projects/ARI/trackers/BUG/artifacts', '/v1/projects/ARI/baselines', '/v1/projects/ARI/releases']) expect((await send(url, qa)).statusCode, url).toBe(403); // aucune écriture
+    expect((await send('/v1/projects/ARI/approvals/release/R1/required', qa, 'PUT')).statusCode).toBe(403); // pas d’exigence d’approbation
+    const user = await sign({ preferred_username: 'u', realm_access: { roles: ['athena-user'] } });
+    expect((await send('/v1/projects/ARI/approvals/release/R1/decision', user)).statusCode).toBe(403); // la décision est réservée au rôle
+    const admin = await sign({ preferred_username: 'a', realm_access: { roles: ['athena-admin'] } });
+    expect((await send('/v1/projects/ARI/approvals/release/R1/decision', admin)).statusCode).toBe(403); // un administrateur n’approuve pas à la place de l’assurance qualité
+  });
 });

@@ -54,6 +54,11 @@ export class AuthGuard implements CanActivate {
     } else {
       principal = await this.fromSession(request);
     }
+    // Assurance qualité étatique : lecture seule. En lecture, le rôle vaut « utilisateur » (les listes d'ayants droit filtrent ensuite) ;
+    // aucune écriture n'accepte `athena-qa`, hors la décision d'approbation qui l'exige explicitement.
+    if (['GET', 'HEAD'].includes((request.method ?? 'GET').toUpperCase()) && principal.roles.includes('athena-qa') && !principal.roles.includes('athena-user')) {
+      principal = { ...principal, roles: [...principal.roles, 'athena-user'] };
+    }
     request.principal = principal;
 
     const required = this.reflector.getAllAndOverride<string[]>(ROLES_KEY, targets);
