@@ -17,5 +17,6 @@
   - API : création de projet depuis le gabarit
   - Montée de version v1 → v1.1 (jeu de test)
 - **Règles communes** : interface Hemeria (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
+  - Seuils de couverture par catégorie renseignables par le responsable méthodes (champs du gabarit, T-0075), sans valeur imposée par défaut
 - **Hors périmètre** : tout ce qui relève d'une autre tâche de la liste « Reprise IHM » de `docs/dev/STATE.md`.
 - **Dépendances** : T-0070, T-0071

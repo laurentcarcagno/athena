@@ -11,6 +11,7 @@
   - Création de projet : choix de gabarit et version, catégorie de criticité
   - Éditeur : étapes validées, aperçu en direct du formulaire d'item
   - Projet : phase en cours et écart au gabarit visibles
+  - Les seuils de couverture par catégorie sont saisissables et versionnés avec le gabarit
   - Aucun texte en dur, FR/EN
 - **Tests à écrire** :
   - Vitest/RTL

@@ -7,15 +7,15 @@
   - `apps/web/src/pages/tracker/TrackerScreen.tsx`
   - `apps/api/src/agile/board.service.ts`
   - `apps/api/src/agile/agile.controller.ts`
-- **Migration** : selon la décision de l'ADR (question 1) : par défaut aucune, un board de projet est filtré sur les statuts du tracker ; sinon `board.tracker_key`
+- **Migration** : aucune (décision du 2026-11-06 : la vue Board d'un tracker est le board de projet filtré sur ce tracker)
 - **Critères d'acceptation** (testables) :
   - La vue Board d'un tracker montre ses items dans les colonnes de statut du tracker, glisser-déposer et « Déplacer vers » conservés
   - `/p/:p/board/:b` continue de fonctionner (board de projet)
-  - La barre de vues n'affiche Board que pour les types où il a un sens (configurable, défaut : tous)
+  - La barre de vues n'affiche Board que pour les types où il a un sens (`default_views` du type, T-0097)
 - **Tests à écrire** :
   - API : board filtré par tracker
   - Vitest/RTL : déplacement clavier
   - axe
 - **Règles communes** : interface Hemeria (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
 - **Hors périmètre** : tout ce qui relève d'une autre tâche de la liste « Reprise IHM » de `docs/dev/STATE.md`.
-- **Dépendances** : T-0056
+- **Dépendances** : T-0056, T-0097

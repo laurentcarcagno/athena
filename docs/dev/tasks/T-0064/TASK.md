@@ -13,6 +13,7 @@
   - Modifier un champ non-contenu (priorité, responsable) ne crée aucun lien suspect ; modifier un champ de contenu le fait
   - Le drapeau est éditable dans l'éditeur de tracker, exporté dans `tracker.yaml`, repris par les templates
   - Un changement de statut ne rend jamais suspect
+  - Chaque type de lien a un réglage « propage la suspicion » (défaut oui ; désactivable, par exemple pour `bloque`)
   - L'analyse porte sur les liens dont l'item modifié est l'amont (voir ADR : sens du lien)
 - **Tests à écrire** :
   - API : matrice champ de contenu/non-contenu

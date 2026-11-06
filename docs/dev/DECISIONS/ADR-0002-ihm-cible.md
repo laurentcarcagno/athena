@@ -1,6 +1,6 @@
 # ADR-0002 : évolution du prototype vers l'IHM cible
 
-Statut : proposé (2026-11-06), à valider. Source : `docs/dev/SPEC_IHM.md`. Tâches : T-0048 à T-0096, section « Reprise IHM » de `docs/dev/STATE.md`.
+Statut : accepté avec les réponses du 2026-11-06 (§ 7), question 4 en attente. Source : `docs/dev/SPEC_IHM.md`. Tâches : T-0048 à T-0096, section « Reprise IHM » de `docs/dev/STATE.md`.
 
 ## 1. Décisions prises le 2026-11-06
 
@@ -50,12 +50,13 @@ La spécification donne en exemple `/sat1/exigences/arbre-urd/SAT1-REQ-0042`. La
 
 ## 4. Modèle de données (migrations 030 et suivantes)
 
-Toute nouvelle table : `organization_id`, RLS forcée, politique `org_isolation`, droits `athena_app`, vérifiés par le test existant sur les migrations.
+Les numéros sont indicatifs : chaque tâche prend le prochain numéro libre. Toute nouvelle table : `organization_id`, RLS forcée, politique `org_isolation`, droits `athena_app`, vérifiés par le test existant sur les migrations.
 
 | N° | Contenu | Tâche |
 | --- | --- | --- |
 | 030 | `artifact_key_alias`, unicité de clé par organisation, réécriture des clés, `resolve_artifact` | T-0049 |
-| 031 | `saved_filter` : `tracker_key`, `view`, `columns`, `is_default` | T-0057 |
+| 031 | `tracker_type` d'organisation, `tracker.type_key` | T-0097 |
+| suivante | `saved_filter` : `tracker_key`, `view`, `columns`, `is_default` | T-0057 |
 | 032 | `user_pin` : favoris, récents, ordre | T-0060 |
 | 033 | Types de liens d'organisation (`project_id` nullable), `link_type_pair` | T-0063 |
 | 034 | `field_definition.is_content` (défaut vrai : comportement actuel préservé) | T-0064 |
@@ -83,12 +84,13 @@ Les types de liens d'organisation **coexistent** avec les types par projet : à 
 - `docs/dev/SPEC_IHM.md` est l'ancien fichier non suivi « Athena — Organisation de l'IHM et fonctionnalités.md », renommé. Il ne contient pas l'onglet « Écart prototype / cible » cité par la mission ; l'analyse d'écart de ce plan vient de la lecture du code.
 - Lot 6 : aucun code avant les réponses sur les projets Tuleap prioritaires et le sort de l'historique Jira (T-0086).
 
-## 7. Questions à trancher
+## 7. Réponses du demandeur (2026-11-06)
 
-1. **Board par tracker.** Le board actuel est un objet de projet, avec des colonnes qui regroupent des statuts de plusieurs trackers. Proposition : la vue « Board » d'un tracker est le board de projet filtré sur ce tracker, ou un board créé automatiquement pour lui (T-0058). Faut-il aussi un board « par défaut » créé avec chaque tracker ?
-2. **Paires de trackers autorisées** (T-0063). Les paires sont exprimées en **clés de tracker** (`REQ` → `TST`), valables dans tous les projets qui ont ces clés. La spécification parle de **types** de tracker définis par l'organisation (Exigence, Anomalie…), absents du prototype. Faut-il introduire les types maintenant (nouveau lot) ou s'en tenir aux clés ?
-3. **Catégories de trackers** (Ingénierie, Développement, Vérification, Pilotage) pour la carte des trackers : proposition de les déduire du gabarit, sinon « Autres ». Le gabarit porte-t-il la catégorie dès le Lot 1 ?
-4. **Sens de la suspicion** : un lien « vérifie » part du test vers l'exigence. Si l'exigence change, le lien devient suspect (comportement actuel, la cible est modifiée). Si le test change, rien. Est-ce le comportement voulu pour tous les types, y compris `bloque` et `duplique` ?
-5. **Immuabilité de la clé de projet.** La clé de projet est dans la clé d'item. Proposition : elle devient non modifiable après la première création d'item (ou son changement génère de nouveaux alias).
-6. **Dépôt GitHub public** (question ouverte de la spécification) : à régler avant d'y verser des données de programme ; sans incidence sur la planification, mais bloquant pour le Lot 4.
-7. **Seuils de couverture par catégorie ECSS** et référentiels nationaux complétant AQAP : les gabarits (T-0073, T-0074) livrent ces paramètres vides tant qu'ils ne sont pas fixés.
+1. Board par tracker : oui, la vue Board d'un tracker est le board de projet filtré sur ce tracker.
+2. **Types de tracker d'organisation introduits** (T-0097) ; les paires de liens autorisées s'expriment en types (T-0063).
+3. Catégories de trackers : oui, déduites du type (« Autres » sans type).
+4. Sens de la suspicion : en attente. Proposition : même comportement pour tous les types de liens, avec un réglage « propage la suspicion » par type de lien (T-0064).
+5. Clé de projet non modifiable après le premier item (T-0049).
+6. Dépôt GitHub désormais privé : plus de blocage pour le Lot 4. Rien n'est poussé sans demande.
+7. Seuils de couverture : doivent être renseignables (T-0075), aucune valeur imposée.
+8. Migration (Lot 6) : traitée en toute fin de projet, après le Lot 7.

@@ -16,4 +16,4 @@
   - Mesures de l'audit rejouées
 - **Règles communes** : interface Hemeria (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
 - **Hors périmètre** : tout ce qui relève d'une autre tâche de la liste « Reprise IHM » de `docs/dev/STATE.md`.
-- **Dépendances** : tous les lots précédents
+- **Dépendances** : Lots 0 à 5 et T-0091 à T-0095 (le Lot 6 vient après)

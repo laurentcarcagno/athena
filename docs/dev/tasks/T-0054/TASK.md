@@ -8,7 +8,7 @@
   - `apps/web/src/pages/project/OverviewTab.tsx`
   - `apps/web/src/pages/project/TrackersTab.tsx`
   - `apps/web/src/pages/ProjectsPage.tsx`  (simplification)
-- **Migration** : aucune. Catégorie de tracker : voir ADR-0002 (question 3) ; par défaut déduite du gabarit, « Autres » sinon
+- **Migration** : aucune. Catégorie du tracker = catégorie de son type (T-0097), « Autres » si le tracker n'a pas de type
 - **Critères d'acceptation** (testables) :
   - `GET /v1/projects/:p/overview` : compteurs par statut et par tracker, mes items, dernière activité, en un seul appel
   - Un clic sur une carte ouvre la vue Tableau du tracker
@@ -20,4 +20,4 @@
   - axe
 - **Règles communes** : interface Hemeria (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
 - **Hors périmètre** : tout ce qui relève d'une autre tâche de la liste « Reprise IHM » de `docs/dev/STATE.md`.
-- **Dépendances** : T-0053
+- **Dépendances** : T-0053, T-0097

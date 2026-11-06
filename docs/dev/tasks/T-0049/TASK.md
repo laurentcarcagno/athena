@@ -16,6 +16,7 @@
   - Deux projets ayant tous deux `REQ-42` gardent chacun leur alias, résolu dans le contexte du projet
   - La clé stockée ne change plus si le nom du tracker change
   - Les lectures, modifications, transitions et liens acceptent clé ou alias
+  - La clé de projet n'est plus modifiable une fois le premier item créé (refus par l'API, test)
 - **Tests à écrire** :
   - Vitest : formatage et analyse de clé (bornes 9999/10000, alias, non-clé)
   - API : création, lecture par alias, collision d'alias entre projets, RLS de la table d'alias entre deux organisations

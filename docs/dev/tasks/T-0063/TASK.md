@@ -1,16 +1,16 @@
 # T-0063 : Types de liens au niveau organisation et paires de trackers autorisées
 
 - **Lot** : 2 (reprise IHM, voir `docs/dev/DECISIONS/ADR-0002-ihm-cible.md`)
-- **Objectif** : Définir les types de liens à l'organisation et les paires de trackers autorisées ; compatibilité avec les types existants par projet.
+- **Objectif** : Définir les types de liens à l'organisation et les paires de **types de tracker** autorisées (T-0097) ; compatibilité avec les types existants par projet.
 - **Fichiers concernés** :
   - `apps/api/src/db/migrations/033_org_link_types.sql`
   - `apps/api/src/core/link.service.ts`
   - `apps/api/src/core/link-type.controller.ts`
   - `apps/web/src/pages/OrgAdminPage.tsx`  (onglet Liens)
-- **Migration** : 033 : `link_type.project_id` devient nullable (type d'organisation) ; table `link_type_pair` (organization_id, link_type_id, from_tracker_key, to_tracker_key, RLS forcée) ; les types existants par projet restent inchangés et priment dans leur projet.
+- **Migration** : 033 : `link_type.project_id` devient nullable (type d'organisation) ; table `link_type_pair` (organization_id, link_type_id, from_tracker_type, to_tracker_type, RLS forcée) ; les types existants par projet restent inchangés et priment dans leur projet.
 - **Critères d'acceptation** (testables) :
   - Un type d'organisation est utilisable dans tous les projets ; un type de projet de même clé le surcharge
-  - Un lien hors paire autorisée est refusé (422) avec message nommant la paire ; un type sans paire déclarée n'impose aucune restriction
+  - Un lien entre trackers sans type n'est contraint par aucune paire ; un lien hors paire autorisée est refusé (422) avec message nommant la paire ; un type sans paire déclarée n'impose aucune restriction
   - Types livrés : raffine, satisfait, vérifie, implémente, bloque, duplique, avec libellés inverses
   - Migration sans perte des liens existants
 - **Tests à écrire** :
@@ -19,4 +19,4 @@
   - axe
 - **Règles communes** : interface Hemeria (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
 - **Hors périmètre** : tout ce qui relève d'une autre tâche de la liste « Reprise IHM » de `docs/dev/STATE.md`.
-- **Dépendances** : T-0062
+- **Dépendances** : T-0062, T-0097
