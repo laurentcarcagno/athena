@@ -59,7 +59,7 @@ const tabNames = () => within(screen.getByRole('navigation', { name: 'Projet ARI
 describe('onglets d’un projet', () => {
   const all = PROJECT_TABS.map((t) => t.id) as ProjectTabId[];
   it('suivent l’ordre fixe de la spécification', () => {
-    expect(visibleTabs(null, all).map((t) => t.id)).toEqual(['overview', 'trackers', 'planning', 'traceability', 'documents', 'code', 'activity', 'members']);
+    expect(visibleTabs(null, all).map((t) => t.id)).toEqual(['overview', 'trackers', 'planning', 'traceability', 'conformity', 'documents', 'code', 'activity', 'members']);
   });
   it('masquent un module inactif sans décaler les autres, et ignorent ce qui n’a pas de page', () => {
     expect(visibleTabs(['overview', 'trackers', 'planning', 'activity', 'members'], all).map((t) => t.id)).toEqual(['overview', 'trackers', 'planning', 'activity', 'members']);
@@ -88,7 +88,7 @@ describe('coquille de projet', () => {
     modules = 'error';
     app('/p/ARI');
     await screen.findByRole('heading', { level: 1, name: 'Vue d’ensemble · ARI' });
-    expect(tabNames()).toEqual(['Vue d’ensemble', 'Trackers', 'Planification', 'Traçabilité', 'Code et intégration', 'Activité', 'Membres']);
+    expect(tabNames()).toEqual(['Vue d’ensemble', 'Trackers', 'Planification', 'Traçabilité', 'Conformité', 'Code et intégration', 'Activité', 'Membres']);
   });
 
   it('se parcourt au clavier : chaque onglet est un lien, atteint par Tab', async () => {

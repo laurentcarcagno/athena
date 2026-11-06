@@ -2,13 +2,14 @@ export const CSV_LIMITS = { maxBytes: 20 * 1024 * 1024, maxRows: 100_000, maxCol
 
 /**
  * Lecteur CSV conforme à la RFC 4180 : champs entre guillemets, guillemets doublés, retours à la ligne dans les champs,
- * BOM ignoré, séparateur `,` ou `;` détecté sur l'en-tête. Les tailles sont bornées (entrée non fiable).
+ * BOM ignoré, séparateur `,`, `;` ou tabulation détecté sur l'en-tête. Les tailles sont bornées (entrée non fiable).
  */
 export function parseCsv(input: string): string[][] {
   if (Buffer.byteLength(input) > CSV_LIMITS.maxBytes) throw new Error('fichier CSV trop volumineux');
   const text = input.charCodeAt(0) === 0xfeff ? input.slice(1) : input;
   const firstLine = text.split(/\r?\n/, 1)[0] ?? '';
-  const delimiter = (firstLine.match(/;/g)?.length ?? 0) > (firstLine.match(/,/g)?.length ?? 0) ? ';' : ',';
+  const count = (d: string) => firstLine.split(d).length - 1;
+  const delimiter = count('\t') > Math.max(count(';'), count(',')) ? '\t' : count(';') > count(',') ? ';' : ',';
   const rows: string[][] = [];
   let row: string[] = [];
   let field = '';

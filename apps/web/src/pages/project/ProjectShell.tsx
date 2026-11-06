@@ -10,6 +10,7 @@ export const PROJECT_TABS = [
   { id: 'trackers', path: 'trackers' },
   { id: 'planning', path: 'planification' },
   { id: 'traceability', path: 'tracabilite' },
+  { id: 'conformity', path: 'conformite' },
   { id: 'documents', path: 'documents' },
   { id: 'code', path: 'code' },
   { id: 'activity', path: 'activite' },
@@ -26,7 +27,7 @@ export function visibleTabs(modules: readonly string[] | null, implemented: read
 }
 
 /** Pages d'onglets disponibles ; chaque tâche du lot 1 puis des lots suivants en ajoute une. */
-export const IMPLEMENTED_TABS: readonly ProjectTabId[] = ['overview', 'trackers', 'planning', 'traceability', 'code', 'activity', 'members'];
+export const IMPLEMENTED_TABS: readonly ProjectTabId[] = ['overview', 'trackers', 'planning', 'traceability', 'conformity', 'code', 'activity', 'members'];
 
 /** Redirige les anciennes adresses `/p/:projet?q=…` (liste ATQL) vers la vue Recherche. */
 export function OverviewOrLegacySearch({ children }: { children: JSX.Element }) {

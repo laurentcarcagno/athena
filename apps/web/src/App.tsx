@@ -19,6 +19,7 @@ import { ProjectsPage } from './pages/ProjectsPage';
 import { OverviewOrLegacySearch, ProjectShell } from './pages/project/ProjectShell';
 import { OverviewTab } from './pages/project/OverviewTab';
 import { TrackersTab } from './pages/project/TrackersTab';
+import { ConformityTab } from './pages/project/ConformityTab';
 import { TraceabilityTab } from './pages/project/TraceabilityTab';
 import { ActivityTab } from './pages/project/ActivityTab';
 import { CodeTab } from './pages/project/CodeTab';
@@ -143,6 +144,7 @@ export function AuthenticatedApp({ session }: { session: Session }) {
           <Route path="trackers" element={<TrackersTab />} />
           <Route path="planification" element={<ProjectManagePage session={session} />} />
           <Route path="tracabilite" element={<TraceabilityTab session={session} />} />
+          <Route path="conformite" element={<ConformityTab session={session} />} />
           <Route path="code" element={<CodeTab />} />
           <Route path="activite" element={<ActivityTab />} />
           <Route path="membres" element={<MembersTab session={session} />} />

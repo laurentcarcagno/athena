@@ -76,7 +76,7 @@ const frDict = {
   },
   project: {
     navLabel: (p: string) => `Projet ${p}`,
-    tabs: { overview: 'Vue d’ensemble', trackers: 'Trackers', planning: 'Planification', traceability: 'Traçabilité', documents: 'Documents', code: 'Code et intégration', activity: 'Activité', members: 'Membres' },
+    tabs: { overview: 'Vue d’ensemble', trackers: 'Trackers', planning: 'Planification', traceability: 'Traçabilité', conformity: 'Conformité', documents: 'Documents', code: 'Code et intégration', activity: 'Activité', members: 'Membres' },
   },
   overview: {
     eyebrow: 'Projet', title: 'Vue d’ensemble', mine: 'À traiter par moi', noMine: 'Rien n’est assigné à votre nom.', allMine: 'Tout voir dans la Recherche', trackersTitle: 'Trackers', openTrackers: 'Voir les trackers',
@@ -212,6 +212,18 @@ const frDict = {
     apply: 'Appliquer la montée', applying: 'Application…', cancel: 'Annuler', applied: (v: string) => `Projet monté en version ${v}.`,
     preview: 'Aperçu de la montée', previewFor: (v: string) => `Aperçu de la version ${v}`,
   },
+  conformity: {
+    title: 'Conformité', category: 'Catégorie de criticité', allCategories: 'Toutes les catégories', rate: (r: number | null) => (r === null ? 'Aucune clause applicable' : `${r} % de clauses applicables couvertes`),
+    counts: (a: number, c: number, n: number, m: number) => `${a} applicables, ${c} couvertes, ${n} non applicables, ${m} modifiées`,
+    exportCsv: 'Exporter en CSV', importClauses: 'Importer des clauses', empty: 'Aucune clause. Importez les clauses de la norme depuis un fichier CSV (référence, titre, texte).',
+    reference: 'Référence', clauseTitle: 'Titre', applicability: 'Applicabilité', justification: 'Justification', evidence: 'Preuves', covered: 'Couverte', yes: 'Oui', no: 'Non', notRequired: '—',
+    applicabilities: { applicable: 'Applicable', not_applicable: 'Non applicable', modified: 'Modifiée' } as Record<string, string>,
+    noEvidence: 'Aucune preuve liée', tailor: 'Adapter', tailorFor: (r: string) => `Tailoring de la clause ${r}`, scope: 'Portée', allScope: 'Toutes les catégories', save: 'Enregistrer', saved: 'Tailoring enregistré.',
+    justificationRequired: 'La justification est obligatoire pour une clause non applicable ou modifiée.',
+    importTitle: 'Importer les clauses d’une norme', file: 'Fichier CSV', standard: 'Norme (facultatif)', run: 'Importer', imported: (c: number, u: number, k: number, e: number) => `${c} créée(s), ${u} mise(s) à jour, ${k} inchangée(s), ${e} en erreur.`,
+    line: 'Ligne', status: 'Résultat', message: 'Détail', statuses: { created: 'Créée', updated: 'Mise à jour', unchanged: 'Inchangée', error: 'Erreur' } as Record<string, string>,
+    noFile: 'Choisissez un fichier CSV.',
+  },
 };
 
 export type Dictionary = typeof frDict;
@@ -288,7 +300,7 @@ const enDict: Dictionary = {
   },
   project: {
     navLabel: (p: string) => `Project ${p}`,
-    tabs: { overview: 'Overview', trackers: 'Trackers', planning: 'Planning', traceability: 'Traceability', documents: 'Documents', code: 'Code and integration', activity: 'Activity', members: 'Members' },
+    tabs: { overview: 'Overview', trackers: 'Trackers', planning: 'Planning', traceability: 'Traceability', conformity: 'Conformity', documents: 'Documents', code: 'Code and integration', activity: 'Activity', members: 'Members' },
   },
   overview: {
     eyebrow: 'Project', title: 'Overview', mine: 'Assigned to me', noMine: 'Nothing is assigned to you.', allMine: 'See all in Search', trackersTitle: 'Trackers', openTrackers: 'See the trackers',
@@ -423,6 +435,18 @@ const enDict: Dictionary = {
     phases: 'Phases', phasesAdded: (l: string) => `Added: ${l}`, phasesRemoved: (l: string) => `Removed: ${l}`, phaseNext: (l: string) => `Current phase after the upgrade: ${l}`,
     apply: 'Apply the upgrade', applying: 'Applying…', cancel: 'Cancel', applied: (v: string) => `Project upgraded to version ${v}.`,
     preview: 'Preview the upgrade', previewFor: (v: string) => `Preview of version ${v}`,
+  },
+  conformity: {
+    title: 'Conformity', category: 'Criticality category', allCategories: 'All categories', rate: (r: number | null) => (r === null ? 'No applicable clause' : `${r}% of applicable clauses covered`),
+    counts: (a: number, c: number, n: number, m: number) => `${a} applicable, ${c} covered, ${n} not applicable, ${m} modified`,
+    exportCsv: 'Export as CSV', importClauses: 'Import clauses', empty: 'No clause. Import the clauses of the standard from a CSV file (reference, title, text).',
+    reference: 'Reference', clauseTitle: 'Title', applicability: 'Applicability', justification: 'Justification', evidence: 'Evidence', covered: 'Covered', yes: 'Yes', no: 'No', notRequired: '—',
+    applicabilities: { applicable: 'Applicable', not_applicable: 'Not applicable', modified: 'Modified' } as Record<string, string>,
+    noEvidence: 'No linked evidence', tailor: 'Tailor', tailorFor: (r: string) => `Tailoring of clause ${r}`, scope: 'Scope', allScope: 'All categories', save: 'Save', saved: 'Tailoring saved.',
+    justificationRequired: 'A justification is required for a not applicable or modified clause.',
+    importTitle: 'Import the clauses of a standard', file: 'CSV file', standard: 'Standard (optional)', run: 'Import', imported: (c: number, u: number, k: number, e: number) => `${c} created, ${u} updated, ${k} unchanged, ${e} in error.`,
+    line: 'Line', status: 'Result', message: 'Detail', statuses: { created: 'Created', updated: 'Updated', unchanged: 'Unchanged', error: 'Error' } as Record<string, string>,
+    noFile: 'Choose a CSV file.',
   },
 };
 

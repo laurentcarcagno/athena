@@ -39,6 +39,8 @@ import { SavedFilterController } from '../atql/saved-filter.controller';
 import { SavedFilterService } from '../atql/saved-filter.service';
 import { LinkService } from './link.service';
 import { MemberController } from './member.controller';
+import { NormativeController } from './normative.controller';
+import { NormativeService } from './normative.service';
 import { ProjectTemplateController, TemplateController, TrackerTemplateController } from './template.controller';
 import { TemplateUpgradeService } from './template-upgrade.service';
 import { ProjectOverviewController } from './project-overview.controller';
@@ -63,7 +65,7 @@ import { TrackerService } from './tracker.service';
 export { PG_POOL } from './core.tokens';
 
 @Module({
-  controllers: [CoreController, AttachmentController, SavedFilterController, IntegrationsController, AgileController, MemberController, TemplateController, ProjectTemplateController, TrackerTemplateController, TrackerTypeController, ProjectOverviewController, PinController, LinkTypeController, TreeController, MatrixController, CoverageController],
+  controllers: [CoreController, AttachmentController, SavedFilterController, IntegrationsController, AgileController, MemberController, TemplateController, ProjectTemplateController, TrackerTemplateController, TrackerTypeController, ProjectOverviewController, PinController, LinkTypeController, TreeController, MatrixController, CoverageController, NormativeController],
   providers: [
     { provide: PG_POOL, useFactory: () => new Pool({ connectionString: loadConfig().DATABASE_URL, max: 10 }) },
     { provide: FieldTypeRegistry, useValue: new FieldTypeRegistry() },
@@ -118,6 +120,7 @@ export { PG_POOL } from './core.tokens';
     { provide: TrackerTypeService, useFactory: (db: Db) => new TrackerTypeService(db), inject: [Db] },
     { provide: TemplateService, useFactory: (db: Db, t: TrackerService) => new TemplateService(db, t), inject: [Db, TrackerService] },
     { provide: TemplateUpgradeService, useFactory: (db: Db, t: TrackerService, tpl: TemplateService) => new TemplateUpgradeService(db, t, tpl), inject: [Db, TrackerService, TemplateService] },
+    { provide: NormativeService, useFactory: (db: Db, a: ArtifactService) => new NormativeService(db, a), inject: [Db, ArtifactService] },
     { provide: MemberService, useFactory: (db: Db) => new MemberService(db), inject: [Db] },
     { provide: SprintService, useFactory: (db: Db) => new SprintService(db), inject: [Db] },
     {

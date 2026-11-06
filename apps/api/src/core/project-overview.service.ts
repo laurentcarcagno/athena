@@ -3,7 +3,7 @@ import { notFound, validation } from './errors';
 import { builtinTrackerTypes } from './tracker-types';
 
 /** Onglets d'un projet, dans l'ordre fixe de la spécification (ADR-0002 § 3). */
-export const PROJECT_MODULES = ['overview', 'trackers', 'planning', 'traceability', 'documents', 'code', 'activity', 'members'] as const;
+export const PROJECT_MODULES = ['overview', 'trackers', 'planning', 'traceability', 'conformity', 'documents', 'code', 'activity', 'members'] as const;
 export type ProjectModule = (typeof PROJECT_MODULES)[number];
 
 /**
@@ -23,6 +23,7 @@ export class ProjectOverviewService {
       const active = new Set<ProjectModule>(['overview', 'trackers', 'planning', 'activity', 'members']);
       // Un type de lien d'organisation (ou livré, écrit au premier usage) ouvre aussi la traçabilité.
       if (await has('link_type') || ((await c.query('select 1 from link_type where project_id is null limit 1')).rowCount ?? 0) > 0) active.add('traceability');
+      if (((await c.query("select 1 from tracker where project_id = $1 and key = 'NORM' limit 1", [project.id])).rowCount ?? 0) > 0) active.add('conformity');
       if (await has('doc_source')) active.add('documents');
       if (await has('code_repo')) active.add('code');
       return { modules: PROJECT_MODULES.filter((m) => active.has(m)) };

@@ -54,3 +54,18 @@ export function requirementTemplate(projectKey: string, key = 'REQ'): TrackerSpe
     ],
   };
 }
+
+/** Tracker « Exigences normatives » : les clauses d'une norme, importées d'un CSV (référence, titre, texte). */
+export function normativeClauseTracker(projectKey: string, key = 'NORM'): TrackerSpec {
+  return {
+    projectKey, key, name: 'Exigences normatives', typeKey: 'requirement',
+    fields: [
+      { key: 'title', label: 'Titre', type: 'text', required: true, semanticRole: 'title' },
+      { key: 'reference', label: 'Référence', type: 'text', required: true, config: { maxLength: 200 } },
+      { key: 'standard', label: 'Norme', type: 'text', isContent: false },
+      { key: 'statement', label: 'Texte de la clause', type: 'richtext', semanticRole: 'description' },
+    ],
+    statuses: [{ key: 'active', name: 'En vigueur', category: 'todo' }, { key: 'withdrawn', name: 'Retirée', category: 'done' }],
+    transitions: [{ name: 'Retirer', from: 'active', to: 'withdrawn' }, { name: 'Rétablir', from: 'withdrawn', to: 'active' }],
+  };
+}

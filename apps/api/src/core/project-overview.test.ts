@@ -5,7 +5,7 @@ import { DomainError } from './errors';
 import { FieldTypeRegistry } from './field-types';
 import { ArtifactService } from './artifact.service';
 import { LinkService } from './link.service';
-import { bugTemplate, requirementTemplate } from './templates';
+import { bugTemplate, normativeClauseTracker, requirementTemplate } from './templates';
 import { PROJECT_MODULES, ProjectOverviewService } from './project-overview.service';
 import { TrackerService } from './tracker.service';
 
@@ -36,8 +36,8 @@ suite('modules actifs d’un projet', () => {
   });
   afterAll(async () => { await testDb?.drop(); });
 
-  it('garde l’ordre fixe des huit onglets', () => {
-    expect(PROJECT_MODULES).toEqual(['overview', 'trackers', 'planning', 'traceability', 'documents', 'code', 'activity', 'members']);
+  it('garde l’ordre fixe des neuf onglets', () => {
+    expect(PROJECT_MODULES).toEqual(['overview', 'trackers', 'planning', 'traceability', 'conformity', 'documents', 'code', 'activity', 'members']);
   });
 
   it('un projet neuf n’a ni traçabilité, ni documents, ni code : les autres onglets ne bougent pas', async () => {
@@ -50,6 +50,8 @@ suite('modules actifs d’un projet', () => {
     await testDb.exec("insert into code_repo (organization_id, project_id, gitlab_path) select organization_id, id, 'groupe/depot' from project where key = 'ARI'");
     expect((await overview.modules(org, 'ARI')).modules).toEqual(['overview', 'trackers', 'planning', 'traceability', 'code', 'activity', 'members']);
     await testDb.exec("insert into doc_source (organization_id, project_id, name) select organization_id, id, 'urd' from project where key = 'ARI'");
+    expect((await overview.modules(org, 'ARI')).modules).not.toContain('conformity');
+    await trackerSvc.createTracker(org, normativeClauseTracker('ARI'), actor);
     expect((await overview.modules(org, 'ARI')).modules).toEqual([...PROJECT_MODULES]);
     expect((await overview.modules(org, 'OTH')).modules).toEqual(['overview', 'trackers', 'planning', 'activity', 'members']);
   });
