@@ -172,6 +172,16 @@ describe('barre de filtres', () => {
     expect(screen.getByTestId('where')).not.toHaveTextContent('f=');
   });
 
+  it('« Liens suspects » écrit suspect() et se relit comme une puce', async () => {
+    app('/p/ARI/t/BUG/tableau');
+    await screen.findByRole('link', { name: 'ARI-BUG-0001' });
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Liens suspects' }));
+    await waitFor(() => expect(lastSearch()).toContain('tracker = BUG AND (suspect())'));
+    expect(screen.getByRole('checkbox', { name: 'Liens suspects' })).toBeChecked();
+    await userEvent.click(screen.getByRole('button', { name: 'Mode requête' }));
+    expect(screen.getByLabelText('Requête ATQL du tracker')).toHaveValue('suspect()');
+  });
+
   it('bascule en mode requête : le fragment est affiché, modifiable et reste synchronisé avec les puces', async () => {
     app('/p/ARI/t/BUG/tableau?f=status%20%3D%20open');
     await screen.findByRole('link', { name: 'ARI-BUG-0001' });

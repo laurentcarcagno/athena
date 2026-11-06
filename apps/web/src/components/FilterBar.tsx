@@ -36,6 +36,7 @@ export function FilterBar({ def, fragment, username, onChange, error }: {
           {hasAssignee && (
             <label className="ath-row"><input type="checkbox" checked={!!model.mine} onChange={(e) => update({ ...model, mine: e.target.checked })} />{fr.filters.mine}</label>
           )}
+          <label className="ath-row"><input type="checkbox" checked={!!model.suspect} onChange={(e) => update({ ...model, suspect: e.target.checked })} />{fr.filters.suspect}</label>
           {selects.map((f) => (
             <div key={f.key} className="ath-field">
               <label className="ath-field__label" htmlFor={`flt-${f.key}`}>{f.label}</label>
@@ -66,6 +67,7 @@ export function FilterBar({ def, fragment, username, onChange, error }: {
           <>
             {model.status && <FilterChip label={fr.list.status} value={model.status} active onClear={() => update({ ...model, status: undefined })} />}
             {model.mine && <FilterChip label={fr.filters.mine} value="" active onClear={() => update({ ...model, mine: false })} />}
+            {model.suspect && <FilterChip label={fr.filters.suspect} value="" active onClear={() => update({ ...model, suspect: false })} />}
             {model.text && <FilterChip label={fr.filters.text} value={model.text} active onClear={() => update({ ...model, text: undefined })} />}
             {Object.entries(model.fields).map(([k, v]) => <FilterChip key={k} label={def?.fields.find((f) => f.key === k)?.label ?? k} value={v} active onClear={() => withField(k, '')} />)}
           </>

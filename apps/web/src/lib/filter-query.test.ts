@@ -8,6 +8,7 @@ describe('filtres en puces et ATQL', () => {
     expect(toAtql(emptyModel(), user)).toBe('');
     expect(toAtql({ status: 'open', mine: true, text: 'crash', fields: { severity: 'majeure', affected_version: '1.2' } }, user))
       .toBe('status = open AND assignee = "alice" AND affected_version = "1.2" AND severity = majeure AND text ~ "crash"');
+    expect(toAtql({ mine: true, suspect: true, fields: {} }, user)).toBe('assignee = "alice" AND suspect()');
   });
 
   it('met entre guillemets ce qui n’est pas un mot, en échappant guillemets et barres obliques', () => {
@@ -24,6 +25,8 @@ describe('filtres en puces et ATQL', () => {
       { mine: true, fields: {} },
       { text: 'mot de passe "coffre"', fields: {} },
       { status: 'open', mine: true, text: 'x AND y', fields: { severity: 'très haute', version: '2' } },
+      { suspect: true, fields: {} },
+      { status: 'open', suspect: true, fields: { severity: 'majeure' } },
     ];
     for (const model of cases) expect(fromAtql(toAtql(model, user), user)).toEqual(model);
   });
@@ -35,7 +38,7 @@ describe('filtres en puces et ATQL', () => {
 
   it('refuse (null) tout ce qui n’est pas une conjonction de puces', () => {
     for (const q of ['status = open OR status = done', 'NOT status = open', '(status = open)', 'status IN (open, done)', 'status != open', 'priority > 2', 'status = open AND status = done',
-      'severity = a AND severity = b', 'title ~ "x"', 'status =', 'status = "ouvert', 'assignee IS EMPTY', 'ORDER BY key']) {
+      'severity = a AND severity = b', 'suspect() AND suspect()', 'notLinked("verifies")', 'linkedTo(ARI-REQ-0001)', 'NOT suspect()', 'title ~ "x"', 'status =', 'status = "ouvert', 'assignee IS EMPTY', 'ORDER BY key']) {
       expect(fromAtql(q, user), q).toBeNull();
     }
   });

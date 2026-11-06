@@ -103,6 +103,19 @@ export function compile(input: string | Query, context: CompileContext, leading:
       case 'or': return `(${expr(e.left)} or ${expr(e.right)})`;
       case 'not': return `(not ${expr(e.operand)})`;
       case 'cmp': return cmp(e.field, e.op, e.value);
+      case 'suspect':
+        return 'exists (select 1 from artifact_link l where l.suspect and (l.from_artifact_id = a.id or l.to_artifact_id = a.id))';
+      case 'linkedTo': {
+        const target = `resolve_artifact(a.project_id, ${bindText(e.target)})`;
+        const byType = e.link === undefined ? '' : ` and t.key = ${bindText(e.link)}`;
+        return `exists (select 1 from artifact_link l join link_type t on t.id = l.link_type_id
+          where ((l.from_artifact_id = a.id and l.to_artifact_id = ${target}) or (l.to_artifact_id = a.id and l.from_artifact_id = ${target}))${byType})`;
+      }
+      case 'notLinked': {
+        const byType = e.link === undefined ? '' : ` and t.key = ${bindText(e.link)}`;
+        return `not exists (select 1 from artifact_link l join link_type t on t.id = l.link_type_id
+          where (l.from_artifact_id = a.id or l.to_artifact_id = a.id)${byType})`;
+      }
       case 'in': {
         const inner = `(${e.values.map((v) => cmp(e.field, '=', v)).join(' or ')})`;
         return e.negated ? `(not ${inner})` : inner;

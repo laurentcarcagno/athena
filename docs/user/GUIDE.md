@@ -22,6 +22,8 @@ created_by = currentUser()
 ```
 Champs natifs : `key`, `tracker`, `status`, `project`, `created_by`, `created`, `updated`. Tous les autres sont les champs du tracker. Opérateurs : `= != ~ < > <= >=`, `IN`, `NOT IN`, `IS [NOT] EMPTY`, `AND`, `OR`, `NOT`, parenthèses. Cliquer sur un en-tête de colonne trie les résultats.
 
+**Traçabilité dans la requête** : `suspect()` (items ayant un lien suspect, à l'une ou l'autre extrémité), `linkedTo(ARI-REQ-0001)` ou `linkedTo(ARI-REQ-0001, "verifies")` (items liés à celui-là, dans les deux sens, éventuellement par ce type de lien), `notLinked("verifies")` (items sans lien de ce type) et `notLinked()` (sans aucun lien). Elles se combinent avec le reste : `tracker = REQ AND notLinked("verifies")` donne les exigences sans vérification. La case « Liens suspects » de la barre de filtres du tracker écrit `suspect()`.
+
 ## Travailler sur un artefact
 - **Détails** : modifier un champ puis quitter la zone enregistre. Si quelqu'un a modifié l'artefact entre-temps, un message l'indique et la fiche se recharge.
 - **Transitions** : les boutons en haut appliquent le workflow. Un message précise ce qui manque (champ obligatoire, rôle requis).

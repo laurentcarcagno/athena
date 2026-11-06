@@ -84,3 +84,7 @@ Chaque utilisateur a ses favoris et ses récents (rail latéral), isolés par or
 
 Un champ de tracker porte `isContent` (vrai par défaut), accepté à la création d'un tracker, d'un champ (`POST …/fields`) et dans `PATCH …/fields/:field`, exporté dans `tracker.yaml` (clé `isContent: false` seulement quand il est décoché) et repris par les templates. Un type de lien porte `propagatesSuspect` (vrai par défaut ; faux pour `blocks`). La modification d'un artefact ne passe les liens qui le visent à l'état suspect que si un champ de contenu a changé et si le type du lien propage la suspicion ; une transition ou la modification de champs hors contenu n'a aucun effet. La restauration d'une révision suit la même règle.
 
+## ATQL : fonctions de traçabilité
+
+`suspect()`, `linkedTo(CLÉ[, "type"])` et `notLinked(["type"])` sont des prédicats sans opérateur, insensibles à la casse, combinables par AND, OR, NOT et parenthèses. `CLÉ` est la clé canonique ou une ancienne clé du projet ; `type` est la clé d'un type de lien (projet ou organisation). Le lien compte dans les deux sens. Une clé inconnue ne donne aucun résultat ; un argument invalide donne une erreur 422 avec la position. Elles se compilent en sous-requêtes paramétrées, limitées au projet et à l'organisation de l'appelant.
+

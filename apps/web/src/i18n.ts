@@ -95,7 +95,7 @@ const frDict = {
     total: (n: number) => (n === 1 ? '1 item' : `${n} items`), viewNames: { tableau: 'Tableau', board: 'Board' } as Record<string, string>,
   },
   filters: {
-    bar: 'Filtres du tracker', mine: 'Assigné à moi', all: 'Tous', text: 'Recherche dans le tracker', apply: 'Appliquer', clear: 'Effacer les filtres',
+    bar: 'Filtres du tracker', mine: 'Assigné à moi', suspect: 'Liens suspects', all: 'Tous', text: 'Recherche dans le tracker', apply: 'Appliquer', clear: 'Effacer les filtres',
     atqlMode: 'Mode requête', chipsMode: 'Mode filtres', atqlLabel: 'Requête ATQL du tracker', atqlPlaceholder: 'status = open AND severity = majeure',
     notRepresentable: 'Cette requête ne s’affiche pas en filtres : modifiez-la en mode requête.',
     views: 'Vues enregistrées', noView: 'Aucune vue', saveView: 'Enregistrer la vue', viewName: 'Nom de la vue', sharedView: 'Partager avec le projet', defaultView: 'Vue par défaut du tracker',
@@ -271,7 +271,7 @@ const enDict: Dictionary = {
     total: (n: number) => (n === 1 ? '1 item' : `${n} items`), viewNames: { tableau: 'Table', board: 'Board' } as Record<string, string>,
   },
   filters: {
-    bar: 'Tracker filters', mine: 'Assigned to me', all: 'All', text: 'Search in the tracker', apply: 'Apply', clear: 'Clear filters',
+    bar: 'Tracker filters', mine: 'Assigned to me', suspect: 'Suspect links', all: 'All', text: 'Search in the tracker', apply: 'Apply', clear: 'Clear filters',
     atqlMode: 'Query mode', chipsMode: 'Filter mode', atqlLabel: 'Tracker ATQL query', atqlPlaceholder: 'status = open AND severity = major',
     notRepresentable: 'This query cannot be shown as filters: edit it in query mode.',
     views: 'Saved views', noView: 'No view', saveView: 'Save view', viewName: 'View name', sharedView: 'Share with the project', defaultView: 'Default view of the tracker',

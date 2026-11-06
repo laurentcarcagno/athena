@@ -19,7 +19,11 @@ export type Expr =
   | { type: 'not'; operand: Expr }
   | { type: 'cmp'; field: string; op: Operator; value: Value }
   | { type: 'in'; field: string; values: Value[]; negated: boolean }
-  | { type: 'empty'; field: string; negated: boolean };
+  | { type: 'empty'; field: string; negated: boolean }
+  /** Traçabilité : items ayant un lien suspect, lié à un item donné (éventuellement par un type), ou sans lien (éventuellement d'un type). */
+  | { type: 'suspect' }
+  | { type: 'linkedTo'; target: string; link?: string }
+  | { type: 'notLinked'; link?: string };
 
 export interface OrderBy {
   field: string;
@@ -31,6 +35,9 @@ export interface Query {
   orderBy: OrderBy[];
 }
 
+const LINK_FUNCTIONS = new Set(['suspect', 'linkedto', 'notlinked']);
+const LINK_TYPE = /^[a-z][a-z0-9_]{0,39}$/;
+const ITEM_REF = /^[A-Za-z0-9_.-]{1,60}$/;
 export const LIMITS = { maxLength: 2000, maxDepth: 12, maxConditions: 50, maxInValues: 100 };
 
 type Token =
@@ -107,8 +114,45 @@ export function parse(input: string): Query {
     throw new AtqlError('Valeur attendue', token.pos);
   }
 
+  /** `suspect()`, `linkedTo(CLÉ[, "type"])`, `notLinked(["type"])` : prédicats de traçabilité sans opérateur. */
+  function linkFunction(): Expr {
+    const name = next();
+    expectPunct('(');
+    const args: Array<{ value: string; pos: number }> = [];
+    while (!(peek().t === 'punct' && peek().v === ')')) {
+      const token = next();
+      if (token.t !== 'str' && token.t !== 'word') throw new AtqlError('Clé ou type de lien attendu', token.pos);
+      args.push({ value: token.v, pos: token.pos });
+      if (peek().t === 'punct' && peek().v === ',') next();
+      else if (!(peek().t === 'punct' && peek().v === ')')) throw new AtqlError('« , » ou « ) » attendu', peek().pos);
+    }
+    expectPunct(')');
+    const kind = name.v.toLowerCase();
+    const linkType = (arg?: { value: string; pos: number }): string | undefined => {
+      if (!arg) return undefined;
+      if (!LINK_TYPE.test(arg.value)) throw new AtqlError(`Type de lien invalide : ${arg.value}`, arg.pos);
+      return arg.value;
+    };
+    if (kind === 'suspect') {
+      if (args.length > 0) throw new AtqlError('suspect() ne prend pas d’argument', name.pos);
+      return { type: 'suspect' };
+    }
+    if (kind === 'linkedto') {
+      if (args.length < 1 || args.length > 2) throw new AtqlError('linkedTo() attend une clé d’item et, facultatif, un type de lien', name.pos);
+      if (!ITEM_REF.test(args[0]!.value)) throw new AtqlError(`Clé d’item invalide : ${args[0]!.value}`, args[0]!.pos);
+      const link = linkType(args[1]);
+      return link === undefined ? { type: 'linkedTo', target: args[0]!.value } : { type: 'linkedTo', target: args[0]!.value, link };
+    }
+    if (args.length > 1) throw new AtqlError('notLinked() attend au plus un type de lien', name.pos);
+    const link = linkType(args[0]);
+    return link === undefined ? { type: 'notLinked' } : { type: 'notLinked', link };
+  }
+
   function condition(): Expr {
     if (++conditions > LIMITS.maxConditions) throw new AtqlError(`Trop de conditions (${LIMITS.maxConditions} au plus)`, peek().pos);
+    const first = peek();
+    const after = tokens[index + 1];
+    if (first.t === 'word' && after?.t === 'punct' && after.v === '(' && LINK_FUNCTIONS.has(first.v.toLowerCase())) return linkFunction();
     const fieldToken = next();
     if (fieldToken.t !== 'word') throw new AtqlError('Nom de champ attendu', fieldToken.pos);
     const field = fieldToken.v;
