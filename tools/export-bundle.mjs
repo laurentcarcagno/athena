@@ -49,9 +49,10 @@ async function main() {
     if (tar.status !== 0) { console.error('ni helm ni tar disponibles pour archiver le chart'); process.exit(1); }
   }
   copyFileSync(join(root, 'deploy/helm/athena/values-isolated.yaml'), join(out, 'values-isolated.yaml'));
+  copyFileSync(join(root, 'deploy/helm/athena/coredns-isolated.yaml'), join(out, 'coredns-isolated.yaml'));
   writeFileSync(join(out, 'load-bundle.sh'), loadScript(images));
   cpSync(join(root, 'docs/admin/INSTALLATION.md'), join(out, 'INSTALLATION.md'));
-  await writeManifest(out, { version, images, chart, extra: ['values-isolated.yaml', 'load-bundle.sh', 'INSTALLATION.md'] });
+  await writeManifest(out, { version, images, chart, extra: ['values-isolated.yaml', 'coredns-isolated.yaml', 'load-bundle.sh', 'INSTALLATION.md'] });
   console.log(`Lot écrit dans ${out} (${images.length} images). Vérification : node tools/export-bundle.mjs --verify ${out}`);
 }
 

@@ -91,17 +91,22 @@ tar -xf athena-isolated-0.1.0.tar && cd dist-bundle
 REGISTRY=registre.interne.lan/athena sh load-bundle.sh      # vérifie SHA256SUMS, charge, étiquette et pousse
 ```
 
-### 3. Installer
+### 3. Isoler le DNS du cluster
+Avec le `forward` par défaut de CoreDNS, un pod isolé résout encore les noms publics (canal de sortie par le DNS ; constaté sur `kind`). Appliquer une fois par cluster `coredns-isolated.yaml` (livré dans le lot) puis redémarrer CoreDNS : les noms du cluster se résolvent, les noms externes échouent (`EAI_AGAIN`). Pour des noms internes hors cluster, ajouter un bloc `forward <domaine interne> <serveur DNS interne>` limité à ce domaine.
+
+### 4. Installer
 Créer les secrets (jamais dans le dépôt) : `athena-env`, `athena-migration`, `athena-keycloak` (`KC_DB_URL`, `KC_DB_USERNAME`, `KC_DB_PASSWORD`, `KEYCLOAK_ADMIN`, `KEYCLOAK_ADMIN_PASSWORD`) et `athena-openbao-tls` (certificat émis par l'autorité interne). Puis :
 ```
 helm upgrade --install athena chart/athena-0.1.0.tgz -f values-isolated.yaml -f mes-valeurs.yaml --set image.registry=$REGISTRY
 ```
+Keycloak : l'image standard se construit au démarrage et exige un système de fichiers inscriptible ; pour le garder en lecture seule, construire une image optimisée (`kc.sh build`) avant transfert et régler `isolated.keycloak.optimizedImage: true`. OpenBao tourne sous l'uid 100 (gid 1000) : le chart les fixe.
+
 `values-isolated.yaml` active `isolated.enabled` : le chart crée Keycloak (importe le royaume depuis la ConfigMap `isolated.keycloak.realmConfigMap`) et OpenBao (stockage fichier, TLS interne), et remplace les politiques réseau par des politiques sans sortie HTTPS générique. L'API et le worker ne joignent que PostgreSQL (`networkPolicy.databaseCidr`), Keycloak, OpenBao et les hôtes listés dans `networkPolicy.internalCidrs`.
 
-### 4. Initialiser OpenBao
+### 5. Initialiser OpenBao
 Initialiser et desceller OpenBao (`bao operator init`, clés de descellement réparties entre plusieurs personnes), activer le moteur `secret`, charger la politique `deploy/dev/openbao/athena-api.hcl`, puis placer le jeton applicatif dans `athena-env` (`OPENBAO_TOKEN`).
 
-### 5. Contrôles
+### 6. Contrôles
 - `node tools/check-external-urls.mjs` (aussi exécuté par `pnpm check`) échoue si une URL externe apparaît dans le code livré.
 - Les tests `no-egress` (API et navigateur) échouent si l'application tente une requête vers un hôte public.
 - Recette sur `kind` coupé de l'extérieur : voir le journal de la tâche T-0076 (`docs/dev/tasks/T-0076/CONTEXT.md`).

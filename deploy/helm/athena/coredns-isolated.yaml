@@ -1,0 +1,31 @@
+# DNS du cluster pour le réseau isolé : CoreDNS ne résout que le cluster (aucun `forward`), donc aucune requête DNS ne peut servir de
+# canal de sortie vers l'extérieur. Si des noms internes hors cluster sont nécessaires (GitLab, registre), les déclarer avec un bloc
+# `forward interne.lan <serveur DNS interne>` limité à ce domaine. À appliquer une fois par cluster :
+#   kubectl apply -f coredns-isolated.yaml && kubectl -n kube-system rollout restart deploy/coredns
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: coredns
+  namespace: kube-system
+data:
+  Corefile: |
+    .:53 {
+        errors
+        health {
+           lameduck 5s
+        }
+        ready
+        kubernetes cluster.local in-addr.arpa ip6.arpa {
+           pods insecure
+           fallthrough in-addr.arpa ip6.arpa
+           ttl 30
+        }
+        prometheus :9153
+        cache 30 {
+           disable success cluster.local
+           disable denial cluster.local
+        }
+        loop
+        reload
+        loadbalance
+    }

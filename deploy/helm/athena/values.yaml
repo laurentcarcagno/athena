@@ -74,6 +74,7 @@ isolated:
     image: { repository: keycloak, tag: "26.0" }
     existingSecret: athena-keycloak
     realmConfigMap: ""
+    optimizedImage: false                      # vrai si l'image a été construite avec `kc.sh build` (système de fichiers alors en lecture seule)
     resources: { requests: { cpu: 200m, memory: 512Mi }, limits: { memory: 1Gi } }
   openbao:
     image: { repository: openbao, tag: "2.1" }

@@ -23,6 +23,7 @@ isolated:
     image: { repository: keycloak, tag: "26.0" }
     existingSecret: athena-keycloak            # KC_DB_URL, KC_DB_USERNAME, KC_DB_PASSWORD, KEYCLOAK_ADMIN, KEYCLOAK_ADMIN_PASSWORD
     realmConfigMap: ""                         # ConfigMap contenant le royaume Athena (import au démarrage)
+    optimizedImage: false                      # vrai si l'image a été construite avec `kc.sh build` (système de fichiers alors en lecture seule)
     resources:
       requests: { cpu: 200m, memory: 512Mi }
       limits: { memory: 1Gi }

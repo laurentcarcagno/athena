@@ -96,4 +96,10 @@ describe('chart Helm en réseau isolé', () => {
     expect(values).toMatch(/networkPolicy:\s*\n\s+enabled: true/);
     expect(readFileSync(join(root, 'deploy/helm/athena/templates/isolated.yaml'), 'utf8')).toContain('kind: StatefulSet');
   });
+
+  it('le DNS du cluster isolé ne relaie rien vers l’extérieur (aucun forward) mais garde la résolution du cluster', () => {
+    const corefile = readFileSync(join(root, 'deploy/helm/athena/coredns-isolated.yaml'), 'utf8');
+    expect(corefile).not.toMatch(/^\s*forward\s/m);
+    expect(corefile).toContain('kubernetes cluster.local');
+  });
 });

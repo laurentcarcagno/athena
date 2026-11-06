@@ -25,7 +25,7 @@ spec:
         - name: keycloak
           image: {{ include "athena.image" (dict "root" . "spec" .Values.isolated.keycloak.image) }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          args: ["start", "--optimized=false", "--http-enabled=true", "--proxy-headers=xforwarded", "--hostname={{ .Values.isolated.keycloak.host }}", "--health-enabled=true"{{ if .Values.isolated.keycloak.realmConfigMap }}, "--import-realm"{{ end }}]
+          args: ["start", {{ if .Values.isolated.keycloak.optimizedImage }}"--optimized"{{ else }}"--optimized=false"{{ end }}, "--http-enabled=true", "--proxy-headers=xforwarded", "--hostname={{ .Values.isolated.keycloak.host }}", "--health-enabled=true"{{ if .Values.isolated.keycloak.realmConfigMap }}, "--import-realm"{{ end }}]
           ports: [{ name: http, containerPort: 8080 }]
           envFrom: [{ secretRef: { name: {{ .Values.isolated.keycloak.existingSecret }} } }]  # KC_DB_URL, KC_DB_USERNAME, KC_DB_PASSWORD, KEYCLOAK_ADMIN, KEYCLOAK_ADMIN_PASSWORD
           env:
@@ -33,7 +33,12 @@ spec:
           readinessProbe: { httpGet: { path: /health/ready, port: 9000 }, periodSeconds: 10, failureThreshold: 12, initialDelaySeconds: 30 }
           resources:
             {{- toYaml .Values.isolated.keycloak.resources | nindent 12 }}
-          {{- include "athena.containerSecurity" . | nindent 10 }}
+          # Image Keycloak standard : la construction (`kc.sh build`) se fait au démarrage et exige un système de fichiers inscriptible.
+          # Avec une image optimisée (`optimizedImage: true`, construite avant transfert), le système de fichiers reste en lecture seule.
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: {{ .Values.isolated.keycloak.optimizedImage }}
+            capabilities: { drop: ["ALL"] }
           volumeMounts:
             - { name: tmp, mountPath: /tmp }
             - { name: data, mountPath: /opt/keycloak/data }
@@ -64,7 +69,6 @@ metadata:
 data:
   openbao.hcl: |
     ui = false
-    disable_mlock = true
     listener "tcp" {
       address = "0.0.0.0:8200"
       tls_cert_file = "/openbao/tls/tls.crt"
@@ -89,7 +93,13 @@ spec:
     metadata:
       labels: { app.kubernetes.io/name: athena, app.kubernetes.io/instance: {{ .Release.Name }}, app.kubernetes.io/component: openbao }
     spec:
-      {{- include "athena.podSecurity" . | nindent 6 }}
+      # L'image OpenBao tourne sous l'utilisateur nommé « openbao » (uid 100, gid 1000) : identifiants numériques pour runAsNonRoot.
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 100
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile: { type: RuntimeDefault }
       automountServiceAccountToken: false
       {{- with .Values.image.pullSecrets }}
       imagePullSecrets: {{ toYaml . | nindent 8 }}
@@ -98,7 +108,7 @@ spec:
         - name: openbao
           image: {{ include "athena.image" (dict "root" . "spec" .Values.isolated.openbao.image) }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          args: ["server", "-config=/openbao/config/openbao.hcl"]
+          args: ["server"]   # le script d'entrée de l'image charge déjà /openbao/config
           ports: [{ name: https, containerPort: 8200 }]
           resources:
             {{- toYaml .Values.isolated.openbao.resources | nindent 12 }}
