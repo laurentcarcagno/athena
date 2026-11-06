@@ -13,7 +13,9 @@
   - Chemin d'un artefact : `trackers/REQ/artifacts/SAT1-REQ-0042.yaml`, le YAML contient `aliases: [REQ-42]`
   - Message de commit : `SAT1-REQ-0042: mise à jour (…)`
   - Un commit « migration des clés » par projet renomme les fichiers (git détecte des renommages, historique de fichier conservé)
-  - `rebuild` d'un dépôt ancien format produit le même état que la migration
+  - `rebuild` d'un dépôt ancien format produit le même état que la migration (clé canonique + alias)
+  - `rebuild` vers un projet de clé différente recalcule le préfixe de clé et conserve l'ancienne clé en alias
+  - Les instantanés de révision (`artifact_revision.snapshot`) gardent l'ancienne clé : les chemins sont toujours calculés depuis la clé courante, jamais depuis l'instantané
   - `reverse-sync` accepte les deux chemins et résout les alias
   - Idempotent : relancer la migration ne produit aucun commit
 - **Tests à écrire** :

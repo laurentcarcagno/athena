@@ -1,6 +1,6 @@
 # ADR-0002 : évolution du prototype vers l'IHM cible
 
-Statut : accepté avec les réponses du 2026-11-06 (§ 7), question 4 en attente. Source : `docs/dev/SPEC_IHM.md`. Tâches : T-0048 à T-0096, section « Reprise IHM » de `docs/dev/STATE.md`.
+Statut : accepté (2026-11-06), réponses au § 7. Source : `docs/dev/SPEC_IHM.md`. Tâches : T-0048 à T-0096, section « Reprise IHM » de `docs/dev/STATE.md`.
 
 ## 1. Décisions prises le 2026-11-06
 
@@ -19,8 +19,8 @@ Clé = `<CLÉ_TRACKER>-<n>` (`artifact.service.ts:58`), unique par projet (`uniq
 - La clé est **stockée**, calculée une fois à la création : `project.key || '-' || tracker.key || '-' || lpad(number, 4, '0')`. Elle ne change pas si un nom change. Au-delà de 9999 elle prend simplement un chiffre de plus.
 - Unicité : `unique (organization_id, key)` ajoutée. Elle est automatiquement satisfaite, la clé de projet étant déjà unique dans l'organisation.
 - **Alias** : table `artifact_key_alias (organization_id, artifact_id, project_id, alias)`, unique `(project_id, alias)`. Les anciennes clés ne sont uniques que dans leur projet : un alias se résout donc toujours **dans le contexte d'un projet** (URL `/p/:projet/...`, dépôt Git du projet, webhook d'un projet, requête ATQL d'un projet). Une ancienne clé citée sans contexte de projet n'est pas résolue. Une clé à trois segments n'entre jamais en collision avec un alias à deux segments.
-- **Résolution centralisée** par la fonction SQL `resolve_artifact(project, key)` (clé canonique d'abord, alias ensuite). Une quinzaine de requêtes comparent aujourd'hui `a.key = $n` directement (`artifact`, `link`, `doc-link`, `sprint`, `report`, `board`, `attachment`, `gitcode`, `delivery`, `reverse-sync`, contrôleur) : elles sont migrées vers cette fonction dans T-0049/T-0050, avec un test qui échoue si une requête compare encore la clé brute.
-- **Expressions régulières** : la clé canonique `[A-Z][A-Z0-9]{1,9}-[A-Z][A-Z0-9]{1,9}-\d{4,9}` est testée **avant** la forme ancienne `[A-Z][A-Z0-9]{1,9}-\d{1,9}`, et la forme ancienne n'est pas cherchée à l'intérieur d'une clé canonique (sinon `REQ-0042` serait extrait de `SAT1-REQ-0042`). Trois définitions dispersées aujourd'hui (`refs.ts`, `sdoc-parser.ts`, `inbound.service.ts`, `reverse-sync.ts`, `code-actions.ts`, CLI) sont regroupées dans `core/key.ts`.
+- **Résolution centralisée** par la fonction SQL `resolve_artifact(project, key)` (clé canonique d'abord, alias ensuite). Une quinzaine de requêtes comparent aujourd'hui `a.key = $n` directement (`artifact`, `link`, `doc-link`, `sprint`, `report`, `board`, `attachment`, `gitcode`, `delivery`, `reverse-sync`, contrôleur) : elles sont migrées vers cette fonction dans T-0049 (artefacts, liens, contrôleur) et T-0098 (agile, pièces jointes, StrictDoc, code, livraisons, ATQL), avec un test qui échoue si une requête compare encore la clé brute.
+- **Expressions régulières** : la clé canonique `[A-Z][A-Z0-9]{1,9}-[A-Z][A-Z0-9]{1,9}-\d{4,9}` est testée **avant** la forme ancienne `[A-Z][A-Z0-9]{1,9}-\d{1,9}`, et la forme ancienne n'est pas cherchée à l'intérieur d'une clé canonique (sinon `REQ-0042` serait extrait de `SAT1-REQ-0042`). Les définitions dispersées aujourd'hui (`refs.ts`, `sdoc-parser.ts`, `inbound.service.ts`, `reverse-sync.ts`, `code-actions.ts`, CLI) sont regroupées dans `core/key.ts`.
 - **Historique GitLab** : chemin `trackers/REQ/artifacts/SAT1-REQ-0042.yaml` (le dossier reste le tracker), YAML avec `aliases: [REQ-42]`. Un commit unique par projet (« migration des clés ») renomme les fichiers : Git suit les renommages, l'historique de chaque fichier est conservé. Les anciens commits ne sont pas réécrits. La reconstruction et la synchronisation inverse acceptent les deux chemins.
 - **URL** : `/p/:projet/a/:clé` reste la forme canonique de la fiche ; une URL à alias redirige (remplacement d'historique) vers la clé canonique. Les anciennes clés dans des courriels et documents continuent de fonctionner tant que l'alias existe ; les alias ne sont jamais supprimés.
 
@@ -63,7 +63,7 @@ Les numéros sont indicatifs : chaque tâche prend le prochain numéro libre. To
 | 035 | `coverage_rule` | T-0068 |
 | 036 | Gabarits normatifs versionnés (`project_template_version`, rattachement du projet) | T-0069 |
 | 037 | `tailoring` (conformité) | T-0072 |
-| 038 | Listes d'ayants droit, marquage de contrôle export | T-0079 |
+| suivantes | Listes d'ayants droit ; contrôle export ; table `approval` | T-0079, T-0099, T-0080 |
 | 039 | `doc_node` : position, parent, profondeur | T-0081 |
 | 040, 041 | Notifications ; circuits d'approbation | T-0091, T-0094 |
 
@@ -89,8 +89,10 @@ Les types de liens d'organisation **coexistent** avec les types par projet : à 
 1. Board par tracker : oui, la vue Board d'un tracker est le board de projet filtré sur ce tracker.
 2. **Types de tracker d'organisation introduits** (T-0097) ; les paires de liens autorisées s'expriment en types (T-0063).
 3. Catégories de trackers : oui, déduites du type (« Autres » sans type).
-4. Sens de la suspicion : en attente. Proposition : même comportement pour tous les types de liens, avec un réglage « propage la suspicion » par type de lien (T-0064).
+4. Suspicion : même comportement pour tous les types de liens (la modification d'un champ de contenu de la cible rend le lien suspect), avec un réglage « propage la suspicion » par type de lien (`link_type.propagates_suspect`, T-0064).
 5. Clé de projet non modifiable après le premier item (T-0049).
 6. Dépôt GitHub désormais privé : plus de blocage pour le Lot 4. Rien n'est poussé sans demande.
+
+Relecture du plan (2026-11-06) : requêtes d'agile, pièces jointes, code et livraisons non couvertes ajoutées (T-0098) ; génération de clé de l'import rattachée à T-0049 ; reconstruction vers une autre clé de projet traitée (T-0051) ; T-0097 et T-0079 découpées (T-0100, T-0099) pour tenir dans une session ; table d'approbation créée au Lot 4 (T-0080) au lieu du Lot 7.
 7. Seuils de couverture : doivent être renseignables (T-0075), aucune valeur imposée.
 8. Migration (Lot 6) : traitée en toute fin de projet, après le Lot 7.

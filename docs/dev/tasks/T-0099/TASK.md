@@ -1,0 +1,22 @@
+# T-0099 : Marquage de contrôle export (ITAR / EAR, double usage)
+
+- **Lot** : 4 (reprise IHM ; exécutée juste après T-0079)
+- **Objectif** : Marquer un item sous contrôle export avec restriction d'accès associée, signalée sur les items liés et reportée sur les sorties.
+- **Fichiers concernés** :
+  - `apps/api/src/db/migrations/0xx_export_control.sql`
+  - `apps/api/src/core/access.service.ts`
+  - `apps/api/src/webhooks/*` (filtrage des charges utiles)
+  - `apps/api/src/core/export-marking.ts`
+  - `apps/web/src/components/MarkingEditor.tsx`
+- **Migration** : `artifact.export_control text` (valeurs : aucune, ITAR, EAR, double usage) et liste d'ayants droit associée par projet.
+- **Critères d'acceptation** (testables) :
+  - Un item marqué n'est lisible que des ayants droit du marquage ; les items liés affichent « lien vers un item sous contrôle export » sans titre ni contenu
+  - Webhooks sortants et exports excluent ou masquent l'item selon les droits du destinataire
+  - Changement de marquage réservé aux responsables, audité
+- **Tests à écrire** :
+  - API : visibilité, liens, webhooks, exports
+  - Vitest/RTL : éditeur de marquage
+  - axe
+- **Règles communes** : interface Hemeria (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
+- **Hors périmètre** : listes d'ayants droit générales (T-0079).
+- **Dépendances** : T-0079

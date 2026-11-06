@@ -16,10 +16,11 @@
   - La palette trouve un artefact par ancienne ou nouvelle clé
   - Aucune clé ne se coupe à 375 px (`white-space: nowrap`)
   - Guide, référence API et formation citent le nouveau format et expliquent l'alias
+  - La référence API signale que le champ `key` des webhooks sortants passe au nouveau format à la date de migration (changement visible pour les intégrations maison)
 - **Tests à écrire** :
   - Vitest/RTL : redirection d'alias
   - axe sur la fiche
   - Playwright : ouvrir par ancienne clé, vérifier l'URL finale
 - **Règles communes** : interface Hemeria (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
 - **Hors périmètre** : tout ce qui relève d'une autre tâche de la liste « Reprise IHM » de `docs/dev/STATE.md`.
-- **Dépendances** : T-0049, T-0050
+- **Dépendances** : T-0050, T-0051, T-0098

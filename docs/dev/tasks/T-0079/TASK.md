@@ -1,22 +1,22 @@
-# T-0079 : Contrôle export et ayants droit
+# T-0079 : Listes d'ayants droit (besoin d'en connaître)
 
 - **Lot** : 4 (reprise IHM, voir `docs/dev/DECISIONS/ADR-0002-ihm-cible.md`)
-- **Objectif** : Marquage de contrôle export (ITAR/EAR, double usage) par item, listes d'ayants droit par projet ou tracker en plus des rôles.
+- **Objectif** : Listes d'ayants droit par projet ou par tracker, en plus des rôles, appliquées à toutes les lectures.
 - **Fichiers concernés** :
-  - `apps/api/src/db/migrations/038_access_lists.sql`
-  - `apps/api/src/core/access.service.ts`
+  - `apps/api/src/db/migrations/0xx_access_lists.sql`
+  - `apps/api/src/core/access.service.ts` (nouveau)
   - `apps/api/src/core/artifact.service.ts`
   - `apps/api/src/atql/search.service.ts`
-  - `apps/web/src/components/MarkingEditor.tsx`
-- **Migration** : 038 : `access_list` + `access_list_member` (organization_id, project_id/tracker_id, RLS forcée) ; `artifact` gagne `export_control text` ; champs chiffrés OpenBao conservés.
+  - `apps/web/src/pages/project/MembersTab.tsx` (gestion des listes)
+- **Migration** : `access_list` et `access_list_member` (organization_id, project_id, tracker_id nullable ; RLS forcée, `org_isolation`, droits `athena_app`).
 - **Critères d'acceptation** (testables) :
-  - Un item marqué n'est visible que des membres de la liste ; la recherche, l'ATQL, la palette, le plein texte, les webhooks et les exports respectent la liste (aucune fuite par comptage)
-  - Les modifications de marquage sont auditées (journal chaîné)
-  - Le marquage est signalé sur les items liés sans en révéler le contenu
+  - Un projet ou tracker doté d'une liste n'est lisible que de ses membres (les administrateurs d'organisation compris seulement s'ils sont membres)
+  - Recherche, ATQL, palette, plein texte, tableaux de bord et compteurs respectent la liste : aucune fuite par comptage
+  - Modifications des listes auditées dans le journal chaîné
 - **Tests à écrire** :
-  - API : matrice rôle × liste × recherche (cas de fuite)
+  - API : matrice rôle × liste × lecture/recherche/compteurs (cas de fuite)
   - Vitest/RTL
-  - Test d'intégration webhooks
+  - axe
 - **Règles communes** : interface Hemeria (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
-- **Hors périmètre** : tout ce qui relève d'une autre tâche de la liste « Reprise IHM » de `docs/dev/STATE.md`.
+- **Hors périmètre** : marquage de contrôle export (T-0099).
 - **Dépendances** : T-0078

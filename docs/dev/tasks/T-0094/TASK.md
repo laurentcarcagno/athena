@@ -6,7 +6,7 @@
   - `apps/api/src/db/migrations/041_approvals.sql`
   - `apps/api/src/core/approval.service.ts`
   - `apps/web/src/components/ApprovalPanel.tsx`
-- **Migration** : 041 : `approval_flow`, `approval_step` (RLS forcée).
+- **Migration** : 041 : `approval_flow`, `approval_step` (RLS forcée), qui étendent la table `approval` de T-0080.
 - **Critères d'acceptation** (testables) :
   - Circuit défini sur le tracker ; approbation journalisée dans l'audit chaîné
   - Réutilise l'approbation du rôle AQ étatique (T-0079)

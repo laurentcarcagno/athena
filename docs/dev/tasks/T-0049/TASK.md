@@ -7,6 +7,7 @@
   - `apps/api/src/core/artifact.service.ts`
   - `apps/api/src/core/link.service.ts`
   - `apps/api/src/core/core.controller.ts`
+  - `apps/api/src/import/import.service.ts` (génération de clé : même fonction que la création)
   - `apps/api/src/core/key.ts`  (nouveau : format, analyse, résolution)
 - **Migration** : 030 : table `artifact_key_alias` (organization_id, artifact_id, project_id, alias, RLS forcée, `org_isolation`, droits `athena_app`, unique (project_id, alias)) ; contrainte unique (organization_id, key) sur `artifact` ; fonction SQL `resolve_artifact(project, key)` ; réécriture des clés existantes (`project.key || '-' || tracker.key || '-' || lpad(number, 4, '0')`) avec insertion de l'ancienne clé en alias, dans la même transaction.
 - **Critères d'acceptation** (testables) :
@@ -15,7 +16,8 @@
   - `GET /v1/projects/:p/artifacts/REQ-42` (alias) renvoie l'artefact avec la clé canonique ; la réponse porte `canonicalKey`
   - Deux projets ayant tous deux `REQ-42` gardent chacun leur alias, résolu dans le contexte du projet
   - La clé stockée ne change plus si le nom du tracker change
-  - Les lectures, modifications, transitions et liens acceptent clé ou alias
+  - Les lectures, modifications, transitions et liens acceptent clé ou alias (`artifact.service`, `link.service`, contrôleur ; les autres services sont traités par T-0098)
+  - Un import crée des clés au nouveau format (aucune clé ancien format créée après la migration)
   - La clé de projet n'est plus modifiable une fois le premier item créé (refus par l'API, test)
 - **Tests à écrire** :
   - Vitest : formatage et analyse de clé (bornes 9999/10000, alias, non-clé)

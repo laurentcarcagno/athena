@@ -1,0 +1,22 @@
+# T-0100 : Types de tracker d'organisation : interface
+
+- **Lot** : 1 (reprise IHM ; exécutée juste après T-0097)
+- **Objectif** : Administrer les types de tracker (Organisation > Types) et choisir le type à la création ou la configuration d'un tracker.
+- **Fichiers concernés** :
+  - `apps/web/src/pages/OrgAdminPage.tsx` (onglet Types)
+  - `apps/web/src/components/TrackerTypeForm.tsx` (nouveau)
+  - `apps/web/src/components/TrackerBuilder.tsx` (choix du type, socle de champs proposé)
+  - `apps/web/src/i18n.ts`
+  - `apps/web/src/api.ts`
+- **Migration** : aucune
+- **Critères d'acceptation** (testables) :
+  - Créer, modifier, supprimer un type (suppression d'un type utilisé refusée avec message, confirmation par `ConfirmDialog`)
+  - Choisir un type dans le constructeur pré-remplit les champs du socle, modifiables
+  - Catégorie et vues proposées visibles dans la liste des types
+- **Tests à écrire** :
+  - Vitest/RTL : formulaire, suppression refusée, pré-remplissage
+  - axe sur l'onglet et le constructeur
+  - Playwright : créer un type puis un tracker de ce type
+- **Règles communes** : interface Hemeria (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
+- **Hors périmètre** : API (T-0097).
+- **Dépendances** : T-0097

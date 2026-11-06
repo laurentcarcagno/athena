@@ -1,30 +1,25 @@
-# T-0050 : Clés d'item : consommateurs (références, ATQL, import, CLI, plugins, StrictDoc)
+# T-0050 : Clés d'item : analyse des clés dans les textes (commits, branches, StrictDoc, webhooks, CLI)
 
 - **Lot** : 0 (reprise IHM, voir `docs/dev/DECISIONS/ADR-0002-ihm-cible.md`)
-- **Objectif** : Adapter tous les lieux qui lisent ou écrivent une clé : extraction dans les commits et branches, ATQL `key`, import, webhooks entrants, CLI, SDK de plugins, `ATHENA_REFS`.
+- **Objectif** : Reconnaître les deux formats de clé partout où une clé est extraite d'un texte : messages et branches Git, `ATHENA_REFS` des `.sdoc`, charges utiles des webhooks entrants, CLI.
 - **Fichiers concernés** :
-  - `apps/api/src/gitcode/refs.ts`
-  - `apps/api/src/gitcode/code-actions.ts`
-  - `apps/api/src/atql/compile.ts`
-  - `apps/api/src/inbound/inbound.service.ts`
-  - `apps/api/src/import/import.service.ts`
+  - `apps/api/src/gitcode/refs.ts` (utilise `core/key.ts`)
+  - `apps/api/src/gitcode/code-actions.ts` (contrôle du nom de branche)
   - `apps/api/src/docs/sdoc-parser.ts`
-  - `apps/api/src/plugins/plugin.service.ts`
-  - `packages/cli/src/lib.js`
-  - `packages/cli/bin/athena.mjs`
-  - `packages/plugin-sdk`  (si typage de clé)
-- **Migration** : aucune (les alias de T-0049 suffisent)
+  - `apps/api/src/inbound/inbound.service.ts`
+  - `packages/cli/src/lib.js`, `packages/cli/bin/athena.mjs` (paquet séparé : expression régulière dupliquée, testée sur la même table de cas)
+- **Migration** : aucune
 - **Critères d'acceptation** (testables) :
-  - `extractKeyActions("Fixes SAT1-BUG-0012, REQ-3")` renvoie les deux clés (canonique et ancienne), sans extraire `BUG-0012` à l'intérieur de `SAT1-BUG-0012`
-  - `keysFromBranch("bugfix/SAT1-BUG-0012-resume")` renvoie `SAT1-BUG-0012` ; `branchName` produit le nouveau format
-  - ATQL : `key = REQ-42` (alias) et `key = SAT1-REQ-0042` trouvent le même artefact, `key ~ "REQ-00"` fonctionne
-  - Import : la clé externe reste `externalKey`, la clé Athena créée a le nouveau format
+  - `extractKeyActions("Fixes SAT1-BUG-0012, REQ-3")` renvoie les deux clés, sans extraire `BUG-0012` à l'intérieur de `SAT1-BUG-0012`
+  - `keysFromBranch("bugfix/SAT1-BUG-0012-resume")` renvoie `SAT1-BUG-0012` ; `branchName` produit le nouveau format ; le contrôle de branche de `code-actions` accepte les deux formats
   - `ATHENA_REFS` accepte les deux formats
-  - CLI : `athena show REQ-42` et `athena show SAT1-REQ-0042` fonctionnent
+  - Un webhook entrant accepte ancienne et nouvelle clé
+  - CLI : `athena show REQ-42` et `athena show SAT1-REQ-0042` sont acceptés
+  - Vérification seulement, sans changement attendu : `plugin.service.ts` et `inbound/mapper.ts` ne valident que des clés de tracker
 - **Tests à écrire** :
-  - Vitest : refs.ts (table de cas : 2 segments, 3 segments, imbriqué, ponctuation, 50 clés max)
-  - API : webhook entrant avec ancienne et nouvelle clé ; commit référençant un alias passe la transition
-  - CLI : tests de `lib.js`
+  - Vitest : table de cas commune (2 segments, 3 segments, imbriqué, ponctuation, 50 clés max) pour `refs.ts` et la CLI
+  - API : webhook entrant ; commit référençant un alias déclenche la transition
+  - Parseur sdoc : `ATHENA_REFS` mixte
 - **Règles communes** : interface Hemeria (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
-- **Hors périmètre** : tout ce qui relève d'une autre tâche de la liste « Reprise IHM » de `docs/dev/STATE.md`.
+- **Hors périmètre** : résolution des clés dans les requêtes SQL (T-0049, T-0098).
 - **Dépendances** : T-0049

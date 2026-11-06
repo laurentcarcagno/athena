@@ -1,0 +1,22 @@
+# T-0098 : Clés d'item : résolution des alias dans les autres services et dans l'ATQL
+
+- **Lot** : 0 (reprise IHM ; exécutée juste après T-0050)
+- **Objectif** : Faire passer toutes les requêtes qui comparent encore la clé brute (`a.key = $n`) par `resolve_artifact`, et accepter les alias dans l'ATQL `key`.
+- **Fichiers concernés** :
+  - `apps/api/src/agile/board.service.ts`, `report.service.ts`, `sprint.service.ts`
+  - `apps/api/src/core/attachment.service.ts`
+  - `apps/api/src/docs/doc-link.service.ts`
+  - `apps/api/src/gitcode/gitcode.service.ts`, `delivery.ts`
+  - `apps/api/src/atql/compile.ts`
+- **Migration** : aucune
+- **Critères d'acceptation** (testables) :
+  - Déplacer une carte, ajouter à un sprint, joindre un fichier, lier une exigence documentaire, rattacher une MR : tout fonctionne avec une ancienne clé
+  - ATQL : `key = REQ-42` (alias) et `key = SAT1-REQ-0042` trouvent le même artefact ; `key in (…)` mêle les deux ; `key ~ "REQ-00"` fonctionne
+  - Test de garde : il échoue si un fichier de `apps/api/src` (hors `core/key.ts` et migrations) compare `a.key` ou `artifact … key =` sans passer par la résolution
+- **Tests à écrire** :
+  - API : un cas par service avec une ancienne clé
+  - Vitest : compilation ATQL de `key` (paramètres liés, aucune concaténation)
+  - Test de garde (analyse statique simple des sources)
+- **Règles communes** : interface Hemeria (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
+- **Hors périmètre** : analyse des clés dans les textes (T-0050).
+- **Dépendances** : T-0049

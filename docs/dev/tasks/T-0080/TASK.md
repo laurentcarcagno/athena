@@ -7,7 +7,7 @@
   - `apps/api/src/history/baseline.service.ts`
   - `apps/api/src/agile/*`
   - `apps/web/src/pages/project/PlanningTab.tsx`
-- **Migration** : selon T-0078 (table d'approbation à définir)
+- **Migration** : `approval` (organization_id, objet jalon ou baseline, approbateur, décision, horodatage ; RLS forcée). T-0094 l'étend en circuits
 - **Critères d'acceptation** (testables) :
   - Le rôle lit tout ce que sa liste d'ayants droit autorise et n'écrit rien
   - Il approuve un jalon ou une baseline : approbation nominative horodatée, auditée
@@ -18,4 +18,4 @@
   - axe
 - **Règles communes** : interface Hemeria (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
 - **Hors périmètre** : tout ce qui relève d'une autre tâche de la liste « Reprise IHM » de `docs/dev/STATE.md`.
-- **Dépendances** : T-0079
+- **Dépendances** : T-0099

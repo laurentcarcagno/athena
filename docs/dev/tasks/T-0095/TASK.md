@@ -7,7 +7,7 @@
   - `packages/ui/design/DESIGN.md`
   - `packages/ui/src/styles.css`
   - `apps/web/src/App.tsx`
-- **Migration** : aucune (préférence en `localStorage` ou `user_pin`)
+- **Migration** : aucune (préférence par navigateur en `localStorage`, valeur par défaut = système)
 - **Critères d'acceptation** (testables) :
   - Tokens sombres déclarés, contrastes AA calculés, `design:check` vert
   - Bascule clair/sombre/système, mémorisée

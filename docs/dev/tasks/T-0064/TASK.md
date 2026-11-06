@@ -8,7 +8,7 @@
   - `apps/api/src/core/tracker.service.ts`
   - `apps/api/src/history/serialize.ts`  (tracker.yaml)
   - `apps/web/src/components/TrackerBuilder.tsx`
-- **Migration** : 034 : `field_definition.is_content boolean not null default true` (défaut conservateur : le comportement actuel est préservé tant que rien n'est décoché).
+- **Migration** : 034 : `field_definition.is_content boolean not null default true` (défaut conservateur : le comportement actuel est préservé tant que rien n'est décoché) ; `link_type.propagates_suspect boolean not null default true` (décision du 2026-11-06).
 - **Critères d'acceptation** (testables) :
   - Modifier un champ non-contenu (priorité, responsable) ne crée aucun lien suspect ; modifier un champ de contenu le fait
   - Le drapeau est éditable dans l'éditeur de tracker, exporté dans `tracker.yaml`, repris par les templates
