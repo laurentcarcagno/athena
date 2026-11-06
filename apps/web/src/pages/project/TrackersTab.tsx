@@ -17,7 +17,10 @@ export function groupByCategory(trackers: TrackerOverview[]): Array<{ category: 
     .filter((g) => g.trackers.length > 0);
 }
 
-/** Barre empilée : un segment par catégorie de statut, largeur proportionnelle ; le texte alternatif donne les chiffres. */
+/**
+ * Barre empilée : un segment par catégorie de statut, largeur proportionnelle ; le texte alternatif donne les chiffres.
+ * Dessinée en SVG (attributs de présentation) car la CSP de production interdit les attributs `style` en ligne.
+ */
 export function StatusBar({ tracker }: { tracker: TrackerOverview }) {
   const total = tracker.statuses.reduce((n, s) => n + s.count, 0);
   const byCategory = ['todo', 'in_progress', 'done'].map((category) => ({
@@ -25,10 +28,16 @@ export function StatusBar({ tracker }: { tracker: TrackerOverview }) {
     count: tracker.statuses.filter((s) => s.category === category).reduce((n, s) => n + s.count, 0),
   }));
   const label = tracker.statuses.map((s) => `${s.name} ${s.count}`).join(', ');
+  let x = 0;
   return (
-    <div className="ath-stackbar" role="img" aria-label={`${fr.trackersTab.statusSummary} : ${label}`}>
-      {total > 0 && byCategory.filter((c) => c.count > 0).map((c) => <span key={c.category} className={`ath-stackbar__seg--${c.category}`} style={{ width: `${(c.count / total) * 100}%` }} />)}
-    </div>
+    <svg className="ath-stackbar" viewBox="0 0 100 8" preserveAspectRatio="none" role="img" aria-label={`${fr.trackersTab.statusSummary} : ${label}`}>
+      {total > 0 && byCategory.filter((c) => c.count > 0).map((c) => {
+        const width = (c.count / total) * 100;
+        const rect = <rect key={c.category} className={`ath-stackbar__seg--${c.category}`} x={x} y={0} width={width} height={8} />;
+        x += width;
+        return rect;
+      })}
+    </svg>
   );
 }
 

@@ -92,7 +92,7 @@ const frDict = {
   },
   trackerScreen: {
     eyebrow: 'Tracker', newItem: '+ Nouvel item', configure: 'Configurer', views: 'Vues du tracker', workflow: 'Workflow', empty: 'Aucun item.',
-    total: (n: number) => (n === 1 ? '1 item' : `${n} items`), viewNames: { tableau: 'Tableau', board: 'Board' } as Record<string, string>,
+    total: (n: number) => (n === 1 ? '1 item' : `${n} items`), viewNames: { tableau: 'Tableau', board: 'Board', arbre: 'Arbre' } as Record<string, string>,
   },
   filters: {
     bar: 'Filtres du tracker', mine: 'Assigné à moi', suspect: 'Liens suspects', all: 'Tous', text: 'Recherche dans le tracker', apply: 'Appliquer', clear: 'Effacer les filtres',
@@ -132,6 +132,7 @@ const frDict = {
     column: 'Contenu', content: 'Champ de contenu', contentHelp: 'Sa modification rend suspects les liens vers l’item', toggle: 'Champ de contenu :', propagates: 'Propage la suspicion', noPropagation: 'Sans suspicion',
     contentSaved: 'Champ de contenu enregistré.',
   },
+  tree: { label: 'Arbre des items', empty: 'Aucun item dans ce tracker.' },
   types: {
     title: 'Types de tracker', note: 'Un type fixe la catégorie, les vues proposées et le socle de champs des trackers qui en dérivent. Les types livrés se modifient et se réinitialisent.',
     key: 'Clé du type (minuscules)', name: 'Nom du type', description: 'Description', category: 'Catégorie',
@@ -268,7 +269,7 @@ const enDict: Dictionary = {
   },
   trackerScreen: {
     eyebrow: 'Tracker', newItem: '+ New item', configure: 'Configure', views: 'Tracker views', workflow: 'Workflow', empty: 'No item.',
-    total: (n: number) => (n === 1 ? '1 item' : `${n} items`), viewNames: { tableau: 'Table', board: 'Board' } as Record<string, string>,
+    total: (n: number) => (n === 1 ? '1 item' : `${n} items`), viewNames: { tableau: 'Table', board: 'Board', arbre: 'Tree' } as Record<string, string>,
   },
   filters: {
     bar: 'Tracker filters', mine: 'Assigned to me', suspect: 'Suspect links', all: 'All', text: 'Search in the tracker', apply: 'Apply', clear: 'Clear filters',
@@ -308,6 +309,7 @@ const enDict: Dictionary = {
     column: 'Content', content: 'Content field', contentHelp: 'Changing it makes the links to the item suspect', toggle: 'Content field:', propagates: 'Propagates suspicion', noPropagation: 'No suspicion',
     contentSaved: 'Content field saved.',
   },
+  tree: { label: 'Item tree', empty: 'No item in this tracker.' },
   types: {
     title: 'Tracker types', note: 'A type sets the category, the proposed views and the base fields of the trackers derived from it. Built-in types can be edited and reset.',
     key: 'Type key (lowercase)', name: 'Type name', description: 'Description', category: 'Category',

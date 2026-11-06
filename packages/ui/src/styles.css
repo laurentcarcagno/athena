@@ -254,10 +254,10 @@
 
 /* Audit F-07 : un identifiant ne se coupe pas, un titre long se tronque (texte complet dans l'attribut title). */
 .ath-table .ath-link.ath-mono, .ath-table .ath-mono, .ath-ticket .ath-link { white-space: nowrap; }
-.ath-stackbar { display: flex; height: 8px; border: 1px solid var(--ath-color-console-border); background: var(--ath-color-cold-mist); }
-.ath-stackbar__seg--todo { background: var(--ath-color-console-sky); }
-.ath-stackbar__seg--in_progress { background: var(--ath-color-signal-warning); }
-.ath-stackbar__seg--done { background: var(--ath-color-signal-success); }
+.ath-stackbar { display: block; width: 100%; height: 8px; border: 1px solid var(--ath-color-console-border); background: var(--ath-color-cold-mist); box-sizing: border-box; }
+.ath-stackbar__seg--todo { fill: var(--ath-color-console-sky); }
+.ath-stackbar__seg--in_progress { fill: var(--ath-color-signal-warning); }
+.ath-stackbar__seg--done { fill: var(--ath-color-signal-success); }
 .ath-miniworkflow { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ath-space-sm); list-style: none; margin: 0; padding: 0; }
 .ath-miniworkflow__state { display: inline-flex; align-items: center; gap: var(--ath-space-sm); }
 .ath-miniworkflow__arrow { color: var(--ath-text-mute); }
@@ -272,6 +272,15 @@
 .ath-detail__title { margin: 0; font-size: 16px; }
 .ath-row--selected { background: var(--ath-color-hover-mist); }
 @media (max-width: 767px) { .ath-split { grid-template-columns: 1fr; } .ath-split__panel { position: fixed; inset: 0; z-index: 900; max-height: none; } }
+.ath-tree { display: flex; flex-direction: column; border: 1px solid var(--ath-color-console-border); background: var(--ath-color-instrument-white); }
+.ath-tree__row { display: flex; align-items: center; gap: var(--ath-space-sm); min-height: 32px; padding: 0 var(--ath-space-sm); border-bottom: 1px solid var(--ath-color-console-border); cursor: pointer; }
+.ath-tree__row:hover { background: var(--ath-color-hover-mist); }
+.ath-tree__row[aria-selected="true"] { background: var(--ath-color-hover-mist); border-left: 3px solid var(--ath-color-console-sky); }
+.ath-tree__row:focus-visible { outline: 2px solid var(--ath-color-console-sky); outline-offset: -2px; }
+.ath-tree__row[data-level="2"] { padding-left: 28px; } .ath-tree__row[data-level="3"] { padding-left: 48px; } .ath-tree__row[data-level="4"] { padding-left: 68px; }
+.ath-tree__row[data-level="5"] { padding-left: 88px; } .ath-tree__row[data-level="6"] { padding-left: 108px; } .ath-tree__row[data-level="7"] { padding-left: 128px; } .ath-tree__row[data-level="8"] { padding-left: 148px; }
+.ath-tree__toggle { display: inline-flex; align-items: center; justify-content: center; width: 24px; min-height: 24px; color: var(--ath-text-mute); }
+.ath-tree__chapter { color: var(--ath-text-mute); min-width: 3.5ch; }
 .ath-nowrap { white-space: nowrap; }
 .ath-clip { display: block; max-width: 60ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ath-ticket__title { overflow-wrap: anywhere; }

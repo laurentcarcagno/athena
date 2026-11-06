@@ -16,6 +16,11 @@ describe('garde-fous de l’interface (constats d’audit F-01 et F-03)', () => 
     expect(offenders.map((f) => f.slice(root.length + 1))).toEqual([]);
   });
 
+  it('aucun attribut style en ligne : la CSP de production (style-src \'self\') les bloque', () => {
+    const offenders = sources(root).filter((f) => /\bstyle=\{/.test(readFileSync(f, 'utf8')));
+    expect(offenders.map((f) => f.slice(root.length + 1))).toEqual([]);
+  });
+
   it('toute suppression irréversible passe par la boîte de confirmation (F-01) : un DELETE est précédé de confirm.ask ou annoté « sans confirmation : … »', () => {
     const offenders = sources(root).flatMap((file) => {
       const lines = readFileSync(file, 'utf8').split('\n');

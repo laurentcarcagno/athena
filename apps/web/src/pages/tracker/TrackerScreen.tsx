@@ -10,6 +10,7 @@ import { FilterBar } from '../../components/FilterBar';
 import { SavedViews, viewOf, viewToParams } from '../../components/SavedViews';
 import { MiniWorkflow } from '../../components/MiniWorkflow';
 import { PinToggle } from '../../components/PinToggle';
+import { TreeView } from '../../components/TreeView';
 import { useFailure } from '../../hooks';
 import { BoardView } from '../BoardPage';
 import { fr } from '../../i18n';
@@ -93,7 +94,7 @@ export function TrackerScreen({ session }: { session: Session }) {
   const latest = useRef({ item, rows, closePanel, select: (key: string) => setParams(withItem(key), { replace: true }) });
   latest.current = { item, rows, closePanel, select: (key: string) => setParams(withItem(key), { replace: true }) };
   useEffect(() => {
-    if (vue === 'board') return undefined;
+    if (vue === 'board' || vue === 'arbre') return undefined;
     const onKey = (event: KeyboardEvent) => {
       const { item: open, rows: list, closePanel: close, select } = latest.current;
       const target = event.target as HTMLElement | null;
@@ -149,7 +150,13 @@ export function TrackerScreen({ session }: { session: Session }) {
           <Link key={v} to={`${base}/${v}`} className="ath-tab" aria-current={v === current ? 'page' : undefined}>{fr.trackerScreen.viewNames[v]}</Link>
         ))}
       </nav>
-      {current === 'board' ? <BoardView project={String(project)} board={`~${tracker}`} header={false} /> : result === null ? <p role="status">{fr.loading}</p> : result.hits.length === 0 ? (
+      {current === 'board' ? <BoardView project={String(project)} board={`~${tracker}`} header={false} /> : current === 'arbre' ? (
+        <div className={item ? 'ath-split' : undefined}>
+          <div><TreeView project={String(project)} tracker={String(tracker)} selected={item} onOpen={(key) => setParams(withItem(key))} /></div>
+          {item && <DetailPanel session={session} project={String(project)} itemKey={item} onClose={closePanel}
+            onExpand={() => navigate(`/p/${project}/a/${item}`)} onCanonicalKey={(key) => setParams(withItem(key), { replace: true })} />}
+        </div>
+      ) : result === null ? <p role="status">{fr.loading}</p> : result.hits.length === 0 ? (
         <EmptyState eyebrow={fr.trackerScreen.eyebrow} title={fr.trackerScreen.empty} action={fragment ? <Btn variant="ghost" onClick={() => next({ f: null, o: null })}>{fr.list.reset}</Btn> : undefined} />
       ) : (
         <div className={item ? 'ath-split' : undefined}>

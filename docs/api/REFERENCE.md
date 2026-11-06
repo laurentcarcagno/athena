@@ -88,3 +88,5 @@ Un champ de tracker porte `isContent` (vrai par défaut), accepté à la créati
 
 `suspect()`, `linkedTo(CLÉ[, "type"])` et `notLinked(["type"])` sont des prédicats sans opérateur, insensibles à la casse, combinables par AND, OR, NOT et parenthèses. `CLÉ` est la clé canonique ou une ancienne clé du projet ; `type` est la clé d'un type de lien (projet ou organisation). Le lien compte dans les deux sens. Une clé inconnue ne donne aucun résultat ; un argument invalide donne une erreur 422 avec la position. Elles se compilent en sous-requêtes paramétrées, limitées au projet et à l'organisation de l'appelant.
 
+`GET /v1/projects/:p/trackers/:t/tree[?parent=CLÉ]` renvoie `{items, total}` : les racines du tracker (items sans parent dans ce tracker) ou les enfants directs de `parent`, dans l'ordre de création. Chaque item porte `key`, `title` (la clé si le champ titre est à lecture restreinte), `status`, `statusName`, `category`, `childCount` et `suspect`. Convention : pour un type de lien `hierarchical`, le lien va de l'enfant vers le parent ; seuls les liens entre items du même tracker comptent.
+

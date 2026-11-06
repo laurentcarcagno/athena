@@ -83,14 +83,14 @@ describe('sélecteur de frères du fil d’Ariane', () => {
     expect(within(menu).getAllByRole('link').map((l) => l.getAttribute('href'))).toEqual(['/p/ARI/t/BUG/tableau', '/p/ARI/t/REQ/tableau']);
   });
 
-  it('propose les vues que le type du tracker offre : Tableau et Board sans type, Tableau seul pour une exigence', async () => {
+  it('propose les vues que le type du tracker offre : toutes les vues sans type, Tableau et Arbre pour une exigence', async () => {
     const first = show('/p/ARI/t/BUG/tableau');
     await userEvent.click(screen.getByRole('button', { name: 'Changer de vue' }));
-    expect(within(await screen.findByRole('list', { name: 'Changer de vue' })).getAllByRole('link').map((l) => l.textContent)).toEqual(['Tableau', 'Board']);
+    expect(within(await screen.findByRole('list', { name: 'Changer de vue' })).getAllByRole('link').map((l) => l.textContent)).toEqual(['Tableau', 'Board', 'Arbre']);
     first.unmount();
     show('/p/ARI/t/REQ/tableau');
     await userEvent.click(screen.getByRole('button', { name: 'Changer de vue' }));
-    await waitFor(() => expect(within(screen.getByRole('list', { name: 'Changer de vue' })).getAllByRole('link').map((l) => l.textContent)).toEqual(['Tableau']));
+    await waitFor(() => expect(within(screen.getByRole('list', { name: 'Changer de vue' })).getAllByRole('link').map((l) => l.textContent)).toEqual(['Tableau', 'Arbre']));
   });
 
   it('se ferme avec Échap en rendant le focus au bouton, et n’a aucune violation d’accessibilité', async () => {

@@ -308,14 +308,14 @@ describe('vue Board du tracker', () => {
     app('/p/ARI/t/BUG/board');
     await waitFor(() => expect(screen.getByTestId('where')).toHaveTextContent('/p/ARI/t/BUG/tableau'));
     await screen.findByRole('link', { name: 'ARI-BUG-0001' });
-    expect(viewTabs()).toEqual(['Tableau']);
+    expect(viewTabs()).toEqual(['Tableau', 'Arbre']);
   });
 
-  it('un tracker sans type garde Tableau et Board', async () => {
+  it('un tracker sans type garde toutes les vues : Tableau, Board et Arbre', async () => {
     typeKey = null;
     app('/p/ARI/t/BUG/tableau');
     await screen.findByRole('link', { name: 'ARI-BUG-0001' });
-    expect(viewTabs()).toEqual(['Tableau', 'Board']);
+    expect(viewTabs()).toEqual(['Tableau', 'Board', 'Arbre']);
   });
 
   it('la page d’un board de projet est inchangée', async () => {
