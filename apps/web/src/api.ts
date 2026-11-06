@@ -82,7 +82,7 @@ export interface TrackerDefinition {
   statuses: Array<{ id: string; key: string; name: string; category: string }>;
   transitions: Array<{ id: string; name: string; fromStatusId: string | null; toStatusId: string; conditions?: Array<{ type: string; roles?: string[] }> }>;
 }
-export interface Artifact { id: string; key: string; trackerKey: string; status: string; values: Record<string, unknown>; version: number }
+export interface Artifact { id: string; key: string; trackerKey: string; status: string; values: Record<string, unknown>; version: number; exportControl?: 'ITAR' | 'EAR' | 'dual_use' }
 export interface AttachmentView { id: string; name: string; contentType: string; size: number; sha256: string; uploadedBy: string; createdAt: string }
 export interface SavedFilter { id: string; name: string; query: string; owner: string; shared: boolean; trackerKey?: string | null; view?: string; columns?: string[] | null; isDefault?: boolean }
 export interface Revision { version: number; diff: Record<string, { from: unknown; to: unknown }>; gitSha: string | null; at: string; actor: string }

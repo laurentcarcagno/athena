@@ -6,10 +6,11 @@ import { useBusy, useFailure } from '../hooks';
 import { fr } from '../i18n';
 import { useConfirm } from '../components/ConfirmDialog';
 import { LinkEditor } from '../components/LinkEditor';
+import { MarkingEditor } from '../components/MarkingEditor';
 import { resolveLayout } from '../lib/layout';
 import { pillKind } from './ListPage';
 
-interface LinkView { id: string; type: string; direction: string; label: string; other: string; suspect: boolean }
+interface LinkView { id: string; type: string; direction: string; label: string; other: string | null; restricted?: boolean; suspect: boolean }
 interface Comment { id: string; author: string; authorName: string; body: string; createdAt: string }
 interface CodeRef { kind: string; ref: string; title: string; state: string; pipeline: string }
 interface DocLink { uid: string; title: string; status: string; suspect: boolean; orphan: boolean }
@@ -219,6 +220,7 @@ export function ArtifactView({ session, project, itemKey: key, embedded = false,
         {tab === 'details' && (
           <Card title={fr.artifact.details} meta={`v${artifact.version}`}>
             <div className="ath-stack">
+              <MarkingEditor project={project} itemKey={artifact.key} value={artifact.exportControl} canEdit={(session.user?.roles ?? []).some((r) => r === 'athena-admin' || r === 'athena-pm')} onChanged={reload} />
               {resolveLayout(def.layout, def.fields, { general: fr.layout.general, details: fr.layout.details, others: fr.layout.others }).sections.map((section, i) => (
                 section.fields.length === 0 ? null : (
                   <section key={i} aria-label={section.title || undefined} className="ath-layout-view">

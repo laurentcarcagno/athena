@@ -12,6 +12,8 @@ export interface Artifact {
   status: string;
   values: Record<string, unknown>;
   version: number;
+  /** Marquage de contrôle export (absent : aucun). */
+  exportControl?: 'ITAR' | 'EAR' | 'dual_use';
 }
 
 type Values = Record<string, unknown>;
@@ -208,7 +210,7 @@ export class ArtifactService {
   private async load(c: PoolClient, projectKey: string, key: string, lock: boolean) {
     const row = (
       await c.query(
-        `select a.id, a.key, a.version, a.status_id, a."values" as values, s.key as status_key, t.key as tracker_key
+        `select a.id, a.key, a.version, a.status_id, a.export_control, a."values" as values, s.key as status_key, t.key as tracker_key
          from artifact a join project p on p.id = a.project_id
          join tracker t on t.id = a.tracker_id join status s on s.id = a.status_id
          where p.key = $1 and a.id = resolve_artifact(p.id, $2) ${lock ? 'for update of a' : ''}`,
@@ -219,8 +221,8 @@ export class ArtifactService {
     return row;
   }
 
-  private toArtifact(row: { id: string; key: string; tracker_key: string; status_key: string; values: Values; version: number }): Artifact {
-    return { id: row.id, key: row.key, trackerKey: row.tracker_key, status: row.status_key, values: row.values, version: row.version };
+  private toArtifact(row: { id: string; key: string; tracker_key: string; status_key: string; values: Values; version: number; export_control?: Artifact['exportControl'] | null }): Artifact {
+    return { id: row.id, key: row.key, trackerKey: row.tracker_key, status: row.status_key, values: row.values, version: row.version, ...(row.export_control ? { exportControl: row.export_control } : {}) };
   }
 
   private async record(

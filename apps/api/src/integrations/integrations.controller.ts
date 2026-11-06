@@ -31,6 +31,8 @@ const WebhookBody = z.object({
   url: z.string().url().max(2000),
   eventTypes: z.array(z.string().max(60)).min(1).max(50),
   description: z.string().max(500).optional(),
+  /** Abonnement habilité à recevoir les événements des items sous contrôle export (faux par défaut : ils ne lui sont pas envoyés). */
+  exportControlOk: z.boolean().optional(),
 });
 const IndexBody = z.object({
   files: z.array(z.object({ path: z.string().max(500), content: z.string() })).min(1).max(500),

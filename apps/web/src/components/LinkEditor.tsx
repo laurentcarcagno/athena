@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
-import { Btn, Field, StatusPill, useToast } from '@athena/ui';
+import { Btn, Field, StatusPill, Tag, useToast } from '@athena/ui';
 import { api, type SearchResult } from '../api';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
 import { useConfirm } from './ConfirmDialog';
 
-export interface LinkRow { id: string; type: string; direction: string; label: string; other: string; suspect: boolean }
+export interface LinkRow { id: string; type: string; direction: string; label: string; other: string | null; restricted?: boolean; suspect: boolean }
 interface LinkType { key: string; outwardLabel: string; inwardLabel: string; hierarchical: boolean }
 interface Suggestion { key: string; title: string }
 
@@ -59,7 +59,7 @@ export function LinkEditor({ project, itemKey, links, onChanged, focusSignal = 0
     } catch (error) { fail(error); }
   };
   const remove = async (row: LinkRow) => {
-    if (!(await confirm.ask({ title: fr.links.deleteTitle(row.label, row.other), body: fr.links.deleteBody, confirm: fr.confirm.delete }))) return;
+    if (!(await confirm.ask({ title: fr.links.deleteTitle(row.label, row.other ?? fr.marking.restrictedLink), body: fr.links.deleteBody, confirm: fr.confirm.delete }))) return;
     try { await api('DELETE', `/v1/projects/${project}/links/${row.id}`); toast('success', fr.links.removed); await onChanged(); } catch (error) { fail(error); }
   };
   const acknowledge = async (row: LinkRow) => {
@@ -73,10 +73,10 @@ export function LinkEditor({ project, itemKey, links, onChanged, focusSignal = 0
         <ul className="ath-stack" aria-label={fr.artifact.links}>
           {links.map((l) => (
             <li key={l.id} className="ath-row">
-              <span>{l.label}</span> <Link className="ath-link ath-mono" to={`/p/${project}/a/${l.other}`}>{l.other}</Link>
+              <span>{l.label}</span> {l.other === null ? <Tag variant="ghost">{fr.marking.restrictedLink}</Tag> : <Link className="ath-link ath-mono" to={`/p/${project}/a/${l.other}`}>{l.other}</Link>}
               {l.suspect && <StatusPill kind="warning">{fr.artifact.suspect}</StatusPill>}
-              {l.suspect && <Btn size="sm" variant="ghost" aria-label={`${fr.links.acknowledge} ${l.other}`} onClick={() => acknowledge(l)}>{fr.links.acknowledge}</Btn>}
-              <Btn size="sm" variant="ghost" aria-label={`${fr.links.unlink} ${l.other}`} onClick={() => remove(l)}>{fr.links.unlink}</Btn>
+              {l.suspect && <Btn size="sm" variant="ghost" aria-label={`${fr.links.acknowledge} ${l.other ?? fr.marking.restrictedLink}`} onClick={() => acknowledge(l)}>{fr.links.acknowledge}</Btn>}
+              <Btn size="sm" variant="ghost" aria-label={l.other === null ? fr.marking.restrictedUnlink : `${fr.links.unlink} ${l.other}`} onClick={() => remove(l)}>{fr.links.unlink}</Btn>
             </li>
           ))}
         </ul>

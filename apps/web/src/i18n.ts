@@ -264,6 +264,15 @@ const frDict = {
     createTitle: (s: string) => `Restreindre l’accès : ${s}`, createBody: 'Seuls les membres de la liste liront cette portée. Vous en faites partie.',
     createBodyHidden: 'Seuls les membres de la liste liront cette portée. Vous n’en ferez pas partie : vous ne la verrez plus.', deleteTitle: (s: string) => `Supprimer la liste : ${s}`, deleteBody: 'La portée redevient lisible selon les seuls rôles. La suppression est consignée dans le journal d’audit.',
   },
+  marking: {
+    title: 'Contrôle export', current: 'Marquage', none: 'Aucun', labels: { ITAR: 'ITAR', EAR: 'EAR', dual_use: 'Double usage' } as Record<string, string>, set: 'Appliquer le marquage',
+    restrictedLink: 'lien vers un item sous contrôle export', restrictedUnlink: 'Retirer le lien vers un item sous contrôle export',
+    confirmTitle: (k: string, v: string) => `Marquer ${k} : ${v}`, confirmBody: 'L’item ne sera lisible que des ayants droit du marquage du projet, y compris dans la recherche, les compteurs et les exports. Webhooks : seuls les abonnements habilités le recevront. Le changement est audité.',
+    confirmClear: (k: string) => `Retirer le marquage de ${k}`, confirmClearBody: 'L’item redevient lisible selon les droits habituels du projet. Le changement est audité.', applied: 'Marquage enregistré.',
+    managersOnly: 'Seuls les responsables changent le marquage.',
+    membersTitle: 'Ayants droit du contrôle export', membersHelp: 'Seuls ces comptes lisent les items marqués du projet. Sans ayant droit, aucun item ne peut être marqué.', markedCount: (n: number) => `${n} item${n > 1 ? 's' : ''} marqué${n > 1 ? 's' : ''}`,
+    noMembers: 'Aucun ayant droit.', add: 'Ajouter', addMember: 'Ajouter un ayant droit du marquage', remove: 'Retirer', saved: 'Ayants droit enregistrés.', lastWithMarked: 'Des items sont marqués : la liste garde au moins un membre.',
+  },
 };
 
 export type Dictionary = typeof frDict;
@@ -527,6 +536,15 @@ const enDict: Dictionary = {
     scope: 'Scope', firstMember: 'First entitled user', create: 'Create the list', created: 'List created.', saved: 'List saved.', deleted: 'List deleted.',
     createTitle: (s: string) => `Restrict access: ${s}`, createBody: 'Only the list members will read this scope. You are one of them.',
     createBodyHidden: 'Only the list members will read this scope. You will not be one of them: you will no longer see it.', deleteTitle: (s: string) => `Delete the list: ${s}`, deleteBody: 'The scope becomes readable according to roles only. The deletion is recorded in the audit log.',
+  },
+  marking: {
+    title: 'Export control', current: 'Marking', none: 'None', labels: { ITAR: 'ITAR', EAR: 'EAR', dual_use: 'Dual use' } as Record<string, string>, set: 'Apply the marking',
+    restrictedLink: 'link to an export-controlled item', restrictedUnlink: 'Remove the link to an export-controlled item',
+    confirmTitle: (k: string, v: string) => `Mark ${k}: ${v}`, confirmBody: 'The item will only be readable by the project’s export-control entitled users, including in search, counters and exports. Webhooks: only cleared subscriptions will receive it. The change is audited.',
+    confirmClear: (k: string) => `Remove the marking of ${k}`, confirmClearBody: 'The item becomes readable according to the project’s usual rights. The change is audited.', applied: 'Marking saved.',
+    managersOnly: 'Only managers change the marking.',
+    membersTitle: 'Export-control entitled users', membersHelp: 'Only these accounts read the project’s marked items. Without any entitled user, no item can be marked.', markedCount: (n: number) => `${n} marked item${n > 1 ? 's' : ''}`,
+    noMembers: 'No entitled user.', add: 'Add', addMember: 'Add an export-control entitled user', remove: 'Remove', saved: 'Entitled users saved.', lastWithMarked: 'Items are marked: the list keeps at least one member.',
   },
 };
 

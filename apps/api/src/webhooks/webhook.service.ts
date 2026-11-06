@@ -64,7 +64,7 @@ export class WebhookService {
 
   /** Crée un abonnement. Le secret n'est retourné qu'une seule fois. */
   async createEndpoint(
-    organizationId: string, input: { url: string; eventTypes: string[]; description?: string }, actor: Actor,
+    organizationId: string, input: { url: string; eventTypes: string[]; description?: string; exportControlOk?: boolean }, actor: Actor,
   ): Promise<{ endpoint: EndpointView; secret: string }> {
     const problems: string[] = [];
     let parsed: URL | undefined;
@@ -78,11 +78,11 @@ export class WebhookService {
     const id = await this.db.tx(organizationId, async (c) => {
       const row = (
         await c.query(
-          'insert into webhook_endpoint (organization_id, url, event_types, description, created_by) values ($1,$2,$3,$4,$5) returning id',
-          [organizationId, input.url, input.eventTypes, input.description ?? '', actor.id],
+          'insert into webhook_endpoint (organization_id, url, event_types, description, created_by, export_control_ok) values ($1,$2,$3,$4,$5,$6) returning id',
+          [organizationId, input.url, input.eventTypes, input.description ?? '', actor.id, input.exportControlOk ?? false],
         )
       ).rows[0];
-      await audit(c, organizationId, actor, 'webhook.create', `webhook:${row.id}`, { url: input.url });
+      await audit(c, organizationId, actor, 'webhook.create', `webhook:${row.id}`, { url: input.url, exportControlOk: input.exportControlOk ?? false });
       return row.id as string;
     });
     await this.secrets.put(secretPath(organizationId, id), { secret });
@@ -129,16 +129,25 @@ export class WebhookService {
   async enqueue(organizationId: string, batch = 200): Promise<number> {
     return this.db.tx(organizationId, async (c) => {
       const org = (await c.query('select key from organization')).rows[0].key as string;
-      const endpoints = (await c.query('select id, event_types from webhook_endpoint where active')).rows as Array<{ id: string; event_types: string[] }>;
+      const endpoints = (await c.query('select id, event_types, export_control_ok from webhook_endpoint where active')).rows as Array<{ id: string; event_types: string[]; export_control_ok: boolean }>;
       const events = (
         await c.query('select id, type, payload, created_at, aggregate_id from outbox_event where published_at is null order by created_at, id limit $1 for update skip locked', [batch])
       ).rows;
+      // Items sous contrôle export concernés par le lot (identifiant d'agrégat ou clés citées par la charge) : leurs événements ne partent que
+      // vers les abonnements déclarés habilités ; les autres ne reçoivent rien, pas même un événement masqué.
+      const ids = events.map((e) => e.aggregate_id as string);
+      const keys = events.flatMap((e) => ['key', 'from', 'to'].map((k) => (e.payload as Record<string, unknown>)?.[k]).filter((v): v is string => typeof v === 'string'));
+      const marked = ids.length === 0 ? [] : (await c.query('select id::text as id, key from artifact where export_control is not null and (id::text = any($1::text[]) or key = any($2::text[]))', [ids, keys])).rows as Array<{ id: string; key: string }>;
+      const markedIds = new Set(marked.map((m) => m.id));
+      const markedKeys = new Set(marked.map((m) => m.key));
+      const touchesMarked = (e: { aggregate_id: string; payload: unknown }) => markedIds.has(e.aggregate_id) || ['key', 'from', 'to'].some((k) => markedKeys.has(String((e.payload as Record<string, unknown>)?.[k])));
       let queued = 0;
       for (const event of events) {
+        const restricted = marked.length > 0 && touchesMarked(event);
         const body = JSON.stringify({
           id: event.id, type: event.type, version: '1', occurredAt: event.created_at.toISOString(), organization: org, data: event.payload,
         });
-        for (const endpoint of endpoints.filter((e) => matches(e.event_types, event.type))) {
+        for (const endpoint of endpoints.filter((e) => matches(e.event_types, event.type) && (!restricted || e.export_control_ok))) {
           await c.query(
             'insert into webhook_delivery (organization_id, endpoint_id, event_id, event_type, body) values ($1,$2,$3,$4,$5) on conflict do nothing',
             [organizationId, endpoint.id, event.id, event.type, body],
