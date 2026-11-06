@@ -193,6 +193,15 @@ export class ProjectTemplateController {
   }
 
   /** Rapport d'impact : ne modifie rien. */
+  /** Passe à la phase suivante si les critères de sortie de la phase courante sont remplis. */
+  @Roles('athena-admin', 'athena-pm')
+  @Post(':project/template/phase/advance')
+  @HttpCode(200)
+  async advance(@Req() request: AuthedRequest, @Param('project') project: string) {
+    const { organizationId, actor } = await this.orgs.resolve(request.principal!);
+    return this.upgrades.advancePhase(organizationId, project, actor);
+  }
+
   @Roles('athena-admin')
   @Post(':project/template/upgrade-preview')
   @HttpCode(200)

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { Btn, Card, EmptyState, Field, PageHeader, Table, Tabs, Tag, Td, Th, useToast } from '@athena/ui';
 import { api, type Session } from '../api';
+import { NormativeTemplateEditor, type NormativeDraft, type NormativeTemplateEntry } from '../components/NormativeTemplateEditor';
 import { ProjectTemplateEditor } from '../components/ProjectTemplateEditor';
 import { TrackerTemplateForm, type TrackerTemplateEntry } from '../components/TrackerTemplateForm';
 import { useConfirm } from '../components/ConfirmDialog';
@@ -13,7 +14,9 @@ export interface UserEntry { subject: string; username: string; displayName: str
 export interface MemberEntry extends UserEntry { role: 'manager' | 'member' }
 export interface TemplateEntry {
   key: string; name: string; description: string; builtin: boolean; modified?: boolean;
-  trackers: Array<{ key: string; name: string; fields: Array<{ label: string }>; statuses: unknown[]; transitions: unknown[] }>;
+  trackers: Array<{ key: string; name: string; fields: Array<{ key: string; label: string; type: string; required?: boolean; config?: Record<string, unknown> }>; statuses: Array<{ key: string; name: string; category: string }>; transitions: unknown[] }>;
+  /** Gabarits normatifs : modèle, héritage et versions publiées (absents pour un gabarit historique). */
+  normative?: NormativeDraft; parent?: { key: string; version?: string } | null; version?: string | null; versions?: string[];
 }
 interface PluginEntry { id: string; name: string; version: string; enabled: boolean; permissions: string[] }
 
@@ -22,19 +25,20 @@ function ProjectsTab({ users, templates }: { users: UserEntry[]; templates: Temp
   const toast = useToast();
   const fail = useFailure();
   const [projects, setProjects] = useState<Array<{ key: string; name: string; managers: MemberEntry[] }>>([]);
-  const [form, setForm] = useState({ key: '', name: '', template: '' });
+  const [form, setForm] = useState({ key: '', name: '', template: '', version: '', criticality: '' });
   const [pick, setPick] = useState<Record<string, string>>({});
   const load = useCallback(async () => {
     const list = await api<Array<{ key: string; name: string }>>('GET', '/v1/projects');
     setProjects(await Promise.all(list.map(async (p) => ({ ...p, managers: (await api<MemberEntry[]>('GET', `/v1/projects/${p.key}/members`)).filter((m) => m.role === 'manager') }))));
   }, []);
   useEffect(() => { load().catch(fail); }, [load, fail]);
+  const chosen = templates.find((t) => t.key === form.template);
   const create = (event: FormEvent) => { event.preventDefault(); void guard(() => createRun()); };
   const createRun = async () => {
     try {
-      await api('POST', '/v1/projects', { key: form.key, name: form.name, ...(form.template ? { template: form.template } : {}) });
+      await api('POST', '/v1/projects', { key: form.key, name: form.name, ...(form.template ? { template: form.template } : {}), ...(form.template && form.version ? { templateVersion: form.version } : {}), ...(form.template && form.criticality ? { criticality: form.criticality } : {}) });
       toast('success', fr.org.projectCreated(form.key));
-      setForm({ key: '', name: '', template: form.template });
+      setForm({ key: '', name: '', template: form.template, version: form.version, criticality: form.criticality });
       await load();
     } catch (error) { fail(error); }
   };
@@ -60,11 +64,29 @@ function ProjectsTab({ users, templates }: { users: UserEntry[]; templates: Temp
         <Field label={fr.org.projectName} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
         <div className="ath-field">
           <label className="ath-field__label" htmlFor="project-template">{fr.org.template}</label>
-          <select id="project-template" className="ath-select" value={form.template} onChange={(e) => setForm({ ...form, template: e.target.value })}>
+          <select id="project-template" className="ath-select" value={form.template} onChange={(e) => setForm({ ...form, template: e.target.value, version: '', criticality: '' })}>
             <option value="">{fr.org.noTemplate}</option>
             {templates.map((t) => <option key={t.key} value={t.key}>{t.name} ({t.trackers.length})</option>)}
           </select>
         </div>
+        {chosen && (chosen.versions?.length ?? 0) > 0 && (
+          <div className="ath-field">
+            <label className="ath-field__label" htmlFor="project-template-version">{fr.normTpl.projectVersion}</label>
+            <select id="project-template-version" className="ath-select" value={form.version} onChange={(e) => setForm({ ...form, version: e.target.value })}>
+              <option value="">{fr.normTpl.latest}</option>
+              {[...(chosen.versions ?? [])].reverse().map((v) => <option key={v} value={v}>{v}</option>)}
+            </select>
+          </div>
+        )}
+        {chosen && (chosen.normative?.criticality?.categories.length ?? 0) > 0 && (
+          <div className="ath-field">
+            <label className="ath-field__label" htmlFor="project-criticality">{fr.normTpl.projectCriticality}</label>
+            <select id="project-criticality" className="ath-select" value={form.criticality} onChange={(e) => setForm({ ...form, criticality: e.target.value })}>
+              <option value="">{fr.normTpl.noCriticality}</option>
+              {chosen.normative!.criticality!.categories.map((c) => <option key={c.key} value={c.key}>{c.name}</option>)}
+            </select>
+          </div>
+        )}
         <Btn type="submit" loading={busy} disabled={form.key.length < 2 || !form.name.trim()}>{fr.org.createProject}</Btn>
       </form>
       {projects.length === 0 ? <EmptyState eyebrow={fr.org.projects} title={fr.admin.empty} /> : (
@@ -132,6 +154,7 @@ function ProjectTemplates({ templates, trackerTemplates, reload, reloadTrackerTe
   };
   const confirm = useConfirm();
   const [editing, setEditing] = useState<string | null>(null);
+  const [normative, setNormative] = useState<(Partial<NormativeTemplateEntry> & { isNew: boolean }) | null>(null);
   const remove = async (t: TemplateEntry) => {
     const reset = t.builtin;
     if (!(await confirm.ask(reset
@@ -152,7 +175,10 @@ function ProjectTemplates({ templates, trackerTemplates, reload, reloadTrackerTe
             <Td>{t.trackers.length === 0 ? '—' : t.trackers.map((k) => <div key={k.key}>{k.fields.map((f) => f.label).join(', ')}</div>)}</Td>
             <Td>
               <span className="ath-row">
-                <Btn size="sm" variant="ghost" aria-label={`${fr.builder.edit} ${t.name}`} onClick={() => setEditing(t.key)}>{fr.builder.edit}</Btn>
+                {(t.versions?.length ?? 0) > 0 && <Tag>{`${fr.normTpl.version} ${t.version}`}</Tag>}
+                {!(t.builtin && t.version) && <Btn size="sm" variant="ghost" aria-label={`${fr.builder.edit} ${t.name}`} onClick={() => setEditing(t.key)}>{fr.builder.edit}</Btn>}
+                {t.builtin && t.version ? <Btn size="sm" variant="ghost" aria-label={`${fr.normTpl.derive} ${t.name}`} onClick={() => setNormative({ isNew: true, parent: { key: t.key }, name: '', key: '', description: '', trackers: [], normative: undefined })}>{fr.normTpl.derive}</Btn>
+                  : <Btn size="sm" variant="ghost" aria-label={`${fr.normTpl.editSteps} ${t.name}`} onClick={() => setNormative({ isNew: false, key: t.key, name: t.name, description: t.description, trackers: t.trackers as never, normative: t.normative, parent: t.parent ?? null })}>{fr.normTpl.editSteps}</Btn>}
                 {t.builtin ? (t.modified && <Btn size="sm" variant="ghost" aria-label={`${fr.builder.reset} ${t.name}`} onClick={() => remove(t)}>{fr.builder.reset}</Btn>)
                   : <Btn size="sm" variant="ghost" aria-label={`${fr.org.deleteTemplate} ${t.name}`} onClick={() => remove(t)}>{fr.org.deleteTemplate}</Btn>}
               </span>
@@ -160,6 +186,11 @@ function ProjectTemplates({ templates, trackerTemplates, reload, reloadTrackerTe
           </tr>
         ))}</tbody>
       </Table>
+      <div><Btn type="button" variant="ghost" onClick={() => setNormative({ isNew: true, name: '', key: '', description: '', trackers: [], parent: null })}>{fr.normTpl.new}</Btn></div>
+      {normative && (
+        <NormativeTemplateEditor key={normative.key || normative.parent?.key || 'new'} templates={templates as unknown as NormativeTemplateEntry[]} trackerTemplates={trackerTemplates as never}
+          initial={normative} onSaved={async () => { setNormative(null); await reload(); }} onCancel={() => setNormative(null)} />
+      )}
       {editing && templates.some((t) => t.key === editing) && (
         <section className="ath-stack" aria-label={fr.builder.editing(editing)}>
           <ProjectTemplateEditor key={editing} template={templates.find((t) => t.key === editing)!} trackerTemplates={trackerTemplates}

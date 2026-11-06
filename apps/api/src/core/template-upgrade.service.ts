@@ -30,7 +30,14 @@ export interface UpgradeReport {
   itemsConcerned: number;
 }
 export interface TrackerDrift { key: string; name: string; fieldsAdded: string[]; statusesAdded: string[]; transitionsAdded: string[] }
+export interface PhaseCheck {
+  key: string; name: string; review: string; next: string | null;
+  /** Critères de sortie : un critère « tracker_status » est contrôlé (`remaining` items à traiter), un critère manuel est informatif. */
+  criteria: Array<{ label: string; manual: boolean; met: boolean; remaining: number }>;
+  canAdvance: boolean;
+}
 export interface ProjectTemplateStatus {
+  phaseCheck: PhaseCheck | null;
   templateKey: string | null; version: string | null; latest: string | null; upgradable: boolean; versions: string[];
   criticality: string | null; phase: string | null; phases: Array<{ key: string; name: string; review: string }>;
   /** Écart du projet par rapport à la version du gabarit : ce qu'il a ajouté. */
@@ -71,16 +78,53 @@ export class TemplateUpgradeService {
   async status(organizationId: string, projectKey: string): Promise<ProjectTemplateStatus> {
     const p = await this.db.tx(organizationId, (c) => this.projectRow(c, projectKey));
     const empty = { trackersAdded: [], trackers: [], total: 0 };
-    if (!p.template_key) return { templateKey: null, version: null, latest: null, upgradable: false, versions: [], criticality: p.criticality, phase: p.current_phase, phases: [], drift: empty };
+    if (!p.template_key) return { phaseCheck: null, templateKey: null, version: null, latest: null, upgradable: false, versions: [], criticality: p.criticality, phase: p.current_phase, phases: [], drift: empty };
     const versions = (await this.templates.versions(organizationId, p.template_key)).map((v) => v.version);
     const latest = versions.length ? versions[versions.length - 1]! : null;
-    if (!p.template_version) return { templateKey: p.template_key, version: null, latest, upgradable: false, versions, criticality: p.criticality, phase: p.current_phase, phases: [], drift: empty };
+    if (!p.template_version) return { phaseCheck: null, templateKey: p.template_key, version: null, latest, upgradable: false, versions, criticality: p.criticality, phase: p.current_phase, phases: [], drift: empty };
     const snap = await this.templates.snapshot(organizationId, p.template_key, p.template_version);
     return {
+      phaseCheck: await this.phaseCheck(organizationId, projectKey, snap, p.current_phase),
       templateKey: p.template_key, version: p.template_version, latest, upgradable: latest !== null && compareVersions(latest, p.template_version) > 0, versions,
       criticality: p.criticality, phase: p.current_phase, phases: snap.normative.phases.map((x) => ({ key: x.key, name: x.name, review: x.review })),
       drift: await this.drift(organizationId, projectKey, snap),
     };
+  }
+
+  /** Contrôle des critères de sortie de la phase courante (RID clos, etc.). */
+  private async phaseCheck(organizationId: string, projectKey: string, snap: TemplateSnapshot, current: string | null): Promise<PhaseCheck | null> {
+    const phases = snap.normative.phases;
+    const i = phases.findIndex((x) => x.key === current);
+    if (i < 0) return null;
+    const phase = phases[i]!;
+    const criteria = await this.db.tx(organizationId, async (c) => {
+      const out: PhaseCheck['criteria'] = [];
+      for (const k of phase.exitCriteria) {
+        if (k.kind === 'manual') { out.push({ label: k.label, manual: true, met: true, remaining: 0 }); continue; }
+        const remaining = Number((await c.query(
+          `select count(*) n from artifact a join tracker t on t.id = a.tracker_id join project p on p.id = a.project_id join status s on s.id = a.status_id
+           where p.key = $1 and t.key = $2 and s.key <> all($3::text[]) and ($4::text is null or a."values"->>$4 = $5)`,
+          [projectKey, k.tracker, k.statuses, k.where?.field ?? null, k.where?.value ?? null])).rows[0].n);
+        out.push({ label: k.label ?? `${k.tracker} : ${k.statuses.join(', ')}`, manual: false, met: remaining === 0, remaining });
+      }
+      return out;
+    });
+    return { key: phase.key, name: phase.name, review: phase.review, next: phases[i + 1]?.key ?? null, criteria, canAdvance: i + 1 < phases.length && criteria.every((x) => x.met) };
+  }
+
+  /** Passe à la phase suivante, seulement si les critères de sortie de la phase courante sont remplis. */
+  async advancePhase(organizationId: string, projectKey: string, actor: Actor): Promise<{ from: string; to: string }> {
+    const status = await this.status(organizationId, projectKey);
+    const check = status.phaseCheck;
+    if (!check) throw validation(['ce projet n’a pas de phase courante']);
+    if (!check.next) throw validation(['la phase courante est la dernière']);
+    const unmet = check.criteria.filter((x) => !x.met);
+    if (unmet.length) throw new DomainError('Phase non terminée.', 'conflict', unmet.map((x) => `${x.label} (${x.remaining} restant(s))`));
+    await this.db.tx(organizationId, async (c) => {
+      await c.query('update project set current_phase = $2 where key = $1', [projectKey, check.next]);
+      await audit(c, organizationId, actor, 'project.phase_advance', `project:${projectKey}`, { from: check.key, to: check.next });
+    });
+    return { from: check.key, to: check.next };
   }
 
   /** Ce que le projet contient en plus de son gabarit : trackers, champs, états et transitions ajoutés. */

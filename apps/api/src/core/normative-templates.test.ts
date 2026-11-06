@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createTestDb, pgUp, type TestDb } from '../testing/harness';
+import { ArtifactService } from './artifact.service';
 import { Db, type Actor } from './db';
 import { DomainError } from './errors';
 import { FieldTypeRegistry } from './field-types';
@@ -65,12 +66,15 @@ suite('projets créés depuis les gabarits livrés (intégration)', () => {
   let db: Db;
   let templates: TemplateService;
   let upgrades: TemplateUpgradeService;
+  let artifacts: ArtifactService;
   const org = crypto.randomUUID();
 
   beforeAll(async () => {
     testDb = await createTestDb('athena_test_normative_templates');
     db = new Db(testDb.pool);
-    const trackers = new TrackerService(db, new FieldTypeRegistry());
+    const registry = new FieldTypeRegistry();
+    const trackers = new TrackerService(db, registry);
+    artifacts = new ArtifactService(db, trackers, registry);
     templates = new TemplateService(db, trackers);
     upgrades = new TemplateUpgradeService(db, trackers, templates);
     await db.tx(org, (c) => c.query('insert into organization (id, key, name) values ($1,$2,$2)', [org, 'nt']));
@@ -170,5 +174,22 @@ suite('projets créés depuis les gabarits livrés (intégration)', () => {
     expect(await fail(templates.publish(org, 'spatial', undefined, admin))).toMatch(/^conflict/);
     expect(await fail(templates.remove(org, 'defense', admin))).toMatch(/^conflict/);
     expect(await fail(templates.create(org, { key: 'spatial', name: 'x', trackers: [] }, admin))).toMatch(/^conflict/);
+  });
+
+  it('ne ferme une phase que si ses RID sont clos : « RID clos avant clôture de revue »', async () => {
+    await templates.createProject(org, 'PHA', 'Phases', 'spatial', admin, { criticality: 'C' });
+    const rid = await artifacts.create(org, 'PHA', 'RID', { title: 'Écart de la SRR', review: 'srr' }, admin);
+    await artifacts.create(org, 'PHA', 'RID', { title: 'Écart de la PDR', review: 'pdr' }, admin); // une autre revue ne bloque pas la SRR
+    const before = (await upgrades.status(org, 'PHA')).phaseCheck!;
+    expect(before).toMatchObject({ key: 'requirements', next: 'preliminary-design', canAdvance: false });
+    expect(before.criteria).toEqual([{ label: 'Tous les RID de la revue SRR sont clos', manual: false, met: false, remaining: 1 }]);
+    expect(await fail(upgrades.advancePhase(org, 'PHA', admin))).toBe('conflict:Tous les RID de la revue SRR sont clos (1 restant(s))');
+    let version = rid.version;
+    for (const t of ['Répondre', 'Décider', 'Lancer l’action', 'Clore']) version = (await artifacts.transition(org, 'PHA', rid.key, t, version, admin)).version;
+    expect((await upgrades.status(org, 'PHA')).phaseCheck).toMatchObject({ canAdvance: true });
+    expect(await upgrades.advancePhase(org, 'PHA', admin)).toEqual({ from: 'requirements', to: 'preliminary-design' });
+    expect((await project('PHA')).row.current_phase).toBe('preliminary-design');
+    expect((await upgrades.status(org, 'PHA')).phaseCheck).toMatchObject({ key: 'preliminary-design', canAdvance: false }); // le RID de la PDR bloque la suite
+    expect(await fail(upgrades.advancePhase(org, 'PHA', admin))).toMatch(/^conflict:.*PDR/);
   });
 });

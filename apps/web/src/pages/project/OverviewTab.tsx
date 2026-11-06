@@ -4,6 +4,7 @@ import { Card, PageHeader, StatusPill } from '@athena/ui';
 import { api, type Hit, type SearchResult, type Session, type TrackerOverview } from '../../api';
 import { useFailure } from '../../hooks';
 import { fr } from '../../i18n';
+import { ProjectTemplateCard } from '../../components/ProjectTemplateCard';
 import { DashboardPage } from '../DashboardPage';
 import { pillKind } from '../ListPage';
 import { trackerHref } from './TrackersTab';
@@ -64,6 +65,7 @@ export function OverviewTab({ session }: { session: Session }) {
           </Card>
         </div>
       </div>
+      <ProjectTemplateCard project={String(project)} canManage={(session.user?.roles ?? []).some((r) => r === 'athena-admin' || r === 'athena-pm')} />
       <DashboardPage embedded />
     </>
   );
