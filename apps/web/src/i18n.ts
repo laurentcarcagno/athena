@@ -92,7 +92,7 @@ const frDict = {
   },
   trackerScreen: {
     eyebrow: 'Tracker', newItem: '+ Nouvel item', configure: 'Configurer', views: 'Vues du tracker', workflow: 'Workflow', empty: 'Aucun item.',
-    total: (n: number) => (n === 1 ? '1 item' : `${n} items`), viewNames: { tableau: 'Tableau' } as Record<string, string>,
+    total: (n: number) => (n === 1 ? '1 item' : `${n} items`), viewNames: { tableau: 'Tableau', board: 'Board' } as Record<string, string>,
   },
   filters: {
     bar: 'Filtres du tracker', mine: 'Assigné à moi', all: 'Tous', text: 'Recherche dans le tracker', apply: 'Appliquer', clear: 'Effacer les filtres',
@@ -237,7 +237,7 @@ const enDict: Dictionary = {
   },
   trackerScreen: {
     eyebrow: 'Tracker', newItem: '+ New item', configure: 'Configure', views: 'Tracker views', workflow: 'Workflow', empty: 'No item.',
-    total: (n: number) => (n === 1 ? '1 item' : `${n} items`), viewNames: { tableau: 'Table' } as Record<string, string>,
+    total: (n: number) => (n === 1 ? '1 item' : `${n} items`), viewNames: { tableau: 'Table', board: 'Board' } as Record<string, string>,
   },
   filters: {
     bar: 'Tracker filters', mine: 'Assigned to me', all: 'All', text: 'Search in the tracker', apply: 'Apply', clear: 'Clear filters',

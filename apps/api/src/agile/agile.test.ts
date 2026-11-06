@@ -152,4 +152,19 @@ suite('boards et sprints (intégration)', () => {
     const other = (await new Db(testDb.pool).tx(org, (c) => c.query("select id from sprint where name = 'Sprint 2'"))).rows[0].id as string;
     await sprints.addItem(org, other, 'ARI-STORY-0002', 'ARI', admin); // à nouveau disponible
   });
+
+  it('expose le board d’un tracker (clé ~TRACKER) : une colonne par statut, sans stockage, déplacement par workflow', async () => {
+    const view = await boards.view(org, 'ARI', '~STORY');
+    expect(view).toMatchObject({ key: '~STORY', name: 'Stories', unmapped: 0 });
+    expect(view.columns.map((c) => c.name)).toEqual(['À faire', 'En cours', 'En revue', 'Terminé']);
+    expect(view.columns.every((c) => c.wipLimit === null && !c.overLimit)).toBe(true);
+    expect(view.columns.reduce((n, c) => n + c.count, 0)).toBe(4); // les quatre stories, tous statuts confondus
+    const todo = view.columns[0]!.cards[0]!;
+    const moved = await boards.moveCard(org, 'ARI', '~STORY', todo.key, 'En cours', todo.version, user);
+    expect(moved.status).toBe('doing');
+    expect((await boards.view(org, 'ARI', '~STORY')).columns[1]!.cards.map((c) => c.key)).toContain(todo.key);
+    expect(await code(boards.moveCard(org, 'ARI', '~STORY', todo.key, 'Terminé', moved.version, user))).toMatch(/conflict.*Aucune transition/);
+    expect(await code(boards.view(org, 'ARI', '~NOPE'))).toMatch(/not_found/);
+    expect((await boards.list(org, 'ARI')).map((b) => b.key)).toEqual(['kanban']); // le board virtuel n'est pas listé
+  });
 });

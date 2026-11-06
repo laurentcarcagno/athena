@@ -154,7 +154,18 @@ export class BoardService {
     return this.artifacts.transition(organizationId, projectKey, artifactKey, plan, version, actor);
   }
 
+  /**
+   * Board d'un projet, ou board virtuel d'un tracker (clé `~TRACKER`) : une colonne par statut du tracker, dans l'ordre,
+   * sans limite WIP. Le board d'un tracker n'est pas stocké ; il suit la configuration du tracker.
+   */
   private async load(c: import('pg').PoolClient, projectKey: string, boardKey: string) {
+    if (boardKey.startsWith('~')) {
+      const trackerKey = boardKey.slice(1);
+      const tracker = (await c.query('select t.id, t.name from tracker t join project p on p.id = t.project_id where p.key = $1 and t.key = $2', [projectKey, trackerKey])).rows[0];
+      if (!tracker) throw notFound(`Tracker ${trackerKey}`);
+      const statuses = (await c.query('select key, name from status where tracker_id = $1 order by position', [tracker.id])).rows;
+      return { name: tracker.name as string, tracker_keys: [trackerKey], columns: statuses.map((s) => ({ name: s.name as string, statuses: [s.key as string] })) };
+    }
     const row = (
       await c.query('select b.* from board b join project p on p.id = b.project_id where p.key = $1 and b.key = $2', [projectKey, boardKey])
     ).rows[0];

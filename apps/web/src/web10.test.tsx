@@ -11,6 +11,19 @@ const calls: string[] = [];
 const bodies: Array<{ method: string; url: string; body: unknown }> = [];
 let views: Array<Record<string, unknown>> = [];
 let badQuery = false;
+let typeKey: string | null = 'bug';
+const TYPES = [
+  { key: 'bug', name: 'Anomalie', description: '', category: 'development', defaultViews: ['tableau', 'board'], baseFields: [], builtin: true, modified: false },
+  { key: 'requirement', name: 'Exigence', description: '', category: 'engineering', defaultViews: ['tableau', 'arbre'], baseFields: [], builtin: true, modified: false },
+];
+const BOARD = {
+  key: '~BUG', name: 'Anomalies', unmapped: 0,
+  columns: [
+    { name: 'Ouvert', wipLimit: null, count: 1, overLimit: false, cards: [{ key: 'ARI-BUG-0001', tracker: 'BUG', title: 'Anomalie 1', status: 'open', statusName: 'Ouvert', assignee: null, version: 4 }] },
+    { name: 'En cours', wipLimit: null, count: 0, overLimit: false, cards: [] },
+    { name: 'Fini', wipLimit: null, count: 0, overLimit: false, cards: [] },
+  ],
+};
 const view = (id: string, name: string, query: string, extra: Record<string, unknown> = {}) => ({ id, name, query, owner: 'u', shared: false, trackerKey: 'BUG', view: 'tableau', columns: null, isDefault: false, ...extra });
 const hit = (n: number, status = 'open') => ({ key: `ARI-BUG-${String(n).padStart(4, '0')}`, tracker: 'BUG', status, statusName: status === 'open' ? 'Ouvert' : 'En cours', category: status === 'open' ? 'todo' : 'in_progress', version: 1, updatedAt: '2026-11-05T10:00:00.000Z', values: { title: `Anomalie ${n}` } });
 const def = {
@@ -30,6 +43,7 @@ beforeEach(() => {
   bodies.length = 0;
   views = [];
   badQuery = false;
+  typeKey = 'bug';
   vi.stubGlobal('fetch', vi.fn(async (input: string, init: RequestInit = {}) => {
     calls.push(`${init.method ?? 'GET'} ${input}`);
     if (init.body) bodies.push({ method: init.method ?? 'GET', url: input, body: JSON.parse(String(init.body)) });
@@ -45,8 +59,11 @@ beforeEach(() => {
       return ok({ total: inProgress ? 1 : 40, hits });
     }
     if (/\/overview$/.test(input)) return ok(overview);
+    if (/\/tracker-types$/.test(input)) return ok(TYPES);
+    if (/\/boards\/~BUG$/.test(input)) return ok(BOARD);
+    if (/\/boards\/~BUG\/cards\/[^/]+\/move$/.test(input)) return ok({ id: 'a', key: 'ARI-BUG-0001', trackerKey: 'BUG', status: 'in_progress', version: 5, values: {} });
     if (/\/modules$/.test(input)) return ok({ modules: ['overview', 'trackers', 'planning', 'activity', 'members'] });
-    if (/\/trackers\/BUG$/.test(input)) return ok(def);
+    if (/\/trackers\/BUG$/.test(input)) return ok({ ...def, typeKey });
     return new Response(JSON.stringify({ error: 'not_found', message: 'Introuvable.', details: [] }), { status: 404 });
   }));
 });
@@ -245,6 +262,57 @@ describe('vues enregistrées du tracker', () => {
     views = [view('v1', 'Équipe', 'status = open', { shared: true })];
     const { container } = app('/p/ARI/t/BUG/tableau');
     await screen.findByRole('link', { name: 'ARI-BUG-0001' });
+    const result = await axe.run(container, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] }, rules: { 'color-contrast': { enabled: false }, region: { enabled: false } } });
+    expect(result.violations.map((v) => `${v.id} : ${v.help}`)).toEqual([]);
+  });
+});
+
+describe('vue Board du tracker', () => {
+  const viewTabs = () => within(screen.getByRole('navigation', { name: 'Vues du tracker' })).getAllByRole('link').map((l) => l.textContent);
+
+  it('propose Tableau et Board pour un type qui a un board, et affiche les colonnes de statut du tracker', async () => {
+    app('/p/ARI/t/BUG/board');
+    await screen.findByRole('region', { name: 'Ouvert' });
+    expect(viewTabs()).toEqual(['Tableau', 'Board']);
+    expect(screen.getByRole('link', { name: 'Board' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getAllByRole('region').map((r) => r.getAttribute('aria-label'))).toEqual(['Ouvert', 'En cours', 'Fini']);
+    expect(within(screen.getByRole('region', { name: 'Ouvert' })).getByRole('link', { name: 'ARI-BUG-0001' })).toBeInTheDocument();
+    expect(calls).toContain('GET /v1/projects/ARI/boards/~BUG');
+    expect(screen.queryByRole('search')).not.toBeInTheDocument(); // les filtres sont ceux du Tableau
+    expect(screen.queryByRole('list', { name: 'Workflow' })).not.toBeInTheDocument();
+  });
+
+  it('déplace une carte vers une autre colonne par le workflow (sélecteur « Déplacer vers »)', async () => {
+    app('/p/ARI/t/BUG/board');
+    await screen.findByRole('region', { name: 'Ouvert' });
+    await userEvent.selectOptions(screen.getByLabelText('Déplacer vers'), 'En cours');
+    await waitFor(() => expect(bodies.find((b) => b.method === 'POST' && b.url.endsWith('/move'))?.body).toEqual({ column: 'En cours', version: 4 }));
+    expect(bodies.find((b) => b.url.endsWith('/move'))!.url).toBe('/v1/projects/ARI/boards/~BUG/cards/ARI-BUG-0001/move');
+  });
+
+  it('ne propose pas le Board pour un type sans board et redirige vers le Tableau', async () => {
+    typeKey = 'requirement';
+    app('/p/ARI/t/BUG/board');
+    await waitFor(() => expect(screen.getByTestId('where')).toHaveTextContent('/p/ARI/t/BUG/tableau'));
+    await screen.findByRole('link', { name: 'ARI-BUG-0001' });
+    expect(viewTabs()).toEqual(['Tableau']);
+  });
+
+  it('un tracker sans type garde Tableau et Board', async () => {
+    typeKey = null;
+    app('/p/ARI/t/BUG/tableau');
+    await screen.findByRole('link', { name: 'ARI-BUG-0001' });
+    expect(viewTabs()).toEqual(['Tableau', 'Board']);
+  });
+
+  it('la page d’un board de projet est inchangée', async () => {
+    app('/p/ARI/board/~BUG');
+    expect(await screen.findByRole('heading', { level: 1, name: 'Anomalies' })).toBeInTheDocument();
+  });
+
+  it('n’a aucune violation d’accessibilité', async () => {
+    const { container } = app('/p/ARI/t/BUG/board');
+    await screen.findByRole('region', { name: 'Ouvert' });
     const result = await axe.run(container, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] }, rules: { 'color-contrast': { enabled: false }, region: { enabled: false } } });
     expect(result.violations.map((v) => `${v.id} : ${v.help}`)).toEqual([]);
   });

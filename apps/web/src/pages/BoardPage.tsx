@@ -8,8 +8,7 @@ import { fr } from '../i18n';
 type Card = BoardView['columns'][number]['cards'][number];
 
 /** Board : glisser-déposer à la souris, et sélecteur « Déplacer vers » pour le clavier et les lecteurs d'écran. */
-export function BoardPage() {
-  const { project, board } = useParams();
+export function BoardView({ project, board, header = true }: { project: string; board: string; header?: boolean }) {
   const [view, setView] = useState<BoardView | null>(null);
   const [laneBy, setLaneBy] = useState<'none' | 'assignee' | 'tracker'>('none');
   const toast = useToast();
@@ -72,7 +71,7 @@ export function BoardPage() {
   };
   return (
     <>
-      <PageHeader eyebrow={fr.board.eyebrow} title={view.name} sub={view.unmapped > 0 ? fr.board.unmapped(view.unmapped) : undefined} />
+      {header && <PageHeader eyebrow={fr.board.eyebrow} title={view.name} sub={view.unmapped > 0 ? fr.board.unmapped(view.unmapped) : undefined} />}
       <div className="ath-toolbar">
         <label className="ath-field__label" htmlFor="lane-by">{fr.board.laneBy}</label>
         <select id="lane-by" className="ath-select" value={laneBy} onChange={(e) => setLaneBy(e.target.value as 'none' | 'assignee' | 'tracker')}>
@@ -88,4 +87,10 @@ export function BoardPage() {
       {view.columns.every((c) => c.cards.length === 0) && <EmptyState eyebrow={fr.board.eyebrow} title={fr.board.empty} />}
     </>
   );
+}
+
+/** Page d'un board de projet `/p/:projet/board/:board`. */
+export function BoardPage() {
+  const { project, board } = useParams();
+  return <BoardView project={String(project)} board={String(board)} />;
 }
