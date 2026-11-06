@@ -242,6 +242,13 @@
 .ath-miniworkflow__btn[aria-pressed="true"] { border-color: var(--ath-color-console-sky); background: var(--ath-color-hover-mist); }
 .ath-miniworkflow__btn:focus-visible { outline: 2px solid var(--ath-color-console-sky); outline-offset: 2px; }
 .ath-trackercard { display: grid; gap: var(--ath-space-sm); }
+.ath-split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(360px, 520px); gap: var(--ath-space-md); align-items: start; }
+.ath-split__panel { border: 1px solid var(--ath-color-console-border); background: var(--ath-color-instrument-white); padding: var(--ath-space-md); position: sticky; top: var(--ath-pageheader-h, 0); max-height: 100vh; overflow: auto; }
+.ath-split__panel:focus-visible { outline: 2px solid var(--ath-color-console-sky); outline-offset: 2px; }
+.ath-detail__head { display: grid; gap: var(--ath-space-sm); margin-bottom: var(--ath-space-md); }
+.ath-detail__title { margin: 0; font-size: 16px; }
+.ath-row--selected { background: var(--ath-color-hover-mist); }
+@media (max-width: 767px) { .ath-split { grid-template-columns: 1fr; } .ath-split__panel { position: fixed; inset: 0; z-index: 900; max-height: none; } }
 .ath-nowrap { white-space: nowrap; }
 .ath-clip { display: block; max-width: 60ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ath-ticket__title { overflow-wrap: anywhere; }

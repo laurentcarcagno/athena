@@ -4,6 +4,7 @@ import { Btn, EmptyState, Id, PageHeader, type SortState } from '@athena/ui';
 import { ApiError, api, type SavedFilter, type SearchResult, type Session, type TrackerDefinition, type TrackerOverview, type TrackerTypeEntry } from '../../api';
 import { ArtifactTable } from '../../components/ArtifactTable';
 import { CreateArtifact } from '../../components/CreateArtifact';
+import { DetailPanel } from '../../components/DetailPanel';
 import { FilterBar } from '../../components/FilterBar';
 import { SavedViews, fromStored } from '../../components/SavedViews';
 import { MiniWorkflow } from '../../components/MiniWorkflow';
@@ -37,6 +38,7 @@ export function TrackerScreen({ session }: { session: Session }) {
   const [creating, setCreating] = useState(false);
   const [types, setTypes] = useState<TrackerTypeEntry[]>([]);
   const fragment = params.get('f') ?? '';
+  const item = params.get('i');
   const username = session.user?.username ?? '';
   const [queryError, setQueryError] = useState<string | null>(null);
   const appliedDefault = useRef<string | null>(null);
@@ -74,6 +76,33 @@ export function TrackerScreen({ session }: { session: Session }) {
     if (def && !initial.has('f') && !initial.has('sort')) { const v = fromStored(def.query); setParams(new URLSearchParams([...(v.fragment ? [['f', v.fragment]] : []), ...(v.sort ? [['sort', v.sort]] : [])]), { replace: true }); }
   }, [tracker, setParams]);
 
+  const rows = result?.hits ?? [];
+  const withItem = (key: string | null) => { const copy = new URLSearchParams(params); if (key) copy.set('i', key); else copy.delete('i'); return copy; };
+  const closePanel = () => {
+    const was = item;
+    setParams(withItem(null));
+    if (was) setTimeout(() => document.getElementById(`row-${was}`)?.focus(), 0);
+  };
+  // J / K : item suivant / précédent ; Échap : ferme le panneau. Ignorés dans un champ de saisie ou avec un modificateur.
+  useEffect(() => {
+    if (vue === 'board') return undefined;
+    const onKey = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (event.ctrlKey || event.metaKey || event.altKey) return;
+      if (target && (['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) || target.isContentEditable)) return;
+      if (document.querySelector('[role="dialog"]')) return;
+      if (event.key === 'Escape' && item) { event.preventDefault(); closePanel(); return; }
+      const step = event.key === 'j' || event.key === 'J' ? 1 : event.key === 'k' || event.key === 'K' ? -1 : 0;
+      if (step === 0 || rows.length === 0) return;
+      const index = item ? rows.findIndex((h) => h.key === item) : -1;
+      const nextIndex = index < 0 ? (step > 0 ? 0 : rows.length - 1) : Math.min(rows.length - 1, Math.max(0, index + step));
+      event.preventDefault();
+      setParams(withItem(rows[nextIndex]!.key), { replace: true });
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  });
+
   const views = viewsFor(def?.typeKey ? types.find((t) => t.key === def.typeKey) : undefined);
   const known = (TRACKER_VIEWS as readonly string[]).includes(vue ?? 'tableau');
   if (vue !== undefined && (!known || (def && types.length > 0 && !views.includes(vue as TrackerViewId)))) return <Navigate replace to={`/p/${project}/t/${tracker}/tableau`} />;
@@ -110,7 +139,14 @@ export function TrackerScreen({ session }: { session: Session }) {
       {current === 'board' ? <BoardView project={String(project)} board={`~${tracker}`} header={false} /> : result === null ? <p role="status">{fr.loading}</p> : result.hits.length === 0 ? (
         <EmptyState eyebrow={fr.trackerScreen.eyebrow} title={fr.trackerScreen.empty} action={fragment ? <Btn variant="ghost" onClick={() => next({ f: null, o: null })}>{fr.list.reset}</Btn> : undefined} />
       ) : (
-        <ArtifactTable project={String(project)} result={result} offset={offset} pageSize={PAGE} sortOf={sortOf} sortBy={sortBy} onPage={(o) => next({ o: String(o) })} />
+        <div className={item ? 'ath-split' : undefined}>
+          <div>
+            <ArtifactTable project={String(project)} result={result} offset={offset} pageSize={PAGE} sortOf={sortOf} sortBy={sortBy} onPage={(o) => next({ o: String(o), i: null })}
+              selected={item} linkFor={(key) => `${base}/tableau?${withItem(key).toString()}`} />
+          </div>
+          {item && <DetailPanel session={session} project={String(project)} itemKey={item} onClose={closePanel}
+            onExpand={() => navigate(`/p/${project}/a/${item}`)} onCanonicalKey={(key) => setParams(withItem(key), { replace: true })} />}
+        </div>
       )}
     </>
   );

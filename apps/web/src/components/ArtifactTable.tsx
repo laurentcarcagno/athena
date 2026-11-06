@@ -9,8 +9,8 @@ export const pillKind = (category: string): PillKind => (category === 'done' ? '
 const titleOf = (hit: SearchResult['hits'][number]) => String(hit.values['title'] ?? hit.values['name'] ?? '');
 
 /** Tableau d'artefacts triable avec pagination : partagé par la Recherche et l'écran Tracker. */
-export function ArtifactTable({ project, result, offset, pageSize, sortOf, sortBy, onPage, linkFor }: {
-  project: string; result: SearchResult; offset: number; pageSize: number;
+export function ArtifactTable({ project, result, offset, pageSize, sortOf, sortBy, onPage, linkFor, selected }: {
+  project: string; selected?: string | null; result: SearchResult; offset: number; pageSize: number;
   sortOf: (field: string) => SortState; sortBy: (field: string) => (next: SortState) => void; onPage: (offset: number) => void;
   /** Adresse d'un item (par défaut la fiche complète) ; l'écran Tracker ouvre le panneau de détail. */
   linkFor?: (key: string) => string;
@@ -30,8 +30,8 @@ export function ArtifactTable({ project, result, offset, pageSize, sortOf, sortB
         </thead>
         <tbody>
           {result.hits.map((hit) => (
-            <tr key={hit.key}>
-              <Td><Link className="ath-link ath-mono" to={href(hit.key)}>{hit.key}</Link></Td>
+            <tr key={hit.key} className={selected === hit.key ? 'ath-row--selected' : undefined}>
+              <Td><Link id={`row-${hit.key}`} className="ath-link ath-mono" to={href(hit.key)} aria-current={selected === hit.key ? 'true' : undefined}>{hit.key}</Link></Td>
               <Td><span className="ath-clip" title={titleOf(hit)}>{titleOf(hit)}</span></Td>
               <Td><StatusPill kind={pillKind(hit.category)}>{hit.statusName ?? hit.status}</StatusPill></Td>
               <Td mono>{hit.tracker}</Td>

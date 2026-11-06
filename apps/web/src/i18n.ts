@@ -103,6 +103,7 @@ const frDict = {
     viewSaved: 'Vue enregistrée.', viewDeleted: 'Vue supprimée.', defaultSet: 'Vue par défaut enregistrée.', defaultUnset: 'Vue par défaut retirée.',
     deleteViewTitle: (n: string) => `Supprimer la vue « ${n} »`, deleteViewBody: 'La vue est supprimée définitivement, y compris pour ceux avec qui elle est partagée.', badQuery: 'Requête invalide.',
   },
+  detail: { panel: 'Détail de l’item', expand: 'Agrandir', close: 'Fermer' },
   types: {
     title: 'Types de tracker', note: 'Un type fixe la catégorie, les vues proposées et le socle de champs des trackers qui en dérivent. Les types livrés se modifient et se réinitialisent.',
     key: 'Clé du type (minuscules)', name: 'Nom du type', description: 'Description', category: 'Catégorie',
@@ -248,6 +249,7 @@ const enDict: Dictionary = {
     viewSaved: 'View saved.', viewDeleted: 'View deleted.', defaultSet: 'Default view saved.', defaultUnset: 'Default view removed.',
     deleteViewTitle: (n: string) => `Delete view “${n}”`, deleteViewBody: 'The view is deleted permanently, including for those it is shared with.', badQuery: 'Invalid query.',
   },
+  detail: { panel: 'Item detail', expand: 'Expand', close: 'Close' },
   types: {
     title: 'Tracker types', note: 'A type sets the category, the proposed views and the base fields of the trackers derived from it. Built-in types can be edited and reset.',
     key: 'Type key (lowercase)', name: 'Type name', description: 'Description', category: 'Category',

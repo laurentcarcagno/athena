@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
+import { useCallback, useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Btn, Card, EmptyState, Id, PageHeader, StatusPill, Table, Tabs, Td, Th, Tag, useToast } from '@athena/ui';
 import { ApiError, api, upload, type Artifact, type AttachmentView, type Field, type Revision, type Session, type TrackerDefinition } from '../api';
@@ -57,9 +57,18 @@ function FieldEditor({ field, value, onCommit }: { field: Field; value: unknown;
   );
 }
 
-export function ArtifactPage({ session }: { session: Session }) {
-  const { project, key } = useParams();
+/**
+ * Fiche d'un artefact : page complète, ou panneau de détail de l'écran Tracker (`embedded`). Le contenu, l'édition en place
+ * et les transitions sont les mêmes dans les deux cas.
+ */
+export function ArtifactView({ session, project, itemKey: key, embedded = false, onCanonicalKey, onExpand, onClose }: {
+  session: Session; project: string; itemKey: string; embedded?: boolean;
+  /** Reçoit la clé canonique quand l'adresse portait une ancienne clé (par défaut, la page remplace son adresse). */
+  onCanonicalKey?: (key: string) => void; onExpand?: () => void; onClose?: () => void;
+}) {
   const navigate = useNavigate();
+  const canonical = useRef(onCanonicalKey);
+  canonical.current = onCanonicalKey; // le parent peut passer une nouvelle fonction à chaque rendu sans relancer le chargement
   const toast = useToast();
   const fail = useFailure();
   const { busy, guard } = useBusy();
@@ -78,7 +87,7 @@ export function ArtifactPage({ session }: { session: Session }) {
   const reload = useCallback(async () => {
     const a = await api<Artifact>('GET', base);
     // Ancienne clé (alias) : l'adresse canonique remplace l'adresse saisie (ADR-0002 § 2).
-    if (key && a.key !== key) navigate(`/p/${project}/a/${a.key}`, { replace: true });
+    if (key && a.key !== key) { if (canonical.current) canonical.current(a.key); else navigate(`/p/${project}/a/${a.key}`, { replace: true }); }
     setArtifact(a);
     setDef(await api<TrackerDefinition>('GET', `/v1/projects/${project}/trackers/${a.trackerKey}`));
     const [l, d, c, h, r] = await Promise.all([
@@ -87,6 +96,7 @@ export function ArtifactPage({ session }: { session: Session }) {
     ]);
     setLinks(l); setDocs(d); setComments(c); setHistory(h); setCode(r);
   }, [base, project, key, navigate]);
+  useEffect(() => { setArtifact(null); setTab('details'); }, [key, project]);
   useEffect(() => { reload().catch(fail); }, [reload, fail]);
   useEffect(() => {
     if (tab === 'attachments') api<AttachmentView[]>('GET', `${base}/attachments`).then(setFiles).catch(fail);
@@ -159,12 +169,25 @@ export function ArtifactPage({ session }: { session: Session }) {
 
   return (
     <>
-      <PageHeader
+      {embedded && (
+        <header className="ath-detail__head">
+          <div className="ath-row">
+            <h2 className="ath-detail__title"><span className="ath-mono ath-nowrap">{artifact.key}</span> · {title}</h2>
+          </div>
+          <div className="ath-row">
+            <StatusPill kind={pillKind(status?.category ?? '')}>{status?.name ?? artifact.status}</StatusPill>
+            <div className="ath-row" role="group" aria-label={fr.artifact.transitions}>{available.map((t) => <Btn key={t.id} size="sm" variant="deep" onClick={() => transition(t.name)}>{t.name}</Btn>)}</div>
+            <Btn size="sm" variant="ghost" onClick={onExpand}>{fr.detail.expand}</Btn>
+            <Btn size="sm" variant="ghost" onClick={onClose}>{fr.detail.close}</Btn>
+          </div>
+        </header>
+      )}
+      {!embedded && <PageHeader
         eyebrow={def.name}
         title={<><span className="ath-mono ath-nowrap">{artifact.key}</span> · {title}</>}
         sub={<><StatusPill kind={pillKind(status?.category ?? '')}>{status?.name ?? artifact.status}</StatusPill> <Link className="ath-link" to={`/p/${project}`}>{project}</Link></>}
         actions={<div className="ath-row" role="group" aria-label={fr.artifact.transitions}>{available.map((t) => <Btn key={t.id} variant="deep" onClick={() => transition(t.name)}>{t.name}</Btn>)}</div>}
-      />
+      />}
       <Tabs
         tabs={[
           { id: 'details', label: fr.artifact.details }, { id: 'links', label: fr.artifact.links }, { id: 'history', label: fr.artifact.history },
@@ -282,4 +305,10 @@ export function ArtifactPage({ session }: { session: Session }) {
       </div>
     </>
   );
+}
+
+/** Page de la fiche `/p/:projet/a/:clé`. */
+export function ArtifactPage({ session }: { session: Session }) {
+  const { project, key } = useParams();
+  return <ArtifactView session={session} project={String(project)} itemKey={String(key)} />;
 }

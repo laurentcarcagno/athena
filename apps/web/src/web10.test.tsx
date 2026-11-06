@@ -58,6 +58,9 @@ beforeEach(() => {
       const hits = inProgress ? [hit(3, 'in_progress')] : Array.from({ length: 25 }, (_, i) => hit(offset + i + 1));
       return ok({ total: inProgress ? 1 : 40, hits });
     }
+    const itemMatch = /\/artifacts\/(ARI-BUG-\d{4})$/.exec(input);
+    if (itemMatch) return ok({ id: itemMatch[1], key: itemMatch[1], trackerKey: 'BUG', status: 'open', version: 1, values: { title: `Titre de ${itemMatch[1]}` } });
+    if (/\/artifacts\/[^/]+\/(links|doc-links|comments|history|code-refs)$/.test(input)) return ok([]);
     if (/\/overview$/.test(input)) return ok(overview);
     if (/\/tracker-types$/.test(input)) return ok(TYPES);
     if (/\/boards\/~BUG$/.test(input)) return ok(BOARD);
@@ -84,7 +87,7 @@ describe('écran Tracker', () => {
     expect(screen.getByText('40 items')).toBeInTheDocument();
     const workflow = screen.getByRole('list', { name: 'Workflow' });
     expect(within(workflow).getAllByRole('button').map((b) => b.textContent)).toEqual(['Ouvert 25', 'En cours 10', 'Fini 5']);
-    expect(await screen.findByRole('link', { name: 'ARI-BUG-0001' })).toHaveAttribute('href', '/p/ARI/a/ARI-BUG-0001');
+    expect(await screen.findByRole('link', { name: 'ARI-BUG-0001' })).toHaveAttribute('href', '/p/ARI/t/BUG/tableau?i=ARI-BUG-0001'); // ouvre le panneau de détail
     expect(lastSearch()).toContain('q=tracker = BUG&limit=25&offset=0');
     expect(screen.getByRole('link', { name: 'Tableau' })).toHaveAttribute('aria-current', 'page');
     expect(screen.getByRole('button', { name: '+ Nouvel item' })).toBeInTheDocument();
@@ -313,6 +316,84 @@ describe('vue Board du tracker', () => {
   it('n’a aucune violation d’accessibilité', async () => {
     const { container } = app('/p/ARI/t/BUG/board');
     await screen.findByRole('region', { name: 'Ouvert' });
+    const result = await axe.run(container, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] }, rules: { 'color-contrast': { enabled: false }, region: { enabled: false } } });
+    expect(result.violations.map((v) => `${v.id} : ${v.help}`)).toEqual([]);
+  });
+});
+
+describe('panneau de détail scindé', () => {
+  const panel = () => screen.getByRole('complementary', { name: 'Détail de l’item' });
+
+  it('un clic sur un item ouvre sa fiche à droite sans quitter la liste, l’adresse reste partageable', async () => {
+    app('/p/ARI/t/BUG/tableau');
+    await userEvent.click(await screen.findByRole('link', { name: 'ARI-BUG-0002' }));
+    expect(await screen.findByRole('complementary', { name: 'Détail de l’item' })).toBeInTheDocument();
+    expect(await within(panel()).findByRole('heading', { level: 2, name: /ARI-BUG-0002 · Titre de ARI-BUG-0002/ })).toBeInTheDocument();
+    expect(screen.getByTestId('where')).toHaveTextContent('/p/ARI/t/BUG/tableau?i=ARI-BUG-0002');
+    expect(screen.getByRole('link', { name: 'ARI-BUG-0003' })).toBeInTheDocument(); // la liste reste affichée
+    expect(screen.getByRole('link', { name: 'ARI-BUG-0002' })).toHaveAttribute('aria-current', 'true');
+    expect(await within(panel()).findByLabelText('Titre (obligatoire)')).toBeInTheDocument(); // édition en place, comme la fiche complète
+    expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
+  });
+
+  it('s’ouvre directement depuis l’adresse (?i=)', async () => {
+    app('/p/ARI/t/BUG/tableau?i=ARI-BUG-0004');
+    expect(await within(await screen.findByRole('complementary', { name: 'Détail de l’item' })).findByRole('heading', { level: 2, name: /ARI-BUG-0004/ })).toBeInTheDocument();
+  });
+
+  it('J / K passent à l’item suivant / précédent, sans sortir de la liste', async () => {
+    app('/p/ARI/t/BUG/tableau');
+    await screen.findByRole('link', { name: 'ARI-BUG-0001' });
+    await userEvent.keyboard('j');
+    await within(await screen.findByRole('complementary', { name: 'Détail de l’item' })).findByRole('heading', { level: 2, name: /ARI-BUG-0001/ });
+    await userEvent.keyboard('j');
+    await waitFor(() => expect(screen.getByTestId('where')).toHaveTextContent('i=ARI-BUG-0002'));
+    await userEvent.keyboard('jj');
+    await waitFor(() => expect(screen.getByTestId('where')).toHaveTextContent('i=ARI-BUG-0004'));
+    await userEvent.keyboard('k');
+    await waitFor(() => expect(screen.getByTestId('where')).toHaveTextContent('i=ARI-BUG-0003'));
+    // aux extrémités, la sélection reste sur le premier / dernier item
+    await userEvent.keyboard('kkkkk');
+    await waitFor(() => expect(screen.getByTestId('where')).toHaveTextContent('i=ARI-BUG-0001'));
+  });
+
+  it('J / K sont ignorés pendant la saisie dans un champ', async () => {
+    app('/p/ARI/t/BUG/tableau?i=ARI-BUG-0001');
+    const title = await within(await screen.findByRole('complementary', { name: 'Détail de l’item' })).findByLabelText('Titre (obligatoire)');
+    await userEvent.click(title);
+    await userEvent.keyboard('jk');
+    expect(screen.getByTestId('where')).toHaveTextContent('i=ARI-BUG-0001');
+    expect(title).toHaveValue('Titre de ARI-BUG-0001jk');
+  });
+
+  it('Échap ferme le panneau et rend le focus à la ligne', async () => {
+    app('/p/ARI/t/BUG/tableau?i=ARI-BUG-0002');
+    await screen.findByRole('complementary', { name: 'Détail de l’item' });
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => expect(screen.queryByRole('complementary', { name: 'Détail de l’item' })).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.getByRole('link', { name: 'ARI-BUG-0002' })).toHaveFocus());
+    expect(screen.getByTestId('where')).not.toHaveTextContent('i=');
+  });
+
+  it('le bouton Fermer ferme le panneau ; Agrandir ouvre la fiche complète', async () => {
+    app('/p/ARI/t/BUG/tableau?i=ARI-BUG-0003');
+    await within(await screen.findByRole('complementary', { name: 'Détail de l’item' })).findByRole('heading', { level: 2 });
+    await userEvent.click(within(panel()).getByRole('button', { name: 'Agrandir' }));
+    await waitFor(() => expect(screen.getByTestId('where')).toHaveTextContent('/p/ARI/a/ARI-BUG-0003'));
+    expect(await screen.findByRole('heading', { level: 1, name: /ARI-BUG-0003/ })).toBeInTheDocument();
+  });
+
+  it('Fermer retire ?i= de l’adresse', async () => {
+    app('/p/ARI/t/BUG/tableau?i=ARI-BUG-0003');
+    await within(await screen.findByRole('complementary', { name: 'Détail de l’item' })).findByRole('heading', { level: 2 });
+    await userEvent.click(within(panel()).getByRole('button', { name: 'Fermer' }));
+    await waitFor(() => expect(screen.queryByRole('complementary', { name: 'Détail de l’item' })).not.toBeInTheDocument());
+    expect(screen.getByTestId('where')).not.toHaveTextContent('i=');
+  });
+
+  it('n’a aucune violation d’accessibilité avec le panneau ouvert', async () => {
+    const { container } = app('/p/ARI/t/BUG/tableau?i=ARI-BUG-0001');
+    await within(await screen.findByRole('complementary', { name: 'Détail de l’item' })).findByLabelText('Titre (obligatoire)');
     const result = await axe.run(container, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] }, rules: { 'color-contrast': { enabled: false }, region: { enabled: false } } });
     expect(result.violations.map((v) => `${v.id} : ${v.help}`)).toEqual([]);
   });
