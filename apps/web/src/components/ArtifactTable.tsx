@@ -1,41 +1,65 @@
+import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { Btn, Id, StatusPill, Table, Td, Th, type PillKind, type SortState } from '@athena/ui';
-import type { SearchResult } from '../api';
+import type { SearchResult, TrackerDefinition } from '../api';
 import { fr } from '../i18n';
 
 /** Couleur de la pastille selon la catégorie du statut. */
 export const pillKind = (category: string): PillKind => (category === 'done' ? 'success' : category === 'in_progress' ? 'warning' : 'info');
 
-const titleOf = (hit: SearchResult['hits'][number]) => String(hit.values['title'] ?? hit.values['name'] ?? '');
+type Hit = SearchResult['hits'][number];
+const titleOf = (hit: Hit) => String(hit.values['title'] ?? hit.values['name'] ?? '');
+const asText = (value: unknown): string => (value === undefined || value === null ? '' : Array.isArray(value) ? value.join(', ') : String(value));
+
+/** Colonne du tableau (la clé de l'item, toujours en tête, n'en fait pas partie). */
+export interface TableColumn { id: string; label: string; sortField?: string; mono?: boolean; mute?: boolean; render: (hit: Hit) => ReactNode }
+
+const STANDARD: Record<string, TableColumn> = {
+  title: { id: 'title', label: '', render: (hit) => <span className="ath-clip" title={titleOf(hit)}>{titleOf(hit)}</span> },
+  status: { id: 'status', label: '', sortField: 'status', render: (hit) => <StatusPill kind={pillKind(hit.category)}>{hit.statusName ?? hit.status}</StatusPill> },
+  tracker: { id: 'tracker', label: '', sortField: 'tracker', mono: true, render: (hit) => hit.tracker },
+  updated: { id: 'updated', label: '', sortField: 'updated', mono: true, mute: true, render: (hit) => hit.updatedAt.slice(0, 16).replace('T', ' ') },
+};
+
+/** Colonnes de la Recherche : titre, état, tracker, date. */
+export const searchColumns = (): TableColumn[] => ['title', 'status', 'tracker', 'updated'].map((id) => columnFor(id, null)!);
+
+/** Colonne désignée par un identifiant (`title`, `status`, `tracker`, `updated`, `f:<champ>`) ; `null` si inconnue. */
+export function columnFor(id: string, def: TrackerDefinition | null): TableColumn | null {
+  const labels: Record<string, string> = { title: fr.list.title, status: fr.list.status, tracker: fr.list.tracker, updated: fr.list.updated };
+  const standard = STANDARD[id];
+  if (standard) return { ...standard, label: labels[id]! };
+  if (!id.startsWith('f:')) return null;
+  const field = def?.fields.find((f) => f.key === id.slice(2));
+  if (!field) return null;
+  const mono = field.type === 'number' || field.type === 'date';
+  return { id, label: field.label, sortField: field.key, mono, render: (hit) => <span className="ath-clip" title={asText(hit.values[field.key])}>{asText(hit.values[field.key])}</span> };
+}
 
 /** Tableau d'artefacts triable avec pagination : partagé par la Recherche et l'écran Tracker. */
-export function ArtifactTable({ project, result, offset, pageSize, sortOf, sortBy, onPage, linkFor, selected }: {
-  project: string; selected?: string | null; result: SearchResult; offset: number; pageSize: number;
+export function ArtifactTable({ project, result, offset, pageSize, sortOf, sortBy, onPage, linkFor, selected, columns }: {
+  project: string; selected?: string | null; columns?: TableColumn[];
+  result: SearchResult; offset: number; pageSize: number;
   sortOf: (field: string) => SortState; sortBy: (field: string) => (next: SortState) => void; onPage: (offset: number) => void;
   /** Adresse d'un item (par défaut la fiche complète) ; l'écran Tracker ouvre le panneau de détail. */
   linkFor?: (key: string) => string;
 }) {
   const href = linkFor ?? ((key: string) => `/p/${project}/a/${key}`);
+  const cols = columns ?? searchColumns();
   return (
     <>
       <Table>
         <thead>
           <tr>
             <Th sort={sortOf('key')} onSort={sortBy('key')}>{fr.list.key}</Th>
-            <Th>{fr.list.title}</Th>
-            <Th sort={sortOf('status')} onSort={sortBy('status')}>{fr.list.status}</Th>
-            <Th sort={sortOf('tracker')} onSort={sortBy('tracker')}>{fr.list.tracker}</Th>
-            <Th sort={sortOf('updated')} onSort={sortBy('updated')}>{fr.list.updated}</Th>
+            {cols.map((c) => (c.sortField ? <Th key={c.id} sort={sortOf(c.sortField)} onSort={sortBy(c.sortField)}>{c.label}</Th> : <Th key={c.id}>{c.label}</Th>))}
           </tr>
         </thead>
         <tbody>
           {result.hits.map((hit) => (
             <tr key={hit.key} className={selected === hit.key ? 'ath-row--selected' : undefined}>
               <Td><Link id={`row-${hit.key}`} className="ath-link ath-mono" to={href(hit.key)} aria-current={selected === hit.key ? 'true' : undefined}>{hit.key}</Link></Td>
-              <Td><span className="ath-clip" title={titleOf(hit)}>{titleOf(hit)}</span></Td>
-              <Td><StatusPill kind={pillKind(hit.category)}>{hit.statusName ?? hit.status}</StatusPill></Td>
-              <Td mono>{hit.tracker}</Td>
-              <Td mono mute>{hit.updatedAt.slice(0, 16).replace('T', ' ')}</Td>
+              {cols.map((c) => <Td key={c.id} mono={c.mono} mute={c.mute}>{c.render(hit)}</Td>)}
             </tr>
           ))}
         </tbody>

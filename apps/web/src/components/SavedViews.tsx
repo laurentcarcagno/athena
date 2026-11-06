@@ -5,15 +5,25 @@ import { useFailure } from '../hooks';
 import { fr } from '../i18n';
 import { joinOrder, splitOrder } from '../pages/ListPage';
 import { useConfirm } from './ConfirmDialog';
+import { PinToggle } from './PinToggle';
 
-export interface ViewState { fragment: string; sort: string | null }
+/** Contenu d'une vue : filtre, tri et colonnes choisies (`cols`, absent = colonnes par défaut). */
+export interface ViewState { fragment: string; sort: string | null; columns: string | null }
+
+/** Vue enregistrée → état d'écran ; état d'écran → paramètres d'adresse. */
+export function viewOf(saved: SavedFilter): ViewState {
+  return { ...fromStored(saved.query), columns: saved.columns && saved.columns.length > 0 ? saved.columns.join(',') : null };
+}
+export function viewToParams(view: ViewState): URLSearchParams {
+  return new URLSearchParams([...(view.fragment ? [['f', view.fragment]] : []), ...(view.sort ? [['sort', view.sort]] : []), ...(view.columns ? [['cols', view.columns]] : [])]);
+}
 
 /** Fragment + tri → requête enregistrée (`query` d'un filtre), et inversement. */
 export function toStored(view: ViewState): string {
   const [field, dir] = view.sort ? view.sort.split(':') : [null, null];
   return joinOrder(view.fragment, field ? { field, dir: dir! } : null);
 }
-export function fromStored(query: string): ViewState {
+export function fromStored(query: string): Pick<ViewState, 'fragment' | 'sort'> {
   const { where, order } = splitOrder(query);
   return { fragment: where, sort: order ? `${order.field}:${order.dir}` : null };
 }
@@ -45,7 +55,7 @@ export function SavedViews({ project, tracker, current, roles, onApply, onLoaded
   const save = async (event: FormEvent) => {
     event.preventDefault();
     try {
-      await api('POST', base, { name: form.name, query: stored, trackerKey: tracker, shared: form.shared || form.isDefault, ...(form.isDefault ? { isDefault: true } : {}) });
+      await api('POST', base, { name: form.name, query: stored, trackerKey: tracker, shared: form.shared || form.isDefault, ...(current.columns ? { columns: current.columns.split(',') } : {}), ...(form.isDefault ? { isDefault: true } : {}) });
       toast('success', fr.filters.viewSaved);
       setForm({ open: false, name: '', shared: false, isDefault: false });
       await load();
@@ -65,15 +75,16 @@ export function SavedViews({ project, tracker, current, roles, onApply, onLoaded
       <div className="ath-toolbar">
         <div className="ath-field">
           <label className="ath-field__label" htmlFor="saved-views">{fr.filters.views}</label>
-          <select id="saved-views" className="ath-select" value={active?.id ?? ''} onChange={(e) => { const v = views.find((x) => x.id === e.target.value); onApply(v ? fromStored(v.query) : { fragment: '', sort: null }); }}>
+          <select id="saved-views" className="ath-select" value={active?.id ?? ''} onChange={(e) => { const v = views.find((x) => x.id === e.target.value); onApply(v ? viewOf(v) : { fragment: '', sort: null, columns: null }); }}>
             <option value="">{fr.filters.noView}</option>
             {views.map((v) => <option key={v.id} value={v.id}>{v.name}{v.shared ? ' ⇄' : ''}{v.isDefault ? ` · ${fr.filters.defaultTag}` : ''}</option>)}
           </select>
         </div>
         {active?.isDefault && <Tag>{fr.filters.defaultTag}</Tag>}
+        {active && <PinToggle entry={{ kind: 'view', project, ref: `${tracker}:${active.id}`, label: active.name }} />}
         {active && <Btn type="button" variant="ghost" size="sm" onClick={() => remove(active)}>{fr.filters.deleteView}</Btn>}
         {active && manager && active.shared && <Btn type="button" variant="ghost" size="sm" onClick={() => setDefault(active, !active.isDefault)}>{active.isDefault ? fr.filters.unsetDefault : fr.filters.makeDefault}</Btn>}
-        {!active && stored !== '' && <Btn type="button" variant="ghost" size="sm" onClick={() => setForm({ ...form, open: true })}>{fr.filters.saveView}</Btn>}
+        {!active && (stored !== '' || current.columns !== null) && <Btn type="button" variant="ghost" size="sm" onClick={() => setForm({ ...form, open: true })}>{fr.filters.saveView}</Btn>}
       </div>
       {form.open && (
         <form className="ath-toolbar" onSubmit={save}>

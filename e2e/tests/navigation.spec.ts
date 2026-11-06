@@ -33,3 +33,15 @@ test('J / K parcourent la liste, Échap ferme le panneau, l’ancienne adresse d
   await page.goto('/p/ARI?q=status%3Dopen');
   await expect(page).toHaveURL(/\/p\/ARI\/recherche\?q=/);
 });
+
+test('colonnes du tableau et sélecteur de frères du fil d’Ariane', async ({ page }) => {
+  await login(page, 'user.dev', 'dev-only-user');
+  await page.goto('/p/ARI/t/BUG/tableau');
+  await page.getByRole('button', { name: 'Colonnes' }).click();
+  await page.getByRole('checkbox', { name: 'Sévérité' }).check();
+  await expect(page.getByRole('columnheader', { name: /Sévérité/ })).toBeVisible();
+  await expect(page).toHaveURL(/cols=/);
+  await page.getByRole('button', { name: 'Changer de tracker' }).click();
+  await expect(page.getByRole('list', { name: 'Changer de tracker' }).getByRole('link', { name: 'BUG' })).toBeVisible();
+});
+

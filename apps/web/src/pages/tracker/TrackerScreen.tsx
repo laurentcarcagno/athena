@@ -2,30 +2,24 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Btn, EmptyState, Id, PageHeader, type SortState } from '@athena/ui';
 import { ApiError, api, type SavedFilter, type SearchResult, type Session, type TrackerDefinition, type TrackerOverview, type TrackerTypeEntry } from '../../api';
-import { ArtifactTable } from '../../components/ArtifactTable';
+import { ArtifactTable, columnFor, type TableColumn } from '../../components/ArtifactTable';
+import { ColumnPicker } from '../../components/ColumnPicker';
 import { CreateArtifact } from '../../components/CreateArtifact';
 import { DetailPanel } from '../../components/DetailPanel';
 import { FilterBar } from '../../components/FilterBar';
-import { SavedViews, fromStored } from '../../components/SavedViews';
+import { SavedViews, viewOf, viewToParams } from '../../components/SavedViews';
 import { MiniWorkflow } from '../../components/MiniWorkflow';
 import { PinToggle } from '../../components/PinToggle';
 import { useFailure } from '../../hooks';
 import { BoardView } from '../BoardPage';
 import { fr } from '../../i18n';
+import { columnOptions, columnsParam, selectedColumns } from '../../lib/columns';
 import { emptyModel, fromAtql, toAtql } from '../../lib/filter-query';
+import { TRACKER_VIEWS, viewsFor, type TrackerViewId } from '../../lib/tracker-views';
+
+export { TRACKER_VIEWS, viewsFor, type TrackerViewId };
 
 const PAGE = 25;
-export const TRACKER_VIEWS = ['tableau', 'board'] as const;
-export type TrackerViewId = (typeof TRACKER_VIEWS)[number];
-
-/**
- * Vues proposées pour un tracker : celles de son type (`defaultViews`) que l'application sait afficher, le Tableau toujours en premier.
- * Un tracker sans type propose toutes les vues disponibles (il avait un board avant l'introduction des types).
- */
-export function viewsFor(type: Pick<TrackerTypeEntry, 'defaultViews'> | undefined): TrackerViewId[] {
-  if (!type) return [...TRACKER_VIEWS];
-  return TRACKER_VIEWS.filter((v) => v === 'tableau' || type.defaultViews.includes(v));
-}
 
 /** Écran Tracker `/p/:projet/t/:tracker/:vue` : en-tête, barre de vues, puis la vue (Tableau : les items du tracker). */
 export function TrackerScreen({ session }: { session: Session }) {
@@ -47,6 +41,7 @@ export function TrackerScreen({ session }: { session: Session }) {
   currentParams.current = params;
   const offset = Number(params.get('o') ?? '0') || 0;
   const sort = params.get('sort');
+  const cols = params.get('cols');
   const admin = session.user?.roles.includes('athena-admin') ?? false;
 
   useEffect(() => {
@@ -75,8 +70,7 @@ export function TrackerScreen({ session }: { session: Session }) {
   useEffect(() => {
     const chosen = wantedView ? knownViews.find((v) => v.id === wantedView) : undefined;
     if (!chosen) return;
-    const v = fromStored(chosen.query);
-    setParams(new URLSearchParams([...(v.fragment ? [['f', v.fragment]] : []), ...(v.sort ? [['sort', v.sort]] : [])]), { replace: true });
+    setParams(viewToParams(viewOf(chosen)), { replace: true });
   }, [wantedView, knownViews, setParams]);
   const onViews = useCallback((views: SavedFilter[]) => {
     setKnownViews(views);
@@ -84,7 +78,7 @@ export function TrackerScreen({ session }: { session: Session }) {
     if (appliedDefault.current === String(tracker)) return;
     appliedDefault.current = String(tracker);
     const def = views.find((v) => v.isDefault);
-    if (def && !initial.has('f') && !initial.has('sort') && !initial.has('v')) { const v = fromStored(def.query); setParams(new URLSearchParams([...(v.fragment ? [['f', v.fragment]] : []), ...(v.sort ? [['sort', v.sort]] : [])]), { replace: true }); }
+    if (def && !initial.has('f') && !initial.has('sort') && !initial.has('cols') && !initial.has('v')) setParams(viewToParams(viewOf(def)), { replace: true });
   }, [tracker, setParams]);
 
   const rows = result?.hits ?? [];
@@ -126,6 +120,8 @@ export function TrackerScreen({ session }: { session: Session }) {
   };
   const sortOf = (f: string): SortState => (field === f ? (dir as 'asc' | 'desc') : null);
   const sortBy = (f: string) => (state: SortState) => next({ sort: state ? `${f}:${state}` : null, o: null });
+  const chosenColumns = selectedColumns(cols, def);
+  const tableColumns = chosenColumns.map((id) => columnFor(id, def)).filter((c): c is TableColumn => c !== null);
   const states = counts?.statuses ?? def?.statuses.map((s) => ({ key: s.key, name: s.name, category: s.category, count: 0 })) ?? [];
 
   return (
@@ -141,8 +137,9 @@ export function TrackerScreen({ session }: { session: Session }) {
         onCreated={(key) => { setCreating(false); navigate(`/p/${project}/a/${key}`); }} />
       {current === 'tableau' && <MiniWorkflow states={states} active={status} onPick={(key) => next({ f: toAtql({ ...(fromAtql(fragment, username) ?? emptyModel()), status: key ?? undefined }, username) || null, o: null })} />}
       {current === 'tableau' && <FilterBar def={def} fragment={fragment} username={username} error={queryError} onChange={(f) => next({ f: f || null, o: null })} />}
-      {current === 'tableau' && <SavedViews project={String(project)} tracker={String(tracker)} current={{ fragment, sort }} roles={session.user?.roles ?? []} onLoaded={onViews}
-        onApply={(v) => setParams(new URLSearchParams([...(v.fragment ? [['f', v.fragment]] : []), ...(v.sort ? [['sort', v.sort]] : [])]))} />}
+      {current === 'tableau' && <SavedViews project={String(project)} tracker={String(tracker)} current={{ fragment, sort, columns: cols }} roles={session.user?.roles ?? []} onLoaded={onViews}
+        onApply={(v) => setParams(viewToParams(v))} />}
+      {current === 'tableau' && <ColumnPicker options={columnOptions(def)} selected={chosenColumns} onChange={(ids) => next({ cols: columnsParam(ids, def) })} />}
       <nav className="ath-tabs ath-tabs--links" aria-label={fr.trackerScreen.views}>
         {views.map((v) => (
           <Link key={v} to={`${base}/${v}`} className="ath-tab" aria-current={v === current ? 'page' : undefined}>{fr.trackerScreen.viewNames[v]}</Link>
@@ -153,7 +150,7 @@ export function TrackerScreen({ session }: { session: Session }) {
       ) : (
         <div className={item ? 'ath-split' : undefined}>
           <div>
-            <ArtifactTable project={String(project)} result={result} offset={offset} pageSize={PAGE} sortOf={sortOf} sortBy={sortBy} onPage={(o) => next({ o: String(o), i: null })}
+            <ArtifactTable project={String(project)} columns={tableColumns} result={result} offset={offset} pageSize={PAGE} sortOf={sortOf} sortBy={sortBy} onPage={(o) => next({ o: String(o), i: null })}
               selected={item} linkFor={(key) => `${base}/tableau?${withItem(key).toString()}`} />
           </div>
           {item && <DetailPanel session={session} project={String(project)} itemKey={item} onClose={closePanel}

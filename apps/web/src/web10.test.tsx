@@ -25,7 +25,7 @@ const BOARD = {
   ],
 };
 const view = (id: string, name: string, query: string, extra: Record<string, unknown> = {}) => ({ id, name, query, owner: 'u', shared: false, trackerKey: 'BUG', view: 'tableau', columns: null, isDefault: false, ...extra });
-const hit = (n: number, status = 'open') => ({ key: `ARI-BUG-${String(n).padStart(4, '0')}`, tracker: 'BUG', status, statusName: status === 'open' ? 'Ouvert' : 'En cours', category: status === 'open' ? 'todo' : 'in_progress', version: 1, updatedAt: '2026-11-05T10:00:00.000Z', values: { title: `Anomalie ${n}` } });
+const hit = (n: number, status = 'open') => ({ key: `ARI-BUG-${String(n).padStart(4, '0')}`, tracker: 'BUG', status, statusName: status === 'open' ? 'Ouvert' : 'En cours', category: status === 'open' ? 'todo' : 'in_progress', version: 1, updatedAt: '2026-11-05T10:00:00.000Z', values: { title: `Anomalie ${n}`, severity: 'majeure' } });
 const def = {
   key: 'BUG', name: 'Anomalies', typeKey: 'bug',
   fields: [
@@ -396,5 +396,64 @@ describe('panneau de détail scindé', () => {
     await within(await screen.findByRole('complementary', { name: 'Détail de l’item' })).findByLabelText('Titre (obligatoire)');
     const result = await axe.run(container, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] }, rules: { 'color-contrast': { enabled: false }, region: { enabled: false } } });
     expect(result.violations.map((v) => `${v.id} : ${v.help}`)).toEqual([]);
+  });
+});
+
+describe('colonnes et épinglage des vues', () => {
+  const headers = () => screen.getAllByRole('columnheader').map((h) => h.textContent!.replace(/[▲▼↕]/g, '').trim());
+
+  it('affiche les colonnes par défaut, permet d’ajouter un champ du tracker et de le trier', async () => {
+    app('/p/ARI/t/BUG/tableau');
+    await screen.findByRole('link', { name: 'ARI-BUG-0001' });
+    expect(headers()).toEqual(['Clé', 'Titre', 'Statut', 'Mis à jour']);
+    await userEvent.click(screen.getByRole('button', { name: 'Colonnes' }));
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Sévérité' }));
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Statut' })); // retire une colonne
+    await waitFor(() => expect(headers()).toEqual(['Clé', 'Titre', 'Mis à jour', 'Sévérité']));
+    expect(decodeURIComponent(screen.getByTestId('where').textContent!)).toContain('cols=title,updated,f:severity');
+    expect(screen.getAllByText('majeure').length).toBeGreaterThanOrEqual(25);
+    await userEvent.click(screen.getByRole('columnheader', { name: /Sévérité/ }));
+    await waitFor(() => expect(lastSearch()).toContain('ORDER BY severity asc'));
+  });
+
+  it('rouvre les colonnes depuis l’adresse et revient au choix par défaut sans paramètre', async () => {
+    app('/p/ARI/t/BUG/tableau?cols=title%2Cf%3Aseverity');
+    await screen.findByRole('link', { name: 'ARI-BUG-0001' });
+    expect(headers()).toEqual(['Clé', 'Titre', 'Sévérité']);
+    await userEvent.click(screen.getByRole('button', { name: 'Colonnes' }));
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Sévérité' }));
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Statut' }));
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Mis à jour' }));
+    await waitFor(() => expect(headers()).toEqual(['Clé', 'Titre', 'Statut', 'Mis à jour']));
+    expect(screen.getByTestId('where')).not.toHaveTextContent('cols=');
+  });
+
+  it('enregistre les colonnes avec la vue et les restitue à l’application de la vue', async () => {
+    views = [view('v9', 'Avec sévérité', 'status = open', { columns: ['title', 'f:severity'] })];
+    app('/p/ARI/t/BUG/tableau');
+    await screen.findByRole('link', { name: 'ARI-BUG-0001' });
+    await userEvent.selectOptions(await screen.findByLabelText('Vues enregistrées'), 'v9');
+    await waitFor(() => expect(headers()).toEqual(['Clé', 'Titre', 'Sévérité']));
+    expect(decodeURIComponent(screen.getByTestId('where').textContent!)).toContain('cols=title,f:severity');
+  });
+
+  it('une vue modifiée seulement par ses colonnes peut être enregistrée avec elles', async () => {
+    app('/p/ARI/t/BUG/tableau?cols=title%2Cf%3Aseverity');
+    await screen.findByRole('link', { name: 'ARI-BUG-0001' });
+    await userEvent.click(screen.getByRole('button', { name: 'Enregistrer la vue' }));
+    await userEvent.type(screen.getByLabelText('Nom de la vue'), 'Titres et sévérités');
+    await userEvent.click(screen.getAllByRole('button', { name: 'Enregistrer la vue' }).at(-1)!);
+    await waitFor(() => expect(bodies.find((b) => b.method === 'POST' && b.url.endsWith('/filters'))?.body).toEqual({
+      name: 'Titres et sévérités', query: '', trackerKey: 'BUG', shared: false, columns: ['title', 'f:severity'],
+    }));
+  });
+
+  it('épingle la vue enregistrée active dans les favoris du rail', async () => {
+    views = [view('v1', 'Bloquants', 'status = open', { shared: true })];
+    app('/p/ARI/t/BUG/tableau?f=status%20%3D%20open');
+    await waitFor(() => expect(screen.getByLabelText('Vues enregistrées')).toHaveValue('v1'));
+    const bar = screen.getByLabelText('Vues enregistrées').closest('.ath-toolbar') as HTMLElement;
+    await userEvent.click(within(bar).getByRole('button', { name: 'Épingler' }));
+    await waitFor(() => expect(bodies.find((b) => b.url.endsWith('/favorite'))?.body).toEqual({ kind: 'view', project: 'ARI', ref: 'BUG:v1', label: 'Bloquants', favorite: true }));
   });
 });

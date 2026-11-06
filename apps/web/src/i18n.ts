@@ -108,12 +108,13 @@ const frDict = {
     favorites: 'Favoris', recents: 'Récents', project: 'Projet', trackers: 'Trackers', pin: 'Épingler', unpin: 'Désépingler', moveUp: 'Monter', moveDown: 'Descendre',
     collapse: 'Replier le rail', expand: 'Déplier le rail',
   },
-  crumb: { label: 'Fil d’Ariane' },
+  crumb: { label: 'Fil d’Ariane', siblingProject: 'Changer de projet', siblingTracker: 'Changer de tracker', siblingView: 'Changer de vue' },
   activity: {
     title: 'Activité', filters: 'Filtres de l’activité', tracker: 'Tracker', person: 'Personne', kind: 'Type d’événement', date: 'Date', event: 'Événement', item: 'Item', empty: 'Aucune activité pour ces filtres.', older: 'Plus ancien',
     kinds: { created: 'Créations', updated: 'Modifications', transition: 'Transitions', comment: 'Commentaires' },
     created: 'a créé l’item', updated: 'a modifié', transitioned: 'a fait passer de', to: 'à', commented: 'a commenté',
   },
+  columns: { button: 'Colonnes', legend: 'Colonnes affichées' },
   types: {
     title: 'Types de tracker', note: 'Un type fixe la catégorie, les vues proposées et le socle de champs des trackers qui en dérivent. Les types livrés se modifient et se réinitialisent.',
     key: 'Clé du type (minuscules)', name: 'Nom du type', description: 'Description', category: 'Catégorie',
@@ -266,12 +267,13 @@ const enDict: Dictionary = {
     favorites: 'Favorites', recents: 'Recent', project: 'Project', trackers: 'Trackers', pin: 'Pin', unpin: 'Unpin', moveUp: 'Move up', moveDown: 'Move down',
     collapse: 'Collapse the rail', expand: 'Expand the rail',
   },
-  crumb: { label: 'Breadcrumb' },
+  crumb: { label: 'Breadcrumb', siblingProject: 'Switch project', siblingTracker: 'Switch tracker', siblingView: 'Switch view' },
   activity: {
     title: 'Activity', filters: 'Activity filters', tracker: 'Tracker', person: 'Person', kind: 'Event type', date: 'Date', event: 'Event', item: 'Item', empty: 'No activity for these filters.', older: 'Older',
     kinds: { created: 'Creations', updated: 'Changes', transition: 'Transitions', comment: 'Comments' },
     created: 'created the item', updated: 'changed', transitioned: 'moved from', to: 'to', commented: 'commented',
   },
+  columns: { button: 'Columns', legend: 'Displayed columns' },
   types: {
     title: 'Tracker types', note: 'A type sets the category, the proposed views and the base fields of the trackers derived from it. Built-in types can be edited and reset.',
     key: 'Type key (lowercase)', name: 'Type name', description: 'Description', category: 'Category',
