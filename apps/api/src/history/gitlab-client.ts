@@ -1,8 +1,7 @@
-export interface CommitAction {
-  action: 'create' | 'update';
-  file_path: string;
-  content: string;
-}
+export type CommitAction =
+  | { action: 'create' | 'update'; file_path: string; content: string }
+  | { action: 'move'; file_path: string; previous_path: string; content: string }
+  | { action: 'delete'; file_path: string };
 
 export interface CommitInput {
   branch: string;

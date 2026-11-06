@@ -138,4 +138,49 @@ suite('synchronisation inverse et reconstruction (GitLab réel)', () => {
     expect(next.key).toBe('ARI-BUG-0003');
     await expect(rebuild.rebuild(other, 'ARI', orgKey, 'rebuild')).rejects.toBeInstanceOf(DomainError);
   }, 90_000);
+
+  it('migre les fichiers d’ancien format en un commit, de façon idempotente, et sait reconstruire un dépôt ancien format', async () => {
+    const db = new Db(testDb.pool);
+    const trackers = new TrackerService(db, new FieldTypeRegistry());
+    await trackers.createProject(org, 'LEG', 'Ancien', alice);
+    await trackers.createTracker(org, bugTemplate('LEG'), alice);
+    await artifacts.create(org, 'LEG', 'BUG', { title: 'Hérité', severity: 'majeure' }, alice);
+    await sync.runOnce();
+    const legRepo = await gitlab.ensureRepository('root', `athena-history-${orgKey}-leg`);
+    const newPath = 'trackers/BUG/artifacts/LEG-BUG-0001.yaml';
+    const oldPath = 'trackers/BUG/artifacts/BUG-1.yaml';
+
+    // Dépôt d'avant la migration : fichier à l'ancien nom, clé ancienne dans le YAML, alias en base.
+    const doc = parse(await gitlab.fileContent(legRepo, newPath, 'main')) as Record<string, unknown>;
+    const legacy = stringify({ ...doc, key: 'BUG-1' });
+    const asLegacy = () => gitlab.commit(legRepo, { branch: 'main', message: 'ancien format', authorName: 'Athena', authorEmail: 'athena@localhost', actions: [{ action: 'delete', file_path: newPath }, { action: 'create', file_path: oldPath, content: legacy }] });
+    await asLegacy();
+    await testDb.exec("insert into artifact_key_alias (organization_id, artifact_id, project_id, alias) select a.organization_id, a.id, a.project_id, 'BUG-1' from artifact a where a.key = 'LEG-BUG-0001'");
+
+    // Reconstruction depuis le dépôt ancien format : clé canonique recalculée, ancienne clé en alias.
+    const target = crypto.randomUUID();
+    await db.tx(target, (c) => c.query("insert into organization (id, key, name) values ($1,'legacy','Legacy')", [target]));
+    await trackers.createProject(target, 'LEG', 'Ancien', alice);
+    expect(await rebuild.rebuild(target, 'LEG', orgKey, 'rebuild')).toEqual({ trackers: 1, artifacts: 1 });
+    expect((await db.tx(target, (c) => c.query('select a.key, al.alias from artifact a join artifact_key_alias al on al.artifact_id = a.id'))).rows).toEqual([{ key: 'LEG-BUG-0001', alias: 'BUG-1' }]);
+
+    const first = await rebuild.migrateKeys(org, 'LEG', orgKey);
+    expect(first).toMatchObject({ moved: 1, removed: 0 });
+    expect(first.commit).toMatch(/^[0-9a-f]{40}$/);
+    const migrated = parse(await gitlab.fileContent(legRepo, newPath, 'main')) as { key: string; aliases: string[] };
+    expect(migrated).toMatchObject({ key: 'LEG-BUG-0001', aliases: ['BUG-1'] });
+    expect(await gitlab.fileExists(legRepo, oldPath, 'main')).toBe(false);
+    expect(await rebuild.migrateKeys(org, 'LEG', orgKey)).toEqual({ moved: 0, removed: 0, commit: null });
+
+    // Une modification faite par l'ancienne clé s'écrit au chemin canonique et garde les alias dans le YAML.
+    await artifacts.update(org, 'LEG', 'BUG-1', { title: 'Hérité, modifié' }, 1, alice);
+    await sync.runOnce();
+    expect(parse(await gitlab.fileContent(legRepo, newPath, 'main'))).toMatchObject({ key: 'LEG-BUG-0001', aliases: ['BUG-1'], version: 2 });
+    expect(await gitlab.fileExists(legRepo, oldPath, 'main')).toBe(false);
+
+    // Fichier canonique déjà présent (événement synchronisé entre-temps) : l'ancien est seulement supprimé.
+    await gitlab.commit(legRepo, { branch: 'main', message: 'ancien fichier revenu', authorName: 'Athena', authorEmail: 'athena@localhost', actions: [{ action: 'create', file_path: oldPath, content: legacy }] });
+    expect(await rebuild.migrateKeys(org, 'LEG', orgKey)).toMatchObject({ moved: 0, removed: 1 });
+    expect(await gitlab.fileExists(legRepo, oldPath, 'main')).toBe(false);
+  }, 90_000);
 });

@@ -22,6 +22,8 @@ interface PendingEvent {
   confidential_fields: string[];
   history_mode: string;
   tracker_key: string | null;
+  current_key: string | null;
+  aliases: string[];
 }
 
 const FALLBACK_AUTHOR = { name: 'Athena', email: 'athena@localhost' };
@@ -88,7 +90,9 @@ export class HistorySync {
               coalesce(tk.history_mode, (select t2.history_mode from tracker t2 join project p2 on p2.id = t2.project_id where p2.key = o.payload->>'project' and t2.key = o.payload->>'key'), 'direct') as history_mode,
               coalesce(tk.key, o.payload->>'key') as tracker_key,
               coalesce((select array_agg(f.key) from field_definition f
-                        where f.tracker_id = a.tracker_id and f.config->>'confidential' = 'true'), '{}') as confidential_fields
+                        where f.tracker_id = a.tracker_id and f.config->>'confidential' = 'true'), '{}') as confidential_fields,
+              a.key as current_key,
+              coalesce((select array_agg(al.alias order by al.alias) from artifact_key_alias al where al.artifact_id = a.id), '{}') as aliases
        from outbox_event o
        left join artifact_revision r on r.event_id = nullif(o.payload->>'eventId','')::uuid
        left join artifact a on a.id = r.artifact_id
@@ -108,18 +112,20 @@ export class HistorySync {
     if ((event.type === 'tracker.created' || event.type === 'tracker.updated') && event.project_key) return this.commitTracker(organizationId, orgKey, event);
     if (!event.type.startsWith('artifact.') || !event.snapshot || !event.project_key) return null;
     const projectId = await this.repository(orgKey, event.project_key);
-    const path = artifactPath(event.snapshot);
+    // Un événement antérieur à la migration des clés porte l'ancienne clé : le fichier suit toujours la clé courante.
+    const snapshot = { ...event.snapshot, key: event.current_key ?? event.snapshot.key };
+    const path = artifactPath(snapshot);
     const protectedValues = this.confidential
       ? await this.confidential.protect(orgKey, event.snapshot.values, event.confidential_fields)
       : event.snapshot.values;
-    const content = serializeArtifact({ ...event.snapshot, values: protectedValues });
+    const content = serializeArtifact({ ...snapshot, values: protectedValues }, event.aliases ?? []);
     const branch = await this.writeBranch(projectId, event);
     const exists = await this.gitlab.fileExists(projectId, path, branch);
     const summary = summarize(event);
     const sha = await this.gitlab.commit(projectId, {
       branch,
       message:
-        `${event.snapshot.key}: ${summary}\n\n` +
+        `${snapshot.key}: ${summary}\n\n` +
         `Athena-Event-Id: ${event.payload.eventId ?? event.id}\n` +
         `Athena-Actor: ${event.payload.actor ?? 'inconnu'}\n` +
         `Athena-Version: ${event.snapshot.version}`,

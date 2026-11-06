@@ -198,6 +198,17 @@ export class IntegrationsController {
     return this.rebuilder.rebuild(organizationId, project, org, actor.id);
   }
 
+  /** Renomme dans l'historique les fichiers d'artefacts de l'ancien format de clé (idempotent, un commit). */
+  @Roles('athena-admin')
+  @HttpCode(200)
+  @Post('v1/projects/:project/history/migrate-keys')
+  async migrateKeys(@Req() request: AuthedRequest, @Param('project') project: string) {
+    if (!this.rebuilder) throw new HttpException({ error: 'unavailable', message: 'Historique GitLab non configuré.', details: [] }, 503);
+    const { organizationId } = await this.ctx(request);
+    const org = (await this.db.tx(organizationId, (c) => c.query('select key from organization'))).rows[0].key as string;
+    return this.rebuilder.migrateKeys(organizationId, project, org);
+  }
+
   // --- Automatisations ---
   @Roles('athena-admin')
   @Post('v1/projects/:project/automations')

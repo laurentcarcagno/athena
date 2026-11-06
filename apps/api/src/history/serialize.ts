@@ -12,11 +12,12 @@ export function artifactPath(snapshot: Pick<Snapshot, 'key' | 'tracker'>): strin
  * YAML déterministe : clés triées, pas de repli de ligne. Deux sérialisations du même état
  * sont identiques octet pour octet, ce qui évite les commits sans changement réel.
  */
-export function serializeArtifact(snapshot: Snapshot): string {
+export function serializeArtifact(snapshot: Snapshot, aliases: string[] = []): string {
   return stringify(
     {
       schema: SCHEMA_VERSION,
       key: snapshot.key,
+      ...(aliases.length > 0 ? { aliases: [...aliases].sort() } : {}),
       tracker: snapshot.tracker,
       status: snapshot.status,
       version: snapshot.version,

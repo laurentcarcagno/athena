@@ -33,7 +33,7 @@ describe('schéma OpenAPI', () => {
   it('documente un corps pour toute écriture qui en reçoit un, sauf les actions sans corps connues', () => {
     const noBody = new Set([
       'POST /auth/logout', 'POST /v1/automations/{id}/{state}', 'POST /v1/plugins/{id}/{state}', 'POST /v1/projects/{project}/links/{id}/clear-suspect',
-      'POST /v1/projects/{project}/rebuild', 'POST /v1/projects/{project}/releases/{id}/publish', 'POST /v1/projects/{project}/sprints/{id}/close',
+      'POST /v1/projects/{project}/rebuild', 'POST /v1/projects/{project}/history/migrate-keys', 'POST /v1/projects/{project}/releases/{id}/publish', 'POST /v1/projects/{project}/sprints/{id}/close',
       'POST /v1/projects/{project}/sprints/{id}/start', 'POST /v1/webhooks/deliveries/{id}/replay',
       'POST /v1/projects/{project}/integrations/gitlab', 'POST /v1/projects/{project}/integrations/history',
       'POST /hooks/in/source/{org}/{project}/{name}', // charge externe signée (HMAC) lue en octets bruts : forme fixée par l’émetteur

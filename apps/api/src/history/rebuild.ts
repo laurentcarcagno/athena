@@ -1,11 +1,11 @@
-import { ARTIFACT_FILE } from '../core/key';
+import { ARTIFACT_FILE, formatKey, isCanonicalKey, isLegacyKey, parseKey } from '../core/key';
 import type { Pool, PoolClient } from 'pg';
 import { parse } from 'yaml';
 import { Db } from '../core/db';
 import { conflict, notFound, validation } from '../core/errors';
 import type { ConfidentialFields } from '../secrets/confidential';
-import { GitLabClient } from './gitlab-client';
-import { repositoryName } from './serialize';
+import { GitLabClient, type CommitAction } from './gitlab-client';
+import { artifactPath, repositoryName, serializeArtifact } from './serialize';
 
 export interface RebuildResult {
   trackers: number;
@@ -26,6 +26,7 @@ interface ArtifactFile {
   tracker: string;
   status: string;
   version: number;
+  aliases?: string[];
   values: Record<string, unknown>;
 }
 
@@ -92,7 +93,15 @@ export class RebuildService {
         const number = Number(/-(\d+)$/.exec(a.key)?.[1]);
         if (!tracker || !status || !Number.isInteger(number)) throw validation([`artefact ${a.key} incohérent (tracker ou statut inconnu)`]);
         const values = this.confidential ? await this.confidential.reveal(sourceOrgKey, a.values) : a.values;
-        await insertArtifact(c, organizationId, project.id, tracker.id, status, number, a, values, actorId);
+        // Fichier ancien format (REQ-42) ou venant d'un autre projet : clé recalculée, ancienne clé conservée en alias.
+        const parsed = parseKey(a.key);
+        const key = isCanonicalKey(a.key) && parsed?.project === projectKey ? a.key : formatKey(projectKey, a.tracker, number);
+        const aliases = new Set((a.aliases ?? []).filter((x) => isLegacyKey(x)));
+        if (key !== a.key && isLegacyKey(a.key)) aliases.add(a.key);
+        const id = await insertArtifact(c, organizationId, project.id, tracker.id, status, number, { ...a, key }, values, actorId);
+        for (const alias of aliases) {
+          await c.query('insert into artifact_key_alias (organization_id, artifact_id, project_id, alias) values ($1,$2,$3,$4) on conflict do nothing', [organizationId, id, project.id, alias]);
+        }
         last.set(tracker.id, Math.max(last.get(tracker.id) ?? 0, number));
       }
       for (const [trackerId, max] of last) {
@@ -101,12 +110,56 @@ export class RebuildService {
       return { trackers: trackerFiles.length, artifacts: artifactFiles.length };
     });
   }
+
+  /**
+   * Migration des clés (ADR-0002 § 2) : renomme dans l'historique les fichiers `REQ-42.yaml` en `SAT1-REQ-0042.yaml`
+   * en un seul commit, YAML mis à jour (clé canonique, `aliases`). Idempotent : sans fichier à déplacer, aucun commit.
+   * Si le fichier canonique existe déjà (événement synchronisé entre-temps), l'ancien fichier est simplement supprimé.
+   */
+  async migrateKeys(organizationId: string, projectKey: string, orgKey: string): Promise<{ moved: number; removed: number; commit: string | null }> {
+    const repo = await this.gitlab.ensureRepository(this.namespace, repositoryName(orgKey, projectKey));
+    const rows = (await new Db(this.pool).tx(organizationId, (c) =>
+      c.query(
+        `select a.key, t.key as tracker, al.alias from artifact_key_alias al join artifact a on a.id = al.artifact_id
+         join tracker t on t.id = a.tracker_id join project p on p.id = a.project_id where p.key = $1 order by a.key, al.alias`,
+        [projectKey],
+      ))).rows as Array<{ key: string; tracker: string; alias: string }>;
+    const present = new Set(await this.gitlab.tree(repo, this.ref));
+    const actions: CommitAction[] = [];
+    let moved = 0;
+    let removed = 0;
+    for (const r of rows) {
+      const oldPath = artifactPath({ key: r.alias, tracker: r.tracker });
+      if (!present.has(oldPath)) continue;
+      const newPath = artifactPath({ key: r.key, tracker: r.tracker });
+      if (present.has(newPath)) {
+        actions.push({ action: 'delete', file_path: oldPath });
+        removed += 1;
+        continue;
+      }
+      const file = parse(await this.gitlab.fileContent(repo, oldPath, this.ref)) as Record<string, unknown>;
+      const aliases = rows.filter((x) => x.key === r.key).map((x) => x.alias);
+      const content = serializeArtifact({ key: r.key, tracker: String(file['tracker']), status: String(file['status']), version: Number(file['version']), values: (file['values'] ?? {}) as Record<string, unknown> }, aliases);
+      actions.push({ action: 'move', file_path: newPath, previous_path: oldPath, content });
+      moved += 1;
+    }
+    if (actions.length === 0) return { moved: 0, removed: 0, commit: null };
+    const commit = await this.gitlab.commit(repo, {
+      branch: this.ref,
+      message: `chore(history): migration des clés d'item (${moved} fichier(s) renommé(s))
+
+Athena-Event-Id: key-migration-${projectKey}`,
+      authorName: 'Athena', authorEmail: 'athena@localhost', actions,
+    });
+    return { moved, removed, commit };
+  }
 }
 
-async function insertArtifact(c: PoolClient, org: string, project: string, tracker: string, status: string, number: number, a: ArtifactFile, values: Record<string, unknown>, actor: string) {
-  await c.query(
+async function insertArtifact(c: PoolClient, org: string, project: string, tracker: string, status: string, number: number, a: ArtifactFile, values: Record<string, unknown>, actor: string): Promise<string> {
+  const row = await c.query(
     `insert into artifact (organization_id, project_id, tracker_id, number, key, status_id, "values", version, created_by)
-     values ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
+     values ($1,$2,$3,$4,$5,$6,$7,$8,$9) returning id`,
     [org, project, tracker, number, a.key, status, JSON.stringify(values), a.version, actor],
   );
+  return row.rows[0].id as string;
 }
