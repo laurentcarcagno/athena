@@ -11,9 +11,11 @@ import { Db, type Actor } from './db';
 import { DomainError } from './errors';
 import { FieldTypeRegistry } from './field-types';
 import { LinkService } from './link.service';
+import { ExportMarker } from './export-marking';
+import { MatrixService } from './matrix.service';
 import { NormativeService } from './normative.service';
 import { runAs } from './request-context';
-import { requirementTemplate } from './templates';
+import { normativeClauseTracker, requirementTemplate } from './templates';
 import { TrackerService } from './tracker.service';
 
 const suite = pgUp ? describe : describe.skip;
@@ -114,12 +116,28 @@ suite('marquage de contrôle export', () => {
     expect(forLead[0]!.restricted).toBeUndefined();
   });
 
-  it('les exports (conformité, notes) n’incluent pas l’item pour un non-ayant droit', async () => {
+  it('tous les exports excluent l’item pour un non-ayant droit : lecture, CSV de conformité (avec mention), matrice', async () => {
+    const trackers = new TrackerService(db, new FieldTypeRegistry());
+    await trackers.createTracker(org, normativeClauseTracker('DEF'), admin);
+    await artifacts.create(org, 'DEF', 'NORM', { title: 'Clause ouverte', reference: '5.1' }, admin);
+    const hidden = await artifacts.create(org, 'DEF', 'NORM', { title: 'Clause ITAR secrète', reference: '5.2' }, admin);
+    await as('u-lead', () => access.setMarking(org, 'DEF', hidden.key, 'ITAR', admin));
     const normative = new NormativeService(db, artifacts);
-    expect(normative).toBeDefined();
-    const rows = (s: string) => as(s, () => db.tx(org, async (c) => (await c.query("select a.key from artifact a where a.key like 'DEF-REQ-%' order by a.key")).rows.map((r) => r.key as string)));
-    expect(await rows('u-reader')).toEqual(['DEF-REQ-0001', 'DEF-REQ-0003']);
-    expect(await rows('u-lead')).toEqual(['DEF-REQ-0001', 'DEF-REQ-0002', 'DEF-REQ-0003']);
+    const csv = (s: string) => as(s, () => normative.conformityCsv(org, 'DEF')).then((r) => r.csv);
+    const forReader = await csv('u-reader');
+    expect(forReader).toContain('Clause ouverte');
+    expect(forReader).not.toMatch(/Clause ITAR secrète|5\.2/);
+    expect(await csv('u-lead')).toContain('Clause ITAR secrète');
+    // la mention de l'instance est posée par le contrôleur sur cet export (même marqueur que les autres exports)
+    expect(new ExportMarker('Diffusion Restreinte').csv(forReader).replace(/^﻿/, '').startsWith('"Diffusion Restreinte"\n')).toBe(true);
+    const matrix = new MatrixService(db);
+    const rows = (s: string) => as(s, () => matrix.matrix(org, 'DEF', 'REQ', 'TST', 'verifies', ['athena-user'])).then((m) => JSON.stringify(m));
+    expect(await rows('u-reader')).not.toContain('DEF-REQ-0002');
+    expect(await rows('u-lead')).toContain('DEF-REQ-0002');
+    const list = (s: string) => as(s, () => db.tx(org, async (c) => (await c.query("select a.key from artifact a where a.key like 'DEF-REQ-%' order by a.key")).rows.map((r) => r.key as string)));
+    expect(await list('u-reader')).toEqual(['DEF-REQ-0001', 'DEF-REQ-0003']);
+    expect(await list('u-lead')).toEqual(['DEF-REQ-0001', 'DEF-REQ-0002', 'DEF-REQ-0003']);
+    await as('u-lead', () => access.setMarking(org, 'DEF', hidden.key, null, admin)); // la clause redevient ordinaire pour la suite
   });
 
   it('webhooks sortants : l’événement d’un item marqué ne part que vers un abonnement habilité', async () => {
