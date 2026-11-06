@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { AccessContextInterceptor } from './core/access.interceptor';
 import { AuthGuard } from './auth/auth.guard';
 import { SESSION_STORE, TOKEN_VERIFIER, WEB_CONFIG, type WebConfig } from './auth/auth.tokens';
 import { BffController } from './auth/bff.controller';
@@ -43,6 +44,7 @@ import { HealthController } from './health/health.controller';
       },
     },
     { provide: APP_GUARD, useClass: AuthGuard },
+    { provide: APP_INTERCEPTOR, useClass: AccessContextInterceptor },
   ],
 })
 export class AppModule {}

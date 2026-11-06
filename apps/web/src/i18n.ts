@@ -256,6 +256,14 @@ const frDict = {
     preview: 'Aperçu de la montée', unversioned: 'Gabarit non versionné',
   },
   protection: { label: 'Niveau de protection de l’instance' },
+  access: {
+    title: 'Besoin d’en connaître', help: 'Une portée dotée d’une liste n’est lisible que de ses membres, administrateurs d’organisation compris. Recherche, tableaux de bord, compteurs et liens la respectent.',
+    empty: 'Aucune liste : le projet est lisible selon les seuls rôles.', wholeProject: 'Tout le projet', trackerScope: (k: string) => `Tracker ${k}`, listOf: (s: string) => `Ayants droit : ${s}`, restricted: 'Accès restreint',
+    addMember: 'Ajouter un ayant droit', add: 'Ajouter', remove: 'Retirer', lastMember: 'Une liste garde au moins un membre : supprimez la liste pour lever la restriction.', deleteList: 'Supprimer la liste',
+    scope: 'Portée', firstMember: 'Premier ayant droit', create: 'Créer la liste', created: 'Liste créée.', saved: 'Liste enregistrée.', deleted: 'Liste supprimée.',
+    createTitle: (s: string) => `Restreindre l’accès : ${s}`, createBody: 'Seuls les membres de la liste liront cette portée. Vous en faites partie.',
+    createBodyHidden: 'Seuls les membres de la liste liront cette portée. Vous n’en ferez pas partie : vous ne la verrez plus.', deleteTitle: (s: string) => `Supprimer la liste : ${s}`, deleteBody: 'La portée redevient lisible selon les seuls rôles. La suppression est consignée dans le journal d’audit.',
+  },
 };
 
 export type Dictionary = typeof frDict;
@@ -512,6 +520,14 @@ const enDict: Dictionary = {
     preview: 'Preview the upgrade', unversioned: 'Unversioned template',
   },
   protection: { label: 'Instance protection level' },
+  access: {
+    title: 'Need to know', help: 'A scope with a list can only be read by its members, organization administrators included. Search, dashboards, counters and links respect it.',
+    empty: 'No list: the project is readable according to roles only.', wholeProject: 'Whole project', trackerScope: (k: string) => `Tracker ${k}`, listOf: (s: string) => `Entitled users: ${s}`, restricted: 'Restricted access',
+    addMember: 'Add an entitled user', add: 'Add', remove: 'Remove', lastMember: 'A list keeps at least one member: delete the list to lift the restriction.', deleteList: 'Delete the list',
+    scope: 'Scope', firstMember: 'First entitled user', create: 'Create the list', created: 'List created.', saved: 'List saved.', deleted: 'List deleted.',
+    createTitle: (s: string) => `Restrict access: ${s}`, createBody: 'Only the list members will read this scope. You are one of them.',
+    createBodyHidden: 'Only the list members will read this scope. You will not be one of them: you will no longer see it.', deleteTitle: (s: string) => `Delete the list: ${s}`, deleteBody: 'The scope becomes readable according to roles only. The deletion is recorded in the audit log.',
+  },
 };
 
 export type Locale = 'fr' | 'en';
