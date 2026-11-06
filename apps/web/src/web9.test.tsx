@@ -1,3 +1,4 @@
+import userEvent from '@testing-library/user-event';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import axe from 'axe-core';
 import { MemoryRouter } from 'react-router-dom';
@@ -13,6 +14,16 @@ const OVERVIEW = [
   { key: 'NOTE', name: 'Notes', typeKey: null, category: 'other', artifacts: 0, mine: 0, lastActivity: null, statuses: [{ key: 'new', name: 'Nouveau', category: 'todo', count: 0 }] },
 ];
 const calls: string[] = [];
+const FEED = {
+  items: [
+    { id: 'e3', kind: 'transition', at: '2026-11-05T10:30:00.000Z', key: 'ARI-BUG-0002', tracker: 'BUG', actor: 'alice', actorName: 'Alice Martin', fields: [], from: 'open', to: 'in_progress' },
+    { id: 'e2', kind: 'updated', at: '2026-11-05T09:00:00.000Z', key: 'ARI-BUG-0002', tracker: 'BUG', actor: 'bob', actorName: 'Bob Durand', fields: ['severity', 'title'], from: null, to: null },
+    { id: 'e1', kind: 'comment', at: '2026-11-04T09:00:00.000Z', key: 'ARI-REQ-0001', tracker: 'REQ', actor: 'bob', actorName: 'Bob Durand', fields: [], from: null, to: null },
+  ],
+  next: 'CURSEUR|00000000-0000-0000-0000-000000000000',
+  people: [{ subject: 'alice', name: 'Alice Martin' }, { subject: 'bob', name: 'Bob Durand' }],
+};
+const OLDER = { items: [{ id: 'e0', kind: 'created', at: '2026-11-01T08:00:00.000Z', key: 'ARI-BUG-0001', tracker: 'BUG', actor: 'alice', actorName: 'Alice Martin', fields: [], from: null, to: null }], next: null, people: FEED.people };
 let repos: Array<{ path: string; defaultBranch: string }> = [];
 let modules: string[] | 'error' = ['overview', 'trackers', 'planning', 'traceability', 'documents', 'code', 'activity', 'members'];
 
@@ -24,6 +35,7 @@ beforeEach(() => {
     calls.push(input);
     const ok = (body: unknown) => new Response(JSON.stringify(body), { status: 200 });
     if (/\/modules$/.test(input)) return modules === 'error' ? new Response('{}', { status: 500 }) : ok({ modules });
+    if (/\/activity\?/.test(input)) return ok(/before=CURSEUR/.test(input) ? OLDER : FEED);
     if (/\/code-repos$/.test(input)) return ok(repos);
     if (/\/dora\?/.test(input)) return ok({ windowDays: 30, deployments: 6, deploymentFrequency: 0.2, leadTimeHours: 12.5, changeFailureRate: 0.25, mttrHours: null });
     if (/\/overview$/.test(input)) return ok({ trackers: OVERVIEW });
@@ -31,7 +43,8 @@ beforeEach(() => {
     if (/\/velocity$/.test(input)) return ok({ sprints: [], average: 0, forecast: 0 });
     if (/\/flow/.test(input) || /\/roadmap$/.test(input)) return ok([]);
     if (/\/search\?/.test(input)) return ok({ total: 0, hits: [] });
-    if (/\/v1\/projects\/ARI\/(trackers|filters|boards)$/.test(input) || /\/v1\/projects$/.test(input)) return ok([]);
+    if (/\/v1\/projects\/ARI\/(filters|boards)$/.test(input) || /\/v1\/projects$/.test(input)) return ok([]);
+    if (/\/v1\/projects\/ARI\/trackers$/.test(input)) return ok([{ key: 'BUG', name: 'Anomalies' }, { key: 'REQ', name: 'Exigences' }]);
     return new Response(JSON.stringify({ error: 'not_found', message: 'Introuvable.', details: [] }), { status: 404 });
   }));
 });
@@ -60,7 +73,7 @@ describe('coquille de projet', () => {
   it('affiche la barre d’onglets avec l’onglet courant signalé', async () => {
     app('/p/ARI');
     await screen.findByRole('heading', { level: 1, name: 'Vue d’ensemble · ARI' });
-    expect(tabNames()).toEqual(['Vue d’ensemble', 'Trackers', 'Planification', 'Code et intégration', 'Membres']);
+    expect(tabNames()).toEqual(['Vue d’ensemble', 'Trackers', 'Planification', 'Code et intégration', 'Activité', 'Membres']);
     expect(screen.getByRole('link', { name: 'Vue d’ensemble' })).toHaveAttribute('aria-current', 'page');
     expect(screen.getByRole('link', { name: 'Planification' })).not.toHaveAttribute('aria-current');
   });
@@ -68,14 +81,14 @@ describe('coquille de projet', () => {
   it('masque l’onglet dont le module est inactif, sans décaler les autres', async () => {
     modules = ['overview', 'trackers', 'activity']; // planification, code et membres inactifs
     app('/p/ARI');
-    await waitFor(() => expect(tabNames()).toEqual(['Vue d’ensemble', 'Trackers']));
+    await waitFor(() => expect(tabNames()).toEqual(['Vue d’ensemble', 'Trackers', 'Activité']));
   });
 
   it('garde les onglets existants quand la liste des modules est indisponible', async () => {
     modules = 'error';
     app('/p/ARI');
     await screen.findByRole('heading', { level: 1, name: 'Vue d’ensemble · ARI' });
-    expect(tabNames()).toEqual(['Vue d’ensemble', 'Trackers', 'Planification', 'Code et intégration', 'Membres']);
+    expect(tabNames()).toEqual(['Vue d’ensemble', 'Trackers', 'Planification', 'Code et intégration', 'Activité', 'Membres']);
   });
 
   it('se parcourt au clavier : chaque onglet est un lien, atteint par Tab', async () => {
@@ -184,5 +197,52 @@ describe('onglets Planification, Membres et Code', () => {
     const row = (await screen.findByText('Taux d’échec')).closest('tr')!;
     expect(within(row).getByText('25 %')).toBeInTheDocument();
     expect(within(screen.getByText('Rétablissement (h)').closest('tr')!).getByText('—')).toBeInTheDocument();
+  });
+});
+
+describe('onglet Activité', () => {
+  const lastActivityCall = () => decodeURIComponent([...calls].reverse().find((c) => c.includes('/activity?'))!);
+
+  it('liste les événements du plus récent au plus ancien, clés et champs en mono, lien vers la fiche', async () => {
+    app('/p/ARI/activite');
+    await screen.findByRole('heading', { level: 1, name: 'Activité · ARI' });
+    const rows = (await screen.findAllByRole('row')).slice(1);
+    expect(rows).toHaveLength(3);
+    expect(within(rows[0]!).getByText('Alice Martin')).toBeInTheDocument();
+    expect(within(rows[0]!).getByText(/a fait passer de/)).toBeInTheDocument();
+    expect(within(rows[0]!).getByText('in_progress')).toHaveClass('ath-mono');
+    expect(within(rows[1]!).getByText('severity')).toHaveClass('ath-mono');
+    expect(within(rows[2]!).getByText('a commenté')).toBeInTheDocument();
+    expect(within(rows[0]!).getByRole('link', { name: 'ARI-BUG-0002' })).toHaveAttribute('href', '/p/ARI/a/ARI-BUG-0002');
+    expect(within(rows[0]!).getByText('2026-11-05 10:30')).toHaveClass('ath-mono');
+  });
+
+  it('filtre par tracker, personne et type d’événement, filtres conservés dans l’adresse', async () => {
+    app('/p/ARI/activite');
+    await screen.findAllByRole('row');
+    await screen.findByRole('option', { name: 'BUG' });
+    await userEvent.selectOptions(screen.getByLabelText('Tracker'), 'BUG');
+    await waitFor(() => expect(lastActivityCall()).toContain('tracker=BUG'));
+    await userEvent.selectOptions(screen.getByLabelText('Personne'), 'bob');
+    await waitFor(() => expect(lastActivityCall()).toContain('actor=bob'));
+    await userEvent.selectOptions(screen.getByLabelText('Type d’événement'), 'updated');
+    await waitFor(() => expect(lastActivityCall()).toContain('kind=updated'));
+    expect(lastActivityCall()).toContain('tracker=BUG&actor=bob&kind=updated');
+  });
+
+  it('charge la page suivante avec le curseur et désactive « Plus ancien » à la fin', async () => {
+    app('/p/ARI/activite');
+    await screen.findAllByRole('row');
+    await userEvent.click(screen.getByRole('button', { name: 'Plus ancien' }));
+    await waitFor(() => expect(screen.getAllByRole('row')).toHaveLength(5));
+    expect(lastActivityCall()).toContain('before=CURSEUR|');
+    expect(screen.getByRole('button', { name: 'Plus ancien' })).toBeDisabled();
+  });
+
+  it('n’a aucune violation d’accessibilité', async () => {
+    const { container } = app('/p/ARI/activite');
+    await screen.findAllByRole('row');
+    const result = await axe.run(container, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] }, rules: { 'color-contrast': { enabled: false }, region: { enabled: false } } });
+    expect(result.violations.map((v) => `${v.id} : ${v.help}`)).toEqual([]);
   });
 });

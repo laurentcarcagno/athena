@@ -81,4 +81,57 @@ suite('modules actifs d’un projet', () => {
     await trackerSvc.setType(org, 'OTH', 'REQ', 'requirement', actor);
     expect((await overview.overview(org, 'OTH', 'alice')).trackers[1]!.category).toBe('engineering');
   });
+
+  it('flux d’activité : événements récents d’abord, filtres, pagination par curseur et champs restreints', async () => {
+    await testDb.exec("insert into user_account (organization_id, subject, username, display_name, email) values ($1,'alice','alice','Alice Martin','a@x.test'), ($1,'bob','bob','Bob Durand','b@x.test')", [org]);
+    await trackerSvc.createProject(org, 'ACT', 'Activité', actor);
+    await trackerSvc.createTracker(org, bugTemplate('ACT'), actor);
+    await trackerSvc.createTracker(org, requirementTemplate('ACT'), actor);
+    const alice: Actor = { id: 'alice', roles: ['athena-user'] };
+    const bob: Actor = { id: 'bob', roles: ['athena-user'] };
+    const bug = await artifacts.create(org, 'ACT', 'BUG', { title: 'Crash', severity: 'majeure' }, alice);
+    const req = await artifacts.create(org, 'ACT', 'REQ', { title: 'Journal', statement: 'Le système journalise.' }, bob);
+    await artifacts.update(org, 'ACT', bug.key, { severity: 'bloquante', affected_version: '1.2' }, 1, alice);
+    await artifacts.update(org, 'ACT', bug.key, { assignee: 'alice' }, 2, alice);
+    await artifacts.transition(org, 'ACT', bug.key, 'Démarrer', 3, alice);
+    await links.addComment(org, 'ACT', req.key, 'À relire', bob);
+
+    const all = await overview.activity(org, 'ACT', ['athena-user']);
+    expect(all.items.map((i) => i.kind)).toEqual(['comment', 'transition', 'updated', 'updated', 'created', 'created']);
+    expect(all.next).toBeNull();
+    expect(all.items[0]).toMatchObject({ key: req.key, tracker: 'REQ', actor: 'bob', actorName: 'Bob Durand', fields: [] });
+    expect(all.items[1]).toMatchObject({ kind: 'transition', key: bug.key, from: 'open', to: 'in_progress', actorName: 'Alice Martin' });
+    expect(all.items[3]!.fields).toEqual(['affected_version', 'severity']);
+    expect(all.people).toEqual([{ subject: 'alice', name: 'Alice Martin' }, { subject: 'bob', name: 'Bob Durand' }]);
+
+    expect((await overview.activity(org, 'ACT', [], { tracker: 'REQ' })).items.map((i) => i.kind)).toEqual(['comment', 'created']);
+    expect((await overview.activity(org, 'ACT', [], { actor: 'bob' })).items.map((i) => i.actor)).toEqual(['bob', 'bob']);
+    expect((await overview.activity(org, 'ACT', [], { kind: 'updated' })).items).toHaveLength(2);
+    expect((await overview.activity(org, 'ACT', [], { tracker: 'BUG', kind: 'created' })).items.map((i) => i.key)).toEqual([bug.key]);
+
+    // pagination par curseur : pas de doublon ni de trou
+    const first = await overview.activity(org, 'ACT', [], { limit: 4 });
+    expect(first.items).toHaveLength(4);
+    expect(first.next).toMatch(/\|[0-9a-f-]{36}$/);
+    const second = await overview.activity(org, 'ACT', [], { limit: 4, before: first.next! });
+    expect([...first.items, ...second.items].map((i) => i.id)).toEqual(all.items.map((i) => i.id));
+    expect(second.next).toBeNull();
+
+    // champ à lecture restreinte : retiré du résumé pour un lecteur sans le rôle, visible pour l'administrateur
+    await testDb.exec("update field_definition set read_roles = '{qualite}' where key = 'severity'");
+    const hidden = (await overview.activity(org, 'ACT', ['athena-user'])).items.filter((i) => i.kind === 'updated').map((i) => i.fields);
+    expect(hidden).toEqual([['assignee'], ['affected_version']]);
+    expect((await overview.activity(org, 'ACT', ['athena-user', 'qualite'])).items.find((i) => i.fields.includes('severity'))).toBeDefined();
+    expect((await overview.activity(org, 'ACT', ['athena-admin'])).items.find((i) => i.fields.includes('severity'))).toBeDefined();
+    await testDb.exec("update field_definition set read_roles = null where key = 'severity'");
+  });
+
+  it('flux d’activité : paramètres invalides et isolation entre organisations', async () => {
+    for (const filters of [{ kind: 'nope' as never }, { before: 'pas-un-curseur' }, { before: '2026-11-05T10:00:00.000Z|x' }]) {
+      const error = await overview.activity(org, 'ACT', [], filters).then(() => null, (e: unknown) => e);
+      expect((error as DomainError).code).toBe('validation');
+    }
+    const foreign = await overview.activity(other, 'ACT', []).then(() => null, (e: unknown) => e);
+    expect((foreign as DomainError).code).toBe('not_found');
+  });
 });
