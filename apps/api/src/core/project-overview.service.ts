@@ -21,7 +21,8 @@ export class ProjectOverviewService {
       const has = async (table: string): Promise<boolean> =>
         ((await c.query(`select 1 from ${table} where project_id = $1 limit 1`, [project.id])).rowCount ?? 0) > 0;
       const active = new Set<ProjectModule>(['overview', 'trackers', 'planning', 'activity', 'members']);
-      if (await has('link_type')) active.add('traceability');
+      // Un type de lien d'organisation (ou livré, écrit au premier usage) ouvre aussi la traçabilité.
+      if (await has('link_type') || ((await c.query('select 1 from link_type where project_id is null limit 1')).rowCount ?? 0) > 0) active.add('traceability');
       if (await has('doc_source')) active.add('documents');
       if (await has('code_repo')) active.add('code');
       return { modules: PROJECT_MODULES.filter((m) => active.has(m)) };

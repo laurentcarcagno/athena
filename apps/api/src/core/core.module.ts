@@ -44,6 +44,8 @@ import { ProjectOverviewController } from './project-overview.controller';
 import { ProjectOverviewService } from './project-overview.service';
 import { LinkTypeController } from './link-type.controller';
 import { LinkTypeService } from './link-type.service';
+import { CoverageController } from './coverage.controller';
+import { CoverageService } from './coverage.service';
 import { MatrixController } from './matrix.controller';
 import { MatrixService } from './matrix.service';
 import { PinController } from './pin.controller';
@@ -60,7 +62,7 @@ import { TrackerService } from './tracker.service';
 export { PG_POOL } from './core.tokens';
 
 @Module({
-  controllers: [CoreController, AttachmentController, SavedFilterController, IntegrationsController, AgileController, MemberController, TemplateController, TrackerTemplateController, TrackerTypeController, ProjectOverviewController, PinController, LinkTypeController, TreeController, MatrixController],
+  controllers: [CoreController, AttachmentController, SavedFilterController, IntegrationsController, AgileController, MemberController, TemplateController, TrackerTemplateController, TrackerTypeController, ProjectOverviewController, PinController, LinkTypeController, TreeController, MatrixController, CoverageController],
   providers: [
     { provide: PG_POOL, useFactory: () => new Pool({ connectionString: loadConfig().DATABASE_URL, max: 10 }) },
     { provide: FieldTypeRegistry, useValue: new FieldTypeRegistry() },
@@ -109,6 +111,7 @@ export { PG_POOL } from './core.tokens';
     { provide: ProjectOverviewService, useFactory: (db: Db) => new ProjectOverviewService(db), inject: [Db] },
     { provide: LinkTypeService, useFactory: (db: Db) => new LinkTypeService(db), inject: [Db] },
     { provide: TreeService, useFactory: (db: Db) => new TreeService(db), inject: [Db] },
+    { provide: CoverageService, useFactory: (db: Db) => new CoverageService(db), inject: [Db] },
     { provide: MatrixService, useFactory: (db: Db) => new MatrixService(db), inject: [Db] },
     { provide: PinService, useFactory: (db: Db) => new PinService(db), inject: [Db] },
     { provide: TrackerTypeService, useFactory: (db: Db) => new TrackerTypeService(db), inject: [Db] },

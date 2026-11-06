@@ -73,7 +73,7 @@ describe('coquille de projet', () => {
   it('affiche la barre d’onglets avec l’onglet courant signalé', async () => {
     app('/p/ARI');
     await screen.findByRole('heading', { level: 1, name: 'Vue d’ensemble · ARI' });
-    expect(tabNames()).toEqual(['Vue d’ensemble', 'Trackers', 'Planification', 'Code et intégration', 'Activité', 'Membres']);
+    expect(tabNames()).toEqual(['Vue d’ensemble', 'Trackers', 'Planification', 'Traçabilité', 'Code et intégration', 'Activité', 'Membres']);
     expect(screen.getByRole('link', { name: 'Vue d’ensemble' })).toHaveAttribute('aria-current', 'page');
     expect(screen.getByRole('link', { name: 'Planification' })).not.toHaveAttribute('aria-current');
   });
@@ -88,7 +88,7 @@ describe('coquille de projet', () => {
     modules = 'error';
     app('/p/ARI');
     await screen.findByRole('heading', { level: 1, name: 'Vue d’ensemble · ARI' });
-    expect(tabNames()).toEqual(['Vue d’ensemble', 'Trackers', 'Planification', 'Code et intégration', 'Activité', 'Membres']);
+    expect(tabNames()).toEqual(['Vue d’ensemble', 'Trackers', 'Planification', 'Traçabilité', 'Code et intégration', 'Activité', 'Membres']);
   });
 
   it('se parcourt au clavier : chaque onglet est un lien, atteint par Tab', async () => {

@@ -281,6 +281,10 @@
 .ath-tree__row[data-level="5"] { padding-left: 88px; } .ath-tree__row[data-level="6"] { padding-left: 108px; } .ath-tree__row[data-level="7"] { padding-left: 128px; } .ath-tree__row[data-level="8"] { padding-left: 148px; }
 .ath-tree__toggle { display: inline-flex; align-items: center; justify-content: center; width: 24px; min-height: 24px; color: var(--ath-text-mute); }
 .ath-tree__chapter { color: var(--ath-text-mute); min-width: 3.5ch; }
+/* Règles de couverture (onglet Traçabilité) */
+.ath-rule { padding: var(--ath-space-md); margin-bottom: var(--ath-space-md); }
+.ath-rule__numbers { display: flex; flex-wrap: wrap; gap: var(--ath-space-md); list-style: none; margin: 0; padding: 0; }
+
 /* Matrice de traçabilité : lignes sans lien en pointillé et avec le texte « non couvert » (jamais la couleur seule). */
 .ath-matrix-wrap { overflow: auto; max-width: 100%; border: 1px solid var(--ath-color-console-border); }
 .ath-matrix { border-collapse: collapse; background: var(--ath-color-instrument-white); }
