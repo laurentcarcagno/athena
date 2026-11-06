@@ -32,7 +32,8 @@ export function ActorsTab({ project }: { project: string }) {
     try { await api('PUT', `/v1/projects/${project}/members/${encodeURIComponent(subject)}`, { role }); toast('success', fr.manage.actorSet); await load(); } catch (e) { fail(e); }
   };
   const remove = async (subject: string) => {
-    try { await api('DELETE', `/v1/projects/${project}/members/${encodeURIComponent(subject)}`); toast('success', fr.manage.actorRemoved); await load(); } catch (e) { fail(e); }
+    try { await api('DELETE', `/v1/projects/${project}/members/${encodeURIComponent(subject)}`); // sans confirmation : réversible (le rôle se redonne)
+      toast('success', fr.manage.actorRemoved); await load(); } catch (e) { fail(e); }
   };
   const candidates = users.filter((u) => !members.some((m) => m.subject === u.subject));
   return (

@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Btn, EmptyState, PageHeader, Sidebar, ToastProvider } from '@athena/ui';
 import { loadSession, loginUrl, logout, type Session } from './api';
+import { Breadcrumb } from './components/Breadcrumb';
 import { CommandPalette } from './components/CommandPalette';
 import { useRailSections, useRecordVisits } from './components/Rail';
 import { PinsProvider } from './lib/pins';
@@ -74,6 +75,7 @@ function Shell({ session, children }: { session: Session; children: ReactNode })
           <button type="button" className="ath-iconbtn" onClick={out} aria-label={fr.nav.logout} title={fr.nav.logout}><LogoutIcon /></button>
         </>} />
       <main id="contenu" tabIndex={-1} className="ath-page__main">
+        <Breadcrumb pathname={location.pathname} search={location.search} />
         {children}
         <CommandPalette project={project} />
       </main>

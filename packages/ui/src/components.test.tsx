@@ -178,6 +178,52 @@ describe('notifications', () => {
   });
 });
 
+describe('notifications d’erreur (constat F-02)', () => {
+  function Both() {
+    const toast = useToast();
+    return <><button onClick={() => toast('danger', 'Conflit de version.')}>Erreur</button><button onClick={() => toast('success', 'Enregistré.')}>Succès</button></>;
+  }
+  it('une erreur reste affichée jusqu’à sa fermeture alors qu’un succès disparaît', () => {
+    vi.useFakeTimers();
+    render(<ToastProvider duration={5000}><Both /></ToastProvider>);
+    fireEvent.click(screen.getByText('Erreur'));
+    fireEvent.click(screen.getByText('Succès'));
+    expect(screen.getByRole('alert')).toHaveTextContent('Conflit de version.');
+    act(() => { vi.advanceTimersByTime(60_000); });
+    expect(screen.queryByText('Enregistré.')).not.toBeInTheDocument();
+    expect(screen.getByRole('alert')).toBeInTheDocument(); // la cause et l'action de reprise restent lisibles
+    vi.useRealTimers();
+  });
+  it('se met en pause au focus comme au survol', () => {
+    vi.useFakeTimers();
+    render(<ToastProvider duration={5000}><Both /></ToastProvider>);
+    fireEvent.click(screen.getByText('Succès'));
+    const toast = screen.getByRole('status');
+    fireEvent.focus(toast);
+    act(() => { vi.advanceTimersByTime(20_000); });
+    expect(screen.getByRole('status')).toBeInTheDocument();
+    fireEvent.blur(toast);
+    act(() => { vi.advanceTimersByTime(5_000); });
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    vi.useRealTimers();
+  });
+});
+
+describe('contenus longs (constat F-07)', () => {
+  const css = readFileSync(join(__dirname, 'styles.css'), 'utf8');
+  const rule = (selector: string) => new RegExp(`${selector.replace(/[.\\[\]()]/g, '\\$&')}\\s*\\{([^}]*)\\}`).exec(css)?.[1] ?? '';
+  it('un titre long est tronqué sur une ligne avec points de suspension', () => {
+    const body = rule('.ath-clip');
+    expect(body).toContain('text-overflow: ellipsis');
+    expect(body).toContain('white-space: nowrap');
+    expect(body).toContain('overflow: hidden');
+    expect(body).toMatch(/max-width:\s*\d+ch/);
+  });
+  it('les identifiants des tableaux ne se coupent jamais', () => {
+    expect(css).toMatch(/\.ath-table \.ath-link\.ath-mono[^{]*\{[^}]*white-space: nowrap/);
+  });
+});
+
 describe('structure de page', () => {
   it('rend le bandeau tricolore, le titre, les actions et le cadre', () => {
     const { container } = render(

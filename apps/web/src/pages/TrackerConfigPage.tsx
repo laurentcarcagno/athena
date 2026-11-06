@@ -59,7 +59,7 @@ export function TrackerConfigPage({ session }: { session: Session }) {
   const removeField = async (key: string) => {
     try {
       try {
-        await api('DELETE', `${base}/fields/${key}`);
+        await api('DELETE', `${base}/fields/${key}`); // sans confirmation : le serveur refuse (409) s'il y a des valeurs
       } catch (error) {
         if (!(error instanceof ApiError) || error.status !== 409) throw error;
         const impact = await api<{ withValue: number }>('GET', `${base}/fields/${key}/impact`).catch(() => ({ withValue: 0 }));

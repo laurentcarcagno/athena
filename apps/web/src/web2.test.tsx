@@ -334,6 +334,7 @@ describe('filtres enregistrés', () => {
     await userEvent.selectOptions(screen.getByLabelText('Filtres enregistrés'), 'Ouverts');
     await waitFor(() => expect(calls.some((c) => c.url.includes('/search?q=status%20%3D%20open'))).toBe(true));
     await userEvent.click(await screen.findByRole('button', { name: 'Supprimer le filtre' }));
+    await userEvent.click(within(await screen.findByRole('dialog', { name: /Supprimer le filtre/ })).getByRole('button', { name: 'Supprimer' }));
     await waitFor(() => expect(calls.some((c) => c.method === 'DELETE')).toBe(true));
     saved = [];
   });

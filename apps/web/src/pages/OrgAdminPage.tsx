@@ -47,7 +47,7 @@ function ProjectsTab({ users, templates }: { users: UserEntry[]; templates: Temp
   };
   const revoke = async (project: string, subject: string) => {
     try {
-      await api('DELETE', `/v1/projects/${project}/members/${encodeURIComponent(subject)}`);
+      await api('DELETE', `/v1/projects/${project}/members/${encodeURIComponent(subject)}`); // sans confirmation : réversible (le rôle se redonne)
       toast('success', fr.org.managerRemoved);
       await load();
     } catch (error) { fail(error); }

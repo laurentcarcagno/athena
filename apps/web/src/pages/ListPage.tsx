@@ -3,6 +3,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Btn, EmptyState, Field as TextField, FilterChip, PageHeader, type SortState } from '@athena/ui';
 import { ApiError, api, type SavedFilter, type Session, type SearchResult, type TrackerDefinition } from '../api';
 import { ArtifactTable } from '../components/ArtifactTable';
+import { useConfirm } from '../components/ConfirmDialog';
 import { CreateArtifact } from '../components/CreateArtifact';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
@@ -94,8 +95,10 @@ export function ListPage({ session }: { session?: Session } = {}) {
     } catch (e) { fail(e); }
   };
   const activeFilter = filters.find((f) => f.query === query);
+  const confirm = useConfirm();
   const deleteFilter = async () => {
     if (!activeFilter) return;
+    if (!(await confirm.ask({ title: fr.confirm.deleteFilterTitle(activeFilter.name), body: fr.confirm.deleteFilterBody, confirm: fr.confirm.delete }))) return;
     try { await api('DELETE', `/v1/projects/${project}/filters/${activeFilter.id}`); await loadFilters(); } catch (e) { fail(e); }
   };
 
@@ -110,6 +113,7 @@ export function ListPage({ session }: { session?: Session } = {}) {
     <>
       <PageHeader eyebrow={fr.list.eyebrow} title={String(project)} sub={result ? `${fr.list.total(result.total)}${result.totalCapped ? '+' : ''}` : undefined}
         actions={<><Btn onClick={() => setCreating(true)}>{fr.list.create}</Btn>{session?.user?.roles.includes('athena-admin') && trackerKeys[0] && <Btn variant="ghost" onClick={() => navigate(`/p/${project}/trackers/${trackerKeys[0]}/config`)}>{fr.config.eyebrow}</Btn>}</>} />
+      {confirm.dialog}
       <CreateArtifact project={String(project)} trackers={trackerKeys} open={creating} onClose={() => setCreating(false)} onCreated={(key) => { setCreating(false); navigate(`/p/${project}/a/${key}`); }} />
       <form className="ath-toolbar" onSubmit={submit} role="search">
         <div className="ath-suggest">

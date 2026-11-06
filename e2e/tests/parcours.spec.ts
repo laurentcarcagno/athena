@@ -28,6 +28,8 @@ test('connexion Keycloak, liste des projets, ouverture d’un artefact et transi
   await page.getByRole('link', { name: /Bugs|BUG/ }).first().click();
   await expect(page.getByText('ARI-BUG-0001')).toBeVisible();
   await page.getByText('ARI-BUG-0001').first().click();
+  await expect(page.getByRole('complementary', { name: 'Détail de l’item' })).toBeVisible(); // panneau de détail à droite de la liste
+  await page.getByRole('button', { name: 'Agrandir' }).click();
   await expect(page.getByRole('heading', { level: 1 })).toContainText('ARI-BUG-0001');
   await expect(page.getByText('Crash au démarrage').first()).toBeVisible();
   await page.getByRole('button', { name: 'Terminer' }).click();
@@ -49,6 +51,8 @@ test('accessibilité réelle (contraste inclus) : projets, liste et fiche', asyn
   await expect(page.getByText('ARI-BUG-0001')).toBeVisible();
   expect(await axeViolations(page)).toEqual([]);
   await page.getByText('ARI-BUG-0001').first().click();
+  await expect(page.getByRole('complementary', { name: 'Détail de l’item' })).toBeVisible(); // panneau de détail à droite de la liste
+  await page.getByRole('button', { name: 'Agrandir' }).click();
   await expect(page.getByRole('heading', { level: 1 })).toContainText('ARI-BUG-0001');
   expect(await axeViolations(page)).toEqual([]);
 });
@@ -67,6 +71,7 @@ test('pièces jointes : envoi, liste, téléchargement identique, suppression', 
   expect(file.suggestedFilename()).toBe('capture.txt');
   expect((await import('node:fs')).readFileSync((await file.path())!, 'utf8')).toBe('contenu de test');
   await page.getByRole('button', { name: 'Supprimer' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Supprimer' }).click(); // confirmation (une pièce jointe supprimée ne se récupère pas)
   await expect(page.getByText('Aucune pièce jointe.')).toBeVisible();
 });
 

@@ -4,6 +4,7 @@ import { Btn, Card, EmptyState, Id, PageHeader, StatusPill, Table, Tabs, Td, Th,
 import { ApiError, api, upload, type Artifact, type AttachmentView, type Field, type Revision, type Session, type TrackerDefinition } from '../api';
 import { useBusy, useFailure } from '../hooks';
 import { fr } from '../i18n';
+import { useConfirm } from '../components/ConfirmDialog';
 import { resolveLayout } from '../lib/layout';
 import { pillKind } from './ListPage';
 
@@ -67,6 +68,7 @@ export function ArtifactView({ session, project, itemKey: key, embedded = false,
   onCanonicalKey?: (key: string) => void; onExpand?: () => void; onClose?: () => void;
 }) {
   const navigate = useNavigate();
+  const confirm = useConfirm();
   const canonical = useRef(onCanonicalKey);
   canonical.current = onCanonicalKey; // le parent peut passer une nouvelle fonction à chaque rendu sans relancer le chargement
   const toast = useToast();
@@ -152,6 +154,8 @@ export function ArtifactView({ session, project, itemKey: key, embedded = false,
     } catch (error) { fail(error); }
   };
   const removeFile = async (id: string) => {
+    const name = files.find((f) => f.id === id)?.name ?? id;
+    if (!(await confirm.ask({ title: fr.confirm.removeAttachmentTitle(name), body: fr.confirm.removeAttachmentBody, confirm: fr.confirm.delete }))) return;
     try {
       await api('DELETE', `${base}/attachments/${id}`);
       setFiles((current) => current.filter((f) => f.id !== id));
@@ -254,6 +258,7 @@ export function ArtifactView({ session, project, itemKey: key, embedded = false,
             </tbody>
           </Table>
         ))}
+        {confirm.dialog}
         {tab === 'attachments' && (
           <Card title={fr.artifact.attachments}>
             <div className="ath-stack">
