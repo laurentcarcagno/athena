@@ -45,7 +45,7 @@ export function ProjectsPage({ session }: { session?: Session } = {}) {
                       {p.trackers.map((t) => (
                         <tr key={t.key}>
                           <Td>
-                            <Link className="ath-link" to={`/p/${p.key}/recherche?q=${encodeURIComponent(`tracker = ${t.key}`)}`}><Tag variant="solid">{t.key}</Tag> {t.name}</Link>
+                            <Link className="ath-link" to={`/p/${p.key}/t/${t.key}/tableau`}><Tag variant="solid">{t.key}</Tag> {t.name}</Link>
                           </Td>
                           <Td mono>{t.artifacts}</Td>
                           <Td>

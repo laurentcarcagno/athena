@@ -235,6 +235,12 @@
 .ath-stackbar__seg--todo { background: var(--ath-color-console-sky); }
 .ath-stackbar__seg--in_progress { background: var(--ath-color-signal-warning); }
 .ath-stackbar__seg--done { background: var(--ath-color-signal-success); }
+.ath-miniworkflow { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ath-space-sm); list-style: none; margin: 0; padding: 0; }
+.ath-miniworkflow__state { display: inline-flex; align-items: center; gap: var(--ath-space-sm); }
+.ath-miniworkflow__arrow { color: var(--ath-text-mute); }
+.ath-miniworkflow__btn { background: transparent; border: 1px solid transparent; padding: 2px var(--ath-space-sm); cursor: pointer; font-family: inherit; color: inherit; min-height: 24px; }
+.ath-miniworkflow__btn[aria-pressed="true"] { border-color: var(--ath-color-console-sky); background: var(--ath-color-hover-mist); }
+.ath-miniworkflow__btn:focus-visible { outline: 2px solid var(--ath-color-console-sky); outline-offset: 2px; }
 .ath-trackercard { display: grid; gap: var(--ath-space-sm); }
 .ath-nowrap { white-space: nowrap; }
 .ath-clip { display: block; max-width: 60ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

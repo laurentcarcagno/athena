@@ -17,6 +17,7 @@ import { OverviewOrLegacySearch, ProjectShell } from './pages/project/ProjectShe
 import { OverviewTab } from './pages/project/OverviewTab';
 import { TrackersTab } from './pages/project/TrackersTab';
 import { CodeTab } from './pages/project/CodeTab';
+import { TrackerScreen } from './pages/tracker/TrackerScreen';
 import { MembersTab } from './pages/project/MembersTab';
 import { TrackerConfigPage } from './pages/TrackerConfigPage';
 import { TrackerCreatePage } from './pages/TrackerCreatePage';
@@ -101,6 +102,12 @@ function RedirectTo({ to }: { to: string }) {
   return <Navigate replace to={to === '' ? `/p/${project}` : `/p/${project}/${to}`} />;
 }
 
+/** `/p/:projet/t/:tracker` sans vue : la vue Tableau. */
+function RedirectToView() {
+  const { project, tracker } = useParams();
+  return <Navigate replace to={`/p/${project}/t/${tracker}/tableau`} />;
+}
+
 export function AuthenticatedApp({ session }: { session: Session }) {
   return (
     <Shell session={session}>
@@ -115,6 +122,8 @@ export function AuthenticatedApp({ session }: { session: Session }) {
           <Route path="code" element={<CodeTab />} />
           <Route path="membres" element={<MembersTab session={session} />} />
         </Route>
+        <Route path="/p/:project/t/:tracker" element={<RedirectToView />} />
+        <Route path="/p/:project/t/:tracker/:vue" element={<TrackerScreen session={session} />} />
         <Route path="/p/:project/recherche" element={<ListPage session={session} />} />
         <Route path="/p/:project/manage" element={<RedirectTo to="planification" />} />
         <Route path="/p/:project/dashboard" element={<RedirectTo to="" />} />

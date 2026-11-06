@@ -130,7 +130,7 @@ describe('onglet Trackers', () => {
     expect(within(req).getByRole('img', { name: /Brouillon 2, Approuvée 3, Vérifiée 5/ })).toBeInTheDocument();
     expect(within(screen.getByRole('region', { name: 'Développement' })).getByText('2 à moi')).toBeInTheDocument();
     expect(within(screen.getByRole('region', { name: 'Autres' })).getByText(/Aucune activité/)).toBeInTheDocument();
-    expect(within(req).getByRole('link', { name: 'Ouvrir Exigences' })).toHaveAttribute('href', '/p/ARI/recherche?q=tracker%20%3D%20REQ');
+    expect(within(req).getByRole('link', { name: 'Ouvrir Exigences' })).toHaveAttribute('href', '/p/ARI/t/REQ/tableau');
   });
   it('n’a aucune violation d’accessibilité', async () => {
     const { container } = app('/p/ARI/trackers');
@@ -147,7 +147,7 @@ describe('Vue d’ensemble', () => {
     await screen.findByRole('heading', { level: 1, name: 'Vue d’ensemble · ARI' });
     expect(await screen.findByText('Rien n’est assigné à votre nom.')).toBeInTheDocument();
     const card = screen.getByRole('link', { name: 'REQ' }).closest('section')!;
-    expect(within(card).getByRole('link', { name: 'REQ' })).toHaveAttribute('href', '/p/ARI/recherche?q=tracker%20%3D%20REQ');
+    expect(within(card).getByRole('link', { name: 'REQ' })).toHaveAttribute('href', '/p/ARI/t/REQ/tableau');
     expect(within(card).getByText('5 ouverts / 10')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Tout voir dans la Recherche' })).toHaveAttribute('href', '/p/ARI/recherche?q=assignee%20%3D%20%22u%22');
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);

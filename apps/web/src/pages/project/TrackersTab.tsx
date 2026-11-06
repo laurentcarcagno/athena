@@ -8,8 +8,8 @@ import { fr } from '../../i18n';
 
 export const CATEGORY_ORDER = ['engineering', 'development', 'verification', 'management', 'other'] as const;
 
-/** Adresse d'un tracker : sa vue Tableau (écran Tracker) ; avant T-0056, la Recherche filtrée. */
-export const trackerHref = (project: string, tracker: string) => `/p/${project}/recherche?q=${encodeURIComponent(`tracker = ${tracker}`)}`;
+/** Adresse d'un tracker : sa vue Tableau (écran Tracker). */
+export const trackerHref = (project: string, tracker: string) => `/p/${project}/t/${tracker}/tableau`;
 
 /** Regroupe les trackers par catégorie dans l'ordre fixe ; une catégorie vide n'apparaît pas. */
 export function groupByCategory(trackers: TrackerOverview[]): Array<{ category: string; trackers: TrackerOverview[] }> {

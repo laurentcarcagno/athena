@@ -90,6 +90,10 @@ const frDict = {
     title: 'Code et intégration', repos: 'Dépôts liés', noRepos: 'Aucun dépôt lié à ce projet.', path: 'Dépôt', branch: 'Branche par défaut', delivery: 'Livraison (30 derniers jours)',
     metric: 'Indicateur', value: 'Valeur', deployments: 'Déploiements', frequency: 'Fréquence par jour', leadTime: 'Délai de livraison (h)', failureRate: 'Taux d’échec', mttr: 'Rétablissement (h)', none: '—',
   },
+  trackerScreen: {
+    eyebrow: 'Tracker', newItem: '+ Nouvel item', configure: 'Configurer', views: 'Vues du tracker', workflow: 'Workflow', empty: 'Aucun item.',
+    total: (n: number) => (n === 1 ? '1 item' : `${n} items`), viewNames: { tableau: 'Tableau' } as Record<string, string>,
+  },
   types: {
     title: 'Types de tracker', note: 'Un type fixe la catégorie, les vues proposées et le socle de champs des trackers qui en dérivent. Les types livrés se modifient et se réinitialisent.',
     key: 'Clé du type (minuscules)', name: 'Nom du type', description: 'Description', category: 'Catégorie',
@@ -221,6 +225,10 @@ const enDict: Dictionary = {
   codeTab: {
     title: 'Code and integration', repos: 'Linked repositories', noRepos: 'No repository linked to this project.', path: 'Repository', branch: 'Default branch', delivery: 'Delivery (last 30 days)',
     metric: 'Metric', value: 'Value', deployments: 'Deployments', frequency: 'Per day', leadTime: 'Lead time (h)', failureRate: 'Failure rate', mttr: 'Time to restore (h)', none: '—',
+  },
+  trackerScreen: {
+    eyebrow: 'Tracker', newItem: '+ New item', configure: 'Configure', views: 'Tracker views', workflow: 'Workflow', empty: 'No item.',
+    total: (n: number) => (n === 1 ? '1 item' : `${n} items`), viewNames: { tableau: 'Table' } as Record<string, string>,
   },
   types: {
     title: 'Tracker types', note: 'A type sets the category, the proposed views and the base fields of the trackers derived from it. Built-in types can be edited and reset.',

@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { Btn, EmptyState, Field as TextField, FilterChip, Id, PageHeader, StatusPill, Table, Td, Th, type PillKind, type SortState } from '@athena/ui';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Btn, EmptyState, Field as TextField, FilterChip, PageHeader, type SortState } from '@athena/ui';
 import { ApiError, api, type SavedFilter, type Session, type SearchResult, type TrackerDefinition } from '../api';
+import { ArtifactTable } from '../components/ArtifactTable';
 import { CreateArtifact } from '../components/CreateArtifact';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
 
-export const pillKind = (category: string): PillKind => (category === 'done' ? 'success' : category === 'in_progress' ? 'warning' : 'info');
+export { pillKind } from '../components/ArtifactTable';
 const PAGE = 25;
 const SORTABLE = { key: 'key', status: 'status', tracker: 'tracker', updated: 'updated' } as const;
 
@@ -104,8 +105,7 @@ export function ListPage({ session }: { session?: Session } = {}) {
   const submit = (event: FormEvent) => { event.preventDefault(); setParams(draft ? { q: draft } : {}); };
   const sortOf = (field: string): SortState => (order?.field === field ? order.dir : null);
   const sortBy = (field: string) => (next: SortState) => setParams({ q: joinOrder(where, next ? { field, dir: next } : null) });
-  const title = (hit: SearchResult['hits'][number]) => String(hit.values['title'] ?? hit.values['name'] ?? '');
-
+  
   return (
     <>
       <PageHeader eyebrow={fr.list.eyebrow} title={String(project)} sub={result ? `${fr.list.total(result.total)}${result.totalCapped ? '+' : ''}` : undefined}
@@ -141,35 +141,8 @@ export function ListPage({ session }: { session?: Session } = {}) {
       {result && result.hits.length === 0 && !error ? (
         <EmptyState eyebrow={fr.list.emptyEyebrow} title={fr.list.empty} action={query ? <Btn variant="ghost" onClick={() => setParams({})}>{fr.list.reset}</Btn> : undefined} />
       ) : result ? (
-        <>
-          <Table>
-            <thead>
-              <tr>
-                <Th sort={sortOf('key')} onSort={sortBy('key')}>{fr.list.key}</Th>
-                <Th>{fr.list.title}</Th>
-                <Th sort={sortOf('status')} onSort={sortBy('status')}>{fr.list.status}</Th>
-                <Th sort={sortOf('tracker')} onSort={sortBy('tracker')}>{fr.list.tracker}</Th>
-                <Th sort={sortOf('updated')} onSort={sortBy('updated')}>{fr.list.updated}</Th>
-              </tr>
-            </thead>
-            <tbody>
-              {result.hits.map((hit) => (
-                <tr key={hit.key}>
-                  <Td><Link className="ath-link ath-mono" to={`/p/${project}/a/${hit.key}`}>{hit.key}</Link></Td>
-                  <Td><span className="ath-clip" title={title(hit)}>{title(hit)}</span></Td>
-                  <Td><StatusPill kind={pillKind(hit.category)}>{hit.statusName ?? hit.status}</StatusPill></Td>
-                  <Td mono>{hit.tracker}</Td>
-                  <Td mono mute>{hit.updatedAt.slice(0, 16).replace('T', ' ')}</Td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
-          <div className="ath-toolbar">
-            <Btn variant="ghost" size="sm" disabled={offset === 0} onClick={() => setParams({ ...(query ? { q: query } : {}), o: String(Math.max(0, offset - PAGE)) })}>{fr.list.previous}</Btn>
-            <Id>{offset + 1}–{Math.min(offset + PAGE, result.total)} / {result.total}{result.totalCapped ? '+' : ''}</Id>
-            <Btn variant="ghost" size="sm" disabled={offset + PAGE >= result.total && !result.totalCapped} onClick={() => setParams({ ...(query ? { q: query } : {}), o: String(offset + PAGE) })}>{fr.list.next}</Btn>
-          </div>
-        </>
+        <ArtifactTable project={String(project)} result={result} offset={offset} pageSize={PAGE} sortOf={sortOf} sortBy={sortBy}
+          onPage={(o) => setParams({ ...(query ? { q: query } : {}), o: String(o) })} />
       ) : error ? null : <p role="status">{fr.loading}</p>}
     </>
   );
