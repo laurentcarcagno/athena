@@ -11,6 +11,8 @@ const Role = z.string().max(60);
 /** Un tracker d'un template : même forme qu'un tracker, sans le projet. */
 export const TemplateTrackerSchema = z.object({
   layout: LayoutSchema.nullish(),
+  /** Type de tracker d'organisation (T-0097). */
+  typeKey: z.string().regex(/^[a-z][a-z0-9-]{1,39}$/).nullish(),
   key: TrackerKey,
   name: z.string().min(1).max(200),
   description: z.string().max(2000).optional(),
@@ -164,7 +166,7 @@ export class TemplateService {
         const d = await this.trackers.getDefinition(c, projectKey, key);
         const keyOf = (id: string | null) => (id === null ? null : d.statuses.find((s) => s.id === id)!.key);
         out.push(TemplateTrackerSchema.parse(JSON.parse(JSON.stringify({
-          key: d.key, name: d.name, ...(d.layout ? { layout: d.layout } : {}),
+          key: d.key, name: d.name, ...(d.layout ? { layout: d.layout } : {}), ...(d.typeKey ? { typeKey: d.typeKey } : {}),
           fields: d.fields.map((f) => ({ key: f.key, label: f.label, type: f.type, config: f.config, required: f.required, ...(f.semanticRole ? { semanticRole: f.semanticRole } : {}), ...(f.readRoles ? { readRoles: f.readRoles } : {}), ...(f.writeRoles ? { writeRoles: f.writeRoles } : {}) })),
           statuses: [...d.statuses].sort((a, b) => a.position - b.position).map((s) => ({ key: s.key, name: s.name, category: s.category })),
           transitions: d.transitions.map((t) => ({ name: t.name, from: keyOf(t.fromStatusId), to: keyOf(t.toStatusId)!, conditions: t.conditions, validators: t.validators, postActions: t.postActions })),

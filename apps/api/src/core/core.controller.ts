@@ -12,6 +12,7 @@ import { LinkService } from './link.service';
 import { KeySchema, OrgResolver, parseBody } from './http';
 import { TrackerService } from './tracker.service';
 
+const SetTypeBody = z.object({ typeKey: z.string().regex(/^[a-z][a-z0-9-]{1,39}$/).nullable() });
 const ProjectBody = z.object({ key: KeySchema, name: z.string().min(1).max(200), template: z.string().max(40).optional() });
 
 const TrackerBody = z.object({
@@ -94,7 +95,7 @@ export class CoreController {
     return this.db.tx(organizationId, async (c) =>
       (
         await c.query(
-          `select t.key, t.name, t.description,
+          `select t.key, t.name, t.description, t.type_key as "typeKey",
                   (select count(*)::int from artifact a where a.tracker_id = t.id) as artifacts
            from tracker t join project p on p.id = t.project_id where p.key = $1 order by t.key`,
           [project],
@@ -162,6 +163,16 @@ export class CoreController {
   async setLayout(@Req() request: AuthedRequest, @Param('project') project: string, @Param('tracker') tracker: string, @Body() body: unknown) {
     const { organizationId, actor } = await this.orgs.resolve(principalOf(request));
     await this.trackers.setLayout(organizationId, project, tracker, parseBody(SetLayoutBody, body).layout, actor);
+  }
+
+  /** Rattache le tracker à un type d'organisation, ou le détache (`typeKey: null`). */
+  @Roles('athena-admin')
+  @HttpCode(204)
+  @Patch(':project/trackers/:tracker/type')
+  @BodySchema(SetTypeBody)
+  async setType(@Req() request: AuthedRequest, @Param('project') project: string, @Param('tracker') tracker: string, @Body() body: unknown) {
+    const { organizationId, actor } = await this.orgs.resolve(principalOf(request));
+    await this.trackers.setType(organizationId, project, tracker, parseBody(SetTypeBody, body).typeKey, actor);
   }
 
   @Roles('athena-admin')

@@ -17,6 +17,7 @@ interface TrackerFile {
   name: string;
   schemaVersion?: number;
   layout?: unknown;
+  type?: string;
   fields: Array<{ key: string; label: string; type: string; config: unknown; required: boolean; semanticRole: string | null; readRoles?: string[] | null; writeRoles?: string[] | null }>;
   statuses: Array<{ key: string; name: string; category: string }>;
   transitions: Array<{ name: string; from: string | null; to: string; conditions: unknown; validators: unknown; postActions: unknown }>;
@@ -62,7 +63,7 @@ export class RebuildService {
       const trackerIds = new Map<string, { id: string; statusIds: Map<string, string> }>();
       for (const t of trackerFiles) {
         const id = (
-          await c.query('insert into tracker (organization_id, project_id, key, name, schema_version, layout) values ($1,$2,$3,$4,$5,$6) returning id', [organizationId, project.id, t.key, t.name, t.schemaVersion ?? 1, t.layout ? JSON.stringify(t.layout) : null])
+          await c.query('insert into tracker (organization_id, project_id, key, name, schema_version, layout, type_key) values ($1,$2,$3,$4,$5,$6,$7) returning id', [organizationId, project.id, t.key, t.name, t.schemaVersion ?? 1, t.layout ? JSON.stringify(t.layout) : null, t.type ?? null])
         ).rows[0].id as string;
         let position = 0;
         for (const f of t.fields) {

@@ -1,3 +1,4 @@
+import { typeExists } from './tracker-types';
 import { layoutProblems, type Layout } from './layout';
 import type { PoolClient } from 'pg';
 import { Db, type Actor } from './db';
@@ -30,6 +31,8 @@ export interface TransitionSpec {
 }
 export interface TrackerSpec {
   projectKey: string;
+  /** Type de tracker de l'organisation (livré ou propre à l'organisation) ; absent : tracker sans type. */
+  typeKey?: string | null;
   /** Disposition de la vue détails (absente : automatique). */
   layout?: Layout | null;
   key: string;
@@ -46,6 +49,7 @@ export interface TrackerDefinition {
   key: string;
   name: string;
   schemaVersion: number;
+  typeKey: string | null;
   historyMode: 'direct' | 'merge_request';
   layout: Layout | null;
   fields: Array<Required<Pick<FieldSpec, 'key' | 'label' | 'type'>> & {
@@ -94,11 +98,12 @@ export class TrackerService {
     return this.db.tx(organizationId, async (c) => {
       const project = (await c.query('select id from project where key = $1', [spec.projectKey])).rows[0];
       if (!project) throw notFound(`Projet ${spec.projectKey}`);
+      if (spec.typeKey && !(await typeExists(c, spec.typeKey))) throw validation([`type de tracker inconnu : ${spec.typeKey}`]);
       const tracker = (
         await c.query(
-          `insert into tracker (organization_id, project_id, key, name, description, layout)
-           values ($1,$2,$3,$4,$5,$6) returning id`,
-          [organizationId, project.id, spec.key, spec.name, spec.description ?? '', spec.layout ? JSON.stringify(spec.layout) : null],
+          `insert into tracker (organization_id, project_id, key, name, description, layout, type_key)
+           values ($1,$2,$3,$4,$5,$6,$7) returning id`,
+          [organizationId, project.id, spec.key, spec.name, spec.description ?? '', spec.layout ? JSON.stringify(spec.layout) : null, spec.typeKey ?? null],
         )
       ).rows[0].id as string;
 
@@ -237,6 +242,14 @@ export class TrackerService {
     });
   }
 
+  /** Rattache le tracker à un type (ou le détache avec `null`). */
+  async setType(organizationId: string, projectKey: string, trackerKey: string, typeKey: string | null, actor: Actor): Promise<void> {
+    await this.mutate(organizationId, projectKey, trackerKey, actor, 'type', async (c, tracker) => {
+      if (typeKey !== null && !(await typeExists(c, typeKey))) throw validation([`type de tracker inconnu : ${typeKey}`]);
+      await c.query('update tracker set type_key = $2 where id = $1', [tracker, typeKey]);
+    });
+  }
+
   async addStatus(organizationId: string, projectKey: string, trackerKey: string, status: StatusSpec, actor: Actor): Promise<void> {
     if (!/^[a-z][a-z0-9_]{0,39}$/.test(status.key)) throw validation(['clé de statut invalide']);
     await this.mutate(organizationId, projectKey, trackerKey, actor, `statut ${status.key}`, async (c, tracker) => {
@@ -274,7 +287,7 @@ export class TrackerService {
   async getDefinition(c: PoolClient, projectKey: string, trackerKey: string): Promise<TrackerDefinition> {
     const t = (
       await c.query(
-        `select t.id, t.project_id, t.key, t.name, t.schema_version, t.history_mode, t.layout from tracker t
+        `select t.id, t.project_id, t.key, t.name, t.schema_version, t.history_mode, t.layout, t.type_key from tracker t
          join project p on p.id = t.project_id where p.key = $1 and t.key = $2`,
         [projectKey, trackerKey],
       )
@@ -289,6 +302,7 @@ export class TrackerService {
       key: t.key,
       name: t.name,
       schemaVersion: t.schema_version,
+      typeKey: t.type_key ?? null,
       historyMode: t.history_mode,
       layout: (t.layout as Layout | null) ?? null,
       fields: fields.map((f) => ({
