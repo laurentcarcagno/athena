@@ -67,3 +67,8 @@ Chaque tracker peut dériver d'un **type d'organisation** (`typeKey`). `GET /v1/
 `GET /v1/projects/:p/filters?tracker=KEY` liste les vues personnelles et partagées de ce tracker (la vue par défaut en premier) ; sans `tracker`, les filtres de projet de la page Recherche, comme avant. `POST …/filters` accepte en plus `trackerKey`, `view` (`tableau`…), `columns` et `isDefault` ; la `query` ne contient pas la clause `tracker =` (l'écran Tracker l'ajoute), et peut porter un `ORDER BY`. Une vue par défaut est partagée et rattachée à un tracker, il n'y en a qu'une par tracker, et seuls les chefs de projet et les administrateurs la choisissent. `PATCH …/filters/:id` avec `{isDefault: true|false}` la définit ou la retire.
 
 Le board d'un tracker n'est pas stocké : `GET /v1/projects/:p/boards/~TRACKER` (et `POST …/boards/~TRACKER/cards/:key/move`) renvoie un board virtuel dont les colonnes sont les statuts du tracker, dans l'ordre, sans limite WIP. Il n'apparaît pas dans `GET …/boards`.
+
+## Favoris et récents
+
+Chaque utilisateur a ses favoris et ses récents (rail latéral), isolés par organisation. `GET /v1/me/pins` renvoie `{favorites, recents}` (favoris dans l'ordre choisi, huit récents au plus). `POST /v1/me/pins/visit` (`{kind, project, ref, label}`, `kind` : `project`, `tracker`, `view`, `item`) note l'ouverture d'un élément et élague au-delà de trente non épinglés. `PUT /v1/me/pins/favorite` (même corps + `favorite`) épingle ou désépingle ; `PUT /v1/me/pins/order` (`{ids}`) fixe l'ordre complet des favoris (un identifiant étranger est refusé). Une vue est désignée par `ref` = `TRACKER:identifiant` ; `…/t/TRACKER/tableau?v=identifiant` applique la vue enregistrée.
+

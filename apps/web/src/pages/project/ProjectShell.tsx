@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { NavLink, Navigate, Outlet, useLocation, useParams } from 'react-router-dom';
 import { api } from '../../api';
+import { PinToggle } from '../../components/PinToggle';
 import { fr } from '../../i18n';
 
 /** Onglets d'un projet dans l'ordre fixe de la spécification ; `path` est relatif à `/p/:projet`. */
@@ -54,6 +55,7 @@ export function ProjectShell({ implemented = IMPLEMENTED_TABS }: { implemented?:
           </NavLink>
         ))}
       </nav>
+      <PinToggle entry={{ kind: 'project', project: String(project), ref: String(project), label: String(project) }} />
       <Outlet />
     </>
   );

@@ -301,8 +301,19 @@ export function CornerFrame({ children }: { children: ReactNode }) {
   );
 }
 
-export interface NavItem { id: string; label: string; href?: string }
-export function Sidebar({ items, current, onNavigate, user, userActions, collapsed = false, open = false }: { items: NavItem[]; current: string; onNavigate?: (id: string) => void; user?: { name: string; role: string }; userActions?: ReactNode; collapsed?: boolean; open?: boolean }) {
+export interface NavItem {
+  id: string; label: string; href?: string;
+  /** Niveau d'indentation dans une arborescence (0 par défaut). */
+  depth?: number;
+  /** Identifiant mono (clé de projet, de tracker, d'item) : rendu en IBM Plex Mono. */
+  mono?: boolean;
+  /** Contrôles propres à la ligne (monter / descendre un favori…), rendus après le libellé. */
+  extra?: ReactNode;
+}
+/** Rubrique du rail : un titre facultatif et ses entrées. */
+export interface NavSection { id: string; title?: string; items: NavItem[] }
+export function Sidebar({ items, sections, current, onNavigate, user, userActions, collapsed = false, open = false }: { items?: NavItem[]; sections?: NavSection[]; current: string; onNavigate?: (id: string) => void; user?: { name: string; role: string }; userActions?: ReactNode; collapsed?: boolean; open?: boolean }) {
+  const groups: NavSection[] = sections ?? [{ id: 'main', items: items ?? [] }];
   const initials = user?.name.split(/\s+/).map((p) => p[0]).slice(0, 2).join('').toUpperCase() ?? '';
   return (
     <aside className={cx('ath-sidebar', collapsed && 'ath-sidebar--collapsed', open && 'ath-sidebar--open')}>
@@ -311,10 +322,18 @@ export function Sidebar({ items, current, onNavigate, user, userActions, collaps
         <span className="ath-sidebar__sub">Suivi de projet</span>
       </div>
       <nav className="ath-nav" aria-label="Navigation principale">
-        {items.map((item) => (
-          <button key={item.id} type="button" className="ath-nav-item" aria-current={item.id === current ? 'page' : undefined} onClick={() => onNavigate?.(item.id)}>
-            {item.label}
-          </button>
+        {groups.map((group) => (
+          <div key={group.id} className="ath-nav__section" role="group" aria-label={group.title}>
+            {group.title && <h2 className="ath-nav__title">{group.title}</h2>}
+            {group.items.map((item) => (
+              <div key={item.id} className="ath-nav__row">
+                <button type="button" className={cx('ath-nav-item', item.mono && 'ath-mono')} data-depth={item.depth ?? 0} aria-current={item.id === current ? 'page' : undefined} onClick={() => onNavigate?.(item.id)}>
+                  {item.label}
+                </button>
+                {item.extra}
+              </div>
+            ))}
+          </div>
         ))}
       </nav>
       {user && (

@@ -3,6 +3,8 @@ import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate, usePa
 import { Btn, EmptyState, PageHeader, Sidebar, ToastProvider } from '@athena/ui';
 import { loadSession, loginUrl, logout, type Session } from './api';
 import { CommandPalette } from './components/CommandPalette';
+import { useRailSections, useRecordVisits } from './components/Rail';
+import { PinsProvider } from './lib/pins';
 import { fr, getLocale, setLocale, useLocale } from './i18n';
 import { AdminPage } from './pages/AdminPage';
 import { ArtifactPage } from './pages/ArtifactPage';
@@ -54,19 +56,10 @@ function Shell({ session, children }: { session: Session; children: ReactNode })
   const project = projectOf(location.pathname);
   const admin = session.user?.roles.includes('athena-admin') ?? false;
   const manager = admin || (session.user?.roles.includes('athena-pm') ?? false);
-  const items = [
-    { id: '/', label: fr.nav.projects },
-    { id: '/me', label: fr.nav.work },
-    ...(admin ? [{ id: '/org', label: fr.nav.organization }] : []),
-    ...(project ? [
-      { id: `/p/${project}`, label: fr.nav.overview },
-      { id: `/p/${project}/recherche`, label: fr.nav.search },
-      ...(admin ? [{ id: `/p/${project}/admin`, label: fr.nav.admin }] : []),
-    ] : []),
-    { id: '/help', label: fr.nav.help },
-  ];
-  // La page courante est l'entrée la plus spécifique dont l'adresse est un préfixe.
-  const current = [...items].sort((a, b) => b.id.length - a.id.length).find((i) => i.id !== '/' && location.pathname.startsWith(i.id))?.id ?? '/';
+  const { sections, current } = useRailSections({ pathname: location.pathname, project, admin });
+  useRecordVisits(location.pathname);
+  const [collapsed, setCollapsed] = useState(() => { try { return localStorage.getItem('athena.rail.collapsed') === '1'; } catch { return false; } });
+  const toggleRail = () => { const next = !collapsed; setCollapsed(next); try { localStorage.setItem('athena.rail.collapsed', next ? '1' : '0'); } catch { /* préférence facultative */ } };
   const out = async () => { window.location.assign(await logout()); };
   const [menuOpen, setMenuOpen] = useState(false);
   const other = getLocale() === 'fr' ? 'en' : 'fr';
@@ -74,8 +67,9 @@ function Shell({ session, children }: { session: Session; children: ReactNode })
     <div className="ath-page">
       <a className="ath-skip" href="#contenu" onClick={(e) => { e.preventDefault(); document.getElementById('contenu')?.focus(); }}>{fr.nav.skip}</a>
       <Btn variant="ghost" size="sm" className="ath-menu-btn" aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)}>{fr.nav.menu}</Btn>
-      <Sidebar open={menuOpen} items={items} current={current} onNavigate={(id) => { setMenuOpen(false); navigate(id); }} user={{ name: session.user!.name, role: admin ? 'Admin' : manager ? 'Chef de projet' : 'Utilisateur' }}
+      <Sidebar open={menuOpen} collapsed={collapsed} sections={sections} current={current} onNavigate={(id) => { setMenuOpen(false); navigate(id); }} user={{ name: session.user!.name, role: admin ? 'Admin' : manager ? 'Chef de projet' : 'Utilisateur' }}
         userActions={<>
+          <button type="button" className="ath-iconbtn" onClick={toggleRail} aria-expanded={!collapsed} aria-label={collapsed ? fr.rail.expand : fr.rail.collapse} title={collapsed ? fr.rail.expand : fr.rail.collapse}>{collapsed ? '»' : '«'}</button>
           <button type="button" className="ath-iconbtn" onClick={() => setLocale(other)} aria-label={fr.language} title={fr.language}><Flag locale={other} /></button>
           <button type="button" className="ath-iconbtn" onClick={out} aria-label={fr.nav.logout} title={fr.nav.logout}><LogoutIcon /></button>
         </>} />
@@ -110,6 +104,7 @@ function RedirectToView() {
 
 export function AuthenticatedApp({ session }: { session: Session }) {
   return (
+    <PinsProvider>
     <Shell session={session}>
       <Routes>
         <Route path="/" element={<ProjectsPage session={session} />} />
@@ -136,6 +131,7 @@ export function AuthenticatedApp({ session }: { session: Session }) {
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Shell>
+    </PinsProvider>
   );
 }
 

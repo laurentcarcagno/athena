@@ -8,6 +8,7 @@ import { DetailPanel } from '../../components/DetailPanel';
 import { FilterBar } from '../../components/FilterBar';
 import { SavedViews, fromStored } from '../../components/SavedViews';
 import { MiniWorkflow } from '../../components/MiniWorkflow';
+import { PinToggle } from '../../components/PinToggle';
 import { useFailure } from '../../hooks';
 import { BoardView } from '../BoardPage';
 import { fr } from '../../i18n';
@@ -68,12 +69,22 @@ export function TrackerScreen({ session }: { session: Session }) {
       .catch((e: unknown) => { if (e instanceof ApiError && e.status === 422) { setQueryError(e.readable); setResult({ total: 0, hits: [] } as SearchResult); } else fail(e); });
   }, [project, query, offset, fail]);
   // À la première visite sans filtre ni tri dans l'adresse, la vue par défaut du tracker s'applique.
+  const [knownViews, setKnownViews] = useState<SavedFilter[]>([]);
+  const wantedView = params.get('v');
+  // ?v=<id> (rail, favori) : applique la vue enregistrée désignée, puis retire le paramètre.
+  useEffect(() => {
+    const chosen = wantedView ? knownViews.find((v) => v.id === wantedView) : undefined;
+    if (!chosen) return;
+    const v = fromStored(chosen.query);
+    setParams(new URLSearchParams([...(v.fragment ? [['f', v.fragment]] : []), ...(v.sort ? [['sort', v.sort]] : [])]), { replace: true });
+  }, [wantedView, knownViews, setParams]);
   const onViews = useCallback((views: SavedFilter[]) => {
+    setKnownViews(views);
     const initial = currentParams.current;
     if (appliedDefault.current === String(tracker)) return;
     appliedDefault.current = String(tracker);
     const def = views.find((v) => v.isDefault);
-    if (def && !initial.has('f') && !initial.has('sort')) { const v = fromStored(def.query); setParams(new URLSearchParams([...(v.fragment ? [['f', v.fragment]] : []), ...(v.sort ? [['sort', v.sort]] : [])]), { replace: true }); }
+    if (def && !initial.has('f') && !initial.has('sort') && !initial.has('v')) { const v = fromStored(def.query); setParams(new URLSearchParams([...(v.fragment ? [['f', v.fragment]] : []), ...(v.sort ? [['sort', v.sort]] : [])]), { replace: true }); }
   }, [tracker, setParams]);
 
   const rows = result?.hits ?? [];
@@ -123,6 +134,7 @@ export function TrackerScreen({ session }: { session: Session }) {
         sub={<><Id>{project}-{tracker}</Id>{counts && <> · <span className="ath-mono">{fr.trackerScreen.total(counts.artifacts)}</span></>}</>}
         actions={<>
           <Btn onClick={() => setCreating(true)}>{fr.trackerScreen.newItem}</Btn>
+          <PinToggle entry={{ kind: 'tracker', project: String(project), ref: String(tracker), label: `${project} · ${tracker}` }} />
           {admin && <Btn variant="ghost" onClick={() => navigate(`/p/${project}/trackers/${tracker}/config`)}>{fr.trackerScreen.configure}</Btn>}
         </>} />
       <CreateArtifact project={String(project)} trackers={[String(tracker)]} open={creating} onClose={() => setCreating(false)}

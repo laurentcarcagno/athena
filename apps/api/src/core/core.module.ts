@@ -42,6 +42,8 @@ import { MemberController } from './member.controller';
 import { TemplateController, TrackerTemplateController } from './template.controller';
 import { ProjectOverviewController } from './project-overview.controller';
 import { ProjectOverviewService } from './project-overview.service';
+import { PinController } from './pin.controller';
+import { PinService } from './pin.service';
 import { TrackerTypeController } from './tracker-type.controller';
 import { TrackerTypeService } from './tracker-type.service';
 import { TemplateService } from './template.service';
@@ -52,7 +54,7 @@ import { TrackerService } from './tracker.service';
 export { PG_POOL } from './core.tokens';
 
 @Module({
-  controllers: [CoreController, AttachmentController, SavedFilterController, IntegrationsController, AgileController, MemberController, TemplateController, TrackerTemplateController, TrackerTypeController, ProjectOverviewController],
+  controllers: [CoreController, AttachmentController, SavedFilterController, IntegrationsController, AgileController, MemberController, TemplateController, TrackerTemplateController, TrackerTypeController, ProjectOverviewController, PinController],
   providers: [
     { provide: PG_POOL, useFactory: () => new Pool({ connectionString: loadConfig().DATABASE_URL, max: 10 }) },
     { provide: FieldTypeRegistry, useValue: new FieldTypeRegistry() },
@@ -99,6 +101,7 @@ export { PG_POOL } from './core.tokens';
     { provide: BoardService, useFactory: (db: Db, t: TrackerService, a: ArtifactService) => new BoardService(db, t, a), inject: [Db, TrackerService, ArtifactService] },
     { provide: ReportService, useFactory: (db: Db) => new ReportService(db), inject: [Db] },
     { provide: ProjectOverviewService, useFactory: (db: Db) => new ProjectOverviewService(db), inject: [Db] },
+    { provide: PinService, useFactory: (db: Db) => new PinService(db), inject: [Db] },
     { provide: TrackerTypeService, useFactory: (db: Db) => new TrackerTypeService(db), inject: [Db] },
     { provide: TemplateService, useFactory: (db: Db, t: TrackerService) => new TemplateService(db, t), inject: [Db, TrackerService] },
     { provide: MemberService, useFactory: (db: Db) => new MemberService(db), inject: [Db] },

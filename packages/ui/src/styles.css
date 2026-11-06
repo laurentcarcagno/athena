@@ -139,6 +139,17 @@
 .ath-sidebar__sub { display: block; margin-top: var(--ath-space-xs); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: color-mix(in srgb, var(--ath-color-instrument-white) 75%, var(--ath-color-sovereign-deep-blue)); }
 .ath-nav { display: flex; flex-direction: column; flex: 1; min-height: 0; overflow-y: auto; }
 .ath-nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-left: 3px solid transparent; color: color-mix(in srgb, var(--ath-color-instrument-white) 70%, var(--ath-color-sovereign-deep-blue)); text-decoration: none; font-weight: 600; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; background: transparent; border-top: 0; border-right: 0; border-bottom: 0; cursor: pointer; font-family: inherit; text-align: left; transition: background 120ms linear; }
+.ath-sidebar--collapsed .ath-nav, .ath-sidebar--collapsed .ath-sidebar__sub, .ath-sidebar--collapsed .ath-sidebar__who { display: none; }
+.ath-sidebar--collapsed .ath-sidebar__user { flex-direction: column; padding-inline: var(--ath-space-xs); }
+.ath-nav__section { display: flex; flex-direction: column; }
+.ath-nav__title { margin: 0; padding: var(--ath-space-md) 16px var(--ath-space-xs); font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: color-mix(in srgb, var(--ath-color-instrument-white) 65%, var(--ath-color-sovereign-deep-blue)); }
+.ath-nav__row { display: flex; align-items: stretch; }
+.ath-nav__row .ath-nav-item { flex: 1; min-width: 0; text-align: left; background: transparent; border-top: 0; border-right: 0; border-bottom: 0; cursor: pointer; font: inherit; }
+.ath-nav-item[data-depth="1"] { padding-left: 28px; }
+.ath-nav-item[data-depth="2"] { padding-left: 40px; }
+.ath-nav__move { background: transparent; border: 0; color: inherit; cursor: pointer; padding: 0 var(--ath-space-xs); min-width: 24px; opacity: 0.7; }
+.ath-nav__move:hover, .ath-nav__move:focus-visible { opacity: 1; background: rgba(255, 255, 255, 0.12); }
+.ath-nav__move:focus-visible { outline: 2px solid var(--ath-color-instrument-white); outline-offset: -2px; }
 .ath-nav-item:hover { color: var(--ath-color-instrument-white); background: rgba(255, 255, 255, 0.06); }
 .ath-nav-item[aria-current="page"] { color: var(--ath-color-instrument-white); border-left-color: var(--ath-color-console-sky); background: rgba(0, 110, 177, 0.18); }
 .ath-sidebar__user { flex: none; display: flex; align-items: center; gap: 10px; padding: var(--ath-space-md) 16px; border-top: 1px solid rgba(255, 255, 255, 0.12); }
