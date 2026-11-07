@@ -1,3 +1,5 @@
+import { writeActivity } from '@athena/ui';
+
 export class ApiError extends Error {
   constructor(message: string, readonly status: number, readonly code: string, readonly details: string[]) {
     super(message);
@@ -43,7 +45,8 @@ export function api<T>(method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE', path
   const key = `${method} ${path} ${body === undefined ? '' : JSON.stringify(body)}`;
   const pending = inflight.get(key);
   if (pending) return pending as Promise<T>;
-  const call = send<T>(method, path, body).finally(() => { inflight.delete(key); });
+  writeActivity.begin();
+  const call = send<T>(method, path, body).finally(() => { inflight.delete(key); writeActivity.end(); });
   inflight.set(key, call);
   return call;
 }

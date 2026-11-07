@@ -51,7 +51,7 @@ Chaque critère d'acceptation des fiches T-0091 à T-0096, avec la preuve qui le
 | Tests : Playwright + axe, mesures rejouées | `audit.spec.ts` ; `audit-followup.test.tsx` (double envoi, Administration réservée, valeurs ATQL) ; `tokens.test.ts` (tailles, cibles, couleurs de signal) |
 
 ## Limites déclarées
-- **F-08** : l'état visuel « … » des boutons n'existe pas sur une vingtaine de formulaires secondaires (administration, modèles, favoris…). Le double envoi y est neutralisé par le dédoublonnage de `api()` ; seul le retour visuel manque. Faisable, non fait : à décider.
+- **F-08** : comblé après le compte rendu : tout bouton qui déclenche une écriture passe en état « loading » (`Btn` + `writeActivity`), en plus du dédoublonnage de `api()`.
 - **F-11** : écart assumé à la charte (voir ci-dessus).
 - Résumé quotidien : la fiche prévoyait « aucune migration » ; l'heure par personne et le suivi des envois en exigent une (045).
 - Circuits d'approbation : le validateur de transition `approval` s'ajoute par l'API (pas d'éditeur graphique de validateur). Les baselines et jalons gardent l'approbation de T-0080, réutilisée telle quelle.

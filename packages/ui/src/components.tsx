@@ -10,11 +10,45 @@ export function Id({ children }: { children: ReactNode }) {
   return <span className="ath-mono">{children}</span>;
 }
 
-export function Btn({ variant = 'primary', size = 'md', className, loading = false, children, ...rest }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'primary' | 'deep' | 'ghost' | 'danger'; size?: 'sm' | 'md' | 'lg'; loading?: boolean }) {
+/**
+ * Écritures en cours dans l'application (le client d'API les déclare). Un bouton cliqué qui déclenche une écriture reste en état
+ * « loading » (désactivé, aria-busy, « … ») jusqu'à la fin de toutes les écritures : un double envoi est impossible, sans que
+ * chaque formulaire gère son propre état (audit F-08).
+ */
+export const writeActivity = (() => {
+  let pending = 0;
+  const listeners = new Set<() => void>();
+  const notify = () => listeners.forEach((l) => l());
+  return {
+    begin(): void { pending++; notify(); },
+    end(): void { pending = Math.max(0, pending - 1); notify(); },
+    count: (): number => pending,
+    subscribe(listener: () => void): () => void { listeners.add(listener); return () => { listeners.delete(listener); }; },
+  };
+})();
+
+export function Btn({ variant = 'primary', size = 'md', className, loading = false, children, onClick, ...rest }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'primary' | 'deep' | 'ghost' | 'danger'; size?: 'sm' | 'md' | 'lg'; loading?: boolean }) {
   // État « loading » de la charte : contrôle désactivé, aria-busy, libellé suivi de « … ».
+  const [writing, setWriting] = useState(false);
+  const mounted = useRef(true);
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
+  const watch = () => {
+    // Après le clic (et l'envoi du formulaire, qui suit le clic) : une écriture a-t-elle démarré ? Alors le bouton attend sa fin.
+    setTimeout(() => {
+      if (!mounted.current || writeActivity.count() === 0) return;
+      setWriting(true);
+      const off = writeActivity.subscribe(() => {
+        if (writeActivity.count() > 0) return;
+        off();
+        if (mounted.current) setWriting(false);
+      });
+    }, 0);
+  };
+  const busy = loading || writing;
   return (
-    <button type="button" {...rest} disabled={rest.disabled || loading} aria-busy={loading || undefined} className={cx('ath-btn', `ath-btn--${variant}`, size !== 'md' && `ath-btn--${size}`, className)}>
-      {children}{loading ? '…' : null}
+    <button type="button" {...rest} onClick={(event) => { onClick?.(event); if (!event.defaultPrevented || rest.type === 'submit') watch(); }}
+      disabled={rest.disabled || busy} aria-busy={busy || undefined} className={cx('ath-btn', `ath-btn--${variant}`, size !== 'md' && `ath-btn--${size}`, className)}>
+      {children}{busy ? '…' : null}
     </button>
   );
 }

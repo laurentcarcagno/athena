@@ -69,3 +69,28 @@ describe('F-10 : l’ATQL suggère les valeurs, pas seulement les champs', () =>
   });
 
 });
+
+describe('F-08 : état « loading » de tout bouton qui déclenche une écriture', () => {
+  it('le bouton cliqué reste désactivé, aria-busy et suivi de « … » jusqu’à la fin de l’écriture, puis se libère', async () => {
+    const { Btn } = await import('@athena/ui');
+    let release!: () => void;
+    fetchMock.mockImplementation(() => new Promise<Response>((resolve) => { release = () => resolve(reply({ ok: true })); }));
+    const user = (await import('@testing-library/user-event')).default.setup();
+    render(<Btn onClick={() => { void api('POST', '/v1/secondaire', { a: 1 }); }}>Créer</Btn>);
+    await user.click(screen.getByRole('button', { name: 'Créer' }));
+    const busy = await screen.findByRole('button', { name: 'Créer…' });
+    expect(busy).toBeDisabled();
+    expect(busy).toHaveAttribute('aria-busy', 'true');
+    release();
+    expect(await screen.findByRole('button', { name: 'Créer' })).toBeEnabled();
+  });
+
+  it('un clic sans écriture ne change rien', async () => {
+    const { Btn } = await import('@athena/ui');
+    const user = (await import('@testing-library/user-event')).default.setup();
+    render(<Btn onClick={() => undefined}>Ouvrir</Btn>);
+    await user.click(screen.getByRole('button', { name: 'Ouvrir' }));
+    await new Promise((r) => setTimeout(r, 10));
+    expect(screen.getByRole('button', { name: 'Ouvrir' })).toBeEnabled();
+  });
+});
