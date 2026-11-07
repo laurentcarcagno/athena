@@ -122,6 +122,7 @@ const frDict = {
     stepQa: (n: number) => `Étape ${n} : ouverte au rôle assurance qualité étatique`, stepMin: (n: number) => `Étape ${n} : décisions favorables requises`,
     moveUp: (n: number) => `Monter l’étape ${n}`, moveDown: (n: number) => `Descendre l’étape ${n}`, removeStep: (n: number) => `Retirer l’étape ${n}`, tab: 'Approbation',
   },
+  theme: { label: (name: string) => `Thème : ${name}. Changer de thème.`, names: { system: 'système', light: 'clair', dark: 'sombre' } as Record<string, string> },
   mention: { list: 'Personnes à mentionner', count: (n: number) => (n === 1 ? '1 personne proposée' : `${n} personnes proposées`) },
   notify: {
     title: 'Notifications', button: 'Notifications', buttonUnread: (n: number) => (n === 1 ? 'Notifications, 1 non lue' : `Notifications, ${n} non lues`),
@@ -457,6 +458,7 @@ const enDict: Dictionary = {
     stepQa: (n: number) => `Step ${n}: open to the state quality assurance role`, stepMin: (n: number) => `Step ${n}: favorable decisions required`,
     moveUp: (n: number) => `Move step ${n} up`, moveDown: (n: number) => `Move step ${n} down`, removeStep: (n: number) => `Remove step ${n}`, tab: 'Approval',
   },
+  theme: { label: (name: string) => `Theme: ${name}. Change theme.`, names: { system: 'system', light: 'light', dark: 'dark' } as Record<string, string> },
   mention: { list: 'People to mention', count: (n: number) => (n === 1 ? '1 person suggested' : `${n} people suggested`) },
   notify: {
     title: 'Notifications', button: 'Notifications', buttonUnread: (n: number) => (n === 1 ? 'Notifications, 1 unread' : `Notifications, ${n} unread`),

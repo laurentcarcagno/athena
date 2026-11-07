@@ -1,0 +1,69 @@
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import axe from 'axe-core';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { ThemeToggle } from '../components/ThemeToggle';
+import { applyTheme, initTheme, nextTheme, readTheme, setTheme, THEME_KEY } from './theme';
+
+beforeEach(() => { window.localStorage.clear(); initTheme(); });
+afterEach(() => { window.localStorage.clear(); initTheme(); });
+
+describe('réglage du thème', () => {
+  it('« système » par défaut : aucun attribut sur html', () => {
+    expect(readTheme()).toBe('system');
+    expect(document.documentElement.hasAttribute('data-theme')).toBe(false);
+  });
+
+  it('clair et sombre posent data-theme et sont mémorisés ; système efface la mémoire', () => {
+    setTheme('dark');
+    expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
+    expect(window.localStorage.getItem(THEME_KEY)).toBe('dark');
+    expect(readTheme()).toBe('dark');
+    setTheme('light');
+    expect(document.documentElement.getAttribute('data-theme')).toBe('light');
+    setTheme('system');
+    expect(document.documentElement.hasAttribute('data-theme')).toBe(false);
+    expect(window.localStorage.getItem(THEME_KEY)).toBeNull();
+  });
+
+  it('une valeur mémorisée inconnue retombe sur « système »', () => {
+    window.localStorage.setItem(THEME_KEY, 'violet');
+    expect(readTheme()).toBe('system');
+    initTheme();
+    expect(document.documentElement.hasAttribute('data-theme')).toBe(false);
+  });
+
+  it('une mémoire inaccessible ne casse rien', () => {
+    const original = Storage.prototype.getItem;
+    Storage.prototype.getItem = () => { throw new Error('refusé'); };
+    try {
+      expect(readTheme()).toBe('system');
+      expect(() => applyTheme()).not.toThrow();
+    } finally { Storage.prototype.getItem = original; }
+  });
+
+  it('l’ordre de bascule est système, clair, sombre', () => {
+    expect(nextTheme('system')).toBe('light');
+    expect(nextTheme('light')).toBe('dark');
+    expect(nextTheme('dark')).toBe('system');
+  });
+});
+
+describe('bouton de thème', () => {
+  it('dit le réglage courant en texte, bascule au clavier et mémorise', async () => {
+    const user = userEvent.setup();
+    const { container } = render(<ThemeToggle />);
+    const button = screen.getByRole('button', { name: 'Thème : système. Changer de thème.' });
+    button.focus();
+    await user.keyboard('{Enter}');
+    expect(screen.getByRole('button', { name: 'Thème : clair. Changer de thème.' })).toBeInTheDocument();
+    expect(document.documentElement.getAttribute('data-theme')).toBe('light');
+    await user.keyboard('{Enter}');
+    expect(screen.getByRole('button', { name: 'Thème : sombre. Changer de thème.' })).toHaveFocus();
+    expect(window.localStorage.getItem(THEME_KEY)).toBe('dark');
+    const result = await axe.run(container, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] }, rules: { 'color-contrast': { enabled: false }, region: { enabled: false } } });
+    expect(result.violations.map((v) => v.id)).toEqual([]);
+    await user.keyboard('{Enter}');
+    expect(document.documentElement.hasAttribute('data-theme')).toBe(false);
+  });
+});

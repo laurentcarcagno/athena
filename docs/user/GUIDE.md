@@ -112,6 +112,9 @@ Un responsable ou un administrateur définit un **circuit** sur un tracker (page
 - Pour exiger le circuit avant une transition, ajoutez le validateur `{"type": "approval"}` à cette transition.
 - Les jalons et baselines gardent leur approbation par l'assurance qualité étatique (onglet Approbations de la planification) ; la table des décisions est la même.
 
+## Thème clair, sombre ou système
+Le bouton de thème (barre latérale, à côté du changement de langue) bascule dans l'ordre **système**, **clair**, **sombre** ; son libellé dit le réglage courant. « Système » suit la préférence de votre système d'exploitation ou de votre navigateur et change avec elle. Le réglage est mémorisé par navigateur (il ne suit pas votre compte). Les contrastes respectent WCAG 2.2 AA dans les deux thèmes.
+
 ## Fenêtres selon le rôle
 - **Utilisateur** (`athena-user`) : **Mon travail** liste les artefacts qui vous sont assignés (hors terminés) et ceux à prendre (non assignés, à faire) ; **Prendre** vous assigne l'artefact.
 - **Chef de projet** (`athena-pm`) : **Gestion de projet** (`/p/<projet>/manage`) : acteurs du projet (chef ou membre, choisis parmi les comptes déjà connectés), sprints (créer, démarrer, clore), versions (créer, publier), boards (créer). Un chef de projet ne gère que les projets dont il est désigné **chef**.
