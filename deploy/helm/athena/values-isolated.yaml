@@ -15,6 +15,13 @@ config:
   openbaoAddr: https://athena-openbao:8200
   gitlabUrl: ""                  # GitLab interne éventuel (hôte du réseau isolé)
   webhookAllowPrivate: false
+  smtp:                          # résumé quotidien : désactivé tant qu'un relais interne n'est pas renseigné (aucune connexion de messagerie)
+    enabled: false
+    host: ""
+    port: 587
+    security: starttls
+    from: ""
+    cidr: ""
 
 isolated:
   enabled: true

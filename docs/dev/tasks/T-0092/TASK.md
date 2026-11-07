@@ -6,7 +6,7 @@
   - `apps/api/src/notify/digest.ts`
   - `apps/api/src/workers/*`
   - `deploy/helm/athena/values.yaml`  (SMTP interne)
-- **Migration** : aucune
+- **Migration** : 045 (réglage par personne et suivi des envois)
 - **Critères d'acceptation** (testables) :
   - Planifié via les déclencheurs planifiés existants, heure par utilisateur
   - Aucun contenu hors droits ; liens canoniques

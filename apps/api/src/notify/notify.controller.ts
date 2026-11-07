@@ -3,6 +3,7 @@ import { Roles, type AuthedRequest } from '../auth/auth.guard';
 import { OrgResolver, parseBody } from '../core/http';
 import { validation } from '../core/errors';
 import { BodySchema } from '../openapi/body-schema';
+import { DigestInput, DigestService } from './digest';
 import { NOTIFY_EVENTS, NotifyService, PrefInput, ReadInput, SubscribeInput, type NotifyEvent } from './notify.service';
 
 /**
@@ -15,6 +16,7 @@ const ME = ['athena-user', 'athena-admin', 'athena-qa'] as const;
 export class NotifyController {
   constructor(
     @Inject(NotifyService) private readonly notify: NotifyService,
+    @Inject(DigestService) private readonly digest: DigestService,
     @Inject(OrgResolver) private readonly orgs: OrgResolver,
   ) {}
 
@@ -54,6 +56,22 @@ export class NotifyController {
     const input = parseBody(PrefInput, body);
     await this.notify.setPref(organizationId, actor.id, event as NotifyEvent, input.enabled);
     return { event, enabled: input.enabled };
+  }
+
+  /** Résumé quotidien par courriel : réglage de la personne ; `available` est faux quand l'instance n'a pas de SMTP (réseau isolé). */
+  @Roles(...ME)
+  @Get('me/notification-digest')
+  async digestSettings(@Req() request: AuthedRequest) {
+    const { organizationId, actor } = await this.orgs.resolve(request.principal!);
+    return this.digest.settings(organizationId, actor.id);
+  }
+
+  @Roles(...ME)
+  @Put('me/notification-digest')
+  @BodySchema(DigestInput)
+  async setDigest(@Req() request: AuthedRequest, @Body() body: unknown) {
+    const { organizationId, actor } = await this.orgs.resolve(request.principal!);
+    return this.digest.setSettings(organizationId, actor.id, parseBody(DigestInput, body));
   }
 
   @Roles(...ME)

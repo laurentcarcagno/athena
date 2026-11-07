@@ -10,6 +10,7 @@ import { TrackerService } from '../core/tracker.service';
 import { createTestDb, pgUp, type TestDb } from '../testing/harness';
 import { WebhookService, type SecretStore } from '../webhooks/webhook.service';
 import { WorkerLoop } from './loop';
+import { DigestService } from '../notify/digest';
 import { buildWorkers, healthServer, webhookCycle } from './tasks';
 
 describe('boucle de worker', () => {
@@ -124,5 +125,11 @@ suite('tâches du worker (intégration)', () => {
   it('assemble les boucles configurées', () => {
     const workers = buildWorkers({ pool: testDb.pool, webhooks: service }, { historyMs: 1000, webhooksMs: 1000, sessionsMs: 10_000 });
     expect(workers.map((w) => w.name)).toEqual(['webhooks', 'sessions']);
+  });
+
+  it('la boucle du résumé quotidien n’est ajoutée que si le service est fourni (le worker ne le fournit qu’avec une messagerie configurée)', async () => {
+    const digest = new DigestService(new Db(testDb.pool), { mailer: null, baseUrl: 'http://x', available: false });
+    expect(buildWorkers({ pool: testDb.pool, digest }, { historyMs: 1000, webhooksMs: 1000, sessionsMs: 10_000 }).map((w) => w.name)).toEqual(['résumé', 'sessions']);
+    expect(buildWorkers({ pool: testDb.pool }, { historyMs: 1000, webhooksMs: 1000, sessionsMs: 10_000 }).map((w) => w.name)).not.toContain('résumé');
   });
 });

@@ -49,4 +49,12 @@ securityContext:
 {{- with .Values.config.gitlabNamespace }}
 - { name: GITLAB_NAMESPACE, value: {{ . | quote }} }
 {{- end }}
+{{- if and .Values.config.smtp.enabled .Values.config.smtp.host .Values.config.smtp.from }}
+- { name: SMTP_HOST, value: {{ .Values.config.smtp.host | quote }} }
+- { name: SMTP_PORT, value: {{ .Values.config.smtp.port | quote }} }
+- { name: SMTP_SECURITY, value: {{ .Values.config.smtp.security | quote }} }
+- { name: SMTP_FROM, value: {{ .Values.config.smtp.from | quote }} }
+{{- else }}
+- { name: DIGEST_ENABLED, value: "false" }
+{{- end }}
 {{- end -}}

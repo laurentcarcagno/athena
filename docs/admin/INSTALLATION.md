@@ -53,6 +53,14 @@ Realm avec : client confidentiel `athena-web` (PKCE S256, URI de redirection `ht
 ## Variables d'environnement principales
 `DATABASE_URL`, `KEYCLOAK_ISSUER`, `KEYCLOAK_WEB_CLIENT_ID/SECRET`, `PUBLIC_URL`, `WEB_ORIGIN`, `COOKIE_SECURE`, `OPENBAO_ADDR/TOKEN`, `GITLAB_URL/TOKEN/NAMESPACE`, `PLUGIN_TRUSTED_KEYS`, `RATE_LIMIT_API_PER_MINUTE`, `RATE_LIMIT_SENSITIVE_PER_MINUTE`, `TRUST_PROXY`, `WEBHOOK_ALLOW_PRIVATE` (**faux en production**). Le worker ajoute `HISTORY_INTERVAL_MS`, `WEBHOOKS_INTERVAL_MS`, `SESSIONS_INTERVAL_MS`, `WORKER_HEALTH_PORT`.
 
+## Résumé quotidien par courriel (SMTP interne)
+Le worker envoie, une fois par jour et par personne, un courriel regroupant ses notifications non lues, à l'heure qu'elle a choisie (réglages du centre de notifications). Le résumé est **désactivé par défaut** : sans relais SMTP configuré, aucun client de messagerie n'est créé, aucune connexion n'est ouverte et l'option est signalée comme indisponible dans l'interface.
+- Variables (API et worker) : `SMTP_HOST`, `SMTP_FROM` (les deux sont requis), `SMTP_PORT` (25 par défaut), `SMTP_SECURITY` (`starttls` par défaut, `tls` ou `none`), `SMTP_USER` et `SMTP_PASSWORD` (facultatifs, depuis le secret `existingSecret`), `SMTP_CA_FILE` (autorité interne au format PEM), `DIGEST_ENABLED=false` pour tout couper, `DIGEST_INTERVAL_MS` (cycle du worker, 5 minutes par défaut). `PUBLIC_URL` sert aux liens du courriel.
+- L'authentification n'est jamais envoyée en clair vers une machine qui n'est pas locale : utilisez `starttls` ou `tls`.
+- Chart Helm : `config.smtp.enabled`, `host`, `port`, `security`, `from`, et `cidr` (réseau isolé : adresse du relais ouverte au worker par la politique réseau). Les valeurs par défaut et `values-isolated.yaml` laissent le résumé désactivé.
+- Le courriel ne contient ni titre ni valeur de champ : clés d'items, phrase de l'événement, lien canonique. Il est composé avec les droits de la personne (listes d'ayants droit, contrôle export), au moment de l'envoi.
+- Un envoi en échec n'est pas perdu : il est retenté à chaque cycle tant que l'heure choisie dure, puis repris le lendemain avec les nouvelles notifications.
+
 ## Exploitation
 - Santé : `GET /healthz` (api), `GET :3002/healthz` (worker : 503 si une boucle échoue en continu).
 - Reconstruction après sinistre : créer l'organisation et le projet vides, puis `POST /v1/projects/<P>/rebuild` (administrateur) ; l'historique des révisions reste dans Git.

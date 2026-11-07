@@ -14,12 +14,14 @@ const entry = (over: Partial<NotificationEntry>): NotificationEntry => ({
 let inbox: { items: NotificationEntry[]; unread: number };
 let calls: Array<{ method: string; url: string; body: unknown }>;
 let prefs: Record<string, boolean>;
+let digestState: { available: boolean; enabled: boolean; hour: number; timezone: string; locale: string };
 let subscriptions: Array<{ id: string; scope: string; ref: string; label: string }>;
 
 beforeEach(() => {
   inbox = { items: [entry({ id: 'n1' }), entry({ id: 'n2', event: 'transition', payload: { from: 'ouvert', to: 'fini' }, read: true })], unread: 1 };
   prefs = { transition: true, mention: true, suspect: true, comment: true, approval: true };
   subscriptions = [];
+  digestState = { available: true, enabled: false, hour: 8, timezone: 'UTC', locale: 'fr' };
   calls = [];
   vi.stubGlobal('fetch', vi.fn(async (url: string, init?: RequestInit) => {
     const method = init?.method ?? 'GET';
@@ -30,6 +32,10 @@ beforeEach(() => {
       inbox.items = inbox.items.map((n) => (ids.all || ids.ids?.includes(n.id) ? { ...n, read: ids.read } : n));
       inbox.unread = inbox.items.filter((n) => !n.read).length;
       return new Response(JSON.stringify({ updated: 1 }), { status: 200 });
+    }
+    if (url.endsWith('/notification-digest')) {
+      if (method === 'PUT') digestState = { ...digestState, ...(body as object) };
+      return new Response(JSON.stringify(digestState), { status: 200 });
     }
     if (url.includes('/notifications')) return new Response(JSON.stringify(inbox), { status: 200 });
     if (url.endsWith('/notification-prefs')) return new Response(JSON.stringify(prefs), { status: 200 });
@@ -102,6 +108,31 @@ describe('centre de notifications', () => {
     await user.click(box);
     await waitFor(() => expect(prefs['comment']).toBe(false));
     expect(box).not.toBeChecked();
+  });
+
+  it('résumé quotidien : activer et choisir l’heure ; indisponible sans messagerie', async () => {
+    const user = userEvent.setup();
+    mount();
+    await user.click(await screen.findByRole('button', { name: /Notifications/ }));
+    await user.click(screen.getByRole('button', { name: 'Réglages' }));
+    const box = await screen.findByRole('checkbox', { name: 'Recevoir un résumé quotidien' });
+    expect(screen.getByRole('combobox', { name: /Heure d’envoi/ })).toBeDisabled();
+    await user.click(box);
+    await waitFor(() => expect(digestState.enabled).toBe(true));
+    await user.selectOptions(screen.getByRole('combobox', { name: /Heure d’envoi/ }), '18');
+    await waitFor(() => expect(digestState.hour).toBe(18));
+    expect(digestState.timezone.length).toBeGreaterThan(0);
+    expect(digestState.locale).toBe('fr');
+  });
+
+  it('résumé quotidien indisponible : message, aucune case', async () => {
+    digestState.available = false;
+    const user = userEvent.setup();
+    mount();
+    await user.click(await screen.findByRole('button', { name: /Notifications/ }));
+    await user.click(screen.getByRole('button', { name: 'Réglages' }));
+    expect(await screen.findByText('Le résumé par courriel n’est pas disponible sur cette instance.')).toBeInTheDocument();
+    expect(screen.queryByRole('checkbox', { name: 'Recevoir un résumé quotidien' })).not.toBeInTheDocument();
   });
 
   it('sans notification : message vide', async () => {

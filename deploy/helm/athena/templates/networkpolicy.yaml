@@ -67,6 +67,10 @@ spec:
     - to: [{ ipBlock: { cidr: {{ . | quote }} } }]
       ports: [{ port: 443 }]
     {{- end }}
+    {{- if and .Values.config.smtp.enabled .Values.config.smtp.cidr }}
+    - to: [{ ipBlock: { cidr: {{ .Values.config.smtp.cidr | quote }} } }]
+      ports: [{ port: {{ .Values.config.smtp.port }} }]
+    {{- end }}
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy

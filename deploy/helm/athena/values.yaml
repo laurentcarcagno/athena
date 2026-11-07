@@ -34,6 +34,15 @@ config:
   rateLimitSensitivePerMinute: 60
   trustProxy: true             # derrière l'ingress
   webhookAllowPrivate: false   # laisser faux en production (protection SSRF)
+  # Résumé quotidien des notifications par courriel. Désactivé par défaut : sans SMTP interne, aucune connexion de messagerie n'est
+  # ouverte et l'option n'apparaît pas dans l'interface. SMTP_USER et SMTP_PASSWORD (facultatifs) viennent du secret `existingSecret`.
+  smtp:
+    enabled: false
+    host: ""                   # relais SMTP interne, ex. smtp.exemple.lan
+    port: 587
+    security: starttls         # none | starttls | tls
+    from: ""                   # expéditeur, ex. athena@exemple.lan
+    cidr: ""                   # réseau isolé : adresse du relais (CIDR) ouverte au worker, ex. 10.0.0.25/32
 
 api:
   replicas: 2

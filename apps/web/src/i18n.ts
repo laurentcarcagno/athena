@@ -107,6 +107,8 @@ const frDict = {
     title: 'Notifications', button: 'Notifications', buttonUnread: (n: number) => (n === 1 ? 'Notifications, 1 non lue' : `Notifications, ${n} non lues`),
     markAll: 'Tout marquer comme lu', markRead: 'Marquer comme lu', markUnread: 'Marquer comme non lu', unreadMark: 'Non lu', empty: 'Aucune notification.', list: 'Liste des notifications',
     settings: 'Réglages', settingsLegend: 'Événements à notifier', follow: 'Suivre', unfollow: 'Ne plus suivre',
+    digestLegend: 'Résumé quotidien par courriel', digestEnabled: 'Recevoir un résumé quotidien', digestHour: (tz: string) => `Heure d’envoi (${tz})`,
+    digestUnavailable: 'Le résumé par courriel n’est pas disponible sur cette instance.',
     eventNames: { transition: 'Changement de statut', mention: 'Mention', suspect: 'Lien suspect', comment: 'Commentaire', approval: 'Approbation' } as Record<string, string>,
     events: {
       transition: (who: string, from: string, to: string) => `${who} a fait passer l’item de ${from} à ${to}.`,
@@ -420,6 +422,8 @@ const enDict: Dictionary = {
     title: 'Notifications', button: 'Notifications', buttonUnread: (n: number) => (n === 1 ? 'Notifications, 1 unread' : `Notifications, ${n} unread`),
     markAll: 'Mark all as read', markRead: 'Mark as read', markUnread: 'Mark as unread', unreadMark: 'Unread', empty: 'No notifications.', list: 'Notification list',
     settings: 'Settings', settingsLegend: 'Events to notify', follow: 'Follow', unfollow: 'Unfollow',
+    digestLegend: 'Daily email digest', digestEnabled: 'Receive a daily digest', digestHour: (tz: string) => `Send time (${tz})`,
+    digestUnavailable: 'The email digest is not available on this instance.',
     eventNames: { transition: 'Status change', mention: 'Mention', suspect: 'Suspect link', comment: 'Comment', approval: 'Approval' } as Record<string, string>,
     events: {
       transition: (who: string, from: string, to: string) => `${who} moved the item from ${from} to ${to}.`,

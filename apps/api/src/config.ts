@@ -34,6 +34,15 @@ const schema = z.object({
   CORS_ORIGIN: z.string().default('http://localhost:3000'),
   /** Niveau de protection de l'instance (ex. « Diffusion Restreinte ») : bandeau sur chaque page et mention sur les exports. Vide : aucun. */
   ATHENA_PROTECTION_LEVEL: z.string().trim().max(80).default(''),
+  /** Résumé quotidien par courriel : SMTP interne. Sans `SMTP_HOST` (ou avec `DIGEST_ENABLED=false`), aucun courriel ne part et aucune connexion n'est ouverte. */
+  SMTP_HOST: z.string().trim().optional(),
+  SMTP_PORT: z.coerce.number().int().min(1).max(65535).default(25),
+  SMTP_SECURITY: z.enum(['none', 'starttls', 'tls']).default('starttls'),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASSWORD: z.string().optional(),
+  SMTP_FROM: z.string().trim().optional(),
+  SMTP_CA_FILE: z.string().optional(),
+  DIGEST_ENABLED: z.enum(['true', 'false']).default('true').transform((v) => v === 'true'),
 });
 
 export type AppConfig = z.infer<typeof schema>;

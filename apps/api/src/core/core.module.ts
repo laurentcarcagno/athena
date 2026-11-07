@@ -42,6 +42,8 @@ import { SavedFilterService } from '../atql/saved-filter.service';
 import { LinkService } from './link.service';
 import { NotifyController } from '../notify/notify.controller';
 import { NotifyService } from '../notify/notify.service';
+import { DigestService } from '../notify/digest';
+import { mailerFrom } from '../notify/mailer-config';
 import { MemberController } from './member.controller';
 import { AccessController } from './access.controller';
 import { ApprovalController } from './approval.controller';
@@ -132,6 +134,14 @@ export { PG_POOL } from './core.tokens';
     { provide: TemplateUpgradeService, useFactory: (db: Db, t: TrackerService, tpl: TemplateService) => new TemplateUpgradeService(db, t, tpl), inject: [Db, TrackerService, TemplateService] },
     { provide: ExportMarker, useFactory: () => new ExportMarker(loadConfig().ATHENA_PROTECTION_LEVEL), inject: [] },
     { provide: NotifyService, useFactory: (db: Db) => new NotifyService(db), inject: [Db] },
+    {
+      provide: DigestService,
+      useFactory: (db: Db): DigestService => {
+        const c = loadConfig();
+        return new DigestService(db, { mailer: null, baseUrl: c.PUBLIC_URL, available: mailerFrom(c) !== null }); // l'API ne poste pas : le worker envoie
+      },
+      inject: [Db],
+    },
     { provide: ApprovalService, useFactory: (db: Db) => new ApprovalService(db), inject: [Db] },
     { provide: AccessService, useFactory: (db: Db) => new AccessService(db), inject: [Db] },
     { provide: NormativeService, useFactory: (db: Db, a: ArtifactService) => new NormativeService(db, a), inject: [Db, ArtifactService] },

@@ -101,6 +101,7 @@ Données personnelles de la personne connectée ; l'assurance qualité étatique
 - `GET /v1/me/notifications?unread=1&limit=50` : `{ items, unread }`. Un item porte `event` (`transition`, `comment`, `suspect`, `mention`, `approval`), `project`, `key`, `actor`, `actorName`, `payload` (clés et statuts, jamais de valeur de champ), `read`, `createdAt`.
 - `POST /v1/me/notifications/read` : `{ ids: [...] | all: true, read: true|false }` marque lues (ou non lues) ses propres notifications.
 - `GET /v1/me/notification-prefs`, `PUT /v1/me/notification-prefs/{event}` `{ enabled }` : réglage par événement (activé par défaut).
+- `GET|PUT /v1/me/notification-digest` : résumé quotidien par courriel, `{ enabled, hour (0-23), timezone (IANA), locale (fr|en) }` ; `available` (lecture) est faux quand l'instance n'a pas de SMTP.
 - `GET|POST /v1/projects/{project}/subscriptions` : abonnements de la personne ; corps `{ scope: item|tracker|view, ref }` (clé de l'item, clé du tracker, identifiant de la vue). `DELETE /v1/subscriptions/{id}`.
 - Les notifications sont produites dans la transaction de l'événement et ne visent que les destinataires autorisés à lire l'item ; la lecture est filtrée par les mêmes règles (une notification d'un item devenu illisible n'est plus renvoyée).
 

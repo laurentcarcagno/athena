@@ -100,6 +100,7 @@ La cloche, en haut à droite de chaque page, ouvre le **centre de notifications*
 - **Événements** : changement de statut, commentaire, lien devenu suspect, mention. Vous n'êtes jamais notifié de votre propre action.
 - **Lu / non lu** : chaque notification se marque individuellement ; « Tout marquer comme lu » vide le compteur.
 - **Réglages** : le bouton « Réglages » du centre active ou coupe chaque type d'événement.
+- **Résumé quotidien** : dans « Réglages » du centre de notifications, activez le résumé et choisissez l'heure d'envoi (dans votre fuseau). Un seul courriel par jour regroupe vos notifications non lues, avec un lien vers chaque item. Si l'instance n'a pas de messagerie, l'option est signalée comme indisponible.
 - **Droits** : une notification ne contient aucune valeur de champ et n'est produite que si vous pouvez lire l'item (listes d'ayants droit, contrôle export). Si votre accès est retiré, elle disparaît de votre liste.
 
 ## Fenêtres selon le rôle

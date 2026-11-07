@@ -16,6 +16,8 @@ import { OpenBaoSecretStore } from './secrets/store';
 import { WebhookService } from './webhooks/webhook.service';
 import { PluginService } from './plugins/plugin.service';
 import { parseTrust } from './plugins/trust';
+import { DigestService } from './notify/digest';
+import { mailerFrom } from './notify/mailer-config';
 import { buildWorkers, healthServer } from './workers/tasks';
 
 const env = z
@@ -33,6 +35,16 @@ const env = z
     PLUGIN_TRUSTED_KEYS: z.string().optional(),
     ATHENA_PROTECTION_LEVEL: z.string().trim().max(80).default(''),
     WORKER_HEALTH_PORT: z.coerce.number().int().min(1).max(65535).default(3002),
+    PUBLIC_URL: z.string().url().default('http://localhost:3000'),
+    SMTP_HOST: z.string().trim().optional(),
+    SMTP_PORT: z.coerce.number().int().min(1).max(65535).default(25),
+    SMTP_SECURITY: z.enum(['none', 'starttls', 'tls']).default('starttls'),
+    SMTP_USER: z.string().optional(),
+    SMTP_PASSWORD: z.string().optional(),
+    SMTP_FROM: z.string().trim().optional(),
+    SMTP_CA_FILE: z.string().optional(),
+    DIGEST_ENABLED: z.enum(['true', 'false']).default('true').transform((v) => v === 'true'),
+    DIGEST_INTERVAL_MS: z.coerce.number().int().min(10_000).default(300_000),
   })
   .parse(process.env);
 
@@ -60,9 +72,13 @@ const automation = new AutomationService(db, artifactService, new LinkService(db
 
 const plugins = new PluginService(db, registry, parseTrust(env.PLUGIN_TRUSTED_KEYS), { read: async () => null });
 
+const mailer = mailerFrom(env);
+const digest = mailer ? new DigestService(db, { mailer, baseUrl: env.PUBLIC_URL, available: true }) : undefined;
+if (!digest) log('Résumé quotidien désactivé : SMTP non configuré (ou DIGEST_ENABLED=false) ; aucune connexion de messagerie ne sera ouverte.');
+
 const loops = buildWorkers(
-  { pool, ...(history ? { history } : {}), ...(webhooks ? { webhooks } : {}), automation, plugins, log },
-  { historyMs: env.HISTORY_INTERVAL_MS, webhooksMs: env.WEBHOOKS_INTERVAL_MS, sessionsMs: env.SESSIONS_INTERVAL_MS },
+  { pool, ...(digest ? { digest } : {}), ...(history ? { history } : {}), ...(webhooks ? { webhooks } : {}), automation, plugins, log },
+  { historyMs: env.HISTORY_INTERVAL_MS, webhooksMs: env.WEBHOOKS_INTERVAL_MS, sessionsMs: env.SESSIONS_INTERVAL_MS, digestMs: env.DIGEST_INTERVAL_MS },
 );
 const health = healthServer(loops, env.WORKER_HEALTH_PORT);
 for (const loop of loops) loop.start();
