@@ -288,6 +288,11 @@ const frDict = {
     readOnly: 'Lecture seule : modifier dans StrictDoc.', openSource: 'Ouvrir la source', outline: 'Plan du document', untitled: 'Sans titre', truncated: 'Document tronqué (trop de nœuds)',
     citations: (n: number) => `${n} citation${n > 1 ? 's' : ''}`, citationsOf: (uid: string) => `Artefacts citant ${uid}`, noCitation: 'Aucun artefact ne cite cette exigence.', suspect: 'Lien suspect',
   },
+  docRef: {
+    title: 'Exigences documentaires citées', none: 'Aucune exigence documentaire citée.', label: 'Citer une exigence (UID ou titre)', placeholder: 'Ex. URD-12 ou authentification',
+    cite: 'Citer', cited: (u: string) => `${u} citée.`, openIn: 'Ouvrir dans le document', acknowledge: 'Acquitter', acknowledged: 'Lien acquitté : la version actuelle de l’exigence fait référence.',
+    suggestions: (n: number) => `${n} exigence${n > 1 ? 's' : ''} proposée${n > 1 ? 's' : ''}`,
+  },
 };
 
 export type Dictionary = typeof frDict;
@@ -575,6 +580,11 @@ const enDict: Dictionary = {
     matches: { uid: 'Exact UID', prefix: 'UID prefix', text: 'Text' } as Record<string, string>,
     readOnly: 'Read only: edit in StrictDoc.', openSource: 'Open the source', outline: 'Document outline', untitled: 'Untitled', truncated: 'Document truncated (too many nodes)',
     citations: (n: number) => `${n} citation${n > 1 ? 's' : ''}`, citationsOf: (uid: string) => `Items citing ${uid}`, noCitation: 'No item cites this requirement.', suspect: 'Suspect link',
+  },
+  docRef: {
+    title: 'Cited document requirements', none: 'No document requirement cited.', label: 'Cite a requirement (UID or title)', placeholder: 'E.g. URD-12 or authentication',
+    cite: 'Cite', cited: (u: string) => `${u} cited.`, openIn: 'Open in the document', acknowledge: 'Acknowledge', acknowledged: 'Link acknowledged: the current version of the requirement is now the reference.',
+    suggestions: (n: number) => `${n} suggested requirement${n > 1 ? 's' : ''}`,
   },
 };
 

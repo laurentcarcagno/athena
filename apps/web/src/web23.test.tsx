@@ -77,6 +77,8 @@ describe('onglet Documents', () => {
     const outline = screen.getByRole('navigation', { name: 'Plan du document' });
     expect(within(outline).getByRole('link', { name: /URD-2/ })).toHaveAttribute('href', '/p/ARI/documents/urd.docs-urd#URD-2');
     expect(within(outline).getByRole('link', { name: /Contexte/ })).toHaveAttribute('href', '/p/ARI/documents/urd.docs-urd#n-0');
+    expect(within(outline).getByText('2 citations')).toBeInTheDocument(); // le nombre de citations figure dans la liste (plan)
+    expect(within(outline).queryAllByText(/citation/)).toHaveLength(1); // et seulement pour l'exigence citée
   });
 
   it('chaque nœud est rendu comme du texte : aucun HTML brut n’est interprété', async () => {

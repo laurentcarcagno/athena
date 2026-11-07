@@ -6,6 +6,9 @@ import { docIdOf, parseSdocTree } from './sdoc-parser';
 
 export interface DocLinkView {
   artifact: string;
+  /** Source documentaire et document de l'exigence (pour ouvrir `/documents/<docId>#<uid>`). */
+  source: string;
+  docId: string | null;
   uid: string;
   title: string;
   status: string;
@@ -164,15 +167,15 @@ export class DocLinkService {
     return this.db.tx(organizationId, async (c) => {
       const rows = (
         await c.query(
-          `select l.uid, l.suspect, l.origin, d.title, d.status, (d.uid is null) as orphan
-           from doc_link l join artifact a on a.id = l.artifact_id join project p on p.id = a.project_id
+          `select l.uid, l.suspect, l.origin, d.title, d.status, d.doc_id, s.name as source, (d.uid is null) as orphan
+           from doc_link l join artifact a on a.id = l.artifact_id join project p on p.id = a.project_id join doc_source s on s.id = l.source_id
            left join doc_node d on d.source_id = l.source_id and d.uid = l.uid
            where p.key = $1 and a.id = resolve_artifact(p.id, $2) order by l.created_at, l.uid`,
           [projectKey, artifactKey],
         )
       ).rows;
       return rows.map((r) => ({
-        artifact: artifactKey, uid: r.uid, title: r.title ?? '', status: r.status ?? '', suspect: r.suspect, origin: r.origin, orphan: r.orphan,
+        artifact: artifactKey, source: r.source, docId: (r.doc_id as string | null) || null, uid: r.uid, title: r.title ?? '', status: r.status ?? '', suspect: r.suspect, origin: r.origin, orphan: r.orphan,
       }));
     });
   }

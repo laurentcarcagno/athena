@@ -8,6 +8,7 @@ import { DomainError } from '../core/errors';
 import { FieldTypeRegistry } from '../core/field-types';
 import { runAs } from '../core/request-context';
 import { requirementTemplate } from '../core/templates';
+import { WebhookService } from '../webhooks/webhook.service';
 import { TrackerService } from '../core/tracker.service';
 import { createTestDb, pgUp, type TestDb } from '../testing/harness';
 import { DocLinkService } from './doc-link.service';
@@ -225,7 +226,7 @@ suite('consultation des documents (intégration)', () => {
   });
 
   it('émet un événement link.suspect par lien rendu suspect (webhooks) et l’acquittement est audité', async () => {
-    const events = await db.tx(org, async (c) => (await c.query("select payload from outbox_event where type = 'link.suspect' order by created_at")).rows.map((r) => r.payload), { system: true });
+    const events = (await db.tx(org, async (c) => (await c.query("select payload from outbox_event where type = 'link.suspect'")).rows.map((r) => r.payload as { artifact: string }), { system: true })).sort((a, b) => a.artifact.localeCompare(b.artifact));
     expect(events).toEqual([
       expect.objectContaining({ artifact: 'ARI-REQ-0001', uid: 'URD-1', source: 'urd', kind: 'document' }),
       expect.objectContaining({ artifact: 'ARI-REQ-0002', uid: 'URD-1', source: 'urd' }),
@@ -234,5 +235,21 @@ suite('consultation des documents (intégration)', () => {
     expect((await read.citations(org, 'ARI', 'URD-1')).map((c) => c.suspect)).toEqual([false, true]);
     const audit = await db.tx(org, async (c) => (await c.query("select actor, target from audit_log where action = 'doc.acknowledge'")).rows, { system: true });
     expect(audit).toEqual([{ actor: 'u-admin', target: 'artifact:ARI-REQ-0001' }]);
+  });
+
+  it('le webhook link.suspect part pour chaque lien rendu suspect par la ré-indexation', async () => {
+    const secrets = new Map<string, Record<string, string>>();
+    const hooks = new WebhookService(testDb.pool, { put: async (k, v) => { secrets.set(k, v); }, get: async (k) => secrets.get(k) ?? null }, { allowPrivate: true });
+    await hooks.createEndpoint(org, { url: 'http://127.0.0.1:9/hook', eventTypes: ['link.suspect'] }, admin);
+    await db.tx(org, (c) => c.query("update outbox_event set published_at = now() where type <> 'link.suspect'"), { system: true });
+    await db.tx(org, (c) => c.query("update outbox_event set published_at = null where type = 'link.suspect'"), { system: true });
+    expect(await hooks.enqueue(org)).toBe(2);
+    const bodies = await db.tx(org, async (c) => (await c.query("select body from webhook_delivery where event_type = 'link.suspect' order by created_at, id")).rows.map((r) => JSON.parse(r.body as string)), { system: true });
+    expect(bodies.map((b) => [b.type, b.data.artifact, b.data.uid, b.data.source]).sort((a, b) => String(a[1]).localeCompare(String(b[1])))).toEqual([['link.suspect', 'ARI-REQ-0001', 'URD-1', 'urd'], ['link.suspect', 'ARI-REQ-0002', 'URD-1', 'urd']]);
+  });
+
+  it('la vue des liens d’un artefact donne la source et le document pour ouvrir l’exigence', async () => {
+    const links = await docs.links(org, 'ARI', 'ARI-REQ-0002');
+    expect(links[0]).toMatchObject({ source: 'urd', docId: 'urd.docs-urd', uid: 'URD-1', suspect: true, orphan: false });
   });
 });

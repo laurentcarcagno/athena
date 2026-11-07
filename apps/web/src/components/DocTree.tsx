@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { Tag } from '@athena/ui';
 import { fr } from '../i18n';
 import { anchorOf, type DocTreeNode } from './DocNodeView';
 
@@ -16,6 +17,7 @@ export function DocTree({ project, doc, nodes, selected }: { project: string; do
               <Link className="ath-link" to={`/p/${project}/documents/${doc}#${encodeURIComponent(a)}`} aria-current={selected === a ? 'location' : undefined}>
                 {n.uid && <span className="ath-mono">{n.uid} </span>}{n.title || fr.docs.untitled}
               </Link>
+              {n.citations > 0 && <> <Tag variant="ghost">{fr.docs.citations(n.citations)}</Tag></>}
             </li>
           );
         })}

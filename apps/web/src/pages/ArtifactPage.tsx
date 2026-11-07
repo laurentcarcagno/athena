@@ -6,6 +6,7 @@ import { useBusy, useFailure } from '../hooks';
 import { fr } from '../i18n';
 import { useConfirm } from '../components/ConfirmDialog';
 import { LinkEditor } from '../components/LinkEditor';
+import { DocRefPicker } from '../components/DocRefPicker';
 import { MarkingEditor } from '../components/MarkingEditor';
 import { resolveLayout } from '../lib/layout';
 import { pillKind } from './ListPage';
@@ -13,7 +14,7 @@ import { pillKind } from './ListPage';
 interface LinkView { id: string; type: string; direction: string; label: string; other: string | null; restricted?: boolean; suspect: boolean }
 interface Comment { id: string; author: string; authorName: string; body: string; createdAt: string }
 interface CodeRef { kind: string; ref: string; title: string; state: string; pipeline: string }
-interface DocLink { uid: string; title: string; status: string; suspect: boolean; orphan: boolean }
+interface DocLink { source: string; docId: string | null; uid: string; title: string; status: string; suspect: boolean; orphan: boolean }
 
 export const formatSize = (bytes: number): string => (bytes < 1024 ? `${bytes} o` : bytes < 1024 * 1024 ? `${(bytes / 1024).toFixed(1)} Ko` : `${(bytes / 1024 / 1024).toFixed(1)} Mo`);
 
@@ -241,14 +242,7 @@ export function ArtifactView({ session, project, itemKey: key, embedded = false,
           <Card title={fr.artifact.links}>
             <div className="ath-stack">
               <LinkEditor focusSignal={focusLinks} project={project} itemKey={artifact.key} links={links} onChanged={reload} />
-              {docs.length > 0 && <span className="ath-eyebrow">{fr.artifact.docs}</span>}
-              {docs.map((d) => (
-                <div key={d.uid} className="ath-row">
-                  <Id>{d.uid}</Id> <span>{d.title}</span>
-                  {d.suspect && <StatusPill kind="warning">{fr.artifact.suspect}</StatusPill>}
-                  {d.orphan && <StatusPill kind="danger">{fr.artifact.absent}</StatusPill>}
-                </div>
-              ))}
+              <DocRefPicker project={project} itemKey={artifact.key} links={docs} onChanged={reload} />
             </div>
           </Card>
         )}
