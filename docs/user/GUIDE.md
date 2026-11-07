@@ -101,6 +101,7 @@ La cloche, en haut à droite de chaque page, ouvre le **centre de notifications*
 - **Lu / non lu** : chaque notification se marque individuellement ; « Tout marquer comme lu » vide le compteur.
 - **Réglages** : le bouton « Réglages » du centre active ou coupe chaque type d'événement.
 - **Résumé quotidien** : dans « Réglages » du centre de notifications, activez le résumé et choisissez l'heure d'envoi (dans votre fuseau). Un seul courriel par jour regroupe vos notifications non lues, avec un lien vers chaque item. Si l'instance n'a pas de messagerie, l'option est signalée comme indisponible.
+- **Mentions** : dans un commentaire, tapez `@` puis le début d'un nom ; la liste ne propose que les personnes qui peuvent lire l'item (flèches, Entrée ou Tab pour choisir, Échap pour fermer). La personne mentionnée reçoit une notification « mention » (à la place de celle du commentaire) et retrouve l'item dans la section **Mentions** de « Mon travail ». Une mention d'une personne sans accès à l'item est ignorée. Le texte du commentaire reste du texte : aucun HTML n'est interprété.
 - **Droits** : une notification ne contient aucune valeur de champ et n'est produite que si vous pouvez lire l'item (listes d'ayants droit, contrôle export). Si votre accès est retiré, elle disparaît de votre liste.
 
 ## Fenêtres selon le rôle

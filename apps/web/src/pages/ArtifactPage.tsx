@@ -5,6 +5,7 @@ import { ApiError, api, upload, type Artifact, type AttachmentView, type Field, 
 import { useBusy, useFailure } from '../hooks';
 import { fr } from '../i18n';
 import { SubscribeToggle } from '../components/SubscribeToggle';
+import { MentionInput, MentionText } from '../components/MentionInput';
 import { useConfirm } from '../components/ConfirmDialog';
 import { LinkEditor } from '../components/LinkEditor';
 import { DocRefPicker } from '../components/DocRefPicker';
@@ -291,11 +292,11 @@ export function ArtifactView({ session, project, itemKey: key, embedded = false,
             <div className="ath-stack">
               {comments.length === 0 && <p>{fr.artifact.noComments}</p>}
               {comments.map((c) => (
-                <div key={c.id}><span className="ath-eyebrow">{c.authorName ?? c.author} · <span className="ath-mono">{c.createdAt.slice(0, 16).replace('T', ' ')}</span></span><p>{c.body}</p></div>
+                <div key={c.id}><span className="ath-eyebrow">{c.authorName ?? c.author} · <span className="ath-mono">{c.createdAt.slice(0, 16).replace('T', ' ')}</span></span><MentionText body={c.body} /></div>
               ))}
               <form className="ath-stack" onSubmit={addComment}>
                 <label className="ath-field__label" htmlFor="comment">{fr.artifact.comment}</label>
-                <textarea id="comment" className="ath-input" rows={3} value={comment} onChange={(e) => setComment(e.target.value)} />
+                <MentionInput id="comment" project={project} itemKey={artifact.key} value={comment} onChange={setComment} />
                 <div><Btn type="submit" loading={busy} disabled={comment.trim() === ''}>{fr.artifact.addComment}</Btn></div>
               </form>
             </div>

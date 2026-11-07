@@ -181,7 +181,7 @@ suite('notifications et abonnements (intégration)', () => {
   it('mention (émission directe) : respecte l’auteur, les réglages et les droits', async () => {
     const a = await make('Mentions');
     await runAs('carol', () => notify.setPref(org, 'carol', 'mention', false));
-    const count = await db.tx(org, (c) => notify.emitIn(c, org, { event: 'mention', artifactId: a.id, actor: 'alice', payload: { commentId: 'x' }, direct: ['bob', 'alice', 'carol'] }));
+    const count = await db.tx(org, (c) => notify.emitIn(c, org, { event: 'mention', artifactId: a.id, actor: 'alice', payload: { commentId: 'x' }, direct: ['bob', 'alice', 'carol'], directOnly: true }));
     expect(count).toBe(1); // bob seul : alice est l’auteur, carol a désactivé les mentions
     expect(await kinds('bob')).toContain(`mention:${a.key}`);
     expect(await kinds('carol')).not.toContain(`mention:${a.key}`);

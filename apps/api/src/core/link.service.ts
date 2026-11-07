@@ -2,6 +2,7 @@ import type { PoolClient } from 'pg';
 import { Db, type Actor } from './db';
 import { conflict, notFound, validation } from './errors';
 import { assertPairAllowed, orgLinkTypes, resolveLinkType } from './link-type.service';
+import { resolveMentions } from '../notify/mention';
 import { emit, follow } from '../notify/notify.service';
 import { audit, outbox } from './tracker.service';
 
@@ -32,6 +33,8 @@ export interface CommentView {
   authorName: string;
   body: string;
   createdAt: string;
+  /** Identifiants mentionnés qui peuvent lire l'item (création seulement). */
+  mentions?: string[];
 }
 
 export class LinkService {
@@ -156,9 +159,12 @@ export class LinkService {
       ).rows[0];
       await outbox(c, organizationId, 'artifact', artifact, 'comment.created', { key: canonical, actor: actor.id, commentId: row.id });
       await audit(c, organizationId, actor, 'comment.create', `artifact:${canonical}`);
-      await emit(c, organizationId, { event: 'comment', artifactId: artifact, actor: actor.id, payload: { commentId: row.id } });
+      // Une mention remplace la notification de commentaire de la personne mentionnée (pas deux alertes pour un même message).
+      const mentioned = await resolveMentions(c, artifact, body);
+      const warned = mentioned.length ? await emit(c, organizationId, { event: 'mention', artifactId: artifact, actor: actor.id, payload: { commentId: row.id }, direct: mentioned.map((m) => m.subject), directOnly: true }) : [];
+      await emit(c, organizationId, { event: 'comment', artifactId: artifact, actor: actor.id, payload: { commentId: row.id }, exclude: warned });
       await follow(c, organizationId, actor.id, artifact);
-      return { id: row.id, author: actor.id, authorName: actor.id, body, createdAt: row.created_at.toISOString() };
+      return { id: row.id, author: actor.id, authorName: actor.id, body, createdAt: row.created_at.toISOString(), mentions: mentioned.filter((m) => m.subject !== actor.id).map((m) => m.username) };
     });
   }
 

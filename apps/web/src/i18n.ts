@@ -45,7 +45,7 @@ const frDict = {
     enable: 'Activer', disable: 'Désactiver', active: 'Actif', inactive: 'Inactif', baselineName: 'Nom de la baseline', createdBaseline: (n: string) => `Baseline ${n} créée.`,
     createdWebhook: 'Webhook créé.', toggled: 'État modifié.', trigger: 'Déclencheur',
   },
-  work: { eyebrow: 'Traitement', title: 'Mon travail', assigned: 'Assignés à moi', available: 'À prendre', take: 'Prendre', taken: (k: string) => `${k} vous est assigné.`, none: 'Rien à traiter.', project: 'Projet' },
+  work: { eyebrow: 'Traitement', title: 'Mon travail', assigned: 'Assignés à moi', available: 'À prendre', take: 'Prendre', taken: (k: string) => `${k} vous est assigné.`, none: 'Rien à traiter.', project: 'Projet', mentions: 'Mentions', mentionsNone: 'Aucune mention.', mentionedBy: 'Par', when: 'Date', unread: 'Non lue' },
   org: {
     eyebrow: 'Organisation', title: 'Administration de l’organisation', projects: 'Projets', users: 'Utilisateurs', plugins: 'Plugins', trackerTypes: 'Types', linkTypes: 'Liens',
     templates: 'Templates', template: 'Template du projet', noTemplate: 'Projet vide', templateKey: 'Clé du template (minuscules)', templateName: 'Nom du template', templateDescription: 'Description', fromProject: 'Reprendre les trackers du projet', pickTrackers: 'Trackers à inclure', createTemplate: 'Créer le template', templateCreated: 'Template créé.', deleteTemplate: 'Supprimer', templateDeleted: 'Template supprimé.', builtin: 'Livré', trackersCount: 'Trackers', attributes: 'Attributs',
@@ -103,6 +103,7 @@ const frDict = {
     viewSaved: 'Vue enregistrée.', viewDeleted: 'Vue supprimée.', defaultSet: 'Vue par défaut enregistrée.', defaultUnset: 'Vue par défaut retirée.',
     deleteViewTitle: (n: string) => `Supprimer la vue « ${n} »`, deleteViewBody: 'La vue est supprimée définitivement, y compris pour ceux avec qui elle est partagée.', badQuery: 'Requête invalide.',
   },
+  mention: { list: 'Personnes à mentionner', count: (n: number) => (n === 1 ? '1 personne proposée' : `${n} personnes proposées`) },
   notify: {
     title: 'Notifications', button: 'Notifications', buttonUnread: (n: number) => (n === 1 ? 'Notifications, 1 non lue' : `Notifications, ${n} non lues`),
     markAll: 'Tout marquer comme lu', markRead: 'Marquer comme lu', markUnread: 'Marquer comme non lu', unreadMark: 'Non lu', empty: 'Aucune notification.', list: 'Liste des notifications',
@@ -360,7 +361,7 @@ const enDict: Dictionary = {
     enable: 'Enable', disable: 'Disable', active: 'Active', inactive: 'Inactive', baselineName: 'Baseline name', createdBaseline: (n: string) => `Baseline ${n} created.`,
     createdWebhook: 'Webhook created.', toggled: 'State changed.', trigger: 'Trigger',
   },
-  work: { eyebrow: 'Work', title: 'My work', assigned: 'Assigned to me', available: 'To pick up', take: 'Take', taken: (k: string) => `${k} is now assigned to you.`, none: 'Nothing to process.', project: 'Project' },
+  work: { eyebrow: 'Work', title: 'My work', assigned: 'Assigned to me', available: 'To pick up', take: 'Take', taken: (k: string) => `${k} is now assigned to you.`, none: 'Nothing to process.', project: 'Project', mentions: 'Mentions', mentionsNone: 'No mention.', mentionedBy: 'By', when: 'Date', unread: 'Unread' },
   org: {
     eyebrow: 'Organization', title: 'Organization administration', projects: 'Projects', users: 'Users', plugins: 'Plugins', trackerTypes: 'Types', linkTypes: 'Links',
     templates: 'Templates', template: 'Project template', noTemplate: 'Empty project', templateKey: 'Template key (lowercase)', templateName: 'Template name', templateDescription: 'Description', fromProject: 'Reuse the trackers of project', pickTrackers: 'Trackers to include', createTemplate: 'Create template', templateCreated: 'Template created.', deleteTemplate: 'Delete', templateDeleted: 'Template deleted.', builtin: 'Built-in', trackersCount: 'Trackers', attributes: 'Attributes',
@@ -418,6 +419,7 @@ const enDict: Dictionary = {
     viewSaved: 'View saved.', viewDeleted: 'View deleted.', defaultSet: 'Default view saved.', defaultUnset: 'Default view removed.',
     deleteViewTitle: (n: string) => `Delete view “${n}”`, deleteViewBody: 'The view is deleted permanently, including for those it is shared with.', badQuery: 'Invalid query.',
   },
+  mention: { list: 'People to mention', count: (n: number) => (n === 1 ? '1 person suggested' : `${n} people suggested`) },
   notify: {
     title: 'Notifications', button: 'Notifications', buttonUnread: (n: number) => (n === 1 ? 'Notifications, 1 unread' : `Notifications, ${n} unread`),
     markAll: 'Mark all as read', markRead: 'Mark as read', markUnread: 'Mark as unread', unreadMark: 'Unread', empty: 'No notifications.', list: 'Notification list',

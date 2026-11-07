@@ -68,4 +68,47 @@ test('suivre un item, être notifié d’un commentaire, lire au clavier, marque
   expect((await request.post('http://127.0.0.1:3001/v1/projects/ARI/artifacts/ARI-BUG-0001/comments', { headers, data: { body: 'Silence' } })).status()).toBe(201);
   await page.reload();
   await expect(page.getByRole('button', { name: 'Notifications', exact: true })).toBeVisible();
+
+  // Remise en état : les autres scénarios attendent les commentaires activés.
+  await page.getByRole('button', { name: 'Notifications', exact: true }).click();
+  await page.getByRole('button', { name: 'Réglages' }).click();
+  await page.getByRole('checkbox', { name: 'Commentaire' }).check();
+  await expect(page.getByRole('checkbox', { name: 'Commentaire' })).toBeChecked();
+});
+
+test('mentions : autocomplétion au clavier, rendu assaini, notification et entrée dans Mon travail', async ({ page, request }) => {
+  const token = (await (await request.post('http://localhost:8080/realms/athena/protocol/openid-connect/token', { form: { grant_type: 'password', client_id: 'athena-dev-cli', username: 'admin.dev', password: 'dev-only-admin' } })).json()).access_token as string;
+  const headers = { Authorization: `Bearer ${token}` };
+
+  await login(page, 'user.dev', 'dev-only-user');
+  // Un autre compte mentionne user.dev (le compte existe : il vient de se connecter).
+  const mentioned = await request.post('http://127.0.0.1:3001/v1/projects/ARI/artifacts/ARI-BUG-0001/comments', { headers, data: { body: '@user.dev à toi <b>gras</b>' } });
+  expect(mentioned.status()).toBe(201);
+  expect(((await mentioned.json()) as { mentions: string[] }).mentions).toEqual(['user.dev']);
+
+  await page.goto('/me');
+  await expect(page.getByRole('heading', { name: 'Mentions' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'ARI-BUG-0001' }).first()).toBeVisible();
+  await page.getByRole('button', { name: /^Notifications, \d+ non lue/ }).click();
+  await expect(page.getByText('vous a mentionné').first()).toBeVisible();
+  await page.keyboard.press('Escape');
+
+  // Écrire une mention avec l'autocomplétion, au clavier.
+  await page.goto('/p/ARI/a/ARI-BUG-0001');
+  await page.getByRole('tab', { name: 'Commentaires' }).click();
+  const box = page.getByRole('combobox', { name: 'Commentaire' });
+  await box.click();
+  await page.keyboard.type('Merci @admin');
+  const option = page.getByRole('option', { name: /admin\.dev/ });
+  await expect(option).toBeVisible();
+  expect(await axeViolations(page)).toEqual([]);
+  await page.keyboard.press('Enter');
+  await expect(box).toHaveValue('Merci @admin.dev ');
+  await page.keyboard.type('<i>x</i>');
+  await page.getByRole('button', { name: 'Ajouter', exact: false }).last().click();
+  const shown = page.locator('.ath-comment__body', { hasText: 'Merci @admin.dev' }).last();
+  await expect(shown).toBeVisible();
+  await expect(shown.locator('.ath-mention')).toHaveText('@admin.dev');
+  await expect(shown.locator('i')).toHaveCount(0); // le balisage reste du texte
+  await expect(shown).toContainText('<i>x</i>');
 });

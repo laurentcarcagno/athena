@@ -26,6 +26,10 @@ export interface Emission {
   payload: Record<string, unknown>;
   /** Destinataires directs (mentions), en plus des abonnés. */
   direct?: string[];
+  /** Personnes déjà averties autrement (une mention remplace la notification de commentaire). */
+  exclude?: string[];
+  /** Seulement les destinataires directs, sans les abonnés (mentions). */
+  directOnly?: boolean;
 }
 
 export interface NotificationView {
@@ -51,26 +55,28 @@ export async function follow(c: PoolClient, organizationId: string, subject: str
   );
 }
 
-/** Génère les notifications d'un événement dans la transaction `c` ; retourne le nombre de destinataires. */
-export async function emit(c: PoolClient, organizationId: string, e: Emission): Promise<number> {
+/** Génère les notifications d'un événement dans la transaction `c` ; retourne les destinataires notifiés. */
+export async function emit(c: PoolClient, organizationId: string, e: Emission): Promise<string[]> {
   const art = (await c.query(
     'select a.project_id, a.tracker_id, p.key as project_key, a.key from artifact a join project p on p.id = a.project_id where a.id = $1', [e.artifactId])).rows[0];
-  if (!art) return 0;
+  if (!art) return [];
   const candidates = new Set<string>(e.direct ?? []);
-  for (const r of (await c.query(
+  if (!e.directOnly) for (const r of (await c.query(
     `select subject from subscription where (scope = 'item' and artifact_id = $1) or (scope = 'tracker' and tracker_id = $2)`,
     [e.artifactId, art.tracker_id])).rows) candidates.add(r.subject as string);
-  for (const s of await viewSubscribers(c, art.project_key as string, e.artifactId)) candidates.add(s);
+  if (!e.directOnly) for (const s of await viewSubscribers(c, art.project_key as string, e.artifactId)) candidates.add(s);
   candidates.delete(e.actor);
-  if (candidates.size === 0) return 0;
+  for (const x of e.exclude ?? []) candidates.delete(x);
+  if (candidates.size === 0) return [];
   const inserted = await c.query(
     `insert into notification (organization_id, recipient, event, project_id, artifact_id, actor, payload)
      select $1, s, $2, $3, $4, $5, $6 from unnest($7::text[]) s
      where coalesce((select enabled from notification_pref p where p.organization_id = $1 and p.subject = s and p.event = $2), true)
-       and notify_can_see(s, $4)`,
+       and notify_can_see(s, $4)
+     returning recipient`,
     [organizationId, e.event, art.project_id, e.artifactId, e.actor, JSON.stringify({ key: art.key, ...e.payload }), [...candidates]],
   );
-  return inserted.rowCount ?? 0;
+  return inserted.rows.map((r) => r.recipient as string);
 }
 
 /** Abonnés à une vue dont la requête retient l'item. Les champs à lecture restreinte sont interdits dans la requête (pas de déduction). */
@@ -112,18 +118,18 @@ export class NotifyService {
   constructor(private readonly db: Db) {}
 
   /** Génère les notifications d'un événement dans la transaction `c` ; retourne le nombre de destinataires. */
-  emitIn(c: PoolClient, organizationId: string, e: Emission): Promise<number> {
-    return emit(c, organizationId, e);
+  async emitIn(c: PoolClient, organizationId: string, e: Emission): Promise<number> {
+    return (await emit(c, organizationId, e)).length;
   }
 
-  async list(organizationId: string, subject: string, options: { unread?: boolean; limit?: number } = {}): Promise<{ items: NotificationView[]; unread: number }> {
+  async list(organizationId: string, subject: string, options: { unread?: boolean; limit?: number; event?: NotifyEvent } = {}): Promise<{ items: NotificationView[]; unread: number }> {
     const limit = Math.min(Math.max(options.limit ?? 50, 1), 200);
     return this.db.tx(organizationId, async (c) => {
       const rows = (await c.query(
         `select n.id, n.event, p.key as project, a.key, n.actor, coalesce(u.display_name, n.actor) as actor_name, n.payload, n.read_at, n.created_at
          from notification n join project p on p.id = n.project_id left join artifact a on a.id = n.artifact_id
          left join user_account u on u.organization_id = n.organization_id and u.subject = n.actor
-         where n.recipient = $1 and ($2::boolean is not true or n.read_at is null) order by n.created_at desc, n.id limit $3`, [subject, options.unread ?? false, limit])).rows;
+         where n.recipient = $1 and ($2::boolean is not true or n.read_at is null) and ($4::text is null or n.event = $4) order by n.created_at desc, n.id limit $3`, [subject, options.unread ?? false, limit, options.event ?? null])).rows;
       const unread = Number((await c.query('select count(*) n from notification where recipient = $1 and read_at is null', [subject])).rows[0].n);
       return {
         unread,
@@ -194,6 +200,23 @@ export class NotifyService {
       return rows.map((r): SubscriptionView => r.scope === 'item' ? { id: r.id, scope: 'item', ref: r.item_key, label: r.item_key }
         : r.scope === 'tracker' ? { id: r.id, scope: 'tracker', ref: r.tracker_key, label: r.tracker_key }
         : { id: r.id, scope: 'view', ref: r.filter_id, label: r.filter_name });
+    });
+  }
+
+  /**
+   * Personnes que `subject` peut mentionner sur l'item : celles qui peuvent le lire (listes d'ayants droit, contrôle export), dont le
+   * nom ou l'identifiant commence par `q`. Un utilisateur sans accès n'apparaît jamais, ce qui ne révèle pas son existence.
+   */
+  async mentionable(organizationId: string, subject: string, projectKey: string, key: string, q: string): Promise<Array<{ username: string; displayName: string }>> {
+    return this.db.tx(organizationId, async (c) => {
+      const art = (await c.query('select a.id from artifact a join project p on p.id = a.project_id where p.key = $1 and a.id = resolve_artifact(p.id, $2)', [projectKey, key])).rows[0];
+      if (!art) throw notFound(`Artefact ${key}`);
+      const like = `${q.trim().replace(/[\\%_]/g, '\\$&')}%`;
+      const rows = (await c.query(
+        `select username, display_name from user_account
+         where subject <> $2 and (username ilike $3 or display_name ilike $3 or display_name ilike '% ' || $3) and notify_can_see(subject, $1)
+         order by username limit 8`, [art.id, subject, like])).rows;
+      return rows.map((r) => ({ username: r.username as string, displayName: r.display_name as string }));
     });
   }
 

@@ -22,11 +22,12 @@ export class NotifyController {
 
   @Roles(...ME)
   @Get('me/notifications')
-  async list(@Req() request: AuthedRequest, @Query('unread') unread?: string, @Query('limit') limit?: string) {
+  async list(@Req() request: AuthedRequest, @Query('unread') unread?: string, @Query('limit') limit?: string, @Query('event') event?: string) {
     const { organizationId, actor } = await this.orgs.resolve(request.principal!);
     const n = limit === undefined ? undefined : Number(limit);
     if (n !== undefined && (!Number.isInteger(n) || n < 1 || n > 200)) throw validation(['limit : entre 1 et 200']);
-    return this.notify.list(organizationId, actor.id, { unread: unread === '1' || unread === 'true', ...(n !== undefined ? { limit: n } : {}) });
+    if (event !== undefined && !(NOTIFY_EVENTS as readonly string[]).includes(event)) throw validation([`événement inconnu : ${event}`]);
+    return this.notify.list(organizationId, actor.id, { unread: unread === '1' || unread === 'true', ...(n !== undefined ? { limit: n } : {}), ...(event ? { event: event as NotifyEvent } : {}) });
   }
 
   /** Marque des notifications lues (ou non lues avec `read: false`), ou toutes avec `all: true`. */
@@ -72,6 +73,14 @@ export class NotifyController {
   async setDigest(@Req() request: AuthedRequest, @Body() body: unknown) {
     const { organizationId, actor } = await this.orgs.resolve(request.principal!);
     return this.digest.setSettings(organizationId, actor.id, parseBody(DigestInput, body));
+  }
+
+  /** Autocomplétion des mentions : seules les personnes qui peuvent lire l'item sont proposées. */
+  @Roles('athena-user', 'athena-admin')
+  @Get('projects/:project/artifacts/:key/mentionable')
+  async mentionable(@Req() request: AuthedRequest, @Param('project') project: string, @Param('key') key: string, @Query('q') q?: string) {
+    const { organizationId, actor } = await this.orgs.resolve(request.principal!);
+    return this.notify.mentionable(organizationId, actor.id, project, key, (q ?? '').slice(0, 64));
   }
 
   @Roles(...ME)
