@@ -100,7 +100,7 @@ suite('tracker.yaml, restauration et baselines (GitLab réel)', () => {
     await sync.runOnce();
     await baselines.create(org, 'ARI', 'v1.1', alice);
     const diff = await baselines.diff(org, 'ARI', 'v1.0', 'v1.1');
-    expect(diff).toEqual({ created: ['ARI-BUG-0002'], modified: ['ARI-BUG-0001'], deleted: [], trackers: [] });
+    expect(diff).toEqual({ created: ['ARI-BUG-0002'], modified: ['ARI-BUG-0001'], deleted: [], trackers: [], docs: [] });
     expect(await code(baselines.diff(org, 'ARI', 'v1.0', 'inconnue'))).toMatch(/not_found/);
   }, 90_000);
 

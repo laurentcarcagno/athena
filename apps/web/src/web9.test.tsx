@@ -183,7 +183,7 @@ describe('onglets Planification, Membres et Code', () => {
     app('/p/ARI/planification', ['athena-user', 'athena-pm']);
     await screen.findByRole('heading', { level: 1, name: 'Planification · ARI' });
     const tabs = screen.getAllByRole('tab').map((t) => t.textContent);
-    expect(tabs).toEqual(['Sprints', 'Versions', 'Boards', 'Approbations']);
+    expect(tabs).toEqual(['Sprints', 'Versions', 'Boards', 'Approbations', 'Baselines']);
   });
   it('Code : dépôts liés et indicateurs de livraison, vide sinon', async () => {
     app('/p/ARI/code');

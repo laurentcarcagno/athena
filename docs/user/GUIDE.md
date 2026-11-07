@@ -86,6 +86,14 @@ Une phase se termine par une revue : on ne passe à la phase suivante que si ses
 
 **Assurance qualité étatique.** Ce rôle lit ce que sa liste d'ayants droit autorise et n'écrit rien. Il approuve ou refuse, sous son nom et avec horodatage, les jalons et les baselines pour lesquels un responsable a exigé une approbation (page *Planification*, onglet *Approbations*). Un jalon qui requiert une approbation ne peut pas être publié sans elle.
 
+## Documents StrictDoc
+
+L'onglet *Documents* (visible quand une source StrictDoc est indexée) permet de **lire** les documents du projet, par section, sans les modifier : la modification se fait dans StrictDoc, et une bannière le rappelle avec un lien vers la source. Chaque exigence a une adresse stable (`/p/<projet>/documents/<document>#<UID>`) ; la recherche accepte un UID (exact ou début) ou du texte. Les textes sont affichés comme du texte, sans HTML.
+
+**Citer une exigence.** Dans l'onglet *Liens* de n'importe quel artefact (par exemple une action de sprint), le champ *Citer une exigence* propose les exigences par UID ou titre. Le document montre, sur chaque exigence, les artefacts qui la citent, avec leur état. Quand l'exigence est modifiée dans StrictDoc puis ré-indexée, le lien de chaque artefact citant devient **suspect** (un événement `link.suspect` part aux webhooks) ; un humain l'acquitte pour faire de la nouvelle version la référence, et l'acquittement est audité.
+
+**Baselines.** Une baseline enregistre le SHA de chaque source documentaire et l'empreinte de ses exigences. Elle est **refusée** si le dépôt documentaire a avancé depuis la dernière indexation : on ré-indexe d'abord, pour ne jamais figer des documents périmés sans le savoir. La page *Planification*, onglet *Baselines*, compare deux baselines (items, trackers, exigences ajoutées, modifiées, supprimées, SHA des documents) et exporte la comparaison en CSV, avec la mention de protection de l'instance si elle est définie.
+
 ## Fenêtres selon le rôle
 - **Utilisateur** (`athena-user`) : **Mon travail** liste les artefacts qui vous sont assignés (hors terminés) et ceux à prendre (non assignés, à faire) ; **Prendre** vous assigne l'artefact.
 - **Chef de projet** (`athena-pm`) : **Gestion de projet** (`/p/<projet>/manage`) : acteurs du projet (chef ou membre, choisis parmi les comptes déjà connectés), sprints (créer, démarrer, clore), versions (créer, publier), boards (créer). Un chef de projet ne gère que les projets dont il est désigné **chef**.

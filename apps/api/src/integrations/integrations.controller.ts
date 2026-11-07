@@ -488,6 +488,14 @@ export class IntegrationsController {
     return this.baselineService().diff((await this.ctx(request)).organizationId, project, from, to);
   }
 
+  /** Export CSV d'une comparaison de baselines, avec la mention de protection de l'instance. */
+  @Roles('athena-user', 'athena-admin')
+  @Get('v1/projects/:project/baselines-diff/export')
+  async exportBaselineDiff(@Req() request: AuthedRequest, @Param('project') project: string, @Query('from') from = '', @Query('to') to = '') {
+    const out = await this.baselineService().diffCsv((await this.ctx(request)).organizationId, project, from, to);
+    return this.marker.json({ ...out, csv: this.marker.csv(out.csv) });
+  }
+
   // --- Code GitLab ---
   @Roles('athena-user', 'athena-admin')
   @Get('v1/projects/:project/artifacts/:key/code-refs')

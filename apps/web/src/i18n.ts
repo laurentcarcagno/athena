@@ -293,6 +293,13 @@ const frDict = {
     cite: 'Citer', cited: (u: string) => `${u} citée.`, openIn: 'Ouvrir dans le document', acknowledge: 'Acquitter', acknowledged: 'Lien acquitté : la version actuelle de l’exigence fait référence.',
     suggestions: (n: number) => `${n} exigence${n > 1 ? 's' : ''} proposée${n > 1 ? 's' : ''}`,
   },
+  baselineCompare: {
+    title: 'Baselines', empty: 'Aucune baseline.', name: 'Nom', commit: 'Commit', documents: 'Documents (SHA)', date: 'Date', needTwo: 'Deux baselines au moins sont nécessaires pour comparer.',
+    from: 'De la baseline', to: 'À la baseline', compare: 'Comparer', exportCsv: 'Exporter en CSV', noChange: 'Aucune différence entre les deux baselines.',
+    summary: (a: string, b: string, n: number) => `${a} → ${b} : ${n} différence${n > 1 ? 's' : ''}.`, items: 'Items et trackers', created: 'Items créés', modified: 'Items modifiés', deleted: 'Items supprimés', trackers: 'Trackers modifiés',
+    docOf: (s: string) => `Exigences de la source ${s}`, shaChanged: (a: string, b: string) => `SHA ${a} → ${b}`,
+    requirements: { added: 'Exigences ajoutées', modified: 'Exigences modifiées', removed: 'Exigences supprimées' } as Record<string, string>,
+  },
 };
 
 export type Dictionary = typeof frDict;
@@ -585,6 +592,13 @@ const enDict: Dictionary = {
     title: 'Cited document requirements', none: 'No document requirement cited.', label: 'Cite a requirement (UID or title)', placeholder: 'E.g. URD-12 or authentication',
     cite: 'Cite', cited: (u: string) => `${u} cited.`, openIn: 'Open in the document', acknowledge: 'Acknowledge', acknowledged: 'Link acknowledged: the current version of the requirement is now the reference.',
     suggestions: (n: number) => `${n} suggested requirement${n > 1 ? 's' : ''}`,
+  },
+  baselineCompare: {
+    title: 'Baselines', empty: 'No baseline.', name: 'Name', commit: 'Commit', documents: 'Documents (SHA)', date: 'Date', needTwo: 'At least two baselines are needed to compare.',
+    from: 'From baseline', to: 'To baseline', compare: 'Compare', exportCsv: 'Export as CSV', noChange: 'No difference between the two baselines.',
+    summary: (a: string, b: string, n: number) => `${a} → ${b}: ${n} difference${n > 1 ? 's' : ''}.`, items: 'Items and trackers', created: 'Items created', modified: 'Items modified', deleted: 'Items deleted', trackers: 'Trackers modified',
+    docOf: (s: string) => `Requirements of source ${s}`, shaChanged: (a: string, b: string) => `SHA ${a} → ${b}`,
+    requirements: { added: 'Requirements added', modified: 'Requirements modified', removed: 'Requirements removed' } as Record<string, string>,
   },
 };
 

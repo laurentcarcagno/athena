@@ -1,4 +1,5 @@
 import { ApprovalsPanel } from '../components/ApprovalsPanel';
+import { BaselineCompare } from '../components/BaselineCompare';
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { useParams } from 'react-router-dom';
 import { Btn, Card, EmptyState, Field, PageHeader, StatusPill, Table, Tabs, Td, Th, useToast } from '@athena/ui';
@@ -203,12 +204,13 @@ export function ProjectManagePage({ session }: { session: Session }) {
   return (
     <>
       <PageHeader eyebrow={fr.manage.eyebrow} title={`${fr.manage.title} · ${project}`} />
-      <Tabs tabs={[{ id: 'sprints', label: fr.manage.sprints }, { id: 'releases', label: fr.manage.releases }, { id: 'boards', label: fr.manage.boards }, { id: 'approvals', label: fr.approvals.title }]} active={tab} onChange={setTab} />
+      <Tabs tabs={[{ id: 'sprints', label: fr.manage.sprints }, { id: 'releases', label: fr.manage.releases }, { id: 'boards', label: fr.manage.boards }, { id: 'approvals', label: fr.approvals.title }, { id: 'baselines', label: fr.baselineCompare.title }]} active={tab} onChange={setTab} />
       <div role="tabpanel" className="ath-stack">
         {tab === 'sprints' && <SprintsTab project={project!} />}
         {tab === 'releases' && <ReleasesTab project={project!} />}
         {tab === 'boards' && <BoardsTab project={project!} />}
         {tab === 'approvals' && <ApprovalsPanel project={project!} canRequire canDecide={false} />}
+        {tab === 'baselines' && <BaselineCompare project={project!} />}
       </div>
     </>
   );
