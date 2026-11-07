@@ -4,6 +4,7 @@ import { conflict, forbidden, notFound, validation } from './errors';
 import { FieldTypeRegistry } from './field-types';
 import { formatKey } from './key';
 import { emit, follow } from '../notify/notify.service';
+import { approvalSatisfied, invalidateItemApprovals } from './item-approval.service';
 import { audit, outbox, TrackerService, type TrackerDefinition } from './tracker.service';
 
 export interface Artifact {
@@ -118,6 +119,8 @@ export class ArtifactService {
           [row.id],
         );
         for (const link of flagged.rows) await emit(c, organizationId, { event: 'suspect', artifactId: link.from_artifact_id as string, actor: actor.id, payload: { cause: row.key } });
+        // Le contenu a changé : les décisions d'approbation en cours ne portent plus sur ce qui existe.
+        await invalidateItemApprovals(c, organizationId, row.id, row.key, version, actor);
       }
       await this.record(c, organizationId, row.id, version, diff, actor, 'artifact.updated', row.key, { changes: diff },
         { key: row.key, tracker: row.tracker_key, status: row.status_key, version, values: next });
@@ -176,6 +179,7 @@ export class ArtifactService {
           const pending = (await c.query("select branch from backport where artifact_id = $1 and state = 'pending' order by branch", [row.id])).rows.map((r) => r.branch as string);
           if (pending.length) problems.push(`rétroportages en attente : ${pending.join(', ')}`);
         }
+        if (validator.type === 'approval' && !(await approvalSatisfied(c, row.id))) problems.push("approbation requise : le circuit d'approbation n'est pas terminé");
         if (validator.type === 'required_fields') {
           for (const f of validator.fields ?? []) if (row.values[f] === undefined) problems.push(`champ requis : ${f}`);
         }

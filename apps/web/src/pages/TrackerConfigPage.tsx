@@ -5,6 +5,7 @@ import { ApiError, api, type Session, type TrackerDefinition, type TrackerTypeEn
 import { useConfirm } from '../components/ConfirmDialog';
 import { useBusy, useFailure } from '../hooks';
 import { WorkflowEditor } from '../components/WorkflowEditor';
+import { ApprovalFlowEditor } from '../components/ApprovalFlowEditor';
 import { LayoutEditor } from '../components/LayoutEditor';
 import { fr } from '../i18n';
 import { forSave, type Layout } from '../lib/layout';
@@ -137,6 +138,11 @@ export function TrackerConfigPage({ session }: { session: Session }) {
                 {trackerTypes.map((t) => <option key={t.key} value={t.key}>{t.name}</option>)}
               </select>
             </div>
+          </Card>
+        )}
+        {admin && (
+          <Card title={fr.itemApproval.flowTitle}>
+            <ApprovalFlowEditor project={String(project)} tracker={String(tracker)} />
           </Card>
         )}
         {admin && (

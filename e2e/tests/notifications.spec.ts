@@ -81,7 +81,8 @@ test('mentions : autocomplétion au clavier, rendu assaini, notification et entr
   const headers = { Authorization: `Bearer ${token}` };
 
   await login(page, 'user.dev', 'dev-only-user');
-  // Un autre compte mentionne user.dev (le compte existe : il vient de se connecter).
+  await expect(page.getByText('Ariane')).toBeVisible(); // données chargées : le compte est enregistré côté serveur
+  // Un autre compte mentionne user.dev.
   const mentioned = await request.post('http://127.0.0.1:3001/v1/projects/ARI/artifacts/ARI-BUG-0001/comments', { headers, data: { body: '@user.dev à toi <b>gras</b>' } });
   expect(mentioned.status()).toBe(201);
   expect(((await mentioned.json()) as { mentions: string[] }).mentions).toEqual(['user.dev']);

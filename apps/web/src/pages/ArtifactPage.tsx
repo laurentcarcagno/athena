@@ -6,6 +6,7 @@ import { useBusy, useFailure } from '../hooks';
 import { fr } from '../i18n';
 import { SubscribeToggle } from '../components/SubscribeToggle';
 import { MentionInput, MentionText } from '../components/MentionInput';
+import { ApprovalPanel } from '../components/ApprovalPanel';
 import { useConfirm } from '../components/ConfirmDialog';
 import { LinkEditor } from '../components/LinkEditor';
 import { DocRefPicker } from '../components/DocRefPicker';
@@ -103,6 +104,7 @@ export function ArtifactView({ session, project, itemKey: key, embedded = false,
   const [history, setHistory] = useState<Revision[]>([]);
   const [code, setCode] = useState<CodeRef[]>([]);
   const [comment, setComment] = useState('');
+  const [circuit, setCircuit] = useState(false);
   const [files, setFiles] = useState<AttachmentView[]>([]);
   const base = `/v1/projects/${project}/artifacts/${key}`;
 
@@ -117,6 +119,8 @@ export function ArtifactView({ session, project, itemKey: key, embedded = false,
       api<Revision[]>('GET', `${base}/history`), api<CodeRef[]>('GET', `${base}/code-refs`),
     ]);
     setLinks(l); setDocs(d); setComments(c); setHistory(h); setCode(r);
+    // L'onglet Approbation n'existe que si un circuit actif est défini sur le tracker.
+    api<{ configured: boolean; enabled: boolean }>('GET', `${base}/approval`).then((v) => setCircuit(v.configured && v.enabled)).catch(() => setCircuit(false));
   }, [base, project, key, navigate]);
   useEffect(() => { setArtifact(null); setTab('details'); }, [key, project]);
   useEffect(() => { reload().catch(fail); }, [reload, fail]);
@@ -217,6 +221,7 @@ export function ArtifactView({ session, project, itemKey: key, embedded = false,
         tabs={[
           { id: 'details', label: fr.artifact.details }, { id: 'links', label: fr.artifact.links }, { id: 'history', label: fr.artifact.history },
           { id: 'attachments', label: fr.artifact.attachments }, { id: 'activity', label: fr.artifact.activity }, { id: 'dev', label: fr.artifact.development },
+          ...(circuit ? [{ id: 'approval', label: fr.itemApproval.tab }] : []),
         ]}
         active={tab} onChange={setTab}
       />
@@ -285,6 +290,11 @@ export function ArtifactView({ session, project, itemKey: key, embedded = false,
                 <input id="attachment-file" className="ath-input" type="file" onChange={addFile} />
               </div>
             </div>
+          </Card>
+        )}
+        {tab === 'approval' && circuit && (
+          <Card title={fr.itemApproval.title}>
+            <ApprovalPanel project={project} itemKey={artifact.key} version={artifact.version} onChanged={() => void reload().catch(fail)} />
           </Card>
         )}
         {tab === 'activity' && (

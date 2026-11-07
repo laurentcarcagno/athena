@@ -81,7 +81,7 @@ export class ApprovalService {
       }
       await c.query(
         `insert into approval (organization_id, project_id, object_type, object_id, approver, approver_name, decision, comment) values ($1,$2,$3,$4,$5,$6,$7,$8)
-         on conflict (object_type, object_id, approver) do update set decision = excluded.decision, comment = excluded.comment, approver_name = excluded.approver_name, decided_at = now()`,
+         on conflict (object_type, object_id, approver) where object_type <> 'item' do update set decision = excluded.decision, comment = excluded.comment, approver_name = excluded.approver_name, decided_at = now()`,
         [organizationId, o.projectId, type, o.id, approver.id, approver.name, input.decision, input.comment],
       );
       await audit(c, organizationId, actor, `approval.${input.decision}`, `${type}:${ref}`, { project: projectKey, comment: input.comment });

@@ -104,6 +104,9 @@ Données personnelles de la personne connectée ; l'assurance qualité étatique
 - `GET|PUT /v1/me/notification-digest` : résumé quotidien par courriel, `{ enabled, hour (0-23), timezone (IANA), locale (fr|en) }` ; `available` (lecture) est faux quand l'instance n'a pas de SMTP.
 - `GET /v1/projects/{project}/artifacts/{key}/mentionable?q=` : personnes que l'appelant peut mentionner sur l'item (celles qui peuvent le lire, 8 au plus) ; `{ username, displayName }`.
 - `POST .../comments` renvoie en plus `mentions` : les identifiants `@…` du texte qui désignent des personnes pouvant lire l'item. `GET /v1/me/notifications` accepte `event=` (`mention`, `comment`, …).
+- `GET|PUT /v1/projects/{project}/trackers/{tracker}/approval-flow` : circuit d'approbation du tracker (PUT : administrateurs et responsables). Corps : `{ enabled, steps: [{ name, kind: review|approval, approvers: [sujets], role: "athena-qa"|null, minApprovals }] }`. Remplacer le circuit invalide les décisions en cours sur les items du tracker.
+- `GET /v1/projects/{project}/artifacts/{key}/approval` : état du circuit pour l'appelant (`state`, `currentStep`, `steps[].decisions`, `invalidated`, `canDecide`). `POST .../approval/decision` `{ decision: approved|rejected, comment }` : décision nominative de la personne désignée à l'étape courante (ou du rôle `athena-qa` si l'étape l'ouvre).
+- Validateur de transition `{"type": "approval"}` : la transition est refusée tant que le circuit de l'item n'est pas terminé.
 - `GET|POST /v1/projects/{project}/subscriptions` : abonnements de la personne ; corps `{ scope: item|tracker|view, ref }` (clé de l'item, clé du tracker, identifiant de la vue). `DELETE /v1/subscriptions/{id}`.
 - Les notifications sont produites dans la transaction de l'événement et ne visent que les destinataires autorisés à lire l'item ; la lecture est filtrée par les mêmes règles (une notification d'un item devenu illisible n'est plus renvoyée).
 

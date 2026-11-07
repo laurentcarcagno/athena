@@ -27,7 +27,7 @@ export function describe(n: NotificationEntry): string {
     case 'comment': return text.comment(n.actorName);
     case 'mention': return text.mention(n.actorName);
     case 'suspect': return text.suspect(n.actorName, String(p['cause'] ?? ''));
-    default: return text.approval(n.actorName);
+    default: return text.approval(n.actorName, p);
   }
 }
 

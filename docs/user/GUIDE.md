@@ -104,6 +104,14 @@ La cloche, en haut à droite de chaque page, ouvre le **centre de notifications*
 - **Mentions** : dans un commentaire, tapez `@` puis le début d'un nom ; la liste ne propose que les personnes qui peuvent lire l'item (flèches, Entrée ou Tab pour choisir, Échap pour fermer). La personne mentionnée reçoit une notification « mention » (à la place de celle du commentaire) et retrouve l'item dans la section **Mentions** de « Mon travail ». Une mention d'une personne sans accès à l'item est ignorée. Le texte du commentaire reste du texte : aucun HTML n'est interprété.
 - **Droits** : une notification ne contient aucune valeur de champ et n'est produite que si vous pouvez lire l'item (listes d'ayants droit, contrôle export). Si votre accès est retiré, elle disparaît de votre liste.
 
+## Circuit d'approbation d'un item
+Un responsable ou un administrateur définit un **circuit** sur un tracker (page de configuration du tracker, carte « Circuit d'approbation des items ») : des étapes ordonnées de relecture ou d'approbation, chacune confiée à des personnes nommées et/ou au rôle assurance qualité étatique, avec un nombre de décisions favorables requis.
+- Sur l'item, l'onglet **Approbation** (présent quand le tracker a un circuit actif) dit l'état en texte, les étapes, qui est désigné et les décisions (nominatives, horodatées, commentées). Une étape s'ouvre quand la précédente est terminée ; seule une personne désignée à l'étape courante décide, après confirmation. Un refus arrête le circuit ; la personne peut revenir sur sa décision.
+- **Toute modification du contenu de l'item invalide les décisions** : l'onglet l'indique (« L'item a été modifié… ») et le circuit reprend à la première étape. Un changement de statut ou de champ hors contenu (priorité, responsable) ne les invalide pas. Les décisions invalidées restent consultables dans le journal d'audit.
+- Les personnes désignées sont averties quand leur étape s'ouvre ou qu'une décision est invalidée ; les abonnés de l'item le sont de chaque décision.
+- Pour exiger le circuit avant une transition, ajoutez le validateur `{"type": "approval"}` à cette transition.
+- Les jalons et baselines gardent leur approbation par l'assurance qualité étatique (onglet Approbations de la planification) ; la table des décisions est la même.
+
 ## Fenêtres selon le rôle
 - **Utilisateur** (`athena-user`) : **Mon travail** liste les artefacts qui vous sont assignés (hors terminés) et ceux à prendre (non assignés, à faire) ; **Prendre** vous assigne l'artefact.
 - **Chef de projet** (`athena-pm`) : **Gestion de projet** (`/p/<projet>/manage`) : acteurs du projet (chef ou membre, choisis parmi les comptes déjà connectés), sprints (créer, démarrer, clore), versions (créer, publier), boards (créer). Un chef de projet ne gère que les projets dont il est désigné **chef**.

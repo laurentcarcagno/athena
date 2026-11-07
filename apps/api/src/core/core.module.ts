@@ -48,6 +48,8 @@ import { MemberController } from './member.controller';
 import { AccessController } from './access.controller';
 import { ApprovalController } from './approval.controller';
 import { ApprovalService } from './approval.service';
+import { ItemApprovalController } from './item-approval.controller';
+import { ItemApprovalService } from './item-approval.service';
 import { AccessService } from './access.service';
 import { ExportMarker } from './export-marking';
 import { NormativeController } from './normative.controller';
@@ -76,7 +78,7 @@ import { TrackerService } from './tracker.service';
 export { PG_POOL } from './core.tokens';
 
 @Module({
-  controllers: [CoreController, AttachmentController, SavedFilterController, IntegrationsController, AgileController, MemberController, TemplateController, ProjectTemplateController, TrackerTemplateController, TrackerTypeController, ProjectOverviewController, PinController, LinkTypeController, TreeController, MatrixController, CoverageController, NormativeController, AccessController, ApprovalController, DocController, NotifyController],
+  controllers: [CoreController, AttachmentController, SavedFilterController, IntegrationsController, AgileController, MemberController, TemplateController, ProjectTemplateController, TrackerTemplateController, TrackerTypeController, ProjectOverviewController, PinController, LinkTypeController, TreeController, MatrixController, CoverageController, NormativeController, AccessController, ApprovalController, ItemApprovalController, DocController, NotifyController],
   providers: [
     { provide: PG_POOL, useFactory: () => new Pool({ connectionString: loadConfig().DATABASE_URL, max: 10 }) },
     { provide: FieldTypeRegistry, useValue: new FieldTypeRegistry() },
@@ -143,6 +145,7 @@ export { PG_POOL } from './core.tokens';
       inject: [Db],
     },
     { provide: ApprovalService, useFactory: (db: Db) => new ApprovalService(db), inject: [Db] },
+    { provide: ItemApprovalService, useFactory: (db: Db) => new ItemApprovalService(db), inject: [Db] },
     { provide: AccessService, useFactory: (db: Db) => new AccessService(db), inject: [Db] },
     { provide: NormativeService, useFactory: (db: Db, a: ArtifactService) => new NormativeService(db, a), inject: [Db, ArtifactService] },
     { provide: MemberService, useFactory: (db: Db) => new MemberService(db), inject: [Db] },

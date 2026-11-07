@@ -417,3 +417,8 @@ html, body { margin: 0; }
 .ath-mention-input__list[hidden] { display: none; }
 .ath-mention-input__option { padding: var(--ath-space-xs) var(--ath-space-sm); cursor: pointer; }
 .ath-mention-input__option--active { background: var(--ath-color-hover-mist); outline: 2px solid var(--ath-color-console-sky); outline-offset: -2px; }
+
+/* Circuits d'approbation (T-0094) */
+.ath-approval-steps { margin: 0; padding-left: var(--ath-space-lg); display: flex; flex-direction: column; gap: var(--ath-space-md); }
+.ath-approval-step { padding: var(--ath-space-sm) var(--ath-space-md); border: 1px solid var(--ath-color-console-border); background: var(--ath-color-instrument-white); }
+.ath-notice { margin: 0; padding: var(--ath-space-sm) var(--ath-space-md); border-left: 4px solid var(--ath-color-signal-warning); background: var(--ath-color-pill-warning-bg); color: var(--ath-color-ink); }
