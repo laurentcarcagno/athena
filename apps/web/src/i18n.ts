@@ -281,6 +281,13 @@ const frDict = {
     approveTitle: (r: string) => `Approuver ${r}`, rejectTitle: (r: string) => `Refuser ${r}`, decideBody: 'La décision est nominative, horodatée et consignée dans le journal d’audit.',
     qaOnly: 'Rôle assurance qualité étatique : lecture seule, avec approbation des jalons et des baselines.',
   },
+  docs: {
+    title: 'Documents', empty: 'Aucun document indexé. Les documents StrictDoc apparaissent ici une fois leur source indexée.', list: 'Documents du projet', choose: 'Choisissez un document.',
+    search: 'Recherche dans les documents', searchLabel: 'UID ou texte', searchPlaceholder: 'Ex. URD-12 ou authentification', searchRun: 'Rechercher', noHit: 'Aucun résultat.', results: (n: number) => `${n} résultat${n > 1 ? 's' : ''}`,
+    matches: { uid: 'UID exact', prefix: 'Début d’UID', text: 'Texte' } as Record<string, string>,
+    readOnly: 'Lecture seule : modifier dans StrictDoc.', openSource: 'Ouvrir la source', outline: 'Plan du document', untitled: 'Sans titre', truncated: 'Document tronqué (trop de nœuds)',
+    citations: (n: number) => `${n} citation${n > 1 ? 's' : ''}`, citationsOf: (uid: string) => `Artefacts citant ${uid}`, noCitation: 'Aucun artefact ne cite cette exigence.', suspect: 'Lien suspect',
+  },
 };
 
 export type Dictionary = typeof frDict;
@@ -561,6 +568,13 @@ const enDict: Dictionary = {
     requireApproval: 'Require approval', dropRequirement: 'No longer require', approve: 'Approve', reject: 'Reject', comment: 'Comment', saved: 'Requirement saved.', decided: 'Decision saved.',
     approveTitle: (r: string) => `Approve ${r}`, rejectTitle: (r: string) => `Reject ${r}`, decideBody: 'The decision is named, timestamped and recorded in the audit log.',
     qaOnly: 'State quality assurance role: read-only, with approval of milestones and baselines.',
+  },
+  docs: {
+    title: 'Documents', empty: 'No indexed document. StrictDoc documents appear here once their source is indexed.', list: 'Project documents', choose: 'Choose a document.',
+    search: 'Search in documents', searchLabel: 'UID or text', searchPlaceholder: 'E.g. URD-12 or authentication', searchRun: 'Search', noHit: 'No result.', results: (n: number) => `${n} result${n > 1 ? 's' : ''}`,
+    matches: { uid: 'Exact UID', prefix: 'UID prefix', text: 'Text' } as Record<string, string>,
+    readOnly: 'Read only: edit in StrictDoc.', openSource: 'Open the source', outline: 'Document outline', untitled: 'Untitled', truncated: 'Document truncated (too many nodes)',
+    citations: (n: number) => `${n} citation${n > 1 ? 's' : ''}`, citationsOf: (uid: string) => `Items citing ${uid}`, noCitation: 'No item cites this requirement.', suspect: 'Suspect link',
   },
 };
 

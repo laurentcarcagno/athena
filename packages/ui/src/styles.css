@@ -374,3 +374,16 @@ html, body { margin: 0; }
 /* Bandeau du niveau de protection de l'instance : fixe en tête de page, bleu profond (jamais le rouge de cérémonie), sans ombre. */
 .ath-protection { position: sticky; top: 0; z-index: 1300; display: flex; align-items: center; justify-content: center; min-height: 28px; padding: 0 var(--ath-space-md); background: var(--ath-color-sovereign-deep-blue); color: var(--ath-color-instrument-white); border-bottom: 2px solid var(--ath-color-console-sky); font-weight: 700; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; text-align: center; }
 .ath-root--protected .ath-sidebar { top: 28px; height: calc(100vh - 28px); height: calc(100dvh - 28px); }
+
+/* Documents StrictDoc en lecture seule : plan et contenu côte à côte, indentation par profondeur (classes, pas d'attribut style). */
+.ath-doc { display: grid; grid-template-columns: minmax(220px, 280px) minmax(0, 1fr); gap: var(--ath-space-lg); align-items: start; }
+.ath-doc__outline { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--ath-space-xs); }
+.ath-doc__banner { margin: 0; padding: var(--ath-space-sm) var(--ath-space-md); border: 1px solid var(--ath-color-console-border); border-left: 4px solid var(--ath-color-console-sky); background: var(--ath-color-instrument-white); }
+.ath-doc__content { display: flex; flex-direction: column; gap: var(--ath-space-md); }
+.ath-doc__heading { margin: 0; font-size: 14px; }
+.ath-doc__uid { font-weight: 500; }
+.ath-doc__text { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.ath-doc__req { padding: var(--ath-space-md); border: 1px solid var(--ath-color-console-border); background: var(--ath-color-instrument-white); display: flex; flex-direction: column; gap: var(--ath-space-sm); }
+.ath-doc__req--selected { border-left: 4px solid var(--ath-color-console-sky); }
+.ath-doc__depth-0 { margin-left: 0; } .ath-doc__depth-1 { margin-left: 16px; } .ath-doc__depth-2 { margin-left: 32px; } .ath-doc__depth-3 { margin-left: 48px; } .ath-doc__depth-4 { margin-left: 64px; }
+@media (max-width: 768px) { .ath-doc { grid-template-columns: 1fr; } }
