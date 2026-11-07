@@ -40,6 +40,8 @@ import { S3Client } from '../storage/s3';
 import { SavedFilterController } from '../atql/saved-filter.controller';
 import { SavedFilterService } from '../atql/saved-filter.service';
 import { LinkService } from './link.service';
+import { NotifyController } from '../notify/notify.controller';
+import { NotifyService } from '../notify/notify.service';
 import { MemberController } from './member.controller';
 import { AccessController } from './access.controller';
 import { ApprovalController } from './approval.controller';
@@ -72,7 +74,7 @@ import { TrackerService } from './tracker.service';
 export { PG_POOL } from './core.tokens';
 
 @Module({
-  controllers: [CoreController, AttachmentController, SavedFilterController, IntegrationsController, AgileController, MemberController, TemplateController, ProjectTemplateController, TrackerTemplateController, TrackerTypeController, ProjectOverviewController, PinController, LinkTypeController, TreeController, MatrixController, CoverageController, NormativeController, AccessController, ApprovalController, DocController],
+  controllers: [CoreController, AttachmentController, SavedFilterController, IntegrationsController, AgileController, MemberController, TemplateController, ProjectTemplateController, TrackerTemplateController, TrackerTypeController, ProjectOverviewController, PinController, LinkTypeController, TreeController, MatrixController, CoverageController, NormativeController, AccessController, ApprovalController, DocController, NotifyController],
   providers: [
     { provide: PG_POOL, useFactory: () => new Pool({ connectionString: loadConfig().DATABASE_URL, max: 10 }) },
     { provide: FieldTypeRegistry, useValue: new FieldTypeRegistry() },
@@ -129,6 +131,7 @@ export { PG_POOL } from './core.tokens';
     { provide: TemplateService, useFactory: (db: Db, t: TrackerService) => new TemplateService(db, t), inject: [Db, TrackerService] },
     { provide: TemplateUpgradeService, useFactory: (db: Db, t: TrackerService, tpl: TemplateService) => new TemplateUpgradeService(db, t, tpl), inject: [Db, TrackerService, TemplateService] },
     { provide: ExportMarker, useFactory: () => new ExportMarker(loadConfig().ATHENA_PROTECTION_LEVEL), inject: [] },
+    { provide: NotifyService, useFactory: (db: Db) => new NotifyService(db), inject: [Db] },
     { provide: ApprovalService, useFactory: (db: Db) => new ApprovalService(db), inject: [Db] },
     { provide: AccessService, useFactory: (db: Db) => new AccessService(db), inject: [Db] },
     { provide: NormativeService, useFactory: (db: Db, a: ArtifactService) => new NormativeService(db, a), inject: [Db, ArtifactService] },

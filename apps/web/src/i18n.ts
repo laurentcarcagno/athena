@@ -103,6 +103,19 @@ const frDict = {
     viewSaved: 'Vue enregistrée.', viewDeleted: 'Vue supprimée.', defaultSet: 'Vue par défaut enregistrée.', defaultUnset: 'Vue par défaut retirée.',
     deleteViewTitle: (n: string) => `Supprimer la vue « ${n} »`, deleteViewBody: 'La vue est supprimée définitivement, y compris pour ceux avec qui elle est partagée.', badQuery: 'Requête invalide.',
   },
+  notify: {
+    title: 'Notifications', button: 'Notifications', buttonUnread: (n: number) => (n === 1 ? 'Notifications, 1 non lue' : `Notifications, ${n} non lues`),
+    markAll: 'Tout marquer comme lu', markRead: 'Marquer comme lu', markUnread: 'Marquer comme non lu', unreadMark: 'Non lu', empty: 'Aucune notification.', list: 'Liste des notifications',
+    settings: 'Réglages', settingsLegend: 'Événements à notifier', follow: 'Suivre', unfollow: 'Ne plus suivre',
+    eventNames: { transition: 'Changement de statut', mention: 'Mention', suspect: 'Lien suspect', comment: 'Commentaire', approval: 'Approbation' } as Record<string, string>,
+    events: {
+      transition: (who: string, from: string, to: string) => `${who} a fait passer l’item de ${from} à ${to}.`,
+      comment: (who: string) => `${who} a commenté l’item.`,
+      mention: (who: string) => `${who} vous a mentionné.`,
+      suspect: (who: string, cause: string) => `Lien suspect : ${who} a modifié ${cause}.`,
+      approval: (who: string) => `${who} a rendu une décision d’approbation.`,
+    },
+  },
   detail: { panel: 'Détail de l’item', expand: 'Agrandir', close: 'Fermer' },
   rail: {
     favorites: 'Favoris', recents: 'Récents', project: 'Projet', trackers: 'Trackers', pin: 'Épingler', unpin: 'Désépingler', moveUp: 'Monter', moveDown: 'Descendre',
@@ -402,6 +415,19 @@ const enDict: Dictionary = {
     deleteView: 'Delete view', makeDefault: 'Make default', unsetDefault: 'Remove default', defaultTag: 'Default',
     viewSaved: 'View saved.', viewDeleted: 'View deleted.', defaultSet: 'Default view saved.', defaultUnset: 'Default view removed.',
     deleteViewTitle: (n: string) => `Delete view “${n}”`, deleteViewBody: 'The view is deleted permanently, including for those it is shared with.', badQuery: 'Invalid query.',
+  },
+  notify: {
+    title: 'Notifications', button: 'Notifications', buttonUnread: (n: number) => (n === 1 ? 'Notifications, 1 unread' : `Notifications, ${n} unread`),
+    markAll: 'Mark all as read', markRead: 'Mark as read', markUnread: 'Mark as unread', unreadMark: 'Unread', empty: 'No notifications.', list: 'Notification list',
+    settings: 'Settings', settingsLegend: 'Events to notify', follow: 'Follow', unfollow: 'Unfollow',
+    eventNames: { transition: 'Status change', mention: 'Mention', suspect: 'Suspect link', comment: 'Comment', approval: 'Approval' } as Record<string, string>,
+    events: {
+      transition: (who: string, from: string, to: string) => `${who} moved the item from ${from} to ${to}.`,
+      comment: (who: string) => `${who} commented on the item.`,
+      mention: (who: string) => `${who} mentioned you.`,
+      suspect: (who: string, cause: string) => `Suspect link: ${who} changed ${cause}.`,
+      approval: (who: string) => `${who} recorded an approval decision.`,
+    },
   },
   detail: { panel: 'Item detail', expand: 'Expand', close: 'Close' },
   rail: {

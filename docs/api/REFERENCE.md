@@ -96,3 +96,11 @@ Un champ de tracker porte `isContent` (vrai par défaut), accepté à la créati
 
 `GET /v1/projects/:p/matrix?rows=TRACKER&cols=TRACKER&type=CLÉ[&offset=N][&rowOffset=N]` renvoie une tuile de la matrice de traçabilité `{type, rows, cols, totalRows, totalCols, uncoveredRows, links}` : au plus 500 lignes à partir de `rowOffset` (avec `linked`, vrai si la ligne a un lien de ce type avec un item de `cols`, même hors de la tuile) et 200 colonnes à partir de `offset`. `links` liste les cases remplies de la tuile (`row`, `col`, `suspect`), que le lien ait été créé dans un sens ou dans l'autre ; `uncoveredRows` compte les lignes sans lien sur tout le tracker. Titres restreints remplacés par la clé. 404 si un tracker ou le type de lien est inconnu. L'interface charge les tuiles au fil du défilement.
 
+## Notifications et abonnements
+Données personnelles de la personne connectée ; l'assurance qualité étatique (lecture seule ailleurs) peut aussi y marquer ses notifications lues et gérer ses abonnements.
+- `GET /v1/me/notifications?unread=1&limit=50` : `{ items, unread }`. Un item porte `event` (`transition`, `comment`, `suspect`, `mention`, `approval`), `project`, `key`, `actor`, `actorName`, `payload` (clés et statuts, jamais de valeur de champ), `read`, `createdAt`.
+- `POST /v1/me/notifications/read` : `{ ids: [...] | all: true, read: true|false }` marque lues (ou non lues) ses propres notifications.
+- `GET /v1/me/notification-prefs`, `PUT /v1/me/notification-prefs/{event}` `{ enabled }` : réglage par événement (activé par défaut).
+- `GET|POST /v1/projects/{project}/subscriptions` : abonnements de la personne ; corps `{ scope: item|tracker|view, ref }` (clé de l'item, clé du tracker, identifiant de la vue). `DELETE /v1/subscriptions/{id}`.
+- Les notifications sont produites dans la transaction de l'événement et ne visent que les destinataires autorisés à lire l'item ; la lecture est filtrée par les mêmes règles (une notification d'un item devenu illisible n'est plus renvoyée).
+

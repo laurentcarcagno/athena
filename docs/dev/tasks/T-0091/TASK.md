@@ -3,10 +3,10 @@
 - **Lot** : 7 (reprise IHM, voir `docs/dev/DECISIONS/ADR-0002-ihm-cible.md`)
 - **Objectif** : Centre de notifications, abonnement par item, vue ou tracker, réglage par événement.
 - **Fichiers concernés** :
-  - `apps/api/src/db/migrations/040_notifications.sql`
+  - `apps/api/src/db/migrations/044_notifications.sql`
   - `apps/api/src/notify/*`
   - `apps/web/src/components/NotificationCenter.tsx`
-- **Migration** : 040 : `subscription`, `notification`, `notification_pref` (RLS forcée, `org_isolation`).
+- **Migration** : 044 (la 040 était déjà prise) : `subscription`, `notification`, `notification_pref` (RLS forcée, `org_isolation`).
 - **Critères d'acceptation** (testables) :
   - Événements : transition, mention, lien suspect, commentaire
   - Les notifications respectent droits et ayants droit

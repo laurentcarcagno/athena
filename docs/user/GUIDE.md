@@ -94,6 +94,14 @@ L'onglet *Documents* (visible quand une source StrictDoc est indexée) permet de
 
 **Baselines.** Une baseline enregistre le SHA de chaque source documentaire et l'empreinte de ses exigences. Elle est **refusée** si le dépôt documentaire a avancé depuis la dernière indexation : on ré-indexe d'abord, pour ne jamais figer des documents périmés sans le savoir. La page *Planification*, onglet *Baselines*, compare deux baselines (items, trackers, exigences ajoutées, modifiées, supprimées, SHA des documents) et exporte la comparaison en CSV, avec la mention de protection de l'instance si elle est définie.
 
+## Notifications et abonnements
+La cloche, en haut à droite de chaque page, ouvre le **centre de notifications**. Le compteur indique les notifications non lues ; la liste s'ouvre au clavier (Entrée), **Échap** la referme.
+- **Suivre** : le bouton « Suivre » d'un item, d'un tracker ou d'une vue enregistrée vous abonne. Celui qui crée ou commente un item le suit automatiquement ; « Ne plus suivre » annule.
+- **Événements** : changement de statut, commentaire, lien devenu suspect, mention. Vous n'êtes jamais notifié de votre propre action.
+- **Lu / non lu** : chaque notification se marque individuellement ; « Tout marquer comme lu » vide le compteur.
+- **Réglages** : le bouton « Réglages » du centre active ou coupe chaque type d'événement.
+- **Droits** : une notification ne contient aucune valeur de champ et n'est produite que si vous pouvez lire l'item (listes d'ayants droit, contrôle export). Si votre accès est retiré, elle disparaît de votre liste.
+
 ## Fenêtres selon le rôle
 - **Utilisateur** (`athena-user`) : **Mon travail** liste les artefacts qui vous sont assignés (hors terminés) et ceux à prendre (non assignés, à faire) ; **Prendre** vous assigne l'artefact.
 - **Chef de projet** (`athena-pm`) : **Gestion de projet** (`/p/<projet>/manage`) : acteurs du projet (chef ou membre, choisis parmi les comptes déjà connectés), sprints (créer, démarrer, clore), versions (créer, publier), boards (créer). Un chef de projet ne gère que les projets dont il est désigné **chef**.

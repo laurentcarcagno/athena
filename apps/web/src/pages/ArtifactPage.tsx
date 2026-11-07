@@ -4,6 +4,7 @@ import { Btn, Card, EmptyState, Id, PageHeader, StatusPill, Table, Tabs, Td, Th,
 import { ApiError, api, upload, type Artifact, type AttachmentView, type Field, type Revision, type Session, type TrackerDefinition } from '../api';
 import { useBusy, useFailure } from '../hooks';
 import { fr } from '../i18n';
+import { SubscribeToggle } from '../components/SubscribeToggle';
 import { useConfirm } from '../components/ConfirmDialog';
 import { LinkEditor } from '../components/LinkEditor';
 import { DocRefPicker } from '../components/DocRefPicker';
@@ -199,6 +200,7 @@ export function ArtifactView({ session, project, itemKey: key, embedded = false,
           <div className="ath-row">
             <StatusPill kind={pillKind(status?.category ?? '')}>{status?.name ?? artifact.status}</StatusPill>
             <div className="ath-row" role="group" aria-label={fr.artifact.transitions}>{available.map((t) => <Btn key={t.id} size="sm" variant="deep" onClick={() => transition(t.name)}>{t.name}</Btn>)}</div>
+            <SubscribeToggle project={project} scope="item" target={artifact.key} />
             <Btn size="sm" variant="ghost" onClick={onExpand}>{fr.detail.expand}</Btn>
             <Btn size="sm" variant="ghost" onClick={onClose}>{fr.detail.close}</Btn>
           </div>
@@ -208,7 +210,7 @@ export function ArtifactView({ session, project, itemKey: key, embedded = false,
         eyebrow={def.name}
         title={<><span className="ath-mono ath-nowrap">{artifact.key}</span> · {title}</>}
         sub={<><StatusPill kind={pillKind(status?.category ?? '')}>{status?.name ?? artifact.status}</StatusPill> <Link className="ath-link" to={`/p/${project}`}>{project}</Link></>}
-        actions={<div className="ath-row" role="group" aria-label={fr.artifact.transitions}>{available.map((t) => <Btn key={t.id} variant="deep" onClick={() => transition(t.name)}>{t.name}</Btn>)}</div>}
+        actions={<><div className="ath-row" role="group" aria-label={fr.artifact.transitions}>{available.map((t) => <Btn key={t.id} variant="deep" onClick={() => transition(t.name)}>{t.name}</Btn>)}</div><SubscribeToggle project={project} scope="item" target={artifact.key} size="md" /></>}
       />}
       <Tabs
         tabs={[

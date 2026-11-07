@@ -10,6 +10,7 @@ import { FilterBar } from '../../components/FilterBar';
 import { SavedViews, viewOf, viewToParams } from '../../components/SavedViews';
 import { MiniWorkflow } from '../../components/MiniWorkflow';
 import { PinToggle } from '../../components/PinToggle';
+import { SubscribeToggle } from '../../components/SubscribeToggle';
 import { MatrixView } from '../../components/MatrixView';
 import { TreeView } from '../../components/TreeView';
 import { useFailure } from '../../hooks';
@@ -137,6 +138,7 @@ export function TrackerScreen({ session }: { session: Session }) {
         sub={<><Id>{project}-{tracker}</Id>{counts && <> · <span className="ath-mono">{fr.trackerScreen.total(counts.artifacts)}</span></>}</>}
         actions={<>
           <Btn onClick={() => setCreating(true)}>{fr.trackerScreen.newItem}</Btn>
+          <SubscribeToggle project={String(project)} scope="tracker" target={String(tracker)} size="md" />
           <PinToggle entry={{ kind: 'tracker', project: String(project), ref: String(tracker), label: `${project} · ${tracker}` }} />
           {admin && <Btn variant="ghost" onClick={() => navigate(`/p/${project}/trackers/${tracker}/config`)}>{fr.trackerScreen.configure}</Btn>}
         </>} />

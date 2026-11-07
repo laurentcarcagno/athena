@@ -6,6 +6,7 @@ import { Btn, EmptyState, PageHeader, Sidebar, ToastProvider } from '@athena/ui'
 import { loadSession, loginUrl, logout, type Session } from './api';
 import { Breadcrumb } from './components/Breadcrumb';
 import { CommandPalette } from './components/CommandPalette';
+import { NotificationCenter } from './components/NotificationCenter';
 import { useRailSections, useRecordVisits } from './components/Rail';
 import { PinsProvider } from './lib/pins';
 import { fr, getLocale, setLocale, useLocale } from './i18n';
@@ -105,7 +106,10 @@ function Shell({ session, children }: { session: Session; children: ReactNode })
           <button type="button" className="ath-iconbtn" onClick={out} aria-label={fr.nav.logout} title={fr.nav.logout}><LogoutIcon /></button>
         </>} />
       <main id="contenu" ref={mainRef} tabIndex={-1} className="ath-page__main">
-        <Breadcrumb pathname={location.pathname} search={location.search} />
+        <div className="ath-topbar">
+          <Breadcrumb pathname={location.pathname} search={location.search} />
+          <NotificationCenter />
+        </div>
         {children}
         <CommandPalette project={project} />
       </main>

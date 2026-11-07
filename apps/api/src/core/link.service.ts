@@ -2,6 +2,7 @@ import type { PoolClient } from 'pg';
 import { Db, type Actor } from './db';
 import { conflict, notFound, validation } from './errors';
 import { assertPairAllowed, orgLinkTypes, resolveLinkType } from './link-type.service';
+import { emit, follow } from '../notify/notify.service';
 import { audit, outbox } from './tracker.service';
 
 export interface LinkView {
@@ -155,6 +156,8 @@ export class LinkService {
       ).rows[0];
       await outbox(c, organizationId, 'artifact', artifact, 'comment.created', { key: canonical, actor: actor.id, commentId: row.id });
       await audit(c, organizationId, actor, 'comment.create', `artifact:${canonical}`);
+      await emit(c, organizationId, { event: 'comment', artifactId: artifact, actor: actor.id, payload: { commentId: row.id } });
+      await follow(c, organizationId, actor.id, artifact);
       return { id: row.id, author: actor.id, authorName: actor.id, body, createdAt: row.created_at.toISOString() };
     });
   }

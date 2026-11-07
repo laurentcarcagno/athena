@@ -6,6 +6,7 @@ import { fr } from '../i18n';
 import { joinOrder, splitOrder } from '../pages/ListPage';
 import { useConfirm } from './ConfirmDialog';
 import { PinToggle } from './PinToggle';
+import { SubscribeToggle } from './SubscribeToggle';
 
 /** Contenu d'une vue : filtre, tri et colonnes choisies (`cols`, absent = colonnes par défaut). */
 export interface ViewState { fragment: string; sort: string | null; columns: string | null }
@@ -81,6 +82,7 @@ export function SavedViews({ project, tracker, current, roles, onApply, onLoaded
           </select>
         </div>
         {active?.isDefault && <Tag>{fr.filters.defaultTag}</Tag>}
+        {active && <SubscribeToggle project={project} scope="view" target={active.id} />}
         {active && <PinToggle entry={{ kind: 'view', project, ref: `${tracker}:${active.id}`, label: active.name }} />}
         {active && <Btn type="button" variant="ghost" size="sm" onClick={() => remove(active)}>{fr.filters.deleteView}</Btn>}
         {active && manager && active.shared && <Btn type="button" variant="ghost" size="sm" onClick={() => setDefault(active, !active.isDefault)}>{active.isDefault ? fr.filters.unsetDefault : fr.filters.makeDefault}</Btn>}

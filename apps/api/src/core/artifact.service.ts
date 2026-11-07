@@ -3,6 +3,7 @@ import { Db, type Actor } from './db';
 import { conflict, forbidden, notFound, validation } from './errors';
 import { FieldTypeRegistry } from './field-types';
 import { formatKey } from './key';
+import { emit, follow } from '../notify/notify.service';
 import { audit, outbox, TrackerService, type TrackerDefinition } from './tracker.service';
 
 export interface Artifact {
@@ -69,6 +70,7 @@ export class ArtifactService {
       const diff: Diff = Object.fromEntries(Object.entries(values).map(([k, v]) => [k, { from: null, to: v }]));
       await this.record(c, organizationId, id, 1, diff, actor, 'artifact.created', key, { values },
         { key, tracker: trackerKey, status: initial.key, version: 1, values });
+      await follow(c, organizationId, actor.id, id);
       return { id, key, trackerKey, status: initial.key, values, version: 1 };
     });
   }
@@ -110,11 +112,12 @@ export class ArtifactService {
       // de contenu a changé (pas la priorité ou le responsable) et si le type du lien propage la suspicion.
       const contentChanged = Object.keys(diff).some((k) => def.fields.find((f) => f.key === k)?.isContent !== false);
       if (contentChanged) {
-        await c.query(
+        const flagged = await c.query(
           `update artifact_link l set suspect = true from link_type t
-           where t.id = l.link_type_id and t.propagates_suspect and l.to_artifact_id = $1 and not l.suspect`,
+           where t.id = l.link_type_id and t.propagates_suspect and l.to_artifact_id = $1 and not l.suspect returning l.from_artifact_id`,
           [row.id],
         );
+        for (const link of flagged.rows) await emit(c, organizationId, { event: 'suspect', artifactId: link.from_artifact_id as string, actor: actor.id, payload: { cause: row.key } });
       }
       await this.record(c, organizationId, row.id, version, diff, actor, 'artifact.updated', row.key, { changes: diff },
         { key: row.key, tracker: row.tracker_key, status: row.status_key, version, values: next });
@@ -188,6 +191,7 @@ export class ArtifactService {
       await this.record(c, organizationId, row.id, version, { status: { from: from.key, to: to.key } }, actor,
         'artifact.transitioned', row.key, { transition: transitionName, from: from.key, to: to.key, postActions: transition.postActions },
         { key: row.key, tracker: row.tracker_key, status: to.key, version, values: row.values });
+      await emit(c, organizationId, { event: 'transition', artifactId: row.id, actor: actor.id, payload: { transition: transitionName, from: from.key, to: to.key } });
       return { ...this.toArtifact(row), status: to.key, version };
     });
   }
