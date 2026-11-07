@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { tokens } from './tokens.generated.js';
 // @ts-expect-error module JS sans types
@@ -38,5 +40,55 @@ describe('lint design', () => {
     ['a{color:#123456}', 'hors palette'],
   ])('refuse %s', (src, word) => {
     expect(lintSource(src).join()).toContain(word);
+  });
+});
+
+describe('thème sombre généré', () => {
+  const css = readFileSync(join(__dirname, 'tokens.generated.css'), 'utf8');
+  const block = (start: string): string => {
+    const from = css.indexOf(start);
+    expect(from, start).toBeGreaterThan(-1);
+    return css.slice(from, css.indexOf('\n}', from));
+  };
+  const names = (text: string): string[] => [...text.matchAll(/^\s*(--ath-[a-z0-9-]+):/gm)].map((m) => m[1]!);
+  const light = block(':root {');
+  const dark = block(':root[data-theme="dark"] {');
+
+  it('déclare les deux sélecteurs sombres : attribut explicite et préférence du système', () => {
+    expect(css).toContain('@media (prefers-color-scheme: dark)');
+    expect(css).toContain(':root:not([data-theme="light"])');
+    expect(light).toContain('color-scheme: light;');
+    expect(dark).toContain('color-scheme: dark;');
+  });
+
+  it('le thème sombre redéfinit chaque variable sémantique du thème clair (mêmes clés)', () => {
+    const semantic = (n: string) => /^--ath-(surface|text|border|action|state|focus)-/.test(n);
+    expect(names(dark).filter(semantic).sort()).toEqual(names(light).filter(semantic).sort());
+  });
+
+  it('valeurs sombres de DESIGN.json et réaffectation des primitives par rôle', () => {
+    expect(dark).toContain('--ath-surface-default: #0E2230;');
+    expect(dark).toContain('--ath-text-default: #F0F7FC;');
+    expect(dark).toContain('--ath-color-instrument-white: var(--ath-surface-default);');
+    expect(dark).toContain('--ath-color-ink: var(--ath-text-default);');
+    expect(dark).not.toContain('--ath-color-tricolor-red'); // couleur de marque : jamais réaffectée
+    expect(dark).not.toContain('--ath-color-tricolor-blue');
+  });
+
+  it('le thème clair garde les valeurs d’avant (texte secondaire, lien, signal danger)', () => {
+    expect(light).toContain('--ath-text-mute: #505358;');
+    expect(light).toContain('--ath-text-link: #005E96;');
+    expect(light).toContain('--ath-state-danger-fg: #9E1616;');
+    expect(light).toContain('--ath-surface-default: var(--ath-color-instrument-white);');
+  });
+
+  it('aucune référence sémantique ne reste non résolue', () => {
+    expect(css).not.toMatch(/\{(colors|semantic|overlays)\./);
+  });
+
+  it('la feuille de style n’écrit aucune couleur sombre en dur : elle consomme les jetons', () => {
+    const styles = readFileSync(join(__dirname, 'styles.css'), 'utf8').toLowerCase();
+    for (const hex of ['#0e2230', '#0a1b27', '#06121c', '#264e6e', '#5c95bb']) expect(styles).not.toContain(hex);
+    expect(lintSource(styles, 'styles.css')).toEqual([]);
   });
 });

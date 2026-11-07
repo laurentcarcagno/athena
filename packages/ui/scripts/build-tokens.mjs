@@ -36,8 +36,50 @@ for (const [style, props] of Object.entries(spec.typography ?? {})) {
 }
 css.push('  --ath-motion-default: 120ms linear;');
 
-const header = '/* Généré par scripts/build-tokens.mjs depuis design/DESIGN.md. Ne pas modifier. */\n';
-writeFileSync(join(root, 'src', 'tokens.generated.css'), `${header}:root {\n${css.join('\n')}\n}\n`);
+// Couche sémantique (DESIGN.json) : une variable par token, pour les deux thèmes. Le thème clair part des primitives, le thème sombre
+// de ses valeurs propres ; la réaffectation des primitives en thème sombre (darkPrimitiveMap) est émise avec lui.
+const design = JSON.parse(readFileSync(join(root, 'design', 'DESIGN.json'), 'utf8'));
+const themes = design.tokens.semantic.themes;
+const overlays = design.tokens.primitive.overlays ?? {};
+const resolveToken = (value) => {
+  const colour = /^\{colors\.([a-z0-9-]+)\}$/.exec(value);
+  // Les couleurs du front matter sont des variables ; les variantes dérivées (DESIGN.json seul) sont écrites en clair.
+  if (colour) return out.colors[colour[1]] ? `var(--ath-color-${colour[1]})` : design.tokens.primitive.colors[colour[1]].value;
+  const overlay = /^\{overlays\.([a-z0-9-]+)\}$/.exec(value);
+  if (overlay) return overlays[overlay[1]].value;
+  if (/^\{/.test(value)) throw new Error(`Référence sémantique non résolue : ${value}`);
+  return value;
+};
+const semanticVars = (theme) => {
+  const lines = [];
+  const walk = (node, path) => {
+    for (const [key, child] of Object.entries(node)) {
+      if (child && typeof child === 'object' && 'value' in child) lines.push(`  --ath-${[...path, key].join('-')}: ${resolveToken(child.value)};`);
+      else walk(child, [...path, key]);
+    }
+  };
+  walk(themes[theme], []);
+  return lines;
+};
+const semanticRef = (ref) => {
+  const m = /^\{semantic\.([a-z0-9.-]+)\}$/.exec(ref);
+  if (!m) throw new Error(`Réaffectation invalide : ${ref}`);
+  return `var(--ath-${m[1].replace(/\./g, '-')})`;
+};
+const darkMap = design.tokens.semantic.darkPrimitiveMap?.map ?? {};
+const darkLines = [
+  '  color-scheme: dark;',
+  ...semanticVars('dark'),
+  ...Object.entries(darkMap).map(([primitive, ref]) => `  --ath-color-${primitive}: ${semanticRef(ref)};`),
+];
+css.push('  color-scheme: light;', ...semanticVars('light'));
+const darkBlocks = [
+  `@media (prefers-color-scheme: dark) {\n  :root:not([data-theme="light"]) {\n${darkLines.map((l) => `  ${l}`).join('\n')}\n  }\n}`,
+  `:root[data-theme="dark"] {\n${darkLines.join('\n')}\n}`,
+].join('\n');
+
+const header = '/* Généré par scripts/build-tokens.mjs depuis design/DESIGN.md et DESIGN.json. Ne pas modifier. */\n';
+writeFileSync(join(root, 'src', 'tokens.generated.css'), `${header}:root {\n${css.join('\n')}\n}\n${darkBlocks}\n`);
 writeFileSync(
   join(root, 'src', 'tokens.generated.ts'),
   `// Généré par scripts/build-tokens.mjs. Ne pas modifier.\nexport const tokens = ${JSON.stringify(out, null, 2)} as const;\n`,

@@ -4,8 +4,8 @@
   "title": "Design System: Hemeria",
   "meta": {
     "name": "Hemeria Design System",
-    "version": "3.0.0",
-    "date": "2026-11-01",
+    "version": "3.1.0",
+    "date": "2026-11-07",
     "author": "Laurent Carcagno",
     "statusLegend": {
       "stable": "Validé et utilisé.",
@@ -747,140 +747,140 @@
           "surface": {
             "app": {
               "value": "#0A1B27",
-              "status": "proposed"
+              "status": "stable"
             },
             "default": {
               "value": "#0E2230",
-              "status": "proposed"
+              "status": "stable"
             },
             "hover": {
               "value": "#1B3850",
-              "status": "proposed"
+              "status": "stable"
             },
             "muted": {
               "value": "#264E6E",
-              "status": "proposed"
+              "status": "stable"
             },
             "selected": {
               "value": "#264E6E",
-              "status": "proposed"
+              "status": "stable"
             },
             "inverse": {
               "value": "#06121C",
-              "status": "proposed"
+              "status": "stable"
             },
             "scrim": {
               "value": "rgba(0, 0, 0, 0.65)",
-              "status": "proposed"
+              "status": "stable"
             }
           },
           "text": {
             "default": {
               "value": "#F0F7FC",
-              "status": "proposed"
+              "status": "stable"
             },
             "secondary": {
               "value": "#C7DAE2",
-              "status": "proposed"
+              "status": "stable"
             },
             "mute": {
               "value": "#A8C0CB",
-              "status": "proposed"
+              "status": "stable"
             },
             "mute-aa": {
               "value": "#A8C0CB",
-              "status": "proposed"
+              "status": "stable"
             },
             "on-inverse": {
               "value": "#F0F7FC",
-              "status": "proposed"
+              "status": "stable"
             },
             "on-action": {
               "value": "#001423",
-              "status": "proposed"
+              "status": "stable"
             },
             "link": {
               "value": "#7EC4EC",
-              "status": "proposed"
+              "status": "stable"
             },
             "link-aa": {
               "value": "#7EC4EC",
-              "status": "proposed"
+              "status": "stable"
             },
             "heading": {
               "value": "#F0F7FC",
-              "status": "proposed"
+              "status": "stable"
             }
           },
           "border": {
             "default": {
               "value": "#264E6E",
-              "status": "proposed"
+              "status": "stable"
             },
             "strong": {
               "value": "#5C95BB",
-              "status": "proposed"
+              "status": "stable"
             },
             "focus": {
               "value": "#7EC4EC",
-              "status": "proposed"
+              "status": "stable"
             },
             "danger": {
               "value": "#EE9C99",
-              "status": "proposed"
+              "status": "stable"
             },
             "control": {
               "value": "#5C95BB",
-              "status": "proposed"
+              "status": "stable"
             }
           },
           "action": {
             "primary": {
               "bg": {
                 "value": "#B2DDF6",
-                "status": "proposed"
+                "status": "stable"
               },
               "fg": {
                 "value": "#001423",
-                "status": "proposed"
+                "status": "stable"
               }
             },
             "deep": {
               "bg": {
                 "value": "#5C95BB",
-                "status": "proposed"
+                "status": "stable"
               },
               "fg": {
                 "value": "#001423",
-                "status": "proposed"
+                "status": "stable"
               }
             },
             "ghost": {
               "bg": {
                 "value": "transparent",
-                "status": "proposed"
+                "status": "stable"
               },
               "fg": {
                 "value": "#F0F7FC",
-                "status": "proposed"
+                "status": "stable"
               },
               "border": {
                 "value": "#5C95BB",
-                "status": "proposed"
+                "status": "stable"
               }
             },
             "danger": {
               "bg": {
                 "value": "transparent",
-                "status": "proposed"
+                "status": "stable"
               },
               "fg": {
                 "value": "#EE9C99",
-                "status": "proposed"
+                "status": "stable"
               },
               "border": {
                 "value": "#EE9C99",
-                "status": "proposed"
+                "status": "stable"
               }
             }
           },
@@ -888,108 +888,131 @@
             "success": {
               "bg": {
                 "value": "#0A3A1F",
-                "status": "proposed"
+                "status": "stable"
               },
               "fg": {
                 "value": "#92D2AC",
-                "status": "proposed"
+                "status": "stable"
               },
               "fg-aa": {
                 "value": "#92D2AC",
-                "status": "proposed"
+                "status": "stable"
               },
               "border": {
                 "value": "#92D2AC",
-                "status": "proposed"
+                "status": "stable"
               }
             },
             "warning": {
               "bg": {
                 "value": "#4A3000",
-                "status": "proposed"
+                "status": "stable"
               },
               "fg": {
                 "value": "#F1D38A",
-                "status": "proposed"
+                "status": "stable"
               },
               "fg-aa": {
                 "value": "#F1D38A",
-                "status": "proposed"
+                "status": "stable"
               },
               "border": {
                 "value": "#F1D38A",
-                "status": "proposed"
+                "status": "stable"
               }
             },
             "danger": {
               "bg": {
                 "value": "#600C0E",
-                "status": "proposed"
+                "status": "stable"
               },
               "fg": {
                 "value": "#EE9C99",
-                "status": "proposed"
+                "status": "stable"
               },
               "fg-aa": {
                 "value": "#EE9C99",
-                "status": "proposed"
+                "status": "stable"
               },
               "border": {
                 "value": "#EE9C99",
-                "status": "proposed"
+                "status": "stable"
               }
             },
             "info": {
               "bg": {
                 "value": "#003157",
-                "status": "proposed"
+                "status": "stable"
               },
               "fg": {
                 "value": "#7EC4EC",
-                "status": "proposed"
+                "status": "stable"
               },
               "fg-aa": {
                 "value": "#7EC4EC",
-                "status": "proposed"
+                "status": "stable"
               },
               "border": {
                 "value": "#7EC4EC",
-                "status": "proposed"
+                "status": "stable"
               }
             },
             "neutral": {
               "bg": {
                 "value": "#0E2230",
-                "status": "proposed"
+                "status": "stable"
               },
               "fg": {
                 "value": "#C7DAE2",
-                "status": "proposed"
+                "status": "stable"
               },
               "fg-aa": {
                 "value": "#C7DAE2",
-                "status": "proposed"
+                "status": "stable"
               },
               "border": {
                 "value": "#5C95BB",
-                "status": "proposed"
+                "status": "stable"
               }
             }
           },
           "focus": {
             "ring": {
               "value": "#7EC4EC",
-              "status": "proposed"
+              "status": "stable"
             },
             "ring-on-inverse": {
               "value": "#F0F7FC",
-              "status": "proposed"
+              "status": "stable"
             }
           }
         }
       },
-      "defaultTheme": "light",
-      "note": "Mêmes clés dans les deux thèmes. Le thème clair s’appuie sur les tokens existants ; le thème sombre est entièrement proposé et n’utilise que des valeurs des rampes tonales de colorMeta."
+      "darkPrimitiveMap": {
+      "note": "En thème sombre, les composants gardent leurs références aux couleurs primitives (angles droits, aplats) ; la feuille de style réaffecte chaque primitive de surface, de texte, de bordure et de signal à la valeur sémantique sombre de même rôle. Les surfaces inverses (barre latérale, en-têtes de tableau, bandeau) et les boutons pleins redéclarent localement les primitives qu'ils consomment (zones), ce qui garde le même texte sur le même aplat dans les deux thèmes.",
+      "map": {
+        "instrument-white": "{semantic.surface.default}",
+        "cold-mist": "{semantic.surface.app}",
+        "hover-mist": "{semantic.surface.hover}",
+        "muted-mist": "{semantic.surface.muted}",
+        "selection-veil": "{semantic.surface.selected}",
+        "console-border": "{semantic.border.default}",
+        "mute-ink": "{semantic.border.control}",
+        "ink": "{semantic.text.default}",
+        "dim-ink": "{semantic.text.secondary}",
+        "sovereign-deep-blue": "{semantic.text.heading}",
+        "console-sky": "{semantic.border.focus}",
+        "signal-success": "{semantic.state.success.fg}",
+        "signal-warning": "{semantic.state.warning.fg}",
+        "signal-danger": "{semantic.state.danger.fg}",
+        "pill-success-bg": "{semantic.state.success.bg}",
+        "pill-warning-bg": "{semantic.state.warning.bg}",
+        "pill-danger-bg": "{semantic.state.danger.bg}"
+      },
+      "status": "stable"
+    },
+    "defaultTheme": "light",
+      "note": "Mêmes clés dans les deux thèmes. Le thème clair s'appuie sur les tokens existants ; le thème sombre (stable depuis D-018) n'utilise que des valeurs des rampes tonales de colorMeta. Le thème choisi est porté par l'attribut data-theme de l'élément html (clair, sombre) ; sans attribut, le réglage du système s'applique."
     },
     "states": {
       "default": {
@@ -2458,6 +2481,13 @@
       "decision": "Passent de proposed à stable les tokens que l'interface d'Athena utilise : primitive.zIndex.sticky, primitive.zIndex.toast, primitive.sizes.sidebar, states.loading, component.skip-link, component.confirm-dialog, component.help-entry, component.layout-grid, component.layout-editor. Les autres tokens proposed (thème sombre, densités, surcouches) restent en attente.",
       "reason": "Ces tokens sont livrés, testés (unitaires et e2e) et audités ; les laisser proposed faussait l'état de la charte.",
       "rejected": "Tout passer en stable, y compris le thème sombre qu'aucune feuille de style ne consomme."
+    },
+    {
+      "id": "D-018",
+      "date": "2026-11-07",
+      "decision": "Le thème sombre est livré : tous les tokens de semantic.themes.dark passent de proposed à stable. Athena propose les réglages clair, sombre et système (par défaut, préférence du système), mémorisés par navigateur (localStorage). Les primitives sont réaffectées aux valeurs sémantiques sombres de même rôle (tokens.semantic.darkPrimitiveMap) ; les surfaces inverses et les boutons pleins redéclarent localement leurs primitives. Les variables sémantiques (--ath-surface-*, --ath-text-*, --ath-border-*, --ath-action-*, --ath-state-*, --ath-focus-*) sont générées dans tokens.generated.css pour les deux thèmes ; lint-design.mjs reste borné au front matter pour les couleurs écrites dans les sources.",
+      "reason": "Demande T-0095 : confort en environnement peu éclairé et préférence système ; les valeurs existaient (proposed) et leurs contrastes étaient calculés. L'interface les consomme désormais et l'audit axe passe dans les deux thèmes.",
+      "rejected": "Dupliquer les règles de la feuille de style sous un sélecteur sombre (dérive garantie) ; refaire tous les composants sur les variables sémantiques (refonte hors périmètre) ; sombre seul sans réglage système."
     }
   ],
   "extensions": {

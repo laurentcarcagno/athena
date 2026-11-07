@@ -1,6 +1,6 @@
 ---
 name: Hemeria Design System
-version: "3.0.0"
+version: "3.1.0"
 description: Sharp, sovereign mission-console UI for an internal engineering reference tool. Hemeria Charte Graphique 2025.
 colors:
   sovereign-deep-blue: "#12293A"
@@ -292,7 +292,7 @@ La palette est petite, froide et strictement gouvernée : une triade de marque (
 
 #### 2.1.1 Couleurs sémantiques et thèmes
 
-Les composants ne citent pas les primitives directement : ils passent par la couche **sémantique**, qui possède les mêmes clés dans les deux thèmes. Le thème clair est la charte actuelle. Le thème sombre est **proposé** et n'emploie que des valeurs des rampes tonales de `DESIGN.json` (`extensions.colorMeta`) : aucune teinte nouvelle.
+Les composants ne citent pas les primitives directement : ils passent par la couche **sémantique**, qui possède les mêmes clés dans les deux thèmes. Le thème clair est la charte actuelle. Le thème sombre est **livré** (stable, journal D-018) et n'emploie que des valeurs des rampes tonales de `DESIGN.json` (`extensions.colorMeta`) : aucune teinte nouvelle.
 
 | Groupe | Clés | Rôle |
 |---|---|---|
@@ -302,6 +302,14 @@ Les composants ne citent pas les primitives directement : ils passent par la cou
 | Action | `{semantic.action.primary.bg}`, `{semantic.action.deep.bg}`, `{semantic.action.ghost.fg}`, `{semantic.action.danger.fg}` | Boutons (voir 3.1). |
 | État | `{semantic.state.success.bg}`, `{semantic.state.warning.bg}`, `{semantic.state.danger.bg}`, `{semantic.state.info.bg}`, `{semantic.state.neutral.bg}` | Chaque état a `bg`, `fg` (texte accessible), `fg-aa` (alias) et `border`. |
 | Focus | `{semantic.focus.ring}`, `{semantic.focus.ring-on-inverse}` | Anneau de focus sur fond clair, et sur surface inverse. |
+
+#### 2.1.1 (suite) Thème sombre : sélection, réaffectation et zones
+
+- **Sélection.** L'attribut `data-theme` de l'élément `html` vaut `light` ou `dark` ; sans attribut, la préférence du système (`prefers-color-scheme`) s'applique. Athena propose trois réglages (**clair**, **sombre**, **système**, ce dernier par défaut), mémorisés par navigateur dans `localStorage` (`athena.theme`) ; une valeur illisible retombe sur « système ».
+- **Variables sémantiques.** `scripts/build-tokens.mjs` génère dans `tokens.generated.css`, pour les deux thèmes, une variable par token sémantique (`--ath-surface-default`, `--ath-text-mute`, `--ath-border-control`, `--ath-action-primary-bg`, `--ath-state-danger-fg`, `--ath-focus-ring`…). Le thème clair les définit à partir des primitives ; le thème sombre, à partir des valeurs de `semantic.themes.dark`.
+- **Réaffectation des primitives** (`tokens.semantic.darkPrimitiveMap`). Les composants d'Athena citent encore des primitives (`--ath-color-instrument-white`…). En thème sombre, chaque primitive de surface, de texte, de bordure et de signal prend la valeur sémantique sombre de même rôle : Instrument White devient `{semantic.surface.default}`, Ink devient `{semantic.text.default}`, Console Sky devient `{semantic.border.focus}`, etc. Les primitives de marque (Tricolor Blue et Red) ne changent pas.
+- **Zones.** Une primitive peut jouer deux rôles (Instrument White est un fond de carte *et* le texte d'un bouton plein). Les éléments qui l'emploient comme texte sur aplat redéclarent localement leurs primitives : *surface inverse* (barre latérale, en-tête de tableau et de modale, tête de colonne, bandeau : `{semantic.surface.inverse}` et `{semantic.text.on-inverse}`), *bouton plein* (`{semantic.action.primary.bg}` et `.fg`) et *bouton neutre plein* (`{semantic.action.deep.bg}` et `.fg`). En thème clair ces redéclarations ne changent aucune couleur.
+- **Règles inchangées.** Angles droits, aucune ombre ni dégradé ni flou, rouge réservé à la cérémonie, Console Sky pour l'action : le thème sombre ne change que les valeurs.
 
 #### 2.1.2 Couleurs dérivées
 
@@ -829,19 +837,19 @@ Modèle de proposition :
 | D-015 | 2026-11-01 | Corrections de l’audit Athena : confirmation des suppressions irréversibles, toasts d’erreur persistants, lien d’évitement, entrée d’aide, état loading des boutons, tailles 11 px minimum, troncature des titres, volet de navigation sous 768 px, suggestion des valeurs ATQL, page Administration réservée. Nouveaux tokens de composant en proposed : skip-link, confirm-dialog, help-entry, table.row.clip. | Chaque changement corrige un constat F-01 à F-13 de design-audit-work/AUDIT_athena.md ; aucun token existant n’est supprimé. | Laisser les écarts en known-issue ; créer des composants sans les déclarer. |
 | D-016 | 2026-11-02 | Disposition de la vue détails d'un tracker : sections titrées, grille de 3 colonnes, largeur 1 à 3 par attribut, éditeur WYSIWYG avec glisser-déposer et boutons équivalents, disposition automatique par défaut. Nouveaux tokens de composant en proposed : layout-grid, layout-editor. | Demande produit : maîtriser la disposition des attributs à la création d'un tracker ; la disposition automatique évite d'imposer la configuration. | Configuration par liste d'ordre seule (pas de largeur) ; glisser-déposer sans alternative au clavier. |
 | D-017 | 2026-11-02 | Passent de proposed à stable les tokens que l'interface d'Athena utilise : primitive.zIndex.sticky, primitive.zIndex.toast, primitive.sizes.sidebar, states.loading, component.skip-link, component.confirm-dialog, component.help-entry, component.layout-grid, component.layout-editor. Les autres tokens proposed (thème sombre, densités, surcouches) restent en attente. | Ces tokens sont livrés, testés (unitaires et e2e) et audités ; les laisser proposed faussait l'état de la charte. | Tout passer en stable, y compris le thème sombre qu'aucune feuille de style ne consomme. |
+| D-018 | 2026-11-07 | Le thème sombre est livré : tous les tokens de `semantic.themes.dark` passent de proposed à stable. Athena propose les réglages clair, sombre et système (défaut : préférence du système), mémorisés par navigateur. Les primitives sont réaffectées aux valeurs sémantiques sombres de même rôle (`tokens.semantic.darkPrimitiveMap`) ; les surfaces inverses et les boutons pleins redéclarent localement leurs primitives. Les variables sémantiques sont générées dans `tokens.generated.css` pour les deux thèmes ; `lint-design.mjs` reste borné au front matter pour les couleurs écrites dans les sources. | Demande T-0095 : confort en environnement peu éclairé et préférence système ; les valeurs existaient et leurs contrastes étaient calculés. L'interface les consomme désormais et l'audit axe passe dans les deux thèmes. | Dupliquer les règles de la feuille de style sous un sélecteur sombre (dérive garantie) ; refaire tous les composants sur les variables sémantiques (refonte hors périmètre) ; sombre seul sans réglage système. |
 
 ### Décisions en attente (`proposed`)
 
 Ces tokens sont déjà appliqués par défaut (D-013, D-014) pour supprimer les écarts de contraste ; ils restent `proposed` jusqu'à validation et peuvent être annulés en repointant la couche sémantique.
 
-1. **Thème sombre** complet (`semantic.themes.dark`).
-2. **Variantes accessibles** : `{colors.mute-ink-aa}`, `{colors.signal-success-text}`, `{colors.signal-warning-text}`, `{colors.signal-danger-text}`, `{colors.console-sky-text}`, adoptées par `{semantic.text.mute}`, `{semantic.text.link}` et `{semantic.state.success.fg}`.
-3. **Contour de champ** `{semantic.border.control}` (3:1), adopté par `{component.field}`.
-4. **Focus ring** unique `{semantic.focus.ring}` et `{semantic.focus.ring-on-inverse}`, qui remplacent les trois variantes observées.
-5. **Échelle d'espacement étendue** (`2xs`, `base`, `2xl`, `3xl`) et **breakpoints** `sm`, `lg`, `xl`.
-6. **Densités** `compact` et `comfortable`.
-7. **États** `active` et `loading`, durée `instant` (mouvement réduit), `zIndex.sticky` et `zIndex.toast`.
-8. **Dépréciation de `{fontSizes.micro}`** (9,5 px) au profit de `{fontSizes.xs}` pour les en-têtes de tableau.
+1. **Variantes accessibles** : `{colors.mute-ink-aa}`, `{colors.signal-success-text}`, `{colors.signal-warning-text}`, `{colors.signal-danger-text}`, `{colors.console-sky-text}`, adoptées par `{semantic.text.mute}`, `{semantic.text.link}` et `{semantic.state.success.fg}`.
+2. **Contour de champ** `{semantic.border.control}` (3:1), adopté par `{component.field}`.
+3. **Focus ring** unique `{semantic.focus.ring}` et `{semantic.focus.ring-on-inverse}`, qui remplacent les trois variantes observées.
+4. **Échelle d'espacement étendue** (`2xs`, `base`, `2xl`, `3xl`) et **breakpoints** `sm`, `lg`, `xl`.
+5. **Densités** `compact` et `comfortable`.
+6. **États** `active` et `loading`, durée `instant` (mouvement réduit), `zIndex.sticky` et `zIndex.toast`.
+7. **Dépréciation de `{fontSizes.micro}`** (9,5 px) au profit de `{fontSizes.xs}` pour les en-têtes de tableau.
 
 ## 10. Outillage
 
@@ -881,10 +889,10 @@ Gabarit de rapport d'audit : contexte, grille notée, constats au format imposé
 
 État constaté de l'interface d'Athena par rapport à cette charte, au 2026-11-02. À corriger ou à décider ; cette liste n'est pas une dérogation.
 
-- **Thème sombre.** Les tokens `semantic.themes.dark` sont définis (en `proposed`) mais `packages/ui/src/styles.css` n'a aucune règle de thème sombre : seul le thème clair est livré.
+- **Thème sombre.** Livré (D-018) : réglages clair, sombre et système, variables sémantiques générées, feuille de style réaffectée par rôle. Le contraste est vérifié par axe-core dans les deux thèmes (e2e) ; les paires de `contrast.pairs` restent la référence calculée.
 - **Raccourci de recherche.** Le composant de recherche prévoit un indice de raccourci toujours visible ; l'en-tête d'Athena ne l'affiche plus (décision produit).
 - **Dimensions non tokenisées.** `styles.css` lit `--ath-space-*` pour les marges, espacements et écarts de 4, 8, 12, 20 et 24 px. Restent en dur les valeurs sans token correspondant (bordures de 1 et 2 px, 6, 10 et 14 px, hauteurs de contrôles), qui n'ont pas d'équivalent dans l'échelle `{spacing.*}`.
-- **Tokens `proposed` restants.** Thème sombre, densités compacte et confortable, surcouches, quelques couleurs et jalons de breakpoints : aucun n'est consommé par Athena.
+- **Tokens `proposed` restants.** Densités compacte et confortable, surcouches, quelques couleurs et jalons de breakpoints : aucun n'est consommé par Athena.
 
 ## 11. Registre des tokens
 
