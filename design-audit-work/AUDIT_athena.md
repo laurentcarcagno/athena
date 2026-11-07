@@ -266,7 +266,7 @@ Gravité majeure et effort S : **F-02** (toasts), **F-07** (troncature et `nowra
 
 - Rôles `athena-user` et `athena-pm` : audités après coup sur 14 pages (`collect3.mjs`) : navigation réduite et rôle affiché corrects, axe 0 violation, aucun bouton d'administration visible, API 403 sur templates, utilisateurs, création de projet, webhooks et plugins ; une seule anomalie (F-13). Non vérifié : masquage de champs par rôle (aucun champ restreint dans les données).
 - Onglet Développement avec données GitLab, plugins installés (widgets), pièces jointes en échec antivirus.
-- Thème sombre : absent de l'interface.
+- Thème sombre : absent de l'interface lors de l'audit initial ; livré depuis (T-0095, D-018) et mesuré dans la section 6.
 - Lecteur d'écran (NVDA, VoiceOver) : non testé ; les noms accessibles sont lus par axe, pas écoutés.
 - États d'erreur serveur (500, session expirée) et chargement lent : non provoqués.
 - Contenu très long : un seul cas simulé (titre) ; commentaires, descriptions et noms de champs non testés.
@@ -276,3 +276,46 @@ Gravité majeure et effort S : **F-02** (toasts), **F-07** (troncature et `nowra
 ## 5. Règles de rigueur (rappel)
 
 Aucune proposition de re-design n'est faite ici. La suite éventuelle est `/design:redesign`, à partir de ces constats.
+
+
+## 6. Suivi des constats (T-0096, 2026-11-07)
+
+Audit rejoué contre le code et dans le navigateur après les lots 0 à 5 et les tâches T-0091 à T-0095. Les constats de la section 3 restent l'état initial ; cette section dit où chacun en est. Un constat est **corrigé** quand une preuve rejouable existe, **ouvert** sinon, avec sa raison.
+
+### 6.1 État de chaque constat
+
+| Constat | État | Preuve (rejouable) |
+|---|---|---|
+| F-01 suppressions sans confirmation | corrigé | `guards.test.ts` : tout `DELETE` est précédé de `confirm.ask` ou annoté « sans confirmation : … » ; `e2e/tests/liens.spec.ts` et `parcours.spec.ts` (boîte de dialogue). |
+| F-02 toasts d'erreur éphémères | corrigé | `packages/ui/src/components.test.tsx` : une erreur reste jusqu'à sa fermeture, un succès disparaît, pause au survol et au focus. |
+| F-03 confirmation native | corrigé | `guards.test.ts` : aucune confirmation native du navigateur. |
+| F-04 arrêts de tabulation sans lien d'évitement | corrigé | `web6.test.tsx` : « Aller au contenu » est le premier élément focalisable et cible le contenu. |
+| F-05 textes de 8 à 10 px | corrigé | `packages/ui/src/tokens.test.ts` : aucune déclaration `font-size` sous 11 px dans `styles.css`. |
+| F-06 liens de clés de 15 à 19 px | corrigé | `tokens.test.ts` : cible de 24 px minimale pour les liens des tableaux, cartes et listes. |
+| F-07 titre long qui déborde | corrigé | `components.test.tsx` : titre tronqué avec points de suspension, identifiants jamais coupés ; `navigation.spec.ts` (aucun débordement horizontal). |
+| F-08 aucun état de chargement | corrigé, avec réserve | `Btn loading` (désactivé, `aria-busy`, « … ») sur les boutons cités par le constat (Créer, Ajouter, Prendre) et les autres créations ; **nouveau** : `api()` fusionne les écritures identiques en cours (`audit-followup.test.tsx`) : un double clic ne produit plus qu'une requête, partout. Réserve : une vingtaine de formulaires secondaires n'affichent pas l'état visuel « … » (leurs appels sont néanmoins protégés du double envoi). |
+| F-09 barre latérale et recherche à 375 px | corrigé | `e2e/tests/navigation.spec.ts` (téléphone 375 px : tiroir du rail, largeur) ; `styles.css` tiroir sous 768 px. |
+| F-10 clés techniques ATQL | corrigé | `suggest()` propose les valeurs d'un champ après l'opérateur (`audit-followup.test.tsx`, `web2.test.tsx`, `web6.test.tsx`). |
+| F-11 raccourci `Ctrl+K` non indiqué | ouvert, décision produit consignée (6.2) | `HelpPage` liste le raccourci (`i18n.ts` `shortcutRows`), `docs/user/GUIDE.md` le documente. |
+| F-12 aucune entrée d'aide | corrigé | Entrée « Aide » du rail sur toutes les pages (`Rail.tsx`, route `/help`) ; `web6.test.tsx` (bouton « Aide »), `web11.test.tsx` (le rail liste Projets, Mon travail, Aide à tout endroit). |
+| F-13 page Administration sans contrôle de rôle | corrigé | `AdminPage.tsx` : message « Réservé aux administrateurs. », aucun onglet, aucun appel réseau (`audit-followup.test.tsx`) ; `e2e/tests/audit.spec.ts` (utilisateur). |
+| **F-14** (nouveau) contraste du texte d'état | corrigé | L'axe rejoué trouve `color-contrast` sur `.ath-diff__to` (vert `signal-success` #1F8A4C sur blanc, 4,2:1) dans l'onglet Historique. Les textes d'état (`diff`, `stat__delta`, `field__error`, toasts) emploient maintenant `{semantic.state.*.fg}` ; `tokens.test.ts` interdit la couleur de signal brute en texte. |
+
+### 6.2 Décision produit : F-11 (`Ctrl+K`)
+
+Décision consignée : **l'indication permanente du raccourci reste retirée de l'en-tête**, comme décidé par le produit le 2026-11-01 ; la palette reste découvrable par la page Aide (tableau des raccourcis), le guide utilisateur et le composant de recherche (qui garde son indice quand il est utilisé hors de l'en-tête). `DESIGN.md` §3.5 et §4.2 prescrivent l'affichage permanent : l'écart est donc **accepté et assumé**, pas corrigé. Revenir en arrière est une tâche de taille S (indice discret dans le pied de la barre latérale, `{typography.mono}` en `{semantic.text.mute}`) : à rouvrir sur demande du produit.
+
+### 6.3 Nouvelle mesure axe, toutes les pages
+
+`e2e/tests/audit.spec.ts` (axe-core, WCAG 2.1 A et AA, **contraste compris**, navigateur réel) :
+
+- 23 adresses : Projets, Mon travail, Organisation, Aide, les huit onglets d'un projet, Recherche, les quatre vues d'un tracker (tableau, board, arbre, matrice), fiche item, Administration, configuration du tracker, nouveau tracker, page introuvable ;
+- 5 onglets de la fiche item (Liens, Historique, Pièces jointes, Commentaires, Développement) ;
+- administrateur en thème clair puis sombre, utilisateur sans droit d'administration en thème clair ;
+- résultat : **0 violation** (après la correction de F-14).
+
+`e2e/tests/theme.spec.ts` mesure en outre six pages dans chaque thème et vérifie les couleurs calculées du fond.
+
+### 6.4 Périmètre toujours non vérifié
+
+Lecteur d'écran (NVDA, VoiceOver) non écouté ; états d'erreur serveur et chargements lents non provoqués ; plugins avec widgets ; pièces jointes en échec antivirus ; contenus très longs hors titre ; glisser-déposer du board (l'alternative « Déplacer vers » existe).

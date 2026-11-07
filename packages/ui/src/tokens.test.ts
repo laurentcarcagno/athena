@@ -92,3 +92,23 @@ describe('thème sombre généré', () => {
     expect(lintSource(styles, 'styles.css')).toEqual([]);
   });
 });
+
+describe('garde-fous de l’audit d’interface (F-05, F-06)', () => {
+  const styles = readFileSync(join(__dirname, 'styles.css'), 'utf8');
+
+  it('aucun texte sous 11 px (F-05)', () => {
+    const sizes = [...styles.matchAll(/(?<![-\w])font-size:\s*(\d+(?:\.\d+)?)px/g)].map((m) => Number(m[1]));
+    expect(sizes.length).toBeGreaterThan(10);
+    expect(Math.min(...sizes)).toBeGreaterThanOrEqual(11);
+  });
+
+  it('les liens des tableaux, cartes et listes ont une cible de 24 px au moins (F-06)', () => {
+    expect(styles).toMatch(/\.ath-table \.ath-link[^{]*\{[^}]*min-height: 24px/);
+  });
+
+  it('le texte d’état n’emploie jamais la couleur de signal brute (contraste, trouvé par l’audit rejoué en T-0096)', () => {
+    const rawText = [...styles.matchAll(/(?<![-\w])color:\s*var\(--ath-color-signal-[a-z]+\)/g)].map((m) => m[0]);
+    expect(rawText).toEqual([]);
+  });
+});
+

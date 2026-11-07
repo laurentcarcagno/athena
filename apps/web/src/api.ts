@@ -31,8 +31,24 @@ export async function loadSession(): Promise<Session> {
   return session;
 }
 
-/** Appel JSON authentifié par le cookie de session. Les écritures portent le jeton CSRF. */
-export async function api<T>(method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE', path: string, body?: unknown): Promise<T> {
+/** Écritures en cours, par méthode, adresse et corps : un double clic ne produit qu'une requête (audit F-08). */
+const inflight = new Map<string, Promise<unknown>>();
+
+/**
+ * Appel JSON authentifié par le cookie de session. Les écritures portent le jeton CSRF. Une écriture identique à une écriture encore
+ * en cours (même méthode, même adresse, même corps) n'est pas renvoyée : les deux appelants reçoivent la même réponse.
+ */
+export function api<T>(method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE', path: string, body?: unknown): Promise<T> {
+  if (method === 'GET') return send<T>(method, path, body);
+  const key = `${method} ${path} ${body === undefined ? '' : JSON.stringify(body)}`;
+  const pending = inflight.get(key);
+  if (pending) return pending as Promise<T>;
+  const call = send<T>(method, path, body).finally(() => { inflight.delete(key); });
+  inflight.set(key, call);
+  return call;
+}
+
+async function send<T>(method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE', path: string, body?: unknown): Promise<T> {
   const headers: Record<string, string> = { Accept: 'application/json' };
   if (body !== undefined) headers['Content-Type'] = 'application/json';
   if (method !== 'GET' && csrf) headers['X-CSRF-Token'] = csrf;
