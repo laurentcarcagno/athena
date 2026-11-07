@@ -2,7 +2,7 @@ import type { PoolClient } from 'pg';
 import { Db, type Actor } from '../core/db';
 import { notFound, validation } from '../core/errors';
 import { audit, outbox } from '../core/tracker.service';
-import { parseSdoc } from './sdoc-parser';
+import { docIdOf, parseSdocTree } from './sdoc-parser';
 
 export interface DocLinkView {
   artifact: string;
@@ -18,7 +18,13 @@ export interface IndexResult {
   nodes: number;
   linksCreated: number;
   linksSuspected: number;
+  /** Ré-indexation incrémentale : nœuds réellement écrits (nouveaux ou modifiés) et nœuds supprimés ; les autres ne sont pas touchés. */
+  written: number;
+  removed: number;
 }
+
+/** Provenance des fichiers d'une source (dépôt, référence, sous-dossier), conservée pour pointer vers la source et détecter un index en retard. */
+export interface SourceOrigin { repoPath: string; ref: string; subPath?: string | undefined }
 
 export interface Coverage {
   requirementsWithoutArtifact: string[];
@@ -31,18 +37,24 @@ export class DocLinkService {
   constructor(private readonly db: Db) {}
 
   /**
-   * Indexe les fichiers .sdoc d'une source (lecture seule). Remplace l'index, crée les liens déclarés dans
-   * le champ ATHENA_REFS et marque suspects les liens dont l'exigence a changé ou disparu.
+   * Indexe les fichiers .sdoc d'une source (lecture seule). Ré-indexation incrémentale : seuls les nœuds nouveaux ou modifiés sont
+   * écrits, ceux qui ont disparu sont supprimés, les autres ne sont pas touchés. Crée les liens déclarés dans ATHENA_REFS et marque
+   * suspects les liens dont l'exigence a changé ou disparu (événement `link.suspect` par lien, pour les webhooks).
    */
   async index(
     organizationId: string, projectKey: string, sourceName: string,
-    files: Array<{ path: string; content: string }>, gitSha: string | null, actor: Actor,
+    files: Array<{ path: string; content: string }>, gitSha: string | null, actor: Actor, origin?: SourceOrigin,
   ): Promise<IndexResult> {
-    const nodes = new Map<string, ReturnType<typeof parseSdoc>[number]>();
+    type Entry = ReturnType<typeof parseSdocTree>[number] & { docId: string; docPath: string };
+    const nodes = new Map<string, Entry>();
+    const documents = new Set<string>();
     for (const file of files) {
-      for (const node of parseSdoc(file.content)) {
+      const docId = docIdOf(sourceName, file.path);
+      if (documents.has(docId)) throw validation([`deux fichiers donnent le même identifiant de document : ${file.path}`]);
+      documents.add(docId);
+      for (const node of parseSdocTree(file.content, docId)) {
         if (nodes.has(node.uid)) throw validation([`UID en double : ${node.uid} (${file.path})`]);
-        nodes.set(node.uid, node);
+        nodes.set(node.uid, { ...node, docId, docPath: file.path });
       }
     }
     return this.db.tx(organizationId, async (c) => {
@@ -50,20 +62,36 @@ export class DocLinkService {
       if (!project) throw notFound(`Projet ${projectKey}`);
       const source = (
         await c.query(
-          `insert into doc_source (organization_id, project_id, name, git_sha) values ($1,$2,$3,$4)
-           on conflict (project_id, name) do update set git_sha = excluded.git_sha, indexed_at = now() returning id`,
-          [organizationId, project.id, sourceName, gitSha],
+          `insert into doc_source (organization_id, project_id, name, git_sha, repo_path, ref, sub_path) values ($1,$2,$3,$4,$5,$6,$7)
+           on conflict (project_id, name) do update set git_sha = excluded.git_sha, indexed_at = now(),
+             repo_path = coalesce(excluded.repo_path, doc_source.repo_path), ref = coalesce(excluded.ref, doc_source.ref), sub_path = coalesce(excluded.sub_path, doc_source.sub_path)
+           returning id`,
+          [organizationId, project.id, sourceName, gitSha, origin?.repoPath ?? null, origin?.ref ?? null, origin?.subPath ?? null],
         )
       ).rows[0].id as string;
 
-      await c.query('delete from doc_node where source_id = $1', [source]);
+      const existing = new Map(
+        (await c.query('select uid, content_hash, doc_id, doc_path, position, parent_uid, depth, title, statement, status, node_type, document from doc_node where source_id = $1', [source])).rows
+          .map((r) => [r.uid as string, r]),
+      );
+      let written = 0;
       for (const n of nodes.values()) {
+        const old = existing.get(n.uid);
+        const same = old && old.content_hash === n.contentHash && old.doc_id === n.docId && old.doc_path === n.docPath && old.position === n.position
+          && (old.parent_uid ?? null) === n.parentUid && old.depth === n.depth && old.title === n.title && old.node_type === n.type && old.document === n.document;
+        if (same) continue;
         await c.query(
-          `insert into doc_node (organization_id, source_id, uid, node_type, document, title, statement, status, parents, athena_refs, content_hash)
-           values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
-          [organizationId, source, n.uid, n.type, n.document, n.title, n.statement, n.status, n.parents, n.athenaRefs, n.contentHash],
+          `insert into doc_node (organization_id, source_id, uid, node_type, document, title, statement, status, parents, athena_refs, content_hash, doc_id, doc_path, position, parent_uid, depth, synthetic)
+           values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
+           on conflict (source_id, uid) do update set node_type = excluded.node_type, document = excluded.document, title = excluded.title, statement = excluded.statement,
+             status = excluded.status, parents = excluded.parents, athena_refs = excluded.athena_refs, content_hash = excluded.content_hash, doc_id = excluded.doc_id,
+             doc_path = excluded.doc_path, position = excluded.position, parent_uid = excluded.parent_uid, depth = excluded.depth, synthetic = excluded.synthetic`,
+          [organizationId, source, n.uid, n.type, n.document, n.title, n.statement, n.status, n.parents, n.athenaRefs, n.contentHash, n.docId, n.docPath, n.position, n.parentUid, n.depth, n.synthetic],
         );
+        written += 1;
       }
+      const gone = [...existing.keys()].filter((uid) => !nodes.has(uid));
+      if (gone.length) await c.query('delete from doc_node where source_id = $1 and uid = any($2::text[])', [source, gone]);
 
       // Liens déclarés côté document (ATHENA_REFS) : créés si l'artefact existe.
       let created = 0;
@@ -80,17 +108,22 @@ export class DocLinkService {
         }
       }
 
-      // Liens suspects : contenu modifié ou nœud disparu depuis la liaison.
+      // Liens suspects : contenu modifié ou nœud disparu depuis la liaison. Un événement `link.suspect` part pour chacun.
       const suspected = await c.query(
         `update doc_link l set suspect = true
-         where l.source_id = $1 and not l.suspect
-           and not exists (select 1 from doc_node d where d.source_id = l.source_id and d.uid = l.uid and d.content_hash = l.linked_hash)`,
+         from artifact a
+         where a.id = l.artifact_id and l.source_id = $1 and not l.suspect
+           and not exists (select 1 from doc_node d where d.source_id = l.source_id and d.uid = l.uid and d.content_hash = l.linked_hash)
+         returning l.artifact_id, a.key, l.uid`,
         [source],
       );
       const count = suspected.rowCount ?? 0;
+      for (const l of suspected.rows) {
+        await outbox(c, organizationId, 'artifact', l.artifact_id as string, 'link.suspect', { artifact: l.key, uid: l.uid, source: sourceName, kind: 'document', actor: actor.id });
+      }
       if (count > 0) await outbox(c, organizationId, 'project', project.id, 'doc.links_suspected', { source: sourceName, count });
-      await audit(c, organizationId, actor, 'doc.index', `doc_source:${sourceName}`, { nodes: nodes.size, gitSha });
-      return { nodes: nodes.size, linksCreated: created, linksSuspected: count };
+      await audit(c, organizationId, actor, 'doc.index', `doc_source:${sourceName}`, { nodes: nodes.size, written, removed: gone.length, gitSha });
+      return { nodes: nodes.size, linksCreated: created, linksSuspected: count, written, removed: gone.length };
     });
   }
 

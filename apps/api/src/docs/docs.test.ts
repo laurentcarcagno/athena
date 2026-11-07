@@ -109,7 +109,7 @@ suite('liaison documentaire (intégration)', () => {
 
   it('indexe une source et crée les liens déclarés dans ATHENA_REFS', async () => {
     const result = await docs.index(org, 'ARI', 'spec', file(SAMPLE), 'sha1', actor);
-    expect(result).toEqual({ nodes: 2, linksCreated: 1, linksSuspected: 0 }); // ARI-BUG-0009 n'existe pas
+    expect(result).toMatchObject({ nodes: 3, linksCreated: 1, linksSuspected: 0 }); // ARI-BUG-0009 n'existe pas
     expect(await docs.links(org, 'ARI', 'ARI-REQ-0001')).toMatchObject([{ uid: 'SYS-1', origin: 'document', suspect: false, orphan: false, title: "Journal d'audit" }]);
   });
 
@@ -130,7 +130,7 @@ suite('liaison documentaire (intégration)', () => {
 
   it("signale orphelin et suspect un lien dont l'exigence a disparu", async () => {
     const result = await docs.index(org, 'ARI', 'spec', file(SAMPLE.split('[REQUIREMENT]\nUID: SYS-2')[0]!), 'sha3', actor);
-    expect(result.nodes).toBe(1);
+    expect(result.nodes).toBe(2); // la section et SYS-1
     expect(result.linksSuspected).toBe(1);
     expect((await docs.links(org, 'ARI', 'ARI-REQ-0002'))[0]).toMatchObject({ suspect: true, orphan: true });
   });

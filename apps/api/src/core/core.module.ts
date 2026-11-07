@@ -15,7 +15,9 @@ import { AgileController } from '../agile/agile.controller';
 import { BoardService } from '../agile/board.service';
 import { ReportService } from '../agile/report.service';
 import { SprintService } from '../agile/sprint.service';
+import { DocController } from '../docs/doc.controller';
 import { DocLinkService } from '../docs/doc-link.service';
+import { DocReadService } from '../docs/doc-read.service';
 import { GitCodeService } from '../gitcode/gitcode.service';
 import { IntegrationsController } from '../integrations/integrations.controller';
 import { OpenBao } from '../secrets/openbao';
@@ -70,7 +72,7 @@ import { TrackerService } from './tracker.service';
 export { PG_POOL } from './core.tokens';
 
 @Module({
-  controllers: [CoreController, AttachmentController, SavedFilterController, IntegrationsController, AgileController, MemberController, TemplateController, ProjectTemplateController, TrackerTemplateController, TrackerTypeController, ProjectOverviewController, PinController, LinkTypeController, TreeController, MatrixController, CoverageController, NormativeController, AccessController, ApprovalController],
+  controllers: [CoreController, AttachmentController, SavedFilterController, IntegrationsController, AgileController, MemberController, TemplateController, ProjectTemplateController, TrackerTemplateController, TrackerTypeController, ProjectOverviewController, PinController, LinkTypeController, TreeController, MatrixController, CoverageController, NormativeController, AccessController, ApprovalController, DocController],
   providers: [
     { provide: PG_POOL, useFactory: () => new Pool({ connectionString: loadConfig().DATABASE_URL, max: 10 }) },
     { provide: FieldTypeRegistry, useValue: new FieldTypeRegistry() },
@@ -113,6 +115,7 @@ export { PG_POOL } from './core.tokens';
       inject: [PG_POOL, SECRET_STORE],
     },
     { provide: DocLinkService, useFactory: (db: Db) => new DocLinkService(db), inject: [Db] },
+    { provide: DocReadService, useFactory: (db: Db) => new DocReadService(db, loadConfig().GITLAB_URL), inject: [Db] },
     { provide: GitCodeService, useFactory: (db: Db, a: ArtifactService) => new GitCodeService(db, a), inject: [Db, ArtifactService] },
     { provide: BoardService, useFactory: (db: Db, t: TrackerService, a: ArtifactService) => new BoardService(db, t, a), inject: [Db, TrackerService, ArtifactService] },
     { provide: ReportService, useFactory: (db: Db) => new ReportService(db), inject: [Db] },

@@ -24,7 +24,7 @@ export class DocFetcher {
     const paths = (await this.gitlab.tree(repo, sha)).filter((p) => p.endsWith('.sdoc') && p.startsWith(prefix));
     if (paths.length > MAX_FILES) throw validation([`trop de fichiers .sdoc (${MAX_FILES} au plus)`]);
     const files = await Promise.all(paths.map(async (path) => ({ path, content: await this.gitlab.fileContent(repo, path, sha) })));
-    const result = await this.docs.index(organizationId, projectKey, sourceName, files, sha, actor);
+    const result = await this.docs.index(organizationId, projectKey, sourceName, files, sha, actor, { repoPath, ref, subPath: subPath?.replace(/^\/+|\/+$/g, '') });
     return { ...result, files: files.length, sha };
   }
 }
