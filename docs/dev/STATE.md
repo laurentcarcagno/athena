@@ -8,6 +8,7 @@ Dernière mise à jour : 2026-11-01
 - **Vue projet, workflow graphique, templates (2026-11-01)** : trackers en lignes (nom, artefacts, attributs), éditeur de workflow en machine à états (`WorkflowEditor`, SVG, clavier), templates de projet (migration 026, `TemplateService`, onglet Organisation > Templates, sélection à la création du projet).
 - **Templates de tracker (2026-11-01)** : migration 027, `/v1/tracker-templates`, éditeur de tracker réutilisable (`TrackerBuilder`), page `/p/:projet/trackers/new` avec départ depuis un template, Organisation > Templates en deux volets (projet, tracker) avec création de tracker à la volée.
 - **Disposition de la vue détails (2026-11-02)** : migration 028 (`tracker.layout`), `LayoutSchema`, `PATCH .../layout`, `tracker.yaml` et reconstruction, templates ; éditeur `LayoutEditor` (WYSIWYG, glisser-déposer + boutons), fiche artefact en grille de 3 colonnes.
+- **Lot 8, retours de relecture du manuel (2026-11-09)** : T-0103 à T-0108 faites (rail ATHENA, initiales et icône de rôle, favoris et récents en menus latéraux, page Projets en tableau, Mon travail corrigé, recherche groupée, séparateur du board, boutons à icônes, guide intégré à l'aide, thème de connexion Keycloak). Plan et correspondance commentaire→tâche : `docs/dev/tasks/LOT8-PLAN.md`. **Lot 8 terminé, arrêt pour compte rendu.**
 - **Tâche en cours** : aucune.
 - **Reste à faire** (par priorité) :
   1. Test d'intrusion externe (à commander) ; déploiement de recette sur Kubernetes et mesures de charge concurrente.
