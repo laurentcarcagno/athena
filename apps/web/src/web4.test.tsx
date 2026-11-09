@@ -110,11 +110,11 @@ describe('vue projet', () => {
     routes.push(['GET', /\/trackers\/REQ$/, { fields: [{ label: 'Énoncé' }] }]);
     routes.push(['GET', /\/boards$/, []]);
     render(<ToastProvider><MemoryRouter><ProjectsPage /></MemoryRouter></ToastProvider>);
-    const row = (await screen.findByRole('row', { name: /Bugs/ }));
+    const row = (await screen.findByRole('link', { name: 'Bugs' })).closest('tr')!; // un seul projet : déplié d’office
     expect(within(row).getByText('12')).toBeInTheDocument();
     expect(within(row).getByText('Titre')).toBeInTheDocument();
     expect(within(row).getByText('Sévérité')).toBeInTheDocument();
-    const second = screen.getByRole('row', { name: /Exigences/ });
+    const second = screen.getByRole('link', { name: 'Exigences' }).closest('tr')!;
     expect(within(second).getByText('3')).toBeInTheDocument();
     expect(within(second).getByText('Énoncé')).toBeInTheDocument();
   });

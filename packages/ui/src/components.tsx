@@ -174,8 +174,8 @@ export function Th({ children, sort, onSort }: { children: ReactNode; sort?: Sor
   );
 }
 
-export function Td({ children, mono = false, mute = false, center = false }: { children: ReactNode; mono?: boolean; mute?: boolean; center?: boolean }) {
-  return <td className={cx('ath-td', mono && 'ath-mono', mute && 'ath-td--mute', center && 'ath-td--center')}>{children}</td>;
+export function Td({ children, mono = false, mute = false, center = false, colSpan }: { children?: ReactNode; mono?: boolean; mute?: boolean; center?: boolean; colSpan?: number }) {
+  return <td colSpan={colSpan} className={cx('ath-td', mono && 'ath-mono', mute && 'ath-td--mute', center && 'ath-td--center')}>{children}</td>;
 }
 
 export function Tabs({ tabs, active, onChange }: { tabs: Array<{ id: string; label: string }>; active: string; onChange: (id: string) => void }) {

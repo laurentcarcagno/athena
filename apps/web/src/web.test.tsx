@@ -199,8 +199,12 @@ describe('board et projets', () => {
       route('GET', '/v1/projects/ARI/boards', { body: [{ key: 'kanban', name: 'Kanban' }] }),
     ];
     renderAt('/', <ProjectsPage />, '/');
-    const card = (await screen.findByText('Ariane')).closest('section')!;
-    expect(within(card).getByText('12')).toHaveClass('ath-mono');
-    expect(within(card).getByRole('link', { name: 'Kanban' })).toHaveAttribute('href', '/p/ARI/board/kanban');
+    const row = (await screen.findByText('Ariane')).closest('tr')!;
+    expect(within(row).getByRole('link', { name: 'Kanban' })).toHaveAttribute('href', '/p/ARI/board/kanban');
+    expect(within(row).getByRole('link', { name: 'Ariane' })).toHaveAttribute('href', '/p/ARI');
+    expect(within(row).getByRole('button', { name: 'Replier les trackers de Ariane' })).toHaveAttribute('aria-expanded', 'true'); // un seul projet : déplié d’office
+    const tracker = (await screen.findByRole('link', { name: 'Bugs' })).closest('tr')!;
+    expect(within(tracker).getByText('12')).toHaveClass('ath-mono');
+    expect(within(tracker).queryByText('BUG')).toBeNull(); // pas de tag de clé à côté du nom
   });
 });

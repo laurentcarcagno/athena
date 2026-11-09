@@ -47,7 +47,7 @@ describe('accès à un item en moins de 3 actions, sans requête', () => {
   it('depuis « Mon travail » : Projets, le tracker, l’item (3 actions)', async () => {
     app('/me');
     await userEvent.click(await within(await screen.findByRole('navigation', { name: 'Navigation principale' })).findByRole('button', { name: 'Projets' })); // 1
-    await userEvent.click(await screen.findByRole('link', { name: /BUG.*Anomalies/ })); // 2
+    await userEvent.click(await screen.findByRole('link', { name: /Anomalies/ })); // 2
     await userEvent.click(await screen.findByRole('link', { name: KEY })); // 3
     expect(await shown()).toBeInTheDocument();
   });
