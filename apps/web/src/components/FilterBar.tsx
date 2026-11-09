@@ -57,7 +57,7 @@ export function FilterBar({ def, fragment, username, onChange, error }: {
             <label className="ath-field__label" htmlFor="flt-atql">{fr.filters.atqlLabel}</label>
             <input id="flt-atql" className="ath-input ath-mono" size={60} value={draft} onChange={(e) => setDraft(e.target.value)} autoComplete="off" placeholder={fr.filters.atqlPlaceholder} />
           </div>
-          <Btn type="submit">{fr.list.run}</Btn>
+          <Btn icon="check" type="submit">{fr.list.run}</Btn>
         </form>
       )}
       {model === null && <p className="ath-eyebrow">{fr.filters.notRepresentable}</p>}

@@ -45,7 +45,7 @@ export function ConformityTab({ session }: { session: Session }) {
   return (
     <>
       <PageHeader eyebrow={fr.overview.eyebrow} title={`${t.title} · ${project}`}
-        actions={<><Btn variant="ghost" onClick={() => void exportCsv()}>{t.exportCsv}</Btn>{canEdit && <Btn onClick={() => { setImporting(true); setReport(null); }}>{t.importClauses}</Btn>}</>} />
+        actions={<><Btn variant="ghost" onClick={() => void exportCsv()}>{t.exportCsv}</Btn>{canEdit && <Btn icon="check" onClick={() => { setImporting(true); setReport(null); }}>{t.importClauses}</Btn>}</>} />
       {importing && <ImportForm project={String(project)} report={report} onReport={(r) => { setReport(r); toast('success', t.imported(r.created, r.updated, r.unchanged, r.errors)); load(); }} onClose={() => setImporting(false)} />}
       {data === null ? <p role="status">{fr.loading}</p> : data.totals.clauses === 0 ? <EmptyState eyebrow={t.title} title={t.empty} /> : (
         <>
@@ -141,7 +141,7 @@ function ImportForm({ project, report, onReport, onClose }: { project: string; r
         <div className="ath-field"><label className="ath-field__label" htmlFor="im-std">{t.standard}</label>
           <input id="im-std" className="ath-input ath-mono" maxLength={200} value={standard} onChange={(e) => setStandard(e.target.value)} /></div>
       </div>
-      <div className="ath-toolbar"><Btn type="submit">{t.run}</Btn><Btn icon="close" type="button" variant="ghost" onClick={onClose}>{fr.confirm.cancel}</Btn></div>
+      <div className="ath-toolbar"><Btn icon="check" type="submit">{t.run}</Btn><Btn icon="close" type="button" variant="ghost" onClick={onClose}>{fr.confirm.cancel}</Btn></div>
       {report && (
         <Table>
           <caption className="ath-table__caption">{t.imported(report.created, report.updated, report.unchanged, report.errors)}</caption>

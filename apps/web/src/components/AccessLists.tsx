@@ -103,7 +103,7 @@ export function AccessLists({ project, me }: { project: string; me: string | und
               <option value="" />{users.map((u) => <option key={u.subject} value={u.subject}>{u.displayName} ({u.username})</option>)}
             </select>
           </div>
-          <Btn onClick={() => void create()}>{t.create}</Btn>
+          <Btn icon="plus" onClick={() => void create()}>{t.create}</Btn>
         </div>
       )}
     </section>

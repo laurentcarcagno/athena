@@ -41,7 +41,7 @@ function WebhooksTab() {
       <form className="ath-toolbar" onSubmit={create}>
         <Field label={fr.admin.url} value={url} onChange={(e) => setUrl(e.target.value)} mono />
         <Field label={fr.admin.events} value={events} onChange={(e) => setEvents(e.target.value)} mono />
-        <Btn type="submit" disabled={!url}>{fr.admin.create}</Btn>
+        <Btn icon="plus" type="submit" disabled={!url}>{fr.admin.create}</Btn>
       </form>
     </div>
   );
@@ -127,7 +127,7 @@ function BaselinesTab({ project }: { project: string }) {
       )}
       <form className="ath-toolbar" onSubmit={create}>
         <Field label={fr.admin.baselineName} value={name} onChange={(e) => setName(e.target.value)} mono />
-        <Btn type="submit" disabled={!name}>{fr.admin.create}</Btn>
+        <Btn icon="plus" type="submit" disabled={!name}>{fr.admin.create}</Btn>
       </form>
     </div>
   );
