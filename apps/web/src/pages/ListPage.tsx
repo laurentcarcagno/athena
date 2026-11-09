@@ -145,7 +145,7 @@ export function ListPage({ session }: { session?: Session } = {}) {
       {result && result.hits.length === 0 && !error ? (
         <EmptyState eyebrow={fr.list.emptyEyebrow} title={fr.list.empty} action={query ? <Btn variant="ghost" onClick={() => setParams({})}>{fr.list.reset}</Btn> : undefined} />
       ) : result ? (
-        <ArtifactTable project={String(project)} result={result} offset={offset} pageSize={PAGE} sortOf={sortOf} sortBy={sortBy}
+        <ArtifactTable project={String(project)} result={result} offset={offset} pageSize={PAGE} sortOf={sortOf} sortBy={sortBy} groupByTracker
           onPage={(o) => setParams({ ...(query ? { q: query } : {}), o: String(o) })} />
       ) : error ? null : <p role="status">{fr.loading}</p>}
     </>

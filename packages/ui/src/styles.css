@@ -196,7 +196,7 @@
 .ath-board { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(240px, 1fr); gap: var(--ath-space-md); overflow-x: auto; }
 .ath-column { background: var(--ath-color-muted-mist); border: 1px solid var(--ath-color-console-border); min-height: 200px; }
 .ath-column--over { border-color: var(--ath-color-signal-danger); }
-.ath-column__head { display: flex; justify-content: space-between; padding: var(--ath-space-sm) 10px; background: var(--ath-color-sovereign-deep-blue); color: var(--ath-color-instrument-white); }
+.ath-column__head { display: flex; justify-content: space-between; align-items: baseline; gap: var(--ath-space-sm); padding: var(--ath-space-sm) 10px; background: var(--ath-color-sovereign-deep-blue); color: var(--ath-color-instrument-white); }
 .ath-column__cards { display: flex; flex-direction: column; gap: var(--ath-space-sm); padding: var(--ath-space-sm); }
 .ath-ticket { background: var(--ath-color-instrument-white); border: 1px solid var(--ath-color-console-border); padding: var(--ath-space-sm) 10px; cursor: grab; }
 .ath-ticket:hover { background: var(--ath-color-hover-mist); }
@@ -439,3 +439,4 @@ html, body { margin: 0; }
 .ath-flyout__item:focus-visible { outline: 2px solid var(--ath-color-instrument-white); outline-offset: -2px; }
 @media (max-width: 768px) { .ath-flyout__panel { position: static; max-width: none; border: 0; } }
 .ath-flyout__empty { margin: 0; padding: 10px 14px; font-size: 12px; opacity: 0.75; }
+.ath-column__head > .ath-mono { flex: none; padding-left: var(--ath-space-sm); border-left: 1px solid rgba(255, 255, 255, 0.4); }

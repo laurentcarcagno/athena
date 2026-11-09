@@ -37,33 +37,44 @@ export function columnFor(id: string, def: TrackerDefinition | null): TableColum
 }
 
 /** Tableau d'artefacts triable avec pagination : partagé par la Recherche et l'écran Tracker. */
-export function ArtifactTable({ project, result, offset, pageSize, sortOf, sortBy, onPage, linkFor, selected, columns }: {
+export function ArtifactTable({ project, result, offset, pageSize, sortOf, sortBy, onPage, linkFor, selected, columns, groupByTracker = false }: {
   project: string; selected?: string | null; columns?: TableColumn[];
   result: SearchResult; offset: number; pageSize: number;
   sortOf: (field: string) => SortState; sortBy: (field: string) => (next: SortState) => void; onPage: (offset: number) => void;
   /** Adresse d'un item (par défaut la fiche complète) ; l'écran Tracker ouvre le panneau de détail. */
   linkFor?: (key: string) => string;
+  /** Regroupe les résultats par tracker (un tableau par tracker, sous son titre) quand la page en mélange plusieurs. */
+  groupByTracker?: boolean;
 }) {
   const href = linkFor ?? ((key: string) => `/p/${project}/a/${key}`);
   const cols = columns ?? searchColumns();
+  const renderTable = (hits: SearchResult['hits']) => (
+    <Table>
+      <thead>
+        <tr>
+          <Th sort={sortOf('key')} onSort={sortBy('key')}>{fr.list.key}</Th>
+          {cols.map((c) => (c.sortField ? <Th key={c.id} sort={sortOf(c.sortField)} onSort={sortBy(c.sortField)}>{c.label}</Th> : <Th key={c.id}>{c.label}</Th>))}
+        </tr>
+      </thead>
+      <tbody>
+        {hits.map((hit) => (
+          <tr key={hit.key} className={selected === hit.key ? 'ath-row--selected' : undefined}>
+            <Td><Link id={`row-${hit.key}`} className="ath-link ath-mono" to={href(hit.key)} aria-current={selected === hit.key ? 'true' : undefined}>{hit.key}</Link></Td>
+            {cols.map((c) => <Td key={c.id} mono={c.mono} mute={c.mute}>{c.render(hit)}</Td>)}
+          </tr>
+        ))}
+      </tbody>
+    </Table>
+  );
+  const trackers = [...new Set(result.hits.map((h) => h.tracker))];
   return (
     <>
-      <Table>
-        <thead>
-          <tr>
-            <Th sort={sortOf('key')} onSort={sortBy('key')}>{fr.list.key}</Th>
-            {cols.map((c) => (c.sortField ? <Th key={c.id} sort={sortOf(c.sortField)} onSort={sortBy(c.sortField)}>{c.label}</Th> : <Th key={c.id}>{c.label}</Th>))}
-          </tr>
-        </thead>
-        <tbody>
-          {result.hits.map((hit) => (
-            <tr key={hit.key} className={selected === hit.key ? 'ath-row--selected' : undefined}>
-              <Td><Link id={`row-${hit.key}`} className="ath-link ath-mono" to={href(hit.key)} aria-current={selected === hit.key ? 'true' : undefined}>{hit.key}</Link></Td>
-              {cols.map((c) => <Td key={c.id} mono={c.mono} mute={c.mute}>{c.render(hit)}</Td>)}
-            </tr>
-          ))}
-        </tbody>
-      </Table>
+      {groupByTracker && trackers.length > 1
+        ? trackers.map((t) => {
+          const hits = result.hits.filter((h) => h.tracker === t);
+          return <section key={t} aria-label={t}><h2 className="ath-label">{t} <Id>{hits.length}</Id></h2>{renderTable(hits)}</section>;
+        })
+        : renderTable(result.hits)}
       <div className="ath-toolbar">
         <Btn variant="ghost" size="sm" disabled={offset === 0} onClick={() => onPage(Math.max(0, offset - pageSize))}>{fr.list.previous}</Btn>
         <Id>{offset + 1}–{Math.min(offset + pageSize, result.total)} / {result.total}{result.totalCapped ? '+' : ''}</Id>

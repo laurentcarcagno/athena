@@ -16,7 +16,7 @@ export function MyWorkPage({ session }: { session: Session }) {
   const toast = useToast();
   const fail = useFailure();
   const { busy, guard } = useBusy();
-  const username = session.user!.username;
+  const me = session.user!.id ?? session.user!.username; // le champ Responsable porte l'identifiant du compte (sub), pas son nom
   const [mine, setMine] = useState<Item[] | null>(null);
   const [free, setFree] = useState<Item[]>([]);
   const [mentions, setMentions] = useState<Mention[]>([]);
@@ -25,20 +25,20 @@ export function MyWorkPage({ session }: { session: Session }) {
     const projects = await api<Array<{ key: string }>>('GET', '/v1/projects');
     const search = (project: string, q: string) => api<SearchResult>('GET', `/v1/projects/${project}/search?q=${encodeURIComponent(q)}&limit=50`).catch(() => ({ total: 0, hits: [] as Hit[] }));
     const lists = await Promise.all(projects.map(async (p) => ({
-      mine: (await search(p.key, `assignee = "${username.replace(/["\\]/g, '')}"`)).hits.filter((h) => h.category !== 'done').map((hit) => ({ project: p.key, hit })),
+      mine: (await search(p.key, 'assignee = currentUser()')).hits.filter((h) => h.category !== 'done').map((hit) => ({ project: p.key, hit })),
       free: (await search(p.key, 'assignee IS EMPTY')).hits.filter((h) => h.category === 'todo').map((hit) => ({ project: p.key, hit })),
     })));
     const inbox = await api<{ items: Mention[] }>('GET', '/v1/me/notifications?event=mention&limit=20').catch(() => ({ items: [] as Mention[] }));
     setMentions(Array.isArray(inbox.items) ? inbox.items : []);
     setMine(lists.flatMap((l) => l.mine));
     setFree(lists.flatMap((l) => l.free));
-  }, [username]);
+  }, []);
   useEffect(() => { load().catch(fail); }, [load, fail]);
 
   const take = (item: Item) => guard(() => takeRun(item));
   const takeRun = async ({ project, hit }: Item) => {
     try {
-      await api('PATCH', `/v1/projects/${project}/artifacts/${hit.key}`, { values: { assignee: username }, version: hit.version });
+      await api('PATCH', `/v1/projects/${project}/artifacts/${hit.key}`, { values: { assignee: me }, version: hit.version });
       toast('success', fr.work.taken(hit.key));
       await load();
     } catch (error) { fail(error); }
