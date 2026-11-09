@@ -1,7 +1,8 @@
 {
   "realm": "athena",
   "enabled": true,
-  "displayName": "Athena (dev)",
+  "displayName": "ATHENA",
+  "loginTheme": "athena",
   "registrationAllowed": false,
   "bruteForceProtected": true,
   "accessTokenLifespan": 300,

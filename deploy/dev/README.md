@@ -30,3 +30,7 @@ docker compose down -v      # arrêt et effacement des données
 - Sert aux tests d'intégration d'Athena (synchronisation d'historique, connecteur de code, webhooks). **Ce n'est pas le dépôt d'Athena** : son `origin` est `ssh://git@gitlab.karka.lan:2222/tools/athena.git`.
 - Premier démarrage : 3 à 5 minutes. Le mot de passe doit respecter la politique de GitLab (pas de mots courants).
 - Pour que GitLab appelle des webhooks locaux, activer « Autoriser les requêtes vers le réseau local » (Admin > Paramètres > Réseau) dans cette instance de test uniquement.
+
+## Thème de connexion Keycloak
+
+Le dossier `keycloak/themes/athena` (monté dans le conteneur par `docker-compose.yml`) habille la page de connexion aux couleurs de la charte HEMERIA ; le realm l'active par `loginTheme`. Sur un Keycloak déjà importé, régler « Thème de connexion » sur `athena` dans la console d'administration (Realm settings > Themes).

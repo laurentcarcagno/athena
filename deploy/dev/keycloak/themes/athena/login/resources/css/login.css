@@ -1,0 +1,25 @@
+/* Thème de connexion Athena : charte HEMERIA (angles droits, aucune ombre, aucun dégradé, Console Sky = action).
+   Les valeurs reprennent packages/ui/design/DESIGN.json. */
+:root {
+  --ath-deep-blue: #12293A;
+  --ath-sky: #006EB1;
+  --ath-border: #C2DDF0;
+  --ath-white: #FCFDFE;
+  --ath-ink: #43474C;
+}
+html, body, .login-pf-page, .pf-v5-c-login, .pf-v5-c-background-image { background: var(--ath-deep-blue) !important; background-image: none !important; font-family: "IBM Plex Sans", system-ui, sans-serif; }
+.pf-v5-c-login__container { color: var(--ath-white); }
+.pf-v5-c-login__main, .pf-v5-c-login__main-header, .login-pf .card-pf { background: var(--ath-white); border: 1px solid var(--ath-border); border-radius: 0 !important; box-shadow: none !important; color: var(--ath-ink); }
+#kc-header-wrapper, .pf-v5-c-brand { font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ath-white); }
+#kc-page-title, .pf-v5-c-title { color: var(--ath-deep-blue); font-weight: 600; letter-spacing: 0.04em; }
+.pf-v5-c-form-control, input[type="text"], input[type="password"], input[type="email"] { border-radius: 0 !important; box-shadow: none !important; border: 1px solid var(--ath-border); }
+.pf-v5-c-form-control:focus-within, input:focus-visible { outline: 2px solid var(--ath-sky); outline-offset: 2px; }
+.pf-v5-c-button, #kc-login { border-radius: 0 !important; box-shadow: none !important; background: var(--ath-sky) !important; color: var(--ath-white) !important; font-weight: 600; letter-spacing: 0.04em; border: 0; }
+.pf-v5-c-button:hover, #kc-login:hover { background: var(--ath-deep-blue) !important; }
+a, .pf-v5-c-login__main-footer-band a { color: var(--ath-sky); }
+.pf-v5-c-alert { border-radius: 0 !important; box-shadow: none !important; }
+/* Une colonne centrée : marque au-dessus, carte dessous. */
+.pf-v5-c-login__container { display: flex !important; flex-direction: column; align-items: center; gap: 24px; max-width: 440px; margin: 0 auto; padding: 48px 16px; grid-template-columns: none !important; }
+.pf-v5-c-login__header, .pf-v5-c-login__main { width: 100%; margin: 0; }
+.pf-v5-c-login__main-header { border: 0; border-bottom: 1px solid var(--ath-border); }
+.pf-v5-c-login__header, #kc-header-wrapper { text-align: center; }

@@ -47,7 +47,9 @@ services:
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
       KC_HEALTH_ENABLED: "true"
     ports: ["127.0.0.1:8080:8080"]
-    volumes: ["./keycloak/athena-realm.json:/opt/keycloak/data/import/athena-realm.json:ro"]
+    volumes:
+      - "./keycloak/athena-realm.json:/opt/keycloak/data/import/athena-realm.json:ro"
+      - "./keycloak/themes/athena:/opt/keycloak/themes/athena:ro"
 
   openbao:
     image: openbao/openbao:latest
