@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { PinToggle } from '../components/PinToggle';
 import { Btn, Card, EmptyState, Id, PageHeader, StatusPill, Table, Tabs, Td, Th, Tag, useToast } from '@athena/ui';
 import { ApiError, api, upload, type Artifact, type AttachmentView, type Field, type Revision, type Session, type TrackerDefinition } from '../api';
 import { useBusy, useFailure } from '../hooks';
@@ -215,7 +216,7 @@ export function ArtifactView({ session, project, itemKey: key, embedded = false,
         eyebrow={def.name}
         title={<><span className="ath-mono ath-nowrap">{artifact.key}</span> · {title}</>}
         sub={<><StatusPill kind={pillKind(status?.category ?? '')}>{status?.name ?? artifact.status}</StatusPill> <Link className="ath-link" to={`/p/${project}`}>{project}</Link></>}
-        actions={<><div className="ath-row" role="group" aria-label={fr.artifact.transitions}>{available.map((t) => <Btn key={t.id} variant="deep" onClick={() => transition(t.name)}>{t.name}</Btn>)}</div><SubscribeToggle project={project} scope="item" target={artifact.key} size="md" /></>}
+        actions={<><div className="ath-row" role="group" aria-label={fr.artifact.transitions}>{available.map((t) => <Btn key={t.id} variant="deep" onClick={() => transition(t.name)}>{t.name}</Btn>)}</div><SubscribeToggle project={project} scope="item" target={artifact.key} size="md" /><PinToggle entry={{ kind: 'item', project: String(project), ref: artifact.key, label: artifact.key }} /></>}
       />}
       <Tabs
         tabs={[

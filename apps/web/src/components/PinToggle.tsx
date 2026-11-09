@@ -7,7 +7,7 @@ export function PinToggle({ entry }: { entry: PinEntry }) {
   const pins = usePins();
   const pinned = pins.isFavorite(entry);
   return (
-    <Btn type="button" variant="ghost" size="sm" aria-pressed={pinned} onClick={() => void pins.toggle(entry)}>
+    <Btn type="button" variant="ghost" size="sm" icon="star" aria-pressed={pinned} onClick={() => void pins.toggle(entry)}>
       {pinned ? fr.rail.unpin : fr.rail.pin}
     </Btn>
   );
