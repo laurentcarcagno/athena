@@ -11,7 +11,7 @@ export function useConfirm(): { ask: (o: { title: string; body: string; confirm:
   const close = (ok: boolean) => { request?.resolve(ok); setRequest(null); };
   const dialog = (
     <Modal open={request !== null} title={request?.title ?? ''} onClose={() => close(false)}
-      footer={<><Btn variant="ghost" onClick={() => close(false)}>{fr.confirm.cancel}</Btn><Btn variant="danger" onClick={() => close(true)}>{request?.confirm}</Btn></>}>
+      footer={<><Btn icon="close" variant="ghost" onClick={() => close(false)}>{fr.confirm.cancel}</Btn><Btn variant="danger" onClick={() => close(true)}>{request?.confirm}</Btn></>}>
       <p>{request?.body}</p>
     </Modal>
   );

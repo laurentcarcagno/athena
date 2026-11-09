@@ -137,7 +137,7 @@ function RuleForm({ project, trackers, types, editing, onCancel, onSaved }: { pr
         {field('cr-target', t.targetLabel, <input id="cr-target" className="ath-input ath-mono" type="number" min={0} max={100} step="0.1" required value={form.target} onChange={(e) => set('target', e.target.value)} />)}
         {field('cr-warning', t.warningLabel, <input id="cr-warning" className="ath-input ath-mono" type="number" min={0} max={100} step="0.1" value={form.warning} onChange={(e) => set('warning', e.target.value)} />)}
       </div>
-      <div className="ath-toolbar"><Btn type="submit">{editing ? t.saveRule : t.createRule}</Btn><Btn type="button" variant="ghost" onClick={onCancel}>{fr.confirm.cancel}</Btn></div>
+      <div className="ath-toolbar"><Btn icon="save" type="submit">{editing ? t.saveRule : t.createRule}</Btn><Btn icon="close" type="button" variant="ghost" onClick={onCancel}>{fr.confirm.cancel}</Btn></div>
     </form>
   );
 }

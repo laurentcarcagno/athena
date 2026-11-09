@@ -114,7 +114,7 @@ function TailoringForm({ project, row, categories, current, onCancel, onSaved }:
       <div className="ath-field"><label className="ath-field__label" htmlFor="tl-just">{t.justification}</label>
         <textarea id="tl-just" className="ath-input" rows={3} maxLength={2000} aria-invalid={error ? true : undefined} aria-describedby={error ? 'tl-err' : undefined} value={justification} onChange={(e) => setJustification(e.target.value)} />
         {error && <p id="tl-err" role="alert">{error}</p>}</div>
-      <div className="ath-toolbar"><Btn type="submit">{t.save}</Btn><Btn type="button" variant="ghost" onClick={onCancel}>{fr.confirm.cancel}</Btn></div>
+      <div className="ath-toolbar"><Btn icon="save" type="submit">{t.save}</Btn><Btn icon="close" type="button" variant="ghost" onClick={onCancel}>{fr.confirm.cancel}</Btn></div>
     </form>
   );
 }
@@ -141,7 +141,7 @@ function ImportForm({ project, report, onReport, onClose }: { project: string; r
         <div className="ath-field"><label className="ath-field__label" htmlFor="im-std">{t.standard}</label>
           <input id="im-std" className="ath-input ath-mono" maxLength={200} value={standard} onChange={(e) => setStandard(e.target.value)} /></div>
       </div>
-      <div className="ath-toolbar"><Btn type="submit">{t.run}</Btn><Btn type="button" variant="ghost" onClick={onClose}>{fr.confirm.cancel}</Btn></div>
+      <div className="ath-toolbar"><Btn type="submit">{t.run}</Btn><Btn icon="close" type="button" variant="ghost" onClick={onClose}>{fr.confirm.cancel}</Btn></div>
       {report && (
         <Table>
           <caption className="ath-table__caption">{t.imported(report.created, report.updated, report.unchanged, report.errors)}</caption>

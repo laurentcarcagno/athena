@@ -36,6 +36,7 @@ const ICON_PATHS = {
   trash: 'M5 7h14M10 7V4h4v3m-8 0 1 13h10l1-13',
   save: 'M5 4h12l2 2v14H5zM8 4v5h7V4M8 20v-6h8v6',
   reset: 'M4 12a8 8 0 1 0 3-6.2M4 4v5h5',
+  check: 'm5 12 5 5L20 7',
   star: 'm12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z',
 } as const;
 export type BtnIcon = keyof typeof ICON_PATHS;

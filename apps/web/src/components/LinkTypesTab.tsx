@@ -105,8 +105,8 @@ export function LinkTypesTab() {
             <Btn type="button" icon="plus" disabled={pairInvalid} onClick={addPair}>{fr.linkTypes.addPair}</Btn>
           </div>
           <div className="ath-row">
-            <Btn type="submit" loading={busy} disabled={invalid}>{editing ? fr.types.save : fr.linkTypes.create}</Btn>
-            {editing && <Btn type="button" variant="ghost" onClick={stopEdit}>{fr.types.cancel}</Btn>}
+            <Btn icon="save" type="submit" loading={busy} disabled={invalid}>{editing ? fr.types.save : fr.linkTypes.create}</Btn>
+            {editing && <Btn icon="close" type="button" variant="ghost" onClick={stopEdit}>{fr.types.cancel}</Btn>}
           </div>
         </form>
       </Card>

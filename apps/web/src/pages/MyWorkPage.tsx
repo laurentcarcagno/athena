@@ -53,7 +53,7 @@ export function MyWorkPage({ session }: { session: Session }) {
           <Td><Link className="ath-link ath-mono" to={`/p/${i.project}/a/${i.hit.key}`}>{i.hit.key}</Link></Td>
           <Td><span className="ath-clip" title={titleOf(i.hit)}>{titleOf(i.hit)}</span></Td>
           <Td><StatusPill kind={pillKind(i.hit.category)}>{i.hit.statusName ?? i.hit.status}</StatusPill></Td>
-          {action && <Td><Btn size="sm" variant="ghost" loading={busy} onClick={() => action(i)}>{fr.work.take}</Btn></Td>}
+          {action && <Td><Btn icon="check" size="sm" variant="ghost" loading={busy} onClick={() => action(i)}>{fr.work.take}</Btn></Td>}
         </tr>
       ))}</tbody>
     </Table>

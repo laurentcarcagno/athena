@@ -79,7 +79,7 @@ export function ProjectTemplateEditor({ template, trackerTemplates, onSaved, onC
       {problems.length > 0 && <ul aria-label="problems">{problems.map((p) => <li key={p} className="ath-field__error">{p}</li>)}</ul>}
       <div className="ath-row">
         <Btn type="submit" disabled={!meta.name.trim() || problems.length > 0 || duplicate}>{fr.builder.save}</Btn>
-        <Btn type="button" variant="ghost" onClick={onCancel}>{fr.builder.cancel}</Btn>
+        <Btn icon="close" type="button" variant="ghost" onClick={onCancel}>{fr.builder.cancel}</Btn>
       </div>
     </form>
   );

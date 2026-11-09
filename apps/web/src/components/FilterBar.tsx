@@ -48,7 +48,7 @@ export function FilterBar({ def, fragment, username, onChange, error }: {
           ))}
           <form className="ath-row" onSubmit={submitText}>
             <Field label={fr.filters.text} value={text} onChange={(e) => setText(e.target.value)} />
-            <Btn type="submit" variant="ghost" size="sm">{fr.filters.apply}</Btn>
+            <Btn icon="check" type="submit" variant="ghost" size="sm">{fr.filters.apply}</Btn>
           </form>
         </div>
       ) : (

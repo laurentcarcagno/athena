@@ -139,7 +139,7 @@ export function WorkflowEditor({ statuses, transitions, editable, onCreate }: {
           <Field label={fr.config.name} value={name} onChange={(e) => setName(e.target.value)} />
           <Field label={fr.config.allowedRoles} value={roles} onChange={(e) => setRoles(e.target.value)} />
           <Btn type="submit" icon="plus" disabled={!name.trim()}>{fr.config.add}</Btn>
-          <Btn type="button" variant="ghost" onClick={() => setDraft(null)}>{fr.config.cancel}</Btn>
+          <Btn icon="close" type="button" variant="ghost" onClick={() => setDraft(null)}>{fr.config.cancel}</Btn>
         </form>
       )}
     </div>

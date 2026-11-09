@@ -70,7 +70,7 @@ export function CreateArtifact({ project, trackers, open, onClose, onCreated }: 
 
   return (
     <Modal open={open} title={fr.create.title} size="md" onClose={onClose}
-      footer={<><Btn variant="ghost" onClick={onClose}>{fr.create.cancel}</Btn><Btn type="submit" form="create-artifact" loading={busy}>{fr.create.submit}</Btn></>}>
+      footer={<><Btn icon="close" variant="ghost" onClick={onClose}>{fr.create.cancel}</Btn><Btn type="submit" form="create-artifact" loading={busy}>{fr.create.submit}</Btn></>}>
       {trackers.length === 0 ? <p>{fr.create.noTracker}</p> : (
         <form id="create-artifact" className="ath-stack" onSubmit={submit}>
           <div className="ath-field">

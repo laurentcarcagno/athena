@@ -113,8 +113,8 @@ export function TrackerTypesTab() {
             <Btn type="button" icon="plus" disabled={fieldInvalid} onClick={addField}>{fr.types.addField}</Btn>
           </div>
           <div className="ath-row">
-            <Btn type="submit" loading={busy} disabled={invalid}>{editing ? fr.types.save : fr.types.create}</Btn>
-            {editing && <Btn type="button" variant="ghost" onClick={stopEdit}>{fr.types.cancel}</Btn>}
+            <Btn icon="save" type="submit" loading={busy} disabled={invalid}>{editing ? fr.types.save : fr.types.create}</Btn>
+            {editing && <Btn icon="close" type="button" variant="ghost" onClick={stopEdit}>{fr.types.cancel}</Btn>}
           </div>
         </form>
       </Card>

@@ -88,7 +88,7 @@ export function UpgradeReport({ report, busy = false, onApply, onCancel }: { rep
       {(onApply || onCancel) && (
         <div className="ath-row">
           {onApply && <Btn disabled={busy || report.blockers.length > 0} loading={busy} onClick={onApply}>{busy ? t.applying : t.apply}</Btn>}
-          {onCancel && <Btn variant="ghost" onClick={onCancel}>{t.cancel}</Btn>}
+          {onCancel && <Btn icon="close" variant="ghost" onClick={onCancel}>{t.cancel}</Btn>}
         </div>
       )}
     </section>

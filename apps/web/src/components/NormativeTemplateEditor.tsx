@@ -291,7 +291,7 @@ export function NormativeTemplateEditor({ templates, trackerTemplates, initial, 
         <Btn type="button" variant="ghost" disabled={step === 0} onClick={() => setStep(step - 1)}>{t.previous}</Btn>
         {step < STEPS.length - 1 && <Btn type="button" disabled={problems.length > 0} onClick={() => setStep(step + 1)}>{t.next}</Btn>}
         {step < STEPS.length - 1 && <Btn type="button" variant="ghost" disabled={problems.length > 0 || !TEMPLATE_KEY.test(meta.key) || !meta.name.trim()} onClick={() => void save()}>{t.saveDraft}</Btn>}
-        <Btn type="button" variant="ghost" onClick={onCancel}>{fr.confirm.cancel}</Btn>
+        <Btn icon="close" type="button" variant="ghost" onClick={onCancel}>{fr.confirm.cancel}</Btn>
       </div>
     </section>
   );

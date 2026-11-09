@@ -57,7 +57,7 @@ export function TrackerTemplateForm({ templates, onCreated, edit, onCancel }: { 
       {problems.length > 0 && <ul aria-label="problems">{problems.map((p) => <li key={p} className="ath-field__error">{p}</li>)}</ul>}
       <div className="ath-row">
         <Btn type="submit" disabled={!/^[a-z][a-z0-9-]{1,39}$/.test(meta.key) || !meta.name.trim() || problems.length > 0}>{edit ? fr.builder.save : fr.builder.createTrackerTemplate}</Btn>
-        {edit && onCancel && <Btn type="button" variant="ghost" onClick={onCancel}>{fr.builder.cancel}</Btn>}
+        {edit && onCancel && <Btn icon="close" type="button" variant="ghost" onClick={onCancel}>{fr.builder.cancel}</Btn>}
       </div>
     </form>
   );

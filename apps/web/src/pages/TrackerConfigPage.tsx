@@ -150,7 +150,7 @@ export function TrackerConfigPage({ session }: { session: Session }) {
             <div className="ath-stack">
               <p className="ath-eyebrow">{fr.layout.help}</p>
               <LayoutEditor fields={def.fields} value={layout} onChange={setLayout} />
-              <div><Btn loading={busy} disabled={!layoutChanged} onClick={() => void saveLayout()}>{fr.layout.save}</Btn></div>
+              <div><Btn icon="save" loading={busy} disabled={!layoutChanged} onClick={() => void saveLayout()}>{fr.layout.save}</Btn></div>
             </div>
           </Card>
         )}

@@ -86,15 +86,15 @@ export function SavedViews({ project, tracker, current, roles, onApply, onLoaded
         {active && <PinToggle entry={{ kind: 'view', project, ref: `${tracker}:${active.id}`, label: active.name }} />}
         {active && <Btn type="button" variant="ghost" size="sm" onClick={() => remove(active)}>{fr.filters.deleteView}</Btn>}
         {active && manager && active.shared && <Btn type="button" variant="ghost" size="sm" onClick={() => setDefault(active, !active.isDefault)}>{active.isDefault ? fr.filters.unsetDefault : fr.filters.makeDefault}</Btn>}
-        {!active && (stored !== '' || current.columns !== null) && <Btn type="button" variant="ghost" size="sm" onClick={() => setForm({ ...form, open: true })}>{fr.filters.saveView}</Btn>}
+        {!active && (stored !== '' || current.columns !== null) && <Btn icon="save" type="button" variant="ghost" size="sm" onClick={() => setForm({ ...form, open: true })}>{fr.filters.saveView}</Btn>}
       </div>
       {form.open && (
         <form className="ath-toolbar" onSubmit={save}>
           <Field label={fr.filters.viewName} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
           <label className="ath-row"><input type="checkbox" checked={form.shared || form.isDefault} disabled={form.isDefault} onChange={(e) => setForm({ ...form, shared: e.target.checked })} />{fr.filters.sharedView}</label>
           {manager && <label className="ath-row"><input type="checkbox" checked={form.isDefault} onChange={(e) => setForm({ ...form, isDefault: e.target.checked })} />{fr.filters.defaultView}</label>}
-          <Btn type="submit" disabled={!form.name.trim()}>{fr.filters.saveView}</Btn>
-          <Btn type="button" variant="ghost" onClick={() => setForm({ open: false, name: '', shared: false, isDefault: false })}>{fr.builder.cancel}</Btn>
+          <Btn icon="save" type="submit" disabled={!form.name.trim()}>{fr.filters.saveView}</Btn>
+          <Btn icon="close" type="button" variant="ghost" onClick={() => setForm({ open: false, name: '', shared: false, isDefault: false })}>{fr.builder.cancel}</Btn>
         </form>
       )}
     </div>
