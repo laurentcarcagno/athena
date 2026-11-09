@@ -15,16 +15,15 @@ const titleOf = (hit: Hit) => String(hit.values['title'] ?? hit.values['name'] ?
 export function OverviewTab({ session }: { session: Session }) {
   const { project } = useParams();
   const fail = useFailure();
-  const username = (session.user?.username ?? '').replace(/["\\]/g, '');
   const [trackers, setTrackers] = useState<TrackerOverview[] | null>(null);
   const [mine, setMine] = useState<Hit[] | null>(null);
   useEffect(() => {
     api<{ trackers: TrackerOverview[] }>('GET', `/v1/projects/${project}/overview`).then((r) => setTrackers(r.trackers)).catch(fail);
-    api<SearchResult>('GET', `/v1/projects/${project}/search?q=${encodeURIComponent(`assignee = "${username}"`)}&limit=50`)
+    api<SearchResult>('GET', `/v1/projects/${project}/search?q=${encodeURIComponent('assignee = currentUser()')}&limit=50`)
       .then((r) => setMine(r.hits.filter((h) => h.category !== 'done')))
       .catch(() => setMine([]));
-  }, [project, username, fail]);
-  const mineQuery = `/p/${project}/recherche?q=${encodeURIComponent(`assignee = "${username}"`)}`;
+  }, [project, fail]);
+  const mineQuery = `/p/${project}/recherche?q=${encodeURIComponent('assignee = currentUser()')}`;
   return (
     <>
       <PageHeader eyebrow={fr.overview.eyebrow} title={`${fr.overview.title} · ${project}`} />

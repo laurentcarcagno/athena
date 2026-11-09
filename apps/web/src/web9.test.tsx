@@ -162,7 +162,7 @@ describe('Vue d’ensemble', () => {
     const card = screen.getByRole('link', { name: 'REQ' }).closest('section')!;
     expect(within(card).getByRole('link', { name: 'REQ' })).toHaveAttribute('href', '/p/ARI/t/REQ/tableau');
     expect(within(card).getByText('5 ouverts / 10')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Tout voir dans la Recherche' })).toHaveAttribute('href', '/p/ARI/recherche?q=assignee%20%3D%20%22u%22');
+    expect(screen.getByRole('link', { name: 'Tout voir dans la Recherche' })).toHaveAttribute('href', '/p/ARI/recherche?q=assignee%20%3D%20currentUser()');
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
   });
 });
