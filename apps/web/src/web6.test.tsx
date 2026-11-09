@@ -70,7 +70,7 @@ describe('F-04 et F-12 : lien d’évitement et aide', () => {
   it('l’aide est dans la navigation et liste les raccourcis', async () => {
     app('/help');
     expect(screen.getByRole('button', { name: 'Aide' })).toBeInTheDocument();
-    expect(await screen.findByText('Ctrl+K')).toBeInTheDocument();
+    expect((await screen.findAllByText('Ctrl+K')).length).toBeGreaterThan(0);
     expect(screen.getByText('status = in_progress')).toBeInTheDocument();
   });
 });

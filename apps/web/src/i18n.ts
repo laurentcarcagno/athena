@@ -210,7 +210,7 @@ const frDict = {
     deleteFilterTitle: (n: string) => `Supprimer le filtre « ${n} »`, deleteFilterBody: 'Le filtre enregistré est supprimé définitivement, y compris pour ceux avec qui il est partagé.',
   },
   help: {
-    eyebrow: 'Aide', title: 'Aide', guide: 'Le guide complet se trouve dans docs/user/GUIDE.md du dépôt.', key: 'Touche', effect: 'Effet', example: 'Exemple', meaning: 'Sens', role: 'Rôle', capabilities: 'Peut',
+    eyebrow: 'Aide', title: 'Aide', guideTitle: 'Guide utilisateur', key: 'Touche', effect: 'Effet', example: 'Exemple', meaning: 'Sens', role: 'Rôle', capabilities: 'Peut',
     shortcuts: 'Raccourcis clavier',
     shortcutRows: [['Ctrl+K', 'Ouvre ou ferme la palette de commandes'], ['Tab', 'Passe au contrôle suivant ; le lien « Aller au contenu » est le premier'], ['Échap', 'Ferme une fenêtre ou la palette'], ['Entrée', 'Valide la sélection ou lance la recherche'], ['J / K', 'Dans le tableau d’un tracker : item suivant / précédent, la fiche s’ouvre à droite'], ['Échap', 'Ferme le panneau de détail et rend le focus à la ligne']],
     atql: 'Langage de recherche (ATQL)',
@@ -546,7 +546,7 @@ const enDict: Dictionary = {
     deleteFilterTitle: (n: string) => `Delete filter “${n}”`, deleteFilterBody: 'The saved filter is permanently deleted, including for those it is shared with.',
   },
   help: {
-    eyebrow: 'Help', title: 'Help', guide: 'The full guide is in docs/user/GUIDE.md in the repository.', key: 'Key', effect: 'Effect', example: 'Example', meaning: 'Meaning', role: 'Role', capabilities: 'Can',
+    eyebrow: 'Help', title: 'Help', guideTitle: 'User guide', key: 'Key', effect: 'Effect', example: 'Example', meaning: 'Meaning', role: 'Role', capabilities: 'Can',
     shortcuts: 'Keyboard shortcuts',
     shortcutRows: [['Ctrl+K', 'Opens or closes the command palette'], ['Tab', 'Moves to the next control; “Skip to content” is the first'], ['Esc', 'Closes a window or the palette'], ['Enter', 'Confirms the selection or runs the search'], ['J / K', 'In a tracker table: next / previous item, the record opens on the right'], ['Esc', 'Closes the detail panel and returns focus to the row']],
     atql: 'Search language (ATQL)',

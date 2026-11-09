@@ -76,9 +76,9 @@ export function ArtifactTable({ project, result, offset, pageSize, sortOf, sortB
         })
         : renderTable(result.hits)}
       <div className="ath-toolbar">
-        <Btn variant="ghost" size="sm" disabled={offset === 0} onClick={() => onPage(Math.max(0, offset - pageSize))}>{fr.list.previous}</Btn>
+        <Btn variant="ghost" size="sm" disabled={offset === 0} icon="previous" onClick={() => onPage(Math.max(0, offset - pageSize))}>{fr.list.previous}</Btn>
         <Id>{offset + 1}–{Math.min(offset + pageSize, result.total)} / {result.total}{result.totalCapped ? '+' : ''}</Id>
-        <Btn variant="ghost" size="sm" disabled={offset + pageSize >= result.total && !result.totalCapped} onClick={() => onPage(offset + pageSize)}>{fr.list.next}</Btn>
+        <Btn variant="ghost" size="sm" disabled={offset + pageSize >= result.total && !result.totalCapped} icon="next" onClick={() => onPage(offset + pageSize)}>{fr.list.next}</Btn>
       </div>
     </>
   );

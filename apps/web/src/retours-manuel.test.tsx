@@ -20,3 +20,14 @@ describe('recherche groupée par tracker (retour manuel n° 26)', () => {
     expect(screen.queryByRole('region', { name: 'BUG' })).toBeNull();
   });
 });
+
+import { Markdown } from './lib/markdown';
+describe('guide intégré à l’aide (retour manuel n° 46)', () => {
+  it('rend titres, listes, gras, code et blocs', () => {
+    render(<Markdown source={'# Titre\n\nUn **mot** et `code`.\n\n- un\n- deux\n\n```\nstatus = open\n```'} />);
+    expect(screen.getByRole('heading', { name: 'Titre' })).toBeInTheDocument();
+    expect(screen.getByText('mot').tagName).toBe('STRONG');
+    expect(screen.getAllByRole('listitem')).toHaveLength(2);
+    expect(screen.getByText('status = open')).toBeInTheDocument();
+  });
+});

@@ -207,7 +207,7 @@ export function ArtifactView({ session, project, itemKey: key, embedded = false,
             <div className="ath-row" role="group" aria-label={fr.artifact.transitions}>{available.map((t) => <Btn key={t.id} size="sm" variant="deep" onClick={() => transition(t.name)}>{t.name}</Btn>)}</div>
             <SubscribeToggle project={project} scope="item" target={artifact.key} />
             <Btn size="sm" variant="ghost" onClick={onExpand}>{fr.detail.expand}</Btn>
-            <Btn size="sm" variant="ghost" onClick={onClose}>{fr.detail.close}</Btn>
+            <Btn size="sm" variant="ghost" icon="close" onClick={onClose}>{fr.detail.close}</Btn>
           </div>
         </header>
       )}

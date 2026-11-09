@@ -440,3 +440,5 @@ html, body { margin: 0; }
 @media (max-width: 768px) { .ath-flyout__panel { position: static; max-width: none; border: 0; } }
 .ath-flyout__empty { margin: 0; padding: 10px 14px; font-size: 12px; opacity: 0.75; }
 .ath-column__head > .ath-mono { flex: none; padding-left: var(--ath-space-sm); border-left: 1px solid rgba(255, 255, 255, 0.4); }
+.ath-btn--icon { padding-inline: var(--ath-space-sm); min-width: 36px; display: inline-flex; align-items: center; justify-content: center; }
+.ath-codeblock { margin: 0; padding: var(--ath-space-sm) var(--ath-space-md); overflow-x: auto; background: var(--ath-surface-sunken, var(--ath-color-console-border)); font-size: 12px; }

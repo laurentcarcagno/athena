@@ -112,7 +112,7 @@ export function ListPage({ session }: { session?: Session } = {}) {
   return (
     <>
       <PageHeader eyebrow={fr.list.eyebrow} title={String(project)} sub={result ? `${fr.list.total(result.total)}${result.totalCapped ? '+' : ''}` : undefined}
-        actions={<><Btn onClick={() => setCreating(true)}>{fr.list.create}</Btn>{session?.user?.roles.includes('athena-admin') && trackerKeys[0] && <Btn variant="ghost" onClick={() => navigate(`/p/${project}/trackers/${trackerKeys[0]}/config`)}>{fr.config.eyebrow}</Btn>}</>} />
+        actions={<><Btn icon="plus" onClick={() => setCreating(true)}>{fr.list.create}</Btn>{session?.user?.roles.includes('athena-admin') && trackerKeys[0] && <Btn variant="ghost" onClick={() => navigate(`/p/${project}/trackers/${trackerKeys[0]}/config`)}>{fr.config.eyebrow}</Btn>}</>} />
       {confirm.dialog}
       <CreateArtifact project={String(project)} trackers={trackerKeys} open={creating} onClose={() => setCreating(false)} onCreated={(key) => { setCreating(false); navigate(`/p/${project}/a/${key}`); }} />
       <form className="ath-toolbar" onSubmit={submit} role="search">
@@ -124,13 +124,13 @@ export function ListPage({ session }: { session?: Session } = {}) {
             </ul>
           )}
         </div>
-        <Btn type="submit">{fr.list.run}</Btn>
+        <Btn type="submit" icon="search">{fr.list.run}</Btn>
         <label className="ath-field__label" htmlFor="saved-filters">{fr.list.filters}</label>
         <select id="saved-filters" className="ath-select" value={activeFilter?.id ?? ''} onChange={(e) => { const f = filters.find((x) => x.id === e.target.value); setParams(f?.query ? { q: f.query } : {}); }}>
           <option value="">{fr.list.noFilter}</option>
           {filters.map((f) => <option key={f.id} value={f.id}>{f.name}{f.shared ? ' ⇄' : ''}</option>)}
         </select>
-        {activeFilter && <Btn type="button" variant="ghost" size="sm" onClick={deleteFilter}>{fr.list.deleteFilter}</Btn>}
+        {activeFilter && <Btn type="button" variant="ghost" size="sm" icon="trash" onClick={deleteFilter}>{fr.list.deleteFilter}</Btn>}
         {query && !activeFilter && <Btn type="button" variant="ghost" size="sm" onClick={() => setSaving({ ...saving, open: true })}>{fr.list.saveFilter}</Btn>}
         {where && <FilterChip label="ATQL" value={where} active onClear={() => setParams({})} />}
       </form>
@@ -138,7 +138,7 @@ export function ListPage({ session }: { session?: Session } = {}) {
         <form className="ath-toolbar" onSubmit={saveFilter}>
           <TextField label={fr.list.filterName} value={saving.name} onChange={(e) => setSaving({ ...saving, name: e.target.value })} />
           <label className="ath-row"><input type="checkbox" checked={saving.shared} onChange={(e) => setSaving({ ...saving, shared: e.target.checked })} />{fr.list.shareFilter}</label>
-          <Btn type="submit" disabled={!saving.name.trim()}>{fr.list.saveFilter}</Btn>
+          <Btn type="submit" icon="save" disabled={!saving.name.trim()}>{fr.list.saveFilter}</Btn>
         </form>
       )}
       {error && <p role="alert" className="ath-field__error">{error}</p>}

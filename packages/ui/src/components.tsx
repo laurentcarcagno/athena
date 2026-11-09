@@ -27,7 +27,19 @@ export const writeActivity = (() => {
   };
 })();
 
-export function Btn({ variant = 'primary', size = 'md', className, loading = false, children, onClick, ...rest }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'primary' | 'deep' | 'ghost' | 'danger'; size?: 'sm' | 'md' | 'lg'; loading?: boolean }) {
+const ICON_PATHS = {
+  search: 'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zm9 16-4.5-4.5',
+  plus: 'M12 5v14M5 12h14',
+  previous: 'm15 5-7 7 7 7',
+  next: 'm9 5 7 7-7 7',
+  close: 'M6 6l12 12M18 6 6 18',
+  trash: 'M5 7h14M10 7V4h4v3m-8 0 1 13h10l1-13',
+  save: 'M5 4h12l2 2v14H5zM8 4v5h7V4M8 20v-6h8v6',
+  reset: 'M4 12a8 8 0 1 0 3-6.2M4 4v5h5',
+} as const;
+export type BtnIcon = keyof typeof ICON_PATHS;
+/** Bouton : avec `icon`, il n'affiche que le pictogramme ; le libellé (children) devient l'info-bulle et le nom accessible. */
+export function Btn({ variant = 'primary', size = 'md', className, loading = false, children, onClick, icon, ...rest }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'primary' | 'deep' | 'ghost' | 'danger'; size?: 'sm' | 'md' | 'lg'; loading?: boolean; icon?: BtnIcon }) {
   // État « loading » de la charte : contrôle désactivé, aria-busy, libellé suivi de « … ».
   const [writing, setWriting] = useState(false);
   const mounted = useRef(true);
@@ -47,8 +59,9 @@ export function Btn({ variant = 'primary', size = 'md', className, loading = fal
   const busy = loading || writing;
   return (
     <button type="button" {...rest} onClick={(event) => { onClick?.(event); if (!event.defaultPrevented || rest.type === 'submit') watch(); }}
-      disabled={rest.disabled || busy} aria-busy={busy || undefined} className={cx('ath-btn', `ath-btn--${variant}`, size !== 'md' && `ath-btn--${size}`, className)}>
-      {children}{busy ? '…' : null}
+      disabled={rest.disabled || busy} aria-busy={busy || undefined} className={cx('ath-btn', `ath-btn--${variant}`, size !== 'md' && `ath-btn--${size}`, icon && 'ath-btn--icon', className)}
+      {...(icon && typeof children === 'string' ? { title: children, 'aria-label': children } : {})}>
+      {icon ? <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={ICON_PATHS[icon]} /></svg> : children}{busy ? '…' : null}
     </button>
   );
 }
