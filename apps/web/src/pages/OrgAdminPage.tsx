@@ -180,7 +180,7 @@ function ProjectTemplates({ templates, trackerTemplates, reload, reloadTrackerTe
                 {t.builtin && t.version ? <Btn size="sm" variant="ghost" aria-label={`${fr.normTpl.derive} ${t.name}`} onClick={() => setNormative({ isNew: true, parent: { key: t.key }, name: '', key: '', description: '', trackers: [], normative: undefined })}>{fr.normTpl.derive}</Btn>
                   : <Btn size="sm" variant="ghost" aria-label={`${fr.normTpl.editSteps} ${t.name}`} onClick={() => setNormative({ isNew: false, key: t.key, name: t.name, description: t.description, trackers: t.trackers as never, normative: t.normative, parent: t.parent ?? null })}>{fr.normTpl.editSteps}</Btn>}
                 {t.builtin ? (t.modified && <Btn size="sm" variant="ghost" aria-label={`${fr.builder.reset} ${t.name}`} onClick={() => remove(t)}>{fr.builder.reset}</Btn>)
-                  : <Btn size="sm" variant="ghost" aria-label={`${fr.org.deleteTemplate} ${t.name}`} onClick={() => remove(t)}>{fr.org.deleteTemplate}</Btn>}
+                  : <Btn icon="trash" size="sm" variant="ghost" aria-label={`${fr.org.deleteTemplate} ${t.name}`} onClick={() => remove(t)}>{fr.org.deleteTemplate}</Btn>}
               </span>
             </Td>
           </tr>
@@ -271,7 +271,7 @@ function TrackerTemplates({ templates, reload }: { templates: TrackerTemplateEnt
               <span className="ath-row">
                 <Btn size="sm" variant="ghost" aria-label={`${fr.builder.edit} ${t.name}`} onClick={() => setEditing(t.key)}>{fr.builder.edit}</Btn>
                 {t.builtin ? (t.modified && <Btn size="sm" variant="ghost" aria-label={`${fr.builder.reset} ${t.name}`} onClick={() => remove(t)}>{fr.builder.reset}</Btn>)
-                  : <Btn size="sm" variant="ghost" aria-label={`${fr.org.deleteTemplate} ${t.name}`} onClick={() => remove(t)}>{fr.org.deleteTemplate}</Btn>}
+                  : <Btn icon="trash" size="sm" variant="ghost" aria-label={`${fr.org.deleteTemplate} ${t.name}`} onClick={() => remove(t)}>{fr.org.deleteTemplate}</Btn>}
               </span>
             </Td>
           </tr>

@@ -84,7 +84,7 @@ export function TrackerBuilder({ value, onChange }: { value: DraftTracker; onCha
               <tr key={f.key}>
                 <Td mono>{f.key}</Td><Td>{f.label}</Td><Td mono>{f.type}</Td><Td>{f.required ? '✓' : ''}</Td><Td>{f.isContent === false ? '' : '✓'}</Td>
                 <Td>{((f.config?.['options'] as string[] | undefined) ?? []).join(', ')}</Td><Td mono>{f.semanticRole ?? ''}</Td>
-                <Td><Btn size="sm" variant="ghost" aria-label={`${fr.config.remove} ${f.key}`} onClick={() => onChange({ ...value, fields: value.fields.filter((x) => x.key !== f.key) })}>{fr.config.remove}</Btn></Td>
+                <Td><Btn icon="trash" size="sm" variant="ghost" aria-label={`${fr.config.remove} ${f.key}`} onClick={() => onChange({ ...value, fields: value.fields.filter((x) => x.key !== f.key) })}>{fr.config.remove}</Btn></Td>
               </tr>
             ))}</tbody>
           </Table>
@@ -102,7 +102,7 @@ export function TrackerBuilder({ value, onChange }: { value: DraftTracker; onCha
             </div>
             <label className="ath-row"><input type="checkbox" checked={field.required} onChange={(e) => setField({ ...field, required: e.target.checked })} />{fr.config.required}</label>
             <label className="ath-row" title={fr.suspicion.contentHelp}><input type="checkbox" checked={field.isContent} onChange={(e) => setField({ ...field, isContent: e.target.checked })} />{fr.suspicion.content}</label>
-            <Btn type="button" disabled={fieldInvalid} onClick={addField}>{fr.builder.addField}</Btn>
+            <Btn type="button" icon="plus" disabled={fieldInvalid} onClick={addField}>{fr.builder.addField}</Btn>
           </div>
         </div>
       </Card>
@@ -119,7 +119,7 @@ export function TrackerBuilder({ value, onChange }: { value: DraftTracker; onCha
           <div className="ath-row">{value.statuses.map((s) => (
             <span key={s.key} className="ath-row">
               <StatusPill kind={s.category === 'done' ? 'success' : s.category === 'in_progress' ? 'warning' : 'info'}>{s.name}</StatusPill>
-              <Btn size="sm" variant="ghost" aria-label={`${fr.config.remove} ${s.name}`} onClick={() => removeStatus(s.key)}>{fr.config.remove}</Btn>
+              <Btn icon="trash" size="sm" variant="ghost" aria-label={`${fr.config.remove} ${s.name}`} onClick={() => removeStatus(s.key)}>{fr.config.remove}</Btn>
             </span>
           ))}</div>
           <div className="ath-toolbar">
@@ -131,7 +131,7 @@ export function TrackerBuilder({ value, onChange }: { value: DraftTracker; onCha
                 {['todo', 'in_progress', 'done'].map((c) => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
-            <Btn type="button" disabled={statusInvalid} onClick={addStatus}>{fr.builder.addStatus}</Btn>
+            <Btn type="button" icon="plus" disabled={statusInvalid} onClick={addStatus}>{fr.builder.addStatus}</Btn>
           </div>
         </div>
       </Card>
@@ -148,7 +148,7 @@ export function TrackerBuilder({ value, onChange }: { value: DraftTracker; onCha
               <thead><tr><Th>{fr.config.name}</Th><Th>{fr.config.from}</Th><Th>{fr.config.to}</Th><Th>{fr.config.remove}</Th></tr></thead>
               <tbody>{value.transitions.map((t, i) => (
                 <tr key={`${t.name}-${i}`}><Td>{t.name}</Td><Td>{nameOf(t.from)}</Td><Td>{nameOf(t.to)}</Td>
-                  <Td><Btn size="sm" variant="ghost" aria-label={`${fr.config.remove} ${t.name}`} onClick={() => onChange({ ...value, transitions: value.transitions.filter((_, j) => j !== i) })}>{fr.config.remove}</Btn></Td></tr>
+                  <Td><Btn icon="trash" size="sm" variant="ghost" aria-label={`${fr.config.remove} ${t.name}`} onClick={() => onChange({ ...value, transitions: value.transitions.filter((_, j) => j !== i) })}>{fr.config.remove}</Btn></Td></tr>
               ))}</tbody>
             </Table>
           )}

@@ -73,7 +73,7 @@ export function AccessLists({ project, me }: { project: string; me: string | und
             <tbody>
               {l.members.map((m) => (
                 <tr key={m.subject}><Td>{m.displayName}</Td><Td mono>{m.username}</Td>
-                  <Td><Btn size="sm" variant="ghost" disabled={l.members.length === 1} title={l.members.length === 1 ? t.lastMember : undefined} aria-label={`${t.remove} ${m.username}`} onClick={() => void removeMember(l.tracker ?? '', m.subject)}>{t.remove}</Btn></Td></tr>
+                  <Td><Btn icon="trash" size="sm" variant="ghost" disabled={l.members.length === 1} title={l.members.length === 1 ? t.lastMember : undefined} aria-label={`${t.remove} ${m.username}`} onClick={() => void removeMember(l.tracker ?? '', m.subject)}>{t.remove}</Btn></Td></tr>
               ))}
             </tbody>
           </Table>

@@ -138,7 +138,7 @@ export function WorkflowEditor({ statuses, transitions, editable, onCreate }: {
         <form className="ath-toolbar" onSubmit={submit} aria-label={fr.config.newTransition(label(draft.from), label(draft.to))}>
           <Field label={fr.config.name} value={name} onChange={(e) => setName(e.target.value)} />
           <Field label={fr.config.allowedRoles} value={roles} onChange={(e) => setRoles(e.target.value)} />
-          <Btn type="submit" disabled={!name.trim()}>{fr.config.add}</Btn>
+          <Btn type="submit" icon="plus" disabled={!name.trim()}>{fr.config.add}</Btn>
           <Btn type="button" variant="ghost" onClick={() => setDraft(null)}>{fr.config.cancel}</Btn>
         </form>
       )}

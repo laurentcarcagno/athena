@@ -100,7 +100,7 @@ export function TrackerTypesTab() {
           <div className="ath-row">{draft.baseFields.map((f) => (
             <span key={f.key} className="ath-row">
               <Tag>{f.label} <span className="ath-mono">{f.key}</span></Tag>
-              <Btn type="button" size="sm" variant="ghost" aria-label={`${fr.types.removeField} ${f.key}`} onClick={() => setDraft({ ...draft, baseFields: draft.baseFields.filter((x) => x.key !== f.key) })}>{fr.types.removeField}</Btn>
+              <Btn icon="trash" type="button" size="sm" variant="ghost" aria-label={`${fr.types.removeField} ${f.key}`} onClick={() => setDraft({ ...draft, baseFields: draft.baseFields.filter((x) => x.key !== f.key) })}>{fr.types.removeField}</Btn>
             </span>
           ))}</div>
           <div className="ath-toolbar">
@@ -110,7 +110,7 @@ export function TrackerTypesTab() {
               <label className="ath-field__label" htmlFor="type-field-type">{fr.types.fieldType}</label>
               <select id="type-field-type" className="ath-select" value={field.type} onChange={(e) => setField({ ...field, type: e.target.value })}>{FIELD_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}</select>
             </div>
-            <Btn type="button" disabled={fieldInvalid} onClick={addField}>{fr.types.addField}</Btn>
+            <Btn type="button" icon="plus" disabled={fieldInvalid} onClick={addField}>{fr.types.addField}</Btn>
           </div>
           <div className="ath-row">
             <Btn type="submit" loading={busy} disabled={invalid}>{editing ? fr.types.save : fr.types.create}</Btn>

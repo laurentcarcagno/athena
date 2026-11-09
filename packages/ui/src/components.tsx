@@ -61,7 +61,7 @@ export function Btn({ variant = 'primary', size = 'md', className, loading = fal
   return (
     <button type="button" {...rest} onClick={(event) => { onClick?.(event); if (!event.defaultPrevented || rest.type === 'submit') watch(); }}
       disabled={rest.disabled || busy} aria-busy={busy || undefined} className={cx('ath-btn', `ath-btn--${variant}`, size !== 'md' && `ath-btn--${size}`, icon && 'ath-btn--icon', className)}
-      {...(icon && typeof children === 'string' ? { title: children, 'aria-label': children } : {})}>
+      {...(icon && typeof children === 'string' ? { title: rest.title ?? rest['aria-label'] ?? children, 'aria-label': rest['aria-label'] ?? children } : {})}>
       {icon ? <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={ICON_PATHS[icon]} /></svg> : children}{busy ? '…' : null}
     </button>
   );

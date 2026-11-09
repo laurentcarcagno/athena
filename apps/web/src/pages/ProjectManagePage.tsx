@@ -47,7 +47,7 @@ export function ActorsTab({ project }: { project: string }) {
             <tr key={m.subject}><Td>{m.displayName}</Td><Td mono>{m.username}</Td>
               <Td><select className="ath-select" aria-label={`${fr.manage.role} ${m.username}`} value={m.role} onChange={(e) => set(m.subject, e.target.value)}>
                 <option value="manager">{fr.manage.manager}</option><option value="member">{fr.manage.member}</option></select></Td>
-              <Td><Btn size="sm" variant="ghost" aria-label={`${fr.manage.removeActor} ${m.username}`} onClick={() => remove(m.subject)}>{fr.manage.removeActor}</Btn></Td></tr>
+              <Td><Btn icon="trash" size="sm" variant="ghost" aria-label={`${fr.manage.removeActor} ${m.username}`} onClick={() => remove(m.subject)}>{fr.manage.removeActor}</Btn></Td></tr>
           ))}</tbody>
         </Table>
       )}
@@ -64,7 +64,7 @@ export function ActorsTab({ project }: { project: string }) {
             <option value="member">{fr.manage.member}</option><option value="manager">{fr.manage.manager}</option>
           </select>
         </div>
-        <Btn type="submit" disabled={!pick.subject}>{fr.manage.addActor}</Btn>
+        <Btn type="submit" icon="plus" disabled={!pick.subject}>{fr.manage.addActor}</Btn>
       </form>
     </div>
   );

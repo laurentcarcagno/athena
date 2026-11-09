@@ -60,7 +60,7 @@ export function ProjectTemplateEditor({ template, trackerTemplates, onSaved, onC
               <span><span className="ath-mono">{t.key}</span> {t.name}</span>
               <Btn type="button" size="sm" variant="ghost" aria-expanded={open === t.key} aria-label={`${open === t.key ? fr.builder.closeTracker : fr.builder.editTracker} ${t.key}`}
                 onClick={() => setOpen(open === t.key ? null : t.key)}>{open === t.key ? fr.builder.closeTracker : fr.builder.editTracker}</Btn>
-              <Btn type="button" size="sm" variant="ghost" aria-label={`${fr.builder.removeTracker} ${t.key}`} onClick={() => setTrackers(trackers.filter((_, j) => j !== i))}>{fr.builder.removeTracker}</Btn>
+              <Btn icon="trash" type="button" size="sm" variant="ghost" aria-label={`${fr.builder.removeTracker} ${t.key}`} onClick={() => setTrackers(trackers.filter((_, j) => j !== i))}>{fr.builder.removeTracker}</Btn>
             </div>
             {open === t.key && <TrackerBuilder value={t} onChange={(next) => change(i, next)} />}
           </div>
@@ -72,7 +72,7 @@ export function ProjectTemplateEditor({ template, trackerTemplates, onSaved, onC
               <option value="" />{trackerTemplates.filter((t) => !trackers.some((x) => x.key === t.tracker.key)).map((t) => <option key={t.key} value={t.key}>{t.name} ({t.tracker.key})</option>)}
             </select>
           </div>
-          <Btn type="button" variant="ghost" disabled={!toAdd} onClick={add}>{fr.builder.addFromTemplate}</Btn>
+          <Btn type="button" variant="ghost" icon="plus" disabled={!toAdd} onClick={add}>{fr.builder.addFromTemplate}</Btn>
         </div>
       </fieldset>
       {duplicate && <p className="ath-field__error">{fr.builder.duplicateTracker}</p>}

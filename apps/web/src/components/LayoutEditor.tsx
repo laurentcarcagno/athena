@@ -54,7 +54,7 @@ export function LayoutEditor({ fields, value, onChange }: { fields: FieldLite[];
               <input className="ath-input" aria-label={fr.layout.sectionTitle(si + 1)} placeholder={fr.layout.untitled(si + 1)} maxLength={100} value={section.title} onChange={(e) => edit(renameSection(layout, si, e.target.value))} />
               <Btn size="sm" variant="ghost" aria-label={`${fr.layout.sectionUp} ${sectionName(si)}`} disabled={si === 0} onClick={() => edit(moveSection(layout, si, -1))}>▲</Btn>
               <Btn size="sm" variant="ghost" aria-label={`${fr.layout.sectionDown} ${sectionName(si)}`} disabled={si === layout.sections.length - 1} onClick={() => edit(moveSection(layout, si, 1))}>▼</Btn>
-              <Btn size="sm" variant="ghost" aria-label={`${fr.layout.removeSection} ${sectionName(si)}`} onClick={() => edit(removeSection(layout, si))}>{fr.layout.removeSection}</Btn>
+              <Btn icon="trash" size="sm" variant="ghost" aria-label={`${fr.layout.removeSection} ${sectionName(si)}`} onClick={() => edit(removeSection(layout, si))}>{fr.layout.removeSection}</Btn>
             </div>
           ) : section.title && <h3 className="ath-label">{section.title}</h3>}
 

@@ -59,7 +59,7 @@ export function DocumentsTab() {
                 <label className="ath-field__label" htmlFor="doc-q">{t.searchLabel}</label>
                 <input id="doc-q" className="ath-input ath-mono" value={q} onChange={(e) => setQ(e.target.value)} placeholder={t.searchPlaceholder} maxLength={200} />
               </div>
-              <Btn type="submit">{t.searchRun}</Btn>
+              <Btn type="submit" icon="search">{t.searchRun}</Btn>
             </form>
             {hits !== null && (
               hits.length === 0 ? <p role="status">{t.noHit}</p> : (

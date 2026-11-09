@@ -109,7 +109,7 @@ export function TrackerConfigPage({ session }: { session: Session }) {
               <tr key={f.key}><Td mono>{f.key}</Td><Td>{f.label}</Td><Td mono>{f.type}</Td><Td>{f.required ? '✓' : ''}</Td>
                 <Td>{admin ? <input type="checkbox" aria-label={`${fr.suspicion.toggle} ${f.key}`} checked={f.isContent !== false} onChange={(e) => void setContent(f.key, e.target.checked)} /> : (f.isContent === false ? '' : '✓')}</Td>
                 <Td mono>{f.readRoles || f.writeRoles ? `R: ${f.readRoles?.join(', ') ?? fr.config.everyone} · W: ${f.writeRoles?.join(', ') ?? fr.config.everyone}` : fr.config.everyone}</Td>
-                {admin && <Td>{f.semanticRole !== 'title' && <Btn size="sm" variant="ghost" aria-label={`${fr.config.remove} ${f.key}`} onClick={() => removeField(f.key)}>{fr.config.remove}</Btn>}</Td>}</tr>
+                {admin && <Td>{f.semanticRole !== 'title' && <Btn icon="trash" size="sm" variant="ghost" aria-label={`${fr.config.remove} ${f.key}`} onClick={() => removeField(f.key)}>{fr.config.remove}</Btn>}</Td>}</tr>
             ))}</tbody>
           </Table>
           {admin && (
@@ -125,7 +125,7 @@ export function TrackerConfigPage({ session }: { session: Session }) {
               <label className="ath-row" title={fr.suspicion.contentHelp}><input type="checkbox" checked={field.isContent} onChange={(e) => setField({ ...field, isContent: e.target.checked })} />{fr.suspicion.content}</label>
               <TextField label={fr.config.readRoles} value={field.readRoles} onChange={(e) => setField({ ...field, readRoles: e.target.value })} />
               <TextField label={fr.config.writeRoles} value={field.writeRoles} onChange={(e) => setField({ ...field, writeRoles: e.target.value })} />
-              <Btn type="submit" disabled={!field.key || !field.label}>{fr.config.add}</Btn>
+              <Btn type="submit" icon="plus" disabled={!field.key || !field.label}>{fr.config.add}</Btn>
             </form>
           )}
         </Card>
@@ -166,7 +166,7 @@ export function TrackerConfigPage({ session }: { session: Session }) {
                   {['todo', 'in_progress', 'done'].map((c) => <option key={c} value={c}>{c}</option>)}
                 </select>
               </div>
-              <Btn type="submit" disabled={!status.key || !status.name}>{fr.config.add}</Btn>
+              <Btn type="submit" icon="plus" disabled={!status.key || !status.name}>{fr.config.add}</Btn>
             </form>
           )}
         </Card>
@@ -203,7 +203,7 @@ export function TrackerConfigPage({ session }: { session: Session }) {
                 </select>
               </div>
               <TextField label={fr.config.allowedRoles} value={transition.roles} onChange={(e) => setTransition({ ...transition, roles: e.target.value })} />
-              <Btn type="submit" disabled={!transition.name || !transition.to}>{fr.config.add}</Btn>
+              <Btn type="submit" icon="plus" disabled={!transition.name || !transition.to}>{fr.config.add}</Btn>
             </form>
           )}
         </Card>

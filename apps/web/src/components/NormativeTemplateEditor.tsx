@@ -140,7 +140,7 @@ export function NormativeTemplateEditor({ templates, trackerTemplates, initial, 
   };
 
   const row = (children: React.ReactNode, onRemove: () => void, label: string) => (
-    <div className="ath-toolbar">{children}<Btn type="button" variant="ghost" size="sm" aria-label={`${t.remove} ${label}`} onClick={onRemove}>{t.remove}</Btn></div>
+    <div className="ath-toolbar">{children}<Btn type="button" variant="ghost" size="sm" icon="trash" aria-label={`${t.remove} ${label}`} title={`${t.remove} ${label}`} onClick={onRemove}>{t.remove}</Btn></div>
   );
   const text = (id: string, label: string, value: string, set: (v: string) => void, mono = false) => (
     <Field key={id} label={label} value={value} onChange={(e) => set(e.target.value)} mono={mono} />

@@ -88,7 +88,7 @@ export function LinkTypesTab() {
             {draft.pairs.map((p) => (
               <li key={`${p.from}>${p.to}`} className="ath-row">
                 <Tag>{nameOf(p.from)} → {nameOf(p.to)}</Tag>
-                <Btn type="button" size="sm" variant="ghost" aria-label={`${fr.types.removeField} ${nameOf(p.from)} → ${nameOf(p.to)}`} onClick={() => setDraft({ ...draft, pairs: draft.pairs.filter((x) => x !== p) })}>{fr.types.removeField}</Btn>
+                <Btn icon="trash" type="button" size="sm" variant="ghost" aria-label={`${fr.types.removeField} ${nameOf(p.from)} → ${nameOf(p.to)}`} onClick={() => setDraft({ ...draft, pairs: draft.pairs.filter((x) => x !== p) })}>{fr.types.removeField}</Btn>
               </li>
             ))}
           </ul>
@@ -102,7 +102,7 @@ export function LinkTypesTab() {
                 </select>
               </div>
             ))}
-            <Btn type="button" disabled={pairInvalid} onClick={addPair}>{fr.linkTypes.addPair}</Btn>
+            <Btn type="button" icon="plus" disabled={pairInvalid} onClick={addPair}>{fr.linkTypes.addPair}</Btn>
           </div>
           <div className="ath-row">
             <Btn type="submit" loading={busy} disabled={invalid}>{editing ? fr.types.save : fr.linkTypes.create}</Btn>

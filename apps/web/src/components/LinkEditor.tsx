@@ -76,7 +76,7 @@ export function LinkEditor({ project, itemKey, links, onChanged, focusSignal = 0
               <span>{l.label}</span> {l.other === null ? <Tag variant="ghost">{fr.marking.restrictedLink}</Tag> : <Link className="ath-link ath-mono" to={`/p/${project}/a/${l.other}`}>{l.other}</Link>}
               {l.suspect && <StatusPill kind="warning">{fr.artifact.suspect}</StatusPill>}
               {l.suspect && <Btn size="sm" variant="ghost" aria-label={`${fr.links.acknowledge} ${l.other ?? fr.marking.restrictedLink}`} onClick={() => acknowledge(l)}>{fr.links.acknowledge}</Btn>}
-              <Btn size="sm" variant="ghost" aria-label={l.other === null ? fr.marking.restrictedUnlink : `${fr.links.unlink} ${l.other}`} onClick={() => remove(l)}>{fr.links.unlink}</Btn>
+              <Btn icon="trash" size="sm" variant="ghost" aria-label={l.other === null ? fr.marking.restrictedUnlink : `${fr.links.unlink} ${l.other}`} onClick={() => remove(l)}>{fr.links.unlink}</Btn>
             </li>
           ))}
         </ul>
