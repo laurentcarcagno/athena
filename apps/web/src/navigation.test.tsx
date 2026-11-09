@@ -52,10 +52,12 @@ describe('accès à un item en moins de 3 actions, sans requête', () => {
     expect(await shown()).toBeInTheDocument();
   });
 
-  it('avec un favori du rail : 1 action', async () => {
+  it('avec un favori du rail : 2 actions', async () => {
     favorites = [{ id: 'f1', kind: 'item', project: 'ARI', ref: KEY, label: KEY }];
     app('/me');
-    await userEvent.click(await within(await screen.findByRole('navigation', { name: 'Navigation principale' })).findByRole('button', { name: KEY })); // 1
+    const nav = within(await screen.findByRole('navigation', { name: 'Navigation principale' }));
+    await userEvent.click(await nav.findByRole('button', { name: /^Favoris/ })); // 1 : le menu latéral
+    await userEvent.click(within(screen.getByRole('group', { name: /, liste$/ })).getByRole('button', { name: KEY })); // 2
     expect(await shown()).toBeInTheDocument();
   });
 

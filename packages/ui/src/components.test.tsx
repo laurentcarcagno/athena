@@ -270,9 +270,9 @@ describe('conformité Hemeria de la feuille de style', () => {
     expect(css).not.toMatch(/backdrop-filter/);
     expect(css).not.toMatch(/border-radius\s*:\s*[1-9]/);
   });
-  it('réserve le rouge cérémoniel au bandeau et au point du logo', () => {
+  it('réserve le rouge cérémoniel au bandeau', () => {
     const uses = css.split('\n').filter((l) => l.includes('tricolor-red')).map((l) => l.trim().split(' ')[0]);
-    expect(uses.sort()).toEqual(['.ath-sidebar__dot', '.ath-stripe__red'].sort());
+    expect(uses.sort()).toEqual(['.ath-stripe__red'].sort());
   });
   it('n’utilise aucune couleur en dur hors palette', () => {
     expect(css.match(/#[0-9a-fA-F]{3,8}\b/g) ?? []).toEqual([]);

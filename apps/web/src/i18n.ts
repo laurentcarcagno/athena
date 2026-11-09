@@ -141,7 +141,7 @@ const frDict = {
   },
   detail: { panel: 'Détail de l’item', expand: 'Agrandir', close: 'Fermer' },
   rail: {
-    favorites: 'Favoris', recents: 'Récents', project: 'Projet', trackers: 'Trackers', pin: 'Épingler', unpin: 'Désépingler', moveUp: 'Monter', moveDown: 'Descendre',
+    favorites: 'Favoris', recents: 'Récents', project: 'Projet', trackers: 'Trackers', pin: 'Épingler', unpin: 'Désépingler', moveUp: 'Monter', moveDown: 'Descendre', noFavorites: 'Aucun favori. Utilisez l’étoile d’une page pour en ajouter.', noRecents: 'Aucun élément récent.',
     collapse: 'Replier le rail', expand: 'Déplier le rail',
   },
   crumb: { label: 'Fil d’Ariane', siblingProject: 'Changer de projet', siblingTracker: 'Changer de tracker', siblingView: 'Changer de vue' },
@@ -477,7 +477,7 @@ const enDict: Dictionary = {
   },
   detail: { panel: 'Item detail', expand: 'Expand', close: 'Close' },
   rail: {
-    favorites: 'Favorites', recents: 'Recent', project: 'Project', trackers: 'Trackers', pin: 'Pin', unpin: 'Unpin', moveUp: 'Move up', moveDown: 'Move down',
+    favorites: 'Favorites', recents: 'Recent', project: 'Project', trackers: 'Trackers', pin: 'Pin', unpin: 'Unpin', moveUp: 'Move up', moveDown: 'Move down', noFavorites: 'No favorites yet. Use the star on a page to add one.', noRecents: 'Nothing recent.',
     collapse: 'Collapse the rail', expand: 'Expand the rail',
   },
   crumb: { label: 'Breadcrumb', siblingProject: 'Switch project', siblingTracker: 'Switch tracker', siblingView: 'Switch view' },

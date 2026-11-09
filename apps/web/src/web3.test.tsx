@@ -53,7 +53,7 @@ describe('fenêtres par rôle', () => {
   it('le chef de projet ne voit ni Organisation ni Administration', () => {
     routes.push(['GET', /\/v1\/projects$/, []]);
     app('/p/ARI', ['athena-user', 'athena-pm']);
-    expect(nav()).toContain('Vue d’ensemble');
+    expect(nav()).toContain('Mon travail');
     expect(nav()).not.toContain('Organisation');
     expect(nav()).not.toContain('Administration');
   });

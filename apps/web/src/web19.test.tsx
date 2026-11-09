@@ -39,7 +39,7 @@ describe('bandeau dans l’application', () => {
   it('absent quand la session n’en porte pas', async () => {
     stub({ authenticated: true, user: { username: 'u', name: 'Ulysse', email: null, roles: ['athena-user'], groups: [] }, csrf: 'x' });
     render(<App />);
-    await screen.findByText('Ulysse');
+    await screen.findByRole('img', { name: 'Ulysse' });
     expect(screen.queryByRole('note', { name: 'Niveau de protection de l’instance' })).toBeNull();
   });
 });

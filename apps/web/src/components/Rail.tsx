@@ -3,7 +3,6 @@ import type { NavItem, NavSection } from '@athena/ui';
 import { api, type SavedFilter } from '../api';
 import { fr } from '../i18n';
 import { entriesOf, pinHref, usePins, type Pin } from '../lib/pins';
-import { IMPLEMENTED_TABS, visibleTabs } from '../pages/project/ProjectShell';
 
 interface TrackerRow { key: string; name: string }
 
@@ -29,16 +28,13 @@ export function useRecordVisits(pathname: string): void {
  */
 export function useRailSections({ pathname, project, admin }: { pathname: string; project: string | undefined; admin: boolean }): { sections: NavSection[]; current: string } {
   const pins = usePins();
-  const [modules, setModules] = useState<string[] | null>(null);
   const [trackers, setTrackers] = useState<TrackerRow[]>([]);
   const [views, setViews] = useState<SavedFilter[]>([]);
   const tracker = /^\/p\/[^/]+\/t\/([^/]+)/.exec(pathname)?.[1];
 
   useEffect(() => {
-    setModules(null);
     setTrackers([]);
     if (!project) return;
-    api<{ modules: string[] }>('GET', `/v1/projects/${project}/modules`).then((r) => setModules(r.modules)).catch(() => setModules(null));
     api<TrackerRow[]>('GET', `/v1/projects/${project}/trackers`).then((r) => setTrackers(Array.isArray(r) ? r : [])).catch(() => setTrackers([]));
   }, [project]);
   useEffect(() => {
@@ -59,9 +55,9 @@ export function useRailSections({ pathname, project, admin }: { pathname: string
   const recentItem = (pin: Pin): NavItem => ({ id: pinHref(pin), label: pin.label, mono: pin.kind === 'item' });
 
   const sections: NavSection[] = [];
-  if (pins.favorites.length > 0) sections.push({ id: 'favorites', title: fr.rail.favorites, items: pins.favorites.map((p, i) => pinItem(p, i, pins.favorites.length)) });
+  sections.push({ id: 'favorites', title: fr.rail.favorites, flyout: true, emptyLabel: fr.rail.noFavorites, items: pins.favorites.map((p, i) => pinItem(p, i, pins.favorites.length)) });
   const recents = pins.recents.filter((r) => !pins.favorites.some((f) => f.kind === r.kind && f.project === r.project && f.ref === r.ref));
-  if (recents.length > 0) sections.push({ id: 'recents', title: fr.rail.recents, items: recents.map(recentItem) });
+  sections.push({ id: 'recents', title: fr.rail.recents, flyout: true, emptyLabel: fr.rail.noRecents, items: recents.map(recentItem) });
   sections.push({
     id: 'main',
     items: [
@@ -71,10 +67,9 @@ export function useRailSections({ pathname, project, admin }: { pathname: string
     ],
   });
   if (project) {
-    const tabs = visibleTabs(modules, IMPLEMENTED_TABS).map((t) => ({ id: t.path === '' ? `/p/${project}` : `/p/${project}/${t.path}`, label: fr.project.tabs[t.id] }));
     sections.push({
       id: 'project', title: `${fr.rail.project} ${project}`,
-      items: [...tabs, { id: `/p/${project}/recherche`, label: fr.nav.search }, ...(admin ? [{ id: `/p/${project}/admin`, label: fr.nav.admin }] : [])],
+      items: [{ id: `/p/${project}/recherche`, label: fr.nav.search }, ...(admin ? [{ id: `/p/${project}/admin`, label: fr.nav.admin }] : [])],
     });
     if (trackers.length > 0) {
       sections.push({

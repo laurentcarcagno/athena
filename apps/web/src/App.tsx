@@ -100,7 +100,7 @@ function Shell({ session, children }: { session: Session; children: ReactNode })
       <a className="ath-skip" href="#contenu" onClick={(e) => { e.preventDefault(); document.getElementById('contenu')?.focus(); }}>{fr.nav.skip}</a>
       <Btn variant="ghost" size="sm" className="ath-menu-btn" aria-expanded={menuOpen} aria-controls="rail" onClick={() => setMenuOpen(!menuOpen)}>{fr.nav.menu}</Btn>
       {menuOpen && <div className="ath-drawer-backdrop" data-testid="drawer-backdrop" onClick={closeMenu} />}
-      <Sidebar id="rail" open={menuOpen} collapsed={collapsed} sections={sections} current={current} onNavigate={(id) => { setMenuOpen(false); navigate(id); }} user={{ name: session.user!.name, role: admin ? 'Admin' : manager ? 'Chef de projet' : 'Utilisateur' }}
+      <Sidebar id="rail" open={menuOpen} collapsed={collapsed} sections={sections} current={current} onNavigate={(id) => { setMenuOpen(false); navigate(id); }} user={{ name: session.user!.name, role: admin ? 'Administrateur' : manager ? 'Chef de projet' : 'Utilisateur', roleKind: admin ? 'admin' : manager ? 'manager' : 'user' }}
         userActions={<>
           <button type="button" className="ath-iconbtn ath-collapse-btn" onClick={toggleRail} aria-expanded={!collapsed} aria-label={collapsed ? fr.rail.expand : fr.rail.collapse} title={collapsed ? fr.rail.expand : fr.rail.collapse}>{collapsed ? '»' : '«'}</button>
           <ThemeToggle />

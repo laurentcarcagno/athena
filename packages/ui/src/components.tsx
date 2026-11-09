@@ -335,6 +335,13 @@ export function CornerFrame({ children }: { children: ReactNode }) {
   );
 }
 
+/** Icône de rôle (administrateur : bouclier, chef de projet : boussole, utilisateur : personne). */
+export function RoleIcon({ kind }: { kind: 'admin' | 'manager' | 'user' }) {
+  const path = kind === 'admin' ? 'M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5z'
+    : kind === 'manager' ? 'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm3.5 6.5-2 5-5 2 2-5z'
+    : 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm-8 9c0-4 3.6-6 8-6s8 2 8 6z';
+  return <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" aria-hidden="true"><path d={path} /></svg>;
+}
 export interface NavItem {
   id: string; label: string; href?: string;
   /** Niveau d'indentation dans une arborescence (0 par défaut). */
@@ -345,18 +352,57 @@ export interface NavItem {
   extra?: ReactNode;
 }
 /** Rubrique du rail : un titre facultatif et ses entrées. */
-export interface NavSection { id: string; title?: string; items: NavItem[] }
-export function Sidebar({ id, items, sections, current, onNavigate, user, userActions, collapsed = false, open = false }: { id?: string; items?: NavItem[]; sections?: NavSection[]; current: string; onNavigate?: (id: string) => void; user?: { name: string; role: string }; userActions?: ReactNode; collapsed?: boolean; open?: boolean }) {
+export interface NavSection {
+  id: string; title?: string; items: NavItem[];
+  /** Rubrique repliée : seul son titre (avec le nombre d'entrées) figure dans le rail, la liste s'ouvre dans un menu sur le côté. */
+  flyout?: boolean;
+  /** Texte du menu quand la rubrique est vide. */
+  emptyLabel?: string;
+}
+/** Menu latéral d'une rubrique du rail (Favoris, Récents) : s'ouvre à droite du rail, se ferme sur Échap, sur un clic ailleurs ou après un choix. */
+function NavFlyout({ group, current, onNavigate }: { group: NavSection; current: string; onNavigate: ((id: string) => void) | undefined }) {
+  const [open, setOpen] = useState(false);
+  const [top, setTop] = useState(0);
+  const root = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return undefined;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { setOpen(false); root.current?.querySelector('button')?.focus(); } };
+    const onDown = (e: MouseEvent) => { if (!root.current?.contains(e.target as Node)) setOpen(false); };
+    document.addEventListener('keydown', onKey);
+    document.addEventListener('mousedown', onDown);
+    return () => { document.removeEventListener('keydown', onKey); document.removeEventListener('mousedown', onDown); };
+  }, [open]);
+  const label = `${group.title ?? ''} (${group.items.length})`;
+  return (
+    <div ref={root} className="ath-nav__section ath-flyout" role="group" aria-label={group.title}>
+      <button type="button" className="ath-nav-item ath-flyout__toggle" aria-expanded={open}
+        onClick={(e) => { setTop(e.currentTarget.getBoundingClientRect().top); setOpen(!open); }}>
+        <span>{label}</span><span aria-hidden="true">›</span>
+      </button>
+      {open && (
+        <div className="ath-flyout__panel" role="group" aria-label={`${group.title ?? ''}, liste`} style={{ top }}>
+          {group.items.length === 0 && <p className="ath-flyout__empty">{group.emptyLabel}</p>}
+          {group.items.map((item) => (
+            <div key={item.id} className="ath-flyout__row">
+              <button type="button" className={cx('ath-flyout__item', item.mono && 'ath-mono')} aria-current={item.id === current ? 'page' : undefined} onClick={() => { setOpen(false); onNavigate?.(item.id); }}>{item.label}</button>
+              {item.extra}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+export function Sidebar({ id, items, sections, current, onNavigate, user, userActions, collapsed = false, open = false }: { id?: string; items?: NavItem[]; sections?: NavSection[]; current: string; onNavigate?: (id: string) => void; user?: { name: string; role: string; roleKind?: 'admin' | 'manager' | 'user' }; userActions?: ReactNode; collapsed?: boolean; open?: boolean }) {
   const groups: NavSection[] = sections ?? [{ id: 'main', items: items ?? [] }];
   const initials = user?.name.split(/\s+/).map((p) => p[0]).slice(0, 2).join('').toUpperCase() ?? '';
   return (
     <aside id={id} className={cx('ath-sidebar', collapsed && 'ath-sidebar--collapsed', open && 'ath-sidebar--open')}>
       <div className="ath-sidebar__brand">
-        ATHENA<span className="ath-sidebar__dot">·</span>BOARD
-        <span className="ath-sidebar__sub">Suivi de projet</span>
+        ATHENA
       </div>
       <nav className="ath-nav" aria-label="Navigation principale">
-        {groups.map((group) => (
+        {groups.map((group) => group.flyout ? <NavFlyout key={group.id} group={group} current={current} onNavigate={onNavigate} /> : (
           <div key={group.id} className="ath-nav__section" role="group" aria-label={group.title}>
             {group.title && <h2 className="ath-nav__title">{group.title}</h2>}
             {group.items.map((item) => (
@@ -372,8 +418,8 @@ export function Sidebar({ id, items, sections, current, onNavigate, user, userAc
       </nav>
       {user && (
         <div className="ath-sidebar__user">
-          <div className="ath-avatar" aria-hidden="true">{initials}</div>
-          <div className="ath-sidebar__who"><div>{user.name}</div><div className="ath-eyebrow ath-sidebar__role">{user.role}</div></div>
+          <div className="ath-avatar" role="img" aria-label={user.name} title={user.name}>{initials}</div>
+          <span className="ath-sidebar__role" role="img" aria-label={user.role} title={user.role}><RoleIcon kind={user.roleKind ?? 'user'} /></span>
           {userActions && <div className="ath-sidebar__actions">{userActions}</div>}
         </div>
       )}

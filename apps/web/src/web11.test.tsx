@@ -48,6 +48,7 @@ const app = (path: string, roles = ['athena-user']) => render(
   <ToastProvider><MemoryRouter initialEntries={[path]}><Where /><AuthenticatedApp session={session(roles)} /></MemoryRouter></ToastProvider>,
 );
 const rail = () => screen.getByRole('navigation', { name: 'Navigation principale' });
+const openFlyout = async (name: RegExp) => { await userEvent.click(await within(rail()).findByRole('button', { name })); return within(screen.getByRole('group', { name: /, liste$/ })); };
 const groupTitles = () => within(rail()).queryAllByRole('heading', { level: 2 }).map((h) => h.textContent);
 
 describe('favoris et récents : adresses', () => {
@@ -71,7 +72,7 @@ describe('rail contextuel', () => {
     app('/');
     await screen.findByRole('heading', { level: 1 });
     expect(groupTitles()).toEqual([]);
-    expect(within(rail()).getAllByRole('button').map((b) => b.textContent)).toEqual(['Projets', 'Mon travail', 'Aide']);
+    expect(within(rail()).getAllByRole('button').map((b) => b.textContent)).toEqual(['Favoris (0)›', 'Récents (0)›', 'Projets', 'Mon travail', 'Aide']);
   });
 
   it('dans un projet : rubriques fixes (projet, onglets, trackers) et vues partagées sous le tracker ouvert seulement', async () => {
@@ -80,8 +81,8 @@ describe('rail contextuel', () => {
     await waitFor(() => expect(groupTitles()).toEqual(['Projet ARI', 'Trackers']));
     const labels = within(rail()).getAllByRole('button').map((b) => b.textContent);
     expect(labels).toEqual([
-      'Projets', 'Mon travail', 'Aide',
-      'Vue d’ensemble', 'Trackers', 'Planification', 'Code et intégration', 'Membres', 'Recherche', // onglets des modules actifs, dans l’ordre fixe
+      'Favoris (0)›', 'Récents (0)›', 'Projets', 'Mon travail', 'Aide',
+      'Recherche', // les onglets du projet ne sont plus dans le rail : ils sont dans la vue centrale
       'BUG · Anomalies', 'Bloquants', 'REQ · Exigences', // la vue partagée apparaît sous le tracker ouvert ; la vue personnelle n’y figure pas
     ]);
     expect(within(rail()).getByRole('button', { name: 'BUG · Anomalies' })).toHaveAttribute('aria-current', 'page');
@@ -95,32 +96,36 @@ describe('rail contextuel', () => {
     expect(screen.getByTestId('where')).not.toHaveTextContent('v=');
   });
 
-  it('affiche les favoris en tête (avec monter / descendre) puis les récents, sans doublon', async () => {
+  it('les favoris et les récents sont des menus latéraux, sans doublon', async () => {
     favorites = [pin('f1', 'project', 'ARI', 'ARI'), pin('f2', 'tracker', 'BUG', 'ARI · BUG')];
     recents = [pin('r1', 'item', 'ARI-BUG-0001', 'ARI-BUG-0001'), pin('r2', 'project', 'ARI', 'ARI')];
     app('/me');
-    await waitFor(() => expect(groupTitles()).toEqual(['Favoris', 'Récents']));
-    const favs = within(within(rail()).getByRole('group', { name: 'Favoris' }));
-    expect(favs.getAllByRole('button').map((b) => b.textContent)).toEqual(['ARI', '↑', '↓', 'ARI · BUG', '↑', '↓']);
+    const favs = await openFlyout(/^Favoris \(2\)/);
+    expect(favs.getAllByRole('button', { name: (n) => !/^(Monter|Descendre)/.test(n) }).map((b) => b.textContent)).toEqual(['ARI', 'ARI · BUG']);
     expect(favs.getByRole('button', { name: 'Monter ARI' })).toBeDisabled();
     expect(favs.getByRole('button', { name: 'Descendre ARI · BUG' })).toBeDisabled();
-    const recent = within(within(rail()).getByRole('group', { name: 'Récents' }));
-    expect(recent.getAllByRole('button').map((b) => b.textContent)).toEqual(['ARI-BUG-0001']); // le projet, déjà favori, n'est pas répété
+    await userEvent.keyboard('{Escape}');
+    expect(screen.queryByRole('group', { name: /, liste$/ })).toBeNull();
+    const recent = await openFlyout(/^Récents \(1\)/); // le projet, déjà favori, n'est pas répété
+    expect(recent.getAllByRole('button', { name: (n) => !/^(Monter|Descendre)/.test(n) }).map((b) => b.textContent)).toEqual(['ARI-BUG-0001']);
     expect(recent.getByRole('button', { name: 'ARI-BUG-0001' })).toHaveClass('ath-mono');
   });
 
   it('réordonne les favoris au clavier (boutons) et envoie l’ordre complet', async () => {
     favorites = [pin('f1', 'project', 'ARI', 'ARI'), pin('f2', 'tracker', 'BUG', 'ARI · BUG')];
     app('/me');
-    await userEvent.click(await screen.findByRole('button', { name: 'Descendre ARI' }));
+    const favs = await openFlyout(/^Favoris/);
+    await userEvent.click(favs.getByRole('button', { name: 'Descendre ARI' }));
     await waitFor(() => expect(sent.find((s) => s.url.endsWith('/order'))?.body).toEqual({ ids: ['f2', 'f1'] }));
   });
 
-  it('un favori mène à sa page', async () => {
+  it('un favori mène à sa page et ferme le menu', async () => {
     favorites = [pin('f1', 'view', 'BUG:v1', 'Bloquants')];
     app('/me');
-    await userEvent.click(await within(rail()).findByRole('button', { name: 'Bloquants' }));
+    const favs = await openFlyout(/^Favoris/);
+    await userEvent.click(favs.getByRole('button', { name: 'Bloquants' }));
     await waitFor(() => expect(screen.getByTestId('where')).toHaveTextContent('/p/ARI/t/BUG/tableau'));
+    expect(screen.queryByRole('group', { name: /, liste$/ })).toBeNull();
   });
 
   it('note les ouvertures : projet puis tracker, une seule fois chacun', async () => {
@@ -153,7 +158,7 @@ describe('rail contextuel', () => {
     favorites = [pin('f1', 'project', 'ARI', 'ARI')];
     recents = [pin('r1', 'item', 'ARI-BUG-0001', 'ARI-BUG-0001')];
     const { container } = app('/p/ARI/t/BUG/tableau');
-    await waitFor(() => expect(groupTitles()).toContain('Favoris'));
+    await openFlyout(/^Favoris/);
     const result = await axe.run(container, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] }, rules: { 'color-contrast': { enabled: false }, region: { enabled: false } } });
     expect(result.violations.map((v) => `${v.id} : ${v.help}`)).toEqual([]);
   });
