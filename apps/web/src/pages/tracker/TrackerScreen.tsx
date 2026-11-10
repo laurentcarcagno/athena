@@ -155,7 +155,7 @@ export function TrackerScreen({ session }: { session: Session }) {
           <Btn onClick={() => create({ scope: 'tracker', project: String(project), tracker: String(tracker) })}>{fr.trackerScreen.newItem}</Btn>
           <SubscribeToggle project={String(project)} scope="tracker" target={String(tracker)} size="md" />
           <PinToggle entry={{ kind: 'tracker', project: String(project), ref: String(tracker), label: `${project} · ${tracker}` }} />
-          {admin && <Btn variant="ghost" onClick={() => navigate(`/p/${project}/parametres/trackers/${tracker}`)}>{fr.trackerScreen.configure}</Btn>}
+          {admin && <Btn variant="ghost" size="sm" icon="settings" onClick={() => navigate(`/p/${project}/parametres/trackers/${tracker}`)}>{fr.trackerScreen.configure}</Btn>}
         </>} />
       {current === 'tableau' && <MiniWorkflow states={states} active={status} onPick={(key) => next({ f: toAtql({ ...(fromAtql(fragment, username) ?? emptyModel()), status: key ?? undefined }, username) || null, o: null })} />}
       {current === 'tableau' && <FilterBar def={def} fragment={fragment} username={username} error={queryError} onChange={(f) => next({ f: f || null, o: null })} />}
