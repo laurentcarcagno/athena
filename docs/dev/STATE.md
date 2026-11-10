@@ -17,7 +17,8 @@ Dernière mise à jour : 2026-11-10
   T-0113 faite (relations groupées dans l'onglet Liens, origine de la fiche : « Retour », précédent et suivant ; e2e 38 sur 38).
   T-0114 faite (Board : carte enrichie, clic = panneau, filtres dans l'adresse, création par colonne, index `/p/:p/board`, section Board au rail ; e2e 40 sur 40).
   T-0115 faite (Backlog côté API : migration 048 `backlog_rank`, `GET /backlog`, `POST /backlog/rank`, démonstration NOVA dans `dev-start`).
-- **Tâche en cours** : T-0116 (page Backlog). Migration réelle suivante : 049.
+  T-0116 faite (page Backlog : sprints en cours et à venir, burndown, clôture avec report, backlog ordonné au clavier, section Backlog au rail ; e2e 41 sur 41).
+- **Tâche en cours** : T-0117 (Roadmap). Migration réelle suivante : 049.
 - **Historique** : réécrit le 2026-11-10 à la demande de l'utilisateur (lot 8 en `@gmail.com`) ; sauvegarde `backup/avant-reecriture-email`, à supprimer quand l'utilisateur le décide.
 - **Reste à faire** (par priorité) :
   1. Test d'intrusion externe (à commander) ; déploiement de recette sur Kubernetes et mesures de charge concurrente.

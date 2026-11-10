@@ -16,6 +16,7 @@ import { fr, getLocale, setLocale, useLocale } from './i18n';
 import { AdminPage } from './pages/AdminPage';
 import { ArtifactPage } from './pages/ArtifactPage';
 import { BoardIndexPage, BoardPage } from './pages/BoardPage';
+import { BacklogPage } from './pages/BacklogPage';
 import { ListPage } from './pages/ListPage';
 import { MyWorkPage } from './pages/MyWorkPage';
 import { HelpPage } from './pages/HelpPage';
@@ -174,6 +175,7 @@ export function AuthenticatedApp({ session }: { session: Session }) {
           <Route path="dashboard" element={<RedirectTo to="" />} />
           <Route path="admin" element={<AdminPage session={session} />} />
           <Route path="a/:key" element={<ArtifactPage session={session} />} />
+          <Route path="backlog" element={<BacklogPage session={session} />} />
           <Route path="board" element={<BoardIndexPage />} />
           <Route path="board/:board" element={<BoardPage session={session} />} />
           <Route path="trackers/new" element={<TrackerCreatePage session={session} />} />

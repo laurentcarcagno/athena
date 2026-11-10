@@ -474,3 +474,16 @@ html, body { margin: 0; }
      à la ligne : un cadre défilant couperait le menu de ses frères, positionné en absolu. */
   .ath-tabs--links { flex-wrap: nowrap; overflow-x: auto; white-space: nowrap; }
 }
+/* Burndown (T-0116) : une série (reste à faire) et une ligne de référence en pointillé (idéal) ; traits de 2 px, points de 8 px. */
+.ath-burndown { display: block; width: 100%; max-width: 640px; height: auto; }
+.ath-burndown__axis { stroke: var(--ath-border-default); stroke-width: 1; }
+.ath-burndown__ideal { fill: none; stroke: var(--ath-text-mute); stroke-width: 2; stroke-dasharray: 6 4; }
+.ath-burndown__remaining { fill: none; stroke: var(--ath-text-link); stroke-width: 2; }
+.ath-burndown__dot { fill: var(--ath-text-link); stroke: var(--ath-surface-default); stroke-width: 2; }
+.ath-burndown__hit { fill: transparent; }
+.ath-burndown__hit:hover + .ath-burndown__guide, .ath-burndown__hit:focus-visible + .ath-burndown__guide { visibility: visible; }
+.ath-burndown__guide { visibility: hidden; stroke: var(--ath-border-strong); stroke-width: 1; }
+.ath-burndown__label { fill: var(--ath-text-mute); font-size: 11px; }
+.ath-burndown__legend { display: flex; gap: var(--ath-space-md); margin: 0 0 var(--ath-space-xs); padding: 0; list-style: none; font-size: 12px; }
+.ath-burndown__swatch { display: inline-block; width: 20px; height: 0; margin-right: var(--ath-space-xs); vertical-align: middle; border-top: 2px solid var(--ath-text-link); }
+.ath-burndown__swatch--ideal { border-top: 2px dashed var(--ath-text-mute); }
