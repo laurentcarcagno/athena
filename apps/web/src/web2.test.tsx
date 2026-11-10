@@ -87,12 +87,12 @@ describe('création d’artefact', () => {
       on('POST', '/v1/projects/ARI/trackers/BUG/artifacts', { status: 201, body: { id: 'x', key: 'BUG-7', trackerKey: 'BUG', status: 'open', version: 1, values: {} } }),
     ];
     const onCreated = vi.fn();
-    render(<ToastProvider><MemoryRouter><CreateArtifact project="ARI" trackers={['BUG']} open onClose={() => undefined} onCreated={onCreated} /></MemoryRouter></ToastProvider>);
+    render(<ToastProvider><MemoryRouter><CreateArtifact target={{ scope: 'tracker', project: 'ARI', tracker: 'BUG' }} open onClose={() => undefined} onCreated={onCreated} /></MemoryRouter></ToastProvider>);
     await userEvent.type(await screen.findByLabelText('Titre (obligatoire)'), 'Crash');
     await userEvent.type(screen.getByLabelText('Points'), '8');
     await userEvent.selectOptions(screen.getByLabelText('Sévérité (obligatoire)'), 'majeure');
     await userEvent.click(screen.getByRole('button', { name: 'Créer' }));
-    await waitFor(() => expect(onCreated).toHaveBeenCalledWith('BUG-7'));
+    await waitFor(() => expect(onCreated).toHaveBeenCalledWith({ key: 'BUG-7', project: 'ARI', tracker: 'BUG' }));
     expect(calls.find((c) => c.method === 'POST')!.body).toEqual({ values: { title: 'Crash', points: 8, severity: 'majeure' } });
   });
   it('affiche les erreurs de validation du serveur et convertit les saisies', async () => {
@@ -100,7 +100,7 @@ describe('création d’artefact', () => {
       on('GET', '/v1/projects/ARI/trackers/BUG', { body: definition }),
       on('POST', /artifacts$/, { status: 422, body: { error: 'validation', message: 'Données invalides.', details: ['title : obligatoire'] } }),
     ];
-    render(<ToastProvider><MemoryRouter><CreateArtifact project="ARI" trackers={['BUG']} open onClose={() => undefined} onCreated={() => undefined} /></MemoryRouter></ToastProvider>);
+    render(<ToastProvider><MemoryRouter><CreateArtifact target={{ scope: 'tracker', project: 'ARI', tracker: 'BUG' }} open onClose={() => undefined} onCreated={() => undefined} /></MemoryRouter></ToastProvider>);
     await screen.findByLabelText('Titre (obligatoire)');
     await userEvent.click(screen.getByRole('button', { name: 'Créer' }));
     expect(await screen.findByText(/title : obligatoire/)).toBeInTheDocument();

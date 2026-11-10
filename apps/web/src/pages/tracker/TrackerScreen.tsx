@@ -4,7 +4,7 @@ import { Btn, EmptyState, Id, PageHeader, type SortState } from '@athena/ui';
 import { ApiError, api, type SavedFilter, type SearchResult, type Session, type TrackerDefinition, type TrackerOverview, type TrackerTypeEntry } from '../../api';
 import { ArtifactTable, columnFor, type TableColumn } from '../../components/ArtifactTable';
 import { ColumnPicker } from '../../components/ColumnPicker';
-import { CreateArtifact } from '../../components/CreateArtifact';
+import { useCreate, useOnCreated } from '../../components/CreateArtifact';
 import { DetailPanel } from '../../components/DetailPanel';
 import { FilterBar } from '../../components/FilterBar';
 import { SavedViews, viewOf, viewToParams } from '../../components/SavedViews';
@@ -34,7 +34,8 @@ export function TrackerScreen({ session }: { session: Session }) {
   const [counts, setCounts] = useState<TrackerOverview | null>(null);
   const [siblings, setSiblings] = useState<string[]>([]);
   const [result, setResult] = useState<SearchResult | null>(null);
-  const [creating, setCreating] = useState(false);
+  const create = useCreate();
+  const [refresh, setRefresh] = useState(0);
   const [types, setTypes] = useState<TrackerTypeEntry[]>([]);
   const fragment = params.get('f') ?? '';
   const item = params.get('i');
@@ -66,7 +67,7 @@ export function TrackerScreen({ session }: { session: Session }) {
     setQueryError(null);
     api<SearchResult>('GET', `/v1/projects/${project}/search?q=${encodeURIComponent(query)}&limit=${PAGE}&offset=${offset}`).then(setResult)
       .catch((e: unknown) => { if (e instanceof ApiError && e.status === 422) { setQueryError(e.readable); setResult({ total: 0, hits: [] } as SearchResult); } else fail(e); });
-  }, [project, query, offset, fail]);
+  }, [project, query, offset, fail, refresh]);
   // À la première visite sans filtre ni tri dans l'adresse, la vue par défaut du tracker s'applique.
   const [knownViews, setKnownViews] = useState<SavedFilter[]>([]);
   const wantedView = params.get('v');
@@ -87,6 +88,12 @@ export function TrackerScreen({ session }: { session: Session }) {
 
   const rows = result?.hits ?? [];
   const withItem = (key: string | null) => { const copy = new URLSearchParams(params); if (key) copy.set('i', key); else copy.delete('i'); return copy; };
+  // Ticket créé depuis cette page (bouton du tracker, « Créer », N) : on reste ici, la liste se recharge et, s'il est de ce
+  // tracker, il s'ouvre dans le panneau (Tableau, Arbre).
+  useOnCreated((created) => {
+    setRefresh((n) => n + 1);
+    if (created.project === project && created.tracker === tracker && vue !== 'board' && vue !== 'matrice') setParams(withItem(created.key));
+  });
   const closePanel = () => {
     const was = item;
     setParams(withItem(null));
@@ -137,13 +144,11 @@ export function TrackerScreen({ session }: { session: Session }) {
       <PageHeader eyebrow={fr.trackerScreen.eyebrow} title={def?.name ?? String(tracker)}
         sub={<><Id>{project}-{tracker}</Id>{counts && <> · <span className="ath-mono">{fr.trackerScreen.total(counts.artifacts)}</span></>}</>}
         actions={<>
-          <Btn onClick={() => setCreating(true)}>{fr.trackerScreen.newItem}</Btn>
+          <Btn onClick={() => create({ scope: 'tracker', project: String(project), tracker: String(tracker) })}>{fr.trackerScreen.newItem}</Btn>
           <SubscribeToggle project={String(project)} scope="tracker" target={String(tracker)} size="md" />
           <PinToggle entry={{ kind: 'tracker', project: String(project), ref: String(tracker), label: `${project} · ${tracker}` }} />
           {admin && <Btn variant="ghost" onClick={() => navigate(`/p/${project}/trackers/${tracker}/config`)}>{fr.trackerScreen.configure}</Btn>}
         </>} />
-      <CreateArtifact project={String(project)} trackers={[String(tracker)]} open={creating} onClose={() => setCreating(false)}
-        onCreated={(key) => { setCreating(false); navigate(`/p/${project}/a/${key}`); }} />
       {current === 'tableau' && <MiniWorkflow states={states} active={status} onPick={(key) => next({ f: toAtql({ ...(fromAtql(fragment, username) ?? emptyModel()), status: key ?? undefined }, username) || null, o: null })} />}
       {current === 'tableau' && <FilterBar def={def} fragment={fragment} username={username} error={queryError} onChange={(f) => next({ f: f || null, o: null })} />}
       {current === 'tableau' && <SavedViews project={String(project)} tracker={String(tracker)} current={{ fragment, sort, columns: cols }} roles={session.user?.roles ?? []} onLoaded={onViews}
@@ -154,7 +159,7 @@ export function TrackerScreen({ session }: { session: Session }) {
           <Link key={v} to={`${base}/${v}`} className="ath-tab" aria-current={v === current ? 'page' : undefined}>{fr.trackerScreen.viewNames[v]}</Link>
         ))}
       </nav>
-      {current === 'board' ? <BoardView project={String(project)} board={`~${tracker}`} header={false} /> : current === 'matrice' ? (
+      {current === 'board' ? <BoardView key={refresh} project={String(project)} board={`~${tracker}`} header={false} /> : current === 'matrice' ? (
         <MatrixView project={String(project)} tracker={String(tracker)} columnsTracker={params.get('mx')} linkType={params.get('mt')}
           trackers={siblings} onChange={next} />
       ) : current === 'arbre' ? (

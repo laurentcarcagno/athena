@@ -16,7 +16,7 @@ const frDict = {
     previous: 'Précédent', next: 'Suivant', create: 'Nouvel artefact',
     suggestions: 'Suggestions', filters: 'Filtres enregistrés', noFilter: 'Aucun', saveFilter: 'Enregistrer', filterName: 'Nom du filtre', shareFilter: 'Partagé', filterSaved: 'Filtre enregistré.', deleteFilter: 'Supprimer le filtre',
   },
-  create: { title: 'Nouvel artefact', tracker: 'Tracker', submit: 'Créer', cancel: 'Annuler', created: (key: string) => `${key} créé.`, noTracker: 'Aucun tracker disponible.' },
+  create: { title: 'Nouvel artefact', tracker: 'Tracker', project: 'Projet', submit: 'Créer', cancel: 'Annuler', created: (key: string) => `${key} créé.`, noTracker: 'Aucun tracker disponible.', openIt: (key: string) => `Ouvrir ${key}`, global: 'Créer un ticket' },
   artifact: {
     details: 'Détails', links: 'Liens', history: 'Historique', activity: 'Commentaires', development: 'Développement',
     transitions: 'Transitions', save: 'Enregistrer', saved: 'Modification enregistrée.', comment: 'Commentaire', addComment: 'Ajouter',
@@ -353,7 +353,7 @@ const enDict: Dictionary = {
     previous: 'Previous', next: 'Next', create: 'New artifact',
     suggestions: 'Suggestions', filters: 'Saved filters', noFilter: 'None', saveFilter: 'Save', filterName: 'Filter name', shareFilter: 'Shared', filterSaved: 'Filter saved.', deleteFilter: 'Delete filter',
   },
-  create: { title: 'New artifact', tracker: 'Tracker', submit: 'Create', cancel: 'Cancel', created: (key: string) => `${key} created.`, noTracker: 'No tracker available.' },
+  create: { title: 'New artifact', tracker: 'Tracker', project: 'Project', submit: 'Create', cancel: 'Cancel', created: (key: string) => `${key} created.`, noTracker: 'No tracker available.', openIt: (key: string) => `Open ${key}`, global: 'Create a ticket' },
   artifact: {
     details: 'Details', links: 'Links', history: 'History', activity: 'Comments', development: 'Development',
     transitions: 'Transitions', save: 'Save', saved: 'Change saved.', comment: 'Comment', addComment: 'Add',

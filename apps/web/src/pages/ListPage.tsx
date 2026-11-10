@@ -4,7 +4,7 @@ import { Btn, EmptyState, Field as TextField, FilterChip, PageHeader, type SortS
 import { ApiError, api, type SavedFilter, type Session, type SearchResult, type TrackerDefinition } from '../api';
 import { ArtifactTable } from '../components/ArtifactTable';
 import { useConfirm } from '../components/ConfirmDialog';
-import { CreateArtifact } from '../components/CreateArtifact';
+import { useCreate, useOnCreated } from '../components/CreateArtifact';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
 
@@ -43,7 +43,9 @@ export const joinOrder = (where: string, order: { field: string; dir: string } |
 export function ListPage({ session }: { session?: Session } = {}) {
   const { project } = useParams();
   const navigate = useNavigate();
-  const [creating, setCreating] = useState(false);
+  const create = useCreate();
+  const [refresh, setRefresh] = useState(0);
+  useOnCreated(() => setRefresh((n) => n + 1)); // on reste sur la recherche ; la liste se recharge
   const [trackerKeys, setTrackerKeys] = useState<string[]>([]);
   const [params, setParams] = useSearchParams();
   const query = params.get('q') ?? '';
@@ -82,7 +84,7 @@ export function ListPage({ session }: { session?: Session } = {}) {
         if (e instanceof ApiError && e.status === 422) setError(e.readable);
         else fail(e);
       });
-  }, [project, query, offset, fail]);
+  }, [project, query, offset, fail, refresh]);
 
   const loadFilters = useCallback(() => api<SavedFilter[]>('GET', `/v1/projects/${project}/filters`).then((f) => setFilters(Array.isArray(f) ? f : [])).catch(() => setFilters([])), [project]);
   useEffect(() => { void loadFilters(); }, [loadFilters]);
@@ -112,9 +114,8 @@ export function ListPage({ session }: { session?: Session } = {}) {
   return (
     <>
       <PageHeader eyebrow={fr.list.eyebrow} title={String(project)} sub={result ? `${fr.list.total(result.total)}${result.totalCapped ? '+' : ''}` : undefined}
-        actions={<><Btn icon="plus" onClick={() => setCreating(true)}>{fr.list.create}</Btn>{session?.user?.roles.includes('athena-admin') && trackerKeys[0] && <Btn variant="ghost" onClick={() => navigate(`/p/${project}/trackers/${trackerKeys[0]}/config`)}>{fr.config.eyebrow}</Btn>}</>} />
+        actions={<><Btn icon="plus" onClick={() => create({ scope: 'project', project: String(project) })}>{fr.list.create}</Btn>{session?.user?.roles.includes('athena-admin') && trackerKeys[0] && <Btn variant="ghost" onClick={() => navigate(`/p/${project}/trackers/${trackerKeys[0]}/config`)}>{fr.config.eyebrow}</Btn>}</>} />
       {confirm.dialog}
-      <CreateArtifact project={String(project)} trackers={trackerKeys} open={creating} onClose={() => setCreating(false)} onCreated={(key) => { setCreating(false); navigate(`/p/${project}/a/${key}`); }} />
       <form className="ath-toolbar" onSubmit={submit} role="search">
         <div className="ath-suggest">
           <input className="ath-input ath-mono" size={60} aria-label="Requête ATQL" placeholder={fr.list.placeholder} value={draft} onChange={(e) => setDraft(e.target.value)} autoComplete="off" />

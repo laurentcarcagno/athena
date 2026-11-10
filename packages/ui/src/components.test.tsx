@@ -194,6 +194,21 @@ describe('notifications d’erreur (constat F-02)', () => {
     expect(screen.getByRole('alert')).toBeInTheDocument(); // la cause et l'action de reprise restent lisibles
     vi.useRealTimers();
   });
+  it('un message qui porte une action reste affiché jusqu’à sa fermeture ; l’action le ferme (WCAG 2.2.1)', () => {
+    const opened = vi.fn();
+    function WithAction() {
+      const toast = useToast();
+      return <button onClick={() => toast('success', 'SAT1-BUG-0042 créé.', { label: 'Ouvrir SAT1-BUG-0042', onClick: opened })}>Créer</button>;
+    }
+    vi.useFakeTimers();
+    render(<ToastProvider duration={5000}><WithAction /></ToastProvider>);
+    fireEvent.click(screen.getByText('Créer'));
+    act(() => { vi.advanceTimersByTime(60_000); });
+    fireEvent.click(screen.getByRole('button', { name: 'Ouvrir SAT1-BUG-0042' }));
+    expect(opened).toHaveBeenCalledOnce();
+    expect(screen.queryByText('SAT1-BUG-0042 créé.')).not.toBeInTheDocument();
+    vi.useRealTimers();
+  });
   it('se met en pause au focus comme au survol', () => {
     vi.useFakeTimers();
     render(<ToastProvider duration={5000}><Both /></ToastProvider>);

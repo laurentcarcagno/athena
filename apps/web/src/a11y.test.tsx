@@ -73,7 +73,7 @@ describe('accessibilité (axe-core, WCAG 2.1 AA)', () => {
       { id: '1', key: 'title', label: 'Titre', type: 'text', config: {}, required: true, semanticRole: 'title' },
       { id: '3', key: 'severity', label: 'Sévérité', type: 'select', config: { options: ['mineure', 'majeure'] }, required: true, semanticRole: null },
     ] }]];
-    render(<ToastProvider><MemoryRouter><CreateArtifact project="ARI" trackers={['BUG']} open onClose={() => undefined} onCreated={() => undefined} /></MemoryRouter></ToastProvider>);
+    render(<ToastProvider><MemoryRouter><CreateArtifact target={{ scope: 'tracker', project: 'ARI', tracker: 'BUG' }} open onClose={() => undefined} onCreated={() => undefined} /></MemoryRouter></ToastProvider>);
     await screen.findByLabelText('Titre (obligatoire)');
     expect(await violations(document.body)).toEqual([]);
   });

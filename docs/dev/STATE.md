@@ -12,7 +12,8 @@ Dernière mise à jour : 2026-11-10
 - **Lot 9, architecture de l'information (2026-11-10)** : ouvert par l'utilisateur après l'audit de navigation. Décisions : `docs/dev/DECISIONS/ADR-0003-ia-cible.md` (terme « Ticket », 8 sections de projet dans le rail, accueil = tableau de bord personnel configurable, création sans quitter la page, backlog des trackers Tâche, recherche globale). Plan : `docs/dev/tasks/LOT9-PLAN.md` (T-0109 à T-0125).
   T-0109 faite (coquille projet unique : navigation du projet au rail sur toutes les routes `/p/:p/*`, sections filtrées par module et par rôle ; e2e rejoués : 31 sur 31).
   T-0110 faite (mobile : sélecteur de section du projet, barre basse Mon travail / Projets / Chercher / Menu, focus de la palette corrigé ; e2e 33 sur 33).
-- **Tâche en cours** : T-0111 (création contextuelle).
+  T-0111 faite (création contextuelle : « Créer » dans la barre haute et touche N, cible déduite de l'adresse, on reste sur la page, message « Ouvrir » ; e2e 36 sur 36).
+- **Tâche en cours** : T-0112 (fiche : en-tête complet, onglet dans l'URL).
 - **Reste à faire** (par priorité) :
   1. Test d'intrusion externe (à commander) ; déploiement de recette sur Kubernetes et mesures de charge concurrente.
   5. Écarts mineurs : interface des rôles de champ, permissions par transition, suppression/renommage de champs, swimlanes, Gantt.

@@ -6,6 +6,7 @@ import { Btn, EmptyState, PageHeader, Sidebar, ToastProvider } from '@athena/ui'
 import { loadSession, loginUrl, logout, type Session } from './api';
 import { Breadcrumb } from './components/Breadcrumb';
 import { CommandPalette } from './components/CommandPalette';
+import { CreateButton, CreateProvider } from './components/CreateArtifact';
 import { BottomBar, ProjectNavContext } from './components/MobileNav';
 import { NotificationCenter } from './components/NotificationCenter';
 import { ThemeToggle } from './components/ThemeToggle';
@@ -97,6 +98,7 @@ function Shell({ session, children }: { session: Session; children: ReactNode })
   }, [menuOpen]);
   const other = getLocale() === 'fr' ? 'en' : 'fr';
   return (
+    <CreateProvider>
     <div className="ath-page">
       <a className="ath-skip" href="#contenu" onClick={(e) => { e.preventDefault(); document.getElementById('contenu')?.focus(); }}>{fr.nav.skip}</a>
       {menuOpen && <div className="ath-drawer-backdrop" data-testid="drawer-backdrop" onClick={closeMenu} />}
@@ -110,13 +112,14 @@ function Shell({ session, children }: { session: Session; children: ReactNode })
       <main id="contenu" ref={mainRef} tabIndex={-1} className="ath-page__main">
         <div className="ath-topbar">
           <Breadcrumb pathname={location.pathname} search={location.search} />
-          <NotificationCenter />
+          <div className="ath-topbar__actions"><CreateButton /><NotificationCenter /></div>
         </div>
         <ProjectNavContext.Provider value={projectNav}>{children}</ProjectNavContext.Provider>
         <CommandPalette project={project} />
       </main>
       <BottomBar menuOpen={menuOpen} onMenu={() => setMenuOpen(!menuOpen)} />
     </div>
+    </CreateProvider>
   );
 }
 

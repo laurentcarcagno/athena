@@ -260,14 +260,16 @@ export function Modal({ open, title, size = 'sm', onClose, children, footer }: {
 }
 
 export type ToastKind = 'success' | 'danger' | 'warning' | 'info';
-interface ToastItem { id: number; kind: ToastKind; message: string }
-const ToastContext = createContext<(kind: ToastKind, message: string) => void>(() => undefined);
+/** Action proposée par un message (« Ouvrir SAT1-BUG-0042 ») : le message reste alors affiché jusqu'à sa fermeture (WCAG 2.2.1). */
+export interface ToastAction { label: string; onClick: () => void }
+interface ToastItem { id: number; kind: ToastKind; message: string; action?: ToastAction }
+const ToastContext = createContext<(kind: ToastKind, message: string, action?: ToastAction) => void>(() => undefined);
 export const useToast = () => useContext(ToastContext);
 
 function ToastView({ toast, onDismiss, duration }: { toast: ToastItem; onDismiss: () => void; duration: number }) {
   const [paused, setPaused] = useState(false);
   // Une erreur reste affichée jusqu'à sa fermeture ; les autres messages sont suspendus au survol et au focus.
-  const persistent = toast.kind === 'danger';
+  const persistent = toast.kind === 'danger' || toast.action !== undefined;
   useEffect(() => {
     if (paused || persistent) return;
     const timer = setTimeout(onDismiss, duration);
@@ -276,6 +278,7 @@ function ToastView({ toast, onDismiss, duration }: { toast: ToastItem; onDismiss
   return (
     <div className={`ath-toast ath-toast--${toast.kind}`} role={toast.kind === 'danger' ? 'alert' : 'status'} onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)} onFocus={() => setPaused(true)} onBlur={() => setPaused(false)}>
       <span className="ath-toast__message">{toast.message}</span>
+      {toast.action && <button type="button" className="ath-toast__action" onClick={() => { toast.action!.onClick(); onDismiss(); }}>{toast.action.label}</button>}
       <button type="button" className="ath-icon-btn" aria-label="Fermer la notification" onClick={onDismiss}>×</button>
     </div>
   );
@@ -285,8 +288,8 @@ function ToastView({ toast, onDismiss, duration }: { toast: ToastItem; onDismiss
 export function ToastProvider({ children, duration = 5000 }: { children: ReactNode; duration?: number }) {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const next = useRef(1);
-  const push = useCallback((kind: ToastKind, message: string) => {
-    setToasts((list) => [...list, { id: next.current++, kind, message }]);
+  const push = useCallback((kind: ToastKind, message: string, action?: ToastAction) => {
+    setToasts((list) => [...list, { id: next.current++, kind, message, ...(action ? { action } : {}) }]);
   }, []);
   return (
     <ToastContext.Provider value={push}>
