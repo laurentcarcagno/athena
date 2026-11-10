@@ -13,7 +13,7 @@ const PAGE = 25;
 const SORTABLE = { key: 'key', status: 'status', tracker: 'tracker', updated: 'updated' } as const;
 
 /** Sépare la clause ORDER BY de la requête pour que le tri par colonne reste visible dans l'URL. */
-const BUILTIN_FIELDS = ['key', 'status', 'tracker', 'project', 'created', 'updated', 'created_by', 'text'];
+const BUILTIN_FIELDS = ['key', 'status', 'category', 'tracker', 'project', 'created', 'updated', 'created_by', 'text'];
 const KEYWORDS = ['AND', 'OR', 'NOT', 'IN', 'IS EMPTY', 'IS NOT EMPTY', 'ORDER BY', 'suspect()', 'linkedTo(', 'notLinked('];
 
 /** Suggestions pour le dernier mot saisi : champs (natifs et du projet) et mots-clés ATQL. */

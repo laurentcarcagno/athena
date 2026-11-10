@@ -104,6 +104,26 @@ suite('listes d’ayants droit : la base filtre toutes les lectures', () => {
     expect((await as('u-alice', () => overview.overview(org, 'SEC', 'u-alice'))).trackers.map((t) => [t.key, t.artifacts])).toEqual([['REQ', 3], ['TST', 1]]);
   });
 
+  it('recherche globale (T-0118) : un ticket d’un projet non autorisé n’apparaît jamais, même nommé', async () => {
+    const global = (subject: string, q: string, projects?: string[]) =>
+      as(subject, () => search.searchOrganization(org, q, subject, { projects, roles: ['athena-user'], limit: 200 }));
+    const keys = async (subject: string, q: string, projects?: string[]) => (await global(subject, q, projects)).hits.map((h) => h.key).sort();
+    expect((await global('u-bob', '')).total).toBe(4);
+    expect((await keys('u-bob', '')).every((k) => k.startsWith('PUB-'))).toBe(true);
+    expect(await keys('u-bob', 'project = SEC')).toEqual([]);
+    expect(await keys('u-bob', 'key = SEC-REQ-0001')).toEqual([]);
+    expect(await keys('u-bob', '', ['SEC'])).toEqual([]);
+    expect(await keys('u-bob', '', ['SEC', 'PUB'])).toHaveLength(4);
+    expect((await global('u-alice', '')).total).toBe(8);
+    expect(await keys('u-alice', 'tracker = REQ', ['SEC'])).toEqual(['SEC-REQ-0001', 'SEC-REQ-0002', 'SEC-REQ-0003']);
+    const first = (await global('u-alice', 'key = SEC-REQ-0001')).hits[0]!;
+    expect(first).toMatchObject({ project: 'SEC', tracker: 'REQ', title: 'SEC-REQ 1' });
+    // Une autre organisation ne voit rien (RLS d'organisation).
+    expect((await as('u-alice', () => search.searchOrganization(other, '', 'u-alice'))).total).toBe(0);
+    expect(await code(global('u-alice', '', ['sec; drop']))).toBe('validation');
+    expect(await code(global('u-alice', 'champ ~~ ='))).toBe('validation');
+  });
+
   it('plein texte, palette (recherche par clé ou titre) et journal des automatisations respectent la liste', async () => {
     const hits = (s: string, q: string) => as(s, () => search.search(org, 'SEC', q, s)).then((r) => r.hits.map((h) => h.key));
     expect(await hits('u-bob', 'text ~ "sec"')).toEqual([]);

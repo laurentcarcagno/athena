@@ -110,6 +110,8 @@ suite('recherche ATQL (intégration)', () => {
     expect(await keys('severity IN (majeure, bloquante) ORDER BY key')).toEqual(['ARI-BUG-0001', 'ARI-BUG-0002']);
     expect(await keys('severity NOT IN (mineure) ORDER BY key')).toEqual(['ARI-BUG-0001', 'ARI-BUG-0002']);
     expect(await keys('tracker = BUG AND project = ARI ORDER BY key')).toHaveLength(4);
+    expect(await keys('category != done ORDER BY key')).toEqual(['ARI-BUG-0001', 'ARI-BUG-0002', 'ARI-BUG-0003']);
+    expect(await keys('category = done')).toEqual(['ARI-BUG-0004']);
   });
   it('compare les nombres numériquement', async () => {
     expect(await keys('points > 3 ORDER BY points')).toEqual(['ARI-BUG-0001', 'ARI-BUG-0003']);

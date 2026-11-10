@@ -21,6 +21,8 @@ const BUILTIN: Record<string, { column: string; type: 'text' | 'time' }> = {
   key: { column: 'a.key', type: 'text' },
   tracker: { column: 't.key', type: 'text' },
   status: { column: 's.key', type: 'text' },
+  // T-0118 : catégorie du statut (todo, in_progress, done), commune à tous les trackers : « tickets ouverts » sur plusieurs projets.
+  category: { column: 's.category', type: 'text' },
   project: { column: 'p.key', type: 'text' },
   created_by: { column: 'a.created_by', type: 'text' },
   created: { column: 'a.created_at', type: 'time' },
