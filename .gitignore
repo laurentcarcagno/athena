@@ -27,3 +27,6 @@ design-redesign-work/after/
 design-redesign-work/*.mjs
 .admin-required-actions.json
 .recette-kind-tmp/
+
+# Captures de non-régression visuelle (lot 10)
+e2e/visuel/

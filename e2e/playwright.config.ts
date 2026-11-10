@@ -1,6 +1,9 @@
 import { readFileSync } from 'node:fs';
 import { defineConfig } from '@playwright/test';
 
+// Captures visuelles (visuel.spec.ts) : actives seulement quand on les demande (`pnpm visuel`).
+if (process.argv.some((a) => /visuel/.test(a))) process.env.VISUEL = '1';
+
 const devEnv = readFileSync('../deploy/dev/.env', 'utf8');
 const fromDev = (name: string): string => new RegExp(`^${name}=(.+)$`, 'm').exec(devEnv)![1]!.trim();
 
@@ -24,6 +27,8 @@ export default defineConfig({
   timeout: 60_000,
   globalTeardown: './global-teardown.mjs',
   reporter: [['list']],
+  // Captures de non-régression visuelle (visuel.spec.ts, lot 10) : hors dépôt.
+  snapshotPathTemplate: '{testDir}/../visuel/reference/{arg}{ext}',
   use: { baseURL: 'http://localhost:3000', trace: 'retain-on-failure', locale: 'fr-FR' },
   webServer: [
     { command: 'node ../apps/api/dist/main.js', url: 'http://127.0.0.1:3001/healthz', env: API, reuseExistingServer: false, timeout: 60_000 },

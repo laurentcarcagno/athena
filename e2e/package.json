@@ -3,7 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "test": "pnpm --filter @athena/api build && node global-setup.mjs && playwright test"
+    "test": "pnpm --filter @athena/api build && node global-setup.mjs && playwright test",
+    "visuel": "pnpm --filter @athena/api build && node global-setup.mjs && playwright test visuel",
+    "visuel:reference": "pnpm --filter @athena/api build && node global-setup.mjs && playwright test visuel --update-snapshots"
   },
   "devDependencies": {
     "@playwright/test": "1.55.1",
