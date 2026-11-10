@@ -66,6 +66,13 @@ describe('contrastes', () => {
     expect(issues[0]!.message).toContain('texte sur surface');
   });
 
+  it('compose un fond translucide sur la surface indiquée par `over`', () => {
+    const veil: Theme = { name: 'veil', tokens: { ink: { $value: '#FFFFFF' }, night: { $value: '#12293A' }, tint: { $value: 'rgba(0, 110, 177, 0.18)' } } };
+    const on = (min: number): Contract => ({ modes: ['light'], defaultMode: 'light', required: [], contrast: [{ fg: 'ink', bg: 'tint', over: 'night', min }] });
+    expect(check([veil], on(4.5))).toEqual([]);
+    expect(check([veil], on(15))[0]!.message).toMatch(/ink sur tint : 1[0-4]\.\d\d:1/);
+  });
+
   it('signale un jeton obligatoire absent', () => {
     const bare: Theme = { name: 'bare', tokens: { surface: { default: { $value: '#FFFFFF' } } } };
     expect(check([bare], contract).map((i) => i.message)).toEqual(['jeton obligatoire absent : text.default', 'jeton obligatoire absent : text.default']);

@@ -6,25 +6,6 @@
   ],
   "defaultMode": "light",
   "required": [
-    "color.sovereign-deep-blue",
-    "color.tricolor-blue",
-    "color.console-sky",
-    "color.tricolor-red",
-    "color.cold-mist",
-    "color.instrument-white",
-    "color.hover-mist",
-    "color.muted-mist",
-    "color.selection-veil",
-    "color.console-border",
-    "color.ink",
-    "color.dim-ink",
-    "color.mute-ink",
-    "color.signal-success",
-    "color.signal-warning",
-    "color.signal-danger",
-    "color.pill-success-bg",
-    "color.pill-warning-bg",
-    "color.pill-danger-bg",
     "space.xs",
     "space.sm",
     "space.md",
@@ -117,7 +98,19 @@
     "state.neutral.fg-aa",
     "state.neutral.border",
     "focus.ring",
-    "focus.ring-on-inverse"
+    "focus.ring-on-inverse",
+    "inverse.text-secondary",
+    "inverse.text-nav",
+    "inverse.text-mute",
+    "inverse.hover",
+    "inverse.hover-strong",
+    "inverse.divider",
+    "inverse.line",
+    "inverse.border",
+    "inverse.rule",
+    "inverse.selected",
+    "brand.primary",
+    "brand.accent"
   ],
   "contrast": [
     {
@@ -281,6 +274,31 @@
       "bg": "surface.default",
       "min": 3,
       "label": "bordure d’erreur"
+    },
+    {
+      "fg": "inverse.text-secondary",
+      "bg": "surface.inverse",
+      "min": 4.5,
+      "label": "texte secondaire sur surface inverse"
+    },
+    {
+      "fg": "inverse.text-nav",
+      "bg": "surface.inverse",
+      "min": 4.5,
+      "label": "entrée de navigation sur surface inverse"
+    },
+    {
+      "fg": "inverse.text-mute",
+      "bg": "surface.inverse",
+      "min": 4.5,
+      "label": "titre de rubrique sur surface inverse"
+    },
+    {
+      "fg": "text.on-inverse",
+      "bg": "inverse.selected",
+      "min": 4.5,
+      "label": "entrée active sur surface inverse",
+      "over": "surface.inverse"
     }
   ]
 }

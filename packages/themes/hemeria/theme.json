@@ -4,87 +4,9 @@
   "label": "Hemeria",
   "meta": {
     "description": "Identité Hemeria : bleu souverain, Console Sky pour l’action, angles droits, aucune ombre (ADR-0004).",
-    "source": "packages/ui/design/DESIGN.md 3.2.0"
+    "source": "packages/ui/design/DESIGN.md 3.2.0 ; jetons inverse.* et brand.* ajoutés en T-0130"
   },
   "tokens": {
-    "color": {
-      "sovereign-deep-blue": {
-        "$value": "#12293A",
-        "$type": "color"
-      },
-      "tricolor-blue": {
-        "$value": "#174082",
-        "$type": "color"
-      },
-      "console-sky": {
-        "$value": "#006EB1",
-        "$type": "color"
-      },
-      "tricolor-red": {
-        "$value": "#C80A26",
-        "$type": "color"
-      },
-      "cold-mist": {
-        "$value": "#F0F7FC",
-        "$type": "color"
-      },
-      "instrument-white": {
-        "$value": "#FCFDFE",
-        "$type": "color"
-      },
-      "hover-mist": {
-        "$value": "#E6F3FA",
-        "$type": "color"
-      },
-      "muted-mist": {
-        "$value": "#DBE7F0",
-        "$type": "color"
-      },
-      "selection-veil": {
-        "$value": "#CEE5FC",
-        "$type": "color"
-      },
-      "console-border": {
-        "$value": "#C2DDF0",
-        "$type": "color"
-      },
-      "ink": {
-        "$value": "#001423",
-        "$type": "color"
-      },
-      "dim-ink": {
-        "$value": "#43474C",
-        "$type": "color"
-      },
-      "mute-ink": {
-        "$value": "#73777D",
-        "$type": "color"
-      },
-      "signal-success": {
-        "$value": "#1F8A4C",
-        "$type": "color"
-      },
-      "signal-warning": {
-        "$value": "#C68A00",
-        "$type": "color"
-      },
-      "signal-danger": {
-        "$value": "#BA1A1A",
-        "$type": "color"
-      },
-      "pill-success-bg": {
-        "$value": "#EAF6EE",
-        "$type": "color"
-      },
-      "pill-warning-bg": {
-        "$value": "#FBF3DC",
-        "$type": "color"
-      },
-      "pill-danger-bg": {
-        "$value": "#FBE9E9",
-        "$type": "color"
-      }
-    },
     "space": {
       "xs": {
         "$value": "4px",
@@ -235,28 +157,137 @@
         "$value": "120ms linear",
         "$type": "transition"
       }
+    },
+    "palette": {
+      "sovereign-deep-blue": {
+        "$value": "#12293A",
+        "$type": "color"
+      },
+      "tricolor-blue": {
+        "$value": "#174082",
+        "$type": "color"
+      },
+      "console-sky": {
+        "$value": "#006EB1",
+        "$type": "color"
+      },
+      "tricolor-red": {
+        "$value": "#C80A26",
+        "$type": "color"
+      },
+      "cold-mist": {
+        "$value": "#F0F7FC",
+        "$type": "color"
+      },
+      "instrument-white": {
+        "$value": "#FCFDFE",
+        "$type": "color"
+      },
+      "hover-mist": {
+        "$value": "#E6F3FA",
+        "$type": "color"
+      },
+      "muted-mist": {
+        "$value": "#DBE7F0",
+        "$type": "color"
+      },
+      "selection-veil": {
+        "$value": "#CEE5FC",
+        "$type": "color"
+      },
+      "console-border": {
+        "$value": "#C2DDF0",
+        "$type": "color"
+      },
+      "ink": {
+        "$value": "#001423",
+        "$type": "color"
+      },
+      "dim-ink": {
+        "$value": "#43474C",
+        "$type": "color"
+      },
+      "mute-ink": {
+        "$value": "#73777D",
+        "$type": "color"
+      },
+      "signal-success": {
+        "$value": "#1F8A4C",
+        "$type": "color"
+      },
+      "signal-warning": {
+        "$value": "#C68A00",
+        "$type": "color"
+      },
+      "signal-danger": {
+        "$value": "#BA1A1A",
+        "$type": "color"
+      },
+      "pill-success-bg": {
+        "$value": "#EAF6EE",
+        "$type": "color"
+      },
+      "pill-warning-bg": {
+        "$value": "#FBF3DC",
+        "$type": "color"
+      },
+      "pill-danger-bg": {
+        "$value": "#FBE9E9",
+        "$type": "color"
+      }
+    },
+    "inverse": {
+      "hover": {
+        "$value": "rgba(255, 255, 255, 0.06)"
+      },
+      "hover-strong": {
+        "$value": "rgba(255, 255, 255, 0.1)"
+      },
+      "divider": {
+        "$value": "rgba(255, 255, 255, 0.12)"
+      },
+      "line": {
+        "$value": "rgba(255, 255, 255, 0.2)"
+      },
+      "border": {
+        "$value": "rgba(255, 255, 255, 0.35)"
+      },
+      "rule": {
+        "$value": "rgba(255, 255, 255, 0.4)"
+      },
+      "selected": {
+        "$value": "rgba(0, 110, 177, 0.18)"
+      }
+    },
+    "brand": {
+      "primary": {
+        "$value": "{palette.tricolor-blue}"
+      },
+      "accent": {
+        "$value": "{palette.tricolor-red}"
+      }
     }
   },
   "modes": {
     "light": {
       "surface": {
         "app": {
-          "$value": "{color.cold-mist}"
+          "$value": "{palette.cold-mist}"
         },
         "default": {
-          "$value": "{color.instrument-white}"
+          "$value": "{palette.instrument-white}"
         },
         "hover": {
-          "$value": "{color.hover-mist}"
+          "$value": "{palette.hover-mist}"
         },
         "muted": {
-          "$value": "{color.muted-mist}"
+          "$value": "{palette.muted-mist}"
         },
         "selected": {
-          "$value": "{color.selection-veil}"
+          "$value": "{palette.selection-veil}"
         },
         "inverse": {
-          "$value": "{color.sovereign-deep-blue}"
+          "$value": "{palette.sovereign-deep-blue}"
         },
         "scrim": {
           "$value": "rgba(0, 20, 35, 0.55)"
@@ -264,10 +295,10 @@
       },
       "text": {
         "default": {
-          "$value": "{color.ink}"
+          "$value": "{palette.ink}"
         },
         "secondary": {
-          "$value": "{color.dim-ink}"
+          "$value": "{palette.dim-ink}"
         },
         "mute": {
           "$value": "#505358"
@@ -276,10 +307,10 @@
           "$value": "#505358"
         },
         "on-inverse": {
-          "$value": "{color.instrument-white}"
+          "$value": "{palette.instrument-white}"
         },
         "on-action": {
-          "$value": "{color.instrument-white}"
+          "$value": "{palette.instrument-white}"
         },
         "link": {
           "$value": "#005E96"
@@ -288,41 +319,41 @@
           "$value": "#005E96"
         },
         "heading": {
-          "$value": "{color.sovereign-deep-blue}"
+          "$value": "{palette.sovereign-deep-blue}"
         }
       },
       "border": {
         "default": {
-          "$value": "{color.console-border}"
+          "$value": "{palette.console-border}"
         },
         "strong": {
-          "$value": "{color.sovereign-deep-blue}"
+          "$value": "{palette.sovereign-deep-blue}"
         },
         "focus": {
-          "$value": "{color.console-sky}"
+          "$value": "{palette.console-sky}"
         },
         "danger": {
-          "$value": "{color.signal-danger}"
+          "$value": "{palette.signal-danger}"
         },
         "control": {
-          "$value": "{color.mute-ink}"
+          "$value": "{palette.mute-ink}"
         }
       },
       "action": {
         "primary": {
           "bg": {
-            "$value": "{color.console-sky}"
+            "$value": "{palette.console-sky}"
           },
           "fg": {
-            "$value": "{color.instrument-white}"
+            "$value": "{palette.instrument-white}"
           }
         },
         "deep": {
           "bg": {
-            "$value": "{color.sovereign-deep-blue}"
+            "$value": "{palette.sovereign-deep-blue}"
           },
           "fg": {
-            "$value": "{color.instrument-white}"
+            "$value": "{palette.instrument-white}"
           }
         },
         "ghost": {
@@ -330,10 +361,10 @@
             "$value": "transparent"
           },
           "fg": {
-            "$value": "{color.sovereign-deep-blue}"
+            "$value": "{palette.sovereign-deep-blue}"
           },
           "border": {
-            "$value": "{color.sovereign-deep-blue}"
+            "$value": "{palette.sovereign-deep-blue}"
           }
         },
         "danger": {
@@ -341,17 +372,17 @@
             "$value": "transparent"
           },
           "fg": {
-            "$value": "{color.signal-danger}"
+            "$value": "{palette.signal-danger}"
           },
           "border": {
-            "$value": "{color.signal-danger}"
+            "$value": "{palette.signal-danger}"
           }
         }
       },
       "state": {
         "success": {
           "bg": {
-            "$value": "{color.pill-success-bg}"
+            "$value": "{palette.pill-success-bg}"
           },
           "fg": {
             "$value": "#166337"
@@ -360,12 +391,12 @@
             "$value": "#166337"
           },
           "border": {
-            "$value": "{color.signal-success}"
+            "$value": "{palette.signal-success}"
           }
         },
         "warning": {
           "bg": {
-            "$value": "{color.pill-warning-bg}"
+            "$value": "{palette.pill-warning-bg}"
           },
           "fg": {
             "$value": "#6D4C00"
@@ -374,12 +405,12 @@
             "$value": "#6D4C00"
           },
           "border": {
-            "$value": "{color.signal-warning}"
+            "$value": "{palette.signal-warning}"
           }
         },
         "danger": {
           "bg": {
-            "$value": "{color.pill-danger-bg}"
+            "$value": "{palette.pill-danger-bg}"
           },
           "fg": {
             "$value": "#9E1616"
@@ -388,12 +419,12 @@
             "$value": "#9E1616"
           },
           "border": {
-            "$value": "{color.signal-danger}"
+            "$value": "{palette.signal-danger}"
           }
         },
         "info": {
           "bg": {
-            "$value": "{color.hover-mist}"
+            "$value": "{palette.hover-mist}"
           },
           "fg": {
             "$value": "#005E96"
@@ -402,30 +433,41 @@
             "$value": "#005E96"
           },
           "border": {
-            "$value": "{color.console-sky}"
+            "$value": "{palette.console-sky}"
           }
         },
         "neutral": {
           "bg": {
-            "$value": "{color.instrument-white}"
+            "$value": "{palette.instrument-white}"
           },
           "fg": {
-            "$value": "{color.dim-ink}"
+            "$value": "{palette.dim-ink}"
           },
           "fg-aa": {
-            "$value": "{color.dim-ink}"
+            "$value": "{palette.dim-ink}"
           },
           "border": {
-            "$value": "{color.sovereign-deep-blue}"
+            "$value": "{palette.sovereign-deep-blue}"
           }
         }
       },
       "focus": {
         "ring": {
-          "$value": "{color.console-sky}"
+          "$value": "{palette.console-sky}"
         },
         "ring-on-inverse": {
-          "$value": "{color.instrument-white}"
+          "$value": "{palette.instrument-white}"
+        }
+      },
+      "inverse": {
+        "text-secondary": {
+          "$value": "#C2C8CD"
+        },
+        "text-nav": {
+          "$value": "#B6BDC3"
+        },
+        "text-mute": {
+          "$value": "#AAB3B9"
         }
       }
     },
@@ -619,57 +661,15 @@
           "$value": "#F0F7FC"
         }
       },
-      "color": {
-        "instrument-white": {
-          "$value": "{surface.default}"
+      "inverse": {
+        "text-secondary": {
+          "$value": "#B6BEC4"
         },
-        "cold-mist": {
-          "$value": "{surface.app}"
+        "text-nav": {
+          "$value": "#AAB2B9"
         },
-        "hover-mist": {
-          "$value": "{surface.hover}"
-        },
-        "muted-mist": {
-          "$value": "{surface.muted}"
-        },
-        "selection-veil": {
-          "$value": "{surface.selected}"
-        },
-        "console-border": {
-          "$value": "{border.default}"
-        },
-        "mute-ink": {
-          "$value": "{border.control}"
-        },
-        "ink": {
-          "$value": "{text.default}"
-        },
-        "dim-ink": {
-          "$value": "{text.secondary}"
-        },
-        "sovereign-deep-blue": {
-          "$value": "{text.heading}"
-        },
-        "console-sky": {
-          "$value": "{border.focus}"
-        },
-        "signal-success": {
-          "$value": "{state.success.fg}"
-        },
-        "signal-warning": {
-          "$value": "{state.warning.fg}"
-        },
-        "signal-danger": {
-          "$value": "{state.danger.fg}"
-        },
-        "pill-success-bg": {
-          "$value": "{state.success.bg}"
-        },
-        "pill-warning-bg": {
-          "$value": "{state.warning.bg}"
-        },
-        "pill-danger-bg": {
-          "$value": "{state.danger.bg}"
+        "text-mute": {
+          "$value": "#9EA7AE"
         }
       }
     }

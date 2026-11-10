@@ -41,15 +41,21 @@ const engineDark = computed(new Map([...block(engine, ':root[data-theme="hemeria
 
 describe('thème Hemeria généré par @nuance/theming', () => {
   for (const [mode, before, after] of [['clair', legacyLight, engineLight], ['sombre', legacyDark, engineDark]] as const) {
-    it(`mode ${mode} : chaque variable de l’ancien CSS a la même valeur calculée`, () => {
+    it(`mode ${mode} : chaque variable de l’ancien CSS (hors primitives --ath-color-*, retirées en T-0130) a la même valeur calculée`, () => {
       expect(before.size).toBeGreaterThan(100);
-      const differences = [...before].filter(([name, value]) => after.get(name) !== value).map(([name, value]) => `${name} : ${value} → ${after.get(name) ?? 'absente'}`);
+      const differences = [...before].filter(([name]) => !name.startsWith('--ath-color-')).filter(([name, value]) => after.get(name) !== value).map(([name, value]) => `${name} : ${value} → ${after.get(name) ?? 'absente'}`);
       expect(differences).toEqual([]);
     });
   }
 
-  it('n’ajoute aucune variable inconnue de l’ancien CSS', () => {
-    expect([...engineLight.keys()].filter((name) => !legacyLight.has(name))).toEqual([]);
+  it('n’ajoute que les primitives du thème (palette), la surface inverse et la marque', () => {
+    expect([...engineLight.keys()].filter((name) => !legacyLight.has(name) && !/^--ath-(palette|inverse|brand)-/.test(name))).toEqual([]);
+  });
+
+  it('styles.css ne lit aucune primitive et n’écrit aucune couleur littérale (T-0130)', () => {
+    const styles = read('styles.css');
+    expect(styles.match(/--ath-(color|palette)-[a-z-]+/g) ?? []).toEqual([]);
+    expect(styles.match(/rgba?\(|color-mix\(|#[0-9a-fA-F]{3,8}\b/g) ?? []).toEqual([]);
   });
 
   it('Hemeria s’applique sans attribut ; le sombre suit le système sauf mode imposé', () => {

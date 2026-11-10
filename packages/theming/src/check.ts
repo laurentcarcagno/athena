@@ -1,4 +1,4 @@
-import { contrast } from './color.js';
+import { composite, contrast, parseColor } from './color.js';
 import { registryOf, resolveTheme, ThemingError, type Theme, type TokenValue } from './tokens.js';
 
 /**
@@ -9,7 +9,8 @@ export interface Contract {
   modes: string[];
   defaultMode: string;
   required: string[];
-  contrast: Array<{ fg: string; bg: string; min: number; label?: string }>;
+  /** `over` : surface opaque sous un fond translucide (le fond y est composé avant le calcul). */
+  contrast: Array<{ fg: string; bg: string; over?: string; min: number; label?: string }>;
 }
 
 export interface Issue {
@@ -45,9 +46,11 @@ export function check(themes: readonly Theme[], contract: Contract, only?: reado
       for (const pair of contract.contrast) {
         const fg = tokens.get(pair.fg);
         const bg = tokens.get(pair.bg);
-        if (fg === undefined || bg === undefined) continue; // déjà signalé si obligatoire
+        const under = pair.over === undefined ? undefined : tokens.get(pair.over);
+        if (fg === undefined || bg === undefined || (pair.over !== undefined && under === undefined)) continue; // déjà signalé si obligatoire
         try {
-          const ratio = contrast(String(fg), String(bg));
+          const ground = under === undefined ? String(bg) : rgb(composite(parseColor(String(bg)), parseColor(String(under))));
+          const ratio = contrast(String(fg), ground);
           if (ratio < pair.min) {
             issues.push({ theme: theme.name, mode, kind: 'contrast', message: `${pair.label ?? `${pair.fg} sur ${pair.bg}`} : ${ratio.toFixed(2)}:1, seuil ${pair.min}:1 (${fg} sur ${bg})` });
           }
@@ -60,6 +63,8 @@ export function check(themes: readonly Theme[], contract: Contract, only?: reado
   }
   return issues;
 }
+
+const rgb = ({ r, g, b }: { r: number; g: number; b: number }): string => `rgb(${r}, ${g}, ${b})`;
 
 export const formatIssues = (issues: readonly Issue[]): string =>
   issues.map((i) => `${i.theme}${i.mode ? ` (${i.mode})` : ''} : ${i.message}`).join('\n');

@@ -20,11 +20,21 @@ const RULES = [
   { re: /backdrop-filter\s*:/i, msg: 'backdrop-filter interdit' },
 ];
 
+// Feuilles de style (ADR-0004) : un composant ne lit jamais une primitive de thème et n'écrit aucune couleur ; tout passe par les jetons.
+const CSS_RULES = [
+  { re: /--ath-(color|palette)-[a-z]/, msg: 'primitive de thème lue par un composant (jeton sémantique ou de composant attendu)' },
+  { re: /\brgba?\(|\bhsla?\(|color-mix\(/i, msg: 'couleur calculée en dur (jeton attendu)' },
+  { re: /#[0-9A-Fa-f]{3,8}\b/, msg: 'couleur hexadécimale en dur (jeton attendu)' },
+];
+
 export function lintSource(text, file = '<source>') {
   const problems = [];
+  const css = file.endsWith('.css');
   text.split('\n').forEach((line, i) => {
     if (/design-lint-ignore/.test(line)) return;
     for (const { re, msg } of RULES) if (re.test(line)) problems.push(`${file}:${i + 1}: ${msg}`);
+    const code = line.replace(/\/\*.*?\*\//g, '');
+    if (css) for (const { re, msg } of CSS_RULES) if (re.test(code)) problems.push(`${file}:${i + 1}: ${msg}`);
     for (const m of line.matchAll(/#[0-9A-Fa-f]{6}\b/g)) {
       if (!palette.has(m[0].toLowerCase())) problems.push(`${file}:${i + 1}: couleur hors palette ${m[0]}`);
     }

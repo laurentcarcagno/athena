@@ -34,7 +34,8 @@ Dernière mise à jour : 2026-11-10
   T-0128 faite (runtime `createThemeController`, `storagePersistence`, liaisons `@nuance/theming/react` ; `apps/web/src/lib/theme.ts` sur le contrôleur, même API ; 17 tests ; visuel 96/96).
   `gabarits.spec.ts` : pas de défaut ; lancé seul il dépend de GitLab démarré et d'un type de lien déjà créé (voir `T-0128/CONTEXT.md`).
   T-0129 faite (`packages/themes`, `@nuance/themes` : Hemeria en DTCG, contrat de 112 jetons et 27 paires de contraste ; `@athena/ui/tokens.css` généré par le moteur, valeurs identiques à l'ancien CSS (test) ; Athena sur `data-theme="hemeria"` + `data-mode` ; visuel 96/96). Corrigé en passant : les préférences du compte n'écrasent plus un réglage changé pendant leur chargement.
-- **Tâche en cours** : T-0130 (`styles.css` sans primitives, partie 1 : couleurs). Écarts du lot 9 : 1 comblé (`GET /v1/me/approvals`), 2 accepté, 3 comblé (préférences sur le compte, migration 052), 4 reporté (accepté le 2026-11-10). **Le manuel utilisateur (Word, captures) est mis à jour à la toute fin du projet** (décision du 2026-11-10).
+  T-0130 faite (`styles.css` sans primitive ni couleur littérale, jetons `inverse.*` et `brand.*`, lint étendu ; bouton « + » des colonnes du Board rendu visible ; visuel 96/96).
+- **Tâche en cours** : T-0131 (typographie, espacements, tailles, z-index, mouvement en jetons). Écarts du lot 9 : 1 comblé (`GET /v1/me/approvals`), 2 accepté, 3 comblé (préférences sur le compte, migration 052), 4 reporté (accepté le 2026-11-10). **Le manuel utilisateur (Word, captures) est mis à jour à la toute fin du projet** (décision du 2026-11-10).
 - **Historique** : réécrit le 2026-11-10 à la demande de l'utilisateur (lot 8 en `@gmail.com`) ; sauvegarde `backup/avant-reecriture-email`, à supprimer quand l'utilisateur le décide.
 - **Reste à faire** (par priorité) :
   1. Test d'intrusion externe (à commander) ; déploiement de recette sur Kubernetes et mesures de charge concurrente.
