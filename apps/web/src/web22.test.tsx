@@ -1,12 +1,12 @@
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import axe from 'axe-core';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { MemoryRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { ToastProvider } from '@athena/ui';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Session } from './api';
 import { ApprovalsPanel } from './components/ApprovalsPanel';
-import { ProjectManagePage } from './pages/ProjectManagePage';
+import { SettingsPage } from './pages/SettingsPage';
 
 const sent: Array<{ method: string; url: string; body: unknown }> = [];
 const items = [
@@ -68,23 +68,23 @@ describe('approbation des jalons et baselines', () => {
     expect(sent[1]!.body).toEqual({ decision: 'rejected', comment: '' });
   });
 
-  it('page Planification : le rôle assurance qualité ne voit que les approbations, un simple utilisateur est refusé', async () => {
+  it('Paramètres : le rôle assurance qualité ne voit que les approbations, un simple utilisateur est refusé', async () => {
     const as = (roles: string[]): Session => ({ authenticated: true, user: { username: 'q', name: 'Q', email: null, roles, groups: [] } });
-    const page = (s: Session) => wrap(<Routes><Route path="/" element={<ProjectManagePage session={s} />} /></Routes>);
+    const page = (s: Session) => wrap(<Routes><Route path="/" element={<Navigate to="/p/ARI/parametres" />} /><Route path="/p/:project/parametres" element={<SettingsPage session={s} />} /><Route path="/p/:project/parametres/:section" element={<SettingsPage session={s} />} /></Routes>);
     const qa = page(as(['athena-qa']));
     expect(await screen.findByText('Rôle assurance qualité étatique : lecture seule, avec approbation des jalons et des baselines.')).toBeInTheDocument();
     expect(await screen.findByRole('button', { name: 'Approuver CDR' })).toBeInTheDocument();
-    expect(screen.queryByRole('tab', { name: 'Sprints' })).toBeNull();
+    expect(screen.getAllByRole('link').map((l) => l.textContent)).toEqual(['Approbations']);
     expect((await axe.run(qa.container, { rules: { 'color-contrast': { enabled: false } } })).violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.html.slice(0, 80)).join(' | ')}`)).toEqual([]);
     qa.unmount();
     page(as(['athena-user']));
     expect(await screen.findByText(/Réservé|réservé/)).toBeInTheDocument();
   });
 
-  it('un responsable trouve l’onglet Approbations dans la planification', async () => {
+  it('un responsable trouve Approbations dans les Paramètres', async () => {
     const s: Session = { authenticated: true, user: { username: 'p', name: 'P', email: null, roles: ['athena-pm', 'athena-user'], groups: [] } };
-    wrap(<Routes><Route path="/" element={<ProjectManagePage session={s} />} /></Routes>);
-    await userEvent.click(await screen.findByRole('tab', { name: 'Approbations' }));
+    wrap(<Routes><Route path="/" element={<Navigate to="/p/ARI/parametres/approbations" />} /><Route path="/p/:project/parametres/:section" element={<SettingsPage session={s} />} /></Routes>);
+    expect(await screen.findByRole('link', { name: 'Approbations' })).toHaveAttribute('aria-current', 'page');
     expect(await screen.findByRole('button', { name: 'Ne plus exiger CDR' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Approuver CDR' })).toBeNull();
   });

@@ -114,7 +114,7 @@ export function ListPage({ session }: { session?: Session } = {}) {
   return (
     <>
       <PageHeader eyebrow={fr.list.eyebrow} title={String(project)} sub={result ? `${fr.list.total(result.total)}${result.totalCapped ? '+' : ''}` : undefined}
-        actions={<><Btn icon="plus" onClick={() => create({ scope: 'project', project: String(project) })}>{fr.list.create}</Btn>{session?.user?.roles.includes('athena-admin') && trackerKeys[0] && <Btn variant="ghost" onClick={() => navigate(`/p/${project}/trackers/${trackerKeys[0]}/config`)}>{fr.config.eyebrow}</Btn>}</>} />
+        actions={<><Btn icon="plus" onClick={() => create({ scope: 'project', project: String(project) })}>{fr.list.create}</Btn>{session?.user?.roles.includes('athena-admin') && trackerKeys[0] && <Btn variant="ghost" onClick={() => navigate(`/p/${project}/parametres/trackers/${trackerKeys[0]}`)}>{fr.config.eyebrow}</Btn>}</>} />
       {confirm.dialog}
       <form className="ath-toolbar" onSubmit={submit} role="search">
         <div className="ath-suggest">

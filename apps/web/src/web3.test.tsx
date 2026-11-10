@@ -58,15 +58,15 @@ describe('fenêtres par rôle', () => {
     expect(nav()).not.toContain('Administration');
   });
 
-  it('l’administrateur voit Organisation et Administration', () => {
+  it('l’administrateur voit Organisation et les Paramètres du projet', () => {
     routes.push(['GET', /\/v1\/projects$/, []]);
     app('/p/ARI', ['athena-user', 'athena-admin']);
-    expect(nav()).toEqual(expect.arrayContaining(['Organisation', 'Administration']));
+    expect(nav()).toEqual(expect.arrayContaining(['Organisation', 'Paramètres']));
   });
 
   it('refuse la gestion de projet à un simple utilisateur', () => {
     app('/p/ARI/manage', ['athena-user']);
-    expect(screen.getByText('Réservé aux chefs de projet et aux administrateurs.')).toBeInTheDocument();
+    expect(screen.getByText(/Réservé aux administrateurs, aux chefs de projet/)).toBeInTheDocument(); // T-0120 : /manage mène aux Paramètres
   });
 
   it('refuse l’administration de l’organisation à un chef de projet', () => {

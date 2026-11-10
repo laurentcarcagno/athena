@@ -8,6 +8,7 @@ import { useConfirm } from '../components/ConfirmDialog';
 import { LinkTypesTab } from '../components/LinkTypesTab';
 import { TrackerTypesTab } from '../components/TrackerTypesTab';
 import { useBusy, useFailure } from '../hooks';
+import { WebhooksTab } from './SettingsPanels';
 import { fr } from '../i18n';
 
 export interface UserEntry { subject: string; username: string; displayName: string; email: string | null }
@@ -384,13 +385,14 @@ export function OrgAdminPage({ session }: { session: Session }) {
   return (
     <>
       <PageHeader eyebrow={fr.org.eyebrow} title={fr.org.title} />
-      <Tabs tabs={[{ id: 'projects', label: fr.org.projects }, { id: 'templates', label: fr.org.templates }, { id: 'types', label: fr.org.trackerTypes }, { id: 'linktypes', label: fr.org.linkTypes }, { id: 'users', label: fr.org.users }, { id: 'plugins', label: fr.org.plugins }]} active={tab} onChange={setTab} />
+      <Tabs tabs={[{ id: 'projects', label: fr.org.projects }, { id: 'templates', label: fr.org.templates }, { id: 'types', label: fr.org.trackerTypes }, { id: 'linktypes', label: fr.org.linkTypes }, { id: 'users', label: fr.org.users }, { id: 'webhooks', label: fr.admin.webhooks }, { id: 'plugins', label: fr.org.plugins }]} active={tab} onChange={setTab} />
       <div role="tabpanel" className="ath-stack">
         {tab === 'projects' && <ProjectsTab users={users} templates={templates} />}
         {tab === 'templates' && <TemplatesTab templates={templates} trackerTemplates={trackerTemplates} reload={loadTemplates} reloadTrackerTemplates={loadTrackerTemplates} />}
         {tab === 'types' && <TrackerTypesTab />}
         {tab === 'linktypes' && <LinkTypesTab />}
         {tab === 'users' && <UsersTab users={users} />}
+        {tab === 'webhooks' && <WebhooksTab />}
         {tab === 'plugins' && <PluginsTab />}
       </div>
     </>

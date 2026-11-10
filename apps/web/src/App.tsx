@@ -13,7 +13,6 @@ import { ThemeToggle } from './components/ThemeToggle';
 import { useRailSections, useRecordVisits } from './components/Rail';
 import { PinsProvider } from './lib/pins';
 import { fr, getLocale, setLocale, useLocale } from './i18n';
-import { AdminPage } from './pages/AdminPage';
 import { ArtifactPage } from './pages/ArtifactPage';
 import { BoardIndexPage, BoardPage } from './pages/BoardPage';
 import { BacklogPage } from './pages/BacklogPage';
@@ -23,7 +22,7 @@ import { ListPage } from './pages/ListPage';
 import { MyWorkPage } from './pages/MyWorkPage';
 import { HelpPage } from './pages/HelpPage';
 import { OrgAdminPage } from './pages/OrgAdminPage';
-import { ProjectManagePage } from './pages/ProjectManagePage';
+import { SettingsPage } from './pages/SettingsPage';
 import { ProjectsPage } from './pages/ProjectsPage';
 import { OverviewOrLegacySearch, ProjectLayout, ProjectSectionFrame } from './pages/project/ProjectShell';
 import { OverviewTab } from './pages/project/OverviewTab';
@@ -34,8 +33,6 @@ import { TraceabilityTab } from './pages/project/TraceabilityTab';
 import { ActivityTab } from './pages/project/ActivityTab';
 import { CodeTab } from './pages/project/CodeTab';
 import { TrackerScreen } from './pages/tracker/TrackerScreen';
-import { MembersTab } from './pages/project/MembersTab';
-import { TrackerConfigPage } from './pages/TrackerConfigPage';
 import { TrackerCreatePage } from './pages/TrackerCreatePage';
 
 /** Projet courant déduit de l'adresse (`/p/<clé>/…`). */
@@ -141,6 +138,12 @@ function RedirectTo({ to }: { to: string }) {
   return <Navigate replace to={to === '' ? `/p/${project}` : `/p/${project}/${to}`} />;
 }
 
+/** Ancienne configuration de tracker (T-0120) : Paramètres › Trackers › le tracker. */
+function RedirectToTrackerSettings() {
+  const { project, tracker } = useParams();
+  return <Navigate replace to={`/p/${project}/parametres/trackers/${tracker}`} />;
+}
+
 /** `/p/:projet/t/:tracker` sans vue : la vue Tableau. */
 function RedirectToView() {
   const { project, tracker } = useParams();
@@ -162,28 +165,32 @@ export function AuthenticatedApp({ session }: { session: Session }) {
           <Route element={<ProjectSectionFrame />}>
             <Route index element={<OverviewOrLegacySearch><OverviewTab session={session} /></OverviewOrLegacySearch>} />
             <Route path="trackers" element={<TrackersTab />} />
-            <Route path="planification" element={<ProjectManagePage session={session} />} />
             <Route path="tracabilite" element={<TraceabilityTab session={session} />} />
             <Route path="conformite" element={<ConformityTab session={session} />} />
             <Route path="documents" element={<DocumentsTab />} />
             <Route path="documents/:doc" element={<DocumentsTab />} />
             <Route path="code" element={<CodeTab />} />
             <Route path="activite" element={<ActivityTab />} />
-            <Route path="membres" element={<MembersTab session={session} />} />
           </Route>
           <Route path="t/:tracker" element={<RedirectToView />} />
           <Route path="t/:tracker/:vue" element={<TrackerScreen session={session} />} />
           <Route path="recherche" element={<ListPage session={session} />} />
-          <Route path="manage" element={<RedirectTo to="planification" />} />
+          {/* T-0120 : anciennes adresses de réglage, redirigées pour toujours vers Paramètres. */}
+          <Route path="manage" element={<RedirectTo to="parametres" />} />
+          <Route path="planification" element={<RedirectTo to="parametres" />} />
+          <Route path="membres" element={<RedirectTo to="parametres/membres" />} />
+          <Route path="admin" element={<RedirectTo to="parametres/automatisations" />} />
+          <Route path="trackers/:tracker/config" element={<RedirectToTrackerSettings />} />
+          <Route path="parametres" element={<SettingsPage session={session} />} />
+          <Route path="parametres/:section" element={<SettingsPage session={session} />} />
+          <Route path="parametres/:section/:tracker" element={<SettingsPage session={session} />} />
           <Route path="dashboard" element={<RedirectTo to="" />} />
-          <Route path="admin" element={<AdminPage session={session} />} />
           <Route path="a/:key" element={<ArtifactPage session={session} />} />
           <Route path="backlog" element={<BacklogPage session={session} />} />
           <Route path="roadmap" element={<RoadmapPage session={session} />} />
           <Route path="board" element={<BoardIndexPage />} />
           <Route path="board/:board" element={<BoardPage session={session} />} />
           <Route path="trackers/new" element={<TrackerCreatePage session={session} />} />
-          <Route path="trackers/:tracker/config" element={<TrackerConfigPage session={session} />} />
           <Route path="*" element={<NotFound />} />
         </Route>
         <Route path="*" element={<NotFound />} />

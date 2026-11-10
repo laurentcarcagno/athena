@@ -134,7 +134,8 @@ test('administrateur : crée un projet, nomme un chef de projet et gère les act
   await expect(page.getByRole('row', { name: /Qualité/ })).toBeVisible();
   expect(await axeViolations(page)).toEqual([]);
   await page.goto('/p/PAY/membres');
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('Membres · PAY');
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Paramètres · Membres'); // T-0120 : /membres redirigé
+  await expect(page).toHaveURL(/\/p\/PAY\/parametres\/membres$/);
   expect(await axeViolations(page)).toEqual([]);
 });
 

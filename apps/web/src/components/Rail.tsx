@@ -24,7 +24,7 @@ export function useRecordVisits(pathname: string): void {
 }
 
 /** Libellé d'une section de projet dans le rail. */
-const sectionLabel = (id: ProjectSectionId): string => (id === 'search' ? fr.nav.search : id === 'admin' ? fr.nav.admin : fr.project.tabs[id]);
+const sectionLabel = (id: ProjectSectionId): string => (id === 'search' ? fr.nav.search : fr.project.tabs[id]);
 
 /**
  * Rubriques du rail : favoris et récents, entrées globales, puis le projet courant : ses sections (ADR-0003), avec sous

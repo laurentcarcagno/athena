@@ -7,7 +7,8 @@ import type { Session } from './api';
 import { CommandPalette } from './components/CommandPalette';
 import { CreateArtifact, coerce } from './components/CreateArtifact';
 import { fr, getLocale, setLocale } from './i18n';
-import { AdminPage } from './pages/AdminPage';
+import { SettingsPage } from './pages/SettingsPage';
+import { WebhooksTab } from './pages/SettingsPanels';
 import { ArtifactPage } from './pages/ArtifactPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { TrackerConfigPage } from './pages/TrackerConfigPage';
@@ -143,34 +144,31 @@ describe('éditeur de tracker', () => {
   });
 });
 
-describe('administration', () => {
-  it('crée un webhook et n’affiche le secret qu’une fois', async () => {
+describe('administration et paramètres', () => {
+  it('crée un webhook (Administration de l’organisation) et n’affiche le secret qu’une fois', async () => {
     handlers = [
       on('GET', '/v1/webhooks', { body: [] }),
       on('POST', '/v1/webhooks', { status: 201, body: { secret: 'whsec_abc123', endpoint: { id: '1' } } }),
     ];
-    wrap('/p/ARI/admin', <AdminPage session={admin} />, '/p/:project/admin');
+    wrap('/org', <WebhooksTab />, '/org');
     await userEvent.type(await screen.findByLabelText('URL HTTPS'), 'https://exemple.org/hook');
     await userEvent.click(screen.getByRole('button', { name: 'Créer' }));
     expect(await screen.findByText('whsec_abc123')).toHaveClass('ath-mono');
     expect(calls.find((c) => c.method === 'POST')!.body).toEqual({ url: 'https://exemple.org/hook', eventTypes: ['artifact.*'] });
   });
-  it('active et désactive une automatisation, liste plugins et baselines', async () => {
+  it('Paramètres : active et désactive une automatisation, liste les baselines', async () => {
     handlers = [
       on('GET', '/v1/projects/ARI/automations', { body: [{ id: 'r1', name: 'Escalade', enabled: true, trigger: 'artifact.created', condition: 'severity = bloquante' }] }),
       on('POST', '/v1/automations/r1/disable', { status: 204 }),
-      on('GET', '/v1/plugins', { body: [{ id: 'com.acme.x', name: 'Couleurs', version: '1.0.0', enabled: true, permissions: ['storage'] }] }),
-      on('GET', '/v1/projects/ARI/baselines', { body: [{ name: 'v1.0', gitSha: 'abcdef1234567890', createdAt: '2026-10-31T10:00:00.000Z' }] }),
+      on('GET', '/v1/projects/ARI/baselines', { body: [{ name: 'v1.0', gitSha: 'abcdef1234567890', docShas: {}, createdAt: '2026-10-31T10:00:00.000Z' }] }),
     ];
-    wrap('/p/ARI/admin', <AdminPage session={admin} />, '/p/:project/admin');
-    await userEvent.click(await screen.findByRole('tab', { name: 'Automatisations' }));
+    wrap('/p/ARI/parametres/automatisations', <SettingsPage session={admin} />, '/p/:project/parametres/:section');
     expect(await screen.findByText('severity = bloquante')).toHaveClass('ath-mono');
     await userEvent.click(screen.getByRole('button', { name: 'Désactiver' }));
     await waitFor(() => expect(calls.some((c) => c.url === '/v1/automations/r1/disable')).toBe(true));
-    await userEvent.click(screen.getByRole('tab', { name: 'Plugins' }));
-    expect(await screen.findByText('com.acme.x')).toBeInTheDocument();
-    await userEvent.click(screen.getByRole('tab', { name: 'Baselines' }));
-    expect(await screen.findByText('abcdef12')).toHaveClass('ath-mono');
+    await userEvent.click(screen.getByRole('link', { name: 'Baselines' }));
+    expect(await screen.findByText('v1.0')).toBeInTheDocument();
+    expect(screen.getByLabelText('Nom de la baseline')).toBeInTheDocument();
   });
 });
 

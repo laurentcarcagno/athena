@@ -1,5 +1,7 @@
-import { ApprovalsPanel } from '../components/ApprovalsPanel';
-import { BaselineCompare } from '../components/BaselineCompare';
+/**
+ * Panneaux de gestion de projet réutilisés par Paramètres (T-0120) : acteurs du projet et boards. Les sprints et les versions
+ * se planifient dans Backlog et Roadmap.
+ */
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { useParams } from 'react-router-dom';
 import { Btn, Card, EmptyState, Field, PageHeader, StatusPill, Table, Tabs, Td, Th, useToast } from '@athena/ui';
@@ -8,8 +10,6 @@ import { useFailure } from '../hooks';
 import { fr } from '../i18n';
 import type { MemberEntry, UserEntry } from './OrgAdminPage';
 
-interface Sprint { id: string; name: string; goal: string; state: string; startsOn: string | null; endsOn: string | null }
-interface Release { id: string; name: string; state: string; startsOn: string; endsOn: string; items: number; doneItems: number }
 
 /** Colonnes saisies une par ligne : « nom=statut1,statut2|limite ». */
 export function parseColumns(raw: string): Array<{ name: string; statuses: string[]; wipLimit?: number }> {
@@ -70,80 +70,7 @@ export function ActorsTab({ project }: { project: string }) {
   );
 }
 
-function SprintsTab({ project }: { project: string }) {
-  const toast = useToast();
-  const fail = useFailure();
-  const [items, setItems] = useState<Sprint[]>([]);
-  const [form, setForm] = useState({ name: '', goal: '', startsOn: '', endsOn: '' });
-  const load = useCallback(async () => setItems(await api<Sprint[]>('GET', `/v1/projects/${project}/sprints`)), [project]);
-  useEffect(() => { load().catch(fail); }, [load, fail]);
-  const create = async (event: FormEvent) => {
-    event.preventDefault();
-    try { await api('POST', `/v1/projects/${project}/sprints`, { name: form.name, startsOn: form.startsOn, endsOn: form.endsOn, ...(form.goal ? { goal: form.goal } : {}) }); toast('success', fr.manage.saved); setForm({ name: '', goal: '', startsOn: '', endsOn: '' }); await load(); } catch (e) { fail(e); }
-  };
-  const act = async (id: string, action: 'start' | 'close') => {
-    try { await api('POST', `/v1/projects/${project}/sprints/${id}/${action}`); toast('success', fr.manage.saved); await load(); } catch (e) { fail(e); }
-  };
-  return (
-    <div className="ath-stack">
-      {items.length === 0 ? <EmptyState eyebrow={fr.manage.sprints} title={fr.admin.empty} /> : (
-        <Table>
-          <thead><tr><Th>{fr.config.name}</Th><Th>{fr.manage.goal}</Th><Th>{fr.manage.starts}</Th><Th>{fr.manage.ends}</Th><Th>{fr.manage.state}</Th><Th>{fr.board.moveTo}</Th></tr></thead>
-          <tbody>{items.map((s) => (
-            <tr key={s.id}><Td>{s.name}</Td><Td>{s.goal || '—'}</Td><Td mono>{s.startsOn ?? '—'}</Td><Td mono>{s.endsOn ?? '—'}</Td>
-              <Td><StatusPill kind={s.state === 'closed' ? 'success' : s.state === 'active' ? 'warning' : 'info'}>{s.state}</StatusPill></Td>
-              <Td>{s.state === 'planned' && <Btn size="sm" variant="ghost" onClick={() => act(s.id, 'start')}>{fr.manage.start}</Btn>}
-                {s.state === 'active' && <Btn size="sm" variant="ghost" onClick={() => act(s.id, 'close')}>{fr.manage.close}</Btn>}</Td></tr>
-          ))}</tbody>
-        </Table>
-      )}
-      <form className="ath-toolbar" onSubmit={create}>
-        <Field label={fr.manage.sprintName} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-        <Field label={fr.manage.goal} value={form.goal} onChange={(e) => setForm({ ...form, goal: e.target.value })} />
-        <Field label={fr.manage.starts} type="date" value={form.startsOn} onChange={(e) => setForm({ ...form, startsOn: e.target.value })} mono />
-        <Field label={fr.manage.ends} type="date" value={form.endsOn} onChange={(e) => setForm({ ...form, endsOn: e.target.value })} mono />
-        <Btn type="submit" disabled={!form.name.trim() || !form.startsOn || !form.endsOn}>{fr.manage.createSprint}</Btn>
-      </form>
-    </div>
-  );
-}
-
-function ReleasesTab({ project }: { project: string }) {
-  const toast = useToast();
-  const fail = useFailure();
-  const [items, setItems] = useState<Release[]>([]);
-  const [form, setForm] = useState({ name: '', startsOn: '', endsOn: '' });
-  const load = useCallback(async () => setItems(await api<Release[]>('GET', `/v1/projects/${project}/roadmap`)), [project]);
-  useEffect(() => { load().catch(fail); }, [load, fail]);
-  const create = async (event: FormEvent) => {
-    event.preventDefault();
-    try { await api('POST', `/v1/projects/${project}/releases`, form); toast('success', fr.manage.saved); setForm({ name: '', startsOn: '', endsOn: '' }); await load(); } catch (e) { fail(e); }
-  };
-  const publish = async (id: string) => {
-    try { await api('POST', `/v1/projects/${project}/releases/${id}/publish`); toast('success', fr.manage.saved); await load(); } catch (e) { fail(e); }
-  };
-  return (
-    <div className="ath-stack">
-      {items.length === 0 ? <EmptyState eyebrow={fr.manage.releases} title={fr.dashboard.noRelease} /> : (
-        <Table>
-          <thead><tr><Th>{fr.config.name}</Th><Th>{fr.manage.starts}</Th><Th>{fr.manage.ends}</Th><Th>{fr.manage.state}</Th><Th>{fr.manage.publish}</Th></tr></thead>
-          <tbody>{items.map((r) => (
-            <tr key={r.id}><Td>{r.name}</Td><Td mono>{r.startsOn}</Td><Td mono>{r.endsOn}</Td><Td><StatusPill kind={r.state === 'released' ? 'success' : 'info'}>{r.state}</StatusPill></Td>
-              <Td>{r.state !== 'released' && <Btn size="sm" variant="ghost" onClick={() => publish(r.id)}>{fr.manage.publish}</Btn>}</Td></tr>
-          ))}</tbody>
-        </Table>
-      )}
-      <form className="ath-toolbar" onSubmit={create}>
-        <Field label={fr.manage.releaseName} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-        <Field label={fr.manage.starts} type="date" value={form.startsOn} onChange={(e) => setForm({ ...form, startsOn: e.target.value })} mono />
-        <Field label={fr.manage.ends} type="date" value={form.endsOn} onChange={(e) => setForm({ ...form, endsOn: e.target.value })} mono />
-        <Btn type="submit" disabled={!form.name.trim() || !form.startsOn || !form.endsOn}>{fr.manage.createRelease}</Btn>
-      </form>
-    </div>
-  );
-}
-
-function BoardsTab({ project }: { project: string }) {
+export function BoardsTab({ project }: { project: string }) {
   const toast = useToast();
   const fail = useFailure();
   const [boards, setBoards] = useState<Array<{ key: string; name: string }>>([]);
@@ -185,33 +112,5 @@ function BoardsTab({ project }: { project: string }) {
         <div><Btn type="submit" disabled={!form.key || !form.name.trim() || parseColumns(form.columns).length === 0}>{fr.manage.createBoard}</Btn></div>
       </form>
     </div>
-  );
-}
-
-/** Fenêtre du chef de projet : acteurs du projet, sprints, versions, boards. */
-export function ProjectManagePage({ session }: { session: Session }) {
-  const { project } = useParams();
-  const [tab, setTab] = useState('sprints');
-  const roles = session.user?.roles ?? [];
-  const manager = roles.includes('athena-admin') || roles.includes('athena-pm');
-  const qa = roles.includes('athena-qa');
-  if (!manager && qa) {
-    return <><PageHeader eyebrow={fr.manage.eyebrow} title={`${fr.manage.title} · ${project}`} /><p className="ath-eyebrow">{fr.approvals.qaOnly}</p><ApprovalsPanel project={project!} canRequire={false} canDecide /></>;
-  }
-  if (!manager) {
-    return <><PageHeader eyebrow={fr.manage.eyebrow} title={`${fr.manage.title} · ${project}`} /><p className="ath-field__error">{fr.manage.restricted}</p></>;
-  }
-  return (
-    <>
-      <PageHeader eyebrow={fr.manage.eyebrow} title={`${fr.manage.title} · ${project}`} />
-      <Tabs tabs={[{ id: 'sprints', label: fr.manage.sprints }, { id: 'releases', label: fr.manage.releases }, { id: 'boards', label: fr.manage.boards }, { id: 'approvals', label: fr.approvals.title }, { id: 'baselines', label: fr.baselineCompare.title }]} active={tab} onChange={setTab} />
-      <div role="tabpanel" className="ath-stack">
-        {tab === 'sprints' && <SprintsTab project={project!} />}
-        {tab === 'releases' && <ReleasesTab project={project!} />}
-        {tab === 'boards' && <BoardsTab project={project!} />}
-        {tab === 'approvals' && <ApprovalsPanel project={project!} canRequire canDecide={false} />}
-        {tab === 'baselines' && <BaselineCompare project={project!} />}
-      </div>
-    </>
   );
 }

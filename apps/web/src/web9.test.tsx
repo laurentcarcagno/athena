@@ -62,9 +62,9 @@ describe('navigation du projet au rail (ADR-0003)', () => {
   it('liste les sections dans l’ordre fixe, l’entrée courante signalée, sans barre d’onglets', async () => {
     app('/p/ARI', ADMIN);
     await screen.findByRole('heading', { level: 1, name: 'Vue d’ensemble · ARI' });
-    await waitFor(() => expect(sectionNames()).toEqual(['Vue d’ensemble', 'Backlog', 'Board', 'Trackers', 'Roadmap', 'Planification', 'Traçabilité', 'Documents', 'Code et intégration', 'Activité', 'Membres', 'Recherche', 'Administration']));
+    await waitFor(() => expect(sectionNames()).toEqual(['Vue d’ensemble', 'Backlog', 'Board', 'Trackers', 'Roadmap', 'Traçabilité', 'Documents', 'Code et intégration', 'Activité', 'Recherche', 'Paramètres']));
     expect(projectNav().getByRole('button', { name: 'Vue d’ensemble' })).toHaveAttribute('aria-current', 'page');
-    expect(projectNav().getByRole('button', { name: 'Planification' })).not.toHaveAttribute('aria-current');
+    expect(projectNav().getByRole('button', { name: 'Paramètres' })).not.toHaveAttribute('aria-current');
     expect(screen.queryByRole('navigation', { name: 'Projet ARI' })).not.toBeInTheDocument();
   });
 
@@ -80,14 +80,14 @@ describe('navigation du projet au rail (ADR-0003)', () => {
     modules = ['overview', 'trackers', 'activity'];
     app('/p/ARI', ADMIN);
     await screen.findByRole('heading', { level: 1, name: 'Vue d’ensemble · ARI' });
-    await waitFor(() => expect(sectionNames()).toEqual(['Vue d’ensemble', 'Backlog', 'Board', 'Trackers', 'Roadmap', 'Activité', 'Recherche', 'Administration']));
+    await waitFor(() => expect(sectionNames()).toEqual(['Vue d’ensemble', 'Backlog', 'Board', 'Trackers', 'Roadmap', 'Activité', 'Recherche', 'Paramètres']));
   });
 
   it('garde toutes les sections autorisées quand la liste des modules est indisponible', async () => {
     modules = 'error';
     app('/p/ARI', ADMIN);
     await screen.findByRole('heading', { level: 1, name: 'Vue d’ensemble · ARI' });
-    await waitFor(() => expect(sectionNames()).toEqual(['Vue d’ensemble', 'Backlog', 'Board', 'Trackers', 'Roadmap', 'Planification', 'Traçabilité', 'Conformité', 'Documents', 'Code et intégration', 'Activité', 'Membres', 'Recherche', 'Administration']));
+    await waitFor(() => expect(sectionNames()).toEqual(['Vue d’ensemble', 'Backlog', 'Board', 'Trackers', 'Roadmap', 'Traçabilité', 'Conformité', 'Documents', 'Code et intégration', 'Activité', 'Recherche', 'Paramètres']));
   });
 
   it('n’affiche aucune entrée menant à « Réservé » : ni Planification, ni Membres, ni Administration pour un simple membre', async () => {
@@ -98,9 +98,9 @@ describe('navigation du projet au rail (ADR-0003)', () => {
 
   it('reste affichée sur toutes les adresses du projet, l’entrée courante comprise', async () => {
     const cases: Array<[string, string]> = [
-      ['/p/ARI/recherche', 'Recherche'], ['/p/ARI/admin', 'Administration'], ['/p/ARI/board/EQ', 'Board'],
+      ['/p/ARI/recherche', 'Recherche'], ['/p/ARI/admin', 'Paramètres'], ['/p/ARI/parametres/boards', 'Paramètres'], ['/p/ARI/board/EQ', 'Board'],
       ['/p/ARI/t/BUG/tableau', 'BUG · Anomalies'], ['/p/ARI/a/ARI-BUG-0002', 'BUG · Anomalies'], ['/p/ARI/trackers/REQ/config', 'REQ · Exigences'],
-      ['/p/ARI/trackers/new', 'Trackers'], ['/p/ARI/membres', 'Membres'],
+      ['/p/ARI/trackers/new', 'Trackers'], ['/p/ARI/membres', 'Paramètres'], ['/p/ARI/parametres/trackers/BUG', 'BUG · Anomalies'],
     ];
     for (const [path, entry] of cases) {
       const view = app(path, ADMIN);
@@ -111,11 +111,11 @@ describe('navigation du projet au rail (ADR-0003)', () => {
 
   it('se parcourt au clavier et mène à la section', async () => {
     app('/p/ARI', ADMIN);
-    const entry = await screen.findByRole('button', { name: 'Planification' });
+    const entry = await screen.findByRole('button', { name: 'Paramètres' });
     entry.focus();
     expect(entry).toHaveFocus();
     await userEvent.keyboard('{Enter}');
-    expect(await screen.findByRole('heading', { level: 1, name: 'Planification · ARI' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { level: 1, name: 'Paramètres · Membres' })).toBeInTheDocument();
   });
 
   it('n’a aucune violation d’accessibilité', async () => {
@@ -138,11 +138,23 @@ describe('anciennes adresses', () => {
     await screen.findByRole('heading', { level: 1, name: 'ARI' });
     await waitFor(() => expect(calls.some((c) => c.includes('/v1/projects/ARI/search?'))).toBe(true));
   });
-  it('redirige /manage vers Planification et /dashboard vers la Vue d’ensemble', async () => {
-    const first = app('/p/ARI/manage', ADMIN);
-    expect(await screen.findByRole('heading', { level: 1, name: 'Planification · ARI' })).toBeInTheDocument();
-    await waitFor(() => expect(projectNav().getByRole('button', { name: 'Planification' })).toHaveAttribute('aria-current', 'page'));
-    first.unmount();
+  it('redirige /manage, /planification, /membres, /admin et /trackers/:t/config vers Paramètres (T-0120), /dashboard vers la Vue d’ensemble', async () => {
+    const cases: Array<[string, string]> = [
+      ['/p/ARI/manage', 'Paramètres · Membres'], ['/p/ARI/planification', 'Paramètres · Membres'], ['/p/ARI/membres', 'Paramètres · Membres'],
+      ['/p/ARI/admin', 'Paramètres · Automatisations'],
+    ];
+    for (const [path, title] of cases) {
+      const view = app(path, ADMIN);
+      expect(await screen.findByRole('heading', { level: 1, name: title })).toBeInTheDocument();
+      await waitFor(() => expect(projectNav().getByRole('button', { name: 'Paramètres' })).toHaveAttribute('aria-current', 'page'));
+      view.unmount();
+    }
+    const config = app('/p/ARI/trackers/BUG/config', ADMIN);
+    await waitFor(() => expect(projectNav().getByRole('button', { name: 'BUG · Anomalies' })).toHaveAttribute('aria-current', 'page'));
+    config.unmount();
+    const qa = app('/p/ARI/planification', ['athena-qa']);
+    expect(await screen.findByRole('heading', { level: 1, name: 'Paramètres · Approbations' })).toBeInTheDocument();
+    qa.unmount();
     app('/p/ARI/dashboard');
     expect(await screen.findByRole('heading', { level: 1, name: 'Vue d’ensemble · ARI' })).toBeInTheDocument();
     await waitFor(() => expect(projectNav().getByRole('button', { name: 'Vue d’ensemble' })).toHaveAttribute('aria-current', 'page'));
@@ -185,23 +197,17 @@ describe('Vue d’ensemble', () => {
   });
 });
 
-describe('onglets Planification, Membres et Code', () => {
-  it('Membres : les acteurs sont réservés aux chefs de projet et administrateurs', async () => {
-    app('/p/ARI/membres');
-    await screen.findByRole('heading', { level: 1, name: 'Membres · ARI' });
-    expect(screen.getByText('Réservé aux chefs de projet et aux administrateurs.')).toBeInTheDocument();
+describe('Paramètres (Membres) et Code', () => {
+  it('Paramètres : réservés aux responsables et à l’assurance qualité', async () => {
+    app('/p/ARI/parametres/membres');
+    await screen.findByRole('heading', { level: 1, name: 'Paramètres' });
+    expect(screen.getByText(/Réservé aux administrateurs, aux chefs de projet/)).toBeInTheDocument();
   });
-  it('Membres : un chef de projet voit la liste des acteurs', async () => {
-    app('/p/ARI/membres', ['athena-user', 'athena-pm']);
-    await screen.findByRole('heading', { level: 1, name: 'Membres · ARI' });
-    expect(screen.queryByText('Réservé aux chefs de projet et aux administrateurs.')).not.toBeInTheDocument();
+  it('Membres : un chef de projet voit la liste des acteurs, et les sections qui lui sont ouvertes', async () => {
+    app('/p/ARI/parametres/membres', ['athena-user', 'athena-pm']);
+    await screen.findByRole('heading', { level: 1, name: 'Paramètres · Membres' });
     await waitFor(() => expect(calls.some((c) => c.endsWith('/v1/projects/ARI/members'))).toBe(true));
-  });
-  it('Planification n’affiche plus les acteurs : sprints, versions, boards, approbations', async () => {
-    app('/p/ARI/planification', ['athena-user', 'athena-pm']);
-    await screen.findByRole('heading', { level: 1, name: 'Planification · ARI' });
-    const tabs = screen.getAllByRole('tab').map((t) => t.textContent);
-    expect(tabs).toEqual(['Sprints', 'Versions', 'Boards', 'Approbations', 'Baselines']);
+    expect(within(screen.getByRole('navigation', { name: 'Sections des paramètres' })).getAllByRole('link').map((l) => l.textContent)).toEqual(['Membres', 'Boards', 'Baselines', 'Approbations']);
   });
   it('Code : dépôts liés et indicateurs de livraison, vide sinon', async () => {
     app('/p/ARI/code');

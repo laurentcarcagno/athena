@@ -86,7 +86,7 @@ describe('création d’un tracker dans un projet', () => {
   const page = (roles = admin) => render(
     <ToastProvider><MemoryRouter initialEntries={['/p/ARI/trackers/new']}><Routes>
       <Route path="/p/:project/trackers/new" element={<TrackerCreatePage session={roles} />} />
-      <Route path="/p/:project/trackers/:tracker/config" element={<p>configuration ouverte</p>} />
+      <Route path="/p/:project/parametres/trackers/:tracker" element={<p>configuration ouverte</p>} />
     </Routes></MemoryRouter></ToastProvider>,
   );
 

@@ -5,7 +5,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { ToastProvider } from '@athena/ui';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Session } from './api';
-import { MembersTab } from './pages/project/MembersTab';
+import { SettingsPage } from './pages/SettingsPage';
 
 const sent: Array<{ method: string; url: string; body: unknown }> = [];
 let lists: unknown[] = [];
@@ -30,7 +30,7 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals());
 
 const session = (roles: string[]): Session => ({ authenticated: true, user: { username: 'ada', name: 'Ada', email: null, roles, groups: [] } });
-const open = (s = session(['athena-user', 'athena-admin'])) => render(<ToastProvider><MemoryRouter initialEntries={['/p/SEC/membres']}><Routes><Route path="/p/:project/membres" element={<MembersTab session={s} />} /></Routes></MemoryRouter></ToastProvider>);
+const open = (s = session(['athena-user', 'athena-admin'])) => render(<ToastProvider><MemoryRouter initialEntries={['/p/SEC/parametres/membres']}><Routes><Route path="/p/:project/parametres/:section" element={<SettingsPage session={s} />} /></Routes></MemoryRouter></ToastProvider>);
 
 describe('listes d’ayants droit', () => {
   it('montre la liste du projet, ses membres et la portée de la restriction', async () => {

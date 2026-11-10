@@ -22,7 +22,8 @@ describe('fil d’Ariane', () => {
     expect(labels('/p/ARI/t/BUG/tableau', '?i=ARI-BUG-0007&f=x')).toEqual(['ARI', 'BUG', 'Tableau', 'ARI-BUG-0007']);
     expect(labels('/p/ARI/a/ARI-BUG-0007')).toEqual(['ARI', 'BUG', 'ARI-BUG-0007']);
     expect(labels('/p/ARI/recherche')).toEqual(['ARI', 'Recherche']);
-    expect(labels('/p/ARI/planification')).toEqual(['ARI', 'Planification']);
+    expect(labels('/p/ARI/parametres/boards')).toEqual(['ARI', 'Paramètres', 'Boards']); // T-0120
+    expect(labels('/p/ARI/parametres/trackers/BUG')).toEqual(['ARI', 'Paramètres', 'Trackers', 'BUG']);
     expect(labels('/p/ARI/board/kanban')).toEqual(['ARI', 'Board', 'kanban']);
     expect(labels('/p/ARI/trackers/BUG/config')).toEqual(['ARI', 'BUG', 'Configuration']);
     expect(labels('/p/ARI/trackers/new')).toEqual(['ARI', 'Trackers', 'Nouveau tracker']);

@@ -131,7 +131,7 @@ describe('écran Tracker', () => {
     view.unmount();
     app('/p/ARI/t/BUG/tableau', ['athena-user', 'athena-admin']);
     await userEvent.click(await screen.findByRole('button', { name: 'Configurer' }));
-    expect(screen.getByTestId('where')).toHaveTextContent('/p/ARI/trackers/BUG/config');
+    expect(screen.getByTestId('where')).toHaveTextContent('/p/ARI/parametres/trackers/BUG');
   });
 
   it('redirige un tracker sans vue ou une vue inconnue vers le Tableau', async () => {

@@ -7,7 +7,7 @@
 /** Module de projet calculé par le serveur (`GET /v1/projects/:p/modules`). */
 export type ModuleId = 'overview' | 'trackers' | 'planning' | 'traceability' | 'conformity' | 'documents' | 'code' | 'activity' | 'members';
 
-export type ProjectSectionId = ModuleId | 'backlog' | 'board' | 'roadmap' | 'search' | 'admin';
+export type ProjectSectionId = ModuleId | 'backlog' | 'board' | 'roadmap' | 'search' | 'settings';
 
 /** Qui voit la section : tout le monde, ou les seuls porteurs de l'un des rôles. */
 export type Access = { kind: 'everyone' } | { kind: 'roles'; roles: readonly string[] };
@@ -31,17 +31,29 @@ export const PROJECT_SECTIONS: readonly ProjectSection[] = [
   { id: 'board', path: 'board', gated: false, access: EVERYONE }, // T-0114 : boards du projet et des trackers
   { id: 'trackers', path: 'trackers', gated: true, access: EVERYONE },
   { id: 'roadmap', path: 'roadmap', gated: false, access: EVERYONE }, // T-0117 : versions, avancement, publication
-  // L'assurance qualité y trouve les approbations ; les autres membres n'y ont rien.
-  { id: 'planning', path: 'planification', gated: true, access: { kind: 'roles', roles: ['athena-admin', 'athena-pm', 'athena-qa'] } },
   { id: 'traceability', path: 'tracabilite', gated: true, access: EVERYONE },
   { id: 'conformity', path: 'conformite', gated: true, access: EVERYONE },
   { id: 'documents', path: 'documents', gated: true, access: EVERYONE },
   { id: 'code', path: 'code', gated: true, access: EVERYONE },
   { id: 'activity', path: 'activite', gated: true, access: EVERYONE },
-  { id: 'members', path: 'membres', gated: true, access: MANAGERS },
   { id: 'search', path: 'recherche', gated: false, access: EVERYONE },
-  { id: 'admin', path: 'admin', gated: false, access: { kind: 'roles', roles: ['athena-admin'] } },
+  // T-0120 : Membres, Planification et l'ancienne Administration du projet y sont regroupés ; l'assurance qualité y trouve les approbations.
+  { id: 'settings', path: 'parametres', gated: false, access: { kind: 'roles', roles: ['athena-admin', 'athena-pm', 'athena-qa'] } },
 ];
+
+export type SettingsId = 'membres' | 'trackers' | 'boards' | 'automatisations' | 'baselines' | 'approbations';
+const ADMIN: Access = { kind: 'roles', roles: ['athena-admin'] };
+
+/** Paramètres du projet (ADR-0003 § 2) : `/p/:p/parametres/:s`, dans cet ordre. Les objets globaux (webhooks, plugins) sont à l'Administration. */
+export const SETTINGS_SECTIONS: ReadonlyArray<{ id: SettingsId; access: Access }> = [
+  { id: 'membres', access: MANAGERS },
+  { id: 'trackers', access: ADMIN },
+  { id: 'boards', access: MANAGERS },
+  { id: 'automatisations', access: ADMIN },
+  { id: 'baselines', access: MANAGERS },
+  { id: 'approbations', access: { kind: 'roles', roles: ['athena-admin', 'athena-pm', 'athena-qa'] } },
+];
+export const visibleSettings = (roles: readonly string[]) => SETTINGS_SECTIONS.filter((s) => allows(s.access, roles));
 
 export const allows = (access: Access, roles: readonly string[]): boolean =>
   access.kind === 'everyone' || access.roles.some((r) => roles.includes(r));
@@ -60,7 +72,7 @@ export const sectionHref = (project: string, section: ProjectSection): string =>
 const CANONICAL_KEY = /^[A-Z][A-Z0-9]{1,9}-([A-Z][A-Z0-9]{1,9})-\d{4,9}$/;
 
 /** Anciennes adresses qui pointent vers une section (redirigées dans `App.tsx`). */
-const ALIASES: Readonly<Record<string, ProjectSectionId>> = { manage: 'planning', dashboard: 'overview' };
+const ALIASES: Readonly<Record<string, ProjectSectionId>> = { manage: 'settings', planification: 'settings', membres: 'settings', admin: 'settings', dashboard: 'overview' };
 
 export interface Place { project: string; section: ProjectSectionId | null; tracker: string | null }
 
@@ -74,7 +86,9 @@ export function placeOf(pathname: string): Place | null {
   const project = match[1]!;
   const [head = '', second, third] = (match[2] ?? '').split('/').filter(Boolean);
   if (head === 't' && second) return { project, section: 'trackers', tracker: second };
+  // Configuration d'un tracker (T-0109) : le rail signale le tracker, à l'ancienne adresse comme dans Paramètres (T-0120).
   if (head === 'trackers' && second && second !== 'new' && third === 'config') return { project, section: 'trackers', tracker: second };
+  if (head === 'parametres' && second === 'trackers' && third) return { project, section: 'trackers', tracker: third };
   if (head === 'a' && second) return { project, section: 'trackers', tracker: CANONICAL_KEY.exec(second)?.[1] ?? null };
   if (head === 'board') return { project, section: 'board', tracker: null };
   const section = PROJECT_SECTIONS.find((s) => s.path === head)?.id ?? ALIASES[head] ?? null;

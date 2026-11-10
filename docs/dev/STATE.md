@@ -18,7 +18,11 @@ Dernière mise à jour : 2026-11-10
   T-0114 faite (Board : carte enrichie, clic = panneau, filtres dans l'adresse, création par colonne, index `/p/:p/board`, section Board au rail ; e2e 40 sur 40).
   T-0115 faite (Backlog côté API : migration 048 `backlog_rank`, `GET /backlog`, `POST /backlog/rank`, démonstration NOVA dans `dev-start`).
   T-0116 faite (page Backlog : sprints en cours et à venir, burndown, clôture avec report, backlog ordonné au clavier, section Backlog au rail ; e2e 41 sur 41).
-- **Tâche en cours** : T-0117 (Roadmap). Migration réelle suivante : 049.
+  T-0117 faite (Roadmap : avancement des versions, tickets d'une version, ajout, retrait, publication ; section Roadmap au rail ; e2e 42 sur 42).
+  T-0118 faite (`GET /v1/search` d'organisation sous listes d'ayants droit, champ ATQL `category`, migration 049 `saved_search` et `/v1/searches`).
+  T-0119 faite (`/recherche` : puces, ATQL, périmètre de projets, vues enregistrées ; palette sur tous les projets, Ctrl+K puis la clé ; entrée Recherche au rail global).
+  T-0120 faite (Paramètres `/p/:p/parametres/:s` : Membres, Trackers, Boards, Automatisations, Baselines, Approbations ; webhooks à l'Administration ; redirections `/manage`, `/planification`, `/membres`, `/admin`, `/trackers/:t/config`).
+- **Tâche en cours** : T-0121 (Rapports). Migration réelle suivante : 050.
 - **Historique** : réécrit le 2026-11-10 à la demande de l'utilisateur (lot 8 en `@gmail.com`) ; sauvegarde `backup/avant-reecriture-email`, à supprimer quand l'utilisateur le décide.
 - **Reste à faire** (par priorité) :
   1. Test d'intrusion externe (à commander) ; déploiement de recette sur Kubernetes et mesures de charge concurrente.

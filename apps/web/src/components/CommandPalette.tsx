@@ -67,7 +67,7 @@ export function CommandPalette({ project }: { project: string | undefined }) {
       nav.push(
         { id: 'overview', label: `${fr.nav.overview} · ${project}`, to: `/p/${project}` },
         { id: 'search', label: `${fr.nav.search} · ${project}`, to: `/p/${project}/recherche` },
-        { id: 'admin', label: `${fr.nav.admin} · ${project}`, to: `/p/${project}/admin` },
+        { id: 'settings', label: `${fr.settings.title} · ${project}`, to: `/p/${project}/parametres` },
       );
     }
     const q = query.trim().toLowerCase();

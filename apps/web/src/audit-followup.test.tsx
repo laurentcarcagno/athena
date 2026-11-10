@@ -3,7 +3,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { ToastProvider } from '@athena/ui';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { api, type Session } from './api';
-import { AdminPage } from './pages/AdminPage';
+import { SettingsPage } from './pages/SettingsPage';
 import { suggest } from './pages/ListPage';
 
 let fetchMock: ReturnType<typeof vi.fn>;
@@ -39,25 +39,28 @@ describe('F-08 : un double envoi ne produit qu’une requête', () => {
   });
 });
 
-describe('F-13 : la page Administration est réservée aux administrateurs', () => {
+describe('F-13 et T-0120 : Paramètres du projet, sections selon le rôle', () => {
   const as = (roles: string[]): Session => ({ authenticated: true, user: { username: 'u', name: 'U', email: null, roles, groups: [] } });
-  const mount = (session: Session) => render(<ToastProvider><MemoryRouter initialEntries={['/p/ARI/admin']}><Routes><Route path="/p/:project/admin" element={<AdminPage session={session} />} /></Routes></MemoryRouter></ToastProvider>);
+  const mount = (session: Session, path = '/p/ARI/parametres/automatisations') => render(<ToastProvider><MemoryRouter initialEntries={[path]}><Routes><Route path="/p/:project/parametres/:section" element={<SettingsPage session={session} />} /></Routes></MemoryRouter></ToastProvider>);
+  const sections = () => screen.getAllByRole('link').map((l) => l.textContent);
 
-  it('un utilisateur ou un chef de projet voit le message, sans onglet et sans aucun appel réseau', () => {
-    for (const roles of [['athena-user'], ['athena-user', 'athena-pm']]) {
-      const { unmount } = mount(as(roles));
-      expect(screen.getByText('Réservé aux administrateurs.')).toBeInTheDocument();
-      expect(screen.queryByRole('tab')).not.toBeInTheDocument();
-      unmount();
-    }
+  it('un simple utilisateur voit le message, sans section et sans aucun appel réseau', () => {
+    mount(as(['athena-user']));
+    expect(screen.getByText(/Réservé aux administrateurs, aux chefs de projet/)).toBeInTheDocument();
+    expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it('un administrateur voit les onglets', async () => {
+  it('un chef de projet n’a ni Trackers ni Automatisations ; un administrateur a les six sections ; aucun objet global', async () => {
     fetchMock.mockImplementation(async () => reply([]));
+    const pm = mount(as(['athena-user', 'athena-pm']), '/p/ARI/parametres/membres');
+    expect(sections()).toEqual(['Membres', 'Boards', 'Baselines', 'Approbations']);
+    pm.unmount();
     mount(as(['athena-admin']));
-    expect(await screen.findByRole('tab', { name: 'Webhooks' })).toBeInTheDocument();
-    expect(screen.queryByText('Réservé aux administrateurs.')).not.toBeInTheDocument();
+    expect(sections()).toEqual(['Membres', 'Trackers', 'Boards', 'Automatisations', 'Baselines', 'Approbations']);
+    expect(screen.getByRole('link', { name: 'Automatisations' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.queryByText(/Webhooks|Plugins/)).not.toBeInTheDocument();
+    expect(fetchMock.mock.calls.map((c) => String(c[0])).filter((u) => /\/v1\/(webhooks|plugins)/.test(u))).toEqual([]);
   });
 });
 

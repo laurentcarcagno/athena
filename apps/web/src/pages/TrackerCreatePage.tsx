@@ -26,7 +26,7 @@ export function TrackerCreatePage({ session }: { session: Session }) {
     try {
       await api('POST', `/v1/projects/${project}/trackers`, { key: draft.key, name: draft.name, ...(draft.typeKey ? { typeKey: draft.typeKey } : {}), fields: draft.fields, statuses: draft.statuses, transitions: draft.transitions, ...(draft.layout ? { layout: forSave(draft.layout, draft.fields) } : {}) });
       toast('success', fr.builder.trackerCreated(draft.key));
-      navigate(`/p/${project}/trackers/${draft.key}/config`);
+      navigate(`/p/${project}/parametres/trackers/${draft.key}`);
     } catch (error) { fail(error); }
   };
   return (

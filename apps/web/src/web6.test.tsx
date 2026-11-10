@@ -1,12 +1,12 @@
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { ToastProvider } from '@athena/ui';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Session } from './api';
 import { AuthenticatedApp } from './App';
 import { setLocale } from './i18n';
-import { AdminPage } from './pages/AdminPage';
+import { SettingsPage } from './pages/SettingsPage';
 import { suggest } from './pages/ListPage';
 import { OrgAdminPage } from './pages/OrgAdminPage';
 
@@ -47,11 +47,11 @@ describe('F-01 : confirmation avant suppression irréversible', () => {
   });
 });
 
-describe('F-13 : page Administration réservée', () => {
-  it('affiche le refus sans aucun appel réseau pour un non administrateur', () => {
-    render(<ToastProvider><MemoryRouter initialEntries={['/p/ARI/admin']}><AdminPage session={session(['athena-user'])} /></MemoryRouter></ToastProvider>);
-    expect(screen.getByText('Réservé aux administrateurs.')).toBeInTheDocument();
-    expect(screen.queryByRole('tab')).toBeNull();
+describe('F-13 : Paramètres réservés', () => {
+  it('affiche le refus sans aucun appel réseau pour un simple utilisateur', () => {
+    render(<ToastProvider><MemoryRouter initialEntries={['/p/ARI/parametres/automatisations']}><Routes><Route path="/p/:project/parametres/:section" element={<SettingsPage session={session(['athena-user'])} />} /></Routes></MemoryRouter></ToastProvider>);
+    expect(screen.getByText(/Réservé aux administrateurs, aux chefs de projet/)).toBeInTheDocument();
+    expect(screen.queryByRole('navigation')).toBeNull();
     expect(calls).toHaveLength(0);
   });
 });

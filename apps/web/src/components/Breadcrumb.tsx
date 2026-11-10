@@ -9,7 +9,7 @@ export interface Siblings { kind: 'project' | 'tracker' | 'view'; project: strin
 export interface Crumb { label: string; to?: string; mono?: boolean; siblings?: Siblings }
 
 const TAB_PATHS: Record<string, keyof typeof fr.project.tabs> = {
-  backlog: 'backlog', trackers: 'trackers', roadmap: 'roadmap', planification: 'planning', tracabilite: 'traceability', conformite: 'conformity', documents: 'documents', code: 'code', activite: 'activity', membres: 'members',
+  backlog: 'backlog', trackers: 'trackers', roadmap: 'roadmap', tracabilite: 'traceability', conformite: 'conformity', documents: 'documents', code: 'code', activite: 'activity',
 };
 
 /**
@@ -30,7 +30,7 @@ export function crumbsFor(pathname: string, search = ''): Crumb[] {
   else if (head === 'trackers' && second && third === 'config') out.push(tracker(second), { label: fr.config.eyebrow });
   else if (head in TAB_PATHS) out.push({ label: fr.project.tabs[TAB_PATHS[head]!] });
   else if (head === 'recherche') out.push({ label: fr.nav.search });
-  else if (head === 'admin') out.push({ label: fr.nav.admin });
+  else if (head === 'parametres') out.push(second ? { label: fr.settings.title, to: `/p/${project}/parametres` } : { label: fr.settings.title }, ...(second ? [{ label: fr.settings.sections[second] ?? second }] : []), ...(third ? [{ label: third, mono: true }] : []));
   else if (head === 'board') out.push(second ? { label: fr.project.tabs.board, to: `/p/${project}/board` } : { label: fr.project.tabs.board }, ...(second ? [{ label: second, mono: true }] : []));
   else if (head === 't' && second) {
     const view = third ?? 'tableau';

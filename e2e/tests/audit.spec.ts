@@ -25,10 +25,11 @@ async function login(page: Page, username: string, password: string) {
 
 /** Toutes les pages de l'application (T-0096) : routes, onglets d'un projet et d'une fiche, page introuvable. */
 const ROUTES = [
-  '/', '/me', '/org', '/help',
-  '/p/ARI', '/p/ARI/trackers', '/p/ARI/planification', '/p/ARI/tracabilite', '/p/ARI/conformite', '/p/ARI/documents', '/p/ARI/code', '/p/ARI/activite', '/p/ARI/membres', '/p/ARI/recherche',
+  '/', '/me', '/org', '/help', '/recherche',
+  '/p/ARI', '/p/ARI/trackers', '/p/ARI/planification', '/p/ARI/tracabilite', '/p/ARI/conformite', '/p/ARI/documents', '/p/ARI/code', '/p/ARI/activite', '/p/ARI/membres', '/p/ARI/recherche', '/p/ARI/backlog', '/p/ARI/roadmap',
   '/p/ARI/t/BUG/tableau', '/p/ARI/t/BUG/board', '/p/ARI/t/BUG/arbre', '/p/ARI/t/BUG/matrice',
   '/p/ARI/a/ARI-BUG-0001', '/p/ARI/admin', '/p/ARI/trackers/BUG/config', '/p/ARI/trackers/new',
+  '/p/ARI/parametres/membres', '/p/ARI/parametres/trackers', '/p/ARI/parametres/boards', '/p/ARI/parametres/automatisations', '/p/ARI/parametres/baselines', '/p/ARI/parametres/approbations',
   '/une/page/inconnue',
 ];
 const ITEM_TABS = ['Liens', 'Historique', 'Pièces jointes', 'Commentaires', 'Développement'];
@@ -62,9 +63,11 @@ test('audit : axe sur toutes les pages pour un utilisateur sans droit d’admini
   test.setTimeout(240_000);
   await login(page, 'user.dev', 'dev-only-user');
   await sweep(page, 'utilisateur');
-  for (const path of ['/org', '/p/ARI/admin']) {
-    await page.goto(path);
-    await expect(page.getByText('Réservé aux administrateurs.')).toBeVisible();
-    await expect(page.getByRole('tab')).toHaveCount(0);
-  }
+  await page.goto('/org');
+  await expect(page.getByText('Réservé aux administrateurs.')).toBeVisible();
+  await expect(page.getByRole('tab')).toHaveCount(0);
+  // T-0120 : l'ancienne administration du projet mène aux Paramètres, réservés aux responsables et à l'assurance qualité.
+  await page.goto('/p/ARI/admin');
+  await expect(page.getByText(/Réservé aux administrateurs, aux chefs de projet/)).toBeVisible();
+  await expect(page.getByRole('navigation', { name: 'Sections des paramètres' })).toHaveCount(0);
 });
