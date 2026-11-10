@@ -144,6 +144,7 @@ const frDict = {
     favorites: 'Favoris', recents: 'Récents', project: 'Projet', trackers: 'Trackers', pin: 'Épingler', unpin: 'Désépingler', moveUp: 'Monter', moveDown: 'Descendre', noFavorites: 'Aucun favori. Utilisez l’étoile d’une page pour en ajouter.', noRecents: 'Aucun élément récent.',
     collapse: 'Replier le rail', expand: 'Déplier le rail',
   },
+  mobileNav: { sections: (p: string) => `Sections du projet ${p}`, choose: 'Choisir une section', bar: 'Navigation rapide', find: 'Chercher' },
   crumb: { label: 'Fil d’Ariane', siblingProject: 'Changer de projet', siblingTracker: 'Changer de tracker', siblingView: 'Changer de vue' },
   activity: {
     title: 'Activité', filters: 'Filtres de l’activité', tracker: 'Tracker', person: 'Personne', kind: 'Type d’événement', date: 'Date', event: 'Événement', item: 'Item', empty: 'Aucune activité pour ces filtres.', older: 'Plus ancien',
@@ -480,6 +481,7 @@ const enDict: Dictionary = {
     favorites: 'Favorites', recents: 'Recent', project: 'Project', trackers: 'Trackers', pin: 'Pin', unpin: 'Unpin', moveUp: 'Move up', moveDown: 'Move down', noFavorites: 'No favorites yet. Use the star on a page to add one.', noRecents: 'Nothing recent.',
     collapse: 'Collapse the rail', expand: 'Expand the rail',
   },
+  mobileNav: { sections: (p: string) => `Project ${p} sections`, choose: 'Choose a section', bar: 'Quick navigation', find: 'Find' },
   crumb: { label: 'Breadcrumb', siblingProject: 'Switch project', siblingTracker: 'Switch tracker', siblingView: 'Switch view' },
   activity: {
     title: 'Activity', filters: 'Activity filters', tracker: 'Tracker', person: 'Person', kind: 'Event type', date: 'Date', event: 'Event', item: 'Item', empty: 'No activity for these filters.', older: 'Older',

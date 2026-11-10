@@ -1,4 +1,5 @@
 import { Navigate, Outlet, useLocation, useParams } from 'react-router-dom';
+import { SectionPicker } from '../../components/MobileNav';
 import { PinToggle } from '../../components/PinToggle';
 
 /** Redirige les anciennes adresses `/p/:projet?q=…` (liste ATQL) vers la vue Recherche. */
@@ -15,7 +16,12 @@ export function OverviewOrLegacySearch({ children }: { children: JSX.Element }) 
  * `lib/navigation.ts` ; ce cadre accueillera le sélecteur de section mobile (T-0110) et la cible de création (T-0111).
  */
 export function ProjectLayout() {
-  return <Outlet />;
+  return (
+    <>
+      <SectionPicker />
+      <Outlet />
+    </>
+  );
 }
 
 /** Cadre des pages de section (Vue d'ensemble, Trackers, Planification…) : l'étoile qui épingle le projet, puis la page. */

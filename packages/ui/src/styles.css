@@ -314,10 +314,8 @@
 .ath-ticket__title { overflow-wrap: anywhere; }
 .ath-input, .ath-select { max-width: 100%; }
 
-/* Audit F-09 : sous 768 px la navigation se replie derrière un bouton ; la page ne déborde pas. */
-.ath-menu-btn { display: none; }
+/* Audit F-09 : sous 768 px la navigation se replie derrière le bouton Menu (barre basse, T-0110) ; la page ne déborde pas. */
 @media (max-width: 768px) {
-  .ath-menu-btn { display: inline-flex; margin: 0 0 var(--ath-space-sm); }
   .ath-sidebar:not(.ath-sidebar--open) .ath-nav { display: none; }
   .ath-page__main { min-width: 0; }
   .ath-table-wrap { overflow-x: auto; }
@@ -446,3 +444,23 @@ html, body { margin: 0; }
 .ath-td .ath-iconbtn { border-color: var(--ath-color-console-border); color: var(--ath-color-sovereign-deep-blue); }
 .ath-td .ath-iconbtn:hover { background: var(--ath-color-console-border); }
 .ath-td .ath-iconbtn:focus-visible { outline-color: var(--ath-color-console-sky); }
+
+/* Lot 9, T-0110 : navigation mobile (ADR-0003). Sous 768 px, sélecteur de section du projet et barre basse ; rien au-dessus.
+   Cibles de 44 px au moins ; angles droits, sans ombre ; l'entrée active est soulignée en Console Sky. */
+.ath-section-picker, .ath-bottombar { display: none; }
+@media (max-width: 768px) {
+  .ath-section-picker { display: block; position: relative; z-index: 70; margin-bottom: var(--ath-space-md); }
+  .ath-section-picker__toggle { display: flex; align-items: center; gap: var(--ath-space-sm); width: 100%; min-height: 44px; padding: 0 var(--ath-space-md); background: var(--ath-color-instrument-white); border: 1px solid var(--ath-color-console-border); color: var(--ath-text-default); font: inherit; font-weight: 600; text-align: left; cursor: pointer; }
+  .ath-section-picker__toggle > :last-child { margin-left: auto; }
+  .ath-section-picker__list { position: absolute; top: 100%; left: 0; right: 0; margin: 0; padding: 0; list-style: none; background: var(--ath-color-instrument-white); border: 1px solid var(--ath-color-console-border); border-top: 0; }
+  .ath-section-picker__link { display: flex; align-items: center; min-height: 44px; padding: 0 var(--ath-space-md); color: var(--ath-text-default); text-decoration: none; }
+  .ath-section-picker__link[aria-current="page"] { background: var(--ath-color-selection-veil); font-weight: 600; }
+  .ath-bottombar { display: grid; grid-template-columns: repeat(4, 1fr); position: fixed; left: 0; right: 0; bottom: 0; z-index: 800; background: var(--ath-color-instrument-white); border-top: 1px solid var(--ath-color-console-border); padding-bottom: env(safe-area-inset-bottom); }
+  .ath-bottombar__item { display: flex; align-items: center; justify-content: center; min-height: 48px; margin: 0; padding: 0 var(--ath-space-xs); background: transparent; border: 0; border-top: 2px solid transparent; color: var(--ath-text-default); font: inherit; font-size: 12px; font-weight: 600; text-decoration: none; cursor: pointer; }
+  .ath-bottombar__item[aria-current="page"], .ath-bottombar__item[aria-expanded="true"] { border-top-color: var(--ath-color-console-sky); color: var(--ath-text-link); }
+  .ath-section-picker__toggle:focus-visible, .ath-section-picker__link:focus-visible, .ath-bottombar__item:focus-visible { outline: 2px solid var(--ath-focus-ring); outline-offset: -2px; }
+  .ath-page__main { padding-bottom: calc(48px + var(--ath-space-xl)); }
+  /* Les vues du tracker tiennent sur une ligne et défilent dans leur cadre, jamais la page. Le fil d'Ariane garde son retour
+     à la ligne : un cadre défilant couperait le menu de ses frères, positionné en absolu. */
+  .ath-tabs--links { flex-wrap: nowrap; overflow-x: auto; white-space: nowrap; }
+}

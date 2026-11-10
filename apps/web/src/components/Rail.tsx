@@ -31,7 +31,7 @@ const sectionLabel = (id: ProjectSectionId): string => (id === 'search' ? fr.nav
  * « Trackers » les trackers du projet et, sous le tracker ouvert, ses vues partagées. Les rubriques gardent toujours le même
  * ordre ; seuls les favoris se réordonnent.
  */
-export function useRailSections({ pathname, project, roles }: { pathname: string; project: string | undefined; roles: readonly string[] }): { sections: NavSection[]; current: string } {
+export function useRailSections({ pathname, project, roles }: { pathname: string; project: string | undefined; roles: readonly string[] }): { sections: NavSection[]; current: string; projectNav: ProjectNav | null } {
   const pins = usePins();
   const [trackers, setTrackers] = useState<TrackerRow[]>([]);
   const [views, setViews] = useState<SavedFilter[]>([]);
@@ -76,7 +76,12 @@ export function useRailSections({ pathname, project, roles }: { pathname: string
       { id: '/help', label: fr.nav.help },
     ],
   });
+  let projectNav: ProjectNav | null = null;
   if (project) {
+    const entries = visibleSections(modules, roles).map((s) => ({ id: sectionHref(project, s), label: sectionLabel(s.id) }));
+    const here = PROJECT_SECTIONS.find((s) => s.id === place?.section);
+    const currentHref = here ? sectionHref(project, here) : null;
+    projectNav = { project, entries, current: entries.some((e) => e.id === currentHref) ? currentHref : null };
     const trackerItems = trackers.flatMap((t): NavItem[] => [
       { id: trackerHref(project, t.key), label: `${t.key} · ${t.name}`, depth: 1 },
       ...(tracker === t.key ? views.map((v): NavItem => ({ id: `${trackerHref(project, t.key)}?v=${v.id}`, label: v.name, depth: 2 })) : []),
@@ -90,8 +95,11 @@ export function useRailSections({ pathname, project, roles }: { pathname: string
     });
   }
   const ids = sections.flatMap((s) => s.items.map((i) => i.id)).filter((id) => !id.includes('?'));
-  return { sections, current: currentEntry(pathname, place, ids) };
+  return { sections, current: currentEntry(pathname, place, ids), projectNav };
 }
+
+/** Sections du projet courant, pour le sélecteur mobile (même source que le rail). `current` : la section de la page. */
+export interface ProjectNav { project: string; entries: ReadonlyArray<{ id: string; label: string }>; current: string | null }
 
 const trackerHref = (project: string, key: string) => `/p/${project}/t/${key}/tableau`;
 

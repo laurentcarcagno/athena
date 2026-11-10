@@ -6,6 +6,7 @@ import { Btn, EmptyState, PageHeader, Sidebar, ToastProvider } from '@athena/ui'
 import { loadSession, loginUrl, logout, type Session } from './api';
 import { Breadcrumb } from './components/Breadcrumb';
 import { CommandPalette } from './components/CommandPalette';
+import { BottomBar, ProjectNavContext } from './components/MobileNav';
 import { NotificationCenter } from './components/NotificationCenter';
 import { ThemeToggle } from './components/ThemeToggle';
 import { useRailSections, useRecordVisits } from './components/Rail';
@@ -65,7 +66,7 @@ function Shell({ session, children }: { session: Session; children: ReactNode })
   const project = projectOf(location.pathname);
   const admin = session.user?.roles.includes('athena-admin') ?? false;
   const manager = admin || (session.user?.roles.includes('athena-pm') ?? false);
-  const { sections, current } = useRailSections({ pathname: location.pathname, project, roles: session.user?.roles ?? [] });
+  const { sections, current, projectNav } = useRailSections({ pathname: location.pathname, project, roles: session.user?.roles ?? [] });
   useRecordVisits(location.pathname);
   const [collapsed, setCollapsed] = useState(() => { try { return localStorage.getItem('athena.rail.collapsed') === '1'; } catch { return false; } });
   const toggleRail = () => { const next = !collapsed; setCollapsed(next); try { localStorage.setItem('athena.rail.collapsed', next ? '1' : '0'); } catch { /* préférence facultative */ } };
@@ -98,7 +99,6 @@ function Shell({ session, children }: { session: Session; children: ReactNode })
   return (
     <div className="ath-page">
       <a className="ath-skip" href="#contenu" onClick={(e) => { e.preventDefault(); document.getElementById('contenu')?.focus(); }}>{fr.nav.skip}</a>
-      <Btn variant="ghost" size="sm" className="ath-menu-btn" aria-expanded={menuOpen} aria-controls="rail" onClick={() => setMenuOpen(!menuOpen)}>{fr.nav.menu}</Btn>
       {menuOpen && <div className="ath-drawer-backdrop" data-testid="drawer-backdrop" onClick={closeMenu} />}
       <Sidebar id="rail" open={menuOpen} collapsed={collapsed} sections={sections} current={current} onNavigate={(id) => { setMenuOpen(false); navigate(id); }} user={{ name: session.user!.name, role: admin ? 'Administrateur' : manager ? 'Chef de projet' : 'Utilisateur', roleKind: admin ? 'admin' : manager ? 'manager' : 'user' }}
         userActions={<>
@@ -112,9 +112,10 @@ function Shell({ session, children }: { session: Session; children: ReactNode })
           <Breadcrumb pathname={location.pathname} search={location.search} />
           <NotificationCenter />
         </div>
-        {children}
+        <ProjectNavContext.Provider value={projectNav}>{children}</ProjectNavContext.Provider>
         <CommandPalette project={project} />
       </main>
+      <BottomBar menuOpen={menuOpen} onMenu={() => setMenuOpen(!menuOpen)} />
     </div>
   );
 }

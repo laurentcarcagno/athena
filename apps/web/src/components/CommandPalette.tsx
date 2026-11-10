@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Id, Modal } from '@athena/ui';
 import { api, type SearchResult } from '../api';
 import { fr } from '../i18n';
+import { PALETTE_EVENT } from './MobileNav';
 
 interface Entry { id: string; label: string; hint?: string; to: string }
 
@@ -24,13 +25,17 @@ export function CommandPalette({ project }: { project: string | undefined }) {
         setOpen((v) => !v);
       }
     };
+    const fromBar = () => setOpen(true); // bouton « Chercher » de la barre basse (mobile)
     document.addEventListener('keydown', handler, true);
-    return () => document.removeEventListener('keydown', handler, true);
+    window.addEventListener(PALETTE_EVENT, fromBar);
+    return () => { document.removeEventListener('keydown', handler, true); window.removeEventListener(PALETTE_EVENT, fromBar); };
   }, []);
 
   useEffect(() => {
     if (!open) return;
     setQuery(''); setIndex(0);
+    // Le focus va au champ dès l'ouverture (après la mise en place du dialogue) : sur mobile, le clavier s'affiche.
+    setTimeout(() => input.current?.focus(), 0);
     api<Array<{ key: string; name: string }>>('GET', '/v1/projects').then(setProjects).catch(() => setProjects([]));
   }, [open]);
 
