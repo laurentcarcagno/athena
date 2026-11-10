@@ -188,11 +188,13 @@ describe('Vue d’ensemble', () => {
   it('liste les trackers et mes items, même sans aucune donnée', async () => {
     app('/p/ARI');
     await screen.findByRole('heading', { level: 1, name: 'Vue d’ensemble · ARI' });
-    expect(await screen.findByText('Rien n’est assigné à votre nom.')).toBeInTheDocument();
-    const card = screen.getByRole('link', { name: 'REQ' }).closest('section')!;
-    expect(within(card).getByRole('link', { name: 'REQ' })).toHaveAttribute('href', '/p/ARI/t/REQ/tableau');
+    const mine = await screen.findByRole('group', { name: 'Mes tickets' }); // T-0123 : la Vue d'ensemble est portée par le moteur de widgets
+    expect(await within(mine).findByText('Aucun ticket.')).toBeInTheDocument();
+    expect(within(mine).getByRole('link', { name: 'Tout voir' })).toHaveAttribute('href', `/recherche?q=${encodeURIComponent('assignee = currentUser() AND category != done')}&p=ARI`);
+    const card = screen.getByRole('group', { name: 'Trackers' });
+    expect(await within(card).findByRole('link', { name: 'REQ' })).toHaveAttribute('href', '/p/ARI/t/REQ/tableau');
     expect(within(card).getByText('5 ouverts / 10')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Tout voir dans la Recherche' })).toHaveAttribute('href', '/p/ARI/recherche?q=assignee%20%3D%20currentUser()');
+    expect(screen.getAllByRole('group').map((g) => g.getAttribute('aria-label'))).toEqual(expect.arrayContaining(['Mes tickets', 'Échéances de la semaine', 'Trackers', 'Mentions']));
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
   });
 });

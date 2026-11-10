@@ -53,8 +53,8 @@ export function BottomBar({ menuOpen, onMenu }: { menuOpen: boolean; onMenu: () 
   const { pathname } = useLocation();
   return (
     <nav className="ath-bottombar" aria-label={fr.mobileNav.bar}>
-      <Link className="ath-bottombar__item" to="/me" aria-current={pathname === '/me' ? 'page' : undefined}>{fr.nav.work}</Link>
-      <Link className="ath-bottombar__item" to="/" aria-current={pathname === '/' ? 'page' : undefined}>{fr.nav.projects}</Link>
+      <Link className="ath-bottombar__item" to="/" aria-current={pathname === '/' ? 'page' : undefined}>{fr.nav.work}</Link>
+      <Link className="ath-bottombar__item" to="/projets" aria-current={pathname === '/projets' ? 'page' : undefined}>{fr.nav.projects}</Link>
       <button type="button" className="ath-bottombar__item" onClick={openPalette}>{fr.mobileNav.find}</button>
       <button type="button" className="ath-bottombar__item ath-menu-btn" aria-expanded={menuOpen} aria-controls="rail" onClick={onMenu}>{fr.nav.menu}</button>
     </nav>

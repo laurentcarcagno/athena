@@ -71,9 +71,9 @@ export function useRailSections({ pathname, project, roles }: { pathname: string
   sections.push({
     id: 'main',
     items: [
-      { id: '/', label: fr.nav.projects }, { id: '/me', label: fr.nav.work }, { id: '/recherche', label: fr.nav.search },
-      ...(admin ? [{ id: '/org', label: fr.nav.organization }] : []),
-      { id: '/help', label: fr.nav.help },
+      // Rail global : 4 entrées + Favoris et Récents = 6 au plus (ADR-0003) ; Profil et Aide sont au bas du rail, avec l'utilisateur.
+      { id: '/projets', label: fr.nav.projects }, { id: '/', label: fr.nav.work }, { id: '/recherche', label: fr.nav.search },
+      ...(admin ? [{ id: '/admin', label: fr.nav.admin }] : []),
     ],
   });
   let projectNav: ProjectNav | null = null;
@@ -115,5 +115,5 @@ function currentEntry(pathname: string, place: Place | null, ids: readonly strin
     const bySection = section ? sectionHref(place.project, section) : null;
     return bySection && ids.includes(bySection) ? bySection : '';
   }
-  return [...ids].sort((a, b) => b.length - a.length).find((id) => id !== '/' && (pathname === id || pathname.startsWith(`${id}/`))) ?? '/';
+  return [...ids].sort((a, b) => b.length - a.length).find((id) => id !== '/' && (pathname === id || pathname.startsWith(`${id}/`))) ?? (pathname === '/' ? '/' : '');
 }

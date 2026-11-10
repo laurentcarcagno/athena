@@ -31,6 +31,7 @@ async function showTrackers(page: Page, project: string): Promise<void> {
 
 test('connexion Keycloak, liste des projets, ouverture d’un artefact et transition', async ({ page }) => {
   await login(page, 'user.dev', 'dev-only-user');
+  await page.goto('/projets'); // T-0123 : « / » est Mon travail
   await expect(page.getByText('Ariane')).toBeVisible();
   await showTrackers(page, 'Ariane');
   await page.getByRole('link', { name: 'Bugs' }).first().click();
@@ -53,6 +54,7 @@ test('une session non authentifiée est redirigée vers Keycloak', async ({ page
 
 test('accessibilité réelle (contraste inclus) : projets, liste et fiche', async ({ page }) => {
   await login(page, 'user.dev', 'dev-only-user');
+  await page.goto('/projets'); // T-0123 : « / » est Mon travail
   await expect(page.getByText('Ariane')).toBeVisible();
   expect(await axeViolations(page)).toEqual([]);
   await showTrackers(page, 'Ariane');
@@ -124,7 +126,7 @@ test('administrateur : crée un projet, nomme un chef de projet et gère les act
   await page.getByLabel('Template du projet').selectOption('qualite');
   await page.getByRole('button', { name: 'Créer le projet' }).click();
   await expect(page.getByText('Projet PAY créé.')).toBeVisible();
-  await page.goto('/');
+  await page.goto('/projets');
   await showTrackers(page, 'Paiement'); // trackers affichés par leur nom depuis le lot 8
   await expect(page.getByRole('row', { name: /^Exigences/ })).toBeVisible();
   await expect(page.getByRole('row', { name: /^Bugs/ })).toBeVisible();

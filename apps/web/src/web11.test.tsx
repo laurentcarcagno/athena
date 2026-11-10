@@ -72,7 +72,7 @@ describe('rail contextuel', () => {
     app('/');
     await screen.findByRole('heading', { level: 1 });
     expect(groupTitles()).toEqual([]);
-    expect(within(rail()).getAllByRole('button').map((b) => b.textContent)).toEqual(['Favoris (0)›', 'Récents (0)›', 'Projets', 'Mon travail', 'Recherche', 'Aide']);
+    expect(within(rail()).getAllByRole('button').map((b) => b.textContent)).toEqual(['Favoris (0)›', 'Récents (0)›', 'Projets', 'Mon travail', 'Recherche']);
   });
 
   it('dans un projet : la rubrique du projet (sections, trackers imbriqués) et les vues partagées sous le tracker ouvert seulement', async () => {
@@ -81,7 +81,7 @@ describe('rail contextuel', () => {
     expect(groupTitles()).toEqual(['Projet ARI']);
     const labels = within(rail()).getAllByRole('button').map((b) => b.textContent);
     expect(labels).toEqual([
-      'Favoris (0)›', 'Récents (0)›', 'Projets', 'Mon travail', 'Recherche', 'Aide',
+      'Favoris (0)›', 'Récents (0)›', 'Projets', 'Mon travail', 'Recherche',
       // ADR-0003 : la navigation du projet est au rail ; Planification et Membres, réservés, n’apparaissent pas pour un simple membre
       'Vue d’ensemble', 'Backlog', 'Board', 'Trackers',
       'BUG · Anomalies', 'Bloquants', 'REQ · Exigences', // la vue partagée apparaît sous le tracker ouvert ; la vue personnelle n’y figure pas
@@ -101,7 +101,7 @@ describe('rail contextuel', () => {
   it('les favoris et les récents sont des menus latéraux, sans doublon', async () => {
     favorites = [pin('f1', 'project', 'ARI', 'ARI'), pin('f2', 'tracker', 'BUG', 'ARI · BUG')];
     recents = [pin('r1', 'item', 'ARI-BUG-0001', 'ARI-BUG-0001'), pin('r2', 'project', 'ARI', 'ARI')];
-    app('/me');
+    app('/');
     const favs = await openFlyout(/^Favoris \(2\)/);
     expect(favs.getAllByRole('button', { name: (n) => !/^(Monter|Descendre)/.test(n) }).map((b) => b.textContent)).toEqual(['ARI', 'ARI · BUG']);
     expect(favs.getByRole('button', { name: 'Monter ARI' })).toBeDisabled();
@@ -115,7 +115,7 @@ describe('rail contextuel', () => {
 
   it('réordonne les favoris au clavier (boutons) et envoie l’ordre complet', async () => {
     favorites = [pin('f1', 'project', 'ARI', 'ARI'), pin('f2', 'tracker', 'BUG', 'ARI · BUG')];
-    app('/me');
+    app('/');
     const favs = await openFlyout(/^Favoris/);
     await userEvent.click(favs.getByRole('button', { name: 'Descendre ARI' }));
     await waitFor(() => expect(sent.find((s) => s.url.endsWith('/order'))?.body).toEqual({ ids: ['f2', 'f1'] }));
@@ -123,7 +123,7 @@ describe('rail contextuel', () => {
 
   it('un favori mène à sa page et ferme le menu', async () => {
     favorites = [pin('f1', 'view', 'BUG:v1', 'Bloquants')];
-    app('/me');
+    app('/');
     const favs = await openFlyout(/^Favoris/);
     await userEvent.click(favs.getByRole('button', { name: 'Bloquants' }));
     await waitFor(() => expect(screen.getByTestId('where')).toHaveTextContent('/p/ARI/t/BUG/tableau'));
@@ -145,14 +145,14 @@ describe('rail contextuel', () => {
   });
 
   it('se replie et se déplie, l’état étant mémorisé', async () => {
-    const first = app('/me');
+    const first = app('/');
     const toggle = await screen.findByRole('button', { name: 'Replier le rail' });
     expect(toggle).toHaveAttribute('aria-expanded', 'true');
     await userEvent.click(toggle);
     expect(screen.getByRole('button', { name: 'Déplier le rail' })).toHaveAttribute('aria-expanded', 'false');
     expect(localStorage.getItem('athena.rail.collapsed')).toBe('1');
     first.unmount();
-    app('/me');
+    app('/');
     expect(await screen.findByRole('button', { name: 'Déplier le rail' })).toBeInTheDocument();
   });
 
@@ -184,7 +184,7 @@ describe('tiroir mobile du rail (constat F-09)', () => {
   });
 
   it('Échap ferme le tiroir et rend le focus au bouton Menu', async () => {
-    app('/me');
+    app('/');
     await userEvent.click(menu());
     await userEvent.keyboard('{Escape}');
     expect(menu()).toHaveAttribute('aria-expanded', 'false');
@@ -194,22 +194,22 @@ describe('tiroir mobile du rail (constat F-09)', () => {
   });
 
   it('un clic sur le fond ferme le tiroir', async () => {
-    app('/me');
+    app('/');
     await userEvent.click(menu());
     await userEvent.click(screen.getByTestId('drawer-backdrop'));
     expect(menu()).toHaveAttribute('aria-expanded', 'false');
   });
 
   it('naviguer depuis le tiroir le ferme', async () => {
-    app('/me');
+    app('/');
     await userEvent.click(menu());
     await userEvent.click(within(rail()).getByRole('button', { name: 'Projets' }));
-    await waitFor(() => expect(screen.getByTestId('where')).toHaveTextContent(/^\/$/));
+    await waitFor(() => expect(screen.getByTestId('where')).toHaveTextContent(/^\/projets$/));
     expect(menu()).toHaveAttribute('aria-expanded', 'false');
   });
 
   it('Tab ne sort pas du tiroir : du dernier contrôle on revient au premier, et inversement avec Maj+Tab', async () => {
-    app('/me');
+    app('/');
     await userEvent.click(menu());
     const controls = [...drawer().querySelectorAll<HTMLElement>('button:not([disabled]), a[href]')];
     controls.at(-1)!.focus();

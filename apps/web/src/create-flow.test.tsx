@@ -51,7 +51,7 @@ describe('cible de création déduite de l’adresse', () => {
 
 describe('« Créer » de la barre haute', () => {
   it('hors projet : choisir le projet puis le tracker, créer, rester sur la page ; le message ouvre le ticket', async () => {
-    app('/me');
+    app('/');
     await userEvent.click(await screen.findByRole('button', { name: 'Créer un ticket' }));
     const form = within(await dialog());
     await userEvent.selectOptions(await form.findByLabelText('Projet'), 'ARI');
@@ -60,7 +60,7 @@ describe('« Créer » de la barre haute', () => {
     await userEvent.click(form.getByRole('button', { name: 'Créer' }));
     expect(await screen.findByText('ARI-BUG-0009 créé.')).toBeInTheDocument();
     expect(calls).toContain('POST /v1/projects/ARI/trackers/BUG/artifacts');
-    expect(where()).toBe('/me'); // on reste sur la page
+    expect(where()).toBe('/'); // on reste sur la page
     await userEvent.click(screen.getByRole('button', { name: 'Ouvrir ARI-BUG-0009' }));
     await waitFor(() => expect(where()).toBe('/p/ARI/a/ARI-BUG-0009'));
   });

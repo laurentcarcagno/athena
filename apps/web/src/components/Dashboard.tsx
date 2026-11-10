@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Btn, Card, StatusPill, useToast } from '@athena/ui';
-import { api, type Hit, type SearchResult } from '../api';
+import { api, type Hit, type SearchResult, type TrackerOverview } from '../api';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
 import { pinHref, usePins } from '../lib/pins';
 import { pillKind } from '../pages/ListPage';
 import { useConfirm } from './ConfirmDialog';
 
-export type WidgetKind = 'search' | 'mentions' | 'approvals' | 'favorites' | 'recents';
+export type WidgetKind = 'search' | 'mentions' | 'approvals' | 'favorites' | 'recents' | 'trackers';
 export interface Widget { id: string; kind: WidgetKind; title?: string; query?: string; projects?: string[] }
 interface Layout { widgets: Widget[]; isDefault: boolean }
 interface SavedSearch { id: string; name: string; query: string; projects: string[] }
@@ -16,7 +16,7 @@ interface Mention { id: string; project: string; key: string; actorName: string;
 interface ApprovalRow { project: string; type: string; ref: string }
 
 /** Widgets par défaut, dans l'ordre de la disposition initiale (miroir de l'API) : sert à les réajouter après un retrait. */
-const BUILTIN: Widget[] = [
+const HOME_WIDGETS: Widget[] = [
   { id: 'assigned', kind: 'search', query: 'assignee = currentUser() AND category != done' },
   { id: 'approvals', kind: 'approvals' },
   { id: 'mentions', kind: 'mentions' },
@@ -24,6 +24,15 @@ const BUILTIN: Widget[] = [
   { id: 'favorites', kind: 'favorites' },
   { id: 'recents', kind: 'recents' },
 ];
+
+/** Widgets par défaut de la Vue d'un projet : mes tickets et échéances de ce projet, ses trackers, mes mentions. */
+const projectWidgets = (project: string): Widget[] => [
+  { id: 'assigned', kind: 'search', query: 'assignee = currentUser() AND category != done', projects: [project] },
+  { id: 'due', kind: 'search', query: 'assignee = currentUser() AND category != done AND due <= daysFromNow(7)', projects: [project] },
+  { id: 'trackers', kind: 'trackers', projects: [project] },
+  { id: 'mentions', kind: 'mentions' },
+];
+const builtinFor = (project?: string): Widget[] => (project ? projectWidgets(project) : HOME_WIDGETS);
 
 const titleOf = (hit: Hit) => String(hit.values['title'] ?? hit.values['name'] ?? '');
 const widgetTitle = (w: Widget) => w.title ?? fr.home.titles[w.id] ?? fr.home.kinds[w.kind] ?? w.id;
@@ -101,6 +110,25 @@ function ApprovalsBody() {
   );
 }
 
+function TrackersBody({ project }: { project: string }) {
+  const [trackers, setTrackers] = useState<TrackerOverview[] | null>(null);
+  useEffect(() => { api<{ trackers: TrackerOverview[] }>('GET', `/v1/projects/${project}/overview`).then((r) => setTrackers(Array.isArray(r.trackers) ? r.trackers : [])).catch(() => setTrackers([])); }, [project]);
+  if (trackers === null) return <p role="status">{fr.loading}</p>;
+  return (
+    <div className="ath-stack">
+      <Rows empty={fr.home.noTracker}>
+        {trackers.map((t) => (
+          <li key={t.key} className="ath-row">
+            <Link className="ath-link ath-mono" to={`/p/${project}/t/${t.key}/tableau`}>{t.key}</Link>
+            <span className="ath-mono">{t.statuses.filter((s) => s.category !== 'done').reduce((n, s) => n + s.count, 0)} {fr.overview.open} / {t.artifacts}</span>
+          </li>
+        ))}
+      </Rows>
+      <Link className="ath-link" to={`/p/${project}/trackers`}>{fr.overview.openTrackers}</Link>
+    </div>
+  );
+}
+
 function PinsBody({ kind }: { kind: 'favorites' | 'recents' }) {
   const pins = usePins();
   const list = (kind === 'favorites' ? pins.favorites : pins.recents).slice(0, 5);
@@ -112,6 +140,7 @@ function Body({ widget }: { widget: Widget }) {
     case 'search': return <SearchBody widget={widget} />;
     case 'mentions': return <MentionsBody />;
     case 'approvals': return <ApprovalsBody />;
+    case 'trackers': return <TrackersBody project={widget.projects?.[0] ?? ''} />;
     default: return <PinsBody kind={widget.kind} />;
   }
 }
@@ -121,7 +150,7 @@ function Body({ widget }: { widget: Widget }) {
  * commandes : monter, descendre, masquer, dupliquer (recherches), ajouter une vue enregistrée ou un widget masqué, réinitialiser.
  * Chaque changement est enregistré aussitôt ; la disposition est propre à la personne.
  */
-export function Dashboard() {
+export function Dashboard({ project }: { project?: string } = {}) {
   const fail = useFailure();
   const toast = useToast();
   const confirm = useConfirm();
@@ -129,13 +158,15 @@ export function Dashboard() {
   const [editing, setEditing] = useState(false);
   const [views, setViews] = useState<SavedSearch[]>([]);
   const [choice, setChoice] = useState('');
+  const BUILTIN = builtinFor(project);
+  const endpoint = `/v1/me/dashboard${project ? `?project=${project}` : ''}`;
 
-  useEffect(() => { api<Layout>('GET', '/v1/me/dashboard').then((r) => setLayout(Array.isArray(r?.widgets) ? r : { widgets: BUILTIN, isDefault: true })).catch((e) => { setLayout({ widgets: BUILTIN, isDefault: true }); fail(e); }); }, [fail]);
+  useEffect(() => { api<Layout>('GET', endpoint).then((r) => setLayout(Array.isArray(r?.widgets) ? r : { widgets: builtinFor(project), isDefault: true })).catch((e) => { setLayout({ widgets: builtinFor(project), isDefault: true }); fail(e); }); }, [fail, endpoint, project]);
   useEffect(() => { if (editing) api<SavedSearch[]>('GET', '/v1/searches').then((r) => setViews(Array.isArray(r) ? r : [])).catch(() => setViews([])); }, [editing]);
 
   const save = useCallback(async (widgets: Widget[]) => {
-    try { setLayout(await api<Layout>('PUT', '/v1/me/dashboard', { widgets })); } catch (error) { fail(error); }
-  }, [fail]);
+    try { setLayout(await api<Layout>('PUT', endpoint, { widgets })); } catch (error) { fail(error); }
+  }, [fail, endpoint]);
 
   if (layout === null) return <p role="status">{fr.loading}</p>;
   const { widgets } = layout;
@@ -152,7 +183,7 @@ export function Dashboard() {
   const add = async () => {
     const view = views.find((v) => `view:${v.id}` === choice);
     const builtin = missing.find((b) => `builtin:${b.id}` === choice);
-    if (view) await save([...widgets, { id: `v-${view.id.slice(0, 8)}-${Date.now().toString(36)}`, kind: 'search', title: view.name, query: view.query, ...(view.projects.length ? { projects: view.projects } : {}) }]);
+    if (view) await save([...widgets, { id: `v-${view.id.slice(0, 8)}-${Date.now().toString(36)}`, kind: 'search', title: view.name, query: view.query, ...(project ? { projects: [project] } : view.projects.length ? { projects: view.projects } : {}) }]);
     else if (builtin) await save([...widgets, builtin]);
     else return;
     setChoice('');
@@ -160,11 +191,11 @@ export function Dashboard() {
   };
   const reset = async () => {
     if (!(await confirm.ask({ title: fr.home.resetTitle, body: fr.home.resetBody, confirm: fr.home.reset }))) return;
-    try { await api('DELETE', '/v1/me/dashboard'); setLayout(await api<Layout>('GET', '/v1/me/dashboard')); toast('success', fr.home.resetDone); } catch (error) { fail(error); }
+    try { await api('DELETE', endpoint); setLayout(await api<Layout>('GET', endpoint)); toast('success', fr.home.resetDone); } catch (error) { fail(error); }
   };
 
   return (
-    <section aria-label={fr.home.label} className="ath-stack">
+    <section aria-label={project ? fr.home.projectLabel : fr.home.label} className="ath-stack">
       <div className="ath-toolbar">
         <Btn variant="ghost" size="sm" aria-pressed={editing} onClick={() => setEditing(!editing)}>{editing ? fr.home.done : fr.home.customize}</Btn>
         {editing && (

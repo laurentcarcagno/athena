@@ -12,6 +12,7 @@ async function login(page: Page, username: string, password: string) {
 // Critère du lot 1 : tout item s'atteint en au plus 3 actions, sans écrire de requête ATQL.
 test('Projets, tracker, item : trois actions, puis retour au projet par le fil d’Ariane', async ({ page }) => {
   await login(page, 'user.dev', 'dev-only-user');
+  await page.goto('/projets'); // T-0123 : « / » est Mon travail
   await expect(page.getByText('Ariane')).toBeVisible();
   await page.getByRole('link', { name: 'Ariane', exact: true }).click(); // 1 : le projet (les trackers de la page Projets sont repliés depuis le lot 8)
   await page.getByRole('group', { name: 'Projet ARI' }).getByRole('button', { name: /^BUG · / }).click(); // 2 : le tracker, au rail (ADR-0003)
@@ -69,7 +70,7 @@ test.describe('téléphone (375 px) : tiroir du rail', () => {
     await expect(rail).toBeHidden();
     await page.getByRole('button', { name: 'Menu' }).click();
     await rail.getByRole('button', { name: 'Projets' }).click();
-    await expect(page).toHaveURL(/\/$/);
+    await expect(page).toHaveURL(/\/projets$/);
     await expect(rail).toBeHidden();
     expect(await noOverflow()).toBe(true);
   });

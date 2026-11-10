@@ -69,7 +69,7 @@ describe('F-04 et F-12 : lien d’évitement et aide', () => {
   });
   it('l’aide est dans la navigation et liste les raccourcis', async () => {
     app('/help');
-    expect(screen.getByRole('button', { name: 'Aide' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Aide' })).toHaveAttribute('href', '/help'); // T-0123 : l'aide est au bas du rail, avec le profil
     expect((await screen.findAllByText('Ctrl+K')).length).toBeGreaterThan(0);
     expect(screen.getByText('status = in_progress')).toBeInTheDocument();
   });

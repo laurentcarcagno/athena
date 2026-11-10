@@ -28,6 +28,7 @@ test('circuit d’approbation : défini sur le tracker, décision nominative con
   const api = 'http://127.0.0.1:3001/v1';
 
   await login(page, 'user.dev', 'dev-only-user');
+  await page.goto('/projets'); // T-0123 : « / » est Mon travail
   await expect(page.getByText('Ariane')).toBeVisible(); // la liste des projets est chargée : le compte est enregistré côté serveur
   const users = (await (await request.get(`${api}/users`, { headers })).json()) as Array<{ subject: string; username: string }>;
   const reviewer = users.find((u) => u.username === 'user.dev')!.subject;

@@ -37,7 +37,7 @@ test('aucune requête ne sort de l’origine sur les pages principales', async (
   // aucun autre hôte, pas même local.
   const origins = new Set<string>();
   page.on('request', (request) => { const u = new URL(request.url()); if (!['data:', 'blob:', 'about:'].includes(u.protocol)) origins.add(u.origin); });
-  for (const path of ['/', '/p/ARI', '/p/ARI/trackers', '/p/ARI/rapports/tracabilite', '/p/ARI/planification', '/p/ARI/rapports/activite', '/p/ARI/membres', '/p/ARI/recherche', '/org', '/aide']) {
+  for (const path of ['/', '/p/ARI', '/p/ARI/trackers', '/p/ARI/rapports/tracabilite', '/p/ARI/planification', '/p/ARI/rapports/activite', '/p/ARI/membres', '/p/ARI/recherche', '/org', '/aide', '/projets', '/profil', '/notifications']) {
     await page.goto(path);
     await page.waitForLoadState('networkidle');
     await expect(page.locator('main, [role="main"], #root').first()).toBeVisible();

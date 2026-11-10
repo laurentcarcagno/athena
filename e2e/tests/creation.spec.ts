@@ -26,7 +26,7 @@ test('écran Tracker : « + Nouvel item » crée dans ce tracker, la liste reste
 
 test('« Créer » depuis Mon travail : projet puis tracker, on reste sur Mon travail, le message ouvre le ticket', async ({ page }) => {
   await login(page, 'user.dev', 'dev-only-user');
-  await page.goto('/me');
+  await page.goto('/');
   await page.getByRole('button', { name: 'Créer un ticket' }).click();
   const form = page.getByRole('dialog', { name: 'Nouvel artefact' });
   await form.getByLabel('Projet').selectOption('ARI');
@@ -35,7 +35,7 @@ test('« Créer » depuis Mon travail : projet puis tracker, on reste sur Mon tr
   await form.getByRole('button', { name: 'Créer' }).click();
   const open = page.getByRole('button', { name: /^Ouvrir ARI-BUG-\d{4}$/ });
   await expect(open).toBeVisible();
-  await expect(page).toHaveURL(/\/me$/);
+  await expect(page).toHaveURL(/\/$/);
   const key = (await open.textContent())!.replace('Ouvrir ', '');
   await open.click();
   await expect(page).toHaveURL(new RegExp(`/p/ARI/a/${key}$`));

@@ -26,8 +26,8 @@ const background = (page: Page) => page.evaluate(() => getComputedStyle(document
 
 /** Pages représentatives : liste, tableau de tracker, fiche item avec ses onglets, circuit d'approbation, Mon travail. */
 const PAGES: Array<[string, string]> = [
-  ['projets', '/'],
-  ['mon travail', '/me'],
+  ['projets', '/projets'],
+  ['mon travail', '/'],
   ['vue d’ensemble', '/p/ARI'],
   ['tracker (tableau)', '/p/ARI/t/BUG/tableau'],
   ['fiche item', '/p/ARI/a/ARI-BUG-0001'],
@@ -36,6 +36,7 @@ const PAGES: Array<[string, string]> = [
 
 test('thème sombre : bascule au clavier, mémorisée, système respecté, axe (contraste compris) dans les deux thèmes', async ({ page }, testInfo) => {
   await login(page, 'admin.dev', 'dev-only-admin');
+  await page.goto('/projets'); // T-0123 : « / » est Mon travail
   await expect(page.getByText('Ariane')).toBeVisible();
 
   // Par défaut : système. Navigateur en clair, puis en sombre, sans rien toucher.

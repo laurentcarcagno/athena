@@ -42,12 +42,13 @@ const frDict = {
     deleteTitle: (name: string) => `Supprimer la vue « ${name} » ?`, deleteBody: 'La vue disparaît de vos vues enregistrées ; les tickets ne changent pas.',
     empty: 'Aucun ticket ne correspond.', origin: 'Recherche globale',
   },
+  profile: { eyebrow: 'Mon compte', title: 'Profil', display: 'Affichage', language: 'Langue', theme: 'Thème', home: 'Page d’accueil', notifications: 'Notifications' },
   home: {
-    label: 'Tableau de bord', customize: 'Personnaliser', done: 'Terminer', addLabel: 'Ajouter un widget', choose: 'Choisir…', add: 'Ajouter', added: 'Widget ajouté.',
+    label: 'Tableau de bord', projectLabel: 'Tableau de bord du projet', noTracker: 'Aucun tracker.', customize: 'Personnaliser', done: 'Terminer', addLabel: 'Ajouter un widget', choose: 'Choisir…', add: 'Ajouter', added: 'Widget ajouté.',
     reset: 'Réinitialiser', resetTitle: 'Réinitialiser le tableau de bord ?', resetBody: 'Votre disposition est remplacée par la disposition par défaut ; vos vues enregistrées ne changent pas.', resetDone: 'Disposition par défaut rétablie.',
     up: 'Monter', down: 'Descendre', duplicate: 'Dupliquer', hide: 'Masquer', copyOf: (t: string) => `${t} (copie)`, seeAll: 'Tout voir', empty: 'Aucun ticket.', noApprovals: 'Rien à approuver.', noWidget: 'Aucun widget : ajoutez-en depuis Personnaliser.',
-    titles: { assigned: 'Mes tickets', approvals: 'À approuver', mentions: 'Mentions', due: 'Échéances de la semaine', favorites: 'Projets favoris', recents: 'Récents' } as Record<string, string>,
-    kinds: { search: 'Recherche', mentions: 'Mentions', approvals: 'À approuver', favorites: 'Favoris', recents: 'Récents' } as Record<string, string>,
+    titles: { assigned: 'Mes tickets', approvals: 'À approuver', mentions: 'Mentions', due: 'Échéances de la semaine', favorites: 'Projets favoris', recents: 'Récents', trackers: 'Trackers' } as Record<string, string>,
+    kinds: { trackers: 'Trackers', search: 'Recherche', mentions: 'Mentions', approvals: 'À approuver', favorites: 'Favoris', recents: 'Récents' } as Record<string, string>,
   },
   reports: {
     title: 'Rapports', nav: 'Rapports du projet',
@@ -433,12 +434,13 @@ const enDict: Dictionary = {
     deleteTitle: (name: string) => `Delete view “${name}”?`, deleteBody: 'The view leaves your saved views; tickets are unchanged.',
     empty: 'No ticket matches.', origin: 'Global search',
   },
+  profile: { eyebrow: 'My account', title: 'Profile', display: 'Display', language: 'Language', theme: 'Theme', home: 'Home page', notifications: 'Notifications' },
   home: {
-    label: 'Dashboard', customize: 'Customize', done: 'Done', addLabel: 'Add a widget', choose: 'Choose…', add: 'Add', added: 'Widget added.',
+    label: 'Dashboard', projectLabel: 'Project dashboard', noTracker: 'No tracker.', customize: 'Customize', done: 'Done', addLabel: 'Add a widget', choose: 'Choose…', add: 'Add', added: 'Widget added.',
     reset: 'Reset', resetTitle: 'Reset the dashboard?', resetBody: 'Your layout is replaced by the default one; your saved views do not change.', resetDone: 'Default layout restored.',
     up: 'Move up', down: 'Move down', duplicate: 'Duplicate', hide: 'Hide', copyOf: (t: string) => `${t} (copy)`, seeAll: 'See all', empty: 'No ticket.', noApprovals: 'Nothing to approve.', noWidget: 'No widget: add one from Customize.',
-    titles: { assigned: 'My tickets', approvals: 'To approve', mentions: 'Mentions', due: 'Due this week', favorites: 'Favorite projects', recents: 'Recent' } as Record<string, string>,
-    kinds: { search: 'Search', mentions: 'Mentions', approvals: 'To approve', favorites: 'Favorites', recents: 'Recent' } as Record<string, string>,
+    titles: { assigned: 'My tickets', approvals: 'To approve', mentions: 'Mentions', due: 'Due this week', favorites: 'Favorite projects', recents: 'Recent', trackers: 'Trackers' } as Record<string, string>,
+    kinds: { trackers: 'Trackers', search: 'Search', mentions: 'Mentions', approvals: 'To approve', favorites: 'Favorites', recents: 'Recent' } as Record<string, string>,
   },
   reports: {
     title: 'Reports', nav: 'Project reports',

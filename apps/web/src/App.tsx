@@ -1,7 +1,7 @@
 import { ProtectionBanner } from './components/ProtectionBanner';
 import { setProtectionLevel } from './lib/protection';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { BrowserRouter, Link, Navigate, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Btn, EmptyState, PageHeader, Sidebar, ToastProvider } from '@athena/ui';
 import { loadSession, loginUrl, logout, type Session } from './api';
 import { Breadcrumb } from './components/Breadcrumb';
@@ -19,9 +19,11 @@ import { BacklogPage } from './pages/BacklogPage';
 import { RoadmapPage } from './pages/RoadmapPage';
 import { GlobalSearchPage } from './pages/GlobalSearchPage';
 import { ListPage } from './pages/ListPage';
-import { MyWorkPage } from './pages/MyWorkPage';
 import { HelpPage } from './pages/HelpPage';
 import { OrgAdminPage } from './pages/OrgAdminPage';
+import { HomeRoute } from './pages/HomeRoute';
+import { NotificationsPage } from './pages/NotificationsPage';
+import { ProfilePage } from './pages/ProfilePage';
 import { ReportsPage } from './pages/ReportsPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { ProjectsPage } from './pages/ProjectsPage';
@@ -56,6 +58,14 @@ function LogoutIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="square" aria-hidden="true"><path d="M9 3H4v18h5" /><path d="M16 7l5 5-5 5" /><path d="M21 12H9" /></svg>
   );
+}
+
+function ProfileIcon() {
+  return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="square" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M4 21v-3h16v3" /></svg>;
+}
+
+function HelpIcon() {
+  return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="square" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7" /><path d="M12 17v.5" /></svg>;
 }
 
 function Shell({ session, children }: { session: Session; children: ReactNode }) {
@@ -104,6 +114,8 @@ function Shell({ session, children }: { session: Session; children: ReactNode })
           <button type="button" className="ath-iconbtn ath-collapse-btn" onClick={toggleRail} aria-expanded={!collapsed} aria-label={collapsed ? fr.rail.expand : fr.rail.collapse} title={collapsed ? fr.rail.expand : fr.rail.collapse}>{collapsed ? '»' : '«'}</button>
           <ThemeToggle />
           <button type="button" className="ath-iconbtn" onClick={() => setLocale(other)} aria-label={fr.language} title={fr.language}><Flag locale={other} /></button>
+          <Link className="ath-iconbtn" to="/profil" aria-label={fr.profile.title} title={fr.profile.title}><ProfileIcon /></Link>
+          <Link className="ath-iconbtn" to="/help" aria-label={fr.nav.help} title={fr.nav.help}><HelpIcon /></Link>
           <button type="button" className="ath-iconbtn" onClick={out} aria-label={fr.nav.logout} title={fr.nav.logout}><LogoutIcon /></button>
         </>} />
       <main id="contenu" ref={mainRef} tabIndex={-1} className="ath-page__main">
@@ -152,9 +164,13 @@ export function AuthenticatedApp({ session }: { session: Session }) {
     <PinsProvider>
     <Shell session={session}>
       <Routes>
-        <Route path="/" element={<ProjectsPage session={session} />} />
-        <Route path="/me" element={<MyWorkPage session={session} />} />
-        <Route path="/org" element={<OrgAdminPage session={session} />} />
+        <Route path="/" element={<HomeRoute session={session} />} />
+        <Route path="/projets" element={<ProjectsPage session={session} />} />
+        <Route path="/profil" element={<ProfilePage session={session} />} />
+        <Route path="/notifications" element={<NotificationsPage />} />
+        <Route path="/admin" element={<OrgAdminPage session={session} />} />
+        <Route path="/me" element={<Navigate replace to="/" />} />
+        <Route path="/org" element={<Navigate replace to="/admin" />} />
         <Route path="/help" element={<HelpPage />} />
         <Route path="/recherche" element={<GlobalSearchPage session={session} />} />
         {/* Toutes les adresses d'un projet ont le même parent : la navigation du projet reste au rail (ADR-0003). */}

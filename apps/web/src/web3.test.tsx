@@ -61,7 +61,7 @@ describe('fenêtres par rôle', () => {
   it('l’administrateur voit Organisation et les Paramètres du projet', () => {
     routes.push(['GET', /\/v1\/projects$/, []]);
     app('/p/ARI', ['athena-user', 'athena-admin']);
-    expect(nav()).toEqual(expect.arrayContaining(['Organisation', 'Paramètres']));
+    expect(nav()).toEqual(expect.arrayContaining(['Administration', 'Paramètres']));
   });
 
   it('refuse la gestion de projet à un simple utilisateur', () => {
