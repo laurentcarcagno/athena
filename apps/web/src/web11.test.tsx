@@ -85,7 +85,7 @@ describe('rail contextuel', () => {
       // ADR-0003 : la navigation du projet est au rail ; Planification et Membres, réservés, n’apparaissent pas pour un simple membre
       'Vue d’ensemble', 'Backlog', 'Board', 'Trackers',
       'BUG · Anomalies', 'Bloquants', 'REQ · Exigences', // la vue partagée apparaît sous le tracker ouvert ; la vue personnelle n’y figure pas
-      'Roadmap', 'Code et intégration', 'Recherche',
+      'Roadmap', 'Rapports', 'Recherche',
     ]);
     expect(within(rail()).getByRole('button', { name: 'BUG · Anomalies' })).toHaveAttribute('aria-current', 'page');
   });

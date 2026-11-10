@@ -33,22 +33,22 @@ const picker = () => screen.findByRole('navigation', { name: 'Sections du projet
 
 describe('sélecteur de section du projet', () => {
   it('annonce le projet et la section courante, et liste les sections visibles en liens', async () => {
-    app('/p/ARI/activite');
+    app('/p/ARI/rapports/activite');
     const nav = within(await picker());
-    const toggle = await nav.findByRole('button', { name: /ARI · Activité/ });
+    const toggle = await nav.findByRole('button', { name: /ARI · Rapports/ });
     expect(toggle).toHaveAttribute('aria-expanded', 'false');
     await userEvent.click(toggle);
     expect(toggle).toHaveAttribute('aria-expanded', 'true');
     // Simple membre : Planification et Membres, réservés, n'y figurent pas (même source que le rail)
-    expect(nav.getAllByRole('link').map((l) => l.textContent)).toEqual(['Vue d’ensemble', 'Backlog', 'Board', 'Trackers', 'Roadmap', 'Activité', 'Recherche']);
-    expect(nav.getByRole('link', { name: 'Activité' })).toHaveAttribute('aria-current', 'page');
+    expect(nav.getAllByRole('link').map((l) => l.textContent)).toEqual(['Vue d’ensemble', 'Backlog', 'Board', 'Trackers', 'Roadmap', 'Rapports', 'Recherche']);
+    expect(nav.getByRole('link', { name: 'Rapports' })).toHaveAttribute('aria-current', 'page');
     expect(nav.getByRole('link', { name: 'Trackers' })).toHaveAttribute('href', '/p/ARI/trackers');
   });
 
   it('mène à la section choisie et se referme', async () => {
-    app('/p/ARI/activite');
+    app('/p/ARI/rapports/activite');
     const nav = within(await picker());
-    await userEvent.click(await nav.findByRole('button', { name: /ARI · Activité/ }));
+    await userEvent.click(await nav.findByRole('button', { name: /ARI · Rapports/ }));
     await userEvent.click(nav.getByRole('link', { name: 'Vue d’ensemble' }));
     expect(await screen.findByRole('heading', { level: 1, name: 'Vue d’ensemble · ARI' })).toBeInTheDocument();
     expect(await nav.findByRole('button', { name: /ARI · Vue d’ensemble/ })).toHaveAttribute('aria-expanded', 'false');

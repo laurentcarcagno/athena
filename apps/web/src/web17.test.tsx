@@ -43,7 +43,7 @@ describe('onglet Conformité', () => {
   it('s’ouvre depuis la rubrique du projet au rail et montre le taux, les preuves et les clauses non applicables justifiées', async () => {
     app(user);
     expect(await screen.findByText('50 % de clauses applicables couvertes')).toBeInTheDocument();
-    await waitFor(() => expect(within(screen.getByRole('group', { name: /^Projet / })).getByRole('button', { name: 'Conformité' })).toHaveAttribute('aria-current', 'page'));
+    await waitFor(() => expect(within(screen.getByRole('group', { name: /^Projet / })).getByRole('button', { name: 'Rapports' })).toHaveAttribute('aria-current', 'page'));
     expect(screen.getByText('2 applicables, 1 couvertes, 1 non applicables, 0 modifiées')).toBeInTheDocument();
     const row = screen.getByRole('link', { name: '5.1' }).closest('tr')!;
     expect(within(row).getByRole('link', { name: 'SAT-PRO-0001' })).toHaveAttribute('href', '/p/SAT/a/SAT-PRO-0001');

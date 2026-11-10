@@ -26,7 +26,7 @@ async function login(page: Page, username: string, password: string) {
 /** Toutes les pages de l'application (T-0096) : routes, onglets d'un projet et d'une fiche, page introuvable. */
 const ROUTES = [
   '/', '/me', '/org', '/help', '/recherche',
-  '/p/ARI', '/p/ARI/trackers', '/p/ARI/planification', '/p/ARI/tracabilite', '/p/ARI/conformite', '/p/ARI/documents', '/p/ARI/code', '/p/ARI/activite', '/p/ARI/membres', '/p/ARI/recherche', '/p/ARI/backlog', '/p/ARI/roadmap',
+  '/p/ARI', '/p/ARI/trackers', '/p/ARI/planification', '/p/ARI/tracabilite', '/p/ARI/conformite', '/p/ARI/documents', '/p/ARI/code', '/p/ARI/activite', '/p/ARI/rapports/avancement', '/p/ARI/rapports/tracabilite', '/p/ARI/rapports/conformite', '/p/ARI/rapports/livraison', '/p/ARI/rapports/activite', '/p/ARI/membres', '/p/ARI/recherche', '/p/ARI/backlog', '/p/ARI/roadmap',
   '/p/ARI/t/BUG/tableau', '/p/ARI/t/BUG/board', '/p/ARI/t/BUG/arbre', '/p/ARI/t/BUG/matrice',
   '/p/ARI/a/ARI-BUG-0001', '/p/ARI/admin', '/p/ARI/trackers/BUG/config', '/p/ARI/trackers/new',
   '/p/ARI/parametres/membres', '/p/ARI/parametres/trackers', '/p/ARI/parametres/boards', '/p/ARI/parametres/automatisations', '/p/ARI/parametres/baselines', '/p/ARI/parametres/approbations',

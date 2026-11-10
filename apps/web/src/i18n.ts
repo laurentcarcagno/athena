@@ -42,6 +42,10 @@ const frDict = {
     deleteTitle: (name: string) => `Supprimer la vue « ${name} » ?`, deleteBody: 'La vue disparaît de vos vues enregistrées ; les tickets ne changent pas.',
     empty: 'Aucun ticket ne correspond.', origin: 'Recherche globale',
   },
+  reports: {
+    title: 'Rapports', nav: 'Rapports du projet',
+    names: { avancement: 'Avancement', tracabilite: 'Traçabilité', conformite: 'Conformité', livraison: 'Livraison', activite: 'Activité' } as Record<string, string>,
+  },
   settings: {
     title: 'Paramètres', nav: 'Sections des paramètres', restricted: 'Réservé aux administrateurs, aux chefs de projet et à l’assurance qualité.',
     sections: { membres: 'Membres', trackers: 'Trackers', boards: 'Boards', automatisations: 'Automatisations', baselines: 'Baselines', approbations: 'Approbations' } as Record<string, string>,
@@ -107,7 +111,7 @@ const frDict = {
   },
   project: {
     navLabel: (p: string) => `Projet ${p}`,
-    tabs: { overview: 'Vue d’ensemble', backlog: 'Backlog', board: 'Board', trackers: 'Trackers', roadmap: 'Roadmap', settings: 'Paramètres', planning: 'Planification', traceability: 'Traçabilité', conformity: 'Conformité', documents: 'Documents', code: 'Code et intégration', activity: 'Activité', members: 'Membres' },
+    tabs: { overview: 'Vue d’ensemble', backlog: 'Backlog', board: 'Board', trackers: 'Trackers', roadmap: 'Roadmap', reports: 'Rapports', settings: 'Paramètres', planning: 'Planification', traceability: 'Traçabilité', conformity: 'Conformité', documents: 'Documents', code: 'Code et intégration', activity: 'Activité', members: 'Membres' },
   },
   overview: {
     eyebrow: 'Projet', title: 'Vue d’ensemble', mine: 'À traiter par moi', noMine: 'Rien n’est assigné à votre nom.', allMine: 'Tout voir dans la Recherche', trackersTitle: 'Trackers', openTrackers: 'Voir les trackers',
@@ -422,6 +426,10 @@ const enDict: Dictionary = {
     deleteTitle: (name: string) => `Delete view “${name}”?`, deleteBody: 'The view leaves your saved views; tickets are unchanged.',
     empty: 'No ticket matches.', origin: 'Global search',
   },
+  reports: {
+    title: 'Reports', nav: 'Project reports',
+    names: { avancement: 'Progress', tracabilite: 'Traceability', conformite: 'Conformity', livraison: 'Delivery', activite: 'Activity' } as Record<string, string>,
+  },
   settings: {
     title: 'Settings', nav: 'Settings sections', restricted: 'Restricted to administrators, project managers and quality assurance.',
     sections: { membres: 'Members', trackers: 'Trackers', boards: 'Boards', automatisations: 'Automations', baselines: 'Baselines', approbations: 'Approvals' } as Record<string, string>,
@@ -487,7 +495,7 @@ const enDict: Dictionary = {
   },
   project: {
     navLabel: (p: string) => `Project ${p}`,
-    tabs: { overview: 'Overview', backlog: 'Backlog', board: 'Board', trackers: 'Trackers', roadmap: 'Roadmap', settings: 'Settings', planning: 'Planning', traceability: 'Traceability', conformity: 'Conformity', documents: 'Documents', code: 'Code and integration', activity: 'Activity', members: 'Members' },
+    tabs: { overview: 'Overview', backlog: 'Backlog', board: 'Board', trackers: 'Trackers', roadmap: 'Roadmap', reports: 'Reports', settings: 'Settings', planning: 'Planning', traceability: 'Traceability', conformity: 'Conformity', documents: 'Documents', code: 'Code and integration', activity: 'Activity', members: 'Members' },
   },
   overview: {
     eyebrow: 'Project', title: 'Overview', mine: 'Assigned to me', noMine: 'Nothing is assigned to you.', allMine: 'See all in Search', trackersTitle: 'Trackers', openTrackers: 'See the trackers',

@@ -62,7 +62,7 @@ describe('navigation du projet au rail (ADR-0003)', () => {
   it('liste les sections dans l’ordre fixe, l’entrée courante signalée, sans barre d’onglets', async () => {
     app('/p/ARI', ADMIN);
     await screen.findByRole('heading', { level: 1, name: 'Vue d’ensemble · ARI' });
-    await waitFor(() => expect(sectionNames()).toEqual(['Vue d’ensemble', 'Backlog', 'Board', 'Trackers', 'Roadmap', 'Traçabilité', 'Documents', 'Code et intégration', 'Activité', 'Recherche', 'Paramètres']));
+    await waitFor(() => expect(sectionNames()).toEqual(['Vue d’ensemble', 'Backlog', 'Board', 'Trackers', 'Roadmap', 'Rapports', 'Documents', 'Recherche', 'Paramètres']));
     expect(projectNav().getByRole('button', { name: 'Vue d’ensemble' })).toHaveAttribute('aria-current', 'page');
     expect(projectNav().getByRole('button', { name: 'Paramètres' })).not.toHaveAttribute('aria-current');
     expect(screen.queryByRole('navigation', { name: 'Projet ARI' })).not.toBeInTheDocument();
@@ -80,20 +80,20 @@ describe('navigation du projet au rail (ADR-0003)', () => {
     modules = ['overview', 'trackers', 'activity'];
     app('/p/ARI', ADMIN);
     await screen.findByRole('heading', { level: 1, name: 'Vue d’ensemble · ARI' });
-    await waitFor(() => expect(sectionNames()).toEqual(['Vue d’ensemble', 'Backlog', 'Board', 'Trackers', 'Roadmap', 'Activité', 'Recherche', 'Paramètres']));
+    await waitFor(() => expect(sectionNames()).toEqual(['Vue d’ensemble', 'Backlog', 'Board', 'Trackers', 'Roadmap', 'Rapports', 'Recherche', 'Paramètres']));
   });
 
   it('garde toutes les sections autorisées quand la liste des modules est indisponible', async () => {
     modules = 'error';
     app('/p/ARI', ADMIN);
     await screen.findByRole('heading', { level: 1, name: 'Vue d’ensemble · ARI' });
-    await waitFor(() => expect(sectionNames()).toEqual(['Vue d’ensemble', 'Backlog', 'Board', 'Trackers', 'Roadmap', 'Traçabilité', 'Conformité', 'Documents', 'Code et intégration', 'Activité', 'Recherche', 'Paramètres']));
+    await waitFor(() => expect(sectionNames()).toEqual(['Vue d’ensemble', 'Backlog', 'Board', 'Trackers', 'Roadmap', 'Rapports', 'Documents', 'Recherche', 'Paramètres']));
   });
 
   it('n’affiche aucune entrée menant à « Réservé » : ni Planification, ni Membres, ni Administration pour un simple membre', async () => {
     app('/p/ARI');
     await screen.findByRole('heading', { level: 1, name: 'Vue d’ensemble · ARI' });
-    await waitFor(() => expect(sectionNames()).toEqual(['Vue d’ensemble', 'Backlog', 'Board', 'Trackers', 'Roadmap', 'Traçabilité', 'Documents', 'Code et intégration', 'Activité', 'Recherche']));
+    await waitFor(() => expect(sectionNames()).toEqual(['Vue d’ensemble', 'Backlog', 'Board', 'Trackers', 'Roadmap', 'Rapports', 'Documents', 'Recherche']));
   });
 
   it('reste affichée sur toutes les adresses du projet, l’entrée courante comprise', async () => {
@@ -221,6 +221,23 @@ describe('Paramètres (Membres) et Code', () => {
     const row = (await screen.findByText('Taux d’échec')).closest('tr')!;
     expect(within(row).getByText('25 %')).toBeInTheDocument();
     expect(within(screen.getByText('Rétablissement (h)').closest('tr')!).getByText('—')).toBeInTheDocument();
+  });
+});
+
+describe('Rapports (T-0121)', () => {
+  const reportNav = () => within(screen.getByRole('navigation', { name: 'Rapports du projet' }));
+  it('regroupe les cinq rapports ; les anciennes adresses y mènent', async () => {
+    modules = 'error';
+    app('/p/ARI/code');
+    await screen.findByRole('heading', { level: 1, name: 'Code et intégration · ARI' });
+    expect(reportNav().getAllByRole('link').map((l) => l.textContent)).toEqual(['Avancement', 'Traçabilité', 'Conformité', 'Livraison', 'Activité']);
+    expect(reportNav().getByRole('link', { name: 'Livraison' })).toHaveAttribute('aria-current', 'page');
+  });
+  it('masque un rapport dont le module est inactif et renvoie au premier rapport affiché', async () => {
+    modules = ['overview', 'activity'];
+    app('/p/ARI/rapports/conformite');
+    await waitFor(() => expect(reportNav().getAllByRole('link').map((l) => l.textContent)).toEqual(['Avancement', 'Activité']));
+    expect(reportNav().getByRole('link', { name: 'Avancement' })).toHaveAttribute('aria-current', 'page');
   });
 });
 

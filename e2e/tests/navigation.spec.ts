@@ -102,9 +102,9 @@ test.describe('téléphone (390 px) : sélecteur de section et barre basse', () 
     expect(reserved).toBeGreaterThanOrEqual(barHeight);
     await picker.getByRole('button', { name: /ARI · Trackers/ }).click(); // 1
     for (const h of await heights(picker)) expect(h).toBeGreaterThanOrEqual(44);
-    await picker.getByRole('link', { name: 'Activité' }).click(); // 2
-    await expect(page).toHaveURL(/\/p\/ARI\/activite$/);
-    await expect(picker.getByRole('button', { name: /ARI · Activité/ })).toHaveAttribute('aria-expanded', 'false');
+    await picker.getByRole('link', { name: 'Rapports' }).click(); // 2
+    await expect(page).toHaveURL(/\/p\/ARI\/rapports\/avancement$/);
+    await expect(picker.getByRole('button', { name: /ARI · Rapports/ })).toHaveAttribute('aria-expanded', 'false');
     expect(await noOverflow()).toBe(true);
     await bar.getByRole('button', { name: 'Chercher' }).click();
     await expect(page.getByRole('combobox', { name: 'Aller à… ou rechercher un ticket (clé ou titre), tous projets' })).toBeFocused();

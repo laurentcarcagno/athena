@@ -44,7 +44,7 @@ describe('onglet Traçabilité', () => {
   it('s’ouvre depuis la rubrique du projet au rail et montre taux, niveau en texte, nombres cliquables et items en défaut', async () => {
     app(user);
     const section = (await screen.findByRole('heading', { name: /Exigences vérifiées/ })).closest('section')!;
-    await waitFor(() => expect(within(screen.getByRole('group', { name: /^Projet / })).getByRole('button', { name: 'Traçabilité' })).toHaveAttribute('aria-current', 'page'));
+    await waitFor(() => expect(within(screen.getByRole('group', { name: /^Projet / })).getByRole('button', { name: 'Rapports' })).toHaveAttribute('aria-current', 'page'));
     expect(within(section).getByText('50 %')).toBeInTheDocument();
     expect(within(section).getByText('Alerte')).toBeInTheDocument();
     expect(within(section).getByText('objectif 100 %, alerte 50 %')).toBeInTheDocument();

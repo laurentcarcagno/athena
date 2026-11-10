@@ -22,16 +22,13 @@ import { ListPage } from './pages/ListPage';
 import { MyWorkPage } from './pages/MyWorkPage';
 import { HelpPage } from './pages/HelpPage';
 import { OrgAdminPage } from './pages/OrgAdminPage';
+import { ReportsPage } from './pages/ReportsPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { ProjectsPage } from './pages/ProjectsPage';
 import { OverviewOrLegacySearch, ProjectLayout, ProjectSectionFrame } from './pages/project/ProjectShell';
 import { OverviewTab } from './pages/project/OverviewTab';
 import { TrackersTab } from './pages/project/TrackersTab';
-import { ConformityTab } from './pages/project/ConformityTab';
 import { DocumentsTab } from './pages/project/DocumentsTab';
-import { TraceabilityTab } from './pages/project/TraceabilityTab';
-import { ActivityTab } from './pages/project/ActivityTab';
-import { CodeTab } from './pages/project/CodeTab';
 import { TrackerScreen } from './pages/tracker/TrackerScreen';
 import { TrackerCreatePage } from './pages/TrackerCreatePage';
 
@@ -165,17 +162,19 @@ export function AuthenticatedApp({ session }: { session: Session }) {
           <Route element={<ProjectSectionFrame />}>
             <Route index element={<OverviewOrLegacySearch><OverviewTab session={session} /></OverviewOrLegacySearch>} />
             <Route path="trackers" element={<TrackersTab />} />
-            <Route path="tracabilite" element={<TraceabilityTab session={session} />} />
-            <Route path="conformite" element={<ConformityTab session={session} />} />
             <Route path="documents" element={<DocumentsTab />} />
             <Route path="documents/:doc" element={<DocumentsTab />} />
-            <Route path="code" element={<CodeTab />} />
-            <Route path="activite" element={<ActivityTab />} />
           </Route>
           <Route path="t/:tracker" element={<RedirectToView />} />
           <Route path="t/:tracker/:vue" element={<TrackerScreen session={session} />} />
           <Route path="recherche" element={<ListPage session={session} />} />
           {/* T-0120 : anciennes adresses de réglage, redirigées pour toujours vers Paramètres. */}
+          <Route path="rapports" element={<ReportsPage session={session} />} />
+          <Route path="rapports/:report" element={<ReportsPage session={session} />} />
+          <Route path="tracabilite" element={<RedirectTo to="rapports/tracabilite" />} />
+          <Route path="conformite" element={<RedirectTo to="rapports/conformite" />} />
+          <Route path="code" element={<RedirectTo to="rapports/livraison" />} />
+          <Route path="activite" element={<RedirectTo to="rapports/activite" />} />
           <Route path="manage" element={<RedirectTo to="parametres" />} />
           <Route path="planification" element={<RedirectTo to="parametres" />} />
           <Route path="membres" element={<RedirectTo to="parametres/membres" />} />

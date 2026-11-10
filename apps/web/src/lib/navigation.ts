@@ -7,7 +7,7 @@
 /** Module de projet calculé par le serveur (`GET /v1/projects/:p/modules`). */
 export type ModuleId = 'overview' | 'trackers' | 'planning' | 'traceability' | 'conformity' | 'documents' | 'code' | 'activity' | 'members';
 
-export type ProjectSectionId = ModuleId | 'backlog' | 'board' | 'roadmap' | 'search' | 'settings';
+export type ProjectSectionId = ModuleId | 'backlog' | 'board' | 'roadmap' | 'reports' | 'search' | 'settings';
 
 /** Qui voit la section : tout le monde, ou les seuls porteurs de l'un des rôles. */
 export type Access = { kind: 'everyone' } | { kind: 'roles'; roles: readonly string[] };
@@ -31,15 +31,25 @@ export const PROJECT_SECTIONS: readonly ProjectSection[] = [
   { id: 'board', path: 'board', gated: false, access: EVERYONE }, // T-0114 : boards du projet et des trackers
   { id: 'trackers', path: 'trackers', gated: true, access: EVERYONE },
   { id: 'roadmap', path: 'roadmap', gated: false, access: EVERYONE }, // T-0117 : versions, avancement, publication
-  { id: 'traceability', path: 'tracabilite', gated: true, access: EVERYONE },
-  { id: 'conformity', path: 'conformite', gated: true, access: EVERYONE },
+  { id: 'reports', path: 'rapports', gated: false, access: EVERYONE }, // T-0121 : avancement, traçabilité, conformité, livraison, activité
   { id: 'documents', path: 'documents', gated: true, access: EVERYONE },
-  { id: 'code', path: 'code', gated: true, access: EVERYONE },
-  { id: 'activity', path: 'activite', gated: true, access: EVERYONE },
   { id: 'search', path: 'recherche', gated: false, access: EVERYONE },
   // T-0120 : Membres, Planification et l'ancienne Administration du projet y sont regroupés ; l'assurance qualité y trouve les approbations.
   { id: 'settings', path: 'parametres', gated: false, access: { kind: 'roles', roles: ['athena-admin', 'athena-pm', 'athena-qa'] } },
 ];
+
+export type ReportId = 'avancement' | 'tracabilite' | 'conformite' | 'livraison' | 'activite';
+
+/** Rapports du projet (ADR-0003 § 2) : `/p/:p/rapports/:r`, dans cet ordre. `module` : le rapport n'existe que si le serveur déclare ce module actif. */
+export const REPORTS: ReadonlyArray<{ id: ReportId; module: ModuleId | null }> = [
+  { id: 'avancement', module: null },
+  { id: 'tracabilite', module: 'traceability' },
+  { id: 'conformite', module: 'conformity' },
+  { id: 'livraison', module: 'code' },
+  { id: 'activite', module: 'activity' },
+];
+/** Rapports affichés ; `modules` vaut null tant que la liste n'est pas connue : tous restent alors visibles. */
+export const visibleReports = (modules: readonly string[] | null) => REPORTS.filter((r) => r.module === null || modules === null || modules.includes(r.module));
 
 export type SettingsId = 'membres' | 'trackers' | 'boards' | 'automatisations' | 'baselines' | 'approbations';
 const ADMIN: Access = { kind: 'roles', roles: ['athena-admin'] };
@@ -72,7 +82,7 @@ export const sectionHref = (project: string, section: ProjectSection): string =>
 const CANONICAL_KEY = /^[A-Z][A-Z0-9]{1,9}-([A-Z][A-Z0-9]{1,9})-\d{4,9}$/;
 
 /** Anciennes adresses qui pointent vers une section (redirigées dans `App.tsx`). */
-const ALIASES: Readonly<Record<string, ProjectSectionId>> = { manage: 'settings', planification: 'settings', membres: 'settings', admin: 'settings', dashboard: 'overview' };
+const ALIASES: Readonly<Record<string, ProjectSectionId>> = { manage: 'settings', planification: 'settings', membres: 'settings', admin: 'settings', dashboard: 'overview', tracabilite: 'reports', conformite: 'reports', code: 'reports', activite: 'reports' };
 
 export interface Place { project: string; section: ProjectSectionId | null; tracker: string | null }
 
@@ -90,6 +100,7 @@ export function placeOf(pathname: string): Place | null {
   if (head === 'trackers' && second && second !== 'new' && third === 'config') return { project, section: 'trackers', tracker: second };
   if (head === 'parametres' && second === 'trackers' && third) return { project, section: 'trackers', tracker: third };
   if (head === 'a' && second) return { project, section: 'trackers', tracker: CANONICAL_KEY.exec(second)?.[1] ?? null };
+  if (head === 'rapports') return { project, section: 'reports', tracker: null };
   if (head === 'board') return { project, section: 'board', tracker: null };
   const section = PROJECT_SECTIONS.find((s) => s.path === head)?.id ?? ALIASES[head] ?? null;
   return { project, section, tracker: null };
