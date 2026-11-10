@@ -11,7 +11,7 @@ export interface FieldSpec {
   type: string;
   config?: Record<string, unknown>;
   required?: boolean;
-  semanticRole?: 'title' | 'description' | 'status' | 'assignee' | 'due_date' | 'estimate';
+  semanticRole?: 'title' | 'description' | 'status' | 'assignee' | 'due_date' | 'estimate' | 'priority' | 'version';
   /** Rôles autorisés à lire / écrire ce champ (absent = tous). `athena-admin` passe toujours. */
   readRoles?: string[];
   writeRoles?: string[];

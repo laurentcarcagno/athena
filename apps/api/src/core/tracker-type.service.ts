@@ -11,7 +11,7 @@ export const BaseFieldSchema = z.object({
   type: z.string().min(1).max(40),
   required: z.boolean().optional(),
   config: z.record(z.string(), z.unknown()).optional(),
-  semanticRole: z.enum(['title', 'description', 'status', 'assignee', 'due_date', 'estimate']).optional(),
+  semanticRole: z.enum(['title', 'description', 'status', 'assignee', 'due_date', 'estimate', 'priority', 'version']).optional(),
 });
 
 export const TrackerTypeInput = z.object({

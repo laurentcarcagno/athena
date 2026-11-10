@@ -113,6 +113,13 @@ export class AgileController {
     return this.sprints.get((await this.ctx(request)).organizationId, id);
   }
 
+  /** Sprint en cours ou planifié du ticket (en-tête de la fiche) ; `null` s'il n'est dans aucun. */
+  @Roles('athena-user', 'athena-admin')
+  @Get('artifacts/:key/sprint')
+  async itemSprint(@Req() request: AuthedRequest, @Param('project') project: string, @Param('key') key: string) {
+    return { sprint: await this.sprints.ofItem((await this.ctx(request)).organizationId, project, key) };
+  }
+
   // --- Pilotage : vélocité, flux, roadmap, tableau de bord ---
   @Roles('athena-user', 'athena-admin')
   @Get('velocity')

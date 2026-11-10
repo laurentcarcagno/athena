@@ -50,6 +50,20 @@ export class SprintService {
     });
   }
 
+  /** Sprint non clos d'un ticket (au plus un : voir `addItem`), ou `null`. */
+  async ofItem(organizationId: string, projectKey: string, artifactKey: string): Promise<{ id: string; name: string; state: string } | null> {
+    return this.db.tx(organizationId, async (c) => {
+      const artifact = (
+        await c.query('select a.id from artifact a join project p on p.id = a.project_id where p.key = $1 and a.id = resolve_artifact(p.id, $2)', [projectKey, artifactKey])
+      ).rows[0];
+      if (!artifact) throw notFound(`Artefact ${artifactKey}`);
+      const row = (
+        await c.query(`select s.id, s.name, s.state from sprint_item i join sprint s on s.id = i.sprint_id where i.artifact_id = $1 and s.state <> 'closed' order by s.created_at desc limit 1`, [artifact.id])
+      ).rows[0];
+      return row ? { id: row.id as string, name: row.name as string, state: row.state as string } : null;
+    });
+  }
+
   async addItem(organizationId: string, sprintId: string, artifactKey: string, projectKey: string, actor: Actor): Promise<void> {
     await this.db.tx(organizationId, async (c) => {
       const sprint = await this.sprint(c, sprintId);

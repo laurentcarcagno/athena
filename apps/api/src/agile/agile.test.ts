@@ -153,6 +153,12 @@ suite('boards et sprints (intégration)', () => {
     await sprints.addItem(org, other, 'ARI-STORY-0002', 'ARI', admin); // à nouveau disponible
   });
 
+  it('donne le sprint non clos d’un ticket (en-tête de la fiche), sinon null', async () => {
+    expect(await sprints.ofItem(org, 'ARI', 'ARI-STORY-0002')).toMatchObject({ name: 'Sprint 2', state: 'planned' });
+    expect(await sprints.ofItem(org, 'ARI', 'ARI-STORY-0001')).toBeNull(); // seulement dans « Sprint 1 », clos
+    expect(await code(sprints.ofItem(org, 'ARI', 'ARI-STORY-9999'))).toMatch(/not_found|introuvable|Artefact/i);
+  });
+
   it('expose le board d’un tracker (clé ~TRACKER) : une colonne par statut, sans stockage, déplacement par workflow', async () => {
     const view = await boards.view(org, 'ARI', '~STORY');
     expect(view).toMatchObject({ key: '~STORY', name: 'Stories', unmapped: 0 });

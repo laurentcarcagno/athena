@@ -16,6 +16,8 @@ export interface LinkView {
   /** Vrai : lien vers un item sous contrôle export, sans clé, titre ni contenu. */
   restricted?: boolean;
   suspect: boolean;
+  /** Type hiérarchique : le lien va de l'enfant vers le parent (lien sortant = parent du ticket). */
+  hierarchical: boolean;
 }
 
 export interface LinkTypeView {
@@ -91,7 +93,7 @@ export class LinkService {
       const id = await this.artifact(c, project, key);
       const rows = (
         await c.query(
-          `select l.id, l.suspect, t.key as type, t.outward_label, t.inward_label,
+          `select l.id, l.suspect, t.key as type, t.outward_label, t.inward_label, t.hierarchical,
                   (l.from_artifact_id = $1) as outward, o.key as other
            from artifact_link l join link_type t on t.id = l.link_type_id
            left join artifact o on o.id = case when l.from_artifact_id = $1 then l.to_artifact_id else l.from_artifact_id end
@@ -102,6 +104,7 @@ export class LinkService {
       return rows.map((r) => ({
         id: r.id, type: r.type, direction: r.outward ? 'outward' : 'inward',
         label: r.outward ? r.outward_label : r.inward_label, other: r.other ?? null, ...(r.other === null ? { restricted: true } : {}), suspect: r.suspect,
+        hierarchical: r.hierarchical === true,
       }));
     });
   }

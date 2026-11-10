@@ -6,7 +6,7 @@ import { normativeClauseTracker } from '../templates';
 export interface BuiltinVersion { version: string; trackers: TemplateTracker[]; normative: Normative }
 export interface BuiltinNormative { key: string; name: string; description: string; versions: BuiltinVersion[] }
 
-type FieldIn = { key: string; label: string; type: string; required?: boolean; config?: Record<string, unknown>; semanticRole?: 'title' | 'description' | 'status' | 'assignee' | 'due_date' | 'estimate'; isContent?: boolean };
+type FieldIn = { key: string; label: string; type: string; required?: boolean; config?: Record<string, unknown>; semanticRole?: 'title' | 'description' | 'status' | 'assignee' | 'due_date' | 'estimate' | 'priority' | 'version'; isContent?: boolean };
 export const title: FieldIn = { key: 'title', label: 'Titre', type: 'text', required: true, semanticRole: 'title' };
 export const description = (label = 'Description', key = 'description'): FieldIn => ({ key, label, type: 'richtext', semanticRole: 'description' });
 export const select = (key: string, label: string, options: string[], extra: Partial<FieldIn> = {}): FieldIn => ({ key, label, type: 'select', config: { options }, ...extra });

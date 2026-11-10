@@ -9,10 +9,10 @@ export function bugTemplate(projectKey: string, key = 'BUG'): TrackerSpec {
     fields: [
       { key: 'title', label: 'Titre', type: 'text', required: true, semanticRole: 'title' },
       { key: 'description', label: 'Description', type: 'richtext', semanticRole: 'description' },
-      { key: 'severity', label: 'Sévérité', type: 'select', config: { options: ['mineure', 'majeure', 'bloquante'] }, required: true },
+      { key: 'severity', label: 'Sévérité', type: 'select', config: { options: ['mineure', 'majeure', 'bloquante'] }, required: true, semanticRole: 'priority' },
       { key: 'assignee', label: 'Responsable', type: 'user', semanticRole: 'assignee', isContent: false },
       { key: 'affected_version', label: 'Version affectée', type: 'text', isContent: false },
-      { key: 'fixed_version', label: 'Version corrigée', type: 'text', isContent: false },
+      { key: 'fixed_version', label: 'Version corrigée', type: 'text', semanticRole: 'version', isContent: false },
       { key: 'root_cause', label: 'Cause racine', type: 'richtext' },
     ],
     statuses: [
@@ -40,7 +40,7 @@ export function requirementTemplate(projectKey: string, key = 'REQ'): TrackerSpe
     fields: [
       { key: 'title', label: 'Titre', type: 'text', required: true, semanticRole: 'title' },
       { key: 'statement', label: 'Énoncé', type: 'richtext', required: true, semanticRole: 'description' },
-      { key: 'priority', label: 'Priorité', type: 'select', config: { options: ['basse', 'moyenne', 'haute'] }, isContent: false },
+      { key: 'priority', label: 'Priorité', type: 'select', config: { options: ['basse', 'moyenne', 'haute'] }, semanticRole: 'priority', isContent: false },
       { key: 'doc_uid', label: 'UID documentaire', type: 'text', config: { maxLength: 128 } },
     ],
     statuses: [

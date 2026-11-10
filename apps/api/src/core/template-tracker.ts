@@ -15,7 +15,7 @@ export const TemplateTrackerSchema = z.object({
   fields: z.array(z.object({
     key: z.string().min(1).max(60), label: z.string().min(1).max(100), type: z.string(),
     config: z.record(z.string(), z.unknown()).optional(), required: z.boolean().optional(),
-    semanticRole: z.enum(['title', 'description', 'status', 'assignee', 'due_date', 'estimate']).optional(), isContent: z.boolean().optional(),
+    semanticRole: z.enum(['title', 'description', 'status', 'assignee', 'due_date', 'estimate', 'priority', 'version']).optional(), isContent: z.boolean().optional(),
     readRoles: z.array(Role).max(20).optional(), writeRoles: z.array(Role).max(20).optional(),
   })).max(100),
   statuses: z.array(z.object({ key: z.string().min(1), name: z.string().min(1), category: z.enum(['todo', 'in_progress', 'done']) })).min(1).max(50),
