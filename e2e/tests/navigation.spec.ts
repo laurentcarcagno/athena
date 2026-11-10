@@ -13,13 +13,15 @@ async function login(page: Page, username: string, password: string) {
 test('Projets, tracker, item : trois actions, puis retour au projet par le fil d’Ariane', async ({ page }) => {
   await login(page, 'user.dev', 'dev-only-user');
   await expect(page.getByText('Ariane')).toBeVisible();
-  await page.getByRole('link', { name: /Bugs|BUG/ }).first().click(); // 1 : le tracker (écran Tracker, vue Tableau)
+  await page.getByRole('link', { name: 'Ariane', exact: true }).click(); // 1 : le projet (les trackers de la page Projets sont repliés depuis le lot 8)
+  await page.getByRole('group', { name: 'Projet ARI' }).getByRole('button', { name: /^BUG · / }).click(); // 2 : le tracker, au rail (ADR-0003)
   await expect(page).toHaveURL(/\/p\/ARI\/t\/BUG\/tableau/);
-  await page.getByRole('link', { name: 'ARI-BUG-0001' }).click(); // 2 : l'item s'ouvre à droite
+  await page.getByRole('link', { name: 'ARI-BUG-0001' }).click(); // 3 : l'item s'ouvre à droite
   await expect(page.getByRole('complementary', { name: 'Détail de l’item' })).toBeVisible();
   await expect(page).toHaveURL(/i=ARI-BUG-0001/);
   await page.getByRole('navigation', { name: 'Fil d’Ariane' }).getByRole('link', { name: 'ARI' }).click(); // 1 action pour revenir
-  await expect(page.getByRole('navigation', { name: 'Projet ARI' })).toBeVisible();
+  await expect(page).toHaveURL(/\/p\/ARI$/);
+  await expect(page.getByRole('group', { name: 'Projet ARI' }).getByRole('button', { name: 'Vue d’ensemble' })).toHaveAttribute('aria-current', 'page');
 });
 
 test('J / K parcourent la liste, Échap ferme le panneau, l’ancienne adresse de recherche redirige', async ({ page }) => {

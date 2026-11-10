@@ -22,10 +22,18 @@ async function login(page: Page, username: string, password: string) {
   await page.waitForURL(/localhost:3000/);
 }
 
+/** Page Projets : déplie les trackers d'un projet (repliés depuis le lot 8 ; l'état déplié est mémorisé d'une visite à l'autre). */
+async function showTrackers(page: Page, project: string): Promise<void> {
+  const toggle = page.getByRole('button', { name: new RegExp(`trackers de ${project}$`) });
+  if ((await toggle.getAttribute('aria-expanded')) === 'false') await toggle.click();
+  await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+}
+
 test('connexion Keycloak, liste des projets, ouverture d’un artefact et transition', async ({ page }) => {
   await login(page, 'user.dev', 'dev-only-user');
   await expect(page.getByText('Ariane')).toBeVisible();
-  await page.getByRole('link', { name: /Bugs|BUG/ }).first().click();
+  await showTrackers(page, 'Ariane');
+  await page.getByRole('link', { name: 'Bugs' }).first().click();
   await expect(page.getByRole('link', { name: 'ARI-BUG-0001' })).toBeVisible();
   await page.getByRole('link', { name: 'ARI-BUG-0001' }).click(); // le lien du tableau (le rail propose aussi la clé dans les récents)
   await expect(page.getByRole('complementary', { name: 'Détail de l’item' })).toBeVisible(); // panneau de détail à droite de la liste
@@ -47,7 +55,8 @@ test('accessibilité réelle (contraste inclus) : projets, liste et fiche', asyn
   await login(page, 'user.dev', 'dev-only-user');
   await expect(page.getByText('Ariane')).toBeVisible();
   expect(await axeViolations(page)).toEqual([]);
-  await page.getByRole('link', { name: /Bugs|BUG/ }).first().click();
+  await showTrackers(page, 'Ariane');
+  await page.getByRole('link', { name: 'Bugs' }).first().click();
   await expect(page.getByRole('link', { name: 'ARI-BUG-0001' })).toBeVisible();
   expect(await axeViolations(page)).toEqual([]);
   await page.getByRole('link', { name: 'ARI-BUG-0001' }).click(); // le lien du tableau (le rail propose aussi la clé dans les récents)
@@ -116,9 +125,9 @@ test('administrateur : crée un projet, nomme un chef de projet et gère les act
   await page.getByRole('button', { name: 'Créer le projet' }).click();
   await expect(page.getByText('Projet PAY créé.')).toBeVisible();
   await page.goto('/');
-  const paiement = page.locator('section, div', { has: page.getByText('Paiement') }).last();
-  await expect(paiement.getByRole('row', { name: /REQ/ })).toBeVisible();
-  await expect(paiement.getByRole('row', { name: /BUG/ })).toBeVisible();
+  await showTrackers(page, 'Paiement'); // trackers affichés par leur nom depuis le lot 8
+  await expect(page.getByRole('row', { name: /^Exigences/ })).toBeVisible();
+  await expect(page.getByRole('row', { name: /^Bugs/ })).toBeVisible();
   expect(await axeViolations(page)).toEqual([]);
   await page.goto('/org');
   await page.getByRole('tab', { name: 'Templates' }).click();

@@ -23,7 +23,7 @@
 - Vérifications : Vitest web 345 sur 345, `tsc --noEmit` OK, `lint-design` OK.
 
 ## Reste à faire
-- e2e non rejoués : les ports 3000 et 3001 sont occupés par une autre pile (`ariane-*`). À rejouer en T-0125 ou dès que les ports sont libres.
+Rien. e2e rejoués le 2026-11-10 : 31 sur 31, après adaptation de `navigation.spec.ts` et de `parcours.spec.ts`. Trois de ces tests échouaient déjà depuis le lot 8 (T-0105, trackers repliés sur la page Projets), et le quatrième, celui des projets du gabarit, cherchait les clés de tracker au lieu de leurs noms.
 
 ## Décisions et pièges
 - Pendant la transition, le rail du projet compte jusqu'à 11 entrées (pages existantes, Recherche, Administration). Il redescend à 8 avec T-0120 et T-0121 (ADR-0003 § 4).
