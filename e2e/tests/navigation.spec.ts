@@ -107,7 +107,7 @@ test.describe('téléphone (390 px) : sélecteur de section et barre basse', () 
     await expect(picker.getByRole('button', { name: /ARI · Activité/ })).toHaveAttribute('aria-expanded', 'false');
     expect(await noOverflow()).toBe(true);
     await bar.getByRole('button', { name: 'Chercher' }).click();
-    await expect(page.getByRole('combobox', { name: 'Aller à… ou rechercher un artefact' })).toBeFocused();
+    await expect(page.getByRole('combobox', { name: 'Aller à… ou rechercher un ticket (clé ou titre), tous projets' })).toBeFocused();
   });
 
   test('sur poste de travail, ni sélecteur ni barre basse', async ({ page }) => {
