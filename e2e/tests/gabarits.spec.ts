@@ -71,7 +71,7 @@ test('dérivation d’un gabarit livré : éditeur par étapes jusqu’à la pub
   await page.getByLabel('Clé', { exact: true }).fill('spatial-b-e2e');
   await page.getByLabel('Nom', { exact: true }).fill('Spatial — catégorie B');
   for (let i = 0; i < 3; i++) await page.getByRole('button', { name: 'Étape suivante' }).click();
-  await expect(page.getByRole('form', { name: 'Formulaire d’un item SYS' }).or(page.getByRole('form', { name: /Formulaire d’un item/ })).first()).toBeVisible();
+  await expect(page.getByRole('form', { name: /Formulaire d’un ticket/ }).first()).toBeVisible();
   for (let i = 0; i < 3; i++) await page.getByRole('button', { name: 'Étape suivante' }).click();
   await page.getByRole('button', { name: 'Publier' }).click();
   await expect(page.getByText('Version 1.0 publiée.')).toBeVisible();

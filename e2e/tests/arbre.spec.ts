@@ -30,7 +30,7 @@ test('vue Arbre : chapitres numérotés, dépliage et ouverture du panneau', asy
 
   await login(page, 'user.dev', 'dev-only-user');
   await page.goto('/p/ARI/t/SPEC/arbre');
-  const tree = page.getByRole('tree', { name: 'Arbre des items' });
+  const tree = page.getByRole('tree', { name: 'Arbre des tickets' });
   await expect(tree.getByRole('treeitem')).toHaveCount(2); // la fille n'est pas une racine
   await expect(tree.getByRole('treeitem').first()).toContainText('1');
   await tree.getByRole('treeitem').first().focus();
@@ -40,6 +40,6 @@ test('vue Arbre : chapitres numérotés, dépliage et ouverture du panneau', asy
   await expect(tree.getByRole('treeitem').nth(1)).toContainText('Exigence fille');
   await page.keyboard.press('ArrowDown');
   await page.keyboard.press('Enter');
-  await expect(page.getByRole('complementary', { name: 'Détail de l’item' })).toBeVisible();
+  await expect(page.getByRole('complementary', { name: 'Détail du ticket' })).toBeVisible();
   await expect(page).toHaveURL(new RegExp(`i=${daughter}`));
 });

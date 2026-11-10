@@ -3,9 +3,9 @@ import { dictionaryFor } from './i18n';
 
 /**
  * T-0124 (ADR-0003 § 3) : glossaire. Les textes français affichés disent « ticket », « version » et « gabarit » ; « artefact »,
- * « release » et « template » n'y figurent plus. Les identifiants techniques (clés, routes d'API, noms de composants) ne sont pas des textes.
+ * « release », « template » et « item » (lot 10) n'y figurent plus. Les identifiants techniques (clés, routes d'API, noms de composants) ne sont pas des textes.
  */
-const FORBIDDEN = /\b(artefacts?|releases?|templates?)\b/i;
+const FORBIDDEN = /\b(artefacts?|releases?|templates?|items?)\b/i;
 const SAMPLES = ['X', 'Y', 'Z'];
 
 function texts(value: unknown, path: string, out: Array<[string, string]>): void {
@@ -26,7 +26,7 @@ describe('vocabulaire (glossaire de l’ADR-0003)', () => {
     expect(fr.length).toBeGreaterThan(1000);
   });
 
-  it('n’emploie ni « artefact », ni « release », ni « template » dans les textes français', () => {
+  it('n’emploie ni « artefact », ni « release », ni « template », ni « item » dans les textes français', () => {
     expect(fr.filter(([, text]) => FORBIDDEN.test(text)).map(([path, text]) => `${path} : ${text}`)).toEqual([]);
   });
 

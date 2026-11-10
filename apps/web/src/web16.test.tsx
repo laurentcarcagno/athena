@@ -41,14 +41,14 @@ const Where = () => <span data-testid="where">{useLocation().pathname}{useLocati
 const app = (session: Session) => render(<ToastProvider><MemoryRouter initialEntries={['/p/ARI/tracabilite']}><Where /><AuthenticatedApp session={session} /></MemoryRouter></ToastProvider>);
 
 describe('onglet Traçabilité', () => {
-  it('s’ouvre depuis la rubrique du projet au rail et montre taux, niveau en texte, nombres cliquables et items en défaut', async () => {
+  it('s’ouvre depuis la rubrique du projet au rail et montre taux, niveau en texte, nombres cliquables et tickets en défaut', async () => {
     app(user);
     const section = (await screen.findByRole('heading', { name: /Exigences vérifiées/ })).closest('section')!;
     await waitFor(() => expect(within(screen.getByRole('group', { name: /^Projet / })).getByRole('button', { name: 'Rapports' })).toHaveAttribute('aria-current', 'page'));
     expect(within(section).getByText('50 %')).toBeInTheDocument();
     expect(within(section).getByText('Alerte')).toBeInTheDocument();
     expect(within(section).getByText('objectif 100 %, alerte 50 %')).toBeInTheDocument();
-    expect(within(section).getByRole('link', { name: '4 items visés' })).toHaveAttribute('href', `/p/ARI/t/REQ/tableau?f=${encodeURIComponent('status = "validated"')}`);
+    expect(within(section).getByRole('link', { name: '4 tickets visés' })).toHaveAttribute('href', `/p/ARI/t/REQ/tableau?f=${encodeURIComponent('status = "validated"')}`);
     expect(within(section).getByRole('link', { name: '2 en défaut' })).toHaveAttribute('href', `/p/ARI/t/REQ/tableau?f=${encodeURIComponent('status = "validated" AND notLinked("verifies")')}`);
     expect(within(section).getByRole('link', { name: '1 avec lien suspect' })).toBeInTheDocument();
     expect(within(section).getByRole('link', { name: 'ARI-REQ-0003' })).toHaveAttribute('href', '/p/ARI/a/ARI-REQ-0003');

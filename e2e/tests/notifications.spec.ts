@@ -22,7 +22,7 @@ async function login(page: Page, username: string, password: string) {
   await page.waitForURL(/localhost:3000/);
 }
 
-test('suivre un item, être notifié d’un commentaire, lire au clavier, marquer lu, régler les événements', async ({ page, request }) => {
+test('suivre un ticket, être notifié d’un commentaire, lire au clavier, marquer lu, régler les événements', async ({ page, request }) => {
   const token = (await (await request.post('http://localhost:8080/realms/athena/protocol/openid-connect/token', { form: { grant_type: 'password', client_id: 'athena-dev-cli', username: 'admin.dev', password: 'dev-only-admin' } })).json()).access_token as string;
   const headers = { Authorization: `Bearer ${token}` };
 

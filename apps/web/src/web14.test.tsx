@@ -45,7 +45,7 @@ const label = (el: HTMLElement) => `${within(el).queryAllByText(/^\d+(\.\d+)*$/)
 describe('vue Arbre', () => {
   it('propose la vue pour un type qui la déclare et affiche les racines numérotées, sans charger les enfants', async () => {
     app('/p/ARI/t/REQ/arbre');
-    await screen.findByRole('tree', { name: 'Arbre des items' });
+    await screen.findByRole('tree', { name: 'Arbre des tickets' });
     expect(screen.getByRole('link', { name: 'Arbre' })).toHaveAttribute('aria-current', 'page');
     expect(items().map(label)).toEqual(['1 ARI-REQ-0001', '2 ARI-REQ-0005']);
     expect(items()[0]).toHaveAttribute('aria-expanded', 'false');
@@ -54,7 +54,7 @@ describe('vue Arbre', () => {
     expect(calls.filter((c) => /\/tree/.test(c))).toHaveLength(1); // seulement les racines
   });
 
-  it('déplie un niveau à la demande, numérote les chapitres et montre un item à plusieurs parents sous chacun', async () => {
+  it('déplie un niveau à la demande, numérote les chapitres et montre un ticket à plusieurs parents sous chacun', async () => {
     app('/p/ARI/t/REQ/arbre');
     await screen.findByRole('tree');
     await userEvent.click(within(items()[0]!).getByText('▸'));
@@ -92,12 +92,12 @@ describe('vue Arbre', () => {
     expect(items().filter((i) => i.tabIndex === 0)).toHaveLength(1); // un seul arrêt de tabulation (tabindex itinérant)
   });
 
-  it('Entrée ou un clic ouvre le panneau de détail de l’item, qui reste dans l’arbre', async () => {
+  it('Entrée ou un clic ouvre le panneau de détail du ticket, qui reste dans l’arbre', async () => {
     app('/p/ARI/t/REQ/arbre');
     await screen.findByRole('tree');
     items()[1]!.focus();
     await userEvent.keyboard('{Enter}');
-    expect(await screen.findByRole('complementary', { name: 'Détail de l’item' })).toBeInTheDocument();
+    expect(await screen.findByRole('complementary', { name: 'Détail du ticket' })).toBeInTheDocument();
     expect(screen.getByTestId('where')).toHaveTextContent('/p/ARI/t/REQ/arbre?i=ARI-REQ-0005');
     expect(items()[1]).toHaveAttribute('aria-selected', 'true');
     await userEvent.click(within(items()[0]!).getByText('Exigence mère'));

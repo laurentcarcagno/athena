@@ -189,8 +189,8 @@ export class ItemApprovalService {
     return this.db.tx(organizationId, async (c) => {
       const art = await this.artifact(c, projectKey, key, true);
       const before = await this.viewIn(c, art.id, who);
-      if (!before.configured || !before.enabled) throw conflict("Aucun circuit d'approbation actif sur le tracker de cet item.");
-      if (before.state === 'approved') throw conflict("L'item est déjà approuvé ; une modification de son contenu rouvre le circuit.");
+      if (!before.configured || !before.enabled) throw conflict("Aucun circuit d'approbation actif sur le tracker de ce ticket.");
+      if (before.state === 'approved') throw conflict("Le ticket est déjà approuvé ; une modification de son contenu rouvre le circuit.");
       const step = before.steps.find((s) => s.position === before.currentStep);
       if (!step) throw conflict("Aucune étape en attente.");
       if (!before.canDecide) throw forbidden(`Vous n'êtes pas désigné pour l'étape « ${step.name} ».`);

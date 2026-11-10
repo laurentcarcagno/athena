@@ -37,7 +37,7 @@ const axeViolations = async (container: HTMLElement) => (await axe.run(container
 })).violations.map((v) => `${v.id} : ${v.help} (${v.nodes.map((n) => n.target.join(' ')).join(' ; ')})`);
 const mount = (ui: JSX.Element) => render(<ToastProvider>{ui}</ToastProvider>);
 
-describe('panneau d’approbation d’un item', () => {
+describe('panneau d’approbation d’un ticket', () => {
   it('dit l’état en texte, les étapes dans l’ordre, qui est désigné et les décisions nominatives horodatées', async () => {
     const { container } = mount(<ApprovalPanel project="APR" itemKey="APR-REQ-0001" version={1} />);
     await screen.findByText('Circuit d’approbation');
@@ -59,7 +59,7 @@ describe('panneau d’approbation d’un item', () => {
   it('affiche le message d’invalidation après une modification', async () => {
     current = pending({ currentStep: 1, steps: steps([{ state: 'current', decisions: [] }, { state: 'waiting' }]), invalidated: { at: '2026-11-07T10:00:00.000Z', version: 4, count: 2 } });
     mount(<ApprovalPanel project="APR" itemKey="APR-REQ-0001" version={4} />);
-    const notice = await screen.findByText(/L’item a été modifié \(version 4\) : les 2 décisions précédentes sont invalidées et le circuit reprend à la première étape\./);
+    const notice = await screen.findByText(/Le ticket a été modifié \(version 4\) : les 2 décisions précédentes sont invalidées et le circuit reprend à la première étape\./);
     expect(notice).toHaveAttribute('role', 'status');
   });
 
@@ -82,7 +82,7 @@ describe('panneau d’approbation d’un item', () => {
   it('sans circuit actif : message', async () => {
     current = pending({ configured: false, enabled: false, steps: [] });
     mount(<ApprovalPanel project="APR" itemKey="APR-REQ-0001" version={1} />);
-    expect(await screen.findByText('Aucun circuit d’approbation sur le tracker de cet item.')).toBeInTheDocument();
+    expect(await screen.findByText('Aucun circuit d’approbation sur le tracker de ce ticket.')).toBeInTheDocument();
   });
 });
 

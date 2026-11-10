@@ -10,7 +10,7 @@ async function login(page: Page, username: string, password: string) {
 }
 
 // Critère du lot 1 : tout item s'atteint en au plus 3 actions, sans écrire de requête ATQL.
-test('Projets, tracker, item : trois actions, puis retour au projet par le fil d’Ariane', async ({ page }) => {
+test('Projets, tracker, ticket : trois actions, puis retour au projet par le fil d’Ariane', async ({ page }) => {
   await login(page, 'user.dev', 'dev-only-user');
   await page.goto('/projets'); // T-0123 : « / » est Mon travail
   await expect(page.getByText('Ariane')).toBeVisible();
@@ -18,7 +18,7 @@ test('Projets, tracker, item : trois actions, puis retour au projet par le fil d
   await page.getByRole('group', { name: 'Projet ARI' }).getByRole('button', { name: /^BUG · / }).click(); // 2 : le tracker, au rail (ADR-0003)
   await expect(page).toHaveURL(/\/p\/ARI\/t\/BUG\/tableau/);
   await page.getByRole('link', { name: 'ARI-BUG-0001' }).click(); // 3 : l'item s'ouvre à droite
-  await expect(page.getByRole('complementary', { name: 'Détail de l’item' })).toBeVisible();
+  await expect(page.getByRole('complementary', { name: 'Détail du ticket' })).toBeVisible();
   await expect(page).toHaveURL(/i=ARI-BUG-0001/);
   await page.getByRole('navigation', { name: 'Fil d’Ariane' }).getByRole('link', { name: 'ARI' }).click(); // 1 action pour revenir
   await expect(page).toHaveURL(/\/p\/ARI$/);
@@ -31,7 +31,7 @@ test('J / K parcourent la liste, Échap ferme le panneau, l’ancienne adresse d
   await expect(page.getByRole('link', { name: 'ARI-BUG-0001' })).toBeVisible();
   await page.keyboard.press('j');
   await expect(page).toHaveURL(/i=ARI-BUG-0001/);
-  const panel = page.getByRole('complementary', { name: 'Détail de l’item' });
+  const panel = page.getByRole('complementary', { name: 'Détail du ticket' });
   await expect(panel).toBeVisible(); // le panneau est affiché avant d'être fermé : Échap n'est pas perdu pendant son ouverture
   await page.keyboard.press('Escape');
   await expect(panel).toHaveCount(0);

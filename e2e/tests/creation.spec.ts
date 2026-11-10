@@ -10,15 +10,15 @@ async function login(page: Page, username: string, password: string) {
 }
 
 // T-0111 (ADR-0003 § 2.5) : la création part du contexte et on reste sur la page.
-test('écran Tracker : « + Nouvel item » crée dans ce tracker, la liste reste et le ticket s’ouvre dans le panneau', async ({ page }) => {
+test('écran Tracker : « + Nouveau ticket » crée dans ce tracker, la liste reste et le ticket s’ouvre dans le panneau', async ({ page }) => {
   await login(page, 'user.dev', 'dev-only-user');
   await page.goto('/p/ARI/t/BUG/tableau');
-  await page.getByRole('button', { name: '+ Nouvel item' }).click();
+  await page.getByRole('button', { name: '+ Nouveau ticket' }).click();
   const form = page.getByRole('dialog', { name: 'Nouveau ticket' });
   await expect(form.getByLabel('Tracker')).toHaveValue('BUG');
   await form.getByLabel('Titre (obligatoire)').fill('Écran figé après mise en veille');
   await form.getByRole('button', { name: 'Créer' }).click();
-  await expect(page.getByRole('complementary', { name: 'Détail de l’item' })).toBeVisible();
+  await expect(page.getByRole('complementary', { name: 'Détail du ticket' })).toBeVisible();
   await expect(page).toHaveURL(/\/p\/ARI\/t\/BUG\/tableau\?.*i=ARI-BUG-\d{4}/);
   const key = new URL(page.url()).searchParams.get('i')!;
   await expect(page.getByRole('link', { name: key })).toBeVisible(); // la liste rechargée contient le nouveau ticket

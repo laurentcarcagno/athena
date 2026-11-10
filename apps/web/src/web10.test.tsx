@@ -80,17 +80,17 @@ const app = (path: string, roles = ['athena-user']) => render(
 const lastSearch = () => decodeURIComponent([...calls].reverse().find((c) => c.includes('/search?'))!);
 
 describe('écran Tracker', () => {
-  it('affiche l’en-tête (nom, préfixe, total), le mini-workflow et les items du tracker seulement', async () => {
+  it('affiche l’en-tête (nom, préfixe, total), le mini-workflow et les tickets du tracker seulement', async () => {
     app('/p/ARI/t/BUG/tableau');
     expect(await screen.findByRole('heading', { level: 1, name: 'Anomalies' })).toBeInTheDocument();
     expect(screen.getByText('ARI-BUG')).toHaveClass('ath-mono');
-    expect(screen.getByText('40 items')).toBeInTheDocument();
+    expect(screen.getByText('40 tickets')).toBeInTheDocument();
     const workflow = screen.getByRole('list', { name: 'Workflow' });
     expect(within(workflow).getAllByRole('button').map((b) => b.textContent)).toEqual(['Ouvert 25', 'En cours 10', 'Fini 5']);
     expect(await screen.findByRole('link', { name: 'ARI-BUG-0001' })).toHaveAttribute('href', '/p/ARI/t/BUG/tableau?i=ARI-BUG-0001'); // ouvre le panneau de détail
     expect(lastSearch()).toContain('q=tracker = BUG&limit=25&offset=0');
     expect(screen.getByRole('link', { name: 'Tableau' })).toHaveAttribute('aria-current', 'page');
-    expect(screen.getByRole('button', { name: '+ Nouvel item' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '+ Nouveau ticket' })).toBeInTheDocument();
   });
 
   it('filtre sur un état du mini-workflow, puis retire le filtre', async () => {
@@ -117,9 +117,9 @@ describe('écran Tracker', () => {
     expect(lastSearch()).toContain('ORDER BY key asc');
   });
 
-  it('« + Nouvel item » ouvre la création sur ce tracker', async () => {
+  it('« + Nouveau ticket » ouvre la création sur ce tracker', async () => {
     app('/p/ARI/t/BUG/tableau');
-    await userEvent.click(await screen.findByRole('button', { name: '+ Nouvel item' }));
+    await userEvent.click(await screen.findByRole('button', { name: '+ Nouveau ticket' }));
     expect(await screen.findByLabelText('Titre (obligatoire)')).toBeInTheDocument();
     expect(calls).toContain('GET /v1/projects/ARI/trackers/BUG');
   });
@@ -332,12 +332,12 @@ describe('vue Board du tracker', () => {
 });
 
 describe('panneau de détail scindé', () => {
-  const panel = () => screen.getByRole('complementary', { name: 'Détail de l’item' });
+  const panel = () => screen.getByRole('complementary', { name: 'Détail du ticket' });
 
-  it('un clic sur un item ouvre sa fiche à droite sans quitter la liste, l’adresse reste partageable', async () => {
+  it('un clic sur un ticket ouvre sa fiche à droite sans quitter la liste, l’adresse reste partageable', async () => {
     app('/p/ARI/t/BUG/tableau');
     await userEvent.click(await screen.findByRole('link', { name: 'ARI-BUG-0002' }));
-    expect(await screen.findByRole('complementary', { name: 'Détail de l’item' })).toBeInTheDocument();
+    expect(await screen.findByRole('complementary', { name: 'Détail du ticket' })).toBeInTheDocument();
     expect(await within(panel()).findByRole('heading', { level: 2, name: /ARI-BUG-0002 · Titre de ARI-BUG-0002/ })).toBeInTheDocument();
     expect(screen.getByTestId('where')).toHaveTextContent('/p/ARI/t/BUG/tableau?i=ARI-BUG-0002');
     expect(screen.getByRole('link', { name: 'ARI-BUG-0003' })).toBeInTheDocument(); // la liste reste affichée
@@ -348,14 +348,14 @@ describe('panneau de détail scindé', () => {
 
   it('s’ouvre directement depuis l’adresse (?i=)', async () => {
     app('/p/ARI/t/BUG/tableau?i=ARI-BUG-0004');
-    expect(await within(await screen.findByRole('complementary', { name: 'Détail de l’item' })).findByRole('heading', { level: 2, name: /ARI-BUG-0004/ })).toBeInTheDocument();
+    expect(await within(await screen.findByRole('complementary', { name: 'Détail du ticket' })).findByRole('heading', { level: 2, name: /ARI-BUG-0004/ })).toBeInTheDocument();
   });
 
-  it('J / K passent à l’item suivant / précédent, sans sortir de la liste', async () => {
+  it('J / K passent au ticket suivant / précédent, sans sortir de la liste', async () => {
     app('/p/ARI/t/BUG/tableau');
     await screen.findByRole('link', { name: 'ARI-BUG-0001' });
     await userEvent.keyboard('j');
-    await within(await screen.findByRole('complementary', { name: 'Détail de l’item' })).findByRole('heading', { level: 2, name: /ARI-BUG-0001/ });
+    await within(await screen.findByRole('complementary', { name: 'Détail du ticket' })).findByRole('heading', { level: 2, name: /ARI-BUG-0001/ });
     await userEvent.keyboard('j');
     await waitFor(() => expect(screen.getByTestId('where')).toHaveTextContent('i=ARI-BUG-0002'));
     await userEvent.keyboard('jj');
@@ -367,9 +367,9 @@ describe('panneau de détail scindé', () => {
     await waitFor(() => expect(screen.getByTestId('where')).toHaveTextContent('i=ARI-BUG-0001'));
   });
 
-  it('T-0112 : l’onglet de la fiche cohabite avec ?i=, reste d’un item à l’autre (J) et disparaît à la fermeture', async () => {
+  it('T-0112 : l’onglet de la fiche cohabite avec ?i=, reste d’un ticket à l’autre (J) et disparaît à la fermeture', async () => {
     app('/p/ARI/t/BUG/tableau?i=ARI-BUG-0001&onglet=history');
-    const side = await screen.findByRole('complementary', { name: 'Détail de l’item' });
+    const side = await screen.findByRole('complementary', { name: 'Détail du ticket' });
     expect(await within(side).findByRole('tab', { name: 'Historique', selected: true })).toBeInTheDocument();
     await userEvent.keyboard('j');
     await waitFor(() => expect(screen.getByTestId('where')).toHaveTextContent('i=ARI-BUG-0002'));
@@ -382,7 +382,7 @@ describe('panneau de détail scindé', () => {
 
   it('J / K sont ignorés pendant la saisie dans un champ', async () => {
     app('/p/ARI/t/BUG/tableau?i=ARI-BUG-0001');
-    const title = await within(await screen.findByRole('complementary', { name: 'Détail de l’item' })).findByLabelText('Titre (obligatoire)');
+    const title = await within(await screen.findByRole('complementary', { name: 'Détail du ticket' })).findByLabelText('Titre (obligatoire)');
     await userEvent.click(title);
     await userEvent.keyboard('jk');
     expect(screen.getByTestId('where')).toHaveTextContent('i=ARI-BUG-0001');
@@ -391,24 +391,24 @@ describe('panneau de détail scindé', () => {
 
   it('Échap ferme le panneau et rend le focus à la ligne', async () => {
     app('/p/ARI/t/BUG/tableau?i=ARI-BUG-0002');
-    await screen.findByRole('complementary', { name: 'Détail de l’item' });
+    await screen.findByRole('complementary', { name: 'Détail du ticket' });
     await userEvent.keyboard('{Escape}');
-    await waitFor(() => expect(screen.queryByRole('complementary', { name: 'Détail de l’item' })).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.queryByRole('complementary', { name: 'Détail du ticket' })).not.toBeInTheDocument());
     await waitFor(() => expect(screen.getByRole('link', { name: 'ARI-BUG-0002' })).toHaveFocus());
     expect(screen.getByTestId('where')).not.toHaveTextContent('i=');
   });
 
   it('le bouton Fermer ferme le panneau ; Agrandir ouvre la fiche complète', async () => {
     app('/p/ARI/t/BUG/tableau?i=ARI-BUG-0003');
-    await within(await screen.findByRole('complementary', { name: 'Détail de l’item' })).findByRole('heading', { level: 2 });
+    await within(await screen.findByRole('complementary', { name: 'Détail du ticket' })).findByRole('heading', { level: 2 });
     await userEvent.click(within(panel()).getByRole('button', { name: 'Agrandir' }));
     await waitFor(() => expect(screen.getByTestId('where')).toHaveTextContent('/p/ARI/a/ARI-BUG-0003'));
     expect(await screen.findByRole('heading', { level: 1, name: /ARI-BUG-0003/ })).toBeInTheDocument();
   });
 
-  it('T-0113 : la fiche agrandie revient à la liste d’origine (filtres et panneau) et parcourt ses items', async () => {
+  it('T-0113 : la fiche agrandie revient à la liste d’origine (filtres et panneau) et parcourt ses tickets', async () => {
     app('/p/ARI/t/BUG/tableau?f=x&i=ARI-BUG-0003');
-    await within(await screen.findByRole('complementary', { name: 'Détail de l’item' })).findByRole('heading', { level: 2 });
+    await within(await screen.findByRole('complementary', { name: 'Détail du ticket' })).findByRole('heading', { level: 2 });
     await userEvent.click(within(panel()).getByRole('button', { name: 'Agrandir' }));
     const nav = await screen.findByRole('navigation', { name: 'Navigation depuis l’origine' });
     expect(within(nav).getByText(/^3 \/ \d+$/)).toBeInTheDocument();
@@ -420,15 +420,15 @@ describe('panneau de détail scindé', () => {
 
   it('Fermer retire ?i= de l’adresse', async () => {
     app('/p/ARI/t/BUG/tableau?i=ARI-BUG-0003');
-    await within(await screen.findByRole('complementary', { name: 'Détail de l’item' })).findByRole('heading', { level: 2 });
+    await within(await screen.findByRole('complementary', { name: 'Détail du ticket' })).findByRole('heading', { level: 2 });
     await userEvent.click(within(panel()).getByRole('button', { name: 'Fermer' }));
-    await waitFor(() => expect(screen.queryByRole('complementary', { name: 'Détail de l’item' })).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.queryByRole('complementary', { name: 'Détail du ticket' })).not.toBeInTheDocument());
     expect(screen.getByTestId('where')).not.toHaveTextContent('i=');
   });
 
   it('n’a aucune violation d’accessibilité avec le panneau ouvert', async () => {
     const { container } = app('/p/ARI/t/BUG/tableau?i=ARI-BUG-0001');
-    await within(await screen.findByRole('complementary', { name: 'Détail de l’item' })).findByLabelText('Titre (obligatoire)');
+    await within(await screen.findByRole('complementary', { name: 'Détail du ticket' })).findByLabelText('Titre (obligatoire)');
     const result = await axe.run(container, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] }, rules: { 'color-contrast': { enabled: false }, region: { enabled: false } } });
     expect(result.violations.map((v) => `${v.id} : ${v.help}`)).toEqual([]);
   });

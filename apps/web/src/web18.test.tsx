@@ -56,7 +56,7 @@ describe('validation par étape de l’éditeur de gabarit', () => {
 describe('éditeur par étapes d’un gabarit normatif', () => {
   const open = (onSaved = vi.fn()) => render(<ToastProvider><NormativeTemplateEditor templates={[spatial]} trackerTemplates={[]} initial={{ isNew: true, parent: { key: 'spatial' }, name: '', key: '', description: '', trackers: [] }} onSaved={onSaved} onCancel={() => undefined} /></ToastProvider>);
 
-  it('n’avance qu’une étape valide, montre l’aperçu du formulaire d’item et envoie parent et seuils', async () => {
+  it('n’avance qu’une étape valide, montre l’aperçu du formulaire de ticket et envoie parent et seuils', async () => {
     const onSaved = vi.fn();
     open(onSaved);
     expect(screen.getByRole('heading', { name: 'Étape 1 sur 7 : Parent et identité' })).toBeInTheDocument();
@@ -73,7 +73,7 @@ describe('éditeur par étapes d’un gabarit normatif', () => {
     expect(screen.getByRole('heading', { name: 'Étape 4 sur 7 : Trackers' })).toBeInTheDocument();
     const cell = screen.getByRole('cell', { name: 'SRS' });
     expect(cell.closest('tr')).toHaveTextContent('Hérité');
-    const form = screen.getByRole('form', { name: 'Formulaire d’un item SRS' });
+    const form = screen.getByRole('form', { name: 'Formulaire d’un ticket SRS' });
     expect(within(form).getByLabelText(/Titre/)).toBeDisabled();
     expect(within(form).getByLabelText(/Titre/).closest('div')).toHaveTextContent('obligatoire');
     expect(within(form).getByLabelText('Catégorie logicielle')).toBeInTheDocument();

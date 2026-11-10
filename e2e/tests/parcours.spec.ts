@@ -37,7 +37,7 @@ test('connexion Keycloak, liste des projets, ouverture d’un ticket et transiti
   await page.getByRole('link', { name: 'Bugs' }).first().click();
   await expect(page.getByRole('link', { name: 'ARI-BUG-0001' })).toBeVisible();
   await page.getByRole('link', { name: 'ARI-BUG-0001' }).click(); // le lien du tableau (le rail propose aussi la clé dans les récents)
-  await expect(page.getByRole('complementary', { name: 'Détail de l’item' })).toBeVisible(); // panneau de détail à droite de la liste
+  await expect(page.getByRole('complementary', { name: 'Détail du ticket' })).toBeVisible(); // panneau de détail à droite de la liste
   await page.getByRole('button', { name: 'Agrandir' }).click();
   await expect(page.getByRole('heading', { level: 1 })).toContainText('ARI-BUG-0001');
   await expect(page.getByText('Crash au démarrage').first()).toBeVisible();
@@ -62,7 +62,7 @@ test('accessibilité réelle (contraste inclus) : projets, liste et fiche', asyn
   await expect(page.getByRole('link', { name: 'ARI-BUG-0001' })).toBeVisible();
   expect(await axeViolations(page)).toEqual([]);
   await page.getByRole('link', { name: 'ARI-BUG-0001' }).click(); // le lien du tableau (le rail propose aussi la clé dans les récents)
-  await expect(page.getByRole('complementary', { name: 'Détail de l’item' })).toBeVisible(); // panneau de détail à droite de la liste
+  await expect(page.getByRole('complementary', { name: 'Détail du ticket' })).toBeVisible(); // panneau de détail à droite de la liste
   await page.getByRole('button', { name: 'Agrandir' }).click();
   await expect(page.getByRole('heading', { level: 1 })).toContainText('ARI-BUG-0001');
   expect(await axeViolations(page)).toEqual([]);

@@ -67,8 +67,8 @@ describe('centre de notifications', () => {
     const first = within(list).getAllByRole('listitem')[0]!;
     expect(within(first).getByRole('link', { name: 'ARI-BUG-0001' })).toHaveClass('ath-mono');
     expect(within(first).getByText('Non lu')).toBeInTheDocument();
-    expect(first).toHaveTextContent('Bob a commenté l’item.');
-    expect(list).toHaveTextContent('Bob a fait passer l’item de ouvert à fini.');
+    expect(first).toHaveTextContent('Bob a commenté le ticket.');
+    expect(list).toHaveTextContent('Bob a fait passer le ticket de ouvert à fini.');
   });
 
   it('Échap referme la liste et rend le focus au bouton', async () => {
@@ -158,7 +158,7 @@ describe('centre de notifications', () => {
   });
 });
 
-describe('suivi d’un item', () => {
+describe('suivi d’un ticket', () => {
   it('suivre puis ne plus suivre', async () => {
     const user = userEvent.setup();
     render(<ToastProvider><SubscribeToggle project="ARI" scope="item" target="ARI-BUG-0001" /></ToastProvider>);

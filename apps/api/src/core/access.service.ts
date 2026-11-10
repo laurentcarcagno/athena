@@ -97,7 +97,7 @@ export class AccessService {
       const unknown = members.filter((m) => !known.has(m));
       if (unknown.length) throw validation([`utilisateur(s) inconnu(s) : ${unknown.join(', ')}`]);
       const marked = Number((await c.query('select count(*) n from artifact where project_id = $1 and export_control is not null', [projectId])).rows[0].n);
-      if (members.length === 0 && marked > 0) throw validation([`${marked} item(s) sont sous contrôle export : la liste ne peut pas être vidée (démarquez-les d’abord)`]);
+      if (members.length === 0 && marked > 0) throw validation([`${marked} ticket(s) sont sous contrôle export : la liste ne peut pas être vidée (démarquez-les d’abord)`]);
       const before = (await c.query('select subject from export_control_member where project_id = $1', [projectId])).rows.map((r) => r.subject as string);
       await c.query('delete from export_control_member where project_id = $1 and not (subject = any($2::text[]))', [projectId, members]);
       await c.query('insert into export_control_member (organization_id, project_id, subject, added_by) select $1, $2, s, $3 from unnest($4::text[]) s on conflict do nothing', [organizationId, projectId, actor.id, members]);

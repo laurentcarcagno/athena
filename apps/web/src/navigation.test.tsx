@@ -43,8 +43,8 @@ const session: Session = { authenticated: true, user: { username: 'u', name: 'Ul
 const app = (path: string) => render(<ToastProvider><MemoryRouter initialEntries={[path]}><AuthenticatedApp session={session} /></MemoryRouter></ToastProvider>);
 const shown = () => screen.findByRole('heading', { name: new RegExp(KEY) });
 
-describe('accès à un item en moins de 3 actions, sans requête', () => {
-  it('depuis « Mon travail » : Projets, le tracker, l’item (3 actions)', async () => {
+describe('accès à un ticket en moins de 3 actions, sans requête', () => {
+  it('depuis « Mon travail » : Projets, le tracker, le ticket (3 actions)', async () => {
     app('/me');
     await userEvent.click(await within(await screen.findByRole('navigation', { name: 'Navigation principale' })).findByRole('button', { name: 'Projets' })); // 1
     await userEvent.click(await screen.findByRole('link', { name: /Anomalies/ })); // 2
@@ -82,7 +82,7 @@ describe('accès à un item en moins de 3 actions, sans requête', () => {
     expect(await shown()).toBeInTheDocument();
   });
 
-  it('depuis l’accueil du projet : Trackers au rail, le tracker, l’item (3 actions), puis le fil d’Ariane ramène en 1', async () => {
+  it('depuis l’accueil du projet : Trackers au rail, le tracker, le ticket (3 actions), puis le fil d’Ariane ramène en 1', async () => {
     app('/p/ARI');
     await userEvent.click(await within(await screen.findByRole('group', { name: 'Projet ARI' })).findByRole('button', { name: 'Trackers' })); // 1
     await userEvent.click(await screen.findByRole('link', { name: 'Ouvrir Anomalies' })); // 2

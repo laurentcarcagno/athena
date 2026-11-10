@@ -239,7 +239,7 @@ describe('restauration depuis l’historique', () => {
   });
 });
 
-describe('clés d’item', () => {
+describe('clés de ticket', () => {
   it('remplace l’adresse d’une ancienne clé par l’adresse canonique', async () => {
     const def = { key: 'BUG', name: 'Bugs', fields: [{ id: 'f', key: 'title', label: 'Titre', type: 'text', config: {}, required: true, semanticRole: 'title' }], statuses: [{ id: 's1', key: 'open', name: 'Ouvert', category: 'todo' }], transitions: [] };
     handlers = [

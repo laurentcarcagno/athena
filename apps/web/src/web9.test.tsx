@@ -169,7 +169,7 @@ describe('onglet Trackers', () => {
     expect(groups).toEqual(['Ingénierie', 'Développement', 'Autres']); // catégories vides absentes
     const req = screen.getByRole('region', { name: 'Ingénierie' });
     expect(within(req).getByText('Exigences')).toBeInTheDocument();
-    expect(within(req).getByText('10 items')).toHaveClass('ath-mono');
+    expect(within(req).getByText('10 tickets')).toHaveClass('ath-mono');
     expect(within(req).getByRole('img', { name: /Brouillon 2, Approuvée 3, Vérifiée 5/ })).toBeInTheDocument();
     expect(within(screen.getByRole('region', { name: 'Développement' })).getByText('2 à moi')).toBeInTheDocument();
     expect(within(screen.getByRole('region', { name: 'Autres' })).getByText(/Aucune activité/)).toBeInTheDocument();
@@ -185,7 +185,7 @@ describe('onglet Trackers', () => {
 });
 
 describe('Vue d’ensemble', () => {
-  it('liste les trackers et mes items, même sans aucune donnée', async () => {
+  it('liste les trackers et mes tickets, même sans aucune donnée', async () => {
     app('/p/ARI');
     await screen.findByRole('heading', { level: 1, name: 'Vue d’ensemble · ARI' });
     const mine = await screen.findByRole('group', { name: 'Mes tickets' }); // T-0123 : la Vue d'ensemble est portée par le moteur de widgets

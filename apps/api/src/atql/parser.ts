@@ -139,8 +139,8 @@ export function parse(input: string): Query {
       return { type: 'suspect' };
     }
     if (kind === 'linkedto') {
-      if (args.length < 1 || args.length > 2) throw new AtqlError('linkedTo() attend une clé d’item et, facultatif, un type de lien', name.pos);
-      if (!ITEM_REF.test(args[0]!.value)) throw new AtqlError(`Clé d’item invalide : ${args[0]!.value}`, args[0]!.pos);
+      if (args.length < 1 || args.length > 2) throw new AtqlError('linkedTo() attend une clé de ticket et, facultatif, un type de lien', name.pos);
+      if (!ITEM_REF.test(args[0]!.value)) throw new AtqlError(`Clé de ticket invalide : ${args[0]!.value}`, args[0]!.pos);
       const link = linkType(args[1]);
       return link === undefined ? { type: 'linkedTo', target: args[0]!.value } : { type: 'linkedTo', target: args[0]!.value, link };
     }

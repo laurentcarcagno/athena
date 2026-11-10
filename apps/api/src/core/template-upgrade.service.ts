@@ -186,12 +186,12 @@ export class TemplateUpgradeService {
         const mine = a.statuses.find((x) => x.key === s.key);
         if (mine && !t.statuses.some((x) => x.key === s.key)) {
           u.statusesRemoved.push({ key: s.key, name: mine.name, items: mine.items });
-          if (mine.items > 0) report.blockers.push(`${t.key} : l’état « ${mine.name} » (${s.key}) est supprimé par le gabarit et porte ${mine.items} item(s) ; déplacez-les avant la montée`);
+          if (mine.items > 0) report.blockers.push(`${t.key} : l’état « ${mine.name} » (${s.key}) est supprimé par le gabarit et porte ${mine.items} ticket(s) ; déplacez-les avant la montée`);
         }
       }
       u.transitionsAdded = t.transitions.filter((x) => !a.transitions.includes(x.name)).map((x) => x.name);
       if (u.fieldsAdded.length + u.fieldsRelabeled.length + u.statusesAdded.length + u.statusesRenamed.length + u.statusesRemoved.length + u.transitionsAdded.length > 0) u.action = 'update';
-      if (u.action === 'update' && a.items > 0 && u.fieldsAdded.some((f) => f.required)) report.warnings.push(`${t.key} : les champs obligatoires ajoutés (${u.fieldsAdded.filter((f) => f.required).map((f) => f.key).join(', ')}) sont créés facultatifs car le tracker contient déjà des items`);
+      if (u.action === 'update' && a.items > 0 && u.fieldsAdded.some((f) => f.required)) report.warnings.push(`${t.key} : les champs obligatoires ajoutés (${u.fieldsAdded.filter((f) => f.required).map((f) => f.key).join(', ')}) sont créés facultatifs car le tracker contient déjà des tickets`);
       report.trackers.push(u);
     }
     for (const t of from.trackers) if (!to.trackers.some((x) => x.key === t.key) && actual.has(t.key)) report.warnings.push(`${t.key} : tracker retiré du gabarit, conservé dans le projet`);

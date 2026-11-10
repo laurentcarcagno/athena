@@ -61,12 +61,12 @@ describe('liens depuis la fiche', () => {
     expect(within(rows[0]!).queryByText('Suspect')).not.toBeInTheDocument();
   });
 
-  it('crée un lien sortant : type puis item cible trouvé par son titre', async () => {
+  it('crée un lien sortant : type puis ticket cible trouvé par son titre', async () => {
     page();
     await openLinks();
     await userEvent.selectOptions(screen.getByLabelText('Type de lien'), 'verifies:out');
-    await userEvent.type(screen.getByLabelText('Item cible (clé ou titre)'), 'journal');
-    const proposed = within(await screen.findByRole('list', { name: 'Items proposés' }));
+    await userEvent.type(screen.getByLabelText('Ticket cible (clé ou titre)'), 'journal');
+    const proposed = within(await screen.findByRole('list', { name: 'Tickets proposés' }));
     expect(proposed.queryByText('ARI-BUG-0001')).not.toBeInTheDocument(); // l'item lui-même n'est pas proposé
     expect(proposed.getByText('Journalisation du système')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Lier' })).toBeDisabled(); // une cible doit être choisie dans la liste
@@ -80,7 +80,7 @@ describe('liens depuis la fiche', () => {
     page();
     await openLinks();
     await userEvent.selectOptions(screen.getByLabelText('Type de lien'), 'verifies:in');
-    await userEvent.type(screen.getByLabelText('Item cible (clé ou titre)'), 'ARI-REQ');
+    await userEvent.type(screen.getByLabelText('Ticket cible (clé ou titre)'), 'ARI-REQ');
     await userEvent.click(await screen.findByRole('button', { name: /ARI-REQ-0007/ }));
     await userEvent.click(screen.getByRole('button', { name: 'Lier' }));
     await waitFor(() => expect(sent.find((s) => s.url.endsWith('/artifacts/ARI-REQ-0007/links'))?.body).toEqual({ to: 'ARI-BUG-0001', type: 'verifies' }));

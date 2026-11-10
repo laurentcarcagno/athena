@@ -16,7 +16,7 @@ test('board du tracker : carte › panneau › retour en 1 action, filtres conse
   await page.goto('/p/ARI/t/BUG/board?q=ARI-BUG');
   const link = page.getByRole('link', { name: 'ARI-BUG-0001', exact: true });
   await link.click();
-  const panel = page.getByRole('complementary', { name: 'Détail de l’item' });
+  const panel = page.getByRole('complementary', { name: 'Détail du ticket' });
   await expect(panel.getByRole('heading', { level: 2, name: /ARI-BUG-0001/ })).toBeVisible();
   await expect(page).toHaveURL(/q=ARI-BUG&i=ARI-BUG-0001/);
   await panel.getByRole('button', { name: 'Fermer' }).click();

@@ -56,7 +56,7 @@ test('circuit d’approbation : défini sur le tracker, décision nominative con
     expect((await request.patch(`${api}/projects/ARI/artifacts/${key}`, { headers, data: { values: { title: 'À approuver (modifié)' }, version } })).status()).toBe(200);
     await page.reload();
     await page.getByRole('tab', { name: 'Approbation' }).click();
-    await expect(page.getByText(/L’item a été modifié \(version \d+\) : la décision précédente est invalidée/)).toBeVisible();
+    await expect(page.getByText(/Le ticket a été modifié \(version \d+\) : la décision précédente est invalidée/)).toBeVisible();
     await expect(page.getByText('En attente')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Approuver', exact: true })).toBeVisible();
     expect(await axeViolations(page)).toEqual([]);

@@ -44,7 +44,7 @@ describe('baselines couplées aux documents', () => {
     expect(within(screen.getByRole('cell', { name: 'B1' }).closest('tr')!).getByText('aaaa1111')).toBeInTheDocument();
   });
 
-  it('compare deux baselines : items, trackers, exigences ajoutées, modifiées, supprimées et changement de SHA', async () => {
+  it('compare deux baselines : tickets, trackers, exigences ajoutées, modifiées, supprimées et changement de SHA', async () => {
     open();
     await screen.findByRole('cell', { name: 'B2' });
     expect(screen.getByLabelText('De la baseline')).toHaveValue('B1');
@@ -58,7 +58,7 @@ describe('baselines couplées aux documents', () => {
     expect(within(doc).getByText('Exigences ajoutées (1)')).toBeInTheDocument();
     expect(within(doc).getByText('Exigences modifiées (1)')).toBeInTheDocument();
     expect(within(doc).getByText('Exigences supprimées (1)')).toBeInTheDocument();
-    expect(within(screen.getByRole('list', { name: 'Items et trackers' })).getByText('ARI-BUG-0002')).toBeInTheDocument();
+    expect(within(screen.getByRole('list', { name: 'Tickets et trackers' })).getByText('ARI-BUG-0002')).toBeInTheDocument();
   });
 
   it('exporte en CSV (la mention de protection vient de l’API) et refuse de comparer une baseline à elle-même', async () => {

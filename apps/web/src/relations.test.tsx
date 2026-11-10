@@ -74,7 +74,7 @@ describe('relations groupées', () => {
     expect(within(group).getAllByRole('heading', { level: 4 }).map((h) => h.textContent)).toEqual(['Parent 1', 'Enfants 1', 'Est bloqué par 1', 'Traçabilité 2', 'Relié à 1']);
     expect(within(within(group).getByRole('list', { name: 'Traçabilité' })).getAllByRole('listitem')).toHaveLength(2);
     expect(within(group).getByRole('list', { name: 'Parent' })).toHaveTextContent('ARI-BUG-0003');
-    expect(within(group).getByRole('list', { name: 'Est bloqué par' })).toHaveTextContent('lien vers un item sous contrôle export');
+    expect(within(group).getByRole('list', { name: 'Est bloqué par' })).toHaveTextContent('lien vers un ticket sous contrôle export');
   });
 });
 

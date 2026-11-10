@@ -14,7 +14,7 @@ describe('fil d’Ariane', () => {
     expect(labels('/org')).toEqual([]);
   });
 
-  it('suit Projet › Tracker › Vue › Item', () => {
+  it('suit Projet › Tracker › Vue › Ticket', () => {
     expect(labels('/p/ARI')).toEqual(['ARI']);
     expect(labels('/p/ARI/trackers')).toEqual(['ARI', 'Trackers']);
     expect(labels('/p/ARI/t/BUG/tableau')).toEqual(['ARI', 'BUG', 'Tableau']);

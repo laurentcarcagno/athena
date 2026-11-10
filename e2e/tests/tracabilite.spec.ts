@@ -9,7 +9,7 @@ async function login(page: Page, username: string, password: string) {
   await page.waitForURL(/localhost:3000/);
 }
 
-test('onglet Traçabilité : règle de couverture, taux, items en défaut et ouverture de la liste filtrée', async ({ page, request }) => {
+test('onglet Traçabilité : règle de couverture, taux, tickets en défaut et ouverture de la liste filtrée', async ({ page, request }) => {
   const token = (await (await request.post('http://localhost:8080/realms/athena/protocol/openid-connect/token', { form: { grant_type: 'password', client_id: 'athena-dev-cli', username: 'admin.dev', password: 'dev-only-admin' } })).json()).access_token as string;
   const headers = { Authorization: `Bearer ${token}` };
   const api = 'http://127.0.0.1:3001/v1/projects/ARI';

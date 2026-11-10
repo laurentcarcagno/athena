@@ -18,10 +18,10 @@ const base = (): UpgradeReportData => ({
 });
 
 describe('rapport d’impact d’une montée de version', () => {
-  it('montre champs ajoutés, états modifiés et items concernés, sans les trackers inchangés', () => {
+  it('montre champs ajoutés, états modifiés et tickets concernés, sans les trackers inchangés', () => {
     render(<UpgradeReport report={base()} onApply={() => undefined} />);
     expect(screen.getByRole('heading', { name: 'Montée de version du gabarit : 1.0 → 1.1' })).toBeInTheDocument();
-    expect(screen.getByText('2 trackers concernés, 12 items touchés par une évolution de schéma.')).toBeInTheDocument();
+    expect(screen.getByText('2 trackers concernés, 12 tickets touchés par une évolution de schéma.')).toBeInTheDocument();
     const row = screen.getByRole('cell', { name: 'SRS' }).closest('tr')!;
     expect(within(row).getByText('Champs ajoutés : asil')).toBeInTheDocument();
     expect(within(row).getByText('États ajoutés : approved')).toBeInTheDocument();
@@ -37,13 +37,13 @@ describe('rapport d’impact d’une montée de version', () => {
     expect(screen.getByText('SRS.asil : devient obligatoire après renseignement')).toBeInTheDocument();
   });
 
-  it('bloque l’application quand un état supprimé porte des items, et le dit en texte', async () => {
+  it('bloque l’application quand un état supprimé porte des tickets, et le dit en texte', async () => {
     const onApply = vi.fn();
     const r = base();
-    r.blockers = ['SRS : l’état « En revue » (review) est supprimé par le gabarit et porte 4 item(s) ; déplacez-les avant la montée'];
+    r.blockers = ['SRS : l’état « En revue » (review) est supprimé par le gabarit et porte 4 ticket(s) ; déplacez-les avant la montée'];
     render(<UpgradeReport report={r} onApply={onApply} />);
     expect(screen.getByRole('alert')).toHaveTextContent('Montée bloquée');
-    expect(screen.getByRole('alert')).toHaveTextContent('porte 4 item(s)');
+    expect(screen.getByRole('alert')).toHaveTextContent('porte 4 ticket(s)');
     const apply = screen.getByRole('button', { name: 'Appliquer la montée' });
     expect(apply).toBeDisabled();
     await userEvent.click(apply);

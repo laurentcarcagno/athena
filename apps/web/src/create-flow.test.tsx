@@ -85,9 +85,9 @@ describe('« Créer » de la barre haute', () => {
 });
 
 describe('après création, on reste dans la liste', () => {
-  it('écran Tracker : « + Nouvel item » crée dans ce tracker, la liste se recharge et le ticket s’ouvre dans le panneau', async () => {
+  it('écran Tracker : « + Nouveau ticket » crée dans ce tracker, la liste se recharge et le ticket s’ouvre dans le panneau', async () => {
     app('/p/ARI/t/BUG/tableau');
-    await userEvent.click(await screen.findByRole('button', { name: '+ Nouvel item' }));
+    await userEvent.click(await screen.findByRole('button', { name: '+ Nouveau ticket' }));
     const form = within(await dialog());
     expect(await form.findByLabelText('Tracker')).toHaveValue('BUG');
     await userEvent.type(await form.findByLabelText('Titre (obligatoire)'), 'Nouveau');

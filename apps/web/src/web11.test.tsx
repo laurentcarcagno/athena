@@ -58,7 +58,7 @@ describe('favoris et récents : adresses', () => {
     expect(pinHref({ kind: 'view', project: 'ARI', ref: 'BUG:v1', label: '' })).toBe('/p/ARI/t/BUG/tableau?v=v1');
     expect(pinHref({ kind: 'item', project: 'ARI', ref: 'ARI-BUG-0001', label: '' })).toBe('/p/ARI/a/ARI-BUG-0001');
   });
-  it('note le projet, le tracker et seulement les items à clé canonique', () => {
+  it('note le projet, le tracker et seulement les tickets à clé canonique', () => {
     expect(entriesOf('/p/ARI').map((e) => e.kind)).toEqual(['project']);
     expect(entriesOf('/p/ARI/t/BUG/tableau').map((e) => [e.kind, e.ref])).toEqual([['project', 'ARI'], ['tracker', 'BUG']]);
     expect(entriesOf('/p/ARI/a/ARI-BUG-0001').map((e) => e.kind)).toEqual(['project', 'item']);

@@ -73,12 +73,12 @@ describe('board : carte et panneau', () => {
   it('un clic sur la carte ouvre le panneau sans quitter le board ; Échap le ferme et garde les filtres', async () => {
     mount('/p/ARI/board/kanban?q=titre');
     await userEvent.click(await screen.findByRole('link', { name: 'ARI-BUG-0003' }));
-    const panel = await screen.findByRole('complementary', { name: 'Détail de l’item' });
+    const panel = await screen.findByRole('complementary', { name: 'Détail du ticket' });
     expect(await within(panel).findByRole('heading', { level: 2, name: /ARI-BUG-0003/ })).toBeInTheDocument();
     expect(screen.getByTestId('where')).toHaveTextContent('/p/ARI/board/kanban?q=titre&i=ARI-BUG-0003');
     expect(column('À faire')).toBeInTheDocument(); // le board reste affiché
     await userEvent.keyboard('{Escape}');
-    await waitFor(() => expect(screen.queryByRole('complementary', { name: 'Détail de l’item' })).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.queryByRole('complementary', { name: 'Détail du ticket' })).not.toBeInTheDocument());
     expect(screen.getByTestId('where')).toHaveTextContent('/p/ARI/board/kanban?q=titre');
     await waitFor(() => expect(screen.getByRole('link', { name: 'ARI-BUG-0003' })).toHaveFocus());
   });

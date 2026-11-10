@@ -30,7 +30,7 @@ const PAGES: Array<[string, string]> = [
   ['mon travail', '/'],
   ['vue d’ensemble', '/p/ARI'],
   ['tracker (tableau)', '/p/ARI/t/BUG/tableau'],
-  ['fiche item', '/p/ARI/a/ARI-BUG-0001'],
+  ['fiche ticket', '/p/ARI/a/ARI-BUG-0001'],
   ['configuration du tracker', '/p/ARI/trackers/BUG/config'],
 ];
 

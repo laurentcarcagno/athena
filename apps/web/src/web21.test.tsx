@@ -64,9 +64,9 @@ describe('éditeur de marquage', () => {
 });
 
 describe('ayants droit du contrôle export', () => {
-  it('liste les ayants droit, ajoute et interdit de vider la liste tant que des items sont marqués', async () => {
+  it('liste les ayants droit, ajoute et interdit de vider la liste tant que des tickets sont marqués', async () => {
     wrap(<ExportControlMembers project="DEF" />);
-    expect(await screen.findByText(/2 items marqués/)).toBeInTheDocument();
+    expect(await screen.findByText(/2 tickets marqués/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Retirer lead' })).toBeDisabled();
     await userEvent.selectOptions(screen.getByLabelText('Ajouter un ayant droit du marquage'), 'u-eve');
     await userEvent.click(screen.getByRole('button', { name: 'Ajouter' }));
@@ -74,17 +74,17 @@ describe('ayants droit du contrôle export', () => {
   });
 });
 
-describe('liens vers un item sous contrôle export', () => {
+describe('liens vers un ticket sous contrôle export', () => {
   const links = [
     { id: 'l1', type: 'verifies', direction: 'outward', label: 'vérifie', other: 'DEF-REQ-0003', suspect: false },
     { id: 'l2', type: 'verifies', direction: 'outward', label: 'vérifie', other: null, restricted: true, suspect: false },
   ];
-  it('affiche « lien vers un item sous contrôle export » sans clé ni titre, et reste accessible', async () => {
+  it('affiche « lien vers un ticket sous contrôle export » sans clé ni titre, et reste accessible', async () => {
     const { container } = wrap(<main><LinkEditor project="DEF" itemKey="DEF-TST-0001" links={links} onChanged={() => undefined} /></main>);
-    expect(await screen.findByText('lien vers un item sous contrôle export')).toBeInTheDocument();
+    expect(await screen.findByText('lien vers un ticket sous contrôle export')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'DEF-REQ-0003' })).toBeInTheDocument();
     expect(screen.getAllByRole('link')).toHaveLength(1);
-    expect(screen.getByRole('button', { name: 'Retirer le lien vers un item sous contrôle export' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Retirer le lien vers un ticket sous contrôle export' })).toBeInTheDocument();
     expect((await axe.run(container, { rules: { 'color-contrast': { enabled: false } } })).violations.map((v) => v.id)).toEqual([]);
   });
 });

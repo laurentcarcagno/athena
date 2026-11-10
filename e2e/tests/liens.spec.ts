@@ -23,7 +23,7 @@ test('liens depuis la fiche : créer (raccourci L, autocomplétion), suspect, ac
   await page.keyboard.press('l');
   await expect(page.getByLabel('Type de lien')).toBeFocused();
   await page.getByLabel('Type de lien').selectOption('related:out');
-  await page.getByLabel('Item cible (clé ou titre)').fill('Cible des');
+  await page.getByLabel('Ticket cible (clé ou titre)').fill('Cible des');
   await page.getByRole('button', { name: new RegExp(target) }).click();
   await page.getByRole('button', { name: 'Lier', exact: true }).click();
   const list = page.getByRole('group', { name: 'Relations' }); // T-0113 : relations groupées

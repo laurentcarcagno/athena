@@ -102,7 +102,7 @@ suite('montée de version d’un projet (intégration)', () => {
   it('bloque la montée si un état supprimé porte des items, avec la liste', async () => {
     await db.tx(org, (c) => c.query("update artifact set status_id = (select id from status where tracker_id = artifact.tracker_id and key = 'review')"));
     const report = await upgrades.preview(org, 'UPG');
-    expect(report.blockers).toEqual(['REQ : l’état « En revue » (review) est supprimé par le gabarit et porte 1 item(s) ; déplacez-les avant la montée']);
+    expect(report.blockers).toEqual(['REQ : l’état « En revue » (review) est supprimé par le gabarit et porte 1 ticket(s) ; déplacez-les avant la montée']);
     const before = await state();
     const error = await failure(upgrades.apply(org, 'UPG', undefined, admin));
     expect(error).toMatchObject({ code: 'conflict', details: report.blockers });
