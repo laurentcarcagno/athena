@@ -5,14 +5,17 @@ import { ToastProvider } from '@athena/ui';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AuthenticatedApp } from './App';
 import type { Session } from './api';
+import { initTheme } from './lib/theme';
 
 /** T-0123 : navigation globale (ADR-0003 § 2) : `/` = Mon travail, `/projets`, `/profil`, `/notifications`, `/admin`, rail ≤ 6. */
 const calls: string[] = [];
 let stored: { home: string | null; locale: string | null; theme: string | null };
+let preferencesGate: Promise<void> | null = null;
 let puts: unknown[];
 beforeEach(() => {
   calls.length = 0;
   stored = { home: null, locale: null, theme: null };
+  preferencesGate = null;
   puts = [];
   try { localStorage.clear(); } catch { /* sans stockage */ }
   vi.stubGlobal('fetch', vi.fn(async (input: string, init?: RequestInit) => {
@@ -20,6 +23,12 @@ beforeEach(() => {
     calls.push(`${method} ${input}`);
     const ok = (body: unknown) => new Response(JSON.stringify(body), { status: 200 });
     if (/\/v1\/me\/preferences$/.test(input)) {
+      if (method !== 'PUT' && preferencesGate) {
+        // Comme un vrai serveur : la réponse décrit l'état au moment de la requête, même si elle arrive après un PUT.
+        const atRequest = { ...stored };
+        await preferencesGate;
+        return ok(atRequest);
+      }
       if (method === 'PUT') { const patch = JSON.parse(String(init?.body)); puts.push(patch); stored = { ...stored, ...patch }; }
       return ok(stored);
     }
@@ -94,8 +103,23 @@ describe('Profil et notifications', () => {
     localStorage.clear();
     app('/');
     await waitFor(() => expect(where()).toBe('/projets'));
-    expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
-    document.documentElement.removeAttribute('data-theme');
+    expect(document.documentElement.getAttribute('data-mode')).toBe('dark');
+    document.documentElement.removeAttribute('data-mode');
+  });
+  it('un thème choisi pendant le chargement des préférences n’est pas écrasé par celui du compte', async () => {
+    stored = { home: null, locale: null, theme: 'dark' };
+    let release: () => void = () => undefined;
+    preferencesGate = new Promise<void>((resolve) => { release = resolve; });
+    localStorage.clear();
+    initTheme(); // repart de « système » : le contrôleur garde sinon le mode du test précédent
+    app('/projets');
+    await userEvent.click(await screen.findByRole('button', { name: /^Thème : système/ }));
+    expect(document.documentElement.getAttribute('data-mode')).toBe('light');
+    release();
+    await waitFor(() => expect(calls).toContain('GET /v1/me/preferences'));
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(document.documentElement.getAttribute('data-mode')).toBe('light');
+    document.documentElement.removeAttribute('data-mode');
   });
   it('/notifications liste les notifications, marque lu, et mène aux réglages du Profil', async () => {
     app('/notifications');

@@ -25,10 +25,14 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<{ loaded: boolean; home: HomeChoice }>({ loaded: false, home: readHome() });
   useEffect(() => {
     let alive = true;
+    // Un réglage changé ici pendant le chargement (clic sur le thème, choix de langue) est plus récent que celui du compte :
+    // il n'est pas écrasé à l'arrivée de la réponse.
+    const localeAtStart = getLocale();
+    const themeAtStart = getTheme();
     api<Stored>('GET', '/v1/me/preferences').then((stored) => {
       if (!alive) return;
-      if (stored?.locale && stored.locale !== getLocale()) setLocale(stored.locale);
-      if (stored?.theme && stored.theme !== getTheme()) setTheme(stored.theme);
+      if (stored?.locale && stored.locale !== getLocale() && getLocale() === localeAtStart) setLocale(stored.locale);
+      if (stored?.theme && stored.theme !== getTheme() && getTheme() === themeAtStart) setTheme(stored.theme);
       const home = stored?.home ?? readHome();
       setHome(home); // copie locale : l'accueil se décide sans attendre au prochain chargement
       setState({ loaded: true, home });
