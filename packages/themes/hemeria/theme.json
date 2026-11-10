@@ -51,123 +51,6 @@
         "$type": "dimension"
       }
     },
-    "type": {
-      "display": {
-        "font-family": {
-          "$value": "IBM Plex Sans, system-ui, sans-serif"
-        },
-        "font-size": {
-          "$value": "32px"
-        },
-        "font-weight": {
-          "$value": 600
-        },
-        "line-height": {
-          "$value": 1.15
-        },
-        "letter-spacing": {
-          "$value": "0.04em"
-        }
-      },
-      "h1": {
-        "font-family": {
-          "$value": "IBM Plex Sans, system-ui, sans-serif"
-        },
-        "font-size": {
-          "$value": "26px"
-        },
-        "font-weight": {
-          "$value": 600
-        },
-        "line-height": {
-          "$value": 1.15
-        },
-        "letter-spacing": {
-          "$value": "0.04em"
-        }
-      },
-      "h2": {
-        "font-family": {
-          "$value": "IBM Plex Sans, system-ui, sans-serif"
-        },
-        "font-size": {
-          "$value": "18px"
-        },
-        "font-weight": {
-          "$value": 500
-        },
-        "letter-spacing": {
-          "$value": "0.04em"
-        }
-      },
-      "h3": {
-        "font-family": {
-          "$value": "IBM Plex Sans, system-ui, sans-serif"
-        },
-        "font-size": {
-          "$value": "15px"
-        },
-        "font-weight": {
-          "$value": 600
-        },
-        "letter-spacing": {
-          "$value": "0.02em"
-        }
-      },
-      "body": {
-        "font-family": {
-          "$value": "IBM Plex Sans, system-ui, -apple-system, sans-serif"
-        },
-        "font-size": {
-          "$value": "13px"
-        },
-        "font-weight": {
-          "$value": 400
-        },
-        "line-height": {
-          "$value": 1.45
-        }
-      },
-      "label": {
-        "font-family": {
-          "$value": "IBM Plex Sans, system-ui, sans-serif"
-        },
-        "font-size": {
-          "$value": "11px"
-        },
-        "font-weight": {
-          "$value": 700
-        },
-        "letter-spacing": {
-          "$value": "0.12em"
-        }
-      },
-      "eyebrow": {
-        "font-family": {
-          "$value": "IBM Plex Sans, system-ui, sans-serif"
-        },
-        "font-size": {
-          "$value": "11px"
-        },
-        "font-weight": {
-          "$value": 700
-        },
-        "letter-spacing": {
-          "$value": "0.18em"
-        }
-      },
-      "mono": {
-        "font-family": {
-          "$value": "IBM Plex Mono, ui-monospace, monospace"
-        },
-        "font-weight": {
-          "$value": 500
-        },
-        "letter-spacing": {
-          "$value": "0.02em"
-        }
-      }
-    },
     "motion": {
       "default": {
         "$value": "120ms linear",
@@ -286,7 +169,7 @@
     "font": {
       "family": {
         "sans": {
-          "$value": "{type.body.font-family}",
+          "$value": "IBM Plex Sans, system-ui, -apple-system, sans-serif",
           "$type": "fontFamily"
         },
         "mono": {
@@ -295,36 +178,28 @@
         }
       },
       "size": {
-        "xs": {
-          "$value": "11px",
-          "$type": "dimension"
-        },
-        "sm": {
+        "small": {
           "$value": "12px",
           "$type": "dimension"
         },
-        "md": {
-          "$value": "13px",
-          "$type": "dimension"
-        },
-        "ml": {
+        "body": {
           "$value": "14px",
           "$type": "dimension"
         },
-        "lg": {
-          "$value": "15px",
+        "subsection": {
+          "$value": "14px",
           "$type": "dimension"
         },
-        "xl": {
+        "section": {
           "$value": "16px",
           "$type": "dimension"
         },
-        "2xl": {
-          "$value": "26px",
+        "title": {
+          "$value": "22px",
           "$type": "dimension"
         },
-        "stat": {
-          "$value": "30px",
+        "display": {
+          "$value": "28px",
           "$type": "dimension"
         }
       },
@@ -347,32 +222,16 @@
         }
       },
       "tracking": {
-        "tight": {
+        "none": {
+          "$value": "0",
+          "$type": "dimension"
+        },
+        "title": {
+          "$value": "0.01em",
+          "$type": "dimension"
+        },
+        "mono": {
           "$value": "0.02em",
-          "$type": "dimension"
-        },
-        "heading": {
-          "$value": "0.04em",
-          "$type": "dimension"
-        },
-        "nav": {
-          "$value": "0.08em",
-          "$type": "dimension"
-        },
-        "tag": {
-          "$value": "0.1em",
-          "$type": "dimension"
-        },
-        "label": {
-          "$value": "0.12em",
-          "$type": "dimension"
-        },
-        "pill": {
-          "$value": "0.14em",
-          "$type": "dimension"
-        },
-        "eyebrow": {
-          "$value": "0.18em",
           "$type": "dimension"
         }
       },
@@ -381,16 +240,24 @@
           "$value": 1,
           "$type": "number"
         },
-        "tight": {
-          "$value": 1.15,
+        "display": {
+          "$value": 1.2,
           "$type": "number"
         },
-        "snug": {
+        "title": {
+          "$value": 1.25,
+          "$type": "number"
+        },
+        "section": {
+          "$value": 1.35,
+          "$type": "number"
+        },
+        "small": {
           "$value": 1.4,
           "$type": "number"
         },
         "body": {
-          "$value": 1.45,
+          "$value": 1.5,
           "$type": "number"
         }
       }

@@ -4,6 +4,7 @@ import { Btn, Id, StatusPill, Table, Td, Th, type PillKind, type SortState } fro
 import type { SearchResult, TrackerDefinition } from '../api';
 import { fr } from '../i18n';
 import { fromHere } from '../lib/origin';
+import { formatDateTime } from '../lib/dates';
 
 /** Couleur de la pastille selon la catégorie du statut. */
 export const pillKind = (category: string): PillKind => (category === 'done' ? 'success' : category === 'in_progress' ? 'warning' : 'info');
@@ -19,7 +20,7 @@ const STANDARD: Record<string, TableColumn> = {
   title: { id: 'title', label: '', render: (hit) => <span className="ath-clip" title={titleOf(hit)}>{titleOf(hit)}</span> },
   status: { id: 'status', label: '', sortField: 'status', render: (hit) => <StatusPill kind={pillKind(hit.category)}>{hit.statusName ?? hit.status}</StatusPill> },
   tracker: { id: 'tracker', label: '', sortField: 'tracker', mono: true, render: (hit) => hit.tracker },
-  updated: { id: 'updated', label: '', sortField: 'updated', mono: true, mute: true, render: (hit) => hit.updatedAt.slice(0, 16).replace('T', ' ') },
+  updated: { id: 'updated', label: '', sortField: 'updated', mono: true, mute: true, render: (hit) => formatDateTime(hit.updatedAt) },
 };
 
 /** Colonnes de la Recherche : titre, état, tracker, date. */
@@ -77,7 +78,7 @@ export function ArtifactTable({ project, result, offset, pageSize, sortOf, sortB
       {groupByTracker && trackers.length > 1
         ? trackers.map((t) => {
           const hits = result.hits.filter((h) => h.tracker === t);
-          return <section key={t} aria-label={t}><h2 className="ath-label">{t} <Id>{hits.length}</Id></h2>{renderTable(hits)}</section>;
+          return <section key={t} aria-label={t}><h2 className="ath-section-title">{t} <Id>{hits.length}</Id></h2>{renderTable(hits)}</section>;
         })
         : renderTable(result.hits)}
       <div className="ath-toolbar">

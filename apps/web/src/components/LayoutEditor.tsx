@@ -56,7 +56,7 @@ export function LayoutEditor({ fields, value, onChange }: { fields: FieldLite[];
               <Btn size="sm" variant="ghost" aria-label={`${fr.layout.sectionDown} ${sectionName(si)}`} disabled={si === layout.sections.length - 1} onClick={() => edit(moveSection(layout, si, 1))}>▼</Btn>
               <Btn icon="trash" size="sm" variant="ghost" aria-label={`${fr.layout.removeSection} ${sectionName(si)}`} onClick={() => edit(removeSection(layout, si))}>{fr.layout.removeSection}</Btn>
             </div>
-          ) : section.title && <h3 className="ath-label">{section.title}</h3>}
+          ) : section.title && <h3 className="ath-subsection-title">{section.title}</h3>}
 
           <ul className={`ath-layout-grid${custom ? ' ath-layout-grid--edit' : ''}`} onDragOver={custom ? (e) => e.preventDefault() : undefined} onDrop={custom ? (e) => drop(e, si) : undefined}>
             {section.fields.map((f) => {
@@ -95,7 +95,7 @@ export function LayoutEditor({ fields, value, onChange }: { fields: FieldLite[];
         <>
           <div><Btn size="sm" variant="ghost" disabled={layout.sections.length >= 20} onClick={() => edit(addSection(layout))}>{fr.layout.addSection}</Btn></div>
           <div className="ath-layout-section" role="group" aria-label={fr.layout.unplaced}>
-            <h3 className="ath-label">{fr.layout.unplaced}</h3>
+            <h3 className="ath-subsection-title">{fr.layout.unplaced}</h3>
             {rest.length === 0 ? <p>{fr.layout.allPlaced}</p> : (
               <ul className="ath-taglist">
                 {rest.map((f) => (

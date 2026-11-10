@@ -5,6 +5,7 @@ import { api } from '../api';
 import { describe, type NotificationEntry } from '../components/NotificationCenter';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
+import { formatDateTime } from '../lib/dates';
 
 /** Toutes les notifications de la personne `/notifications` (T-0123) : lues et non lues, avec accès aux réglages du Profil. */
 export function NotificationsPage() {
@@ -31,7 +32,7 @@ export function NotificationsPage() {
               <div className="ath-notify__body">
                 <Link className="ath-link ath-mono" to={`/p/${n.project}/a/${n.key}`} onClick={() => { if (!n.read) void mark({ ids: [n.id], read: true }); }}>{n.key}</Link>
                 <span>{describe(n)}</span>
-                <time className="ath-notify__time" dateTime={n.createdAt}>{new Date(n.createdAt).toLocaleString()}</time>
+                <time className="ath-notify__time" dateTime={n.createdAt}>{formatDateTime(n.createdAt)}</time>
                 {!n.read && <span className="ath-visually-hidden">{fr.notify.unreadMark}</span>}
               </div>
               <Btn type="button" size="sm" variant="ghost" onClick={() => void mark({ ids: [n.id], read: !n.read })}>{n.read ? fr.notify.markUnread : fr.notify.markRead}</Btn>

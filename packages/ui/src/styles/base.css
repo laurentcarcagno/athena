@@ -1,12 +1,19 @@
 /* Racine, police, libellés et rappel de la règle des couleurs. */
 /* Styles Athena, conformes à Hemeria : angles droits, aplats, aucune ombre, aucun dégradé.
    Jetons générés par @nuance/theming (themes.generated.css). */
-.ath-root { font-family: var(--ath-type-body-font-family); font-size: var(--ath-type-body-font-size); line-height: var(--ath-font-leading-body); color: var(--ath-text-default); background: var(--ath-surface-app); }
+.ath-root { font-family: var(--ath-font-family-sans); font-size: var(--ath-font-size-body); line-height: var(--ath-font-leading-body); color: var(--ath-text-default); background: var(--ath-surface-app); }
 .ath-root *, .ath-root *::before, .ath-root *::after { box-sizing: border-box; border-radius: 0; }
-.ath-mono { font-family: var(--ath-font-family-mono); font-weight: var(--ath-font-weight-medium); letter-spacing: var(--ath-font-tracking-tight); font-variant-numeric: tabular-nums; }
-.ath-label { font-weight: var(--ath-font-weight-bold); font-size: var(--ath-font-size-xs); letter-spacing: var(--ath-font-tracking-label); text-transform: uppercase; }
-.ath-eyebrow { font-weight: var(--ath-font-weight-bold); font-size: var(--ath-font-size-xs); letter-spacing: var(--ath-font-tracking-eyebrow); text-transform: uppercase; color: var(--ath-text-mute); }
+.ath-mono { font-family: var(--ath-font-family-mono); font-weight: var(--ath-font-weight-medium); letter-spacing: var(--ath-font-tracking-mono); font-variant-numeric: tabular-nums; }
+.ath-label { font-weight: var(--ath-font-weight-semibold); font-size: var(--ath-font-size-small); }
+.ath-eyebrow { font-weight: var(--ath-font-weight-semibold); font-size: var(--ath-font-size-small); color: var(--ath-text-mute); }
 
 /* Couleurs : uniquement des jetons sémantiques (--ath-surface-*, --ath-text-*, --ath-border-*, --ath-action-*, --ath-state-*, --ath-focus-*,
    --ath-inverse-*, --ath-brand-*) générés par @nuance/theming depuis le thème actif (ADR-0004). Aucune primitive, aucune couleur littérale. */
 
+
+/* Titres (T-0132) : un seul traitement par niveau. h1 = titre de page (PageHeader) ; h2 = section ; h3 = sous-section ; h4 = groupe. */
+.ath-section-title { margin: 0; font-size: var(--ath-font-size-section); line-height: var(--ath-font-leading-section); font-weight: var(--ath-font-weight-semibold); color: var(--ath-text-heading); }
+.ath-subsection-title { margin: 0; font-size: var(--ath-font-size-subsection); line-height: var(--ath-font-leading-small); font-weight: var(--ath-font-weight-semibold); }
+.ath-group-title { margin: 0; font-size: var(--ath-font-size-small); line-height: var(--ath-font-leading-small); font-weight: var(--ath-font-weight-semibold); color: var(--ath-text-secondary); }
+/* Prose (descriptions, commentaires, documents) : 72 caractères au plus par ligne. */
+.ath-prose, .ath-comment__body, .ath-doc__text, .ath-md { max-width: 72ch; }

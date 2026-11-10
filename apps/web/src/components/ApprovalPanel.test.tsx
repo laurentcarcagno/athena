@@ -48,7 +48,7 @@ describe('panneau d’approbation d’un ticket', () => {
     expect(first).toHaveTextContent('1. Relecture technique');
     expect(first).toHaveTextContent('Désignés : Rita, Remy');
     expect(first).toHaveTextContent('Approuvé par Rita');
-    expect(first).toHaveTextContent('2026-11-07 09:30');
+    expect(first).toHaveTextContent('07/11/2026 09:30');
     expect(first).toHaveTextContent('— Relu');
     expect(second).toHaveTextContent('Désignés : Assurance qualité étatique');
     expect(screen.getByText('Vous n’êtes pas désigné pour l’étape en cours.')).toBeInTheDocument();

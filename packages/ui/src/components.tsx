@@ -139,7 +139,7 @@ export function Card({ title, meta, children }: { title?: string; meta?: ReactNo
       <section className="ath-card">
         {(title || meta) && (
           <header className="ath-card__header">
-            <h3 className="ath-label ath-card__title">{title}</h3>
+            <h3 className="ath-subsection-title">{title}</h3>
             {meta && <span className="ath-mono ath-card__meta">{meta}</span>}
           </header>
         )}
@@ -251,7 +251,7 @@ export function Modal({ open, title, size = 'sm', onClose, children, footer }: {
     <div className="ath-modal-backdrop" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div ref={dialog} className={cx('ath-modal', size !== 'sm' && `ath-modal--${size}`)} role="dialog" aria-modal="true" aria-labelledby={titleId}>
         <header className="ath-modal__header">
-          <h3 id={titleId} className="ath-modal__title">{title}</h3>
+          <h3 id={titleId} className="ath-subsection-title ath-modal__title">{title}</h3>
           <button type="button" className="ath-icon-btn" aria-label="Fermer" onClick={onClose}>×</button>
         </header>
         <div className="ath-modal__body">{children}</div>
@@ -310,7 +310,7 @@ export function EmptyState({ eyebrow, title, action }: { eyebrow: string; title:
     <div className="ath-empty">
       <div className="ath-empty__frame" aria-hidden="true">∅</div>
       <div className="ath-eyebrow">{eyebrow}</div>
-      <h3 className="ath-empty__title">{title}</h3>
+      <h3 className="ath-subsection-title ath-empty__title">{title}</h3>
       {action}
     </div>
   );

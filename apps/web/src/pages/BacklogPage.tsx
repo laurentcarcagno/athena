@@ -156,7 +156,7 @@ export function BacklogPage({ session }: { session: Session }) {
             <Btn type="submit" variant="deep">{t.close}</Btn>
           </form>
         )}
-        {s.state === 'active' && <><h3 className="ath-label">{t.burndown}</h3><Burndown points={burndown} /></>}
+        {s.state === 'active' && <><h3 className="ath-subsection-title">{t.burndown}</h3><Burndown points={burndown} /></>}
       </div>
     </Card>
   );
@@ -167,11 +167,11 @@ export function BacklogPage({ session }: { session: Session }) {
       {items === null ? <p role="status">{fr.loading}</p> : (
         <div className="ath-stack">
           <section aria-labelledby="bk-active" className="ath-stack">
-            <h2 id="bk-active" className="ath-label">{t.active}</h2>
+            <h2 id="bk-active" className="ath-section-title">{t.active}</h2>
             {active ? sprintCard(active) : <p>{t.noSprint}</p>}
           </section>
           <section aria-labelledby="bk-planned" className="ath-stack">
-            <h2 id="bk-planned" className="ath-label">{t.planned}</h2>
+            <h2 id="bk-planned" className="ath-section-title">{t.planned}</h2>
             {planned.map(sprintCard)}
             {canPlan && (
               <form className="ath-toolbar" aria-label={t.newSprint} onSubmit={createSprint}>
@@ -183,7 +183,7 @@ export function BacklogPage({ session }: { session: Session }) {
             )}
           </section>
           <section aria-labelledby="bk-list" className="ath-stack">
-            <h2 id="bk-list" className="ath-label">{t.list} <Id>{items.length}</Id></h2>
+            <h2 id="bk-list" className="ath-section-title">{t.list} <Id>{items.length}</Id></h2>
             {items.length === 0 ? <EmptyState eyebrow={t.title} title={t.empty} /> : (
               <ol className="ath-stack" aria-label={t.list}>
                 {items.map((item, index) => (

@@ -257,7 +257,7 @@ describe('onglet Activité', () => {
     expect(within(rows[1]!).getByText('severity')).toHaveClass('ath-mono');
     expect(within(rows[2]!).getByText('a commenté')).toBeInTheDocument();
     expect(within(rows[0]!).getByRole('link', { name: 'ARI-BUG-0002' })).toHaveAttribute('href', '/p/ARI/a/ARI-BUG-0002');
-    expect(within(rows[0]!).getByText('2026-11-05 10:30')).toHaveClass('ath-mono');
+    expect(within(rows[0]!).getByText('05/11/2026 10:30')).toHaveClass('ath-mono');
   });
 
   it('filtre par tracker, personne et type d’événement, filtres conservés dans l’adresse', async () => {

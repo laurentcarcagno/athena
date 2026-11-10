@@ -62,11 +62,11 @@ export function AccessLists({ project, me }: { project: string; me: string | und
   return (
     <section className="ath-stack" aria-labelledby="access-title">
       {confirm.dialog}
-      <h2 id="access-title" className="ath-card__title">{t.title}</h2>
+      <h2 id="access-title" className="ath-section-title">{t.title}</h2>
       <p className="ath-eyebrow">{t.help}</p>
       {lists === null ? <p role="status">{fr.loading}</p> : lists.length === 0 ? <EmptyState eyebrow={t.title} title={t.empty} /> : lists.map((l) => (
         <div key={l.tracker ?? ''} className="ath-card ath-stack" role="group" aria-label={t.listOf(label(l.tracker ?? ''))}>
-          <h3 className="ath-card__title">{label(l.tracker ?? '')} <Tag variant="ghost">{t.restricted}</Tag></h3>
+          <h3 className="ath-subsection-title">{label(l.tracker ?? '')} <Tag variant="ghost">{t.restricted}</Tag></h3>
           <Table>
             <caption className="ath-table__caption">{t.listOf(label(l.tracker ?? ''))}</caption>
             <thead><tr><Th>{fr.org.displayName}</Th><Th>{fr.org.username}</Th><Th>{t.remove}</Th></tr></thead>

@@ -44,7 +44,7 @@ export function ProfilePage({ session }: { session: Session }) {
             </select>
           </label>
         </fieldset>
-        <h2 className="ath-label">{p.notifications}</h2>
+        <h2 className="ath-section-title">{p.notifications}</h2>
         <NotificationSettings id="profile-notify" />
       </div>
     </>

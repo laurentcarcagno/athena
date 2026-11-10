@@ -3,6 +3,7 @@ import { Btn, EmptyState, Table, Tag, Td, Th } from '@athena/ui';
 import { api } from '../api';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
+import { formatDateTime } from '../lib/dates';
 
 interface Baseline { name: string; gitTag: string; gitSha: string; docShas: Record<string, string | null>; createdBy: string; createdAt: string }
 interface DocDiff { source: string; from: string | null; to: string | null; added: Array<{ uid: string; title: string }>; modified: Array<{ uid: string; title: string }>; removed: Array<{ uid: string; title: string }> }
@@ -47,7 +48,7 @@ export function BaselineCompare({ project }: { project: string }) {
   const total = diff ? diff.created.length + diff.modified.length + diff.deleted.length + diff.trackers.length + diff.docs.reduce((n, d) => n + d.added.length + d.modified.length + d.removed.length + (d.from !== d.to ? 1 : 0), 0) : 0;
   return (
     <section className="ath-stack" aria-labelledby="baselines-title">
-      <h2 id="baselines-title" className="ath-card__title">{t.title}</h2>
+      <h2 id="baselines-title" className="ath-section-title">{t.title}</h2>
       <Table>
         <caption className="ath-table__caption">{t.title} · {project}</caption>
         <thead><tr><Th>{t.name}</Th><Th>{t.commit}</Th><Th>{t.documents}</Th><Th>{t.date}</Th></tr></thead>
@@ -56,7 +57,7 @@ export function BaselineCompare({ project }: { project: string }) {
             <tr key={b.name}>
               <Td mono>{b.name}</Td><Td mono>{short(b.gitSha)}</Td>
               <Td>{Object.keys(b.docShas).length === 0 ? '—' : Object.entries(b.docShas).map(([s, sha]) => <div key={s}><span className="ath-mono">{s}</span> <span className="ath-mono">{short(sha)}</span></div>)}</Td>
-              <Td mono>{b.createdAt.slice(0, 16).replace('T', ' ')}</Td>
+              <Td mono>{formatDateTime(b.createdAt)}</Td>
             </tr>
           ))}
         </tbody>
@@ -88,7 +89,7 @@ export function BaselineCompare({ project }: { project: string }) {
           )}
           {diff.docs.map((d) => (
             <section key={d.source} className="ath-card ath-stack" aria-label={t.docOf(d.source)}>
-              <h3 className="ath-card__title"><span className="ath-mono">{d.source}</span> {d.from !== d.to && <Tag variant="accent">{t.shaChanged(short(d.from), short(d.to))}</Tag>}</h3>
+              <h3 className="ath-subsection-title"><span className="ath-mono">{d.source}</span> {d.from !== d.to && <Tag variant="accent">{t.shaChanged(short(d.from), short(d.to))}</Tag>}</h3>
               {([['added', d.added], ['modified', d.modified], ['removed', d.removed]] as const).map(([kind, list]) => list.length > 0 && (
                 <div key={kind}>
                   <span className="ath-eyebrow">{t.requirements[kind]} ({list.length})</span>

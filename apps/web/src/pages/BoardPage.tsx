@@ -140,7 +140,7 @@ export function BoardView({ session, project, board, header = true }: { session:
       </div>
       {lanes.map((lane) => (
         <section key={lane || 'all'} aria-label={lane || undefined}>
-          {lane && <h2 className="ath-label">{lane}</h2>}
+          {lane && <h2 className="ath-section-title">{lane}</h2>}
           {renderBoard(lane)}
         </section>
       ))}
@@ -187,14 +187,14 @@ export function BoardIndexPage() {
       <PageHeader eyebrow={fr.board.eyebrow} title={fr.board.indexTitle} />
       {boards === null ? <p role="status">{fr.loading}</p> : (
         <div className="ath-stack">
-          <h2 className="ath-label">{fr.board.projectBoards}</h2>
+          <h2 className="ath-section-title">{fr.board.projectBoards}</h2>
           {boards.length === 0 ? <p>{fr.board.noBoards}</p> : (
             <ul className="ath-stack" aria-label={fr.board.projectBoards}>
               {boards.map((b) => <li key={b.key}><Link className="ath-link" to={`/p/${project}/board/${b.key}`}>{b.name}</Link> <Id>{b.key}</Id></li>)}
             </ul>
           )}
           {trackers.length > 0 && <>
-            <h2 className="ath-label">{fr.board.trackerBoards}</h2>
+            <h2 className="ath-section-title">{fr.board.trackerBoards}</h2>
             <ul className="ath-stack" aria-label={fr.board.trackerBoards}>
               {trackers.map((t) => <li key={t.key}><Link className="ath-link" to={`/p/${project}/t/${t.key}/board`}>{t.name}</Link> <Id>{t.key}</Id></li>)}
             </ul>

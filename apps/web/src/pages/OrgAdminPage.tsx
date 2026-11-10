@@ -233,7 +233,7 @@ function ProjectTemplates({ templates, trackerTemplates, reload, reloadTrackerTe
       </form>
       {creating && (
         <section className="ath-stack" aria-label={fr.builder.newTrackerForTemplate}>
-          <h2 className="ath-label">{fr.builder.newTrackerForTemplate}</h2>
+          <h2 className="ath-section-title">{fr.builder.newTrackerForTemplate}</h2>
           <TrackerTemplateForm templates={trackerTemplates} onCreated={async (key) => {
             await reloadTrackerTemplates();
             setForm((f) => ({ ...f, tplPicked: [...f.tplPicked, key] }));
@@ -280,7 +280,7 @@ function TrackerTemplates({ templates, reload }: { templates: TrackerTemplateEnt
       </Table>
       {editing && templates.find((t) => t.key === editing) ? (
         <section className="ath-stack" aria-label={fr.builder.editing(editing)}>
-          <h2 className="ath-label">{fr.builder.editing(templates.find((t) => t.key === editing)!.name)}</h2>
+          <h2 className="ath-section-title">{fr.builder.editing(templates.find((t) => t.key === editing)!.name)}</h2>
           {templates.find((t) => t.key === editing)!.builtin && <p className="ath-eyebrow">{fr.builder.builtinNote}</p>}
           <TrackerTemplateForm key={editing} templates={templates} edit={templates.find((t) => t.key === editing)!}
             onCreated={async () => { setEditing(null); await reload(); }} onCancel={() => setEditing(null)} />

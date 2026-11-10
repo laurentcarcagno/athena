@@ -4,6 +4,7 @@ import { Btn, EmptyState, PageHeader, Table, Td, Th } from '@athena/ui';
 import { api } from '../../api';
 import { useFailure } from '../../hooks';
 import { fr } from '../../i18n';
+import { formatDateTime } from '../../lib/dates';
 
 type Kind = 'created' | 'updated' | 'transition' | 'comment';
 interface Item { id: string; kind: Kind; at: string; key: string; tracker: string; actor: string; actorName: string; fields: string[]; from: string | null; to: string | null }
@@ -85,7 +86,7 @@ export function ActivityTab() {
             <tbody>
               {items.map((i) => (
                 <tr key={i.id}>
-                  <Td mono mute>{i.at.slice(0, 16).replace('T', ' ')}</Td>
+                  <Td mono mute>{formatDateTime(i.at)}</Td>
                   <Td>{i.actorName}</Td>
                   <Td><Sentence item={i} /></Td>
                   <Td><Link className="ath-link ath-mono" to={`/p/${project}/a/${i.key}`}>{i.key}</Link></Td>

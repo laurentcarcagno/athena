@@ -68,7 +68,7 @@ const fieldInput = (f: NField) => {
 export function ItemFormPreview({ tracker }: { tracker: NTracker }) {
   return (
     <form className="ath-card ath-stack" aria-label={fr.normTpl.previewOf(tracker.key)} onSubmit={(e) => e.preventDefault()}>
-      <h3 className="ath-card__title">{fr.normTpl.previewOf(tracker.key)}</h3>
+      <h3 className="ath-subsection-title">{fr.normTpl.previewOf(tracker.key)}</h3>
       {tracker.fields.map(fieldInput)}
     </form>
   );
@@ -155,13 +155,13 @@ export function NormativeTemplateEditor({ templates, trackerTemplates, initial, 
 
   return (
     <section className="ath-stack" aria-label={t.title(initial.name ?? t.new)}>
-      <h2 className="ath-label">{initial.isNew ? t.new : t.title(meta.name)}</h2>
+      <h2 className="ath-section-title">{initial.isNew ? t.new : t.title(meta.name)}</h2>
       <nav aria-label={t.stepOf(step + 1, STEPS.length, t.steps[current]!)}>
         <ol className="ath-row">{STEPS.map((s, i) => (
           <li key={s}>{i === step ? <Tag variant="solid">{`${i + 1}. ${t.steps[s]}`}</Tag> : <Tag variant="ghost">{`${i + 1}. ${t.steps[s]}`}</Tag>}</li>
         ))}</ol>
       </nav>
-      <h3 className="ath-card__title" aria-live="polite">{t.stepOf(step + 1, STEPS.length, t.steps[current]!)}</h3>
+      <h3 className="ath-subsection-title" aria-live="polite">{t.stepOf(step + 1, STEPS.length, t.steps[current]!)}</h3>
 
       {current === 'parent' && (
         <div className="ath-stack">
@@ -191,7 +191,7 @@ export function NormativeTemplateEditor({ templates, trackerTemplates, initial, 
       {current === 'criticality' && (
         <div className="ath-stack">
           {text('cr-label', t.criticalityLabel, n.criticality?.label ?? '', (v) => patch({ criticality: { label: v, categories: cats } }))}
-          <h4 className="ath-label">{t.categories}</h4>
+          <h4 className="ath-group-title">{t.categories}</h4>
           {cats.map((c, i) => row(<>
             {text(`cat-key-${i}`, t.categoryKey, c.key, (v) => patch({ criticality: { label: n.criticality!.label, categories: cats.map((x, j) => (j === i ? { ...x, key: v } : x)) } }), true)}
             {text(`cat-name-${i}`, t.categoryName, c.name, (v) => patch({ criticality: { label: n.criticality!.label, categories: cats.map((x, j) => (j === i ? { ...x, name: v } : x)) } }))}
@@ -224,13 +224,13 @@ export function NormativeTemplateEditor({ templates, trackerTemplates, initial, 
 
       {current === 'phases' && (
         <div className="ath-stack">
-          <h4 className="ath-label">{t.reviews}</h4>
+          <h4 className="ath-group-title">{t.reviews}</h4>
           {n.reviews.map((r, i) => row(<>{text(`rv-key-${i}`, t.key, r.key, (v) => setRow('reviews', i, { key: v }), true)}{text(`rv-name-${i}`, t.name, r.name, (v) => setRow('reviews', i, { name: v }))}</>, () => drop('reviews', i), r.key || String(i + 1)))}
           <div><Btn type="button" variant="ghost" onClick={() => patch({ reviews: [...n.reviews, { key: '', name: '' }] })}>{`${t.add} · ${t.reviews}`}</Btn></div>
-          <h4 className="ath-label">{t.deliverables}</h4>
+          <h4 className="ath-group-title">{t.deliverables}</h4>
           {n.deliverables.map((d, i) => row(<>{text(`dl-key-${i}`, t.key, d.key, (v) => setRow('deliverables', i, { key: v }), true)}{text(`dl-name-${i}`, t.name, d.name, (v) => setRow('deliverables', i, { name: v }))}</>, () => drop('deliverables', i), d.key || String(i + 1)))}
           <div><Btn type="button" variant="ghost" onClick={() => patch({ deliverables: [...n.deliverables, { key: '', name: '' }] })}>{`${t.add} · ${t.deliverables}`}</Btn></div>
-          <h4 className="ath-label">{t.phases}</h4>
+          <h4 className="ath-group-title">{t.phases}</h4>
           {n.phases.map((p, i) => (
             <div key={i} className="ath-stack">
               {row(<>
@@ -250,7 +250,7 @@ export function NormativeTemplateEditor({ templates, trackerTemplates, initial, 
 
       {current === 'rules' && (
         <div className="ath-stack">
-          <h4 className="ath-label">{t.rulesTitle}</h4>
+          <h4 className="ath-group-title">{t.rulesTitle}</h4>
           {n.rules.map((r, i) => row(<>
             {text(`ru-key-${i}`, t.key, r.key, (v) => setRow('rules', i, { key: v }), true)}{text(`ru-name-${i}`, t.name, r.name, (v) => setRow('rules', i, { name: v }))}
             {selectOf(`ru-tr-${i}`, t.fromTracker, r.fromTracker, (v) => setRow('rules', i, { fromTracker: v }), [['', '—'], ...allForRules.map((x): [string, string] => [x.key, x.key])])}
@@ -260,7 +260,7 @@ export function NormativeTemplateEditor({ templates, trackerTemplates, initial, 
             <Field label={t.target} type="number" min={0} max={100} value={String(r.threshold.target)} onChange={(e) => setRow('rules', i, { threshold: { ...r.threshold, target: Number(e.target.value) } })} mono />
           </>, () => drop('rules', i), r.key || String(i + 1)))}
           <div><Btn type="button" variant="ghost" onClick={() => patch({ rules: [...n.rules, { key: '', name: '', fromTracker: allForRules[0]?.key ?? '', linkType: 'verifies', direction: 'any', minCount: 1, statuses: [], threshold: { target: 100 } }] })}>{t.add}</Btn></div>
-          <h4 className="ath-label">{t.parametersTitle}</h4>
+          <h4 className="ath-group-title">{t.parametersTitle}</h4>
           <p className="ath-eyebrow">{t.parametersHelp}</p>
           {n.parameters.map((p, pi) => (
             <fieldset key={p.key} className="ath-toolbar"><legend className="ath-field__label">{p.label}</legend>
@@ -285,7 +285,7 @@ export function NormativeTemplateEditor({ templates, trackerTemplates, initial, 
       )}
 
       {problems.length > 0 && (
-        <div role="alert" className="ath-stack"><h4 className="ath-eyebrow">{t.problems}</h4><ul>{problems.map((p) => <li key={p}>{p}</li>)}</ul></div>
+        <div role="alert" className="ath-stack"><h4 className="ath-group-title">{t.problems}</h4><ul>{problems.map((p) => <li key={p}>{p}</li>)}</ul></div>
       )}
       <div className="ath-toolbar">
         <Btn type="button" variant="ghost" disabled={step === 0} onClick={() => setStep(step - 1)}>{t.previous}</Btn>

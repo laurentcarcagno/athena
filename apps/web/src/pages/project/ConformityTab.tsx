@@ -100,7 +100,7 @@ function TailoringForm({ project, row, categories, current, onCancel, onSaved }:
   };
   return (
     <form className="ath-card ath-stack" onSubmit={(e) => void submit(e)} aria-label={t.tailorFor(row.reference)}>
-      <h2 className="ath-card__title">{t.tailorFor(row.reference)}</h2>
+      <h2 className="ath-section-title">{t.tailorFor(row.reference)}</h2>
       <div className="ath-toolbar">
         <div className="ath-field"><label className="ath-field__label" htmlFor="tl-app">{t.applicability}</label>
           <select id="tl-app" className="ath-select" value={applicability} onChange={(e) => setApplicability(e.target.value as Applicability)}>
@@ -133,7 +133,7 @@ function ImportForm({ project, report, onReport, onClose }: { project: string; r
   };
   return (
     <form className="ath-card ath-stack" onSubmit={(e) => void submit(e)} aria-label={t.importTitle}>
-      <h2 className="ath-card__title">{t.importTitle}</h2>
+      <h2 className="ath-section-title">{t.importTitle}</h2>
       <div className="ath-toolbar">
         <div className="ath-field"><label className="ath-field__label" htmlFor="im-file">{t.file}</label>
           <input id="im-file" className="ath-input" type="file" accept=".csv,text/csv" aria-describedby={error ? 'im-err' : undefined} onChange={(e) => setFile(e.target.files?.[0] ?? null)} />

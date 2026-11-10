@@ -44,7 +44,7 @@ export function ProjectTemplateEditor({ template, trackerTemplates, onSaved, onC
 
   return (
     <form className="ath-stack" onSubmit={submit} aria-label={fr.builder.editing(template.name)}>
-      <h2 className="ath-label">{fr.builder.editing(template.name)}</h2>
+      <h2 className="ath-section-title">{fr.builder.editing(template.name)}</h2>
       {template.builtin && <p className="ath-eyebrow">{fr.builder.builtinNote}</p>}
       <div className="ath-toolbar">
         <Field label={fr.org.templateKey} value={template.key} readOnly mono />

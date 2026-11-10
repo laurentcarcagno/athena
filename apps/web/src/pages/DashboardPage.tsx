@@ -5,6 +5,7 @@ import { api } from '../api';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
 import { Bar, Gantt, type ReleaseSpan } from '../components/ReleaseCharts';
+import { formatDateTime } from '../lib/dates';
 
 interface DashboardData {
   byCategory: { todo: number; in_progress: number; done: number };
@@ -96,7 +97,7 @@ export function DashboardPage({ embedded = false }: { embedded?: boolean } = {})
       </div>
 
       <CornerFrame>
-        <h2 className="ath-label">{fr.dashboard.flow}</h2>
+        <h2 className="ath-section-title">{fr.dashboard.flow}</h2>
         <Table>
           <thead><tr><Th>{fr.artifact.date}</Th><Th>{fr.dashboard.todo}</Th><Th>{fr.dashboard.inProgress}</Th><Th>{fr.dashboard.done}</Th></tr></thead>
           <tbody>
@@ -151,7 +152,7 @@ export function DashboardPage({ embedded = false }: { embedded?: boolean } = {})
           {data.recent.length === 0 ? <EmptyState eyebrow={fr.dashboard.recent} title={fr.admin.empty} /> : (
             <div className="ath-stack">
               {data.recent.slice(0, 6).map((r, i) => (
-                <div key={`${r.key}-${i}`} className="ath-row"><Link className="ath-link ath-mono" to={`/p/${project}/a/${r.key}`}>{r.key}</Link> <Id>{r.at.slice(0, 16).replace('T', ' ')}</Id></div>
+                <div key={`${r.key}-${i}`} className="ath-row"><Link className="ath-link ath-mono" to={`/p/${project}/a/${r.key}`}>{r.key}</Link> <Id>{formatDateTime(r.at)}</Id></div>
               ))}
             </div>
           )}

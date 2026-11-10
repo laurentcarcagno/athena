@@ -4,6 +4,7 @@ import { api } from '../api';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
 import { useConfirm } from './ConfirmDialog';
+import { formatDateTime } from '../lib/dates';
 
 type State = 'not_required' | 'pending' | 'approved' | 'rejected';
 interface Decision { approver: string; approverName: string; decision: 'approved' | 'rejected'; comment: string; decidedAt: string }
@@ -36,7 +37,7 @@ export function ApprovalsPanel({ project, canRequire, canDecide }: { project: st
   return (
     <section className="ath-stack" aria-labelledby="approvals-title">
       {confirm.dialog}
-      <h2 id="approvals-title" className="ath-card__title">{t.title}</h2>
+      <h2 id="approvals-title" className="ath-section-title">{t.title}</h2>
       {items.length === 0 ? <EmptyState eyebrow={t.title} title={t.empty} /> : (
         <Table>
           <caption className="ath-table__caption">{t.title} · {project}</caption>
@@ -50,7 +51,7 @@ export function ApprovalsPanel({ project, canRequire, canDecide }: { project: st
                 <Td>
                   {o.decisions.length === 0 ? '—' : (
                     <ul>{o.decisions.map((d) => (
-                      <li key={d.approver}>{d.decision === 'approved' ? t.approvedBy(d.approverName) : t.rejectedBy(d.approverName)} <span className="ath-mono">{d.decidedAt.slice(0, 16).replace('T', ' ')}</span>{d.comment && <> · {d.comment}</>}</li>
+                      <li key={d.approver}>{d.decision === 'approved' ? t.approvedBy(d.approverName) : t.rejectedBy(d.approverName)} <span className="ath-mono">{formatDateTime(d.decidedAt)}</span>{d.comment && <> · {d.comment}</>}</li>
                     ))}</ul>
                   )}
                 </Td>

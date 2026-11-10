@@ -59,7 +59,7 @@ export function MyWorkPage({ session }: { session: Session }) {
       <PageHeader eyebrow={fr.work.eyebrow} title={fr.work.title} />
       <div className="ath-stack">
         <Dashboard qa={(session.user?.roles ?? []).includes('athena-qa')} />
-        <h2 className="ath-label">{fr.work.available}</h2>
+        <h2 className="ath-section-title">{fr.work.available}</h2>
         {free === null ? <p role="status">{fr.loading}</p> : free.length === 0 ? <EmptyState eyebrow={fr.work.available} title={fr.work.none} /> : rows(free, take)}
       </div>
     </>

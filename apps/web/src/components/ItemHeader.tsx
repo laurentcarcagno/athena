@@ -131,7 +131,7 @@ export function ItemHeader({ session, project, def, artifact, links, sprint, emb
     return (
       <header className="ath-detail__head">
         <div className="ath-row">
-          <h2 className="ath-detail__title"><span className="ath-mono ath-nowrap">{artifact.key}</span> · {title}</h2>
+          <h2 className="ath-section-title ath-detail__title"><span className="ath-mono ath-nowrap">{artifact.key}</span> · {title}</h2>
         </div>
         <div className="ath-row">
           {pill}

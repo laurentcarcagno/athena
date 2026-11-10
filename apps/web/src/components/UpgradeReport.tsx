@@ -53,17 +53,17 @@ export function UpgradeReport({ report, busy = false, onApply, onCancel }: { rep
   ].filter(Boolean);
   return (
     <section className="ath-card ath-stack" aria-labelledby="upgrade-title">
-      <h2 id="upgrade-title" className="ath-card__title">{t.title(report.from ?? '—', report.to)}</h2>
+      <h2 id="upgrade-title" className="ath-section-title">{t.title(report.from ?? '—', report.to)}</h2>
       <p>{t.summary(changed.length, report.itemsConcerned)}</p>
       {report.blockers.length > 0 && (
         <div role="alert" className="ath-stack">
-          <h3 className="ath-eyebrow">{t.blockers}</h3>
+          <h3 className="ath-subsection-title">{t.blockers}</h3>
           <ul>{report.blockers.map((b) => <li key={b}>{b}</li>)}</ul>
         </div>
       )}
       {report.warnings.length > 0 && (
         <div className="ath-stack">
-          <h3 className="ath-eyebrow">{t.warnings}</h3>
+          <h3 className="ath-subsection-title">{t.warnings}</h3>
           <ul>{report.warnings.map((w) => <li key={w}>{w}</li>)}</ul>
         </div>
       )}
@@ -83,8 +83,8 @@ export function UpgradeReport({ report, busy = false, onApply, onCancel }: { rep
           </tbody>
         </Table>
       )}
-      {ruleLines.length > 0 && <div><h3 className="ath-eyebrow">{t.rules}</h3><ul>{ruleLines.map((l) => <li key={l} className="ath-mono">{l}</li>)}</ul></div>}
-      {phaseLines.length > 0 && <div><h3 className="ath-eyebrow">{t.phases}</h3><ul>{phaseLines.map((l) => <li key={l} className="ath-mono">{l}</li>)}</ul></div>}
+      {ruleLines.length > 0 && <div><h3 className="ath-subsection-title">{t.rules}</h3><ul>{ruleLines.map((l) => <li key={l} className="ath-mono">{l}</li>)}</ul></div>}
+      {phaseLines.length > 0 && <div><h3 className="ath-subsection-title">{t.phases}</h3><ul>{phaseLines.map((l) => <li key={l} className="ath-mono">{l}</li>)}</ul></div>}
       {(onApply || onCancel) && (
         <div className="ath-row">
           {onApply && <Btn disabled={busy || report.blockers.length > 0} loading={busy} onClick={onApply}>{busy ? t.applying : t.apply}</Btn>}

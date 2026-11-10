@@ -77,7 +77,7 @@ export function DocumentsTab() {
           <div className="ath-stack ath-doc__main">
             {!doc ? <p>{t.choose}</p> : !tree ? <p role="status">{fr.loading}</p> : (
               <>
-                <h2 className="ath-card__title">{tree.document.title}</h2>
+                <h2 className="ath-section-title">{tree.document.title}</h2>
                 <p className="ath-doc__banner" role="note">
                   {t.readOnly}{' '}
                   {current?.sourceUrl ? <a className="ath-link" href={current.sourceUrl} target="_blank" rel="noopener noreferrer">{t.openSource}</a> : <span className="ath-mono">{current?.source}/{current?.path}</span>}

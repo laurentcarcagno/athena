@@ -13,15 +13,15 @@
 .ath-layout-grid--edit .ath-layout-tile { cursor: grab; }
 .ath-layout-tile--drag { border-style: dashed; border-width: 2px; border-color: var(--ath-border-focus); }
 .ath-layout-tile__head { display: flex; justify-content: space-between; gap: var(--ath-space-sm); }
-.ath-layout-tile__label { font-weight: var(--ath-font-weight-bold); font-size: var(--ath-font-size-xs); letter-spacing: var(--ath-font-tracking-label); text-transform: uppercase; color: var(--ath-text-secondary); overflow-wrap: anywhere; }
-.ath-layout-tile__type { font-size: var(--ath-font-size-xs); color: var(--ath-text-mute); }
+.ath-layout-tile__label { font-weight: var(--ath-font-weight-semibold); font-size: var(--ath-font-size-small); color: var(--ath-text-secondary); overflow-wrap: anywhere; }
+.ath-layout-tile__type { font-size: var(--ath-font-size-small); color: var(--ath-text-mute); }
 .ath-layout-tile__controls { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ath-space-xs); }
 .ath-layout-tile__group { display: inline-flex; gap: var(--ath-space-2xs); }
 .ath-layout-tile__controls .ath-btn { padding: 0 var(--ath-space-sm); min-width: 28px; }
 .ath-layout-tile__controls .ath-select { max-width: 100%; }
 .ath-layout-fake { height: 28px; background: var(--ath-surface-default); border: var(--ath-border-width-hairline) solid var(--ath-border-default); }
 .ath-layout-fake--tall { height: 64px; }
-.ath-layout-empty { grid-column: span 3; padding: var(--ath-space-base); border: var(--ath-border-width-hairline) dashed var(--ath-border-control); color: var(--ath-text-mute); text-align: center; font-size: var(--ath-font-size-sm); }
+.ath-layout-empty { grid-column: span 3; padding: var(--ath-space-base); border: var(--ath-border-width-hairline) dashed var(--ath-border-control); color: var(--ath-text-mute); text-align: center; font-size: var(--ath-font-size-small); }
 .ath-layout-chip { display: inline-flex; align-items: center; gap: var(--ath-space-sm); padding: var(--ath-space-2xs) var(--ath-space-xs) var(--ath-space-2xs) 10px; border: var(--ath-border-width-hairline) solid var(--ath-border-control); background: var(--ath-surface-default); cursor: grab; }
 @media (max-width: 768px) { .ath-layout-grid { grid-template-columns: 1fr; } .ath-span-2, .ath-span-3, .ath-layout-empty { grid-column: span 1; } }
 

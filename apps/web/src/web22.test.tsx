@@ -39,7 +39,7 @@ describe('approbation des jalons et baselines', () => {
     const b1 = screen.getByText('B1').closest('tr')!;
     expect(within(b1).getByText('Approuvée')).toBeInTheDocument();
     expect(within(b1).getByText(/Approuvée par Aline QA/)).toBeInTheDocument();
-    expect(within(b1).getByText('2026-11-06 10:15')).toBeInTheDocument();
+    expect(within(b1).getByText('06/11/2026 10:15')).toBeInTheDocument();
     expect(within(b1).getByText(/Conforme/)).toBeInTheDocument();
     expect(within(screen.getByText('B0').closest('tr')!).getByText('Non requise')).toBeInTheDocument();
     expect(screen.queryByRole('button')).toBeNull(); // lecture seule

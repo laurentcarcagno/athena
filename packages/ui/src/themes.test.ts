@@ -8,6 +8,7 @@ import { lintSource } from '../scripts/lint-design.mjs';
  * Thème Hemeria généré par @nuance/theming (`themes.generated.css`, ADR-0004).
  * T-0129 : chaque variable de l'ancien générateur garde sa valeur calculée, en clair et en sombre. Depuis T-0131 l'ancien
  * générateur n'existe plus : ses valeurs sont figées dans `__fixtures__/hemeria-legacy.json` (hors primitives --ath-color-*).
+ * T-0132 remplace volontairement les rôles typographiques --ath-type-* par l'échelle --ath-font-* : ils sortent de la comparaison.
  */
 const read = (file: string) => readFileSync(join(__dirname, file), 'utf8');
 /** Feuille de style complète : styles.css et ses imports, dans l'ordre. */
@@ -31,8 +32,8 @@ const px = (value: string | undefined) => Number(/^(\d+(?:\.\d+)?)px$/.exec(valu
 describe('thème Hemeria généré par @nuance/theming', () => {
   for (const [mode, reference, actual] of [['clair', legacy.light, light], ['sombre', legacy.dark, dark]] as const) {
     it(`mode ${mode} : chaque variable de l’ancien générateur garde sa valeur calculée`, () => {
-      const entries = Object.entries(reference);
-      expect(entries.length).toBeGreaterThan(90);
+      const entries = Object.entries(reference).filter(([name]) => !name.startsWith('--ath-type-'));
+      expect(entries.length).toBeGreaterThan(50);
       expect(entries.filter(([name, value]) => actual.get(name) !== value).map(([name, value]) => `${name} : ${value} → ${actual.get(name) ?? 'absente'}`)).toEqual([]);
     });
   }

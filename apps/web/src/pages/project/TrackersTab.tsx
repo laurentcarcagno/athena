@@ -5,6 +5,7 @@ import { api, type TrackerOverview } from '../../api';
 import { categoryLabel } from '../../components/TrackerTypesTab';
 import { useFailure } from '../../hooks';
 import { fr } from '../../i18n';
+import { formatDate } from '../../lib/dates';
 
 export const CATEGORY_ORDER = ['engineering', 'development', 'verification', 'management', 'other'] as const;
 
@@ -52,7 +53,7 @@ export function TrackerCard({ project, tracker }: { project: string; tracker: Tr
         <div className="ath-row">
           <span className="ath-mono">{fr.trackersTab.items(tracker.artifacts)}</span>
           {tracker.mine > 0 && <span className="ath-mono">{fr.trackersTab.mine(tracker.mine)}</span>}
-          <span className="ath-eyebrow">{fr.trackersTab.lastActivity} : {tracker.lastActivity ? <span className="ath-mono">{tracker.lastActivity.slice(0, 10)}</span> : fr.trackersTab.never}</span>
+          <span className="ath-eyebrow">{fr.trackersTab.lastActivity} : {tracker.lastActivity ? <span className="ath-mono">{formatDate(tracker.lastActivity)}</span> : fr.trackersTab.never}</span>
         </div>
         <Link className="ath-link" to={trackerHref(project, tracker.key)} aria-label={`${fr.trackersTab.openTracker} ${tracker.name}`}>{fr.trackersTab.openTracker}</Link>
       </div>
@@ -77,7 +78,7 @@ export function TrackersTab() {
         <div className="ath-stack">
           {groupByCategory(trackers).map((g) => (
             <section key={g.category} aria-label={categoryLabel(g.category)} className="ath-stack">
-              <h2 className="ath-label">{categoryLabel(g.category)}</h2>
+              <h2 className="ath-section-title">{categoryLabel(g.category)}</h2>
               <div className="ath-layout-grid">
                 {g.trackers.map((t) => <div key={t.key} className="ath-span-1"><TrackerCard project={String(project)} tracker={t} /></div>)}
               </div>

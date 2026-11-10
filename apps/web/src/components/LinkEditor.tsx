@@ -94,7 +94,7 @@ export function LinkEditor({ project, itemKey, links, onChanged, focusSignal = 0
             if (rows.length === 0) return null;
             return (
               <section key={group} aria-labelledby={`rel-${group}`}>
-                <h4 id={`rel-${group}`} className="ath-label">{fr.relations[group]} <Id>{rows.length}</Id></h4>
+                <h4 id={`rel-${group}`} className="ath-group-title">{fr.relations[group]} <Id>{rows.length}</Id></h4>
                 <ul className="ath-stack" aria-label={fr.relations[group]}>
                   {rows.map((l) => (
                     <li key={l.id} className="ath-row">

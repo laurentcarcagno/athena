@@ -62,7 +62,7 @@ export function TraceabilityTab({ session }: { session: Session }) {
         <EmptyState eyebrow={t.title} title={t.empty} />
       ) : rules.map((r) => (
         <section key={`${r.scope}-${r.key}`} className="ath-card ath-rule ath-stack" aria-labelledby={`rule-${r.key}`}>
-          <h2 id={`rule-${r.key}`} className="ath-card__title">{r.name} <Tag variant="ghost">{t.scopes[r.scope]}</Tag></h2>
+          <h2 id={`rule-${r.key}`} className="ath-section-title">{r.name} <Tag variant="ghost">{t.scopes[r.scope]}</Tag></h2>
           <p className="ath-eyebrow">{t.sentence(r.fromTracker, r.linkType, r.minCount, r.direction, r.statuses)}</p>
           {r.error ? <p role="alert">{r.error}</p> : (
             <>

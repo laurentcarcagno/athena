@@ -5,6 +5,7 @@ import { api } from '../api';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
 import { NotificationSettings, type NotifyEvent } from './NotificationSettings';
+import { formatDateTime } from '../lib/dates';
 
 export interface NotificationEntry {
   id: string; event: NotifyEvent; project: string; key: string; actor: string; actorName: string;
@@ -68,7 +69,7 @@ export function NotificationCenter() {
       {open && (
         <section id="notifications" className="ath-notify__panel" aria-label={fr.notify.title}>
           <header className="ath-notify__head">
-            <h2 className="ath-notify__title">{fr.notify.title}</h2>
+            <h2 className="ath-section-title ath-notify__title">{fr.notify.title}</h2>
             <div className="ath-row">
               <Btn type="button" size="sm" variant="ghost" disabled={inbox.unread === 0} onClick={() => void mark({ all: true, read: true })}>{fr.notify.markAll}</Btn>
               <Btn type="button" size="sm" variant="ghost" aria-expanded={settings} aria-controls="notify-settings" onClick={() => setSettings(!settings)}>{fr.notify.settings}</Btn>
@@ -82,7 +83,7 @@ export function NotificationCenter() {
                   <div className="ath-notify__body">
                     <Link className="ath-link ath-mono" to={`/p/${n.project}/a/${n.key}`} onClick={() => { setOpen(false); if (!n.read) void mark({ ids: [n.id], read: true }); }}>{n.key}</Link>
                     <span>{describe(n)}</span>
-                    <time className="ath-notify__time" dateTime={n.createdAt}>{new Date(n.createdAt).toLocaleString()}</time>
+                    <time className="ath-notify__time" dateTime={n.createdAt}>{formatDateTime(n.createdAt)}</time>
                     {!n.read && <span className="ath-visually-hidden">{fr.notify.unreadMark}</span>}
                   </div>
                   <Btn type="button" size="sm" variant="ghost" onClick={() => void mark({ ids: [n.id], read: !n.read })}>{n.read ? fr.notify.markUnread : fr.notify.markRead}</Btn>

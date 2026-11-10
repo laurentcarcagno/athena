@@ -47,7 +47,7 @@ export function ProjectTemplateCard({ project, canManage }: { project: string; c
           {check ? (
             <section className="ath-stack" aria-label={t.phase}>
               <p>{t.phase} : <strong>{check.name}</strong> <span className="ath-mono">({check.review.toUpperCase()})</span></p>
-              <h3 className="ath-eyebrow">{t.exitCriteria}</h3>
+              <h3 className="ath-subsection-title">{t.exitCriteria}</h3>
               <ul>
                 {check.criteria.map((c) => (
                   <li key={c.label}>{c.label} <Tag variant={c.manual ? 'ghost' : c.met ? 'solid' : 'accent'}>{c.manual ? t.manual : c.met ? t.met : `${t.unmet} · ${t.remaining(c.remaining)}`}</Tag></li>
@@ -57,7 +57,7 @@ export function ProjectTemplateCard({ project, canManage }: { project: string; c
             </section>
           ) : status.phase && <p>{t.phase} : <span className="ath-mono">{status.phase}</span></p>}
           <section className="ath-stack" aria-label={t.drift}>
-            <h3 className="ath-eyebrow">{t.drift}</h3>
+            <h3 className="ath-subsection-title">{t.drift}</h3>
             {status.drift.total === 0 ? <p>{t.driftNone}</p> : (
               <>
                 <p>{t.driftSummary(status.drift.total)}</p>

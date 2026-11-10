@@ -4,6 +4,7 @@ import { api } from '../api';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
 import { useConfirm } from './ConfirmDialog';
+import { formatDateTime } from '../lib/dates';
 
 type State = 'not_required' | 'pending' | 'approved' | 'rejected';
 interface Decision { approver: string; approverName: string; decision: 'approved' | 'rejected'; comment: string; decidedAt: string }
@@ -16,7 +17,7 @@ export interface ItemApproval {
   invalidated: { at: string; version: number | null; count: number } | null; canDecide: boolean;
 }
 
-const stamp = (iso: string) => iso.slice(0, 16).replace('T', ' ');
+const stamp = (iso: string) => formatDateTime(iso);
 
 /**
  * Circuit d'approbation d'un item : les étapes dans l'ordre, qui est désigné, les décisions nominatives et horodatées, l'état dit en
@@ -50,7 +51,7 @@ export function ApprovalPanel({ project, itemKey, version, onChanged }: { projec
   return (
     <section className="ath-stack" aria-labelledby="item-approval-title">
       {confirm.dialog}
-      <h3 id="item-approval-title" className="ath-label">{t.title}</h3>
+      <h3 id="item-approval-title" className="ath-subsection-title">{t.title}</h3>
       <p>
         {t.state} : <Tag variant={data.state === 'approved' ? 'solid' : data.state === 'rejected' ? 'accent' : 'default'}>{t.states[data.state]}</Tag>
         {current && data.state !== 'approved' && <> · {t.currentStep(current.position, current.name)}</>}

@@ -107,7 +107,7 @@ export function RoadmapPage({ session }: { session: Session }) {
           {releases.length === 0 ? <EmptyState eyebrow={t.title} title={t.empty} /> : (
             <>
               <section aria-labelledby="rm-timeline" className="ath-stack">
-                <h2 id="rm-timeline" className="ath-label">{t.timeline}</h2>
+                <h2 id="rm-timeline" className="ath-section-title">{t.timeline}</h2>
                 <Gantt releases={releases} label={t.timeline} />
               </section>
               {releases.map(card)}

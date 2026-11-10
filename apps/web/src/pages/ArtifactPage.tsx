@@ -12,6 +12,7 @@ import { LinkEditor } from '../components/LinkEditor';
 import { DocRefPicker } from '../components/DocRefPicker';
 import { MarkingEditor } from '../components/MarkingEditor';
 import { resolveLayout } from '../lib/layout';
+import { formatDateTime } from '../lib/dates';
 
 interface Comment { id: string; author: string; authorName: string; body: string; createdAt: string }
 interface CodeRef { kind: string; ref: string; title: string; state: string; pipeline: string }
@@ -226,7 +227,7 @@ export function ArtifactView({ session, project, itemKey: key, embedded = false,
               {resolveLayout(def.layout, def.fields, { general: fr.layout.general, details: fr.layout.details, others: fr.layout.others }).sections.map((section, i) => (
                 section.fields.length === 0 ? null : (
                   <section key={i} aria-label={section.title || undefined} className="ath-layout-view">
-                    {section.title && <h3 className="ath-label">{section.title}</h3>}
+                    {section.title && <h3 className="ath-subsection-title">{section.title}</h3>}
                     <div className="ath-layout-grid">
                       {section.fields.map((lf) => {
                         const f = def.fields.find((x) => x.key === lf.key)!;
@@ -255,7 +256,7 @@ export function ArtifactView({ session, project, itemKey: key, embedded = false,
                 <tr key={r.version}>
                   <Td mono>{r.version}</Td>
                   <Td>{r.actor}</Td>
-                  <Td mono mute>{r.at.slice(0, 16).replace('T', ' ')}</Td>
+                  <Td mono mute>{formatDateTime(r.at)}</Td>
                   <Td>{Object.entries(r.diff).map(([field, d]) => (
                     <div key={field}><Id>{field}</Id> <span className="ath-diff__from">{asText(d.from) || '∅'}</span> → <span className="ath-diff__to">{asText(d.to) || '∅'}</span></div>
                   ))}</Td>
@@ -295,7 +296,7 @@ export function ArtifactView({ session, project, itemKey: key, embedded = false,
             <div className="ath-stack">
               {comments.length === 0 && <p>{fr.artifact.noComments}</p>}
               {comments.map((c) => (
-                <div key={c.id}><span className="ath-eyebrow">{c.authorName ?? c.author} · <span className="ath-mono">{c.createdAt.slice(0, 16).replace('T', ' ')}</span></span><MentionText body={c.body} /></div>
+                <div key={c.id}><span className="ath-eyebrow">{c.authorName ?? c.author} · <span className="ath-mono">{formatDateTime(c.createdAt)}</span></span><MentionText body={c.body} /></div>
               ))}
               <form className="ath-stack" onSubmit={addComment}>
                 <label className="ath-field__label" htmlFor="comment">{fr.artifact.comment}</label>

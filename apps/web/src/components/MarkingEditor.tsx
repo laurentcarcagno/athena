@@ -67,7 +67,7 @@ export function ExportControlMembers({ project }: { project: string }) {
   const subjects = data.members.map((m) => m.subject);
   return (
     <section className="ath-stack" aria-labelledby="ec-title">
-      <h2 id="ec-title" className="ath-card__title">{t.membersTitle}</h2>
+      <h2 id="ec-title" className="ath-section-title">{t.membersTitle}</h2>
       <p className="ath-eyebrow">{t.membersHelp} {t.markedCount(data.marked)}.</p>
       {data.members.length === 0 ? <p>{t.noMembers}</p> : (
         <ul className="ath-stack" aria-label={t.membersTitle}>
