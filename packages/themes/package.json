@@ -1,0 +1,25 @@
+{
+  "name": "@nuance/themes",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Thèmes au format W3C Design Tokens pour @nuance/theming, et le contrat sémantique qu'ils tiennent. Données seulement.",
+  "license": "UNLICENSED",
+  "type": "module",
+  "files": [
+    "contract.json",
+    "*/theme.json",
+    "NOTICE",
+    "README.md",
+    "check.mjs"
+  ],
+  "exports": {
+    "./contract.json": "./contract.json",
+    "./*/theme.json": "./*/theme.json"
+  },
+  "scripts": {
+    "test": "node check.mjs"
+  },
+  "devDependencies": {
+    "@nuance/theming": "workspace:*"
+  }
+}

@@ -10,16 +10,16 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
-    "./tokens.css": "./src/tokens.generated.css",
+    "./tokens.css": "./src/themes.generated.css",
     "./styles.css": "./src/styles.css"
   },
   "scripts": {
-    "tokens": "node scripts/build-tokens.mjs",
-    "build": "node scripts/build-tokens.mjs && tsc -p tsconfig.json",
-    "typecheck": "node scripts/build-tokens.mjs && tsc -p tsconfig.json --noEmit && tsc -p tsconfig.test.json",
+    "tokens": "node scripts/build-tokens.mjs && node scripts/build-themes.mjs",
+    "build": "node scripts/build-tokens.mjs && node scripts/build-themes.mjs && tsc -p tsconfig.json",
+    "typecheck": "node scripts/build-tokens.mjs && node scripts/build-themes.mjs && tsc -p tsconfig.json --noEmit && tsc -p tsconfig.test.json",
     "lint": "node scripts/lint-design.mjs src && node scripts/validate-design.mjs --strict --check-css src/styles.css",
     "design:check": "node scripts/validate-design.mjs --strict --check-css src/styles.css",
-    "test": "node scripts/build-tokens.mjs && vitest run",
+    "test": "node scripts/build-tokens.mjs && node scripts/build-themes.mjs && vitest run",
     "storybook": "storybook dev -p 6006 --no-open",
     "build-storybook": "storybook build -o storybook-static"
   },
@@ -28,6 +28,8 @@
     "react-dom": "18.3.1"
   },
   "devDependencies": {
+    "@nuance/themes": "workspace:*",
+    "@nuance/theming": "workspace:*",
     "@storybook/react": "8.6.19",
     "@storybook/react-vite": "8.6.19",
     "@testing-library/dom": "10.4.0",

@@ -46,7 +46,7 @@ test('thème sombre : bascule au clavier, mémorisée, système respecté, axe (
   const sombreSysteme = await background(page);
   expect(clair).toBe('rgb(240, 247, 252)'); // Cold Mist
   expect(sombreSysteme).toBe('rgb(10, 27, 39)'); // {semantic.surface.app} sombre
-  await expect(page.locator('html')).not.toHaveAttribute('data-theme', /.*/);
+  await expect(page.locator('html')).not.toHaveAttribute('data-mode', /.*/);
 
   // La bascule au clavier : système → clair → sombre ; un choix explicite l'emporte sur le système.
   await page.emulateMedia({ colorScheme: 'dark' });
@@ -68,7 +68,7 @@ test('thème sombre : bascule au clavier, mémorisée, système respecté, axe (
 
   // Axe dans le thème sombre, puis dans le thème clair, sur les pages représentatives.
   for (const theme of ['dark', 'light'] as const) {
-    await page.evaluate((t) => { window.localStorage.setItem('athena.theme', t); document.documentElement.setAttribute('data-theme', t); }, theme);
+    await page.evaluate((t) => { window.localStorage.setItem('athena.theme', t); document.documentElement.setAttribute('data-mode', t); }, theme);
     for (const [name, path] of PAGES) {
       await page.goto(path);
       await expect(page.locator('main#contenu')).toBeVisible();
@@ -85,6 +85,6 @@ test('thème sombre : bascule au clavier, mémorisée, système respecté, axe (
   await page.goto('/');
   const reglage = page.getByRole('button', { name: /^Thème : / });
   while (!(await reglage.getAttribute('aria-label'))?.startsWith('Thème : système')) await reglage.click();
-  await expect(page.locator('html')).not.toHaveAttribute('data-theme', /.*/);
+  await expect(page.locator('html')).not.toHaveAttribute('data-mode', /.*/);
   expect(await page.evaluate(() => window.localStorage.getItem('athena.theme'))).toBeNull();
 });

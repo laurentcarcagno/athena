@@ -7,9 +7,9 @@ export const THEME_CHOICES: ThemeChoice[] = ['system', 'light', 'dark'];
 export const THEME_KEY = 'athena.theme';
 
 /**
- * Contrôleur du moteur `@nuance/theming` (ADR-0004). Jusqu'à T-0129, les jetons générés (tokens.generated.css) lisent le
- * mode dans `data-theme` : le contrôleur pose donc le mode sous ce nom et ne pose ni famille ni densité. La mémoire garde
- * le format historique (le seul mode, clé effacée pour « système ») pour ne rien perdre des réglages existants.
+ * Contrôleur du moteur `@nuance/theming` (ADR-0004) : `data-theme` porte la famille (Hemeria, seul thème jusqu'à T-0136),
+ * `data-mode` le mode (absent pour « système »). La densité arrive en T-0135. La mémoire garde le format historique
+ * (le seul mode, clé effacée pour « système ») pour ne rien perdre des réglages existants.
  */
 const memory = storagePersistence({
   key: THEME_KEY,
@@ -17,9 +17,10 @@ const memory = storagePersistence({
   decode: (raw) => ({ mode: raw }),
 });
 const controller = createThemeController({
-  defaults: { theme: null, mode: SYSTEM, density: null },
+  defaults: { theme: 'hemeria', mode: SYSTEM, density: null },
+  themes: ['hemeria'],
   modes: THEME_CHOICES,
-  attributes: { theme: null, mode: 'data-theme', density: null },
+  attributes: { theme: 'data-theme', mode: 'data-mode', density: null },
   persistence: memory,
 });
 

@@ -1,0 +1,286 @@
+{
+  "$description": "Contrat sémantique des thèmes d’Athena (ADR-0004) : modes attendus, jetons obligatoires, paires de contraste WCAG 2.2 AA (4,5 texte, 3 contours et repères).",
+  "modes": [
+    "light",
+    "dark"
+  ],
+  "defaultMode": "light",
+  "required": [
+    "color.sovereign-deep-blue",
+    "color.tricolor-blue",
+    "color.console-sky",
+    "color.tricolor-red",
+    "color.cold-mist",
+    "color.instrument-white",
+    "color.hover-mist",
+    "color.muted-mist",
+    "color.selection-veil",
+    "color.console-border",
+    "color.ink",
+    "color.dim-ink",
+    "color.mute-ink",
+    "color.signal-success",
+    "color.signal-warning",
+    "color.signal-danger",
+    "color.pill-success-bg",
+    "color.pill-warning-bg",
+    "color.pill-danger-bg",
+    "space.xs",
+    "space.sm",
+    "space.md",
+    "space.lg",
+    "space.xl",
+    "radius.none",
+    "type.display.font-family",
+    "type.display.font-size",
+    "type.display.font-weight",
+    "type.display.line-height",
+    "type.display.letter-spacing",
+    "type.h1.font-family",
+    "type.h1.font-size",
+    "type.h1.font-weight",
+    "type.h1.line-height",
+    "type.h1.letter-spacing",
+    "type.h2.font-family",
+    "type.h2.font-size",
+    "type.h2.font-weight",
+    "type.h2.letter-spacing",
+    "type.h3.font-family",
+    "type.h3.font-size",
+    "type.h3.font-weight",
+    "type.h3.letter-spacing",
+    "type.body.font-family",
+    "type.body.font-size",
+    "type.body.font-weight",
+    "type.body.line-height",
+    "type.label.font-family",
+    "type.label.font-size",
+    "type.label.font-weight",
+    "type.label.letter-spacing",
+    "type.eyebrow.font-family",
+    "type.eyebrow.font-size",
+    "type.eyebrow.font-weight",
+    "type.eyebrow.letter-spacing",
+    "type.mono.font-family",
+    "type.mono.font-weight",
+    "type.mono.letter-spacing",
+    "motion.default",
+    "surface.app",
+    "surface.default",
+    "surface.hover",
+    "surface.muted",
+    "surface.selected",
+    "surface.inverse",
+    "surface.scrim",
+    "text.default",
+    "text.secondary",
+    "text.mute",
+    "text.mute-aa",
+    "text.on-inverse",
+    "text.on-action",
+    "text.link",
+    "text.link-aa",
+    "text.heading",
+    "border.default",
+    "border.strong",
+    "border.focus",
+    "border.danger",
+    "border.control",
+    "action.primary.bg",
+    "action.primary.fg",
+    "action.deep.bg",
+    "action.deep.fg",
+    "action.ghost.bg",
+    "action.ghost.fg",
+    "action.ghost.border",
+    "action.danger.bg",
+    "action.danger.fg",
+    "action.danger.border",
+    "state.success.bg",
+    "state.success.fg",
+    "state.success.fg-aa",
+    "state.success.border",
+    "state.warning.bg",
+    "state.warning.fg",
+    "state.warning.fg-aa",
+    "state.warning.border",
+    "state.danger.bg",
+    "state.danger.fg",
+    "state.danger.fg-aa",
+    "state.danger.border",
+    "state.info.bg",
+    "state.info.fg",
+    "state.info.fg-aa",
+    "state.info.border",
+    "state.neutral.bg",
+    "state.neutral.fg",
+    "state.neutral.fg-aa",
+    "state.neutral.border",
+    "focus.ring",
+    "focus.ring-on-inverse"
+  ],
+  "contrast": [
+    {
+      "fg": "text.default",
+      "bg": "surface.default",
+      "min": 4.5,
+      "label": "texte sur carte"
+    },
+    {
+      "fg": "text.default",
+      "bg": "surface.app",
+      "min": 4.5,
+      "label": "texte sur fond de page"
+    },
+    {
+      "fg": "text.default",
+      "bg": "surface.hover",
+      "min": 4.5,
+      "label": "texte sur survol"
+    },
+    {
+      "fg": "text.default",
+      "bg": "surface.selected",
+      "min": 4.5,
+      "label": "texte sur sélection"
+    },
+    {
+      "fg": "text.secondary",
+      "bg": "surface.default",
+      "min": 4.5,
+      "label": "texte secondaire sur carte"
+    },
+    {
+      "fg": "text.mute",
+      "bg": "surface.default",
+      "min": 4.5,
+      "label": "texte atténué sur carte"
+    },
+    {
+      "fg": "text.mute",
+      "bg": "surface.app",
+      "min": 4.5,
+      "label": "texte atténué sur fond de page"
+    },
+    {
+      "fg": "text.link",
+      "bg": "surface.default",
+      "min": 4.5,
+      "label": "lien sur carte"
+    },
+    {
+      "fg": "text.link",
+      "bg": "surface.app",
+      "min": 4.5,
+      "label": "lien sur fond de page"
+    },
+    {
+      "fg": "text.heading",
+      "bg": "surface.default",
+      "min": 4.5,
+      "label": "titre sur carte"
+    },
+    {
+      "fg": "text.heading",
+      "bg": "surface.app",
+      "min": 4.5,
+      "label": "titre sur fond de page"
+    },
+    {
+      "fg": "text.on-inverse",
+      "bg": "surface.inverse",
+      "min": 4.5,
+      "label": "texte sur surface inverse"
+    },
+    {
+      "fg": "action.primary.fg",
+      "bg": "action.primary.bg",
+      "min": 4.5,
+      "label": "bouton principal"
+    },
+    {
+      "fg": "action.deep.fg",
+      "bg": "action.deep.bg",
+      "min": 4.5,
+      "label": "bouton plein neutre"
+    },
+    {
+      "fg": "action.ghost.fg",
+      "bg": "surface.default",
+      "min": 4.5,
+      "label": "bouton secondaire"
+    },
+    {
+      "fg": "action.danger.fg",
+      "bg": "surface.default",
+      "min": 4.5,
+      "label": "bouton de suppression"
+    },
+    {
+      "fg": "state.success.fg",
+      "bg": "state.success.bg",
+      "min": 4.5,
+      "label": "état succès"
+    },
+    {
+      "fg": "state.warning.fg",
+      "bg": "state.warning.bg",
+      "min": 4.5,
+      "label": "état avertissement"
+    },
+    {
+      "fg": "state.danger.fg",
+      "bg": "state.danger.bg",
+      "min": 4.5,
+      "label": "état danger"
+    },
+    {
+      "fg": "state.info.fg",
+      "bg": "state.info.bg",
+      "min": 4.5,
+      "label": "état information"
+    },
+    {
+      "fg": "state.neutral.fg",
+      "bg": "state.neutral.bg",
+      "min": 4.5,
+      "label": "état neutre"
+    },
+    {
+      "fg": "border.control",
+      "bg": "surface.default",
+      "min": 3,
+      "label": "contour de champ"
+    },
+    {
+      "fg": "border.focus",
+      "bg": "surface.default",
+      "min": 3,
+      "label": "bordure de focus"
+    },
+    {
+      "fg": "focus.ring",
+      "bg": "surface.default",
+      "min": 3,
+      "label": "anneau de focus sur carte"
+    },
+    {
+      "fg": "focus.ring",
+      "bg": "surface.app",
+      "min": 3,
+      "label": "anneau de focus sur fond de page"
+    },
+    {
+      "fg": "focus.ring-on-inverse",
+      "bg": "surface.inverse",
+      "min": 3,
+      "label": "anneau de focus sur surface inverse"
+    },
+    {
+      "fg": "border.danger",
+      "bg": "surface.default",
+      "min": 3,
+      "label": "bordure d’erreur"
+    }
+  ]
+}

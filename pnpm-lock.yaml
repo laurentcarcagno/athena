@@ -165,6 +165,12 @@ importers:
         specifier: 4.1.12
         version: 4.1.12(@types/node@22.7.5)(jsdom@25.0.1)(vite@6.4.5(@types/node@22.7.5)(yaml@2.9.1))
 
+  packages/themes:
+    devDependencies:
+      '@nuance/theming':
+        specifier: workspace:*
+        version: link:../theming
+
   packages/theming:
     devDependencies:
       '@testing-library/react':
@@ -204,6 +210,12 @@ importers:
         specifier: 18.3.1
         version: 18.3.1(react@18.3.1)
     devDependencies:
+      '@nuance/themes':
+        specifier: workspace:*
+        version: link:../themes
+      '@nuance/theming':
+        specifier: workspace:*
+        version: link:../theming
       '@storybook/react':
         specifier: 8.6.19
         version: 8.6.19(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(storybook@8.6.19(prettier@3.3.3))(typescript@5.6.3)

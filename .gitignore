@@ -9,6 +9,7 @@ coverage/
 
 # Généré par `pnpm tokens`
 packages/ui/src/tokens.generated.*
+packages/ui/src/themes.generated.css
 apps/web/dist/
 apps/api/perf-report.txt
 e2e/test-results/

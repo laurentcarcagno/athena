@@ -52,7 +52,7 @@ for (const mode of MODES) {
         await expect(page.locator('main#contenu')).toBeVisible();
         await page.waitForLoadState('networkidle');
         await page.evaluate(() => document.fonts.ready);
-        await expect(page.locator('html')).toHaveAttribute('data-theme', mode);
+        await expect(page.locator('html')).toHaveAttribute('data-mode', mode);
         await expect.soft(page).toHaveScreenshot(`${mode}-${width}-${name}.png`, {
           fullPage: true,
           animations: 'disabled',
