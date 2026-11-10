@@ -147,6 +147,28 @@ export class ItemApprovalService {
     };
   }
 
+  /**
+   * Tickets qui attendent la décision de `viewer` : circuit actif, étape courante désignant la personne (ou son rôle). Lu sous les
+   * droits de l'appelant (listes d'ayants droit : un ticket masqué n'apparaît pas). Ni titre ni valeur : la clé et l'étape suffisent.
+   */
+  async awaiting(organizationId: string, viewer: { subject: string; roles: string[] }, limit = 50): Promise<Array<{ project: string; key: string; tracker: string; step: string }>> {
+    return this.db.tx(organizationId, async (c) => {
+      const candidates = (await c.query(
+        `select a.id, a.key, p.key as project, t.key as tracker from artifact a
+           join project p on p.id = a.project_id join tracker t on t.id = a.tracker_id
+           join approval_flow f on f.tracker_id = a.tracker_id and f.enabled
+          where exists (select 1 from approval_step s where s.flow_id = f.id and ($1 = any(s.approvers) or (s.approver_role is not null and s.approver_role = any($2::text[]))))
+          order by a.updated_at desc limit 500`, [viewer.subject, viewer.roles])).rows;
+      const out: Array<{ project: string; key: string; tracker: string; step: string }> = [];
+      for (const r of candidates) {
+        if (out.length >= limit) break;
+        const v = await this.viewIn(c, r.id as string, viewer);
+        if (v.state === 'pending' && v.canDecide) out.push({ project: r.project as string, key: r.key as string, tracker: r.tracker as string, step: v.steps.find((s) => s.position === v.currentStep)!.name });
+      }
+      return out;
+    });
+  }
+
   async get(organizationId: string, projectKey: string, key: string, viewer: { subject: string; roles: string[] }): Promise<ItemApprovalView> {
     return this.db.tx(organizationId, async (c) => {
       const art = await this.artifact(c, projectKey, key, false);

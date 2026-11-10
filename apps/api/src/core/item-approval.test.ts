@@ -104,6 +104,21 @@ suite('circuits d’approbation des items (intégration)', () => {
     expect((await decide(a.key, user('remy'), 'approved', 'Corrigé')).state).toBe('pending');
   });
 
+  it('liste les tickets qui attendent ma décision, à l’étape courante seulement, sous mes droits (widget « À approuver »)', async () => {
+    const a = await make('À relire');
+    const b = await make('Déjà relue');
+    await decide(b.key, user('rita'), 'approved');
+    const keys = async (x: Actor) => (await runAs(x.id, () => flows.awaiting(org, who(x)))).filter((r) => [a.key, b.key].includes(r.key)).map((r) => `${r.key}:${r.step}`).sort();
+    expect(await keys(user('rita'))).toEqual([`${a.key}:Relecture technique`]); // b est passée à l'étape qualité
+    expect(await keys(user('remy'))).toEqual([`${a.key}:Relecture technique`]);
+    expect(await keys(qa)).toEqual([`${b.key}:Approbation qualité`]);
+    expect(await keys(user('paul'))).toEqual([]); // non désigné
+    await access.set(org, 'APR', { tracker: 'REQ', members: ['admin', 'qa'] }, admin);
+    expect(await keys(user('rita'))).toEqual([]); // la liste d'ayants droit masque le ticket
+    expect(await keys(qa)).toEqual([`${b.key}:Approbation qualité`]);
+    await access.remove(org, 'APR', 'REQ', admin);
+  });
+
   it('une modification de contenu invalide les décisions, avec message ; un champ hors contenu ou un changement de statut non', async () => {
     const a = await make('Invalidation');
     await decide(a.key, user('rita'), 'approved');

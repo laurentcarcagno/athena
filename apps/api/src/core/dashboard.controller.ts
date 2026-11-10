@@ -2,6 +2,7 @@ import { Body, Controller, Delete, Get, HttpCode, Inject, Put, Query, Req } from
 import { Roles, type AuthedRequest } from '../auth/auth.guard';
 import { BodySchema } from '../openapi/body-schema';
 import { DashboardService, LayoutInput, ScopeSchema } from './dashboard.service';
+import { ItemApprovalService } from './item-approval.service';
 import { OrgResolver, parseBody } from './http';
 
 /** `?project=ARI` : la Vue d'ensemble de ce projet ; sans paramètre, l'accueil personnel. */
@@ -12,6 +13,7 @@ const scopeOf = (project: string | undefined): string => parseBody(ScopeSchema, 
 export class DashboardController {
   constructor(
     @Inject(DashboardService) private readonly dashboard: DashboardService,
+    @Inject(ItemApprovalService) private readonly approvals: ItemApprovalService,
     @Inject(OrgResolver) private readonly orgs: OrgResolver,
   ) {}
 
@@ -20,6 +22,14 @@ export class DashboardController {
   async get(@Req() request: AuthedRequest, @Query('project') project?: string) {
     const { organizationId, actor } = await this.orgs.resolve(request.principal!);
     return this.dashboard.get(organizationId, actor, scopeOf(project));
+  }
+
+  /** Tickets qui attendent ma décision (widget « À approuver »). */
+  @Roles('athena-user', 'athena-admin', 'athena-pm', 'athena-qa')
+  @Get('approvals')
+  async awaiting(@Req() request: AuthedRequest) {
+    const { organizationId, actor } = await this.orgs.resolve(request.principal!);
+    return { items: await this.approvals.awaiting(organizationId, { subject: actor.id, roles: request.principal!.roles }) };
   }
 
   @Roles('athena-user', 'athena-admin', 'athena-pm', 'athena-qa')
