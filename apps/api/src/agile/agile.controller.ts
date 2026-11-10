@@ -191,12 +191,27 @@ export class AgileController {
     await this.reports.assign(organizationId, project, id, parseBody(ItemBody, body).artifact, actor);
   }
 
+  @Roles('athena-user', 'athena-admin')
+  @Get('releases/:id/items')
+  async releaseItems(@Req() request: AuthedRequest, @Param('project') project: string, @Param('id') id: string) {
+    return this.reports.releaseItems((await this.ctx(request)).organizationId, project, id);
+  }
+
+  /** Retirer d'une version : réservé aux responsables du projet (T-0117). */
+  @Roles('athena-admin', 'athena-pm')
+  @HttpCode(204)
+  @Delete('releases/:id/items/:key')
+  async unassignRelease(@Req() request: AuthedRequest, @Param('project') project: string, @Param('id') id: string, @Param('key') key: string) {
+    const { organizationId, actor } = await this.manager(request, project);
+    await this.reports.unassign(organizationId, project, id, key, actor);
+  }
+
   @Roles('athena-admin', 'athena-pm')
   @HttpCode(204)
   @Post('releases/:id/publish')
   async publishRelease(@Req() request: AuthedRequest, @Param('project') project: string, @Param('id') id: string) {
     const { organizationId, actor } = await this.manager(request, project);
-    await this.reports.publish(organizationId, id, actor);
+    await this.reports.publish(organizationId, id, actor, project);
   }
 
   @Roles('athena-user', 'athena-admin')

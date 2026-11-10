@@ -33,6 +33,13 @@ export interface ReleaseView {
   donePoints: number;
   progress: number;
 }
+export interface ReleaseItem {
+  key: string;
+  title: string;
+  statusName: string;
+  done: boolean;
+  points: number;
+}
 export interface Dashboard {
   byCategory: { todo: number; in_progress: number; done: number };
   byTracker: Array<{ tracker: string; total: number; open: number }>;
@@ -102,9 +109,57 @@ export class ReportService {
     });
   }
 
+  /** Version de ce projet (T-0117 : une route de projet n'agit jamais sur la version d'un autre projet). */
+  private async release(c: PoolClient, projectKey: string, releaseId: string): Promise<{ state: string }> {
+    if (!/^[0-9a-f-]{36}$/i.test(releaseId)) throw notFound('Release');
+    const release = (await c.query('select r.state from release r join project p on p.id = r.project_id where r.id = $1 and p.key = $2', [releaseId, projectKey])).rows[0];
+    if (!release) throw notFound('Release');
+    return release as { state: string };
+  }
+
+  /**
+   * Tickets d'une version (T-0117), par tracker puis par numéro. Le titre n'est donné que s'il n'est pas à lecture restreinte
+   * (sinon : la clé), comme pour les sprints.
+   */
+  async releaseItems(organizationId: string, projectKey: string, releaseId: string): Promise<ReleaseItem[]> {
+    return this.db.tx(organizationId, async (c) => {
+      await this.release(c, projectKey, releaseId);
+      const rows = (
+        await c.query(
+          `select a.key, s.name as status_name, s.category, a."values" as values,
+                  (select f.key from field_definition f where f.tracker_id = a.tracker_id and f.semantic_role = 'estimate') as estimate_field,
+                  (select f.key from field_definition f where f.tracker_id = a.tracker_id and f.semantic_role = 'title' and f.read_roles is null) as title_field
+           from release_item i join artifact a on a.id = i.artifact_id join tracker t on t.id = a.tracker_id join status s on s.id = a.status_id
+           where i.release_id = $1 order by t.key, a.number`,
+          [releaseId],
+        )
+      ).rows;
+      return rows.map((r) => ({
+        key: r.key as string, statusName: r.status_name as string, done: r.category === 'done',
+        title: r.title_field && r.values[r.title_field] != null ? String(r.values[r.title_field]) : (r.key as string),
+        points: Number(r.estimate_field ? r.values[r.estimate_field] ?? 0 : 0) || 0,
+      }));
+    });
+  }
+
+  /** Retire un ticket d'une version non publiée (T-0117). */
+  async unassign(organizationId: string, projectKey: string, releaseId: string, artifactKey: string, actor: Actor): Promise<void> {
+    await this.db.tx(organizationId, async (c) => {
+      const release = await this.release(c, projectKey, releaseId);
+      if (release.state === 'released') throw conflict('Release publiée : retrait impossible.');
+      const removed = await c.query(
+        `delete from release_item i using artifact a, project p where i.release_id = $1 and i.artifact_id = a.id and a.project_id = p.id
+           and p.key = $2 and a.id = resolve_artifact(p.id, $3)`,
+        [releaseId, projectKey, artifactKey],
+      );
+      if (removed.rowCount === 0) throw notFound(`${artifactKey} dans cette version`);
+      await audit(c, organizationId, actor, 'release.unassign', `release:${releaseId}`, { artifact: artifactKey });
+    });
+  }
+
   async assign(organizationId: string, projectKey: string, releaseId: string, artifactKey: string, actor: Actor): Promise<void> {
     await this.db.tx(organizationId, async (c) => {
-      const release = (await c.query('select state from release where id = $1', [releaseId])).rows[0];
+      const release = await this.release(c, projectKey, releaseId);
       if (!release) throw notFound('Release');
       if (release.state === 'released') throw conflict('Release publiée : ajout impossible.');
       const artifact = (await c.query('select a.id from artifact a join project p on p.id = a.project_id where p.key = $1 and a.id = resolve_artifact(p.id, $2)', [projectKey, artifactKey])).rows[0];
@@ -114,8 +169,9 @@ export class ReportService {
     });
   }
 
-  async publish(organizationId: string, releaseId: string, actor: Actor): Promise<void> {
+  async publish(organizationId: string, releaseId: string, actor: Actor, projectKey?: string): Promise<void> {
     await this.db.tx(organizationId, async (c) => {
+      if (projectKey !== undefined) await this.release(c, projectKey, releaseId);
       const gate = (await c.query('select requires_approval from release where id = $1', [releaseId])).rows[0];
       if (gate?.requires_approval) {
         const decisions = (await c.query("select decision from approval where object_type = 'release' and object_id = $1", [releaseId])).rows as Array<{ decision: string }>;

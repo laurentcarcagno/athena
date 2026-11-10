@@ -22,6 +22,7 @@ suite('vélocité, flux, roadmap et tableau de bord (intégration)', () => {
   let artifacts: ArtifactService;
   let sprints: SprintService;
   let reports: ReportService;
+  let trackers: TrackerService;
   const org = crypto.randomUUID();
 
   const storyTracker = {
@@ -52,7 +53,7 @@ suite('vélocité, flux, roadmap et tableau de bord (intégration)', () => {
     testDb = await createTestDb('athena_test_reports');
     const db = new Db(testDb.pool);
     const registry = new FieldTypeRegistry();
-    const trackers = new TrackerService(db, registry);
+    trackers = new TrackerService(db, registry);
     artifacts = new ArtifactService(db, trackers, registry);
     sprints = new SprintService(db);
     reports = new ReportService(db);
@@ -111,8 +112,23 @@ suite('vélocité, flux, roadmap et tableau de bord (intégration)', () => {
     expect(roadmap.map((r) => r.name)).toEqual(['1.0', '1.1']);
     expect(roadmap[0]).toMatchObject({ items: 3, doneItems: 2, totalPoints: 26, donePoints: 13, progress: 0.5 });
     expect(roadmap[1]).toMatchObject({ items: 1, doneItems: 0, totalPoints: 1, progress: 0 });
-    await reports.publish(org, r1, admin);
+    // T-0117 : tickets de la version, retrait, portée du projet.
+    const items = await reports.releaseItems(org, 'ARI', r1);
+    expect(items.map((i) => i.key)).toEqual(['ARI-STORY-0001', 'ARI-STORY-0003', 'ARI-STORY-0005']);
+    expect(items[0]).toMatchObject({ done: true, statusName: 'Terminé' });
+    expect(items[0]!.title).not.toBe('ARI-STORY-0001');
+    await reports.assign(org, 'ARI', r1, 'ARI-STORY-0006', admin);
+    await reports.unassign(org, 'ARI', r1, 'ARI-STORY-0006', admin);
+    expect((await reports.releaseItems(org, 'ARI', r1)).length).toBe(3);
+    expect(await code(reports.unassign(org, 'ARI', r1, 'ARI-STORY-0006', admin))).toMatch(/not_found/);
+    await trackers.createProject(org, 'AUT', 'Autre', admin);
+    expect(await code(reports.releaseItems(org, 'AUT', r1))).toMatch(/not_found/);
+    expect(await code(reports.assign(org, 'AUT', r1, 'ARI-STORY-0006', admin))).toMatch(/not_found/);
+    expect(await code(reports.publish(org, r1, admin, 'AUT'))).toMatch(/not_found/);
+    expect(await code(reports.releaseItems(org, 'ARI', 'pas-un-uuid'))).toMatch(/not_found/);
+    await reports.publish(org, r1, admin, 'ARI');
     expect(await code(reports.assign(org, 'ARI', r1, 'ARI-STORY-0006', admin))).toMatch(/conflict.*publiée/);
+    expect(await code(reports.unassign(org, 'ARI', r1, 'ARI-STORY-0001', admin))).toMatch(/conflict.*publiée/);
     expect(await code(reports.publish(org, r1, admin))).toMatch(/conflict/);
     expect(await code(reports.createRelease(org, 'ARI', { name: 'x', startsOn: iso(5), endsOn: iso(1) }, admin))).toMatch(/autre:.*check/i);
   }, 30_000);
