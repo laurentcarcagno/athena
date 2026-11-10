@@ -35,6 +35,13 @@ const frDict = {
     burndown: 'Burndown', remaining: 'Reste à faire', ideal: 'Idéal', day: 'Jour', data: 'Données du burndown', noBurndown: 'Burndown indisponible : dates du sprint absentes.',
     moved: 'Backlog réordonné.', added: 'Ticket ajouté au sprint.', removed: 'Ticket retiré du sprint.', started: 'Sprint démarré.', closed: (n: number) => `Sprint clos : ${n} ticket(s) non terminé(s) reporté(s).`, created: 'Sprint créé.',
   },
+  globalSearch: {
+    title: 'Recherche globale', eyebrow: 'Tous les projets', quick: 'Filtres rapides', mine: 'Mes tickets', open: 'Ouverts', recent: 'Modifiés depuis 7 jours',
+    projects: 'Projets', allProjects: 'Tous les projets', atql: 'Requête ATQL', run: 'Rechercher', project: 'Projet',
+    views: 'Vues enregistrées', noView: 'Aucune', save: 'Enregistrer la vue', viewName: 'Nom de la vue', saved: 'Vue enregistrée.', deleteView: 'Supprimer la vue',
+    deleteTitle: (name: string) => `Supprimer la vue « ${name} » ?`, deleteBody: 'La vue disparaît de vos vues enregistrées ; les tickets ne changent pas.',
+    empty: 'Aucun ticket ne correspond.', origin: 'Recherche globale',
+  },
   roadmap: {
     title: 'Roadmap', timeline: 'Calendrier des versions', empty: 'Aucune version dans ce projet.', planned: 'Planifiée', released: 'Publiée',
     progress: (percent: number) => `Avancement ${percent} %`, counts: (done: number, total: number) => `${done} / ${total} tickets terminés`, points: (done: number, total: number) => `${done} / ${total} pt`,
@@ -260,7 +267,7 @@ const frDict = {
     width: 'Largeur', columns: (n: number) => `${n} colonne${n > 1 ? 's' : ''} sur 3`, earlier: 'Reculer', later: 'Avancer', moveTo: 'Déplacer vers la section', unplace: 'Retirer',
     emptySection: 'Section vide : déposez un attribut ici.', dragHint: 'Un attribut non placé reste visible à la suite des autres sur la fiche.', save: 'Enregistrer la disposition', saved: 'Disposition enregistrée.',
   },
-  palette: { title: 'Commandes', placeholder: 'Aller à… ou rechercher un artefact', none: 'Aucun résultat.', projects: 'Projets', artifacts: 'Artefacts', goto: 'Aller à' },
+  palette: { title: 'Commandes', placeholder: 'Aller à… ou rechercher un ticket (clé ou titre), tous projets', none: 'Aucun résultat.', create: 'Créer un ticket…', searchAll: (q: string) => `Rechercher « ${q} » dans tous les projets`, globalSearch: 'Recherche globale', projects: 'Projets', artifacts: 'Artefacts', goto: 'Aller à' },
   errors: {
     generic: 'Une erreur est survenue. Réessayez.', notFoundTitle: 'Page introuvable', notFoundEyebrow: 'Erreur 404', notFound: 'Cette adresse ne correspond à aucune page.',
     unavailableEyebrow: 'Connexion', unavailable: 'Authentification indisponible.',
@@ -402,6 +409,13 @@ const enDict: Dictionary = {
     totals: (done: number, total: number) => `${done} / ${total} pt done`, newSprint: 'New sprint', name: 'Name', starts: 'Start', ends: 'End', create: 'Create sprint',
     burndown: 'Burndown', remaining: 'Remaining', ideal: 'Ideal', day: 'Day', data: 'Burndown data', noBurndown: 'Burndown unavailable: sprint dates missing.',
     moved: 'Backlog reordered.', added: 'Ticket added to sprint.', removed: 'Ticket removed from sprint.', started: 'Sprint started.', closed: (n: number) => `Sprint closed: ${n} unfinished ticket(s) carried over.`, created: 'Sprint created.',
+  },
+  globalSearch: {
+    title: 'Global search', eyebrow: 'All projects', quick: 'Quick filters', mine: 'My tickets', open: 'Open', recent: 'Updated in the last 7 days',
+    projects: 'Projects', allProjects: 'All projects', atql: 'ATQL query', run: 'Search', project: 'Project',
+    views: 'Saved views', noView: 'None', save: 'Save view', viewName: 'View name', saved: 'View saved.', deleteView: 'Delete view',
+    deleteTitle: (name: string) => `Delete view “${name}”?`, deleteBody: 'The view leaves your saved views; tickets are unchanged.',
+    empty: 'No ticket matches.', origin: 'Global search',
   },
   roadmap: {
     title: 'Roadmap', timeline: 'Version timeline', empty: 'No version in this project.', planned: 'Planned', released: 'Released',
@@ -628,7 +642,7 @@ const enDict: Dictionary = {
     width: 'Width', columns: (n: number) => `${n} column${n > 1 ? 's' : ''} of 3`, earlier: 'Move earlier', later: 'Move later', moveTo: 'Move to section', unplace: 'Remove',
     emptySection: 'Empty section: drop an attribute here.', dragHint: 'An unplaced attribute still shows after the others on the sheet.', save: 'Save layout', saved: 'Layout saved.',
   },
-  palette: { title: 'Commands', placeholder: 'Go to… or search for an artifact', none: 'No result.', projects: 'Projects', artifacts: 'Artifacts', goto: 'Go to' },
+  palette: { title: 'Commands', placeholder: 'Go to… or search for a ticket (key or title), all projects', none: 'No result.', create: 'Create a ticket…', searchAll: (q: string) => `Search “${q}” in all projects`, globalSearch: 'Global search', projects: 'Projects', artifacts: 'Artifacts', goto: 'Go to' },
   errors: {
     generic: 'An error occurred. Try again.', notFoundTitle: 'Page not found', notFoundEyebrow: 'Error 404', notFound: 'This address does not match any page.',
     unavailableEyebrow: 'Sign in', unavailable: 'Authentication unavailable.',

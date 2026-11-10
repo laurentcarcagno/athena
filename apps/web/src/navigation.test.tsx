@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { ToastProvider } from '@athena/ui';
@@ -18,7 +18,7 @@ beforeEach(() => {
   try { localStorage.clear(); } catch { /* sans stockage */ }
   vi.stubGlobal('fetch', vi.fn(async (input: string) => {
     const ok = (body: unknown) => new Response(JSON.stringify(body), { status: 200 });
-    const hit = (n: number) => ({ key: `ARI-BUG-000${n}`, tracker: 'BUG', status: 'open', statusName: 'Ouvert', category: 'todo', version: 1, updatedAt: '2026-11-05T10:00:00.000Z', values: { title: `Anomalie ${n}` } });
+    const hit = (n: number) => ({ key: `ARI-BUG-000${n}`, project: 'ARI', title: `Anomalie ${n}`, tracker: 'BUG', status: 'open', statusName: 'Ouvert', category: 'todo', version: 1, updatedAt: '2026-11-05T10:00:00.000Z', values: { title: `Anomalie ${n}` } });
     if (/\/v1\/me\/pins$/.test(input)) return ok({ favorites, recents: [] });
     if (/\/v1\/me\/pins\//.test(input)) return new Response(null, { status: 204 });
     if (/\/modules$/.test(input)) return ok({ modules: ['overview', 'trackers', 'planning'] });
@@ -61,11 +61,24 @@ describe('accès à un item en moins de 3 actions, sans requête', () => {
     expect(await shown()).toBeInTheDocument();
   });
 
-  it('depuis un projet, par la palette : Ctrl+K, la clé, Entrée (3 actions)', async () => {
+  it('depuis un projet, par la palette : Ctrl+K, puis la clé et Entrée (2 actions, T-0119)', async () => {
     app('/p/ARI');
     await userEvent.keyboard('{Control>}k{/Control}'); // 1
-    await userEvent.type(await screen.findByRole('combobox'), KEY); // 2 : une clé, pas une requête
-    await userEvent.click(await screen.findByRole('option', { name: new RegExp(KEY) })); // 3
+    const input = await screen.findByRole('combobox');
+    await userEvent.type(input, KEY); // 2 : une clé, pas une requête…
+    await waitFor(() => expect(screen.getAllByRole('option')[0]).toHaveTextContent(new RegExp(`^${KEY}`))); // le ticket, avant l'action « Rechercher… »
+    expect(screen.getAllByRole('option')[0]).toHaveAttribute('aria-selected', 'true');
+    await userEvent.keyboard('{Enter}'); // … validée par Entrée : la clé exacte est en tête
+    expect(await shown()).toBeInTheDocument();
+  });
+
+  it('hors projet aussi (Mon travail) : la palette cherche dans tous les projets (2 actions)', async () => {
+    app('/me');
+    await userEvent.keyboard('{Control>}k{/Control}'); // 1
+    await userEvent.type(await screen.findByRole('combobox'), KEY); // 2
+    await waitFor(() => expect(screen.getAllByRole('option')[0]).toHaveTextContent(new RegExp(`^${KEY}`))); // le ticket, avant l'action « Rechercher… »
+    expect(screen.getAllByRole('option')[0]).toHaveAttribute('aria-selected', 'true');
+    await userEvent.keyboard('{Enter}');
     expect(await shown()).toBeInTheDocument();
   });
 

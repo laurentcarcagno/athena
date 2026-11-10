@@ -1,13 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Id, Modal } from '@athena/ui';
 import { api, type SearchResult } from '../api';
 import { fr } from '../i18n';
+import { targetOf } from '../lib/create-target';
+import { useCreate } from './CreateArtifact';
 import { PALETTE_EVENT } from './MobileNav';
 
-interface Entry { id: string; label: string; hint?: string; to: string }
+interface Entry { id: string; label: string; hint?: string; to?: string; run?: () => void }
 
-/** Palette de commandes (Ctrl/⌘K) : navigation et recherche d'artefacts, entièrement au clavier. */
+/**
+ * Palette de commandes (Ctrl/⌘K) : navigation, tickets de tous les projets autorisés (clé ou titre, T-0119) et actions
+ * (« Créer un ticket… », recherche globale), entièrement au clavier. Une clé exacte arrive en tête : Ctrl+K, la clé, Entrée.
+ */
 export function CommandPalette({ project }: { project: string | undefined }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -15,6 +20,8 @@ export function CommandPalette({ project }: { project: string | undefined }) {
   const [hits, setHits] = useState<Entry[]>([]);
   const [index, setIndex] = useState(0);
   const navigate = useNavigate();
+  const location = useLocation();
+  const create = useCreate();
   const input = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -40,18 +47,22 @@ export function CommandPalette({ project }: { project: string | undefined }) {
   }, [open]);
 
   useEffect(() => {
-    if (!open || !project || query.trim().length < 2) { setHits([]); return; }
+    if (!open || query.trim().length < 2) { setHits([]); return; }
     const q = query.trim().replace(/["\\]/g, '');
     const timer = setTimeout(() => {
-      api<SearchResult>('GET', `/v1/projects/${project}/search?q=${encodeURIComponent(`key = "${q}" OR key ~ "${q}" OR title ~ "${q}"`)}&limit=8`)
-        .then((r) => setHits(r.hits.map((h) => ({ id: h.key, label: h.key, hint: String(h.values['title'] ?? ''), to: `/p/${project}/a/${h.key}` }))))
+      api<SearchResult>('GET', `/v1/search?q=${encodeURIComponent(`key = "${q}" OR key ~ "${q}" OR title ~ "${q}"`)}&limit=8`)
+        .then((r) => {
+          // La clé exacte d'abord : Entrée ouvre le ticket.
+          const exact = (h: { key: string }) => (h.key.toLowerCase() === q.toLowerCase() ? 0 : 1);
+          setHits([...r.hits].sort((a, b) => exact(a) - exact(b)).map((h) => ({ id: h.key, label: h.key, hint: h.title && h.title !== h.key ? h.title : h.project, to: `/p/${h.project}/a/${h.key}` })));
+        })
         .catch(() => setHits([]));
     }, 150);
     return () => clearTimeout(timer);
-  }, [query, open, project]);
+  }, [query, open]);
 
   const entries = useMemo<Entry[]>(() => {
-    const nav: Entry[] = [{ id: 'projects', label: fr.nav.projects, to: '/' }];
+    const nav: Entry[] = [{ id: 'projects', label: fr.nav.projects, to: '/' }, { id: 'global-search', label: fr.palette.globalSearch, to: '/recherche' }];
     if (project) {
       nav.push(
         { id: 'overview', label: `${fr.nav.overview} · ${project}`, to: `/p/${project}` },
@@ -62,15 +73,20 @@ export function CommandPalette({ project }: { project: string | undefined }) {
     const q = query.trim().toLowerCase();
     const filtered = nav.filter((n) => q === '' || n.label.toLowerCase().includes(q));
     const projectEntries = projects.filter((p) => q === '' || p.key.toLowerCase().includes(q) || p.name.toLowerCase().includes(q)).map((p) => ({ id: `p-${p.key}`, label: p.key, hint: p.name, to: `/p/${p.key}` }));
-    return [...filtered, ...projectEntries, ...hits];
-  }, [query, project, projects, hits]);
+    const actions: Entry[] = [];
+    if (q === '' || fr.palette.create.toLowerCase().includes(q)) actions.push({ id: 'create', label: fr.palette.create, run: () => create(targetOf(location.pathname)) });
+    const typed = query.trim().replace(/["\\]/g, '');
+    if (typed.length >= 2) actions.push({ id: 'search-all', label: fr.palette.searchAll(typed), to: `/recherche?q=${encodeURIComponent(`key ~ "${typed}" OR title ~ "${typed}"`)}` });
+    // Tickets d'abord quand on tape : la clé cherchée est la première entrée.
+    return [...hits, ...filtered, ...projectEntries, ...actions];
+  }, [query, project, projects, hits, create, location.pathname]);
 
   useEffect(() => { setIndex((i) => Math.min(i, Math.max(entries.length - 1, 0))); }, [entries.length]);
 
   const go = (entry: Entry | undefined) => {
     if (!entry) return;
     setOpen(false);
-    navigate(entry.to);
+    if (entry.run) entry.run(); else if (entry.to) navigate(entry.to);
   };
 
   return (

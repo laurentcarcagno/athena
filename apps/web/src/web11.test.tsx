@@ -72,7 +72,7 @@ describe('rail contextuel', () => {
     app('/');
     await screen.findByRole('heading', { level: 1 });
     expect(groupTitles()).toEqual([]);
-    expect(within(rail()).getAllByRole('button').map((b) => b.textContent)).toEqual(['Favoris (0)›', 'Récents (0)›', 'Projets', 'Mon travail', 'Aide']);
+    expect(within(rail()).getAllByRole('button').map((b) => b.textContent)).toEqual(['Favoris (0)›', 'Récents (0)›', 'Projets', 'Mon travail', 'Recherche', 'Aide']);
   });
 
   it('dans un projet : la rubrique du projet (sections, trackers imbriqués) et les vues partagées sous le tracker ouvert seulement', async () => {
@@ -81,7 +81,7 @@ describe('rail contextuel', () => {
     expect(groupTitles()).toEqual(['Projet ARI']);
     const labels = within(rail()).getAllByRole('button').map((b) => b.textContent);
     expect(labels).toEqual([
-      'Favoris (0)›', 'Récents (0)›', 'Projets', 'Mon travail', 'Aide',
+      'Favoris (0)›', 'Récents (0)›', 'Projets', 'Mon travail', 'Recherche', 'Aide',
       // ADR-0003 : la navigation du projet est au rail ; Planification et Membres, réservés, n’apparaissent pas pour un simple membre
       'Vue d’ensemble', 'Backlog', 'Board', 'Trackers',
       'BUG · Anomalies', 'Bloquants', 'REQ · Exigences', // la vue partagée apparaît sous le tracker ouvert ; la vue personnelle n’y figure pas

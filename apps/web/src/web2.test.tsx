@@ -186,6 +186,8 @@ describe('palette de commandes', () => {
     mount();
     const input = await open();
     await userEvent.type(input, 'recherche');
+    expect(screen.getByRole('option', { name: /Recherche globale/ })).toHaveAttribute('aria-selected', 'true');
+    await userEvent.keyboard('{ArrowDown}');
     expect(screen.getByRole('option', { name: /Recherche · ARI/ })).toHaveAttribute('aria-selected', 'true');
     await userEvent.keyboard('{Enter}');
     expect(screen.getByTestId('where')).toHaveTextContent('/p/ARI/recherche');
@@ -194,7 +196,7 @@ describe('palette de commandes', () => {
   it('cherche des artefacts du projet et ouvre celui qui est sélectionné', async () => {
     handlers = [
       on('GET', '/v1/projects', { body: [{ key: 'ARI', name: 'Ariane' }] }),
-      on('GET', /\/search\?/, { body: { total: 1, hits: [{ key: 'BUG-12', tracker: 'BUG', status: 'open', category: 'todo', version: 1, updatedAt: '', values: { title: 'Crash au démarrage' } }] } }),
+      on('GET', /\/search\?/, { body: { total: 1, hits: [{ key: 'BUG-12', project: 'ARI', title: 'Crash au démarrage', tracker: 'BUG', status: 'open', category: 'todo', version: 1, updatedAt: '', values: { title: 'Crash au démarrage' } }] } }),
     ];
     mount();
     await userEvent.type(await open(), 'crash');
@@ -203,7 +205,9 @@ describe('palette de commandes', () => {
     await userEvent.keyboard('{ArrowDown}{ArrowDown}');
     await userEvent.click(option);
     expect(screen.getByTestId('where')).toHaveTextContent('/p/ARI/a/BUG-12');
-    expect(decodeURIComponent(calls.find((c) => c.url.includes('/search'))!.url)).toContain('key = "crash" OR key ~ "crash" OR title ~ "crash"');
+    const url = decodeURIComponent(calls.find((c) => c.url.includes('/search'))!.url);
+    expect(url).toContain('/v1/search?'); // T-0119 : tous les projets
+    expect(url).toContain('key = "crash" OR key ~ "crash" OR title ~ "crash"');
   });
   it('échappe les guillemets de la saisie et se ferme avec Échap', async () => {
     handlers = [on('GET', '/v1/projects', { body: [] }), on('GET', /\/search\?/, { body: { total: 0, hits: [] } })];

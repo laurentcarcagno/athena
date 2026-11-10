@@ -71,7 +71,7 @@ export function useRailSections({ pathname, project, roles }: { pathname: string
   sections.push({
     id: 'main',
     items: [
-      { id: '/', label: fr.nav.projects }, { id: '/me', label: fr.nav.work },
+      { id: '/', label: fr.nav.projects }, { id: '/me', label: fr.nav.work }, { id: '/recherche', label: fr.nav.search },
       ...(admin ? [{ id: '/org', label: fr.nav.organization }] : []),
       { id: '/help', label: fr.nav.help },
     ],

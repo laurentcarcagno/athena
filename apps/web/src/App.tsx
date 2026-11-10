@@ -18,6 +18,7 @@ import { ArtifactPage } from './pages/ArtifactPage';
 import { BoardIndexPage, BoardPage } from './pages/BoardPage';
 import { BacklogPage } from './pages/BacklogPage';
 import { RoadmapPage } from './pages/RoadmapPage';
+import { GlobalSearchPage } from './pages/GlobalSearchPage';
 import { ListPage } from './pages/ListPage';
 import { MyWorkPage } from './pages/MyWorkPage';
 import { HelpPage } from './pages/HelpPage';
@@ -155,6 +156,7 @@ export function AuthenticatedApp({ session }: { session: Session }) {
         <Route path="/me" element={<MyWorkPage session={session} />} />
         <Route path="/org" element={<OrgAdminPage session={session} />} />
         <Route path="/help" element={<HelpPage />} />
+        <Route path="/recherche" element={<GlobalSearchPage session={session} />} />
         {/* Toutes les adresses d'un projet ont le même parent : la navigation du projet reste au rail (ADR-0003). */}
         <Route path="/p/:project" element={<ProjectLayout />}>
           <Route element={<ProjectSectionFrame />}>
