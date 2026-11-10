@@ -103,11 +103,11 @@ Résultats de la vérification (2026-11-10) : Vitest web 418 sur 418 ; `tsc` web
 | Le test échoue si « artefact », « release » ou « template » restent dans les textes français affichés | `vocabulaire.test.ts` (tout le dictionnaire français, fonctions comprises) ; messages d'erreur de l'API alignés |
 | `docs/user` à jour | `GUIDE.md` et `FORMATION.md` (vocabulaire, navigation, tableau de bord, Profil) |
 
-## Écarts à décider (aucun lot ne s'ouvre avant)
-1. **Widget « À approuver »** : il liste les jalons et baselines en attente d'approbation (`/v1/projects/:p/approvals`). Les approbations de tickets (circuits de T-0094) ne sont pas agrégées à l'échelle de l'organisation : il n'existe pas de route « ce qui attend ma décision ». Faisable (route d'API + test) ; à combler ou à accepter explicitement.
-2. **Widget « Échéances de la semaine »** : sa requête ATQL cible le champ `due` du gabarit standard (`due <= daysFromNow(7)`). Un tracker dont le champ d'échéance porte une autre clé n'y figure pas ; la requête se corrige en dupliquant le widget. À accepter ou à remplacer par une requête sur le rôle sémantique `due_date`.
-3. **Page d'accueil du Profil** : mémorisée par navigateur (comme la langue et le thème), pas sur le compte. Aucune table ; à accepter ou à ajouter à la migration suivante.
-4. **Captures du manuel** (ADR-0003 § 5) : le texte de `docs/user` est à jour, les captures d'écran du manuel Word ne sont pas dans le dépôt et n'ont pas été refaites (skill `doc:mu` à lancer sur demande).
+## Écarts du lot : décisions de l'utilisateur (2026-11-10)
+1. **Widget « À approuver » : comblé.** `GET /v1/me/approvals` (`ItemApprovalService.awaiting`) liste les tickets dont l'étape courante désigne la personne ou son rôle, sous ses droits (listes d'ayants droit) ; preuve : `core/item-approval.test.ts` (« liste les tickets qui attendent ma décision ») et `Dashboard.test.tsx`. L'assurance qualité voit en plus les jalons et baselines en attente.
+2. **Widget « Échéances de la semaine » : accepté.** Sa requête ATQL cible le champ `due` du gabarit standard (`due <= daysFromNow(7)`). Un tracker dont l'échéance porte une autre clé n'y figure pas ; on corrige la requête en dupliquant le widget. **À expliquer dans le manuel utilisateur** (mise à jour du manuel à la toute fin).
+3. **Page d'accueil du Profil** : mémorisée par navigateur (comme la langue et le thème), pas sur le compte. **En attente de décision** : l'utilisateur a demandé la politique de JIRA et de Tuleap avant de choisir (réponse donnée en séance).
+4. **Manuel utilisateur et captures** (ADR-0003 § 5) : **reporté à la toute fin du projet** (décision de l'utilisateur). Le texte de `docs/user` est à jour pour le lot ; le manuel Word et ses captures seront refaits en fin de projet (skill `doc:mu`).
 
 ## Limites connues, sans lien avec le lot
 - Tests instables : `web15` (Matrice), `web16`, e2e `notifications.spec.ts` (la case « Commentaire » reste cochée au premier passage après réinitialisation de la base ; passe au rejeu).

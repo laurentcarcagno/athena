@@ -14,6 +14,7 @@ interface Layout { widgets: Widget[]; isDefault: boolean }
 interface SavedSearch { id: string; name: string; query: string; projects: string[] }
 interface Mention { id: string; project: string; key: string; actorName: string; read: boolean }
 interface ApprovalRow { project: string; type: string; ref: string }
+interface AwaitingItem { project: string; key: string; tracker: string; step: string }
 
 /** Widgets par défaut, dans l'ordre de la disposition initiale (miroir de l'API) : sert à les réajouter après un retrait. */
 const HOME_WIDGETS: Widget[] = [
@@ -86,9 +87,13 @@ function MentionsBody() {
   );
 }
 
-function ApprovalsBody() {
-  const [rows, setRows] = useState<ApprovalRow[] | null>(null);
+function ApprovalsBody({ objects }: { objects: boolean }) {
+  const [items, setItems] = useState<AwaitingItem[] | null>(null);
+  const [rows, setRows] = useState<ApprovalRow[]>([]);
   useEffect(() => {
+    api<{ items: AwaitingItem[] }>('GET', '/v1/me/approvals').then((r) => setItems(Array.isArray(r.items) ? r.items : [])).catch(() => setItems([]));
+    if (!objects) return;
+    // Assurance qualité : jalons et baselines en attente de sa décision, en plus des tickets.
     api<Array<{ key: string }>>('GET', '/v1/projects').then(async (projects) => {
       const all = await Promise.all(projects.map(async (p) => {
         const list = await api<Array<{ type: string; ref: string; state: string }>>('GET', `/v1/projects/${p.key}/approvals`).catch(() => []);
@@ -96,16 +101,24 @@ function ApprovalsBody() {
       }));
       setRows(all.flat());
     }).catch(() => setRows([]));
-  }, []);
-  if (rows === null) return <p role="status">{fr.loading}</p>;
+  }, [objects]);
+  if (items === null) return <p role="status">{fr.loading}</p>;
   return (
     <Rows empty={fr.home.noApprovals}>
-      {rows.slice(0, 5).map((r) => (
-        <li key={`${r.project}-${r.type}-${r.ref}`} className="ath-row">
-          <span className="ath-mono">{r.project}</span>
-          <Link className="ath-link" to={`/p/${r.project}/parametres/approbations`}>{r.ref}</Link>
-        </li>
-      ))}
+      {[
+        ...items.slice(0, 5).map((r) => (
+          <li key={`${r.project}-${r.key}`} className="ath-row">
+            <Link className="ath-link ath-mono" to={`/p/${r.project}/a/${r.key}?onglet=approval`}>{r.key}</Link>
+            <span className="ath-clip">{r.step}</span>
+          </li>
+        )),
+        ...rows.slice(0, 5).map((r) => (
+          <li key={`${r.project}-${r.type}-${r.ref}`} className="ath-row">
+            <span className="ath-mono">{r.project}</span>
+            <Link className="ath-link" to={`/p/${r.project}/parametres/approbations`}>{r.ref}</Link>
+          </li>
+        )),
+      ]}
     </Rows>
   );
 }
@@ -135,11 +148,11 @@ function PinsBody({ kind }: { kind: 'favorites' | 'recents' }) {
   return <Rows empty={kind === 'favorites' ? fr.rail.noFavorites : fr.rail.noRecents}>{list.map((p) => <li key={p.id}><Link className={`ath-link${p.kind === 'item' ? ' ath-mono' : ''}`} to={pinHref(p)}>{p.label}</Link></li>)}</Rows>;
 }
 
-function Body({ widget }: { widget: Widget }) {
+function Body({ widget, objects }: { widget: Widget; objects: boolean }) {
   switch (widget.kind) {
     case 'search': return <SearchBody widget={widget} />;
     case 'mentions': return <MentionsBody />;
-    case 'approvals': return <ApprovalsBody />;
+    case 'approvals': return <ApprovalsBody objects={objects} />;
     case 'trackers': return <TrackersBody project={widget.projects?.[0] ?? ''} />;
     default: return <PinsBody kind={widget.kind} />;
   }
@@ -150,7 +163,7 @@ function Body({ widget }: { widget: Widget }) {
  * commandes : monter, descendre, masquer, dupliquer (recherches), ajouter une vue enregistrée ou un widget masqué, réinitialiser.
  * Chaque changement est enregistré aussitôt ; la disposition est propre à la personne.
  */
-export function Dashboard({ project }: { project?: string } = {}) {
+export function Dashboard({ project, qa = false }: { project?: string; qa?: boolean } = {}) {
   const fail = useFailure();
   const toast = useToast();
   const confirm = useConfirm();
@@ -217,7 +230,7 @@ export function Dashboard({ project }: { project?: string } = {}) {
           <div key={w.id} className="ath-span-1" role="group" aria-label={widgetTitle(w)}>
             <Card title={widgetTitle(w)}>
               <div className="ath-stack">
-                <Body widget={w} />
+                <Body widget={w} objects={qa} />
                 {editing && (
                   <div className="ath-toolbar">
                     <Btn variant="ghost" size="sm" disabled={i === 0} aria-label={`${fr.home.up} ${widgetTitle(w)}`} onClick={() => void move(i, -1)}>↑</Btn>

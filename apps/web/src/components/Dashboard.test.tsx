@@ -34,6 +34,7 @@ beforeEach(() => {
     }
     if (url.startsWith('/v1/search?')) return json({ total: 1, hits: [{ key: 'ARI-BUG-0001', project: 'ARI', tracker: 'BUG', status: 'open', statusName: 'Ouvert', category: 'todo', values: { title: 'Fuite mémoire' }, version: 1, updatedAt: '' }] });
     if (url.startsWith('/v1/me/notifications')) return json({ items: [], unread: 0 });
+    if (url === '/v1/me/approvals') return json({ items: [{ project: 'ARI', key: 'ARI-REQ-0001', tracker: 'REQ', step: 'Relecture technique' }] });
     if (url === '/v1/projects') return json([]);
     if (url === '/v1/searches') return json([{ id: '11111111-aaaa-bbbb-cccc-222222222222', name: 'Bloquants NOVA', query: 'priority = high', projects: ['NOVA'] }]);
     return json({}, 404);
@@ -51,6 +52,9 @@ describe('tableau de bord personnel', () => {
     await waitFor(() => expect(groups()).toEqual(DEFAULT_TITLES));
     expect(await within(screen.getByRole('group', { name: 'Mes tickets' })).findByText('Fuite mémoire')).toBeInTheDocument();
     expect(within(screen.getByRole('group', { name: 'Mes tickets' })).getByRole('link', { name: 'Tout voir' })).toHaveAttribute('href', `/recherche?q=${encodeURIComponent('assignee = currentUser() AND category != done')}`);
+    const approvals = within(screen.getByRole('group', { name: 'À approuver' }));
+    expect(await approvals.findByRole('link', { name: 'ARI-REQ-0001' })).toHaveAttribute('href', '/p/ARI/a/ARI-REQ-0001?onglet=approval');
+    expect(approvals.getByText('Relecture technique')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /^Monter/ })).not.toBeInTheDocument(); // les commandes n'apparaissent qu'en mode Personnaliser
     expect(calls.some((c) => c.method === 'PUT')).toBe(false);
   });

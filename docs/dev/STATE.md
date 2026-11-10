@@ -27,7 +27,7 @@ Dernière mise à jour : 2026-11-10
   T-0123 faite (`/` = Mon travail, `/projets`, `/profil`, `/notifications`, `/admin`, rail global ≤ 6, Vue d’ensemble sur le moteur ; migration 051 ; e2e 44 sur 44).
   T-0124 faite (glossaire Ticket, Version, Gabarit ; test de vocabulaire ; messages de l’API ; `docs/user`).
   T-0125 faite (`docs/dev/tasks/LOT9-VERIFICATION.md` ; e2e 44 sur 44). **Lot 9 terminé, arrêt pour compte rendu** ; quatre écarts à décider avant tout nouveau lot (voir la vérification). Migration réelle suivante : 052.
-- **Tâche en cours** : aucune (attente de la décision de l'utilisateur sur les écarts du lot 9).
+- **Tâche en cours** : aucune. Écarts du lot 9 : 1 comblé (`GET /v1/me/approvals`), 2 accepté, 3 en attente (politique JIRA/Tuleap exposée à l'utilisateur), 4 reporté. **Le manuel utilisateur (Word, captures) est mis à jour à la toute fin du projet** (décision du 2026-11-10).
 - **Historique** : réécrit le 2026-11-10 à la demande de l'utilisateur (lot 8 en `@gmail.com`) ; sauvegarde `backup/avant-reecriture-email`, à supprimer quand l'utilisateur le décide.
 - **Reste à faire** (par priorité) :
   1. Test d'intrusion externe (à commander) ; déploiement de recette sur Kubernetes et mesures de charge concurrente.
