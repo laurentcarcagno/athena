@@ -4,8 +4,8 @@
   "title": "Design System: Hemeria",
   "meta": {
     "name": "Hemeria Design System",
-    "version": "3.1.0",
-    "date": "2026-11-07",
+    "version": "3.2.0",
+    "date": "2026-11-10",
     "author": "Laurent Carcagno",
     "statusLegend": {
       "stable": "Validé et utilisé.",
@@ -2488,6 +2488,13 @@
       "decision": "Le thème sombre est livré : tous les tokens de semantic.themes.dark passent de proposed à stable. Athena propose les réglages clair, sombre et système (par défaut, préférence du système), mémorisés par navigateur (localStorage). Les primitives sont réaffectées aux valeurs sémantiques sombres de même rôle (tokens.semantic.darkPrimitiveMap) ; les surfaces inverses et les boutons pleins redéclarent localement leurs primitives. Les variables sémantiques (--ath-surface-*, --ath-text-*, --ath-border-*, --ath-action-*, --ath-state-*, --ath-focus-*) sont générées dans tokens.generated.css pour les deux thèmes ; lint-design.mjs reste borné au front matter pour les couleurs écrites dans les sources.",
       "reason": "Demande T-0095 : confort en environnement peu éclairé et préférence système ; les valeurs existaient (proposed) et leurs contrastes étaient calculés. L'interface les consomme désormais et l'audit axe passe dans les deux thèmes.",
       "rejected": "Dupliquer les règles de la feuille de style sous un sélecteur sombre (dérive garantie) ; refaire tous les composants sur les variables sémantiques (refonte hors périmètre) ; sombre seul sans réglage système."
+    },
+    {
+      "id": "D-019",
+      "date": "2026-11-10",
+      "decision": "Système de thèmes (ADR-0004) : Hemeria devient un thème parmi d’autres ; moteur générique @nuance/theming et thèmes en données @nuance/themes (format W3C Design Tokens) ; trois couches (primitives du thème, sémantique, composants), un composant ne lit jamais une primitive ; axes data-theme, data-mode, data-density ; casse de phrase au lieu des capitales espacées ; densités Normal et Compact ; 12 teintes nommées pour les statuts ; icône de marque par thème ; rayon et ombre des couches flottantes au choix du thème, Hemeria et Contraste élevé restant à angles droits et sans ombre.",
+      "reason": "Audit visuel du 2026-11-10 : le CSS consomme les primitives et le thème sombre les réaffecte, ce qui empêche tout troisième thème ; demande de thèmes communautaires et d’un moteur réutilisable.",
+      "rejected": "Garder Hemeria comme unique identité et ajouter des variantes de couleur seulement."
     }
   ],
   "extensions": {

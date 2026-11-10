@@ -1,6 +1,6 @@
 ---
 name: Hemeria Design System
-version: "3.1.0"
+version: "3.2.0"
 description: Sharp, sovereign mission-console UI for an internal engineering reference tool. Hemeria Charte Graphique 2025.
 colors:
   sovereign-deep-blue: "#12293A"
@@ -226,6 +226,14 @@ Référence unique pour **auditer** une interface existante et la **re-designer*
 - **Source.** Ce dossier (`packages/ui/design/`) est la source ; le projet n'en dépend d'aucun autre dépôt.
 
 ## 1. Principes de design
+
+> **Évolution en cours (D-019, ADR-0004, lot 10).** Hemeria devient **un thème** parmi d'autres (Contraste élevé, Catppuccin, Nord, Gruvbox, puis Solarized, Dracula, Tokyo Night, Rosé Pine). Au terme du lot :
+> - les principes 1 et 2 se lisent « la couleur d'action **du thème** » et « la couleur de cérémonie **du thème** » ; le bleu ciel et le rouge tricolore restent ceux du thème Hemeria ;
+> - le principe 3 (plat et angulaire) et les règles « aucun `border-radius` » et « aucune ombre » deviennent des choix du thème Hemeria et du thème Contraste élevé ; les autres thèmes peuvent avoir un rayon de 2 à 8 px et une ombre douce réservée aux couches flottantes (menus, modales, toasts) ;
+> - les capitales espacées disparaissent : casse de phrase pour les boutons, onglets, chips, pastilles, en-têtes de tableau, rail et titres de modale ;
+> - les principes 4 à 7, l'interdiction du verre dépoli et des dégradés, et le plancher de 12 px de texte valent pour tous les thèmes.
+>
+> Tant que les tâches du lot ne sont pas livrées, l'interface et le lint appliquent les règles ci-dessous telles qu'écrites.
 
 Sept principes, chacun vérifiable. Un audit peut les utiliser comme critères de cohérence (T1 de la grille, §7).
 
@@ -838,6 +846,7 @@ Modèle de proposition :
 | D-016 | 2026-11-02 | Disposition de la vue détails d'un tracker : sections titrées, grille de 3 colonnes, largeur 1 à 3 par attribut, éditeur WYSIWYG avec glisser-déposer et boutons équivalents, disposition automatique par défaut. Nouveaux tokens de composant en proposed : layout-grid, layout-editor. | Demande produit : maîtriser la disposition des attributs à la création d'un tracker ; la disposition automatique évite d'imposer la configuration. | Configuration par liste d'ordre seule (pas de largeur) ; glisser-déposer sans alternative au clavier. |
 | D-017 | 2026-11-02 | Passent de proposed à stable les tokens que l'interface d'Athena utilise : primitive.zIndex.sticky, primitive.zIndex.toast, primitive.sizes.sidebar, states.loading, component.skip-link, component.confirm-dialog, component.help-entry, component.layout-grid, component.layout-editor. Les autres tokens proposed (thème sombre, densités, surcouches) restent en attente. | Ces tokens sont livrés, testés (unitaires et e2e) et audités ; les laisser proposed faussait l'état de la charte. | Tout passer en stable, y compris le thème sombre qu'aucune feuille de style ne consomme. |
 | D-018 | 2026-11-07 | Le thème sombre est livré : tous les tokens de `semantic.themes.dark` passent de proposed à stable. Athena propose les réglages clair, sombre et système (défaut : préférence du système), mémorisés par navigateur. Les primitives sont réaffectées aux valeurs sémantiques sombres de même rôle (`tokens.semantic.darkPrimitiveMap`) ; les surfaces inverses et les boutons pleins redéclarent localement leurs primitives. Les variables sémantiques sont générées dans `tokens.generated.css` pour les deux thèmes ; `lint-design.mjs` reste borné au front matter pour les couleurs écrites dans les sources. | Demande T-0095 : confort en environnement peu éclairé et préférence système ; les valeurs existaient et leurs contrastes étaient calculés. L'interface les consomme désormais et l'audit axe passe dans les deux thèmes. | Dupliquer les règles de la feuille de style sous un sélecteur sombre (dérive garantie) ; refaire tous les composants sur les variables sémantiques (refonte hors périmètre) ; sombre seul sans réglage système. |
+| D-019 | 2026-11-10 | Système de thèmes (ADR-0004) : Hemeria devient un thème parmi d'autres ; moteur générique `@nuance/theming` et thèmes en données `@nuance/themes` (format W3C Design Tokens) ; trois couches (primitives du thème, sémantique, composants), un composant ne lit jamais une primitive ; axes `data-theme`, `data-mode`, `data-density` ; casse de phrase au lieu des capitales espacées ; densités Normal et Compact ; 12 teintes nommées pour les statuts ; icône de marque par thème ; rayon et ombre des couches flottantes au choix du thème, Hemeria et Contraste élevé restant à angles droits et sans ombre. | Audit visuel du 2026-11-10 : le CSS consomme les primitives et le thème sombre les réaffecte, ce qui empêche tout troisième thème ; demande du demandeur de thèmes communautaires et d'un moteur réutilisable. | Garder Hemeria comme unique identité et ajouter des variantes de couleur seulement. |
 
 ### Décisions en attente (`proposed`)
 
