@@ -52,6 +52,9 @@ export function compile(input: string | Query, context: CompileContext, leading:
     if (value.name.toLowerCase() === 'daysago' && value.arg !== undefined && value.arg >= 0 && value.arg <= 3650) {
       return new Date(Date.now() - value.arg * 86_400_000).toISOString();
     }
+    if (value.name.toLowerCase() === 'daysfromnow' && value.arg !== undefined && value.arg >= 0 && value.arg <= 3650) {
+      return new Date(Date.now() + value.arg * 86_400_000).toISOString();
+    }
     throw new AtqlError(`Fonction inconnue : ${value.name}()`, position);
   };
 

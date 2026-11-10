@@ -58,6 +58,11 @@ describe('compilation SQL', () => {
     expect(() => compile('created < daysAgo(99999)', ctx)).toThrow(/Fonction inconnue/);
     expect(() => compile('created < daysAgo()', ctx)).toThrow(/Fonction inconnue/);
   });
+  it('résout daysFromNow(n) en date à venir (T-0122) et refuse les arguments hors bornes', () => {
+    const [iso] = compile('created < daysFromNow(7)', ctx).params as string[];
+    expect(Date.parse(iso!) - Date.now()).toBeGreaterThan(6.99 * 86_400_000);
+    expect(() => compile('created < daysFromNow(99999)', ctx)).toThrow(/Fonction inconnue/);
+  });
   it('résout currentUser()', () => {
     expect(compile('created_by = currentUser()', ctx).params).toContain('u-1');
   });

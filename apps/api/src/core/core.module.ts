@@ -34,6 +34,8 @@ import { CoreController } from './core.controller';
 import { Db } from './db';
 import { FieldTypeRegistry } from './field-types';
 import { SearchService } from '../atql/search.service';
+import { DashboardController } from './dashboard.controller';
+import { DashboardService } from './dashboard.service';
 import { SavedSearchService } from '../atql/saved-search.service';
 import { AttachmentController } from './attachment.controller';
 import { AttachmentService, DEFAULT_QUOTA } from './attachment.service';
@@ -81,7 +83,7 @@ import { TrackerService } from './tracker.service';
 export { PG_POOL } from './core.tokens';
 
 @Module({
-  controllers: [CoreController, AttachmentController, SavedFilterController, SearchController, IntegrationsController, AgileController, MemberController, TemplateController, ProjectTemplateController, TrackerTemplateController, TrackerTypeController, ProjectOverviewController, PinController, LinkTypeController, TreeController, MatrixController, CoverageController, NormativeController, AccessController, ApprovalController, ItemApprovalController, DocController, NotifyController],
+  controllers: [CoreController, AttachmentController, SavedFilterController, SearchController, IntegrationsController, AgileController, MemberController, TemplateController, ProjectTemplateController, TrackerTemplateController, TrackerTypeController, ProjectOverviewController, PinController, LinkTypeController, TreeController, MatrixController, CoverageController, NormativeController, AccessController, ApprovalController, ItemApprovalController, DocController, NotifyController, DashboardController],
   providers: [
     { provide: PG_POOL, useFactory: () => new Pool({ connectionString: loadConfig().DATABASE_URL, max: 10 }) },
     { provide: FieldTypeRegistry, useValue: new FieldTypeRegistry() },
@@ -109,6 +111,7 @@ export { PG_POOL } from './core.tokens';
     { provide: LinkService, useFactory: (db: Db) => new LinkService(db), inject: [Db] },
     { provide: SavedFilterService, useFactory: (db: Db) => new SavedFilterService(db), inject: [Db] },
     { provide: SearchService, useFactory: (db: Db) => new SearchService(db), inject: [Db] },
+    { provide: DashboardService, useFactory: (db: Db) => new DashboardService(db), inject: [Db] },
     { provide: SavedSearchService, useFactory: (db: Db) => new SavedSearchService(db), inject: [Db] },
     {
       provide: SECRET_STORE,
