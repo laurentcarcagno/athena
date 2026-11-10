@@ -23,7 +23,8 @@ Dernière mise à jour : 2026-11-10
   T-0119 faite (`/recherche` : puces, ATQL, périmètre de projets, vues enregistrées ; palette sur tous les projets, Ctrl+K puis la clé ; entrée Recherche au rail global).
   T-0120 faite (Paramètres `/p/:p/parametres/:s` : Membres, Trackers, Boards, Automatisations, Baselines, Approbations ; webhooks à l'Administration ; redirections `/manage`, `/planification`, `/membres`, `/admin`, `/trackers/:t/config`).
   T-0121 faite (Rapports `/p/:p/rapports/:r`, redirections `/tracabilite`, `/conformite`, `/code`, `/activite` ; rail du projet : 9 entrées ; e2e 43 sur 43).
-- **Tâche en cours** : T-0122 (tableau de bord configurable). Migration réelle suivante : 050.
+  T-0122 faite (migration 050 `dashboard_layout`, `/v1/me/dashboard`, widgets sur recherches enregistrées, Personnaliser dans Mon travail ; e2e 44 sur 44).
+- **Tâche en cours** : T-0123 (global). Migration réelle suivante : 051.
 - **Historique** : réécrit le 2026-11-10 à la demande de l'utilisateur (lot 8 en `@gmail.com`) ; sauvegarde `backup/avant-reecriture-email`, à supprimer quand l'utilisateur le décide.
 - **Reste à faire** (par priorité) :
   1. Test d'intrusion externe (à commander) ; déploiement de recette sur Kubernetes et mesures de charge concurrente.
