@@ -31,8 +31,9 @@ Dernière mise à jour : 2026-11-10
   T-0126 faite (ADR-0004, plan, D-019 dans la charte 3.2.0, `CLAUDE.md`, non-régression visuelle `e2e/tests/visuel.spec.ts` : `cd e2e && pnpm visuel`, 96 captures sur 96).
   Hors plan, à la demande de l'utilisateur : « Configurer » en bouton-icône, « ticket » au lieu d'« item » partout (test de vocabulaire étendu).
   T-0127 faite (`packages/theming`, `@nuance/theming` : résolution DTCG, héritage, modes, contrastes, CSS, CLI ; 9 tests).
-  Échec e2e antérieur au lot : `gabarits.spec.ts` (création depuis Spatial et Défense, message non vu) ; voir `T-0127/CONTEXT.md`.
-- **Tâche en cours** : T-0128 (runtime et liaisons React). Écarts du lot 9 : 1 comblé (`GET /v1/me/approvals`), 2 accepté, 3 comblé (préférences sur le compte, migration 052), 4 reporté (accepté le 2026-11-10). **Le manuel utilisateur (Word, captures) est mis à jour à la toute fin du projet** (décision du 2026-11-10).
+  T-0128 faite (runtime `createThemeController`, `storagePersistence`, liaisons `@nuance/theming/react` ; `apps/web/src/lib/theme.ts` sur le contrôleur, même API ; 17 tests ; visuel 96/96).
+  `gabarits.spec.ts` : pas de défaut ; lancé seul il dépend de GitLab démarré et d'un type de lien déjà créé (voir `T-0128/CONTEXT.md`).
+- **Tâche en cours** : T-0129 (thème Hemeria en DTCG, contrat d'Athena). Écarts du lot 9 : 1 comblé (`GET /v1/me/approvals`), 2 accepté, 3 comblé (préférences sur le compte, migration 052), 4 reporté (accepté le 2026-11-10). **Le manuel utilisateur (Word, captures) est mis à jour à la toute fin du projet** (décision du 2026-11-10).
 - **Historique** : réécrit le 2026-11-10 à la demande de l'utilisateur (lot 8 en `@gmail.com`) ; sauvegarde `backup/avant-reecriture-email`, à supprimer quand l'utilisateur le décide.
 - **Reste à faire** (par priorité) :
   1. Test d'intrusion externe (à commander) ; déploiement de recette sur Kubernetes et mesures de charge concurrente.
