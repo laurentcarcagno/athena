@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
-import { PinToggle } from '../components/PinToggle';
-import { Btn, Card, EmptyState, Id, PageHeader, StatusPill, Table, Tabs, Td, Th, Tag, useToast } from '@athena/ui';
+import { useNavigate, useParams } from 'react-router-dom';
+import { Btn, Card, EmptyState, Id, StatusPill, Table, Tabs, Td, Th, Tag, useToast } from '@athena/ui';
 import { ApiError, api, upload, type Artifact, type AttachmentView, type Field, type Revision, type Session, type TrackerDefinition } from '../api';
 import { useBusy, useFailure } from '../hooks';
 import { fr } from '../i18n';
-import { SubscribeToggle } from '../components/SubscribeToggle';
+import { ItemHeader } from '../components/ItemHeader';
 import { MentionInput, MentionText } from '../components/MentionInput';
 import { ApprovalPanel } from '../components/ApprovalPanel';
 import { useConfirm } from '../components/ConfirmDialog';
@@ -13,7 +12,6 @@ import { LinkEditor } from '../components/LinkEditor';
 import { DocRefPicker } from '../components/DocRefPicker';
 import { MarkingEditor } from '../components/MarkingEditor';
 import { resolveLayout } from '../lib/layout';
-import { pillKind } from './ListPage';
 
 interface LinkView { id: string; type: string; direction: string; label: string; other: string | null; restricted?: boolean; suspect: boolean }
 interface Comment { id: string; author: string; authorName: string; body: string; createdAt: string }
@@ -130,10 +128,6 @@ export function ArtifactView({ session, project, itemKey: key, embedded = false,
   }, [tab, base, fail]);
 
   if (!artifact || !def) return <p role="status">{fr.loading}</p>;
-  const status = def.statuses.find((s) => s.key === artifact.status);
-  const available = def.transitions.filter((t) => t.fromStatusId === null || t.fromStatusId === status?.id).filter((t) => t.toStatusId !== status?.id)
-    .filter((t) => (t.conditions ?? []).every((c) => c.type !== 'role' || c.roles?.some((r) => session.user?.roles.includes(r))));
-  const title = String(artifact.values['title'] ?? artifact.values['name'] ?? '');
 
   const save = async (field: Field, raw: string) => {
     try {
@@ -198,26 +192,7 @@ export function ArtifactView({ session, project, itemKey: key, embedded = false,
 
   return (
     <>
-      {embedded && (
-        <header className="ath-detail__head">
-          <div className="ath-row">
-            <h2 className="ath-detail__title"><span className="ath-mono ath-nowrap">{artifact.key}</span> · {title}</h2>
-          </div>
-          <div className="ath-row">
-            <StatusPill kind={pillKind(status?.category ?? '')}>{status?.name ?? artifact.status}</StatusPill>
-            <div className="ath-row" role="group" aria-label={fr.artifact.transitions}>{available.map((t) => <Btn key={t.id} size="sm" variant="deep" onClick={() => transition(t.name)}>{t.name}</Btn>)}</div>
-            <SubscribeToggle project={project} scope="item" target={artifact.key} />
-            <Btn size="sm" variant="ghost" onClick={onExpand}>{fr.detail.expand}</Btn>
-            <Btn size="sm" variant="ghost" icon="close" onClick={onClose}>{fr.detail.close}</Btn>
-          </div>
-        </header>
-      )}
-      {!embedded && <PageHeader
-        eyebrow={def.name}
-        title={<><span className="ath-mono ath-nowrap">{artifact.key}</span> · {title}</>}
-        sub={<><StatusPill kind={pillKind(status?.category ?? '')}>{status?.name ?? artifact.status}</StatusPill> <Link className="ath-link" to={`/p/${project}`}>{project}</Link></>}
-        actions={<><div className="ath-row" role="group" aria-label={fr.artifact.transitions}>{available.map((t) => <Btn key={t.id} variant="deep" onClick={() => transition(t.name)}>{t.name}</Btn>)}</div><SubscribeToggle project={project} scope="item" target={artifact.key} size="md" /><PinToggle entry={{ kind: 'item', project: String(project), ref: artifact.key, label: artifact.key }} /></>}
-      />}
+      <ItemHeader session={session} project={project} def={def} artifact={artifact} embedded={embedded} onTransition={(name) => void transition(name)} onExpand={onExpand} onClose={onClose} />
       <Tabs
         tabs={[
           { id: 'details', label: fr.artifact.details }, { id: 'links', label: fr.artifact.links }, { id: 'history', label: fr.artifact.history },
