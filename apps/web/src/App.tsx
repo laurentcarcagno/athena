@@ -20,7 +20,7 @@ import { HelpPage } from './pages/HelpPage';
 import { OrgAdminPage } from './pages/OrgAdminPage';
 import { ProjectManagePage } from './pages/ProjectManagePage';
 import { ProjectsPage } from './pages/ProjectsPage';
-import { OverviewOrLegacySearch, ProjectShell } from './pages/project/ProjectShell';
+import { OverviewOrLegacySearch, ProjectLayout, ProjectSectionFrame } from './pages/project/ProjectShell';
 import { OverviewTab } from './pages/project/OverviewTab';
 import { TrackersTab } from './pages/project/TrackersTab';
 import { ConformityTab } from './pages/project/ConformityTab';
@@ -65,7 +65,7 @@ function Shell({ session, children }: { session: Session; children: ReactNode })
   const project = projectOf(location.pathname);
   const admin = session.user?.roles.includes('athena-admin') ?? false;
   const manager = admin || (session.user?.roles.includes('athena-pm') ?? false);
-  const { sections, current } = useRailSections({ pathname: location.pathname, project, admin });
+  const { sections, current } = useRailSections({ pathname: location.pathname, project, roles: session.user?.roles ?? [] });
   useRecordVisits(location.pathname);
   const [collapsed, setCollapsed] = useState(() => { try { return localStorage.getItem('athena.rail.collapsed') === '1'; } catch { return false; } });
   const toggleRail = () => { const next = !collapsed; setCollapsed(next); try { localStorage.setItem('athena.rail.collapsed', next ? '1' : '0'); } catch { /* préférence facultative */ } };
@@ -148,29 +148,33 @@ export function AuthenticatedApp({ session }: { session: Session }) {
         <Route path="/" element={<ProjectsPage session={session} />} />
         <Route path="/me" element={<MyWorkPage session={session} />} />
         <Route path="/org" element={<OrgAdminPage session={session} />} />
-        <Route path="/p/:project" element={<ProjectShell />}>
-          <Route index element={<OverviewOrLegacySearch><OverviewTab session={session} /></OverviewOrLegacySearch>} />
-          <Route path="trackers" element={<TrackersTab />} />
-          <Route path="planification" element={<ProjectManagePage session={session} />} />
-          <Route path="tracabilite" element={<TraceabilityTab session={session} />} />
-          <Route path="conformite" element={<ConformityTab session={session} />} />
-          <Route path="documents" element={<DocumentsTab />} />
-          <Route path="documents/:doc" element={<DocumentsTab />} />
-          <Route path="code" element={<CodeTab />} />
-          <Route path="activite" element={<ActivityTab />} />
-          <Route path="membres" element={<MembersTab session={session} />} />
-        </Route>
-        <Route path="/p/:project/t/:tracker" element={<RedirectToView />} />
-        <Route path="/p/:project/t/:tracker/:vue" element={<TrackerScreen session={session} />} />
-        <Route path="/p/:project/recherche" element={<ListPage session={session} />} />
-        <Route path="/p/:project/manage" element={<RedirectTo to="planification" />} />
-        <Route path="/p/:project/dashboard" element={<RedirectTo to="" />} />
-        <Route path="/p/:project/admin" element={<AdminPage session={session} />} />
         <Route path="/help" element={<HelpPage />} />
-        <Route path="/p/:project/a/:key" element={<ArtifactPage session={session} />} />
-        <Route path="/p/:project/board/:board" element={<BoardPage />} />
-        <Route path="/p/:project/trackers/new" element={<TrackerCreatePage session={session} />} />
-        <Route path="/p/:project/trackers/:tracker/config" element={<TrackerConfigPage session={session} />} />
+        {/* Toutes les adresses d'un projet ont le même parent : la navigation du projet reste au rail (ADR-0003). */}
+        <Route path="/p/:project" element={<ProjectLayout />}>
+          <Route element={<ProjectSectionFrame />}>
+            <Route index element={<OverviewOrLegacySearch><OverviewTab session={session} /></OverviewOrLegacySearch>} />
+            <Route path="trackers" element={<TrackersTab />} />
+            <Route path="planification" element={<ProjectManagePage session={session} />} />
+            <Route path="tracabilite" element={<TraceabilityTab session={session} />} />
+            <Route path="conformite" element={<ConformityTab session={session} />} />
+            <Route path="documents" element={<DocumentsTab />} />
+            <Route path="documents/:doc" element={<DocumentsTab />} />
+            <Route path="code" element={<CodeTab />} />
+            <Route path="activite" element={<ActivityTab />} />
+            <Route path="membres" element={<MembersTab session={session} />} />
+          </Route>
+          <Route path="t/:tracker" element={<RedirectToView />} />
+          <Route path="t/:tracker/:vue" element={<TrackerScreen session={session} />} />
+          <Route path="recherche" element={<ListPage session={session} />} />
+          <Route path="manage" element={<RedirectTo to="planification" />} />
+          <Route path="dashboard" element={<RedirectTo to="" />} />
+          <Route path="admin" element={<AdminPage session={session} />} />
+          <Route path="a/:key" element={<ArtifactPage session={session} />} />
+          <Route path="board/:board" element={<BoardPage />} />
+          <Route path="trackers/new" element={<TrackerCreatePage session={session} />} />
+          <Route path="trackers/:tracker/config" element={<TrackerConfigPage session={session} />} />
+          <Route path="*" element={<NotFound />} />
+        </Route>
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Shell>

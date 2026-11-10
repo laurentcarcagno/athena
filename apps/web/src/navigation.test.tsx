@@ -69,9 +69,9 @@ describe('accès à un item en moins de 3 actions, sans requête', () => {
     expect(await shown()).toBeInTheDocument();
   });
 
-  it('depuis l’accueil du projet : onglet Trackers, le tracker, l’item (3 actions), puis le fil d’Ariane ramène en 1', async () => {
+  it('depuis l’accueil du projet : Trackers au rail, le tracker, l’item (3 actions), puis le fil d’Ariane ramène en 1', async () => {
     app('/p/ARI');
-    await userEvent.click(await screen.findByRole('link', { name: 'Trackers' })); // 1
+    await userEvent.click(await within(await screen.findByRole('group', { name: 'Projet ARI' })).findByRole('button', { name: 'Trackers' })); // 1
     await userEvent.click(await screen.findByRole('link', { name: 'Ouvrir Anomalies' })); // 2
     await userEvent.click(await screen.findByRole('link', { name: KEY })); // 3 (panneau de détail)
     expect(await shown()).toBeInTheDocument();

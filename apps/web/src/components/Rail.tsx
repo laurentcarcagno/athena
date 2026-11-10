@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { NavItem, NavSection } from '@athena/ui';
 import { api, type SavedFilter } from '../api';
 import { fr } from '../i18n';
+import { PROJECT_SECTIONS, placeOf, sectionHref, visibleSections, type Place, type ProjectSectionId } from '../lib/navigation';
 import { entriesOf, pinHref, usePins, type Pin } from '../lib/pins';
 
 interface TrackerRow { key: string; name: string }
@@ -22,20 +23,29 @@ export function useRecordVisits(pathname: string): void {
   }, [pathname]);
 }
 
+/** Libellé d'une section de projet dans le rail. */
+const sectionLabel = (id: ProjectSectionId): string => (id === 'search' ? fr.nav.search : id === 'admin' ? fr.nav.admin : fr.project.tabs[id]);
+
 /**
- * Rubriques du rail : favoris et récents, entrées globales, puis le projet courant (onglets), ses trackers et,
- * sous le tracker ouvert, ses vues partagées. Les rubriques gardent toujours le même ordre ; seuls les favoris se réordonnent.
+ * Rubriques du rail : favoris et récents, entrées globales, puis le projet courant : ses sections (ADR-0003), avec sous
+ * « Trackers » les trackers du projet et, sous le tracker ouvert, ses vues partagées. Les rubriques gardent toujours le même
+ * ordre ; seuls les favoris se réordonnent.
  */
-export function useRailSections({ pathname, project, admin }: { pathname: string; project: string | undefined; admin: boolean }): { sections: NavSection[]; current: string } {
+export function useRailSections({ pathname, project, roles }: { pathname: string; project: string | undefined; roles: readonly string[] }): { sections: NavSection[]; current: string } {
   const pins = usePins();
   const [trackers, setTrackers] = useState<TrackerRow[]>([]);
   const [views, setViews] = useState<SavedFilter[]>([]);
+  const [modules, setModules] = useState<string[] | null>(null);
+  const place = placeOf(pathname);
   const tracker = /^\/p\/[^/]+\/t\/([^/]+)/.exec(pathname)?.[1];
+  const admin = roles.includes('athena-admin');
 
   useEffect(() => {
     setTrackers([]);
+    setModules(null);
     if (!project) return;
     api<TrackerRow[]>('GET', `/v1/projects/${project}/trackers`).then((r) => setTrackers(Array.isArray(r) ? r : [])).catch(() => setTrackers([]));
+    api<{ modules: string[] }>('GET', `/v1/projects/${project}/modules`).then((r) => setModules(Array.isArray(r.modules) ? r.modules : null)).catch(() => setModules(null));
   }, [project]);
   useEffect(() => {
     setViews([]);
@@ -67,22 +77,35 @@ export function useRailSections({ pathname, project, admin }: { pathname: string
     ],
   });
   if (project) {
+    const trackerItems = trackers.flatMap((t): NavItem[] => [
+      { id: trackerHref(project, t.key), label: `${t.key} · ${t.name}`, depth: 1 },
+      ...(tracker === t.key ? views.map((v): NavItem => ({ id: `${trackerHref(project, t.key)}?v=${v.id}`, label: v.name, depth: 2 })) : []),
+    ]);
     sections.push({
       id: 'project', title: `${fr.rail.project} ${project}`,
-      items: [{ id: `/p/${project}/recherche`, label: fr.nav.search }, ...(admin ? [{ id: `/p/${project}/admin`, label: fr.nav.admin }] : [])],
+      items: visibleSections(modules, roles).flatMap((s): NavItem[] => [
+        { id: sectionHref(project, s), label: sectionLabel(s.id) },
+        ...(s.id === 'trackers' ? trackerItems : []),
+      ]),
     });
-    if (trackers.length > 0) {
-      sections.push({
-        id: 'trackers', title: fr.rail.trackers,
-        items: trackers.flatMap((t): NavItem[] => [
-          { id: `/p/${project}/t/${t.key}/tableau`, label: `${t.key} · ${t.name}` },
-          ...(tracker === t.key ? views.map((v): NavItem => ({ id: `/p/${project}/t/${t.key}/tableau?v=${v.id}`, label: v.name, depth: 1 })) : []),
-        ]),
-      });
-    }
   }
-  // Entrée courante : l'adresse la plus longue qui est un préfixe de la page (les vues, qui portent une requête, ne comptent pas).
   const ids = sections.flatMap((s) => s.items.map((i) => i.id)).filter((id) => !id.includes('?'));
-  const current = [...ids].sort((a, b) => b.length - a.length).find((id) => id !== '/' && (pathname === id || pathname.startsWith(`${id}/`))) ?? '/';
-  return { sections, current };
+  return { sections, current: currentEntry(pathname, place, ids) };
+}
+
+const trackerHref = (project: string, key: string) => `/p/${project}/t/${key}/tableau`;
+
+/**
+ * Entrée courante. Dans un projet : le tracker de la page s'il figure au rail (écran Tracker, fiche, configuration), sinon
+ * la section de la page. Ailleurs : l'adresse la plus longue qui est un préfixe de la page. Rien si aucune entrée ne convient.
+ */
+function currentEntry(pathname: string, place: Place | null, ids: readonly string[]): string {
+  if (place) {
+    const byTracker = place.tracker ? trackerHref(place.project, place.tracker) : null;
+    if (byTracker && ids.includes(byTracker)) return byTracker;
+    const section = PROJECT_SECTIONS.find((s) => s.id === place.section);
+    const bySection = section ? sectionHref(place.project, section) : null;
+    return bySection && ids.includes(bySection) ? bySection : '';
+  }
+  return [...ids].sort((a, b) => b.length - a.length).find((id) => id !== '/' && (pathname === id || pathname.startsWith(`${id}/`))) ?? '/';
 }

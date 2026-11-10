@@ -5,7 +5,7 @@ test('documents : ouvrir un document en lecture seule, chercher une UID, adresse
   await indexUrd(request);
   await login(page, 'user.dev', 'dev-only-user');
   await page.goto('/p/ARI');
-  await page.getByRole('link', { name: 'Documents', exact: true }).click();
+  await page.getByRole('group', { name: 'Projet ARI' }).getByRole('button', { name: 'Documents', exact: true }).click(); // ADR-0003 : section au rail
   await expect(page).toHaveURL(/\/p\/ARI\/documents$/);
   await page.getByRole('link', { name: 'Exigences utilisateur' }).click();
   await expect(page.getByRole('note')).toContainText('Lecture seule : modifier dans StrictDoc.');

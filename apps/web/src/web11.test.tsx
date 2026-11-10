@@ -75,15 +75,17 @@ describe('rail contextuel', () => {
     expect(within(rail()).getAllByRole('button').map((b) => b.textContent)).toEqual(['Favoris (0)›', 'Récents (0)›', 'Projets', 'Mon travail', 'Aide']);
   });
 
-  it('dans un projet : rubriques fixes (projet, onglets, trackers) et vues partagées sous le tracker ouvert seulement', async () => {
+  it('dans un projet : la rubrique du projet (sections, trackers imbriqués) et les vues partagées sous le tracker ouvert seulement', async () => {
     app('/p/ARI/t/BUG/tableau');
-    await within(rail()).findByRole('button', { name: 'Privée' }).catch(() => undefined);
-    await waitFor(() => expect(groupTitles()).toEqual(['Projet ARI', 'Trackers']));
+    await within(rail()).findByRole('button', { name: 'Bloquants' });
+    expect(groupTitles()).toEqual(['Projet ARI']);
     const labels = within(rail()).getAllByRole('button').map((b) => b.textContent);
     expect(labels).toEqual([
       'Favoris (0)›', 'Récents (0)›', 'Projets', 'Mon travail', 'Aide',
-      'Recherche', // les onglets du projet ne sont plus dans le rail : ils sont dans la vue centrale
+      // ADR-0003 : la navigation du projet est au rail ; Planification et Membres, réservés, n’apparaissent pas pour un simple membre
+      'Vue d’ensemble', 'Trackers',
       'BUG · Anomalies', 'Bloquants', 'REQ · Exigences', // la vue partagée apparaît sous le tracker ouvert ; la vue personnelle n’y figure pas
+      'Code et intégration', 'Recherche',
     ]);
     expect(within(rail()).getByRole('button', { name: 'BUG · Anomalies' })).toHaveAttribute('aria-current', 'page');
   });

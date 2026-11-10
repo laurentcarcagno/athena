@@ -55,7 +55,7 @@ describe('onglet Documents', () => {
   it('liste les documents, ouvre un document avec bannière « lecture seule » et lien vers la source', async () => {
     app('/p/ARI/documents');
     expect(await screen.findByRole('link', { name: 'Exigences utilisateur' })).toHaveAttribute('href', '/p/ARI/documents/urd.docs-urd');
-    expect(screen.getByRole('link', { name: 'Documents' })).toHaveAttribute('aria-current', 'page');
+    await waitFor(() => expect(within(screen.getByRole('group', { name: /^Projet / })).getByRole('button', { name: 'Documents' })).toHaveAttribute('aria-current', 'page'));
     expect(screen.getByText('Choisissez un document.')).toBeInTheDocument();
     await userEvent.click(screen.getByRole('link', { name: 'Exigences utilisateur' }));
     const banner = await screen.findByRole('note');

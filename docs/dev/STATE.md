@@ -10,7 +10,8 @@ Dernière mise à jour : 2026-11-10
 - **Disposition de la vue détails (2026-11-02)** : migration 028 (`tracker.layout`), `LayoutSchema`, `PATCH .../layout`, `tracker.yaml` et reconstruction, templates ; éditeur `LayoutEditor` (WYSIWYG, glisser-déposer + boutons), fiche artefact en grille de 3 colonnes.
 - **Lot 8, retours de relecture du manuel (2026-11-09)** : T-0103 à T-0108 faites (rail ATHENA, initiales et icône de rôle, favoris et récents en menus latéraux, page Projets en tableau, Mon travail corrigé, recherche groupée, séparateur du board, boutons à icônes, guide intégré à l'aide, thème de connexion Keycloak). Plan et correspondance commentaire→tâche : `docs/dev/tasks/LOT8-PLAN.md`. **Lot 8 terminé, arrêt pour compte rendu.**
 - **Lot 9, architecture de l'information (2026-11-10)** : ouvert par l'utilisateur après l'audit de navigation. Décisions : `docs/dev/DECISIONS/ADR-0003-ia-cible.md` (terme « Ticket », 8 sections de projet dans le rail, accueil = tableau de bord personnel configurable, création sans quitter la page, backlog des trackers Tâche, recherche globale). Plan : `docs/dev/tasks/LOT9-PLAN.md` (T-0109 à T-0125).
-- **Tâche en cours** : T-0109 (coquille projet unique).
+  T-0109 faite (coquille projet unique : navigation du projet au rail sur toutes les routes `/p/:p/*`, sections filtrées par module et par rôle ; e2e non rejoués, ports 3000/3001 occupés par une autre pile).
+- **Tâche en cours** : T-0110 (mobile : sélecteur de section, barre basse) à ouvrir.
 - **Reste à faire** (par priorité) :
   1. Test d'intrusion externe (à commander) ; déploiement de recette sur Kubernetes et mesures de charge concurrente.
   5. Écarts mineurs : interface des rôles de champ, permissions par transition, suppression/renommage de champs, swimlanes, Gantt.
