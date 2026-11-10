@@ -3,6 +3,7 @@ import { ArtifactService } from '../core/artifact.service';
 import { Db, type Actor } from '../core/db';
 import { DomainError } from '../core/errors';
 import { FieldTypeRegistry } from '../core/field-types';
+import { LinkService } from '../core/link.service';
 import { TrackerService } from '../core/tracker.service';
 import { createTestDb, pgUp, type TestDb } from '../testing/harness';
 import { BoardService } from './board.service';
@@ -41,6 +42,8 @@ suite('boards et sprints (intégration)', () => {
         { key: 'title', label: 'Titre', type: 'text', required: true, semanticRole: 'title' },
         { key: 'assignee', label: 'Responsable', type: 'user', semanticRole: 'assignee' },
         { key: 'points', label: 'Points', type: 'number', semanticRole: 'estimate' },
+        { key: 'prio', label: 'Urgence', type: 'select', config: { options: ['basse', 'haute'] }, semanticRole: 'priority' },
+        { key: 'due', label: 'Échéance', type: 'date', semanticRole: 'due_date' },
       ],
       statuses: [
         { key: 'todo', name: 'À faire', category: 'todo' },
@@ -80,6 +83,8 @@ suite('boards et sprints (intégration)', () => {
   it('affiche les cartes par colonne avec titre et responsable', async () => {
     const view = await boards.view(org, 'ARI', 'kanban');
     expect(view.columns.map((c) => c.count)).toEqual([4, 0, 0, 0]);
+    expect(view.trackers).toEqual(['STORY']);
+    expect(view.columns.map((c) => c.creatable)).toEqual([true, false, false, false]); // seule « À faire » porte le statut initial
     expect(view.columns[0]!.cards[0]).toMatchObject({ key: 'ARI-STORY-0001', title: 'A', assignee: 'u1', status: 'todo' });
   });
 
@@ -93,6 +98,18 @@ suite('boards et sprints (intégration)', () => {
     await testDb.exec("update field_definition set read_roles = '{hr}' where key = 'title'");
     expect((await boards.view(org, 'ARI', 'kanban', ['athena-user'])).columns[0]!.cards[0]).toMatchObject({ title: 'ARI-STORY-0001' });
     await testDb.exec("update field_definition set read_roles = null where key in ('title', 'assignee')");
+  });
+
+  it('enrichit la carte : type, priorité, échéance, responsable lisible, blocage par un ticket non terminé (T-0114)', async () => {
+    await new Db(testDb.pool).tx(org, (c) => c.query("insert into user_account (organization_id, subject, username, display_name, email) values ($1, 'u1', 'ulysse', 'Ulysse Dev', null)", [org]));
+    const a3 = await artifacts.get(org, 'ARI', 'ARI-STORY-0003');
+    await artifacts.update(org, 'ARI', 'ARI-STORY-0003', { prio: 'haute', due: '2026-12-01' }, a3.version, admin);
+    await new LinkService(new Db(testDb.pool)).link(org, 'ARI', 'ARI-STORY-0004', 'ARI-STORY-0003', 'blocks', admin);
+    const cards = (await boards.view(org, 'ARI', 'kanban', ['athena-user'])).columns[0]!.cards;
+    expect(cards.find((c) => c.key === 'ARI-STORY-0003')).toMatchObject({
+      trackerName: 'Stories', assigneeName: 'Ulysse Dev', priority: 'haute', priorityLabel: 'Urgence', due: '2026-12-01', blocked: true,
+    });
+    expect(cards.find((c) => c.key === 'ARI-STORY-0004')).toMatchObject({ priority: null, due: null, blocked: false }); // il bloque, il n'est pas bloqué
   });
 
   it('déplace une carte via les transitions du workflow et applique la limite WIP', async () => {

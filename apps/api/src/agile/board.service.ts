@@ -17,12 +17,26 @@ export interface Card {
   statusName: string;
   assignee: string | null;
   version: number;
+  /** Nom du tracker (type du ticket). */
+  trackerName: string;
+  /** Nom lisible du responsable (compte connu), sinon son identifiant. */
+  assigneeName: string | null;
+  /** Valeur du champ de rôle `priority` (libellé du champ dans `priorityLabel`). */
+  priority: string | null;
+  priorityLabel: string | null;
+  /** Valeur du champ de rôle `due_date` (AAAA-MM-JJ). */
+  due: string | null;
+  /** Vrai si un ticket non terminé le bloque (lien entrant `blocks`). */
+  blocked: boolean;
 }
 
 export interface BoardView {
   key: string;
   name: string;
-  columns: Array<{ name: string; wipLimit: number | null; count: number; overLimit: boolean; cards: Card[] }>;
+  /** Trackers du board (le premier reçoit les tickets créés depuis une colonne). */
+  trackers: string[];
+  /** `creatable` : la colonne contient un statut initial (catégorie « à faire ») ; on peut y créer un ticket. */
+  columns: Array<{ name: string; wipLimit: number | null; count: number; overLimit: boolean; creatable: boolean; cards: Card[] }>;
   unmapped: number;
 }
 
@@ -78,35 +92,63 @@ export class BoardService {
       const board = await this.load(c, projectKey, boardKey);
       const rows = (
         await c.query(
-          `select a.key, a.version, a."values" as values, t.key as tracker, s.key as status, s.name as status_name,
-                  (select f.key from field_definition f where f.tracker_id = t.id and f.semantic_role = 'title') as title_field,
-                  (select f.read_roles from field_definition f where f.tracker_id = t.id and f.semantic_role = 'title') as title_roles,
-                  (select f.key from field_definition f where f.tracker_id = t.id and f.semantic_role = 'assignee') as assignee_field,
-                  (select f.read_roles from field_definition f where f.tracker_id = t.id and f.semantic_role = 'assignee') as assignee_roles
+          `select a.key, a.version, a."values" as values, t.id as tracker_id, t.key as tracker, t.name as tracker_name, s.key as status, s.name as status_name,
+                  exists (select 1 from artifact_link l join link_type ty on ty.id = l.link_type_id join artifact b on b.id = l.from_artifact_id
+                          join status bs on bs.id = b.status_id where l.to_artifact_id = a.id and ty.key = 'blocks' and bs.category <> 'done') as blocked
            from artifact a join tracker t on t.id = a.tracker_id join status s on s.id = a.status_id join project p on p.id = a.project_id
            where p.key = $1 and t.key = any($2) order by a.created_at, a.id`,
           [projectKey, board.tracker_keys],
         )
       ).rows;
+      // Champs des rôles affichés sur la carte, par tracker : clé, libellé et rôles de lecture.
+      type RoleField = { key: string; label: string; readRoles: string[] | null };
+      const roleFields = new Map<string, Record<string, RoleField>>();
+      const trackerIds = [...new Set(rows.map((r) => r.tracker_id as string))];
+      for (const f of (await c.query(
+        `select tracker_id, semantic_role, key, label, read_roles from field_definition where tracker_id = any($1::uuid[]) and semantic_role = any($2)`,
+        [trackerIds, ['title', 'assignee', 'priority', 'due_date']],
+      )).rows) {
+        const byRole = roleFields.get(f.tracker_id) ?? {};
+        byRole[f.semantic_role as string] = { key: f.key, label: f.label, readRoles: f.read_roles ?? null };
+        roleFields.set(f.tracker_id, byRole);
+      }
+      const initial = new Set((await c.query(
+        `select s.key from status s join tracker t on t.id = s.tracker_id join project p on p.id = t.project_id where p.key = $1 and t.key = $2 and s.category = 'todo'`,
+        [projectKey, board.tracker_keys[0]],
+      )).rows.map((r) => r.key as string));
       const columns = (board.columns as ColumnSpec[]).map((spec) => ({
-        name: spec.name, wipLimit: spec.wipLimit ?? null, count: 0, overLimit: false, cards: [] as Card[],
+        name: spec.name, wipLimit: spec.wipLimit ?? null, count: 0, overLimit: false, creatable: spec.statuses.some((s) => initial.has(s)), cards: [] as Card[],
       }));
       const canRead = (restricted: string[] | null): boolean => !restricted || roles === undefined || roles.includes('athena-admin') || restricted.some((x) => roles.includes(x));
+      const read = (r: { tracker_id: string; values: Record<string, unknown> }, role: string): string | null => {
+        const f = roleFields.get(r.tracker_id)?.[role];
+        if (!f || !canRead(f.readRoles)) return null;
+        const v = r.values[f.key];
+        return v === undefined || v === null || v === '' ? null : Array.isArray(v) ? v.join(', ') : String(v);
+      };
+      const subjects = [...new Set(rows.map((r) => read(r, 'assignee')).filter((s): s is string => s !== null))];
+      const names = new Map(subjects.length === 0 ? [] : (await c.query('select subject, display_name from user_account where subject = any($1::text[])', [subjects])).rows
+        .map((u) => [u.subject as string, (u.display_name as string | null) ?? (u.subject as string)]));
       let unmapped = 0;
       for (const r of rows) {
         const index = (board.columns as ColumnSpec[]).findIndex((spec) => spec.statuses.includes(r.status));
         if (index < 0) { unmapped++; continue; }
+        const titleField = roleFields.get(r.tracker_id)?.['title'];
+        const assignee = read(r, 'assignee');
+        const priority = read(r, 'priority');
         columns[index]!.cards.push({
-          key: r.key, tracker: r.tracker, status: r.status, statusName: r.status_name, version: r.version,
-          title: canRead(r.title_roles) ? String(r.values[r.title_field ?? 'title'] ?? r.key) : r.key,
-          assignee: r.assignee_field && canRead(r.assignee_roles) && r.values[r.assignee_field] ? String(r.values[r.assignee_field]) : null,
+          key: r.key, tracker: r.tracker, trackerName: r.tracker_name, status: r.status, statusName: r.status_name, version: r.version,
+          title: !titleField || canRead(titleField.readRoles) ? String(r.values[titleField?.key ?? 'title'] ?? r.key) : r.key,
+          assignee, assigneeName: assignee ? names.get(assignee) ?? assignee : null,
+          priority, priorityLabel: priority ? roleFields.get(r.tracker_id)?.['priority']?.label ?? null : null,
+          due: read(r, 'due_date'), blocked: r.blocked === true,
         });
       }
       for (const column of columns) {
         column.count = column.cards.length;
         column.overLimit = column.wipLimit !== null && column.count > column.wipLimit;
       }
-      return { key: boardKey, name: board.name, columns, unmapped };
+      return { key: boardKey, name: board.name, trackers: board.tracker_keys as string[], columns, unmapped };
     });
   }
 
