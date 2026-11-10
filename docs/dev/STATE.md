@@ -13,7 +13,8 @@ Dernière mise à jour : 2026-11-10
   T-0109 faite (coquille projet unique : navigation du projet au rail sur toutes les routes `/p/:p/*`, sections filtrées par module et par rôle ; e2e rejoués : 31 sur 31).
   T-0110 faite (mobile : sélecteur de section du projet, barre basse Mon travail / Projets / Chercher / Menu, focus de la palette corrigé ; e2e 33 sur 33).
   T-0111 faite (création contextuelle : « Créer » dans la barre haute et touche N, cible déduite de l'adresse, on reste sur la page, message « Ouvrir » ; e2e 36 sur 36).
-- **Tâche en cours** : T-0112 (fiche : en-tête complet, onglet dans l'URL).
+  T-0112 faite (fiche : `ItemHeader`, informations clés dans l'en-tête, `?onglet=` restauré par Précédent ; migration 047, rôles `priority` et `version` ; e2e 37 sur 37).
+- **Tâche en cours** : T-0113 (relations groupées, retour à la liste d'origine, précédent et suivant). Migration réelle suivante : 048.
 - **Reste à faire** (par priorité) :
   1. Test d'intrusion externe (à commander) ; déploiement de recette sur Kubernetes et mesures de charge concurrente.
   5. Écarts mineurs : interface des rôles de champ, permissions par transition, suppression/renommage de champs, swimlanes, Gantt.

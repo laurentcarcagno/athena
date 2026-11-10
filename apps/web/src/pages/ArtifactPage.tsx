@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Btn, Card, EmptyState, Id, StatusPill, Table, Tabs, Td, Th, Tag, useToast } from '@athena/ui';
 import { ApiError, api, upload, type Artifact, type AttachmentView, type Field, type Revision, type Session, type TrackerDefinition } from '../api';
 import { useBusy, useFailure } from '../hooks';
 import { fr } from '../i18n';
-import { ItemHeader } from '../components/ItemHeader';
+import { ItemHeader, type ItemLink as LinkView, type ItemSprint } from '../components/ItemHeader';
 import { MentionInput, MentionText } from '../components/MentionInput';
 import { ApprovalPanel } from '../components/ApprovalPanel';
 import { useConfirm } from '../components/ConfirmDialog';
@@ -13,10 +13,12 @@ import { DocRefPicker } from '../components/DocRefPicker';
 import { MarkingEditor } from '../components/MarkingEditor';
 import { resolveLayout } from '../lib/layout';
 
-interface LinkView { id: string; type: string; direction: string; label: string; other: string | null; restricted?: boolean; suspect: boolean }
 interface Comment { id: string; author: string; authorName: string; body: string; createdAt: string }
 interface CodeRef { kind: string; ref: string; title: string; state: string; pipeline: string }
 interface DocLink { source: string; docId: string | null; uid: string; title: string; status: string; suspect: boolean; orphan: boolean }
+
+/** Valeurs de `?onglet=` ; `activity` porte le libellé « Commentaires ». */
+export const TABS = ['details', 'links', 'history', 'attachments', 'activity', 'dev', 'approval'] as const;
 
 export const formatSize = (bytes: number): string => (bytes < 1024 ? `${bytes} o` : bytes < 1024 * 1024 ? `${(bytes / 1024).toFixed(1)} Ko` : `${(bytes / 1024 / 1024).toFixed(1)} Mo`);
 
@@ -81,7 +83,18 @@ export function ArtifactView({ session, project, itemKey: key, embedded = false,
   const { busy, guard } = useBusy();
   const [artifact, setArtifact] = useState<Artifact | null>(null);
   const [def, setDef] = useState<TrackerDefinition | null>(null);
-  const [tab, setTab] = useState('details');
+  // Onglet actif dans l'adresse (`?onglet=`) : Précédent le restaure ; Détails, l'onglet par défaut, n'y figure pas.
+  const [params, setParams] = useSearchParams();
+  const wanted = params.get('onglet');
+  const search = useRef(params);
+  search.current = params; // lu par la redirection d'une ancienne clé, sans relancer le chargement à chaque changement d'onglet
+  const [circuit, setCircuit] = useState(false);
+  const tab = wanted && (TABS as readonly string[]).includes(wanted) && (wanted !== 'approval' || circuit) ? wanted : 'details';
+  const setTab = useCallback((id: string) => setParams((current) => {
+    const next = new URLSearchParams(current);
+    if (id === 'details') next.delete('onglet'); else next.set('onglet', id);
+    return next;
+  }), [setParams]);
   const [focusLinks, setFocusLinks] = useState(0);
   // Raccourci L : ouvre l'onglet Liens et place le focus sur la création d'un lien (ignoré pendant une saisie).
   useEffect(() => {
@@ -96,21 +109,21 @@ export function ArtifactView({ session, project, itemKey: key, embedded = false,
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, []);
+  }, [setTab]);
   const [links, setLinks] = useState<LinkView[]>([]);
   const [docs, setDocs] = useState<DocLink[]>([]);
   const [comments, setComments] = useState<Comment[]>([]);
   const [history, setHistory] = useState<Revision[]>([]);
   const [code, setCode] = useState<CodeRef[]>([]);
   const [comment, setComment] = useState('');
-  const [circuit, setCircuit] = useState(false);
+  const [sprint, setSprint] = useState<ItemSprint | null>(null);
   const [files, setFiles] = useState<AttachmentView[]>([]);
   const base = `/v1/projects/${project}/artifacts/${key}`;
 
   const reload = useCallback(async () => {
     const a = await api<Artifact>('GET', base);
     // Ancienne clé (alias) : l'adresse canonique remplace l'adresse saisie (ADR-0002 § 2).
-    if (key && a.key !== key) { if (canonical.current) canonical.current(a.key); else navigate(`/p/${project}/a/${a.key}`, { replace: true }); }
+    if (key && a.key !== key) { if (canonical.current) canonical.current(a.key); else navigate(`/p/${project}/a/${a.key}${search.current.toString() ? `?${search.current.toString()}` : ''}`, { replace: true }); }
     setArtifact(a);
     setDef(await api<TrackerDefinition>('GET', `/v1/projects/${project}/trackers/${a.trackerKey}`));
     const [l, d, c, h, r] = await Promise.all([
@@ -118,10 +131,13 @@ export function ArtifactView({ session, project, itemKey: key, embedded = false,
       api<Revision[]>('GET', `${base}/history`), api<CodeRef[]>('GET', `${base}/code-refs`),
     ]);
     setLinks(l); setDocs(d); setComments(c); setHistory(h); setCode(r);
+    // Sprint de l'en-tête : facultatif (module agile absent, droits) ; l'en-tête affiche alors « — ».
+    api<{ sprint: ItemSprint | null }>('GET', `${base}/sprint`).then((v) => setSprint(v?.sprint ?? null)).catch(() => setSprint(null));
     // L'onglet Approbation n'existe que si un circuit actif est défini sur le tracker.
     api<{ configured: boolean; enabled: boolean }>('GET', `${base}/approval`).then((v) => setCircuit(v.configured && v.enabled)).catch(() => setCircuit(false));
   }, [base, project, key, navigate]);
-  useEffect(() => { setArtifact(null); setTab('details'); }, [key, project]);
+  // Changement de ticket (J/K dans le panneau) : rien du ticket précédent ne reste affiché dans l'en-tête.
+  useEffect(() => { setArtifact(null); setLinks([]); setSprint(null); }, [key, project]);
   useEffect(() => { reload().catch(fail); }, [reload, fail]);
   useEffect(() => {
     if (tab === 'attachments') api<AttachmentView[]>('GET', `${base}/attachments`).then(setFiles).catch(fail);
@@ -192,7 +208,7 @@ export function ArtifactView({ session, project, itemKey: key, embedded = false,
 
   return (
     <>
-      <ItemHeader session={session} project={project} def={def} artifact={artifact} embedded={embedded} onTransition={(name) => void transition(name)} onExpand={onExpand} onClose={onClose} />
+      <ItemHeader session={session} project={project} def={def} artifact={artifact} links={links} sprint={sprint} embedded={embedded} onTransition={(name) => void transition(name)} onExpand={onExpand} onClose={onClose} />
       <Tabs
         tabs={[
           { id: 'details', label: fr.artifact.details }, { id: 'links', label: fr.artifact.links }, { id: 'history', label: fr.artifact.history },

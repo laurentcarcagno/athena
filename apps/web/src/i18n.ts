@@ -140,6 +140,10 @@ const frDict = {
     },
   },
   detail: { panel: 'Détail de l’item', expand: 'Agrandir', close: 'Fermer' },
+  facts: {
+    label: 'Informations clés', assignee: 'Responsable', priority: 'Priorité', due: 'Échéance', version: 'Version', sprint: 'Sprint',
+    parent: 'Parent', blockedBy: 'Bloqué par', none: '—', noneLabel: 'non renseigné',
+  },
   rail: {
     favorites: 'Favoris', recents: 'Récents', project: 'Projet', trackers: 'Trackers', pin: 'Épingler', unpin: 'Désépingler', moveUp: 'Monter', moveDown: 'Descendre', noFavorites: 'Aucun favori. Utilisez l’étoile d’une page pour en ajouter.', noRecents: 'Aucun élément récent.',
     collapse: 'Replier le rail', expand: 'Déplier le rail',
@@ -477,6 +481,10 @@ const enDict: Dictionary = {
     },
   },
   detail: { panel: 'Item detail', expand: 'Expand', close: 'Close' },
+  facts: {
+    label: 'Key information', assignee: 'Assignee', priority: 'Priority', due: 'Due date', version: 'Version', sprint: 'Sprint',
+    parent: 'Parent', blockedBy: 'Blocked by', none: '—', noneLabel: 'not set',
+  },
   rail: {
     favorites: 'Favorites', recents: 'Recent', project: 'Project', trackers: 'Trackers', pin: 'Pin', unpin: 'Unpin', moveUp: 'Move up', moveDown: 'Move down', noFavorites: 'No favorites yet. Use the star on a page to add one.', noRecents: 'Nothing recent.',
     collapse: 'Collapse the rail', expand: 'Expand the rail',

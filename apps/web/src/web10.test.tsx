@@ -367,6 +367,19 @@ describe('panneau de détail scindé', () => {
     await waitFor(() => expect(screen.getByTestId('where')).toHaveTextContent('i=ARI-BUG-0001'));
   });
 
+  it('T-0112 : l’onglet de la fiche cohabite avec ?i=, reste d’un item à l’autre (J) et disparaît à la fermeture', async () => {
+    app('/p/ARI/t/BUG/tableau?i=ARI-BUG-0001&onglet=history');
+    const side = await screen.findByRole('complementary', { name: 'Détail de l’item' });
+    expect(await within(side).findByRole('tab', { name: 'Historique', selected: true })).toBeInTheDocument();
+    await userEvent.keyboard('j');
+    await waitFor(() => expect(screen.getByTestId('where')).toHaveTextContent('i=ARI-BUG-0002'));
+    expect(screen.getByTestId('where')).toHaveTextContent('onglet=history');
+    expect(await within(panel()).findByRole('tab', { name: 'Historique', selected: true })).toBeInTheDocument();
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => expect(screen.getByTestId('where')).not.toHaveTextContent('i='));
+    expect(screen.getByTestId('where')).not.toHaveTextContent('onglet=');
+  });
+
   it('J / K sont ignorés pendant la saisie dans un champ', async () => {
     app('/p/ARI/t/BUG/tableau?i=ARI-BUG-0001');
     const title = await within(await screen.findByRole('complementary', { name: 'Détail de l’item' })).findByLabelText('Titre (obligatoire)');

@@ -87,7 +87,9 @@ export function TrackerScreen({ session }: { session: Session }) {
   }, [tracker, setParams]);
 
   const rows = result?.hits ?? [];
-  const withItem = (key: string | null) => { const copy = new URLSearchParams(params); if (key) copy.set('i', key); else copy.delete('i'); return copy; };
+  // L'onglet de la fiche (`onglet`) suit le panneau : il reste d'un item à l'autre et disparaît à la fermeture.
+  const withItem = (key: string | null) => { const copy = new URLSearchParams(params); if (key) copy.set('i', key); else { copy.delete('i'); copy.delete('onglet'); } return copy; };
+  const expand = () => { const tab = params.get('onglet'); navigate(`/p/${project}/a/${item}${tab ? `?onglet=${encodeURIComponent(tab)}` : ''}`); };
   // Ticket créé depuis cette page (bouton du tracker, « Créer », N) : on reste ici, la liste se recharge et, s'il est de ce
   // tracker, il s'ouvre dans le panneau (Tableau, Arbre).
   useOnCreated((created) => {
@@ -166,7 +168,7 @@ export function TrackerScreen({ session }: { session: Session }) {
         <div className={item ? 'ath-split' : undefined}>
           <div><TreeView project={String(project)} tracker={String(tracker)} selected={item} onOpen={(key) => setParams(withItem(key))} /></div>
           {item && <DetailPanel session={session} project={String(project)} itemKey={item} onClose={closePanel}
-            onExpand={() => navigate(`/p/${project}/a/${item}`)} onCanonicalKey={(key) => setParams(withItem(key), { replace: true })} />}
+            onExpand={expand} onCanonicalKey={(key) => setParams(withItem(key), { replace: true })} />}
         </div>
       ) : result === null ? <p role="status">{fr.loading}</p> : result.hits.length === 0 ? (
         <EmptyState eyebrow={fr.trackerScreen.eyebrow} title={fr.trackerScreen.empty} action={fragment ? <Btn variant="ghost" onClick={() => next({ f: null, o: null })}>{fr.list.reset}</Btn> : undefined} />
@@ -177,7 +179,7 @@ export function TrackerScreen({ session }: { session: Session }) {
               selected={item} linkFor={(key) => `${base}/tableau?${withItem(key).toString()}`} />
           </div>
           {item && <DetailPanel session={session} project={String(project)} itemKey={item} onClose={closePanel}
-            onExpand={() => navigate(`/p/${project}/a/${item}`)} onCanonicalKey={(key) => setParams(withItem(key), { replace: true })} />}
+            onExpand={expand} onCanonicalKey={(key) => setParams(withItem(key), { replace: true })} />}
         </div>
       )}
     </>
