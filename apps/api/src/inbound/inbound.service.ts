@@ -98,7 +98,7 @@ export class InboundService {
 
   private key(spec: string, payload: unknown): string {
     const key = spec.startsWith('$') ? String(pointer(payload, spec) ?? '') : spec;
-    if (!ITEM_KEY.test(key)) throw validation(['clé d’artefact absente ou invalide dans la charge utile']);
+    if (!ITEM_KEY.test(key)) throw validation(['clé d’ticket absente ou invalide dans la charge utile']);
     return key;
   }
 

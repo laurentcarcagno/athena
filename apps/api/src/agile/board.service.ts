@@ -170,7 +170,7 @@ export class BoardService {
           [projectKey, artifactKey],
         )
       ).rows[0];
-      if (!artifact) throw notFound(`Artefact ${artifactKey}`);
+      if (!artifact) throw notFound(`Ticket ${artifactKey}`);
       if (!board.tracker_keys.includes(artifact.tracker)) throw validation([`${artifactKey} n'appartient pas à ce board`]);
       if (column.statuses.includes(artifact.status)) return null;
       if (column.wipLimit !== undefined) {

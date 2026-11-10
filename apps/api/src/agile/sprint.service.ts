@@ -56,7 +56,7 @@ export class SprintService {
       const artifact = (
         await c.query('select a.id from artifact a join project p on p.id = a.project_id where p.key = $1 and a.id = resolve_artifact(p.id, $2)', [projectKey, artifactKey])
       ).rows[0];
-      if (!artifact) throw notFound(`Artefact ${artifactKey}`);
+      if (!artifact) throw notFound(`Ticket ${artifactKey}`);
       const row = (
         await c.query(`select s.id, s.name, s.state from sprint_item i join sprint s on s.id = i.sprint_id where i.artifact_id = $1 and s.state <> 'closed' order by s.created_at desc limit 1`, [artifact.id])
       ).rows[0];
@@ -71,7 +71,7 @@ export class SprintService {
       const artifact = (
         await c.query('select a.id from artifact a join project p on p.id = a.project_id where p.key = $1 and a.id = resolve_artifact(p.id, $2)', [projectKey, artifactKey])
       ).rows[0];
-      if (!artifact) throw notFound(`Artefact ${artifactKey}`);
+      if (!artifact) throw notFound(`Ticket ${artifactKey}`);
       const other = (
         await c.query(
           `select s.name from sprint_item i join sprint s on s.id = i.sprint_id where i.artifact_id = $1 and s.state <> 'closed' and s.id <> $2`,

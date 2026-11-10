@@ -29,7 +29,7 @@ export class TreeService {
       let parentId: string | null = null;
       if (parentKey !== null) {
         const row = (await c.query('select a.id from artifact a join project p on p.id = a.project_id where p.key = $1 and a.tracker_id = $2 and a.id = resolve_artifact(p.id, $3)', [projectKey, tracker.id, parentKey])).rows[0];
-        if (!row) throw notFound(`Artefact ${parentKey}`);
+        if (!row) throw notFound(`Ticket ${parentKey}`);
         parentId = row.id as string;
       }
       const titleField = (await c.query("select key, read_roles from field_definition where tracker_id = $1 and semantic_role = 'title'", [tracker.id])).rows[0];

@@ -111,9 +111,9 @@ export class ReportService {
 
   /** Version de ce projet (T-0117 : une route de projet n'agit jamais sur la version d'un autre projet). */
   private async release(c: PoolClient, projectKey: string, releaseId: string): Promise<{ state: string }> {
-    if (!/^[0-9a-f-]{36}$/i.test(releaseId)) throw notFound('Release');
+    if (!/^[0-9a-f-]{36}$/i.test(releaseId)) throw notFound('Version');
     const release = (await c.query('select r.state from release r join project p on p.id = r.project_id where r.id = $1 and p.key = $2', [releaseId, projectKey])).rows[0];
-    if (!release) throw notFound('Release');
+    if (!release) throw notFound('Version');
     return release as { state: string };
   }
 
@@ -146,7 +146,7 @@ export class ReportService {
   async unassign(organizationId: string, projectKey: string, releaseId: string, artifactKey: string, actor: Actor): Promise<void> {
     await this.db.tx(organizationId, async (c) => {
       const release = await this.release(c, projectKey, releaseId);
-      if (release.state === 'released') throw conflict('Release publiée : retrait impossible.');
+      if (release.state === 'released') throw conflict('Version publiée : retrait impossible.');
       const removed = await c.query(
         `delete from release_item i using artifact a, project p where i.release_id = $1 and i.artifact_id = a.id and a.project_id = p.id
            and p.key = $2 and a.id = resolve_artifact(p.id, $3)`,
@@ -160,10 +160,10 @@ export class ReportService {
   async assign(organizationId: string, projectKey: string, releaseId: string, artifactKey: string, actor: Actor): Promise<void> {
     await this.db.tx(organizationId, async (c) => {
       const release = await this.release(c, projectKey, releaseId);
-      if (!release) throw notFound('Release');
-      if (release.state === 'released') throw conflict('Release publiée : ajout impossible.');
+      if (!release) throw notFound('Version');
+      if (release.state === 'released') throw conflict('Version publiée : ajout impossible.');
       const artifact = (await c.query('select a.id from artifact a join project p on p.id = a.project_id where p.key = $1 and a.id = resolve_artifact(p.id, $2)', [projectKey, artifactKey])).rows[0];
-      if (!artifact) throw notFound(`Artefact ${artifactKey}`);
+      if (!artifact) throw notFound(`Ticket ${artifactKey}`);
       await c.query('insert into release_item (release_id, artifact_id, organization_id) values ($1,$2,$3) on conflict do nothing', [releaseId, artifact.id, organizationId]);
       await audit(c, organizationId, actor, 'release.assign', `release:${releaseId}`, { artifact: artifactKey });
     });
@@ -179,7 +179,7 @@ export class ReportService {
         if (state !== 'approved') throw conflict(state === 'rejected' ? 'Ce jalon a été refusé par l’assurance qualité étatique.' : 'Ce jalon requiert l’approbation de l’assurance qualité étatique avant publication.');
       }
       const result = await c.query("update release set state = 'released' where id = $1 and state = 'planned'", [releaseId]);
-      if (result.rowCount === 0) throw conflict('Release inconnue ou déjà publiée.');
+      if (result.rowCount === 0) throw conflict('Version inconnue ou déjà publiée.');
       await audit(c, organizationId, actor, 'release.publish', `release:${releaseId}`);
     });
   }

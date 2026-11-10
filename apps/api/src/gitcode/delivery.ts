@@ -116,7 +116,7 @@ export class DeliveryService {
       const release = (
         await c.query('select r.name, r.starts_on::text as starts, r.ends_on::text as ends, r.state from release r join project p on p.id = r.project_id where p.key = $1 and r.id = $2', [projectKey, releaseId])
       ).rows[0];
-      if (!release) throw notFound('Release');
+      if (!release) throw notFound('Version');
       const items = (
         await c.query(
           `select a.key, a.number, t.key as tracker, t.name as tracker_name, s.category, s.name as status,
@@ -148,7 +148,7 @@ export class DeliveryService {
 
   private async artifact(c: PoolClient, projectKey: string, key: string): Promise<string> {
     const row = (await c.query('select a.id from artifact a join project p on p.id = a.project_id where p.key = $1 and a.id = resolve_artifact(p.id, $2)', [projectKey, key])).rows[0];
-    if (!row) throw notFound(`Artefact ${key}`);
+    if (!row) throw notFound(`Ticket ${key}`);
     return row.id as string;
   }
 }

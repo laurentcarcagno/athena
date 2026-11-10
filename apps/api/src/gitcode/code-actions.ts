@@ -58,7 +58,7 @@ export class CodeActions {
   /** Ouvre une merge request (la clé est dans le titre et la description : les transitions se feront au merge). */
   async createMergeRequest(organizationId: string, projectKey: string, artifactKey: string, branch: string, repoPath: string | undefined, actor: Actor) {
     if (!new RegExp(`^(bugfix|feature)\\/${ITEM_KEY_PATTERN}(-[a-z0-9-]*)?$`).test(branch) || !branch.includes(artifactKey)) {
-      throw validation(['la branche doit être celle créée pour cet artefact (bugfix/ ou feature/ suivi de la clé)']);
+      throw validation(['la branche doit être celle créée pour ce ticket (bugfix/ ou feature/ suivi de la clé)']);
     }
     const { repo, artifact } = await this.context(organizationId, projectKey, artifactKey, repoPath);
     const id = await this.repoId(repo.path);
@@ -80,7 +80,7 @@ export class CodeActions {
           [projectKey, artifactKey],
         )
       ).rows[0];
-      if (!artifact) throw notFound(`Artefact ${artifactKey}`);
+      if (!artifact) throw notFound(`Ticket ${artifactKey}`);
       const repos = (await c.query('select r.gitlab_path, r.default_branch from code_repo r join project p on p.id = r.project_id where p.key = $1 order by r.gitlab_path', [projectKey])).rows;
       const repo = repoPath ? repos.find((r) => r.gitlab_path === repoPath) : repos.length === 1 ? repos[0] : undefined;
       if (!repo) throw validation([repos.length === 0 ? 'aucun dépôt de code configuré pour ce projet' : 'dépôt à préciser (plusieurs dépôts configurés ou dépôt inconnu)']);

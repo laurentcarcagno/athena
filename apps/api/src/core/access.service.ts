@@ -114,7 +114,7 @@ export class AccessService {
       const project = (await c.query('select id from project where key = $1', [projectKey])).rows[0];
       if (!project) throw notFound(`Projet ${projectKey}`);
       const row = (await c.query('select a.id, a.key, a.version, a.export_control, a.status_id, a."values", t.key as tracker from artifact a join tracker t on t.id = a.tracker_id where a.project_id = $1 and a.id = resolve_artifact($1, $2) for update of a', [project.id, key])).rows[0];
-      if (!row) throw notFound(`Artefact ${key}`);
+      if (!row) throw notFound(`Ticket ${key}`);
       if ((row.export_control ?? null) === value) return { key: row.key as string, exportControl: value, version: row.version as number };
       if (value !== null) {
         const members = Number((await c.query('select count(*) n from export_control_member where project_id = $1', [project.id])).rows[0].n);

@@ -210,7 +210,7 @@ export class DocLinkService {
     const artifact = (
       await c.query('select a.id from artifact a join project p on p.id = a.project_id where p.key = $1 and a.id = resolve_artifact(p.id, $2)', [projectKey, artifactKey])
     ).rows[0];
-    if (!artifact) throw notFound(`Artefact ${artifactKey}`);
+    if (!artifact) throw notFound(`Ticket ${artifactKey}`);
     const source = (
       await c.query('select s.id from doc_source s join project p on p.id = s.project_id where p.key = $1 and s.name = $2', [projectKey, sourceName])
     ).rows[0];

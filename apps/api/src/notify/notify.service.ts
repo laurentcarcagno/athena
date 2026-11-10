@@ -160,7 +160,7 @@ export class NotifyService {
       let target: { id: string; label: string };
       if (input.scope === 'item') {
         const row = (await c.query('select id, key from artifact where id = resolve_artifact($1, $2)', [project.id, input.ref])).rows[0];
-        if (!row) throw notFound(`Artefact ${input.ref}`);
+        if (!row) throw notFound(`Ticket ${input.ref}`);
         column = 'artifact_id'; target = { id: row.id, label: row.key };
       } else if (input.scope === 'tracker') {
         const row = (await c.query('select id, key from tracker where project_id = $1 and key = $2', [project.id, input.ref])).rows[0];
@@ -210,7 +210,7 @@ export class NotifyService {
   async mentionable(organizationId: string, subject: string, projectKey: string, key: string, q: string): Promise<Array<{ username: string; displayName: string }>> {
     return this.db.tx(organizationId, async (c) => {
       const art = (await c.query('select a.id from artifact a join project p on p.id = a.project_id where p.key = $1 and a.id = resolve_artifact(p.id, $2)', [projectKey, key])).rows[0];
-      if (!art) throw notFound(`Artefact ${key}`);
+      if (!art) throw notFound(`Ticket ${key}`);
       const like = `${q.trim().replace(/[\\%_]/g, '\\$&')}%`;
       const rows = (await c.query(
         `select username, display_name from user_account

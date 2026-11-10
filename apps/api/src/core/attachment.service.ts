@@ -51,7 +51,7 @@ export class AttachmentService {
     const artifactId = await this.db.tx(organizationId, async (c) => {
       const id = await this.artifactId(c, projectKey, key);
       const used = (await c.query('select count(*) filter (where artifact_id = $1) as n, coalesce(sum(size_bytes), 0) as bytes from attachment', [id])).rows[0];
-      if (Number(used.n) >= this.quota.maxPerArtifact) throw validation([`quota atteint : ${this.quota.maxPerArtifact} pièces jointes par artefact`]);
+      if (Number(used.n) >= this.quota.maxPerArtifact) throw validation([`quota atteint : ${this.quota.maxPerArtifact} pièces jointes par ticket`]);
       if (Number(used.bytes) + data.length > this.quota.maxBytesPerOrganization) throw validation(['quota de stockage de l’organisation atteint']);
       return id;
     });
@@ -110,7 +110,7 @@ export class AttachmentService {
 
   private async artifactId(c: PoolClient, projectKey: string, key: string): Promise<string> {
     const row = (await c.query('select a.id from artifact a join project p on p.id = a.project_id where p.key = $1 and a.id = resolve_artifact(p.id, $2)', [projectKey, key])).rows[0];
-    if (!row) throw notFound(`Artefact ${key}`);
+    if (!row) throw notFound(`Ticket ${key}`);
     return row.id as string;
   }
 }

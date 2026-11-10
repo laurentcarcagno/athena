@@ -71,7 +71,7 @@ export class LinkService {
       const to = toRow.id;
       const type = await resolveLinkType(c, organizationId, project, typeKey);
       if (!type) throw notFound(`Type de lien ${typeKey}`);
-      if (from === to) throw validation(['un artefact ne peut pas être lié à lui-même']);
+      if (from === to) throw validation(['un ticket ne peut pas être lié à lui-même']);
       await assertPairAllowed(c, type, typeKey, from, to);
       if (type.hierarchical && (await this.reaches(c, to, from, type.id))) {
         throw conflict('Ce lien créerait un cycle dans la hiérarchie.');
@@ -194,7 +194,7 @@ export class LinkService {
 
   private async artifactRow(c: PoolClient, project: string, key: string): Promise<{ id: string; key: string }> {
     const row = (await c.query('select id, key from artifact where id = resolve_artifact($1, $2)', [project, key])).rows[0];
-    if (!row) throw notFound(`Artefact ${key}`);
+    if (!row) throw notFound(`Ticket ${key}`);
     return { id: row.id as string, key: row.key as string };
   }
 

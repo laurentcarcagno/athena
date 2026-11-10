@@ -225,7 +225,7 @@ export class ArtifactService {
         [projectKey, key],
       )
     ).rows[0];
-    if (!row) throw notFound(`Artefact ${key}`);
+    if (!row) throw notFound(`Ticket ${key}`);
     return row;
   }
 

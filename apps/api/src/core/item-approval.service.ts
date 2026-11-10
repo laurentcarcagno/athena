@@ -158,7 +158,7 @@ export class ItemApprovalService {
     const row = (await c.query(
       `select a.id, a.key, a.version from artifact a join project p on p.id = a.project_id
        where p.key = $1 and a.id = resolve_artifact(p.id, $2) ${lock ? 'for update of a' : ''}`, [projectKey, key])).rows[0];
-    if (!row) throw notFound(`Artefact ${key}`);
+    if (!row) throw notFound(`Ticket ${key}`);
     return { id: row.id as string, key: row.key as string, version: row.version as number };
   }
 

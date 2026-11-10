@@ -161,7 +161,7 @@ export class TrackerService {
     if (!this.fieldTypes.has(field.type)) throw validation([`type de champ inconnu : ${field.type}`]);
     await this.mutate(organizationId, projectKey, trackerKey, actor, `champ ${field.key}`, async (c, tracker) => {
       const used = Number((await c.query('select count(*) n from artifact where tracker_id = $1', [tracker])).rows[0].n);
-      if (field.required && used > 0) throw conflict('Un champ obligatoire ne peut pas être ajouté à un tracker qui contient déjà des artefacts.');
+      if (field.required && used > 0) throw conflict('Un champ obligatoire ne peut pas être ajouté à un tracker qui contient déjà des tickets.');
       const position = Number((await c.query('select coalesce(max(position) + 1, 0) n from field_definition where tracker_id = $1', [tracker])).rows[0].n);
       await c.query(
         'insert into field_definition (organization_id, tracker_id, key, label, type, config, required, position, semantic_role, read_roles, write_roles, is_content) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)',
@@ -198,7 +198,7 @@ export class TrackerService {
       if (!field) throw notFound(`Champ ${fieldKey}`);
       if (patch.required === true && !field.required) {
         const missing = Number((await c.query('select count(*) n from artifact where tracker_id = $1 and not ("values" ? $2)', [tracker, fieldKey])).rows[0].n);
-        if (missing > 0) throw conflict(`${missing} artefact(s) n'ont pas de valeur pour ${fieldKey} : le champ ne peut pas devenir obligatoire.`);
+        if (missing > 0) throw conflict(`${missing} ticket(s) n'ont pas de valeur pour ${fieldKey} : le champ ne peut pas devenir obligatoire.`);
       }
       await c.query(
         `update field_definition set label = coalesce($2, label), required = coalesce($3, required), is_content = coalesce($8, is_content),
@@ -218,7 +218,7 @@ export class TrackerService {
       if (!field) throw notFound(`Champ ${fieldKey}`);
       if (field.semantic_role === 'title') throw conflict('Le champ titre ne peut pas être supprimé.');
       const used = Number((await c.query('select count(*) n from artifact where tracker_id = $1 and "values" ? $2', [tracker, fieldKey])).rows[0].n);
-      if (used > 0 && !purge) throw conflict(`${used} artefact(s) ont une valeur pour ${fieldKey} : supprimer avec purge pour les retirer.`);
+      if (used > 0 && !purge) throw conflict(`${used} ticket(s) ont une valeur pour ${fieldKey} : supprimer avec purge pour les retirer.`);
       if (used > 0) await c.query('update artifact set "values" = "values" - $2 where tracker_id = $1', [tracker, fieldKey]);
       await c.query('delete from field_definition where id = $1', [field.id]);
     });
@@ -275,7 +275,7 @@ export class TrackerService {
       const status = (await c.query('select id from status where tracker_id = $1 and key = $2', [tracker, statusKey])).rows[0];
       if (!status) throw notFound(`Statut ${statusKey}`);
       const used = Number((await c.query('select count(*) n from artifact where tracker_id = $1 and status_id = $2', [tracker, status.id])).rows[0].n);
-      if (used > 0) throw conflict(`${used} artefact(s) sont dans le statut ${statusKey} : il ne peut pas être supprimé.`);
+      if (used > 0) throw conflict(`${used} ticket(s) sont dans le statut ${statusKey} : il ne peut pas être supprimé.`);
       await c.query('delete from transition where tracker_id = $1 and (from_status_id = $2 or to_status_id = $2)', [tracker, status.id]);
       await c.query('delete from status where id = $1', [status.id]);
     });

@@ -97,7 +97,7 @@ export class RebuildService {
         const tracker = trackerIds.get(a.tracker);
         const status = tracker?.statusIds.get(a.status);
         const number = Number(/-(\d+)$/.exec(a.key)?.[1]);
-        if (!tracker || !status || !Number.isInteger(number)) throw validation([`artefact ${a.key} incohérent (tracker ou statut inconnu)`]);
+        if (!tracker || !status || !Number.isInteger(number)) throw validation([`ticket ${a.key} incohérent (tracker ou statut inconnu)`]);
         const values = this.confidential ? await this.confidential.reveal(sourceOrgKey, a.values) : a.values;
         // Fichier ancien format (REQ-42) ou venant d'un autre projet : clé recalculée, ancienne clé conservée en alias.
         const parsed = parseKey(a.key);

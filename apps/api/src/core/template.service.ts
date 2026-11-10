@@ -113,7 +113,7 @@ export class TemplateService {
   /** Modifie un template de tracker, y compris un template livré (enregistré alors comme version de l'organisation). */
   async updateTrackerTemplate(organizationId: string, key: string, input: { name: string; description?: string; tracker: TemplateTracker }, actor: Actor): Promise<void> {
     this.trackers.validateSpec({ ...input.tracker, projectKey: '' } as TrackerSpec);
-    if (!(await this.listTrackerTemplates(organizationId)).some((t) => t.key === key)) throw notFound(`Template de tracker ${key}`);
+    if (!(await this.listTrackerTemplates(organizationId)).some((t) => t.key === key)) throw notFound(`Gabarit de tracker ${key}`);
     await this.db.tx(organizationId, async (c) => {
       const updated = await c.query('update tracker_template set name = $2, description = $3, tracker = $4, updated_at = now() where key = $1', [key, input.name, input.description ?? '', JSON.stringify(input.tracker)]);
       if (updated.rowCount === 0) {
@@ -126,7 +126,7 @@ export class TemplateService {
 
   async createTrackerTemplate(organizationId: string, input: { key: string; name: string; description?: string; tracker: TemplateTracker }, actor: Actor): Promise<void> {
     this.trackers.validateSpec({ ...input.tracker, projectKey: '' } as TrackerSpec);
-    if ((await this.listTrackerTemplates(organizationId)).some((t) => t.key === input.key)) throw conflict(`Un template de tracker « ${input.key} » existe déjà.`);
+    if ((await this.listTrackerTemplates(organizationId)).some((t) => t.key === input.key)) throw conflict(`Un gabarit de tracker « ${input.key} » existe déjà.`);
     await this.db.tx(organizationId, async (c) => {
       await c.query('insert into tracker_template (organization_id, key, name, description, tracker, created_by) values ($1,$2,$3,$4,$5,$6)',
         [organizationId, input.key, input.name, input.description ?? '', JSON.stringify(input.tracker), actor.id]);
@@ -138,7 +138,7 @@ export class TemplateService {
     const shipped = builtinTrackerTemplates().some((t) => t.key === key);
     await this.db.tx(organizationId, async (c) => {
       const result = await c.query('delete from tracker_template where key = $1', [key]);
-      if (result.rowCount === 0) throw shipped ? conflict('Ce template de tracker livré avec Athena est déjà dans son état d’origine : il ne peut pas être supprimé.') : notFound(`Template de tracker ${key}`);
+      if (result.rowCount === 0) throw shipped ? conflict('Ce gabarit de tracker livré avec Athena est déjà dans son état d’origine : il ne peut pas être supprimé.') : notFound(`Gabarit de tracker ${key}`);
       await audit(c, organizationId, actor, shipped ? 'tracker_template.reset' : 'tracker_template.delete', `tracker-template:${key}`);
     });
   }
@@ -148,23 +148,23 @@ export class TemplateService {
     const all = await this.listTrackerTemplates(organizationId);
     return keys.map((k) => {
       const found = all.find((t) => t.key === k);
-      if (!found) throw notFound(`Template de tracker ${k}`);
+      if (!found) throw notFound(`Gabarit de tracker ${k}`);
       return found.tracker;
     });
   }
 
   async get(organizationId: string, key: string): Promise<TemplateView> {
     const found = (await this.list(organizationId)).find((t) => t.key === key);
-    if (!found) throw notFound(`Template ${key}`);
+    if (!found) throw notFound(`Gabarit ${key}`);
     return found;
   }
 
   async create(organizationId: string, input: { key: string; name: string; description?: string; trackers: TemplateTracker[]; normative?: Normative; parent?: { key: string; version?: string } | null }, actor: Actor): Promise<void> {
-    if (builtinTemplates().some((t) => t.key === input.key) || builtinNormative(input.key)) throw conflict('Cette clé est réservée à un template livré avec Athena.');
+    if (builtinTemplates().some((t) => t.key === input.key) || builtinNormative(input.key)) throw conflict('Cette clé est réservée à un gabarit livré avec Athena.');
     const keys = input.trackers.map((t) => t.key);
-    if (new Set(keys).size !== keys.length) throw validation(['deux trackers du template ont la même clé']);
+    if (new Set(keys).size !== keys.length) throw validation(['deux trackers du gabarit ont la même clé']);
     for (const t of input.trackers) this.trackers.validateSpec({ ...t, projectKey: '' } as TrackerSpec);
-    if ((await this.list(organizationId)).some((t) => t.key === input.key)) throw conflict(`Un template « ${input.key} » existe déjà.`);
+    if ((await this.list(organizationId)).some((t) => t.key === input.key)) throw conflict(`Un gabarit « ${input.key} » existe déjà.`);
     const parent = input.parent ?? null;
     const normative = (await this.check(organizationId, input.key, input.trackers, input.normative, parent)).normative;
     await this.db.tx(organizationId, async (c) => {
@@ -202,7 +202,7 @@ export class TemplateService {
     const shipped = builtinTemplates().some((t) => t.key === key);
     await this.db.tx(organizationId, async (c) => {
       const result = await c.query('delete from project_template where key = $1', [key]);
-      if (result.rowCount === 0) throw shipped ? conflict('Ce template livré avec Athena est déjà dans son état d’origine : il ne peut pas être supprimé.') : notFound(`Template ${key}`);
+      if (result.rowCount === 0) throw shipped ? conflict('Ce gabarit livré avec Athena est déjà dans son état d’origine : il ne peut pas être supprimé.') : notFound(`Gabarit ${key}`);
       await audit(c, organizationId, actor, shipped ? 'project_template.reset' : 'project_template.delete', `template:${key}`);
     });
   }
@@ -211,10 +211,10 @@ export class TemplateService {
   async update(organizationId: string, key: string, input: { name: string; description?: string; trackers: TemplateTracker[]; normative?: Normative; parent?: { key: string; version?: string } | null }, actor: Actor): Promise<void> {
     if (builtinNormative(key)) throw builtinReadOnly();
     const keys = input.trackers.map((t) => t.key);
-    if (new Set(keys).size !== keys.length) throw validation(['deux trackers du template ont la même clé']);
+    if (new Set(keys).size !== keys.length) throw validation(['deux trackers du gabarit ont la même clé']);
     for (const t of input.trackers) this.trackers.validateSpec({ ...t, projectKey: '' } as TrackerSpec);
     const current = (await this.list(organizationId)).find((t) => t.key === key);
-    if (!current) throw notFound(`Template ${key}`);
+    if (!current) throw notFound(`Gabarit ${key}`);
     const parent = input.parent === undefined ? current.parent : input.parent;
     const normative = (await this.check(organizationId, key, input.trackers, input.normative ?? current.normative, parent)).normative;
     await this.db.tx(organizationId, async (c) => {
@@ -236,7 +236,7 @@ export class TemplateService {
     for (let cur: string | undefined = parent.key; cur !== undefined && chain.length <= 12; cur = views.get(cur)?.parent?.key) chain.push(cur);
     const bad = chainProblems(chain);
     if (bad.length) throw validation(bad);
-    if (!views.has(parent.key)) throw notFound(`Template parent ${parent.key}`);
+    if (!views.has(parent.key)) throw notFound(`Gabarit parent ${parent.key}`);
     const snap = await this.snapshot(organizationId, parent.key, parent.version).catch((e: unknown) => {
       if (e instanceof DomainError && e.code === 'not_found') throw validation([`le gabarit parent ${parent.key} n’a pas de version publiée${parent.version ? ` ${parent.version}` : ''}`]);
       throw e;
@@ -274,13 +274,13 @@ export class TemplateService {
   async snapshot(organizationId: string, key: string, version?: string): Promise<TemplateSnapshot> {
     if (builtinNormative(key)) {
       const shipped = builtinSnapshot(key, version);
-      if (!shipped) throw notFound(`Version ${version} du template ${key}`);
+      if (!shipped) throw notFound(`Version ${version} du gabarit ${key}`);
       return shipped;
     }
     const rows = await this.db.tx(organizationId, async (c) => (await c.query('select version, snapshot from project_template_version where template_key = $1', [key])).rows);
     const sorted = rows.sort((a, b) => compareVersions(a.version as string, b.version as string));
     const row = version ? sorted.find((r) => r.version === version) : sorted[sorted.length - 1];
-    if (!row) throw notFound(version ? `Version ${version} du template ${key}` : `Aucune version publiée du template ${key}`);
+    if (!row) throw notFound(version ? `Version ${version} du gabarit ${key}` : `Aucune version publiée du gabarit ${key}`);
     return row.snapshot as TemplateSnapshot;
   }
 
@@ -297,7 +297,7 @@ export class TemplateService {
     await this.db.tx(organizationId, async (c) => {
       await c.query('insert into project_template_version (organization_id, template_key, version, snapshot, published_by) values ($1,$2,$3,$4,$5)', [organizationId, key, next, JSON.stringify(snapshot), actor.id]);
       const updated = await c.query("update project_template set version = $2, status = 'published' where key = $1", [key, next]);
-      if (updated.rowCount === 0) throw conflict('Ce template livré avec Athena n’a pas de modifications à publier.');
+      if (updated.rowCount === 0) throw conflict('Ce gabarit livré avec Athena n’a pas de modifications à publier.');
       await audit(c, organizationId, actor, 'project_template.publish', `template:${key}`, { version: next });
     });
     return snapshot;
