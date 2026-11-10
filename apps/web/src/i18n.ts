@@ -35,6 +35,14 @@ const frDict = {
     burndown: 'Burndown', remaining: 'Reste à faire', ideal: 'Idéal', day: 'Jour', data: 'Données du burndown', noBurndown: 'Burndown indisponible : dates du sprint absentes.',
     moved: 'Backlog réordonné.', added: 'Ticket ajouté au sprint.', removed: 'Ticket retiré du sprint.', started: 'Sprint démarré.', closed: (n: number) => `Sprint clos : ${n} ticket(s) non terminé(s) reporté(s).`, created: 'Sprint créé.',
   },
+  roadmap: {
+    title: 'Roadmap', timeline: 'Calendrier des versions', empty: 'Aucune version dans ce projet.', planned: 'Planifiée', released: 'Publiée',
+    progress: (percent: number) => `Avancement ${percent} %`, counts: (done: number, total: number) => `${done} / ${total} tickets terminés`, points: (done: number, total: number) => `${done} / ${total} pt`,
+    noItem: 'Aucun ticket dans cette version.', ticketKey: 'Clé du ticket', add: 'Ajouter', added: 'Ticket ajouté à la version.', removed: 'Ticket retiré de la version.',
+    remove: (key: string) => `Retirer ${key} de la version`, publish: 'Publier', published: 'Version publiée.',
+    publishTitle: (name: string) => `Publier la version « ${name} » ?`, publishBody: 'Une version publiée ne reçoit plus de tickets et ne peut plus en perdre.',
+    newVersion: 'Nouvelle version', name: 'Nom', starts: 'Début', ends: 'Fin', create: 'Créer la version', created: 'Version créée.',
+  },
   board: { eyebrow: 'Board', moveTo: 'Déplacer vers', unmapped: (n: number) => `${n} artefact(s) hors colonnes`, wip: 'Limite WIP', laneBy: 'Couloirs', laneNone: 'Aucun', laneAssignee: 'Responsable', laneTracker: 'Tracker', noAssignee: 'Non assigné', moved: 'Carte déplacée.', empty: 'Aucune carte.',
     filter: 'Filtrer les cartes (clé ou titre)', mine: 'Mes tickets', blockedOnly: 'Bloqués', blocked: 'Bloqué', createIn: (column: string) => `Créer un ticket dans « ${column} »`, noMatch: 'Aucune carte ne correspond aux filtres.',
     indexTitle: 'Boards', projectBoards: 'Boards du projet', trackerBoards: 'Board de chaque tracker', noBoards: 'Aucun board configuré.' },
@@ -87,7 +95,7 @@ const frDict = {
   },
   project: {
     navLabel: (p: string) => `Projet ${p}`,
-    tabs: { overview: 'Vue d’ensemble', backlog: 'Backlog', board: 'Board', trackers: 'Trackers', planning: 'Planification', traceability: 'Traçabilité', conformity: 'Conformité', documents: 'Documents', code: 'Code et intégration', activity: 'Activité', members: 'Membres' },
+    tabs: { overview: 'Vue d’ensemble', backlog: 'Backlog', board: 'Board', trackers: 'Trackers', roadmap: 'Roadmap', planning: 'Planification', traceability: 'Traçabilité', conformity: 'Conformité', documents: 'Documents', code: 'Code et intégration', activity: 'Activité', members: 'Membres' },
   },
   overview: {
     eyebrow: 'Projet', title: 'Vue d’ensemble', mine: 'À traiter par moi', noMine: 'Rien n’est assigné à votre nom.', allMine: 'Tout voir dans la Recherche', trackersTitle: 'Trackers', openTrackers: 'Voir les trackers',
@@ -395,6 +403,14 @@ const enDict: Dictionary = {
     burndown: 'Burndown', remaining: 'Remaining', ideal: 'Ideal', day: 'Day', data: 'Burndown data', noBurndown: 'Burndown unavailable: sprint dates missing.',
     moved: 'Backlog reordered.', added: 'Ticket added to sprint.', removed: 'Ticket removed from sprint.', started: 'Sprint started.', closed: (n: number) => `Sprint closed: ${n} unfinished ticket(s) carried over.`, created: 'Sprint created.',
   },
+  roadmap: {
+    title: 'Roadmap', timeline: 'Version timeline', empty: 'No version in this project.', planned: 'Planned', released: 'Released',
+    progress: (percent: number) => `Progress ${percent}%`, counts: (done: number, total: number) => `${done} / ${total} tickets done`, points: (done: number, total: number) => `${done} / ${total} pt`,
+    noItem: 'No ticket in this version.', ticketKey: 'Ticket key', add: 'Add', added: 'Ticket added to the version.', removed: 'Ticket removed from the version.',
+    remove: (key: string) => `Remove ${key} from the version`, publish: 'Publish', published: 'Version published.',
+    publishTitle: (name: string) => `Publish version “${name}”?`, publishBody: 'A published version no longer accepts or loses tickets.',
+    newVersion: 'New version', name: 'Name', starts: 'Start', ends: 'End', create: 'Create version', created: 'Version created.',
+  },
   board: { eyebrow: 'Board', moveTo: 'Move to', unmapped: (n: number) => `${n} artifact(s) outside columns`, wip: 'WIP limit', laneBy: 'Swimlanes', laneNone: 'None', laneAssignee: 'Assignee', laneTracker: 'Tracker', noAssignee: 'Unassigned', moved: 'Card moved.', empty: 'No card.',
     filter: 'Filter cards (key or title)', mine: 'My tickets', blockedOnly: 'Blocked', blocked: 'Blocked', createIn: (column: string) => `Create a ticket in “${column}”`, noMatch: 'No card matches the filters.',
     indexTitle: 'Boards', projectBoards: 'Project boards', trackerBoards: 'Board of each tracker', noBoards: 'No board configured.' },
@@ -447,7 +463,7 @@ const enDict: Dictionary = {
   },
   project: {
     navLabel: (p: string) => `Project ${p}`,
-    tabs: { overview: 'Overview', backlog: 'Backlog', board: 'Board', trackers: 'Trackers', planning: 'Planning', traceability: 'Traceability', conformity: 'Conformity', documents: 'Documents', code: 'Code and integration', activity: 'Activity', members: 'Members' },
+    tabs: { overview: 'Overview', backlog: 'Backlog', board: 'Board', trackers: 'Trackers', roadmap: 'Roadmap', planning: 'Planning', traceability: 'Traceability', conformity: 'Conformity', documents: 'Documents', code: 'Code and integration', activity: 'Activity', members: 'Members' },
   },
   overview: {
     eyebrow: 'Project', title: 'Overview', mine: 'Assigned to me', noMine: 'Nothing is assigned to you.', allMine: 'See all in Search', trackersTitle: 'Trackers', openTrackers: 'See the trackers',

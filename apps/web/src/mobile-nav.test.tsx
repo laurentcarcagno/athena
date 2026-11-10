@@ -40,7 +40,7 @@ describe('sélecteur de section du projet', () => {
     await userEvent.click(toggle);
     expect(toggle).toHaveAttribute('aria-expanded', 'true');
     // Simple membre : Planification et Membres, réservés, n'y figurent pas (même source que le rail)
-    expect(nav.getAllByRole('link').map((l) => l.textContent)).toEqual(['Vue d’ensemble', 'Backlog', 'Board', 'Trackers', 'Activité', 'Recherche']);
+    expect(nav.getAllByRole('link').map((l) => l.textContent)).toEqual(['Vue d’ensemble', 'Backlog', 'Board', 'Trackers', 'Roadmap', 'Activité', 'Recherche']);
     expect(nav.getByRole('link', { name: 'Activité' })).toHaveAttribute('aria-current', 'page');
     expect(nav.getByRole('link', { name: 'Trackers' })).toHaveAttribute('href', '/p/ARI/trackers');
   });

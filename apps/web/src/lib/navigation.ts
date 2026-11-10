@@ -7,7 +7,7 @@
 /** Module de projet calculé par le serveur (`GET /v1/projects/:p/modules`). */
 export type ModuleId = 'overview' | 'trackers' | 'planning' | 'traceability' | 'conformity' | 'documents' | 'code' | 'activity' | 'members';
 
-export type ProjectSectionId = ModuleId | 'backlog' | 'board' | 'search' | 'admin';
+export type ProjectSectionId = ModuleId | 'backlog' | 'board' | 'roadmap' | 'search' | 'admin';
 
 /** Qui voit la section : tout le monde, ou les seuls porteurs de l'un des rôles. */
 export type Access = { kind: 'everyone' } | { kind: 'roles'; roles: readonly string[] };
@@ -30,6 +30,7 @@ export const PROJECT_SECTIONS: readonly ProjectSection[] = [
   { id: 'backlog', path: 'backlog', gated: false, access: EVERYONE }, // T-0116 : backlog des trackers Tâche et sprints
   { id: 'board', path: 'board', gated: false, access: EVERYONE }, // T-0114 : boards du projet et des trackers
   { id: 'trackers', path: 'trackers', gated: true, access: EVERYONE },
+  { id: 'roadmap', path: 'roadmap', gated: false, access: EVERYONE }, // T-0117 : versions, avancement, publication
   // L'assurance qualité y trouve les approbations ; les autres membres n'y ont rien.
   { id: 'planning', path: 'planification', gated: true, access: { kind: 'roles', roles: ['athena-admin', 'athena-pm', 'athena-qa'] } },
   { id: 'traceability', path: 'tracabilite', gated: true, access: EVERYONE },
