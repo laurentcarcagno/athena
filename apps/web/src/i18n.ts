@@ -7,6 +7,7 @@ import { useSyncExternalStore } from 'react';
 const frDict = {
   loading: 'Chargement…',
   language: 'English',
+  projectContext: 'Projet',
   nav: { overview: 'Vue d’ensemble', projects: 'Projets', search: 'Recherche', dashboard: 'Tableau de bord', admin: 'Administration', logout: 'Déconnexion', palette: 'Commandes', work: 'Mon travail', manage: 'Gestion de projet', organization: 'Organisation', help: 'Aide', menu: 'Menu', skip: 'Aller au contenu' },
   projects: { eyebrow: 'Mission console', title: 'Projets', newProject: 'Nouveau projet', project: 'Projet', expand: 'Déplier les trackers de', collapse: 'Replier les trackers de', expandColumn: 'Trackers du projet', empty: 'Aucun projet.', emptyEyebrow: 'Aucun résultat', trackers: 'Trackers', boards: 'Boards', trackerName: 'Tracker', artifacts: 'Tickets', attributes: 'Attributs', noTracker: 'Aucun tracker.', noAttribute: 'Aucun attribut.' },
   list: {
@@ -400,6 +401,7 @@ export type Dictionary = typeof frDict;
 const enDict: Dictionary = {
   loading: 'Loading…',
   language: 'Français',
+  projectContext: 'Project',
   nav: { overview: 'Overview', projects: 'Projects', search: 'Search', dashboard: 'Dashboard', admin: 'Administration', logout: 'Sign out', palette: 'Commands', work: 'My work', manage: 'Project management', organization: 'Organization', help: 'Help', menu: 'Menu', skip: 'Skip to content' },
   projects: { eyebrow: 'Mission console', title: 'Projects', newProject: 'New project', project: 'Project', expand: 'Show trackers of', collapse: 'Hide trackers of', expandColumn: 'Project trackers', empty: 'No project.', emptyEyebrow: 'No result', trackers: 'Trackers', boards: 'Boards', trackerName: 'Tracker', artifacts: 'Artifacts', attributes: 'Attributes', noTracker: 'No tracker.', noAttribute: 'No attribute.' },
   list: {

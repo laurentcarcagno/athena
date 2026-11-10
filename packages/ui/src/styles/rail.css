@@ -13,7 +13,4 @@
 .ath-btn--icon { padding-inline: var(--ath-space-sm); min-width: 36px; display: inline-flex; align-items: center; justify-content: center; }
 .ath-codeblock { margin: 0; padding: var(--ath-space-sm) var(--ath-space-md); overflow-x: auto; background: var(--ath-surface-sunken, var(--ath-border-default)); font-size: var(--ath-font-size-small); }
 .ath-btn--icon[aria-pressed="true"] svg { fill: currentColor; }
-.ath-td .ath-iconbtn { border-color: var(--ath-border-default); color: var(--ath-text-heading); }
-.ath-td .ath-iconbtn:hover { background: var(--ath-border-default); }
-.ath-td .ath-iconbtn:focus-visible { outline-color: var(--ath-border-focus); }
 

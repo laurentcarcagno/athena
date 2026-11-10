@@ -22,11 +22,11 @@
 .ath-pill--warning { background: var(--ath-state-warning-bg); color: var(--ath-state-warning-fg); border-color: var(--ath-state-warning-border); }
 .ath-pill--danger { background: var(--ath-state-danger-bg); color: var(--ath-state-danger-fg); border-color: var(--ath-state-danger-border); }
 .ath-pill--info { background: var(--ath-state-info-bg); color: var(--ath-state-info-fg); border-color: var(--ath-border-focus); }
-.ath-tag { display: inline-flex; align-items: center; height: 18px; padding: 0 6px; border: var(--ath-border-width-hairline) solid var(--ath-border-default); font-weight: var(--ath-font-weight-semibold); font-size: var(--ath-font-size-small); background: var(--ath-surface-hover); color: var(--ath-text-heading); }
+.ath-tag { display: inline-flex; align-items: center; min-height: 20px; padding: 0 var(--ath-space-xs); border: var(--ath-border-width-hairline) solid var(--ath-border-control); font-weight: var(--ath-font-weight-medium); font-size: var(--ath-font-size-small); background: transparent; color: var(--ath-text-secondary); }
 .ath-tag--solid { background: var(--ath-action-deep-bg); color: var(--ath-action-deep-fg); border-color: var(--ath-action-deep-bg); }
 .ath-tag--accent { background: var(--ath-action-primary-bg); color: var(--ath-action-primary-fg); border-color: var(--ath-action-primary-bg); }
 .ath-tag--ghost { background: transparent; color: var(--ath-text-secondary); }
-.ath-chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border: var(--ath-border-width-hairline) solid var(--ath-border-default); background: var(--ath-surface-default); color: var(--ath-text-secondary); font-family: inherit; font-weight: var(--ath-font-weight-semibold); font-size: var(--ath-font-size-small); cursor: pointer; transition: background var(--ath-motion-default), color var(--ath-motion-default); }
+.ath-chip { display: inline-flex; align-items: center; gap: var(--ath-space-xs); height: var(--ath-size-control-md); padding: 0 var(--ath-space-md); border: var(--ath-border-width-hairline) solid var(--ath-border-control); background: var(--ath-surface-default); color: var(--ath-text-default); font-family: inherit; font-weight: var(--ath-font-weight-medium); font-size: var(--ath-font-size-small); cursor: pointer; transition: background var(--ath-motion-default), color var(--ath-motion-default); }
 .ath-chip--active { background: var(--ath-action-deep-bg); color: var(--ath-action-deep-fg); border-color: var(--ath-action-deep-bg); }
 
 /* Champs */

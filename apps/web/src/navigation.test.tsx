@@ -89,6 +89,6 @@ describe('accès à un ticket en moins de 3 actions, sans requête', () => {
     await userEvent.click(await screen.findByRole('link', { name: KEY })); // 3 (panneau de détail)
     expect(await shown()).toBeInTheDocument();
     await userEvent.click(within(screen.getByRole('navigation', { name: 'Fil d’Ariane' })).getByRole('link', { name: 'ARI' })); // 1 action pour revenir au projet
-    expect(await screen.findByRole('heading', { level: 1, name: /Vue d’ensemble · ARI/ })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { level: 1, name: /Vue d’ensemble/ })).toBeInTheDocument();
   });
 });

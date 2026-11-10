@@ -8,7 +8,9 @@ const TAG = { fr: 'fr-FR', en: 'en-GB' } as const;
 
 function format(iso: string | null | undefined, options: Intl.DateTimeFormatOptions): string {
   if (!iso) return '';
-  const date = new Date(iso);
+  // Une date seule (« 2026-11-04 ») est un jour du calendrier, pas minuit UTC : elle se lit en heure locale.
+  const day = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+  const date = day ? new Date(Number(day[1]), Number(day[2]) - 1, Number(day[3])) : new Date(iso);
   if (Number.isNaN(date.getTime())) return iso;
   return new Intl.DateTimeFormat(TAG[getLocale()] ?? 'fr-FR', options).format(date);
 }

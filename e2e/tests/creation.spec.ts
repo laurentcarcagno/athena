@@ -45,7 +45,7 @@ test('« Créer » depuis Mon travail : projet puis tracker, on reste sur Mon tr
 test('la touche N ouvre la création du projet courant', async ({ page }) => {
   await login(page, 'user.dev', 'dev-only-user');
   await page.goto('/p/ARI');
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('ARI');
+  await expect(page.locator('.ath-pageheader__context')).toContainText('ARI'); // projet courant au-dessus du titre (T-0134)
   await page.keyboard.press('n');
   const form = page.getByRole('dialog', { name: 'Nouveau ticket' });
   await expect(form.getByLabel('Tracker')).toHaveValue('BUG');

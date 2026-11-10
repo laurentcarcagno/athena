@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, Navigate, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { Btn, EmptyState, Id, PageHeader, type SortState } from '@athena/ui';
+import { Btn, EmptyState, Id, PageHeader, TabLinks, type SortState } from '@athena/ui';
 import { ApiError, api, type SavedFilter, type SearchResult, type Session, type TrackerDefinition, type TrackerOverview, type TrackerTypeEntry } from '../../api';
 import { ArtifactTable, columnFor, type TableColumn } from '../../components/ArtifactTable';
 import { ColumnPicker } from '../../components/ColumnPicker';
@@ -162,11 +162,8 @@ export function TrackerScreen({ session }: { session: Session }) {
       {current === 'tableau' && <SavedViews project={String(project)} tracker={String(tracker)} current={{ fragment, sort, columns: cols }} roles={session.user?.roles ?? []} onLoaded={onViews}
         onApply={(v) => setParams(viewToParams(v))} />}
       {current === 'tableau' && <ColumnPicker options={columnOptions(def)} selected={chosenColumns} onChange={(ids) => next({ cols: columnsParam(ids, def) })} />}
-      <nav className="ath-tabs ath-tabs--links" aria-label={fr.trackerScreen.views}>
-        {views.map((v) => (
-          <Link key={v} to={`${base}/${v}`} className="ath-tab" aria-current={v === current ? 'page' : undefined}>{fr.trackerScreen.viewNames[v]}</Link>
-        ))}
-      </nav>
+      <TabLinks label={fr.trackerScreen.views} items={views.map((v) => ({ id: v, label: fr.trackerScreen.viewNames[v], current: v === current }))}
+        link={(item, props) => <Link to={`${base}/${item.id}`} {...props} />} />
       {current === 'board' ? <BoardView key={refresh} session={session} project={String(project)} board={`~${tracker}`} header={false} /> : current === 'matrice' ? (
         <MatrixView project={String(project)} tracker={String(tracker)} columnsTracker={params.get('mx')} linkType={params.get('mt')}
           trackers={siblings} onChange={next} />

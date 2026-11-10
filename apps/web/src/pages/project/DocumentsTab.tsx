@@ -43,7 +43,7 @@ export function DocumentsTab() {
   const current = tree?.document ?? docs?.find((d) => d.id === doc);
   return (
     <>
-      <PageHeader eyebrow={fr.overview.eyebrow} title={`${t.title} · ${project}`} />
+      <PageHeader title={t.title} />
       {docs === null ? <p role="status">{fr.loading}</p> : docs.length === 0 ? <EmptyState eyebrow={t.title} title={t.empty} /> : (
         <div className="ath-doc">
           <div className="ath-stack ath-doc__side">

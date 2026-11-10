@@ -88,7 +88,7 @@ export function DashboardPage({ embedded = false }: { embedded?: boolean } = {})
 
   return (
     <>
-      {!embedded && <PageHeader eyebrow={fr.dashboard.eyebrow} title={`${fr.dashboard.title} · ${project}`} />}
+      {!embedded && <PageHeader title={fr.dashboard.title} />}
       {/* Composition asymétrique : un indicateur principal large, deux secondaires (pas de grille de tuiles identiques). */}
       <div className="ath-dash">
         <div className="ath-dash__main"><StatCard label={fr.dashboard.open} value={data.byCategory.todo + data.byCategory.in_progress} delta={`${total} ${fr.dashboard.total.toLowerCase()}`} /></div>
@@ -102,7 +102,7 @@ export function DashboardPage({ embedded = false }: { embedded?: boolean } = {})
           <thead><tr><Th>{fr.artifact.date}</Th><Th>{fr.dashboard.todo}</Th><Th>{fr.dashboard.inProgress}</Th><Th>{fr.dashboard.done}</Th></tr></thead>
           <tbody>
             {flow.map((d) => (
-              <tr key={d.date}><Td mono>{d.date}</Td><Td mono>{d.todo}</Td><Td mono>{d.in_progress}</Td><Td mono>{d.done}</Td></tr>
+              <tr key={d.date}><Td mono><DateTime iso={d.date} date /></Td><Td mono>{d.todo}</Td><Td mono>{d.in_progress}</Td><Td mono>{d.done}</Td></tr>
             ))}
           </tbody>
         </Table>

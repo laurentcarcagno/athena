@@ -38,7 +38,8 @@ Dernière mise à jour : 2026-11-10
   T-0131 faite (typographie, espacements, bordures, tailles, couches en 7 niveaux et mouvement en jetons ; feuille découpée en 13 parties ; ancien générateur retiré, valeurs figées en référence de test ; visuel 96/96).
   T-0132 faite (casse de phrase, échelle par rôles, titres unifiés, prose 72 caractères, dates localisées ; e2e 44/44 ; nouvelle référence visuelle).
   T-0133 faite (Select, Textarea, Checkbox, Radio, Switch ; contrôles à 32 px, focus de 2 px mesurés ; lecture seule par writeRoles ; dates en <time> ; e2e 45/45).
-- **Tâche en cours** : T-0134 (onglets, pastilles, boutons-icônes, sélection, tableau, en-têtes). Écarts du lot 9 : 1 comblé (`GET /v1/me/approvals`), 2 accepté, 3 comblé (préférences sur le compte, migration 052), 4 reporté (accepté le 2026-11-10). **Le manuel utilisateur (Word, captures) est mis à jour à la toute fin du projet** (décision du 2026-11-10).
+  T-0134 faite (TabLinks, IconButton unique, pastille / tag / filtre distincts, sélection commune, tableau à en-tête clair, projet au-dessus du titre, étoile du projet visible, pied du rail sur deux lignes ; e2e 45/45).
+- **Tâche en cours** : T-0135 (densité). Écarts du lot 9 : 1 comblé (`GET /v1/me/approvals`), 2 accepté, 3 comblé (préférences sur le compte, migration 052), 4 reporté (accepté le 2026-11-10). **Le manuel utilisateur (Word, captures) est mis à jour à la toute fin du projet** (décision du 2026-11-10).
 - **Historique** : réécrit le 2026-11-10 à la demande de l'utilisateur (lot 8 en `@gmail.com`) ; sauvegarde `backup/avant-reecriture-email`, à supprimer quand l'utilisateur le décide.
 - **Reste à faire** (par priorité) :
   1. Test d'intrusion externe (à commander) ; déploiement de recette sur Kubernetes et mesures de charge concurrente.

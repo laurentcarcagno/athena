@@ -101,7 +101,7 @@ export function RoadmapPage({ session }: { session: Session }) {
 
   return (
     <>
-      <PageHeader eyebrow={project} title={t.title} />
+      <PageHeader title={t.title} />
       {releases === null ? <p role="status">{fr.loading}</p> : (
         <div className="ath-stack">
           {releases.length === 0 ? <EmptyState eyebrow={t.title} title={t.empty} /> : (

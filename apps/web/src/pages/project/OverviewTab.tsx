@@ -14,7 +14,7 @@ export function OverviewTab({ session }: { session: Session }) {
   const { project } = useParams();
   return (
     <>
-      <PageHeader eyebrow={fr.overview.eyebrow} title={`${fr.overview.title} · ${project}`} />
+      <PageHeader title={fr.overview.title} />
       <Dashboard project={String(project)} />
       <ProjectTemplateCard project={String(project)} canManage={(session.user?.roles ?? []).some((r) => r === 'athena-admin' || r === 'athena-pm')} />
       <DashboardPage embedded />

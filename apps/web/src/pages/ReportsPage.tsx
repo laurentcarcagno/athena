@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
+import { TabLinks } from '@athena/ui';
 import { api, type Session } from '../api';
 import { fr } from '../i18n';
 import { visibleReports, type ReportId } from '../lib/navigation';
@@ -33,11 +34,8 @@ export function ReportsPage({ session }: { session: Session }) {
   };
   return (
     <>
-      <nav aria-label={fr.reports.nav} className="ath-toolbar">
-        {reports.map((r) => (
-          <Link key={r.id} className={`ath-chip${r.id === current.id ? ' ath-chip--active' : ''}`} to={`/p/${project}/rapports/${r.id}`} aria-current={r.id === current.id ? 'page' : undefined}>{fr.reports.names[r.id]}</Link>
-        ))}
-      </nav>
+      <TabLinks label={fr.reports.nav} items={reports.map((r) => ({ id: r.id, label: fr.reports.names[r.id], current: r.id === current.id }))}
+        link={(item, props) => <Link to={`/p/${project}/rapports/${item.id}`} {...props} />} />
       {bodies[current.id]()}
     </>
   );

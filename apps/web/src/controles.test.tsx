@@ -42,3 +42,17 @@ describe('contrôles de formulaire (T-0133)', () => {
     expect(screen.getByRole('combobox', { name: /Sévérité/ })).toHaveClass('ath-select');
   });
 });
+
+describe('sous-navigation et boutons-icônes (T-0134)', () => {
+  const read = (f: string) => readFileSync(join(process.cwd(), 'src', f), 'utf8');
+  it('vues du tracker, rapports et paramètres : des onglets-liens, plus de filtres utilisés comme navigation', () => {
+    for (const f of ['pages/tracker/TrackerScreen.tsx', 'pages/ReportsPage.tsx', 'pages/SettingsPage.tsx']) {
+      expect(read(f)).toContain('<TabLinks');
+      expect(read(f)).not.toContain('ath-chip');
+    }
+  });
+  it('les boutons-icônes du rail sont en ton inverse', () => {
+    expect(read('App.tsx').match(/className="ath-iconbtn(?! ath-iconbtn--inverse)/g) ?? []).toEqual([]);
+    expect(read('components/ThemeToggle.tsx')).toContain('ath-iconbtn--inverse');
+  });
+});

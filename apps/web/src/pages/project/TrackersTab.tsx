@@ -71,7 +71,7 @@ export function TrackersTab() {
   }, [project, fail]);
   return (
     <>
-      <PageHeader eyebrow={fr.overview.eyebrow} title={`${fr.trackersTab.title} · ${project}`} />
+      <PageHeader title={fr.trackersTab.title} />
       {trackers === null ? <p role="status">{fr.loading}</p> : trackers.length === 0 ? (
         <EmptyState eyebrow={fr.trackersTab.title} title={fr.trackersTab.empty} />
       ) : (

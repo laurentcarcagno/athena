@@ -61,7 +61,7 @@ const ADMIN = ['athena-user', 'athena-admin'];
 describe('navigation du projet au rail (ADR-0003)', () => {
   it('liste les sections dans l’ordre fixe, l’entrée courante signalée, sans barre d’onglets', async () => {
     app('/p/ARI', ADMIN);
-    await screen.findByRole('heading', { level: 1, name: 'Vue d’ensemble · ARI' });
+    await screen.findByRole('heading', { level: 1, name: 'Vue d’ensemble' });
     await waitFor(() => expect(sectionNames()).toEqual(['Vue d’ensemble', 'Backlog', 'Board', 'Trackers', 'Roadmap', 'Rapports', 'Documents', 'Recherche', 'Paramètres']));
     expect(projectNav().getByRole('button', { name: 'Vue d’ensemble' })).toHaveAttribute('aria-current', 'page');
     expect(projectNav().getByRole('button', { name: 'Paramètres' })).not.toHaveAttribute('aria-current');
@@ -79,20 +79,20 @@ describe('navigation du projet au rail (ADR-0003)', () => {
   it('masque la section dont le module est inactif, sans décaler les autres', async () => {
     modules = ['overview', 'trackers', 'activity'];
     app('/p/ARI', ADMIN);
-    await screen.findByRole('heading', { level: 1, name: 'Vue d’ensemble · ARI' });
+    await screen.findByRole('heading', { level: 1, name: 'Vue d’ensemble' });
     await waitFor(() => expect(sectionNames()).toEqual(['Vue d’ensemble', 'Backlog', 'Board', 'Trackers', 'Roadmap', 'Rapports', 'Recherche', 'Paramètres']));
   });
 
   it('garde toutes les sections autorisées quand la liste des modules est indisponible', async () => {
     modules = 'error';
     app('/p/ARI', ADMIN);
-    await screen.findByRole('heading', { level: 1, name: 'Vue d’ensemble · ARI' });
+    await screen.findByRole('heading', { level: 1, name: 'Vue d’ensemble' });
     await waitFor(() => expect(sectionNames()).toEqual(['Vue d’ensemble', 'Backlog', 'Board', 'Trackers', 'Roadmap', 'Rapports', 'Documents', 'Recherche', 'Paramètres']));
   });
 
   it('n’affiche aucune entrée menant à « Réservé » : ni Planification, ni Membres, ni Administration pour un simple membre', async () => {
     app('/p/ARI');
-    await screen.findByRole('heading', { level: 1, name: 'Vue d’ensemble · ARI' });
+    await screen.findByRole('heading', { level: 1, name: 'Vue d’ensemble' });
     await waitFor(() => expect(sectionNames()).toEqual(['Vue d’ensemble', 'Backlog', 'Board', 'Trackers', 'Roadmap', 'Rapports', 'Documents', 'Recherche']));
   });
 
@@ -120,7 +120,7 @@ describe('navigation du projet au rail (ADR-0003)', () => {
 
   it('n’a aucune violation d’accessibilité', async () => {
     const { container } = app('/p/ARI');
-    await screen.findByRole('heading', { level: 1, name: 'Vue d’ensemble · ARI' });
+    await screen.findByRole('heading', { level: 1, name: 'Vue d’ensemble' });
     const result = await axe.run(container, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] }, rules: { 'color-contrast': { enabled: false }, region: { enabled: false } } });
     expect(result.violations.map((v) => `${v.id} : ${v.help}`)).toEqual([]);
   });
@@ -156,7 +156,7 @@ describe('anciennes adresses', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'Paramètres · Approbations' })).toBeInTheDocument();
     qa.unmount();
     app('/p/ARI/dashboard');
-    expect(await screen.findByRole('heading', { level: 1, name: 'Vue d’ensemble · ARI' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { level: 1, name: 'Vue d’ensemble' })).toBeInTheDocument();
     await waitFor(() => expect(projectNav().getByRole('button', { name: 'Vue d’ensemble' })).toHaveAttribute('aria-current', 'page'));
   });
 });
@@ -164,7 +164,7 @@ describe('anciennes adresses', () => {
 describe('onglet Trackers', () => {
   it('groupe les trackers par catégorie dans l’ordre fixe, avec compteurs par état et éléments à moi', async () => {
     app('/p/ARI/trackers');
-    await screen.findByRole('heading', { level: 1, name: 'Trackers · ARI' });
+    await screen.findByRole('heading', { level: 1, name: 'Trackers' });
     const groups = (await screen.findAllByRole('heading', { level: 2 })).map((h) => h.textContent).filter((t) => ['Ingénierie', 'Développement', 'Autres', 'Pilotage'].includes(String(t)));
     expect(groups).toEqual(['Ingénierie', 'Développement', 'Autres']); // catégories vides absentes
     const req = screen.getByRole('region', { name: 'Ingénierie' });
@@ -177,7 +177,7 @@ describe('onglet Trackers', () => {
   });
   it('n’a aucune violation d’accessibilité', async () => {
     const { container } = app('/p/ARI/trackers');
-    await screen.findByRole('heading', { level: 1, name: 'Trackers · ARI' });
+    await screen.findByRole('heading', { level: 1, name: 'Trackers' });
     await screen.findByRole('region', { name: 'Ingénierie' });
     const result = await axe.run(container, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] }, rules: { 'color-contrast': { enabled: false }, region: { enabled: false } } });
     expect(result.violations.map((v) => `${v.id} : ${v.help}`)).toEqual([]);
@@ -187,7 +187,7 @@ describe('onglet Trackers', () => {
 describe('Vue d’ensemble', () => {
   it('liste les trackers et mes tickets, même sans aucune donnée', async () => {
     app('/p/ARI');
-    await screen.findByRole('heading', { level: 1, name: 'Vue d’ensemble · ARI' });
+    await screen.findByRole('heading', { level: 1, name: 'Vue d’ensemble' });
     const mine = await screen.findByRole('group', { name: 'Mes tickets' }); // T-0123 : la Vue d'ensemble est portée par le moteur de widgets
     expect(await within(mine).findByText('Aucun ticket.')).toBeInTheDocument();
     expect(within(mine).getByRole('link', { name: 'Tout voir' })).toHaveAttribute('href', `/recherche?q=${encodeURIComponent('assignee = currentUser() AND category != done')}&p=ARI`);
@@ -213,7 +213,7 @@ describe('Paramètres (Membres) et Code', () => {
   });
   it('Code : dépôts liés et indicateurs de livraison, vide sinon', async () => {
     app('/p/ARI/code');
-    await screen.findByRole('heading', { level: 1, name: 'Code et intégration · ARI' });
+    await screen.findByRole('heading', { level: 1, name: 'Code et intégration' });
     expect(await screen.findByText('Aucun dépôt lié à ce projet.')).toBeInTheDocument();
   });
   it('Code : liste les dépôts en mono et les indicateurs DORA', async () => {
@@ -231,7 +231,7 @@ describe('Rapports (T-0121)', () => {
   it('regroupe les cinq rapports ; les anciennes adresses y mènent', async () => {
     modules = 'error';
     app('/p/ARI/code');
-    await screen.findByRole('heading', { level: 1, name: 'Code et intégration · ARI' });
+    await screen.findByRole('heading', { level: 1, name: 'Code et intégration' });
     expect(reportNav().getAllByRole('link').map((l) => l.textContent)).toEqual(['Avancement', 'Traçabilité', 'Conformité', 'Livraison', 'Activité']);
     expect(reportNav().getByRole('link', { name: 'Livraison' })).toHaveAttribute('aria-current', 'page');
   });
@@ -248,7 +248,7 @@ describe('onglet Activité', () => {
 
   it('liste les événements du plus récent au plus ancien, clés et champs en mono, lien vers la fiche', async () => {
     app('/p/ARI/activite');
-    await screen.findByRole('heading', { level: 1, name: 'Activité · ARI' });
+    await screen.findByRole('heading', { level: 1, name: 'Activité' });
     const rows = (await screen.findAllByRole('row')).slice(1);
     expect(rows).toHaveLength(3);
     expect(within(rows[0]!).getByText('Alice Martin')).toBeInTheDocument();

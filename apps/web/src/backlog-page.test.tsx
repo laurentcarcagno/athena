@@ -52,7 +52,7 @@ describe('page Backlog', () => {
     const rows = within(await list()).getAllByRole('listitem');
     expect(rows.map((r) => within(r).getAllByRole('link')[0]!.textContent)).toEqual(['NOVA-TSK-0005', 'NOVA-TSK-0004', 'NOVA-TSK-0006']);
     expect(screen.getByRole('img', { name: /Burndown : Reste à faire 3, Idéal 4/ })).toBeInTheDocument();
-    expect(screen.getByRole('table')).toHaveTextContent('2026-11-07');
+    expect(screen.getByRole('table')).toHaveTextContent('07/11/2026');
     expect(screen.getByRole('list', { name: 'Sprint 2' })).toHaveTextContent('NOVA-TSK-0007');
     expect(screen.queryByText('Ancien')).not.toBeInTheDocument();
   });

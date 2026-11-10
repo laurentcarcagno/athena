@@ -19,7 +19,7 @@ export function TrackerCreatePage({ session }: { session: Session }) {
   const [templates, setTemplates] = useState<TrackerTemplateEntry[]>([]);
   const [draft, setDraft] = useState<DraftTracker>(emptyTracker());
   useEffect(() => { if (admin) api<TrackerTemplateEntry[]>('GET', '/v1/tracker-templates').then(setTemplates).catch(fail); }, [admin, fail]);
-  if (!admin) return <><PageHeader eyebrow={fr.builder.newTracker} title={`${fr.builder.addTracker} · ${project}`} /><p className="ath-field__error">{fr.builder.adminOnly}</p></>;
+  if (!admin) return <><PageHeader eyebrow={fr.builder.newTracker} title={fr.builder.addTracker} /><p className="ath-field__error">{fr.builder.adminOnly}</p></>;
   const problems = trackerProblems(draft);
   const submit = (event: FormEvent) => { event.preventDefault(); void guard(() => submitRun()); };
   const submitRun = async () => {
@@ -31,7 +31,7 @@ export function TrackerCreatePage({ session }: { session: Session }) {
   };
   return (
     <>
-      <PageHeader eyebrow={fr.builder.newTracker} title={`${fr.builder.addTracker} · ${project}`} />
+      <PageHeader eyebrow={fr.builder.newTracker} title={fr.builder.addTracker} />
       <form className="ath-stack" onSubmit={submit}>
         <TemplatePicker id="new-tracker-pick" templates={templates} onPick={setDraft} />
         <TrackerBuilder value={draft} onChange={setDraft} />

@@ -53,7 +53,7 @@ export function ActivityTab() {
 
   return (
     <>
-      <PageHeader eyebrow={fr.overview.eyebrow} title={`${fr.activity.title} · ${project}`} />
+      <PageHeader title={fr.activity.title} />
       <div className="ath-toolbar" role="search" aria-label={fr.activity.filters}>
         <div className="ath-field">
           <label className="ath-field__label" htmlFor="act-tracker">{fr.activity.tracker}</label>

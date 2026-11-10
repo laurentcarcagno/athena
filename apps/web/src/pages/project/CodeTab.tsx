@@ -22,7 +22,7 @@ export function CodeTab() {
   }, [project, fail]);
   return (
     <>
-      <PageHeader eyebrow={fr.overview.eyebrow} title={`${fr.codeTab.title} · ${project}`} />
+      <PageHeader title={fr.codeTab.title} />
       <div className="ath-stack">
         {repos === null ? <p role="status">{fr.loading}</p> : repos.length === 0 ? <EmptyState eyebrow={fr.codeTab.repos} title={fr.codeTab.noRepos} /> : (
           <Table>

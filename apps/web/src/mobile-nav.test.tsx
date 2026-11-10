@@ -50,7 +50,7 @@ describe('sélecteur de section du projet', () => {
     const nav = within(await picker());
     await userEvent.click(await nav.findByRole('button', { name: /ARI · Rapports/ }));
     await userEvent.click(nav.getByRole('link', { name: 'Vue d’ensemble' }));
-    expect(await screen.findByRole('heading', { level: 1, name: 'Vue d’ensemble · ARI' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { level: 1, name: 'Vue d’ensemble' })).toBeInTheDocument();
     expect(await nav.findByRole('button', { name: /ARI · Vue d’ensemble/ })).toHaveAttribute('aria-expanded', 'false');
   });
 

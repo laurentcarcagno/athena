@@ -64,7 +64,7 @@ describe('board : carte et panneau', () => {
     const first = (await screen.findByText('Titre ARI-BUG-0001')).closest('article')!;
     expect(within(first).getByText('Anomalies')).toBeInTheDocument();
     expect(within(first).getByText('majeure')).toHaveAttribute('title', 'Sévérité');
-    expect(within(first).getByText('2026-12-01')).toHaveClass('ath-mono');
+    expect(within(first).getByText('01/12/2026').closest('.ath-mono')).toHaveClass('ath-mono');
     expect(within(first).getByText('Ulysse Dev')).toBeInTheDocument();
     expect(within(first).getByText('Bloqué')).toBeInTheDocument();
     expect(within(screen.getByText('Crash au démarrage').closest('article')!).queryByText('Bloqué')).not.toBeInTheDocument();

@@ -5,6 +5,7 @@ import { api, type Session } from '../api';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
 import { fromHere } from '../lib/origin';
+import { DateTime, formatDate } from '../lib/dates';
 
 interface BacklogItem { key: string; tracker: string; title: string; status: string; statusName: string; category: string; points: number | null; assignee: string | null }
 interface SprintSummary { id: string; name: string; goal: string; state: 'planned' | 'active' | 'closed'; startsOn: string | null; endsOn: string | null }
@@ -48,7 +49,7 @@ export function Burndown({ points }: { points: BurndownPoint[] }) {
         <text className="ath-burndown__label" x={x(last) + 8} y={y(points[last]!.ideal) + 14}>{t.ideal}</text>
         {points.map((p, i) => (
           <g key={`h-${p.date}`}>
-            <rect className="ath-burndown__hit" x={x(i) - step / 2} y={T} width={step} height={H - T - B}><title>{`${p.date} · ${t.remaining} ${p.remaining} · ${t.ideal} ${p.ideal}`}</title></rect>
+            <rect className="ath-burndown__hit" x={x(i) - step / 2} y={T} width={step} height={H - T - B}><title>{`${formatDate(p.date)} · ${t.remaining} ${p.remaining} · ${t.ideal} ${p.ideal}`}</title></rect>
             <line className="ath-burndown__guide" x1={x(i)} y1={T} x2={x(i)} y2={H - B} />
           </g>
         ))}
@@ -57,7 +58,7 @@ export function Burndown({ points }: { points: BurndownPoint[] }) {
         <summary>{t.data}</summary>
         <Table>
           <thead><tr><Th>{t.day}</Th><Th>{t.remaining}</Th><Th>{t.ideal}</Th></tr></thead>
-          <tbody>{points.map((p) => <tr key={p.date}><Td mono>{p.date}</Td><Td mono>{p.remaining}</Td><Td mono>{p.ideal}</Td></tr>)}</tbody>
+          <tbody>{points.map((p) => <tr key={p.date}><Td mono><DateTime iso={p.date} date /></Td><Td mono>{p.remaining}</Td><Td mono>{p.ideal}</Td></tr>)}</tbody>
         </Table>
       </details>
     </figure>
@@ -163,7 +164,7 @@ export function BacklogPage({ session }: { session: Session }) {
 
   return (
     <>
-      <PageHeader eyebrow={project} title={t.title} />
+      <PageHeader title={t.title} />
       {items === null ? <p role="status">{fr.loading}</p> : (
         <div className="ath-stack">
           <section aria-labelledby="bk-active" className="ath-stack">

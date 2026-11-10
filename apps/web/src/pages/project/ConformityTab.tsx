@@ -44,7 +44,7 @@ export function ConformityTab({ session }: { session: Session }) {
 
   return (
     <>
-      <PageHeader eyebrow={fr.overview.eyebrow} title={`${t.title} · ${project}`}
+      <PageHeader title={t.title}
         actions={<><Btn variant="ghost" onClick={() => void exportCsv()}>{t.exportCsv}</Btn>{canEdit && <Btn icon="check" onClick={() => { setImporting(true); setReport(null); }}>{t.importClauses}</Btn>}</>} />
       {importing && <ImportForm project={String(project)} report={report} onReport={(r) => { setReport(r); toast('success', t.imported(r.created, r.updated, r.unchanged, r.errors)); load(); }} onClose={() => setImporting(false)} />}
       {data === null ? <p role="status">{fr.loading}</p> : data.totals.clauses === 0 ? <EmptyState eyebrow={t.title} title={t.empty} /> : (

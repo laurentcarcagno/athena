@@ -55,7 +55,7 @@ export function TraceabilityTab({ session }: { session: Session }) {
   return (
     <>
       {confirm.dialog}
-      <PageHeader eyebrow={fr.overview.eyebrow} title={`${t.title} · ${project}`} actions={admin ? <Btn onClick={() => { setEditing(null); setAdding(true); }}>{t.addRule}</Btn> : undefined} />
+      <PageHeader title={t.title} actions={admin ? <Btn onClick={() => { setEditing(null); setAdding(true); }}>{t.addRule}</Btn> : undefined} />
       {(adding || editing) && <RuleForm key={editing?.key ?? 'new'} project={String(project)} trackers={trackers} types={types} editing={editing} onCancel={() => { setAdding(false); setEditing(null); }}
         onSaved={() => { toast('success', editing ? t.saved : t.created); setAdding(false); setEditing(null); load(); }} />}
       {rules === null ? <p role="status">{fr.loading}</p> : rules.length === 0 ? (

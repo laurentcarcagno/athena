@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
-import { EmptyState, PageHeader, Table, Td, Th } from '@athena/ui';
+import { EmptyState, PageHeader, TabLinks, Table, Td, Th } from '@athena/ui';
 import { api, type Session } from '../api';
 import { ApprovalsPanel } from '../components/ApprovalsPanel';
 import { BaselineCompare } from '../components/BaselineCompare';
@@ -44,7 +44,7 @@ export function SettingsPage({ session }: { session: Session }) {
   const { project = '', section, tracker } = useParams();
   const roles = session.user?.roles ?? [];
   const sections = visibleSettings(roles);
-  const header = (sub?: string) => <PageHeader eyebrow={project} title={sub ? `${fr.settings.title} · ${sub}` : fr.settings.title} />;
+  const header = (sub?: string) => <PageHeader title={sub ? `${fr.settings.title} · ${sub}` : fr.settings.title} />;
   if (sections.length === 0) return <>{header()}<p className="ath-field__error">{fr.settings.restricted}</p></>;
   const current = sections.find((s) => s.id === section);
   if (!current) return <Navigate replace to={`/p/${project}/parametres/${sections[0]!.id}`} />;
@@ -61,11 +61,8 @@ export function SettingsPage({ session }: { session: Session }) {
   return (
     <>
       {header(fr.settings.sections[current.id])}
-      <nav aria-label={fr.settings.nav} className="ath-toolbar">
-        {sections.map((s) => (
-          <Link key={s.id} className={`ath-chip${s.id === current.id ? ' ath-chip--active' : ''}`} to={`/p/${project}/parametres/${s.id}`} aria-current={s.id === current.id ? 'page' : undefined}>{fr.settings.sections[s.id]}</Link>
-        ))}
-      </nav>
+      <TabLinks label={fr.settings.nav} items={sections.map((s) => ({ id: s.id, label: fr.settings.sections[s.id], current: s.id === current.id }))}
+        link={(item, props) => <Link to={`/p/${project}/parametres/${item.id}`} {...props} />} />
       <div className="ath-stack">{panels[current.id]()}</div>
     </>
   );

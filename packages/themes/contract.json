@@ -316,6 +316,36 @@
       "min": 4.5,
       "label": "entrée active sur surface inverse",
       "over": "surface.inverse"
+    },
+    {
+      "fg": "text.heading",
+      "bg": "surface.muted",
+      "min": 4.5,
+      "label": "en-tête de tableau"
+    },
+    {
+      "fg": "text.secondary",
+      "bg": "surface.muted",
+      "min": 4.5,
+      "label": "flèche de tri au repos"
+    },
+    {
+      "fg": "border.focus",
+      "bg": "surface.muted",
+      "min": 3,
+      "label": "flèche de tri active"
+    },
+    {
+      "fg": "text.secondary",
+      "bg": "surface.default",
+      "min": 4.5,
+      "label": "libellé de filtre et tag"
+    },
+    {
+      "fg": "border.focus",
+      "bg": "surface.selected",
+      "min": 3,
+      "label": "repère de sélection"
     }
   ]
 }

@@ -48,6 +48,10 @@ describe('dates localisées', () => {
     expect(formatDateTime('2026-11-07T09:30:00Z')).toBe('07/11/2026, 09:30');
   });
 
+  it('une date seule est un jour du calendrier, quel que soit le fuseau', () => {
+    expect(formatDate('2026-11-04')).toBe('04/11/2026');
+  });
+
   it('rendent une valeur vide ou illisible sans planter', () => {
     expect(formatDateTime(null)).toBe('');
     expect(formatDateTime('pas une date')).toBe('pas une date');

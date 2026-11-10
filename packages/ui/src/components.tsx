@@ -90,7 +90,7 @@ export function FilterChip({ label, value, active = false, onClick, onClear }: {
       <span className="ath-chip__label">{label}</span>
       <span>{value}</span>
       {active && onClear && (
-        <button type="button" className="ath-icon-btn ath-icon-btn--bare" aria-label={`Retirer le filtre ${label}`} onClick={(e) => { e.stopPropagation(); onClear(); }}>×</button>
+        <button type="button" className="ath-iconbtn ath-iconbtn--bare" aria-label={`Retirer le filtre ${label}`} onClick={(e) => { e.stopPropagation(); onClear(); }}>×</button>
       )}
     </span>
   );
@@ -169,11 +169,12 @@ export const Switch = forwardRef<HTMLInputElement, ToggleProps>(function Switch(
 
 const CardContext = createContext(false);
 /** Carte. Les cartes imbriquées sont interdites par la charte : elles lèvent une erreur. */
-export function Card({ title, meta, children }: { title?: string; meta?: ReactNode; children: ReactNode }) {
+/** Carte (fond et bordure) ou section (filet seul, `variant="section"`) ; jamais imbriquée. */
+export function Card({ title, meta, children, variant = 'card' }: { title?: string; meta?: ReactNode; children: ReactNode; variant?: 'card' | 'section' }) {
   if (useContext(CardContext)) throw new Error('Card imbriquée : interdit par la charte Hemeria');
   return (
     <CardContext.Provider value={true}>
-      <section className="ath-card">
+      <section className={cx('ath-card', variant === 'section' && 'ath-card--section')}>
         {(title || meta) && (
           <header className="ath-card__header">
             <h3 className="ath-subsection-title">{title}</h3>
@@ -289,7 +290,7 @@ export function Modal({ open, title, size = 'sm', onClose, children, footer }: {
       <div ref={dialog} className={cx('ath-modal', size !== 'sm' && `ath-modal--${size}`)} role="dialog" aria-modal="true" aria-labelledby={titleId}>
         <header className="ath-modal__header">
           <h3 id={titleId} className="ath-subsection-title ath-modal__title">{title}</h3>
-          <button type="button" className="ath-icon-btn" aria-label="Fermer" onClick={onClose}>×</button>
+          <IconButton label="Fermer" tone="inverse" size="sm" onClick={onClose}>×</IconButton>
         </header>
         <div className="ath-modal__body">{children}</div>
         {footer && <footer className="ath-modal__footer">{footer}</footer>}
@@ -318,7 +319,7 @@ function ToastView({ toast, onDismiss, duration }: { toast: ToastItem; onDismiss
     <div className={`ath-toast ath-toast--${toast.kind}`} role={toast.kind === 'danger' ? 'alert' : 'status'} onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)} onFocus={() => setPaused(true)} onBlur={() => setPaused(false)}>
       <span className="ath-toast__message">{toast.message}</span>
       {toast.action && <button type="button" className="ath-toast__action" onClick={() => { toast.action!.onClick(); onDismiss(); }}>{toast.action.label}</button>}
-      <button type="button" className="ath-icon-btn" aria-label="Fermer la notification" onClick={onDismiss}>×</button>
+      <button type="button" className="ath-iconbtn ath-iconbtn--sm" aria-label="Fermer la notification" title="Fermer la notification" onClick={onDismiss}>×</button>
     </div>
   );
 }
@@ -353,7 +354,47 @@ export function EmptyState({ eyebrow, title, action }: { eyebrow: string; title:
   );
 }
 
+/**
+ * Onglets qui changent d'adresse (sous-navigation d'une page : vues d'un tracker, rapports, paramètres). Même rendu que `Tabs` ;
+ * l'onglet courant porte `aria-current="page"`. `link` rend le lien (par exemple un `Link` du routeur) avec les props données.
+ */
+export function TabLinks<T extends { id: string; label: ReactNode; current: boolean }>({ label, items, link }: {
+  label: string; items: T[];
+  link: (item: T, props: { className: string; 'aria-current': 'page' | undefined; children: ReactNode }) => ReactNode;
+}) {
+  return (
+    <nav className="ath-tabs ath-tabs--links" aria-label={label}>
+      {items.map((item) => <span key={item.id} className="ath-tabs__item">{link(item, { className: 'ath-tab', 'aria-current': item.current ? 'page' : undefined, children: item.label })}</span>)}
+    </nav>
+  );
+}
+
+/** Bouton-icône unique : sur surface claire (défaut) ou inverse (rail), taille normale (28 px) ou compacte (24 px). */
+export function IconButton({ label, tone = 'surface', size = 'md', className, children, ...rest }: Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'aria-label'> & {
+  label: string; tone?: 'surface' | 'inverse'; size?: 'md' | 'sm' | 'bare';
+}) {
+  return (
+    <button type="button" aria-label={label} title={rest.title ?? label} {...rest}
+      className={cx('ath-iconbtn', tone === 'inverse' && 'ath-iconbtn--inverse', size !== 'md' && `ath-iconbtn--${size}`, className)}>
+      {children}
+    </button>
+  );
+}
+
+/**
+ * Contexte de page fourni par la mise en page de l'application : une ligne au-dessus du titre (par exemple le projet courant)
+ * et des actions ajoutées à celles de la page (par exemple épingler le projet). Les fournisseurs imbriqués se combinent.
+ */
+interface PageContextValue { context?: ReactNode; actions?: ReactNode }
+const PageContext = createContext<PageContextValue>({});
+export function PageContextProvider({ context, actions, children }: PageContextValue & { children: ReactNode }) {
+  const parent = useContext(PageContext);
+  const value = { context: context ?? parent.context, actions: actions === undefined ? parent.actions : <>{parent.actions}{actions}</> };
+  return <PageContext.Provider value={value}>{children}</PageContext.Provider>;
+}
+
 export function PageHeader({ eyebrow, title, sub, actions }: { eyebrow?: string; title: ReactNode; sub?: ReactNode; actions?: ReactNode }) {
+  const page = useContext(PageContext);
   // L'en-tête reste visible au défilement : sa hauteur est publiée pour décaler les en-têtes de tableau collants.
   const header = useRef<HTMLElement>(null);
   useEffect(() => {
@@ -372,12 +413,13 @@ export function PageHeader({ eyebrow, title, sub, actions }: { eyebrow?: string;
           <div className="ath-stripe__blue" /><div className="ath-stripe__white" /><div className="ath-stripe__red" />
         </div>
         <div>
+          {page.context && <p className="ath-pageheader__context">{page.context}</p>}
           {eyebrow && <p className="ath-eyebrow ath-pageheader__eyebrow">{eyebrow}</p>}
           <h1 className="ath-pageheader__title">{title}</h1>
           {sub && <div className="ath-pageheader__sub">{sub}</div>}
         </div>
       </div>
-      {actions && <div className="ath-pageheader__actions">{actions}</div>}
+      {(actions || page.actions) && <div className="ath-pageheader__actions">{actions}{page.actions}</div>}
     </header>
   );
 }

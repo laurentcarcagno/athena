@@ -112,12 +112,12 @@ function Shell({ session, children }: { session: Session; children: ReactNode })
       {menuOpen && <div className="ath-drawer-backdrop" data-testid="drawer-backdrop" onClick={closeMenu} />}
       <Sidebar id="rail" open={menuOpen} collapsed={collapsed} sections={sections} current={current} onNavigate={(id) => { setMenuOpen(false); navigate(id); }} user={{ name: session.user!.name, role: admin ? 'Administrateur' : manager ? 'Chef de projet' : 'Utilisateur', roleKind: admin ? 'admin' : manager ? 'manager' : 'user' }}
         userActions={<>
-          <button type="button" className="ath-iconbtn ath-collapse-btn" onClick={toggleRail} aria-expanded={!collapsed} aria-label={collapsed ? fr.rail.expand : fr.rail.collapse} title={collapsed ? fr.rail.expand : fr.rail.collapse}>{collapsed ? '»' : '«'}</button>
+          <button type="button" className="ath-iconbtn ath-iconbtn--inverse ath-collapse-btn" onClick={toggleRail} aria-expanded={!collapsed} aria-label={collapsed ? fr.rail.expand : fr.rail.collapse} title={collapsed ? fr.rail.expand : fr.rail.collapse}>{collapsed ? '»' : '«'}</button>
           <ThemeToggle />
-          <button type="button" className="ath-iconbtn" onClick={() => { setLocale(other); savePreference({ locale: other }); }} aria-label={fr.language} title={fr.language}><Flag locale={other} /></button>
-          <Link className="ath-iconbtn" to="/profil" aria-label={fr.profile.title} title={fr.profile.title}><ProfileIcon /></Link>
-          <Link className="ath-iconbtn" to="/help" aria-label={fr.nav.help} title={fr.nav.help}><HelpIcon /></Link>
-          <button type="button" className="ath-iconbtn" onClick={out} aria-label={fr.nav.logout} title={fr.nav.logout}><LogoutIcon /></button>
+          <button type="button" className="ath-iconbtn ath-iconbtn--inverse" onClick={() => { setLocale(other); savePreference({ locale: other }); }} aria-label={fr.language} title={fr.language}><Flag locale={other} /></button>
+          <Link className="ath-iconbtn ath-iconbtn--inverse" to="/profil" aria-label={fr.profile.title} title={fr.profile.title}><ProfileIcon /></Link>
+          <Link className="ath-iconbtn ath-iconbtn--inverse" to="/help" aria-label={fr.nav.help} title={fr.nav.help}><HelpIcon /></Link>
+          <button type="button" className="ath-iconbtn ath-iconbtn--inverse" onClick={out} aria-label={fr.nav.logout} title={fr.nav.logout}><LogoutIcon /></button>
         </>} />
       <main id="contenu" ref={mainRef} tabIndex={-1} className="ath-page__main">
         <div className="ath-topbar">

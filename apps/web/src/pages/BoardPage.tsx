@@ -7,6 +7,7 @@ import { DetailPanel } from '../components/DetailPanel';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
 import { fromHere } from '../lib/origin';
+import { DateTime } from '../lib/dates';
 
 type Card = BoardView['columns'][number]['cards'][number];
 type Lane = 'none' | 'assignee' | 'tracker';
@@ -110,7 +111,7 @@ export function BoardView({ session, project, board, header = true }: { session:
                   <div className="ath-row">
                     <StatusPill>{card.statusName ?? card.status}</StatusPill>
                     {card.priority && <span title={card.priorityLabel ?? undefined}>{card.priority}</span>}
-                    {card.due && <span className="ath-mono">{card.due}</span>}
+                    {card.due && <span className="ath-mono"><DateTime iso={card.due} date /></span>}
                     {card.assignee && <span>{card.assigneeName ?? card.assignee}</span>}
                   </div>
                   <label className="ath-field__label" htmlFor={`mv-${card.key}`}>{fr.board.moveTo}</label>
