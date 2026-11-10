@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { PageHeader } from '@athena/ui';
+import { PageHeader, Select } from '@athena/ui';
 import type { Session } from '../api';
 import { NotificationSettings } from '../components/NotificationSettings';
 import { fr, getLocale, setLocale, type Locale } from '../i18n';
@@ -25,23 +25,23 @@ export function ProfilePage({ session }: { session: Session }) {
           <legend>{p.display}</legend>
           <label className="ath-notify__pref">
             {p.language}
-            <select className="ath-select" value={locale} onChange={(e) => { const next = e.target.value as Locale; setLocale(next); setLocaleState(next); savePreference({ locale: next }); }}>
+            <Select value={locale} onChange={(e) => { const next = e.target.value as Locale; setLocale(next); setLocaleState(next); savePreference({ locale: next }); }}>
               <option value="fr">Français</option>
               <option value="en">English</option>
-            </select>
+            </Select>
           </label>
           <label className="ath-notify__pref">
             {p.theme}
-            <select className="ath-select" value={theme} onChange={(e) => { const next = e.target.value as ThemeChoice; setTheme(next); savePreference({ theme: next }); }}>
+            <Select value={theme} onChange={(e) => { const next = e.target.value as ThemeChoice; setTheme(next); savePreference({ theme: next }); }}>
               {THEME_CHOICES.map((t) => <option key={t} value={t}>{fr.theme.names[t]}</option>)}
-            </select>
+            </Select>
           </label>
           <label className="ath-notify__pref">
             {p.home}
-            <select className="ath-select" value={home} onChange={(e) => setHomePreference(e.target.value as HomeChoice)}>
+            <Select value={home} onChange={(e) => setHomePreference(e.target.value as HomeChoice)}>
               <option value="work">{fr.nav.work}</option>
               <option value="projects">{fr.nav.projects}</option>
-            </select>
+            </Select>
           </label>
         </fieldset>
         <h2 className="ath-section-title">{p.notifications}</h2>

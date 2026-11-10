@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Btn, EmptyState, Table, Tag, Td, Th } from '@athena/ui';
+import { Btn, EmptyState, Select, Table, Tag, Td, Th } from '@athena/ui';
 import { api } from '../api';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
-import { formatDateTime } from '../lib/dates';
+import { DateTime } from '../lib/dates';
 
 interface Baseline { name: string; gitTag: string; gitSha: string; docShas: Record<string, string | null>; createdBy: string; createdAt: string }
 interface DocDiff { source: string; from: string | null; to: string | null; added: Array<{ uid: string; title: string }>; modified: Array<{ uid: string; title: string }>; removed: Array<{ uid: string; title: string }> }
@@ -57,7 +57,7 @@ export function BaselineCompare({ project }: { project: string }) {
             <tr key={b.name}>
               <Td mono>{b.name}</Td><Td mono>{short(b.gitSha)}</Td>
               <Td>{Object.keys(b.docShas).length === 0 ? '—' : Object.entries(b.docShas).map(([s, sha]) => <div key={s}><span className="ath-mono">{s}</span> <span className="ath-mono">{short(sha)}</span></div>)}</Td>
-              <Td mono>{formatDateTime(b.createdAt)}</Td>
+              <Td mono><DateTime iso={b.createdAt} /></Td>
             </tr>
           ))}
         </tbody>
@@ -66,11 +66,11 @@ export function BaselineCompare({ project }: { project: string }) {
         <div className="ath-toolbar">
           <div className="ath-field">
             <label className="ath-field__label" htmlFor="bc-from">{t.from}</label>
-            <select id="bc-from" className="ath-select" value={from} onChange={(e) => setFrom(e.target.value)}>{items.map((b) => <option key={b.name} value={b.name}>{b.name}</option>)}</select>
+            <Select id="bc-from" value={from} onChange={(e) => setFrom(e.target.value)}>{items.map((b) => <option key={b.name} value={b.name}>{b.name}</option>)}</Select>
           </div>
           <div className="ath-field">
             <label className="ath-field__label" htmlFor="bc-to">{t.to}</label>
-            <select id="bc-to" className="ath-select" value={to} onChange={(e) => setTo(e.target.value)}>{items.map((b) => <option key={b.name} value={b.name}>{b.name}</option>)}</select>
+            <Select id="bc-to" value={to} onChange={(e) => setTo(e.target.value)}>{items.map((b) => <option key={b.name} value={b.name}>{b.name}</option>)}</Select>
           </div>
           <Btn disabled={!from || !to || from === to} onClick={() => void compare()}>{t.compare}</Btn>
           <Btn variant="ghost" disabled={!diff} onClick={() => void exportCsv()}>{t.exportCsv}</Btn>

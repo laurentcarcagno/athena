@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { Btn, Field, useToast } from '@athena/ui';
+import { Btn, Field, Select, useToast } from '@athena/ui';
 import { api } from '../api';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
@@ -14,14 +14,14 @@ export function TemplatePicker({ templates, onPick, id }: { templates: TrackerTe
   return (
     <div className="ath-field">
       <label className="ath-field__label" htmlFor={id}>{fr.builder.fromTemplate}</label>
-      <select id={id} className="ath-select" value={chosen} onChange={(e) => {
+      <Select id={id} value={chosen} onChange={(e) => {
         setChosen(e.target.value);
         const found = templates.find((t) => t.key === e.target.value);
         onPick(found ? (JSON.parse(JSON.stringify(found.tracker)) as DraftTracker) : emptyTracker());
       }}>
         <option value="">{fr.builder.blank}</option>
         {templates.map((t) => <option key={t.key} value={t.key}>{t.name}</option>)}
-      </select>
+      </Select>
     </div>
   );
 }

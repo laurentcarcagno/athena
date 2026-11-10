@@ -4,7 +4,7 @@ import { api } from '../api';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
 import { useConfirm } from './ConfirmDialog';
-import { formatDateTime } from '../lib/dates';
+import { DateTime } from '../lib/dates';
 
 type State = 'not_required' | 'pending' | 'approved' | 'rejected';
 interface Decision { approver: string; approverName: string; decision: 'approved' | 'rejected'; comment: string; decidedAt: string }
@@ -51,7 +51,7 @@ export function ApprovalsPanel({ project, canRequire, canDecide }: { project: st
                 <Td>
                   {o.decisions.length === 0 ? '—' : (
                     <ul>{o.decisions.map((d) => (
-                      <li key={d.approver}>{d.decision === 'approved' ? t.approvedBy(d.approverName) : t.rejectedBy(d.approverName)} <span className="ath-mono">{formatDateTime(d.decidedAt)}</span>{d.comment && <> · {d.comment}</>}</li>
+                      <li key={d.approver}>{d.decision === 'approved' ? t.approvedBy(d.approverName) : t.rejectedBy(d.approverName)} <span className="ath-mono"><DateTime iso={d.decidedAt} /></span>{d.comment && <> · {d.comment}</>}</li>
                     ))}</ul>
                   )}
                 </Td>

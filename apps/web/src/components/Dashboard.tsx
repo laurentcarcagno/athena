@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Btn, Card, StatusPill, useToast } from '@athena/ui';
+import { Btn, Card, Select, StatusPill, useToast } from '@athena/ui';
 import { api, type Hit, type SearchResult, type TrackerOverview } from '../api';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
@@ -214,11 +214,11 @@ export function Dashboard({ project, qa = false }: { project?: string; qa?: bool
         {editing && (
           <>
             <label className="ath-label" htmlFor="dash-add">{fr.home.addLabel}</label>
-            <select id="dash-add" className="ath-select" value={choice} onChange={(e) => setChoice(e.target.value)}>
+            <Select id="dash-add" value={choice} onChange={(e) => setChoice(e.target.value)}>
               <option value="">{fr.home.choose}</option>
               {missing.map((b) => <option key={b.id} value={`builtin:${b.id}`}>{fr.home.titles[b.id]}</option>)}
               {views.map((v) => <option key={v.id} value={`view:${v.id}`}>{v.name}</option>)}
-            </select>
+            </Select>
             <Btn variant="ghost" size="sm" disabled={choice === ''} onClick={() => void add()}>{fr.home.add}</Btn>
             <Btn variant="ghost" size="sm" disabled={layout.isDefault} onClick={() => void reset()}>{fr.home.reset}</Btn>
           </>

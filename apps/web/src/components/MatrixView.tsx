@@ -1,7 +1,7 @@
 import { getProtectionLevel, markCsv } from '../lib/protection';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type UIEvent } from 'react';
 import { Link } from 'react-router-dom';
-import { Btn, Tag, useToast } from '@athena/ui';
+import { Btn, Select, Tag, useToast } from '@athena/ui';
 import { ApiError, api } from '../api';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
@@ -180,15 +180,15 @@ export function MatrixView({ project, tracker, columnsTracker, linkType, tracker
       <div className="ath-toolbar">
         <div className="ath-field">
           <label className="ath-field__label" htmlFor="mx-cols">{fr.matrix.columns}</label>
-          <select id="mx-cols" className="ath-select" value={cols} onChange={(e) => onChange({ mx: e.target.value })}>
+          <Select id="mx-cols" value={cols} onChange={(e) => onChange({ mx: e.target.value })}>
             {others.map((t) => <option key={t} value={t}>{t}</option>)}
-          </select>
+          </Select>
         </div>
         <div className="ath-field">
           <label className="ath-field__label" htmlFor="mx-type">{fr.matrix.linkType}</label>
-          <select id="mx-type" className="ath-select" value={type ?? ''} onChange={(e) => onChange({ mt: e.target.value })}>
+          <Select id="mx-type" value={type ?? ''} onChange={(e) => onChange({ mt: e.target.value })}>
             {types.map((t) => <option key={t.key} value={t.key}>{t.outwardLabel} ({t.key})</option>)}
-          </select>
+          </Select>
         </div>
         <Btn type="button" variant="ghost" size="sm" disabled={!meta} onClick={() => void exportCsv()}>{fr.matrix.exportCsv}</Btn>
       </div>

@@ -1,5 +1,5 @@
 import { useEffect, useId, useState } from 'react';
-import { Btn, Card, Field, StatusPill, Table, Td, Th } from '@athena/ui';
+import { Btn, Card, Checkbox, Field, Select, StatusPill, Table, Td, Th } from '@athena/ui';
 import { api, type TrackerTypeEntry } from '../api';
 import { fr } from '../i18n';
 import type { Layout } from '../lib/layout';
@@ -69,10 +69,10 @@ export function TrackerBuilder({ value, onChange }: { value: DraftTracker; onCha
         <Field label={fr.builder.trackerName} value={value.name} onChange={(e) => onChange({ ...value, name: e.target.value })} />
         <div className="ath-field">
           <label className="ath-field__label" htmlFor={`${id}-trackertype`}>{fr.types.trackerType}</label>
-          <select id={`${id}-trackertype`} className="ath-select" value={value.typeKey ?? ''} onChange={(e) => pickType(e.target.value)}>
+          <Select id={`${id}-trackertype`} value={value.typeKey ?? ''} onChange={(e) => pickType(e.target.value)}>
             <option value="">{fr.types.noType}</option>
             {trackerTypes.map((t) => <option key={t.key} value={t.key}>{t.name}</option>)}
-          </select>
+          </Select>
         </div>
       </div>
 
@@ -93,15 +93,15 @@ export function TrackerBuilder({ value, onChange }: { value: DraftTracker; onCha
             <Field label={fr.config.label} value={field.label} onChange={(e) => setField({ ...field, label: e.target.value })} />
             <div className="ath-field">
               <label className="ath-field__label" htmlFor={`${id}-type`}>{fr.config.type}</label>
-              <select id={`${id}-type`} className="ath-select" value={field.type} onChange={(e) => setField({ ...field, type: e.target.value })}>{types.map((t) => <option key={t} value={t}>{t}</option>)}</select>
+              <Select id={`${id}-type`} value={field.type} onChange={(e) => setField({ ...field, type: e.target.value })}>{types.map((t) => <option key={t} value={t}>{t}</option>)}</Select>
             </div>
             {(field.type === 'select' || field.type === 'multiselect') && <Field label={fr.builder.optionsHelp} value={field.options} onChange={(e) => setField({ ...field, options: e.target.value })} />}
             <div className="ath-field">
               <label className="ath-field__label" htmlFor={`${id}-role`}>{fr.builder.role}</label>
-              <select id={`${id}-role`} className="ath-select" value={field.role} onChange={(e) => setField({ ...field, role: e.target.value })}>{ROLES.map((r) => <option key={r} value={r}>{r || '—'}</option>)}</select>
+              <Select id={`${id}-role`} value={field.role} onChange={(e) => setField({ ...field, role: e.target.value })}>{ROLES.map((r) => <option key={r} value={r}>{r || '—'}</option>)}</Select>
             </div>
-            <label className="ath-row"><input type="checkbox" checked={field.required} onChange={(e) => setField({ ...field, required: e.target.checked })} />{fr.config.required}</label>
-            <label className="ath-row" title={fr.suspicion.contentHelp}><input type="checkbox" checked={field.isContent} onChange={(e) => setField({ ...field, isContent: e.target.checked })} />{fr.suspicion.content}</label>
+            <label className="ath-row"><Checkbox checked={field.required} onChange={(e) => setField({ ...field, required: e.target.checked })} />{fr.config.required}</label>
+            <label className="ath-row" title={fr.suspicion.contentHelp}><Checkbox checked={field.isContent} onChange={(e) => setField({ ...field, isContent: e.target.checked })} />{fr.suspicion.content}</label>
             <Btn type="button" icon="plus" disabled={fieldInvalid} onClick={addField}>{fr.builder.addField}</Btn>
           </div>
         </div>
@@ -127,9 +127,9 @@ export function TrackerBuilder({ value, onChange }: { value: DraftTracker; onCha
             <Field label={`${fr.config.name} (${fr.config.statuses})`} value={status.name} onChange={(e) => setStatus({ ...status, name: e.target.value })} />
             <div className="ath-field">
               <label className="ath-field__label" htmlFor={`${id}-cat`}>{fr.config.category}</label>
-              <select id={`${id}-cat`} className="ath-select" value={status.category} onChange={(e) => setStatus({ ...status, category: e.target.value as DraftStatus['category'] })}>
+              <Select id={`${id}-cat`} value={status.category} onChange={(e) => setStatus({ ...status, category: e.target.value as DraftStatus['category'] })}>
                 {['todo', 'in_progress', 'done'].map((c) => <option key={c} value={c}>{c}</option>)}
-              </select>
+              </Select>
             </div>
             <Btn type="button" icon="plus" disabled={statusInvalid} onClick={addStatus}>{fr.builder.addStatus}</Btn>
           </div>

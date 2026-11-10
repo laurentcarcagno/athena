@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
-import { Btn, Card, EmptyState, Field, Table, Tag, Td, Th, useToast } from '@athena/ui';
+import { Btn, Card, Checkbox, EmptyState, Field, Select, Table, Tag, Td, Th, useToast } from '@athena/ui';
 import { api, type TrackerTypeEntry } from '../api';
 import { useBusy, useFailure } from '../hooks';
 import { fr } from '../i18n';
@@ -80,8 +80,8 @@ export function LinkTypesTab() {
             <Field label={fr.linkTypes.key} value={draft.key} onChange={(e) => setDraft({ ...draft, key: e.target.value })} mono readOnly={editing !== null} />
             <Field label={fr.linkTypes.outward} value={draft.outwardLabel} onChange={(e) => setDraft({ ...draft, outwardLabel: e.target.value })} />
             <Field label={fr.linkTypes.inward} value={draft.inwardLabel} onChange={(e) => setDraft({ ...draft, inwardLabel: e.target.value })} />
-            <label className="ath-row"><input type="checkbox" checked={draft.hierarchical} onChange={(e) => setDraft({ ...draft, hierarchical: e.target.checked })} />{fr.linkTypes.hierarchical}</label>
-            <label className="ath-row"><input type="checkbox" checked={draft.propagatesSuspect} onChange={(e) => setDraft({ ...draft, propagatesSuspect: e.target.checked })} />{fr.suspicion.propagates}</label>
+            <label className="ath-row"><Checkbox checked={draft.hierarchical} onChange={(e) => setDraft({ ...draft, hierarchical: e.target.checked })} />{fr.linkTypes.hierarchical}</label>
+            <label className="ath-row"><Checkbox checked={draft.propagatesSuspect} onChange={(e) => setDraft({ ...draft, propagatesSuspect: e.target.checked })} />{fr.suspicion.propagates}</label>
           </div>
           <span className="ath-eyebrow">{fr.linkTypes.pairsHelp}</span>
           <ul className="ath-taglist" aria-label={fr.linkTypes.pairs}>
@@ -96,10 +96,10 @@ export function LinkTypesTab() {
             {(['from', 'to'] as const).map((side) => (
               <div key={side} className="ath-field">
                 <label className="ath-field__label" htmlFor={`pair-${side}`}>{side === 'from' ? fr.linkTypes.fromType : fr.linkTypes.toType}</label>
-                <select id={`pair-${side}`} className="ath-select" value={pair[side]} onChange={(e) => setPair({ ...pair, [side]: e.target.value })}>
+                <Select id={`pair-${side}`} value={pair[side]} onChange={(e) => setPair({ ...pair, [side]: e.target.value })}>
                   <option value="" />
                   {trackerTypes.map((t) => <option key={t.key} value={t.key}>{t.name}</option>)}
-                </select>
+                </Select>
               </div>
             ))}
             <Btn type="button" icon="plus" disabled={pairInvalid} onClick={addPair}>{fr.linkTypes.addPair}</Btn>

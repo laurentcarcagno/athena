@@ -5,7 +5,7 @@ import { api, type TrackerOverview } from '../../api';
 import { categoryLabel } from '../../components/TrackerTypesTab';
 import { useFailure } from '../../hooks';
 import { fr } from '../../i18n';
-import { formatDate } from '../../lib/dates';
+import { DateTime } from '../../lib/dates';
 
 export const CATEGORY_ORDER = ['engineering', 'development', 'verification', 'management', 'other'] as const;
 
@@ -53,7 +53,7 @@ export function TrackerCard({ project, tracker }: { project: string; tracker: Tr
         <div className="ath-row">
           <span className="ath-mono">{fr.trackersTab.items(tracker.artifacts)}</span>
           {tracker.mine > 0 && <span className="ath-mono">{fr.trackersTab.mine(tracker.mine)}</span>}
-          <span className="ath-eyebrow">{fr.trackersTab.lastActivity} : {tracker.lastActivity ? <span className="ath-mono">{formatDate(tracker.lastActivity)}</span> : fr.trackersTab.never}</span>
+          <span className="ath-eyebrow">{fr.trackersTab.lastActivity} : {tracker.lastActivity ? <span className="ath-mono"><DateTime iso={tracker.lastActivity} date /></span> : fr.trackersTab.never}</span>
         </div>
         <Link className="ath-link" to={trackerHref(project, tracker.key)} aria-label={`${fr.trackersTab.openTracker} ${tracker.name}`}>{fr.trackersTab.openTracker}</Link>
       </div>

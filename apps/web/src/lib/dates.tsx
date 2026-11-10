@@ -15,3 +15,9 @@ function format(iso: string | null | undefined, options: Intl.DateTimeFormatOpti
 
 export const formatDateTime = (iso: string | null | undefined): string => format(iso, { dateStyle: 'short', timeStyle: 'short' });
 export const formatDate = (iso: string | null | undefined): string => format(iso, { dateStyle: 'short' });
+
+/** Date affichée dans un élément `<time>` (valeur machine en `dateTime`) : lisible, sémantique, et masquée dans les captures de test. */
+export function DateTime({ iso, date = false }: { iso: string | null | undefined; date?: boolean }) {
+  if (!iso) return null;
+  return <time dateTime={iso}>{date ? formatDate(iso) : formatDateTime(iso)}</time>;
+}

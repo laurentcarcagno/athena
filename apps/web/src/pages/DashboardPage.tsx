@@ -5,7 +5,7 @@ import { api } from '../api';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
 import { Bar, Gantt, type ReleaseSpan } from '../components/ReleaseCharts';
-import { formatDateTime } from '../lib/dates';
+import { DateTime } from '../lib/dates';
 
 interface DashboardData {
   byCategory: { todo: number; in_progress: number; done: number };
@@ -152,7 +152,7 @@ export function DashboardPage({ embedded = false }: { embedded?: boolean } = {})
           {data.recent.length === 0 ? <EmptyState eyebrow={fr.dashboard.recent} title={fr.admin.empty} /> : (
             <div className="ath-stack">
               {data.recent.slice(0, 6).map((r, i) => (
-                <div key={`${r.key}-${i}`} className="ath-row"><Link className="ath-link ath-mono" to={`/p/${project}/a/${r.key}`}>{r.key}</Link> <Id>{formatDateTime(r.at)}</Id></div>
+                <div key={`${r.key}-${i}`} className="ath-row"><Link className="ath-link ath-mono" to={`/p/${project}/a/${r.key}`}>{r.key}</Link> <Id><DateTime iso={r.at} /></Id></div>
               ))}
             </div>
           )}

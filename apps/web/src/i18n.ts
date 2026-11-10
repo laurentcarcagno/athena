@@ -18,6 +18,7 @@ const frDict = {
   },
   create: { title: 'Nouveau ticket', tracker: 'Tracker', project: 'Projet', submit: 'Créer', cancel: 'Annuler', created: (key: string) => `${key} créé.`, noTracker: 'Aucun tracker disponible.', openIt: (key: string) => `Ouvrir ${key}`, global: 'Créer un ticket' },
   artifact: {
+    readOnlyBy: (roles: string[]) => `Lecture seule : modifiable par ${roles.join(', ')}.`,
     details: 'Détails', links: 'Liens', history: 'Historique', activity: 'Commentaires', development: 'Développement',
     transitions: 'Transitions', save: 'Enregistrer', saved: 'Modification enregistrée.', comment: 'Commentaire', addComment: 'Ajouter',
     attachments: 'Pièces jointes', noAttachments: 'Aucune pièce jointe.', upload: 'Ajouter un fichier', download: 'Télécharger', removeAttachment: 'Supprimer', uploaded: 'Fichier ajouté.', removedAttachment: 'Pièce jointe supprimée.',
@@ -410,6 +411,7 @@ const enDict: Dictionary = {
   },
   create: { title: 'New artifact', tracker: 'Tracker', project: 'Project', submit: 'Create', cancel: 'Cancel', created: (key: string) => `${key} created.`, noTracker: 'No tracker available.', openIt: (key: string) => `Open ${key}`, global: 'Create a ticket' },
   artifact: {
+    readOnlyBy: (roles: string[]) => `Read only: editable by ${roles.join(', ')}.`,
     details: 'Details', links: 'Links', history: 'History', activity: 'Comments', development: 'Development',
     transitions: 'Transitions', save: 'Save', saved: 'Change saved.', comment: 'Comment', addComment: 'Add',
     attachments: 'Attachments', noAttachments: 'No attachment.', upload: 'Add a file', download: 'Download', removeAttachment: 'Delete', uploaded: 'File added.', removedAttachment: 'Attachment deleted.',

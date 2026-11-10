@@ -1,5 +1,5 @@
 import { useState, type DragEvent } from 'react';
-import { Btn } from '@athena/ui';
+import { Btn, Select } from '@athena/ui';
 import { fr } from '../i18n';
 import {
   addSection, autoLayout, moveField, moveSection, placeField, removeField, removeSection, renameSection, sanitize, setSpan, unplaced,
@@ -76,9 +76,9 @@ export function LayoutEditor({ fields, value, onChange }: { fields: FieldLite[];
                       <Btn size="sm" variant="ghost" aria-label={`${fr.layout.earlier} ${field.label}`} onClick={() => edit(moveField(layout, f.key, -1))}>◀</Btn>
                       <Btn size="sm" variant="ghost" aria-label={`${fr.layout.later} ${field.label}`} onClick={() => edit(moveField(layout, f.key, 1))}>▶</Btn>
                       {layout.sections.length > 1 && (
-                        <select className="ath-select" aria-label={`${fr.layout.moveTo} : ${field.label}`} value={si} onChange={(e) => edit(placeField(layout, f.key, Number(e.target.value)))}>
+                        <Select aria-label={`${fr.layout.moveTo} : ${field.label}`} value={si} onChange={(e) => edit(placeField(layout, f.key, Number(e.target.value)))}>
                           {layout.sections.map((_, i) => <option key={i} value={i}>{sectionName(i)}</option>)}
-                        </select>
+                        </Select>
                       )}
                       <Btn size="sm" variant="ghost" aria-label={`${fr.layout.unplace} ${field.label}`} onClick={() => edit(removeField(layout, f.key))}>×</Btn>
                     </div>

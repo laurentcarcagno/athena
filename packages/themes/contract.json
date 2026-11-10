@@ -126,7 +126,8 @@
     "font.leading.title",
     "font.leading.section",
     "font.leading.small",
-    "font.leading.body"
+    "font.leading.body",
+    "size.toggle"
   ],
   "contrast": [
     {

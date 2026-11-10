@@ -4,7 +4,7 @@
  */
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { useParams } from 'react-router-dom';
-import { Btn, Card, EmptyState, Field, PageHeader, StatusPill, Table, Tabs, Td, Th, useToast } from '@athena/ui';
+import { Btn, Card, EmptyState, Field, PageHeader, Select, StatusPill, Table, Tabs, Td, Textarea, Th, useToast } from '@athena/ui';
 import { api, type Session } from '../api';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
@@ -45,8 +45,8 @@ export function ActorsTab({ project }: { project: string }) {
           <thead><tr><Th>{fr.org.displayName}</Th><Th>{fr.org.username}</Th><Th>{fr.manage.role}</Th><Th>{fr.manage.removeActor}</Th></tr></thead>
           <tbody>{members.map((m) => (
             <tr key={m.subject}><Td>{m.displayName}</Td><Td mono>{m.username}</Td>
-              <Td><select className="ath-select" aria-label={`${fr.manage.role} ${m.username}`} value={m.role} onChange={(e) => set(m.subject, e.target.value)}>
-                <option value="manager">{fr.manage.manager}</option><option value="member">{fr.manage.member}</option></select></Td>
+              <Td><Select aria-label={`${fr.manage.role} ${m.username}`} value={m.role} onChange={(e) => set(m.subject, e.target.value)}>
+                <option value="manager">{fr.manage.manager}</option><option value="member">{fr.manage.member}</option></Select></Td>
               <Td><Btn icon="trash" size="sm" variant="ghost" aria-label={`${fr.manage.removeActor} ${m.username}`} onClick={() => remove(m.subject)}>{fr.manage.removeActor}</Btn></Td></tr>
           ))}</tbody>
         </Table>
@@ -54,15 +54,15 @@ export function ActorsTab({ project }: { project: string }) {
       <form className="ath-toolbar" onSubmit={(e) => { e.preventDefault(); void set(pick.subject, pick.role).then(() => setPick({ subject: '', role: 'member' })); }}>
         <div className="ath-field">
           <label className="ath-field__label" htmlFor="actor-user">{fr.org.chooseUser}</label>
-          <select id="actor-user" className="ath-select" value={pick.subject} onChange={(e) => setPick({ ...pick, subject: e.target.value })}>
+          <Select id="actor-user" value={pick.subject} onChange={(e) => setPick({ ...pick, subject: e.target.value })}>
             <option value="" />{candidates.map((u) => <option key={u.subject} value={u.subject}>{u.displayName} ({u.username})</option>)}
-          </select>
+          </Select>
         </div>
         <div className="ath-field">
           <label className="ath-field__label" htmlFor="actor-role">{fr.manage.role}</label>
-          <select id="actor-role" className="ath-select" value={pick.role} onChange={(e) => setPick({ ...pick, role: e.target.value })}>
+          <Select id="actor-role" value={pick.role} onChange={(e) => setPick({ ...pick, role: e.target.value })}>
             <option value="member">{fr.manage.member}</option><option value="manager">{fr.manage.manager}</option>
-          </select>
+          </Select>
         </div>
         <Btn type="submit" icon="plus" disabled={!pick.subject}>{fr.manage.addActor}</Btn>
       </form>
@@ -104,11 +104,11 @@ export function BoardsTab({ project }: { project: string }) {
           <Field label={fr.manage.boardName} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
           <div className="ath-field">
             <label className="ath-field__label" htmlFor="board-tracker">{fr.manage.boardTracker}</label>
-            <select id="board-tracker" className="ath-select" value={form.tracker} onChange={(e) => setForm({ ...form, tracker: e.target.value })}>{trackers.map((t) => <option key={t} value={t}>{t}</option>)}</select>
+            <Select id="board-tracker" value={form.tracker} onChange={(e) => setForm({ ...form, tracker: e.target.value })}>{trackers.map((t) => <option key={t} value={t}>{t}</option>)}</Select>
           </div>
         </div>
         <label className="ath-field__label" htmlFor="board-columns">{fr.manage.boardColumns}</label>
-        <textarea id="board-columns" className="ath-input ath-mono" rows={4} value={form.columns} onChange={(e) => setForm({ ...form, columns: e.target.value })} />
+        <Textarea id="board-columns" className="ath-mono" rows={4} value={form.columns} onChange={(e) => setForm({ ...form, columns: e.target.value })} />
         <div><Btn type="submit" disabled={!form.key || !form.name.trim() || parseColumns(form.columns).length === 0}>{fr.manage.createBoard}</Btn></div>
       </form>
     </div>

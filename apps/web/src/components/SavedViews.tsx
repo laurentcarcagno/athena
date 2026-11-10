@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
-import { Btn, Field, Tag, useToast } from '@athena/ui';
+import { Btn, Checkbox, Field, Select, Tag, useToast } from '@athena/ui';
 import { api, type SavedFilter } from '../api';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
@@ -76,10 +76,10 @@ export function SavedViews({ project, tracker, current, roles, onApply, onLoaded
       <div className="ath-toolbar">
         <div className="ath-field">
           <label className="ath-field__label" htmlFor="saved-views">{fr.filters.views}</label>
-          <select id="saved-views" className="ath-select" value={active?.id ?? ''} onChange={(e) => { const v = views.find((x) => x.id === e.target.value); onApply(v ? viewOf(v) : { fragment: '', sort: null, columns: null }); }}>
+          <Select id="saved-views" value={active?.id ?? ''} onChange={(e) => { const v = views.find((x) => x.id === e.target.value); onApply(v ? viewOf(v) : { fragment: '', sort: null, columns: null }); }}>
             <option value="">{fr.filters.noView}</option>
             {views.map((v) => <option key={v.id} value={v.id}>{v.name}{v.shared ? ' ⇄' : ''}{v.isDefault ? ` · ${fr.filters.defaultTag}` : ''}</option>)}
-          </select>
+          </Select>
         </div>
         {active?.isDefault && <Tag>{fr.filters.defaultTag}</Tag>}
         {active && <SubscribeToggle project={project} scope="view" target={active.id} />}
@@ -91,8 +91,8 @@ export function SavedViews({ project, tracker, current, roles, onApply, onLoaded
       {form.open && (
         <form className="ath-toolbar" onSubmit={save}>
           <Field label={fr.filters.viewName} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-          <label className="ath-row"><input type="checkbox" checked={form.shared || form.isDefault} disabled={form.isDefault} onChange={(e) => setForm({ ...form, shared: e.target.checked })} />{fr.filters.sharedView}</label>
-          {manager && <label className="ath-row"><input type="checkbox" checked={form.isDefault} onChange={(e) => setForm({ ...form, isDefault: e.target.checked })} />{fr.filters.defaultView}</label>}
+          <label className="ath-row"><Checkbox checked={form.shared || form.isDefault} disabled={form.isDefault} onChange={(e) => setForm({ ...form, shared: e.target.checked })} />{fr.filters.sharedView}</label>
+          {manager && <label className="ath-row"><Checkbox checked={form.isDefault} onChange={(e) => setForm({ ...form, isDefault: e.target.checked })} />{fr.filters.defaultView}</label>}
           <Btn icon="save" type="submit" disabled={!form.name.trim()}>{fr.filters.saveView}</Btn>
           <Btn icon="close" type="button" variant="ghost" onClick={() => setForm({ open: false, name: '', shared: false, isDefault: false })}>{fr.builder.cancel}</Btn>
         </form>

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { useParams } from 'react-router-dom';
-import { Btn, Card, Field as TextField, PageHeader, StatusPill, Table, Td, Th, useToast } from '@athena/ui';
+import { Btn, Card, Checkbox, Field as TextField, PageHeader, Select, StatusPill, Table, Td, Th, useToast } from '@athena/ui';
 import { ApiError, api, type Session, type TrackerDefinition, type TrackerTypeEntry } from '../api';
 import { useConfirm } from '../components/ConfirmDialog';
 import { useBusy, useFailure } from '../hooks';
@@ -93,12 +93,12 @@ export function TrackerConfigPage({ session }: { session: Session }) {
       {admin && (
         <div className="ath-field">
           <label className="ath-field__label" htmlFor="cfg-history">{fr.config.historyMode}</label>
-          <select id="cfg-history" className="ath-select" value={def.historyMode ?? 'direct'} onChange={async (e) => {
+          <Select id="cfg-history" value={def.historyMode ?? 'direct'} onChange={async (e) => {
             try { await api('PATCH', `${base}/history-mode`, { mode: e.target.value }); toast('success', fr.config.added); await reload(); } catch (error) { fail(error); }
           }}>
             <option value="direct">{fr.config.historyDirect}</option>
             <option value="merge_request">{fr.config.historyMr}</option>
-          </select>
+          </Select>
         </div>
       )}
       <div className="ath-stack">
@@ -107,7 +107,7 @@ export function TrackerConfigPage({ session }: { session: Session }) {
             <thead><tr><Th>{fr.config.key}</Th><Th>{fr.config.label}</Th><Th>{fr.config.type}</Th><Th>{fr.config.required}</Th><Th>{fr.suspicion.column}</Th><Th>{fr.config.roles}</Th>{admin && <Th>{fr.config.remove}</Th>}</tr></thead>
             <tbody>{def.fields.map((f) => (
               <tr key={f.key}><Td mono>{f.key}</Td><Td>{f.label}</Td><Td mono>{f.type}</Td><Td>{f.required ? '✓' : ''}</Td>
-                <Td>{admin ? <input type="checkbox" aria-label={`${fr.suspicion.toggle} ${f.key}`} checked={f.isContent !== false} onChange={(e) => void setContent(f.key, e.target.checked)} /> : (f.isContent === false ? '' : '✓')}</Td>
+                <Td>{admin ? <Checkbox aria-label={`${fr.suspicion.toggle} ${f.key}`} checked={f.isContent !== false} onChange={(e) => void setContent(f.key, e.target.checked)} /> : (f.isContent === false ? '' : '✓')}</Td>
                 <Td mono>{f.readRoles || f.writeRoles ? `R: ${f.readRoles?.join(', ') ?? fr.config.everyone} · W: ${f.writeRoles?.join(', ') ?? fr.config.everyone}` : fr.config.everyone}</Td>
                 {admin && <Td>{f.semanticRole !== 'title' && <Btn icon="trash" size="sm" variant="ghost" aria-label={`${fr.config.remove} ${f.key}`} onClick={() => removeField(f.key)}>{fr.config.remove}</Btn>}</Td>}</tr>
             ))}</tbody>
@@ -118,11 +118,11 @@ export function TrackerConfigPage({ session }: { session: Session }) {
               <TextField label={fr.config.label} value={field.label} onChange={(e) => setField({ ...field, label: e.target.value })} />
               <div className="ath-field">
                 <label className="ath-field__label" htmlFor="cfg-type">{fr.config.type}</label>
-                <select id="cfg-type" className="ath-select" value={field.type} onChange={(e) => setField({ ...field, type: e.target.value })}>
+                <Select id="cfg-type" value={field.type} onChange={(e) => setField({ ...field, type: e.target.value })}>
                   {types.map((t) => <option key={t} value={t}>{t}</option>)}
-                </select>
+                </Select>
               </div>
-              <label className="ath-row" title={fr.suspicion.contentHelp}><input type="checkbox" checked={field.isContent} onChange={(e) => setField({ ...field, isContent: e.target.checked })} />{fr.suspicion.content}</label>
+              <label className="ath-row" title={fr.suspicion.contentHelp}><Checkbox checked={field.isContent} onChange={(e) => setField({ ...field, isContent: e.target.checked })} />{fr.suspicion.content}</label>
               <TextField label={fr.config.readRoles} value={field.readRoles} onChange={(e) => setField({ ...field, readRoles: e.target.value })} />
               <TextField label={fr.config.writeRoles} value={field.writeRoles} onChange={(e) => setField({ ...field, writeRoles: e.target.value })} />
               <Btn type="submit" icon="plus" disabled={!field.key || !field.label}>{fr.config.add}</Btn>
@@ -133,10 +133,10 @@ export function TrackerConfigPage({ session }: { session: Session }) {
           <Card title={fr.types.trackerType}>
             <div className="ath-field">
               <label className="ath-field__label" htmlFor="cfg-tracker-type">{fr.types.trackerType}</label>
-              <select id="cfg-tracker-type" className="ath-select" value={def.typeKey ?? ''} onChange={(e) => void saveType(e.target.value)}>
+              <Select id="cfg-tracker-type" value={def.typeKey ?? ''} onChange={(e) => void saveType(e.target.value)}>
                 <option value="">{fr.types.noType}</option>
                 {trackerTypes.map((t) => <option key={t.key} value={t.key}>{t.name}</option>)}
-              </select>
+              </Select>
             </div>
           </Card>
         )}
@@ -162,9 +162,9 @@ export function TrackerConfigPage({ session }: { session: Session }) {
               <TextField label={fr.config.name} value={status.name} onChange={(e) => setStatus({ ...status, name: e.target.value })} />
               <div className="ath-field">
                 <label className="ath-field__label" htmlFor="cfg-cat">{fr.config.category}</label>
-                <select id="cfg-cat" className="ath-select" value={status.category} onChange={(e) => setStatus({ ...status, category: e.target.value })}>
+                <Select id="cfg-cat" value={status.category} onChange={(e) => setStatus({ ...status, category: e.target.value })}>
                   {['todo', 'in_progress', 'done'].map((c) => <option key={c} value={c}>{c}</option>)}
-                </select>
+                </Select>
               </div>
               <Btn type="submit" icon="plus" disabled={!status.key || !status.name}>{fr.config.add}</Btn>
             </form>
@@ -190,17 +190,17 @@ export function TrackerConfigPage({ session }: { session: Session }) {
               <TextField label={fr.config.name} value={transition.name} onChange={(e) => setTransition({ ...transition, name: e.target.value })} />
               <div className="ath-field">
                 <label className="ath-field__label" htmlFor="cfg-from">{fr.config.from}</label>
-                <select id="cfg-from" className="ath-select" value={transition.from} onChange={(e) => setTransition({ ...transition, from: e.target.value })}>
+                <Select id="cfg-from" value={transition.from} onChange={(e) => setTransition({ ...transition, from: e.target.value })}>
                   <option value="">{fr.config.anyState}</option>
                   {def.statuses.map((s) => <option key={s.id} value={s.key}>{s.key}</option>)}
-                </select>
+                </Select>
               </div>
               <div className="ath-field">
                 <label className="ath-field__label" htmlFor="cfg-to">{fr.config.to}</label>
-                <select id="cfg-to" className="ath-select" value={transition.to} onChange={(e) => setTransition({ ...transition, to: e.target.value })}>
+                <Select id="cfg-to" value={transition.to} onChange={(e) => setTransition({ ...transition, to: e.target.value })}>
                   <option value="" />
                   {def.statuses.map((s) => <option key={s.id} value={s.key}>{s.key}</option>)}
-                </select>
+                </Select>
               </div>
               <TextField label={fr.config.allowedRoles} value={transition.roles} onChange={(e) => setTransition({ ...transition, roles: e.target.value })} />
               <Btn type="submit" icon="plus" disabled={!transition.name || !transition.to}>{fr.config.add}</Btn>

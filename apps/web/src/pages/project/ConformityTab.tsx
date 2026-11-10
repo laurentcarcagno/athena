@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Btn, EmptyState, PageHeader, Table, Tag, Td, Th, useToast } from '@athena/ui';
+import { Btn, EmptyState, PageHeader, Select, Table, Tag, Td, Textarea, Th, useToast } from '@athena/ui';
 import { api, type Session } from '../../api';
 import { useFailure } from '../../hooks';
 import { fr } from '../../i18n';
@@ -55,9 +55,9 @@ export function ConformityTab({ session }: { session: Session }) {
             {data.categories.length > 0 && (
               <div className="ath-field">
                 <label className="ath-field__label" htmlFor="cf-category">{t.category}</label>
-                <select id="cf-category" className="ath-select" value={category ?? ''} onChange={(e) => setCategory(e.target.value || null)}>
+                <Select id="cf-category" value={category ?? ''} onChange={(e) => setCategory(e.target.value || null)}>
                   {data.categories.map((c) => <option key={c} value={c}>{c}</option>)}
-                </select>
+                </Select>
               </div>
             )}
           </section>
@@ -103,16 +103,16 @@ function TailoringForm({ project, row, categories, current, onCancel, onSaved }:
       <h2 className="ath-section-title">{t.tailorFor(row.reference)}</h2>
       <div className="ath-toolbar">
         <div className="ath-field"><label className="ath-field__label" htmlFor="tl-app">{t.applicability}</label>
-          <select id="tl-app" className="ath-select" value={applicability} onChange={(e) => setApplicability(e.target.value as Applicability)}>
+          <Select id="tl-app" value={applicability} onChange={(e) => setApplicability(e.target.value as Applicability)}>
             {(['applicable', 'not_applicable', 'modified'] as const).map((a) => <option key={a} value={a}>{t.applicabilities[a]}</option>)}
-          </select></div>
+          </Select></div>
         <div className="ath-field"><label className="ath-field__label" htmlFor="tl-scope">{t.scope}</label>
-          <select id="tl-scope" className="ath-select" value={scope} onChange={(e) => setScope(e.target.value)}>
+          <Select id="tl-scope" value={scope} onChange={(e) => setScope(e.target.value)}>
             <option value="*">{t.allScope}</option>{categories.map((c) => <option key={c} value={c}>{c}</option>)}
-          </select></div>
+          </Select></div>
       </div>
       <div className="ath-field"><label className="ath-field__label" htmlFor="tl-just">{t.justification}</label>
-        <textarea id="tl-just" className="ath-input" rows={3} maxLength={2000} aria-invalid={error ? true : undefined} aria-describedby={error ? 'tl-err' : undefined} value={justification} onChange={(e) => setJustification(e.target.value)} />
+        <Textarea id="tl-just" rows={3} maxLength={2000} aria-invalid={error ? true : undefined} aria-describedby={error ? 'tl-err' : undefined} value={justification} onChange={(e) => setJustification(e.target.value)} />
         {error && <p id="tl-err" role="alert">{error}</p>}</div>
       <div className="ath-toolbar"><Btn icon="save" type="submit">{t.save}</Btn><Btn icon="close" type="button" variant="ghost" onClick={onCancel}>{fr.confirm.cancel}</Btn></div>
     </form>

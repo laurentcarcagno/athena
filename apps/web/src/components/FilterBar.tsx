@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { Btn, Field, FilterChip } from '@athena/ui';
+import { Btn, Checkbox, Field, FilterChip, Select } from '@athena/ui';
 import type { TrackerDefinition } from '../api';
 import { fr } from '../i18n';
 import { emptyModel, fromAtql, isEmpty, toAtql, type FilterModel } from '../lib/filter-query';
@@ -34,16 +34,16 @@ export function FilterBar({ def, fragment, username, onChange, error }: {
       {showChips && model ? (
         <div className="ath-toolbar">
           {hasAssignee && (
-            <label className="ath-row"><input type="checkbox" checked={!!model.mine} onChange={(e) => update({ ...model, mine: e.target.checked })} />{fr.filters.mine}</label>
+            <label className="ath-row"><Checkbox checked={!!model.mine} onChange={(e) => update({ ...model, mine: e.target.checked })} />{fr.filters.mine}</label>
           )}
-          <label className="ath-row"><input type="checkbox" checked={!!model.suspect} onChange={(e) => update({ ...model, suspect: e.target.checked })} />{fr.filters.suspect}</label>
+          <label className="ath-row"><Checkbox checked={!!model.suspect} onChange={(e) => update({ ...model, suspect: e.target.checked })} />{fr.filters.suspect}</label>
           {selects.map((f) => (
             <div key={f.key} className="ath-field">
               <label className="ath-field__label" htmlFor={`flt-${f.key}`}>{f.label}</label>
-              <select id={`flt-${f.key}`} className="ath-select" value={model.fields[f.key] ?? ''} onChange={(e) => withField(f.key, e.target.value)}>
+              <Select id={`flt-${f.key}`} value={model.fields[f.key] ?? ''} onChange={(e) => withField(f.key, e.target.value)}>
                 <option value="">{fr.filters.all}</option>
                 {(f.config['options'] as string[]).map((o) => <option key={o} value={o}>{o}</option>)}
-              </select>
+              </Select>
             </div>
           ))}
           <form className="ath-row" onSubmit={submitText}>

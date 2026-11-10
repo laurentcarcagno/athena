@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Btn, EmptyState, PageHeader, Table, Tag, Td, Th, useToast } from '@athena/ui';
+import { Btn, EmptyState, PageHeader, Select, Table, Tag, Td, Th, useToast } from '@athena/ui';
 import { api, type Session } from '../../api';
 import { useConfirm } from '../../components/ConfirmDialog';
 import { useFailure } from '../../hooks';
@@ -124,12 +124,12 @@ function RuleForm({ project, trackers, types, editing, onCancel, onSaved }: { pr
       <div className="ath-toolbar">
         {field('cr-key', t.ruleKey, <input id="cr-key" className="ath-input ath-mono" required readOnly={editing !== null} pattern="[a-z][a-z0-9_\-]{0,39}" value={form.key} onChange={(e) => set('key', e.target.value)} />)}
         {field('cr-name', t.ruleName, <input id="cr-name" className="ath-input" required maxLength={200} value={form.name} onChange={(e) => set('name', e.target.value)} />)}
-        {field('cr-scope', t.scope, <select id="cr-scope" className="ath-select" disabled={editing !== null} value={form.scope} onChange={(e) => set('scope', e.target.value)}><option value="project">{t.scopes.project}</option><option value="organization">{t.scopes.organization}</option></select>)}
+        {field('cr-scope', t.scope, <Select id="cr-scope" disabled={editing !== null} value={form.scope} onChange={(e) => set('scope', e.target.value)}><option value="project">{t.scopes.project}</option><option value="organization">{t.scopes.organization}</option></Select>)}
       </div>
       <div className="ath-toolbar">
-        {field('cr-tracker', t.fromTracker, <select id="cr-tracker" className="ath-select" value={form.fromTracker} onChange={(e) => set('fromTracker', e.target.value)}>{trackers.map((k) => <option key={k} value={k}>{k}</option>)}</select>)}
-        {field('cr-type', t.linkType, <select id="cr-type" className="ath-select" value={form.linkType} onChange={(e) => set('linkType', e.target.value)}>{types.map((x) => <option key={x.key} value={x.key}>{x.outwardLabel} ({x.key})</option>)}</select>)}
-        {field('cr-direction', t.direction, <select id="cr-direction" className="ath-select" value={form.direction} onChange={(e) => set('direction', e.target.value)}>{(['any', 'in', 'out'] as const).map((d) => <option key={d} value={d}>{t.directions[d]}</option>)}</select>)}
+        {field('cr-tracker', t.fromTracker, <Select id="cr-tracker" value={form.fromTracker} onChange={(e) => set('fromTracker', e.target.value)}>{trackers.map((k) => <option key={k} value={k}>{k}</option>)}</Select>)}
+        {field('cr-type', t.linkType, <Select id="cr-type" value={form.linkType} onChange={(e) => set('linkType', e.target.value)}>{types.map((x) => <option key={x.key} value={x.key}>{x.outwardLabel} ({x.key})</option>)}</Select>)}
+        {field('cr-direction', t.direction, <Select id="cr-direction" value={form.direction} onChange={(e) => set('direction', e.target.value)}>{(['any', 'in', 'out'] as const).map((d) => <option key={d} value={d}>{t.directions[d]}</option>)}</Select>)}
         {field('cr-min', t.minCount, <input id="cr-min" className="ath-input ath-mono" type="number" min={1} max={100} required value={form.minCount} onChange={(e) => set('minCount', e.target.value)} />)}
       </div>
       <div className="ath-toolbar">

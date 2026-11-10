@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
-import { Btn, EmptyState, Field, PageHeader, StatusPill, Table, Tag, Td, Th, useToast } from '@athena/ui';
+import { Btn, EmptyState, Field, PageHeader, Select, StatusPill, Table, Tag, Td, Th, useToast } from '@athena/ui';
 import { ApiError, api, type SearchResult, type Session } from '../api';
 import { pillKind } from '../components/ArtifactTable';
 import { useConfirm } from '../components/ConfirmDialog';
@@ -100,10 +100,10 @@ export function GlobalSearchPage({ session }: { session: Session }) {
           <input className="ath-input ath-mono" size={60} aria-label={t.atql} placeholder={fr.list.placeholder} value={draft} onChange={(e) => setDraft(e.target.value)} autoComplete="off" />
           <Btn type="submit" icon="search">{t.run}</Btn>
           <label className="ath-field__label" htmlFor="global-views">{t.views}</label>
-          <select id="global-views" className="ath-select" value={active?.id ?? ''} onChange={(e) => { const v = views.find((x) => x.id === e.target.value); go({ q: v?.query ?? '', p: v?.projects ?? [], o: 0 }); }}>
+          <Select id="global-views" value={active?.id ?? ''} onChange={(e) => { const v = views.find((x) => x.id === e.target.value); go({ q: v?.query ?? '', p: v?.projects ?? [], o: 0 }); }}>
             <option value="">{t.noView}</option>
             {views.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
-          </select>
+          </Select>
           {active && <Btn type="button" variant="ghost" size="sm" icon="trash" onClick={() => void remove()}>{t.deleteView}</Btn>}
           {(query || scope.length > 0) && !active && <Btn type="button" variant="ghost" size="sm" icon="save" onClick={() => setSaving('')}>{t.save}</Btn>}
         </form>

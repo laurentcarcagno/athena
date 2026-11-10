@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
-import { Btn, EmptyState, PageHeader, Table, Td, Th } from '@athena/ui';
+import { Btn, EmptyState, PageHeader, Select, Table, Td, Th } from '@athena/ui';
 import { api } from '../../api';
 import { useFailure } from '../../hooks';
 import { fr } from '../../i18n';
-import { formatDateTime } from '../../lib/dates';
+import { DateTime } from '../../lib/dates';
 
 type Kind = 'created' | 'updated' | 'transition' | 'comment';
 interface Item { id: string; kind: Kind; at: string; key: string; tracker: string; actor: string; actorName: string; fields: string[]; from: string | null; to: string | null }
@@ -57,24 +57,24 @@ export function ActivityTab() {
       <div className="ath-toolbar" role="search" aria-label={fr.activity.filters}>
         <div className="ath-field">
           <label className="ath-field__label" htmlFor="act-tracker">{fr.activity.tracker}</label>
-          <select id="act-tracker" className="ath-select" value={tracker} onChange={(e) => set('t', e.target.value)}>
+          <Select id="act-tracker" value={tracker} onChange={(e) => set('t', e.target.value)}>
             <option value="">{fr.filters.all}</option>
             {trackers.map((t) => <option key={t} value={t}>{t}</option>)}
-          </select>
+          </Select>
         </div>
         <div className="ath-field">
           <label className="ath-field__label" htmlFor="act-actor">{fr.activity.person}</label>
-          <select id="act-actor" className="ath-select" value={actor} onChange={(e) => set('a', e.target.value)}>
+          <Select id="act-actor" value={actor} onChange={(e) => set('a', e.target.value)}>
             <option value="">{fr.filters.all}</option>
             {people.map((p) => <option key={p.subject} value={p.subject}>{p.name}</option>)}
-          </select>
+          </Select>
         </div>
         <div className="ath-field">
           <label className="ath-field__label" htmlFor="act-kind">{fr.activity.kind}</label>
-          <select id="act-kind" className="ath-select" value={kind} onChange={(e) => set('k', e.target.value)}>
+          <Select id="act-kind" value={kind} onChange={(e) => set('k', e.target.value)}>
             <option value="">{fr.filters.all}</option>
             {KINDS.map((k) => <option key={k} value={k}>{fr.activity.kinds[k]}</option>)}
-          </select>
+          </Select>
         </div>
       </div>
       {items === null ? <p role="status">{fr.loading}</p> : items.length === 0 ? (
@@ -86,7 +86,7 @@ export function ActivityTab() {
             <tbody>
               {items.map((i) => (
                 <tr key={i.id}>
-                  <Td mono mute>{formatDateTime(i.at)}</Td>
+                  <Td mono mute><DateTime iso={i.at} /></Td>
                   <Td>{i.actorName}</Td>
                   <Td><Sentence item={i} /></Td>
                   <Td><Link className="ath-link ath-mono" to={`/p/${project}/a/${i.key}`}>{i.key}</Link></Td>

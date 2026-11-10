@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { Btn, Field, useToast } from '@athena/ui';
+import { Btn, Field, Select, useToast } from '@athena/ui';
 import { api } from '../api';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
@@ -68,9 +68,9 @@ export function ProjectTemplateEditor({ template, trackerTemplates, onSaved, onC
         <div className="ath-toolbar">
           <div className="ath-field">
             <label className="ath-field__label" htmlFor="ptpl-add">{fr.builder.pickTemplateToAdd}</label>
-            <select id="ptpl-add" className="ath-select" value={toAdd} onChange={(e) => setToAdd(e.target.value)}>
+            <Select id="ptpl-add" value={toAdd} onChange={(e) => setToAdd(e.target.value)}>
               <option value="" />{trackerTemplates.filter((t) => !trackers.some((x) => x.key === t.tracker.key)).map((t) => <option key={t.key} value={t.key}>{t.name} ({t.tracker.key})</option>)}
-            </select>
+            </Select>
           </div>
           <Btn type="button" variant="ghost" icon="plus" disabled={!toAdd} onClick={add}>{fr.builder.addFromTemplate}</Btn>
         </div>

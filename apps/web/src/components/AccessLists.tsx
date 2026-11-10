@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Btn, EmptyState, Table, Tag, Td, Th, useToast } from '@athena/ui';
+import { Btn, EmptyState, Select, Table, Tag, Td, Th, useToast } from '@athena/ui';
 import { api } from '../api';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
@@ -80,9 +80,9 @@ export function AccessLists({ project, me }: { project: string; me: string | und
           <div className="ath-toolbar">
             <div className="ath-field">
               <label className="ath-field__label" htmlFor={`al-add-${l.tracker ?? 'project'}`}>{t.addMember}</label>
-              <select id={`al-add-${l.tracker ?? 'project'}`} className="ath-select" value={pick} onChange={(e) => setPick(e.target.value)}>
+              <Select id={`al-add-${l.tracker ?? 'project'}`} value={pick} onChange={(e) => setPick(e.target.value)}>
                 <option value="" />{users.filter((u) => !l.members.some((m) => m.subject === u.subject)).map((u) => <option key={u.subject} value={u.subject}>{u.displayName} ({u.username})</option>)}
-              </select>
+              </Select>
             </div>
             <Btn disabled={!pick} onClick={() => void add(l.tracker ?? '')}>{t.add}</Btn>
             <Btn variant="danger" onClick={() => void removeList(l.tracker ?? '')}>{t.deleteList}</Btn>
@@ -93,15 +93,15 @@ export function AccessLists({ project, me }: { project: string; me: string | und
         <div className="ath-toolbar">
           <div className="ath-field">
             <label className="ath-field__label" htmlFor="al-scope">{t.scope}</label>
-            <select id="al-scope" className="ath-select" value={target} onChange={(e) => setScope(e.target.value)}>
+            <Select id="al-scope" value={target} onChange={(e) => setScope(e.target.value)}>
               {without.map((s) => <option key={s} value={s}>{label(s)}</option>)}
-            </select>
+            </Select>
           </div>
           <div className="ath-field">
             <label className="ath-field__label" htmlFor="al-first">{t.firstMember}</label>
-            <select id="al-first" className="ath-select" value={pick} onChange={(e) => setPick(e.target.value)}>
+            <Select id="al-first" value={pick} onChange={(e) => setPick(e.target.value)}>
               <option value="" />{users.map((u) => <option key={u.subject} value={u.subject}>{u.displayName} ({u.username})</option>)}
-            </select>
+            </Select>
           </div>
           <Btn icon="plus" onClick={() => void create()}>{t.create}</Btn>
         </div>

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Btn, useToast } from '@athena/ui';
+import { Btn, Checkbox, Select, useToast } from '@athena/ui';
 import { api } from '../api';
 import { useBusy, useFailure } from '../hooks';
 import { fr } from '../i18n';
@@ -42,7 +42,7 @@ export function ApprovalFlowEditor({ project, tracker }: { project: string; trac
   return (
     <div className="ath-stack">
       <p className="ath-eyebrow">{t.flowHelp}</p>
-      <label className="ath-notify__pref"><input type="checkbox" checked={enabled} onChange={(e) => setEnabled(e.target.checked)} />{t.flowEnabled}</label>
+      <label className="ath-notify__pref"><Checkbox checked={enabled} onChange={(e) => setEnabled(e.target.checked)} />{t.flowEnabled}</label>
       <ol className="ath-approval-steps" aria-label={t.steps}>
         {steps.map((s, i) => (
           <li key={i} className="ath-approval-step">
@@ -50,16 +50,16 @@ export function ApprovalFlowEditor({ project, tracker }: { project: string; trac
               <label className="ath-field__label" htmlFor={`step-name-${i}`}>{t.stepName(i + 1)}</label>
               <input id={`step-name-${i}`} className="ath-input" value={s.name} maxLength={120} onChange={(e) => patch(i, { name: e.target.value })} />
               <label className="ath-field__label" htmlFor={`step-kind-${i}`}>{t.stepKind(i + 1)}</label>
-              <select id={`step-kind-${i}`} className="ath-select" value={s.kind} onChange={(e) => patch(i, { kind: e.target.value as Step['kind'] })}>
+              <Select id={`step-kind-${i}`} value={s.kind} onChange={(e) => patch(i, { kind: e.target.value as Step['kind'] })}>
                 <option value="review">{t.kinds.review}</option>
                 <option value="approval">{t.kinds.approval}</option>
-              </select>
+              </Select>
               <label className="ath-field__label" htmlFor={`step-people-${i}`}>{t.stepPeople(i + 1)}</label>
-              <select id={`step-people-${i}`} className="ath-select" multiple size={Math.min(6, Math.max(3, users.length))} value={s.approvers}
+              <Select id={`step-people-${i}`} multiple size={Math.min(6, Math.max(3, users.length))} value={s.approvers}
                 onChange={(e) => patch(i, { approvers: [...e.target.selectedOptions].map((o) => o.value) })}>
                 {users.map((u) => <option key={u.subject} value={u.subject}>{u.displayName} ({u.username})</option>)}
-              </select>
-              <label className="ath-notify__pref"><input type="checkbox" checked={s.role} onChange={(e) => patch(i, { role: e.target.checked })} />{t.stepQa(i + 1)}</label>
+              </Select>
+              <label className="ath-notify__pref"><Checkbox checked={s.role} onChange={(e) => patch(i, { role: e.target.checked })} />{t.stepQa(i + 1)}</label>
               <label className="ath-field__label" htmlFor={`step-min-${i}`}>{t.stepMin(i + 1)}</label>
               <input id={`step-min-${i}`} className="ath-input" type="number" min={1} max={20} value={s.minApprovals} onChange={(e) => patch(i, { minApprovals: Math.max(1, Number(e.target.value) || 1) })} />
               <div className="ath-row">

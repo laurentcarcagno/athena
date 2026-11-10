@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Btn, Field, Table, Tag, Td, Th, useToast } from '@athena/ui';
+import { Btn, Checkbox, Field, Select, Table, Tag, Td, Textarea, Th, useToast } from '@athena/ui';
 import { api } from '../api';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
@@ -59,8 +59,8 @@ const fieldInput = (f: NField) => {
   const id = `pv-${f.key}`;
   const label = <label className="ath-field__label" htmlFor={id}>{f.label}{f.required ? <span className="ath-mono"> ({fr.normTpl.required})</span> : null}</label>;
   const common = { id, disabled: true, 'aria-required': f.required ? true : undefined } as const;
-  if (f.type === 'richtext') return <div className="ath-field" key={f.key}>{label}<textarea className="ath-input" rows={3} {...common} /></div>;
-  if (f.type === 'select') return <div className="ath-field" key={f.key}>{label}<select className="ath-select" {...common}>{((f.config?.['options'] as string[] | undefined) ?? []).map((o) => <option key={o}>{o}</option>)}</select></div>;
+  if (f.type === 'richtext') return <div className="ath-field" key={f.key}>{label}<Textarea rows={3} {...common} /></div>;
+  if (f.type === 'select') return <div className="ath-field" key={f.key}>{label}<Select {...common}>{((f.config?.['options'] as string[] | undefined) ?? []).map((o) => <option key={o}>{o}</option>)}</Select></div>;
   return <div className="ath-field" key={f.key}>{label}<input className="ath-input" type={f.type === 'number' ? 'number' : f.type === 'date' ? 'date' : 'text'} {...common} /></div>;
 };
 
@@ -147,7 +147,7 @@ export function NormativeTemplateEditor({ templates, trackerTemplates, initial, 
   );
   const selectOf = (id: string, label: string, value: string, set: (v: string) => void, options: Array<[string, string]>) => (
     <div className="ath-field"><label className="ath-field__label" htmlFor={id}>{label}</label>
-      <select id={id} className="ath-select" value={value} onChange={(e) => set(e.target.value)}>{options.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></div>
+      <Select id={id} value={value} onChange={(e) => set(e.target.value)}>{options.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</Select></div>
   );
 
   const previewList = trackers;
@@ -239,7 +239,7 @@ export function NormativeTemplateEditor({ templates, trackerTemplates, initial, 
               </>, () => drop('phases', i), p.key || String(i + 1))}
               <fieldset className="ath-field"><legend className="ath-field__label">{`${t.phaseDeliverables} · ${p.key || i + 1}`}</legend>
                 {n.deliverables.filter((d) => d.key).map((d) => (
-                  <label key={d.key} className="ath-row"><input type="checkbox" checked={p.deliverables.includes(d.key)}
+                  <label key={d.key} className="ath-row"><Checkbox checked={p.deliverables.includes(d.key)}
                     onChange={(e) => setRow('phases', i, { deliverables: e.target.checked ? [...p.deliverables, d.key] : p.deliverables.filter((x) => x !== d.key) })} /> {d.name}</label>
                 ))}</fieldset>
             </div>

@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { api } from '../api';
 import { fr } from '../i18n';
+import { Textarea } from '@athena/ui';
 
 interface Person { username: string; displayName: string }
 
@@ -71,8 +72,8 @@ export function MentionInput({ id, project, itemKey, value, onChange, rows = 3 }
 
   return (
     <div className="ath-mention-input">
-      <textarea
-        id={id} ref={area} className="ath-input" rows={rows} value={value}
+      <Textarea
+        id={id} ref={area} rows={rows} value={value}
         role="combobox" aria-autocomplete="list" aria-expanded={open} aria-controls={listId} aria-haspopup="listbox"
         {...(open ? { 'aria-activedescendant': `${listId}-${active}` } : {})}
         onChange={(e) => { onChange(e.target.value); locate(e.target.value, e.target.selectionStart); }}

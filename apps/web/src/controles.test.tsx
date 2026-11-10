@@ -1,0 +1,44 @@
+import { render, screen } from '@testing-library/react';
+import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { join } from 'node:path';
+import { describe, expect, it, vi } from 'vitest';
+import type { Field } from './api';
+import { canWrite, FieldEditor } from './pages/ArtifactPage';
+
+/** T-0133 : contrôles de la charte partout ; champ non modifiable affiché en lecture seule avec sa raison. */
+const walk = (dir: string): string[] => readdirSync(dir).flatMap((name) => {
+  const path = join(dir, name);
+  return statSync(path).isDirectory() ? walk(path) : [path];
+});
+const field = (writeRoles: string[] | null): Field => ({ id: 'f', key: 'severity', label: 'Sévérité', type: 'select', config: { options: ['mineure', 'bloquante'] }, required: true, semanticRole: null, writeRoles });
+
+describe('contrôles de formulaire (T-0133)', () => {
+  it('aucun select, textarea ni case à cocher nus dans l’application', () => {
+    const offenders = walk(join(process.cwd(), 'src'))
+      .filter((f) => f.endsWith('.tsx') && !f.endsWith('.test.tsx'))
+      .flatMap((f) => [...readFileSync(f, 'utf8').matchAll(/<select\b|<textarea\b|<input\b[^>]*type="checkbox"/g)].map((m) => `${f} : ${m[0]}`));
+    expect(offenders).toEqual([]);
+  });
+
+  it('même règle d’écriture que le serveur : sans restriction, administrateur, ou rôle cité', () => {
+    expect(canWrite(field(null), ['athena-user'])).toBe(true);
+    expect(canWrite(field(['athena-pm']), ['athena-pm'])).toBe(true);
+    expect(canWrite(field(['athena-pm']), ['athena-admin'])).toBe(true);
+    expect(canWrite(field(['athena-pm']), ['athena-user'])).toBe(false);
+  });
+
+  it('un champ que l’utilisateur ne peut pas modifier est en lecture seule, avec la raison', () => {
+    const commit = vi.fn();
+    render(<FieldEditor field={field(['athena-pm'])} value="bloquante" roles={['athena-user']} onCommit={commit} />);
+    const input = screen.getByLabelText(/Sévérité/);
+    expect(input).toHaveValue('bloquante');
+    expect(input).toHaveAttribute('readonly');
+    expect(input).toHaveAccessibleDescription('Lecture seule : modifiable par athena-pm.');
+    expect(screen.queryByRole('combobox')).toBeNull();
+  });
+
+  it('le même champ reste modifiable pour un rôle autorisé', () => {
+    render(<FieldEditor field={field(['athena-pm'])} value="bloquante" roles={['athena-pm']} onCommit={vi.fn()} />);
+    expect(screen.getByRole('combobox', { name: /Sévérité/ })).toHaveClass('ath-select');
+  });
+});

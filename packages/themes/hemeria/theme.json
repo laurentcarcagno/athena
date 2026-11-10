@@ -332,6 +332,10 @@
       "toast-max": {
         "$value": "420px",
         "$type": "dimension"
+      },
+      "toggle": {
+        "$value": "16px",
+        "$type": "dimension"
       }
     },
     "z": {

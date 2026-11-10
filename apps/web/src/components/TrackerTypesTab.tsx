@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
-import { Btn, Card, EmptyState, Field, Table, Tag, Td, Th, useToast } from '@athena/ui';
+import { Btn, Card, Checkbox, EmptyState, Field, Select, Table, Tag, Td, Th, useToast } from '@athena/ui';
 import { api, type TrackerTypeEntry } from '../api';
 import { useBusy, useFailure } from '../hooks';
 import { fr } from '../i18n';
@@ -85,15 +85,15 @@ export function TrackerTypesTab() {
             <Field label={fr.types.description} value={draft.description} onChange={(e) => setDraft({ ...draft, description: e.target.value })} />
             <div className="ath-field">
               <label className="ath-field__label" htmlFor="type-category">{fr.types.category}</label>
-              <select id="type-category" className="ath-select" value={draft.category} onChange={(e) => setDraft({ ...draft, category: e.target.value as Draft['category'] })}>
+              <Select id="type-category" value={draft.category} onChange={(e) => setDraft({ ...draft, category: e.target.value as Draft['category'] })}>
                 {CATEGORIES.map((c) => <option key={c} value={c}>{categoryLabel(c)}</option>)}
-              </select>
+              </Select>
             </div>
           </div>
           <fieldset className="ath-row">
             <legend className="ath-field__label">{fr.types.views}</legend>
             {VIEWS.map((v) => (
-              <label key={v} className="ath-row"><input type="checkbox" checked={draft.defaultViews.includes(v)} onChange={(e) => toggleView(v, e.target.checked)} />{(fr.types.viewNames as Record<string, string>)[v]}</label>
+              <label key={v} className="ath-row"><Checkbox checked={draft.defaultViews.includes(v)} onChange={(e) => toggleView(v, e.target.checked)} />{(fr.types.viewNames as Record<string, string>)[v]}</label>
             ))}
           </fieldset>
           <span className="ath-eyebrow">{fr.types.baseFields}</span>
@@ -108,7 +108,7 @@ export function TrackerTypesTab() {
             <Field label={fr.types.fieldLabel} value={field.label} onChange={(e) => setField({ ...field, label: e.target.value })} />
             <div className="ath-field">
               <label className="ath-field__label" htmlFor="type-field-type">{fr.types.fieldType}</label>
-              <select id="type-field-type" className="ath-select" value={field.type} onChange={(e) => setField({ ...field, type: e.target.value })}>{FIELD_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}</select>
+              <Select id="type-field-type" value={field.type} onChange={(e) => setField({ ...field, type: e.target.value })}>{FIELD_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}</Select>
             </div>
             <Btn type="button" icon="plus" disabled={fieldInvalid} onClick={addField}>{fr.types.addField}</Btn>
           </div>

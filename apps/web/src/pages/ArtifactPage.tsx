@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { Btn, Card, EmptyState, Id, StatusPill, Table, Tabs, Td, Th, Tag, useToast } from '@athena/ui';
+import { Btn, Card, EmptyState, Field as FieldInput, Id, Select, StatusPill, Table, Tabs, Tag, Td, Textarea, Th, useToast } from '@athena/ui';
 import { ApiError, api, upload, type Artifact, type AttachmentView, type Field, type Revision, type Session, type TrackerDefinition } from '../api';
 import { useBusy, useFailure } from '../hooks';
 import { fr } from '../i18n';
@@ -12,7 +12,7 @@ import { LinkEditor } from '../components/LinkEditor';
 import { DocRefPicker } from '../components/DocRefPicker';
 import { MarkingEditor } from '../components/MarkingEditor';
 import { resolveLayout } from '../lib/layout';
-import { formatDateTime } from '../lib/dates';
+import { DateTime } from '../lib/dates';
 
 interface Comment { id: string; author: string; authorName: string; body: string; createdAt: string }
 interface CodeRef { kind: string; ref: string; title: string; state: string; pipeline: string }
@@ -33,20 +33,26 @@ export function parseValue(field: Field, raw: string): unknown {
   return raw;
 }
 
-function FieldEditor({ field, value, onCommit }: { field: Field; value: unknown; onCommit: (raw: string) => void }) {
+/** Même règle que le serveur (`canUse`, artifact.service.ts) : sans restriction, administrateur, ou rôle cité dans `writeRoles`. */
+export const canWrite = (field: Field, roles: readonly string[]) => !field.writeRoles || roles.includes('athena-admin') || field.writeRoles.some((r) => roles.includes(r));
+
+export function FieldEditor({ field, value, roles, onCommit }: { field: Field; value: unknown; roles: readonly string[]; onCommit: (raw: string) => void }) {
   const [draft, setDraft] = useState(asText(value));
   useEffect(() => setDraft(asText(value)), [value]);
   const label = field.required ? `${field.label} (${fr.artifact.required})` : field.label;
+  if (!canWrite(field, roles)) {
+    return <FieldInput label={label} value={asText(value)} readOnly readOnlyReason={fr.artifact.readOnlyBy(field.writeRoles ?? [])} mono={field.type === 'number' || field.type === 'date'} />;
+  }
   const commit = () => { if (draft !== asText(value)) onCommit(draft); };
   if (field.type === 'select') {
     const options = (field.config['options'] as string[] | undefined) ?? [];
     return (
       <div className="ath-field">
         <label className="ath-field__label" htmlFor={`f-${field.key}`}>{label}</label>
-        <select id={`f-${field.key}`} className="ath-select" value={draft} onChange={(e) => { setDraft(e.target.value); onCommit(e.target.value); }}>
+        <Select id={`f-${field.key}`} value={draft} onChange={(e) => { setDraft(e.target.value); onCommit(e.target.value); }}>
           {!field.required && <option value="" />}
           {options.map((o) => <option key={o} value={o}>{o}</option>)}
-        </select>
+        </Select>
       </div>
     );
   }
@@ -54,7 +60,7 @@ function FieldEditor({ field, value, onCommit }: { field: Field; value: unknown;
     return (
       <div className="ath-field">
         <label className="ath-field__label" htmlFor={`f-${field.key}`}>{label}</label>
-        <textarea id={`f-${field.key}`} className="ath-input" rows={5} value={draft} onChange={(e) => setDraft(e.target.value)} onBlur={commit} />
+        <Textarea id={`f-${field.key}`} rows={5} value={draft} onChange={(e) => setDraft(e.target.value)} onBlur={commit} />
       </div>
     );
   }
@@ -231,7 +237,7 @@ export function ArtifactView({ session, project, itemKey: key, embedded = false,
                     <div className="ath-layout-grid">
                       {section.fields.map((lf) => {
                         const f = def.fields.find((x) => x.key === lf.key)!;
-                        return <div key={f.key} className={`ath-span-${lf.span}`}><FieldEditor field={f} value={artifact.values[f.key]} onCommit={(raw) => save(f, raw)} /></div>;
+                        return <div key={f.key} className={`ath-span-${lf.span}`}><FieldEditor field={f} value={artifact.values[f.key]} roles={session.user?.roles ?? []} onCommit={(raw) => save(f, raw)} /></div>;
                       })}
                     </div>
                   </section>
@@ -256,7 +262,7 @@ export function ArtifactView({ session, project, itemKey: key, embedded = false,
                 <tr key={r.version}>
                   <Td mono>{r.version}</Td>
                   <Td>{r.actor}</Td>
-                  <Td mono mute>{formatDateTime(r.at)}</Td>
+                  <Td mono mute><DateTime iso={r.at} /></Td>
                   <Td>{Object.entries(r.diff).map(([field, d]) => (
                     <div key={field}><Id>{field}</Id> <span className="ath-diff__from">{asText(d.from) || '∅'}</span> → <span className="ath-diff__to">{asText(d.to) || '∅'}</span></div>
                   ))}</Td>
@@ -296,7 +302,7 @@ export function ArtifactView({ session, project, itemKey: key, embedded = false,
             <div className="ath-stack">
               {comments.length === 0 && <p>{fr.artifact.noComments}</p>}
               {comments.map((c) => (
-                <div key={c.id}><span className="ath-eyebrow">{c.authorName ?? c.author} · <span className="ath-mono">{formatDateTime(c.createdAt)}</span></span><MentionText body={c.body} /></div>
+                <div key={c.id}><span className="ath-eyebrow">{c.authorName ?? c.author} · <span className="ath-mono"><DateTime iso={c.createdAt} /></span></span><MentionText body={c.body} /></div>
               ))}
               <form className="ath-stack" onSubmit={addComment}>
                 <label className="ath-field__label" htmlFor="comment">{fr.artifact.comment}</label>

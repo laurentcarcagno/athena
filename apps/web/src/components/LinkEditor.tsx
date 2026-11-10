@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Btn, Field, Id, StatusPill, Tag, useToast } from '@athena/ui';
+import { Btn, Field, Id, Select, StatusPill, Tag, useToast } from '@athena/ui';
 import { api, type SearchResult } from '../api';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
@@ -114,10 +114,10 @@ export function LinkEditor({ project, itemKey, links, onChanged, focusSignal = 0
         <form className="ath-toolbar" onSubmit={create}>
           <div className="ath-field">
             <label className="ath-field__label" htmlFor="link-type">{fr.links.type}</label>
-            <select id="link-type" ref={select} className="ath-select" value={choice} onChange={(e) => setChoice(e.target.value)}>
+            <Select id="link-type" ref={select} value={choice} onChange={(e) => setChoice(e.target.value)}>
               <option value="" />
               {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-            </select>
+            </Select>
           </div>
           <div className="ath-field ath-suggest">
             <Field label={fr.links.target} mono value={query} autoComplete="off" onChange={(e) => { setQuery(e.target.value); setTarget(''); }} />

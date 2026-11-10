@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
-import { Btn, Card, EmptyState, Field, Id, PageHeader, StatusPill, Table, Tag, Td, Th, useToast } from '@athena/ui';
+import { Btn, Card, EmptyState, Field, Id, PageHeader, Select, StatusPill, Table, Tag, Td, Th, useToast } from '@athena/ui';
 import { api, type Session } from '../api';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
@@ -149,10 +149,10 @@ export function BacklogPage({ session }: { session: Session }) {
         {canPlan && s.state === 'active' && (
           <form className="ath-toolbar" onSubmit={(e) => { e.preventDefault(); void act(async () => { const r = await api<{ returned: string[] }>('POST', `${base}/sprints/${s.id}/close`, closeTo ? { moveTo: closeTo } : {}); setCloseTo(''); return r; }, (r) => t.closed(r.returned.length)); }}>
             <label className="ath-field__label" htmlFor="close-to">{t.closeRest}</label>
-            <select id="close-to" className="ath-select" value={closeTo} onChange={(e) => setCloseTo(e.target.value)}>
+            <Select id="close-to" value={closeTo} onChange={(e) => setCloseTo(e.target.value)}>
               <option value="">{t.toBacklog}</option>
               {planned.map((p) => <option key={p.id} value={p.id}>{t.toSprint(p.name)}</option>)}
-            </select>
+            </Select>
             <Btn type="submit" variant="deep">{t.close}</Btn>
           </form>
         )}
@@ -197,9 +197,9 @@ export function BacklogPage({ session }: { session: Session }) {
                       <Btn id={`down-${item.key}`} size="sm" variant="ghost" icon="next" aria-label={t.down(item.key)} title={t.down(item.key)} disabled={index === items.length - 1} onClick={() => move(index, 1)} />
                       {sprints.length > 0 && <>
                         <label className="ath-visually-hidden" htmlFor={`to-${item.key}`}>{t.addTo(item.key)}</label>
-                        <select id={`to-${item.key}`} className="ath-select" value={target[item.key] ?? sprints[0]!.id} onChange={(e) => setTarget({ ...target, [item.key]: e.target.value })}>
+                        <Select id={`to-${item.key}`} value={target[item.key] ?? sprints[0]!.id} onChange={(e) => setTarget({ ...target, [item.key]: e.target.value })}>
                           {sprints.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-                        </select>
+                        </Select>
                         <Btn size="sm" variant="ghost" icon="plus" onClick={() => void act(() => api('POST', `${base}/sprints/${target[item.key] ?? sprints[0]!.id}/items`, { artifact: item.key }), t.added)}>{t.add}</Btn>
                       </>}
                     </>}

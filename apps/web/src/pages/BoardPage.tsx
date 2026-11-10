@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, type DragEvent } from 'react';
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { Btn, EmptyState, Id, PageHeader, StatusPill, Tag, useToast } from '@athena/ui';
+import { Btn, EmptyState, Id, PageHeader, Select, StatusPill, Tag, useToast } from '@athena/ui';
 import { api, type BoardView, type Session, type TrackerOverview } from '../api';
 import { useCreate, useOnCreated } from '../components/CreateArtifact';
 import { DetailPanel } from '../components/DetailPanel';
@@ -114,10 +114,10 @@ export function BoardView({ session, project, board, header = true }: { session:
                     {card.assignee && <span>{card.assigneeName ?? card.assignee}</span>}
                   </div>
                   <label className="ath-field__label" htmlFor={`mv-${card.key}`}>{fr.board.moveTo}</label>
-                  <select id={`mv-${card.key}`} className="ath-select" value="" onChange={(e) => { if (e.target.value) void move(card, e.target.value); }}>
+                  <Select id={`mv-${card.key}`} value="" onChange={(e) => { if (e.target.value) void move(card, e.target.value); }}>
                     <option value="" />
                     {view.columns.filter((c) => c.name !== column.name).map((c) => <option key={c.name} value={c.name}>{c.name}</option>)}
-                  </select>
+                  </Select>
                 </article>
               ))}
             </div>
@@ -134,9 +134,9 @@ export function BoardView({ session, project, board, header = true }: { session:
         <Btn size="sm" variant="ghost" aria-pressed={mine} onClick={() => update({ moi: mine ? null : '1' })}>{fr.board.mine}</Btn>
         <Btn size="sm" variant="ghost" aria-pressed={blockedOnly} onClick={() => update({ bloques: blockedOnly ? null : '1' })}>{fr.board.blockedOnly}</Btn>
         <label className="ath-field__label" htmlFor="lane-by">{fr.board.laneBy}</label>
-        <select id="lane-by" className="ath-select" value={laneBy} onChange={(e) => update({ couloir: e.target.value === 'none' ? null : e.target.value })}>
+        <Select id="lane-by" value={laneBy} onChange={(e) => update({ couloir: e.target.value === 'none' ? null : e.target.value })}>
           <option value="none">{fr.board.laneNone}</option><option value="assignee">{fr.board.laneAssignee}</option><option value="tracker">{fr.board.laneTracker}</option>
-        </select>
+        </Select>
       </div>
       {lanes.map((lane) => (
         <section key={lane || 'all'} aria-label={lane || undefined}>

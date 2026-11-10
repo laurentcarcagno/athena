@@ -4,7 +4,7 @@
 .ath-btn--sm { height: var(--ath-size-control-sm); font-size: var(--ath-font-size-small); }
 .ath-btn--lg { height: var(--ath-size-control-lg); font-size: var(--ath-font-size-body); }
 .ath-btn:disabled { opacity: 0.55; cursor: not-allowed; }
-.ath-btn:focus-visible, .ath-input:focus-visible, .ath-tab:focus-visible { outline: var(--ath-border-width-strong) solid var(--ath-border-focus); outline-offset: 2px; }
+.ath-btn:focus-visible, .ath-tab:focus-visible { outline: var(--ath-border-width-strong) solid var(--ath-focus-ring); outline-offset: 2px; }
 /* Sur surface inverse (barre latérale) : focus ring blanc, 14,69:1 contre 2,75:1 pour le bleu ciel. */
 .ath-nav-item:focus-visible { outline: var(--ath-border-width-strong) solid var(--ath-text-on-inverse); outline-offset: -2px; }
 .ath-btn--primary { background: var(--ath-action-primary-bg); color: var(--ath-action-primary-fg); border-color: var(--ath-action-primary-bg); }
@@ -30,16 +30,29 @@
 .ath-chip--active { background: var(--ath-action-deep-bg); color: var(--ath-action-deep-fg); border-color: var(--ath-action-deep-bg); }
 
 /* Champs */
-.ath-search { display: inline-flex; align-items: center; gap: var(--ath-space-sm); min-width: 260px; padding: 5px 10px; background: var(--ath-surface-hover); border: var(--ath-border-width-hairline) solid var(--ath-border-control); }
-.ath-search:focus-within { border-color: var(--ath-border-focus); }
+.ath-search { display: inline-flex; align-items: center; gap: var(--ath-space-sm); min-width: 260px; height: var(--ath-size-control-md); padding: 0 var(--ath-space-md); background: var(--ath-surface-hover); border: var(--ath-border-width-hairline) solid var(--ath-border-control); }
+.ath-search:focus-within { border-color: var(--ath-border-focus); outline: var(--ath-border-width-strong) solid var(--ath-focus-ring); outline-offset: 1px; }
 .ath-search__input { flex: 1; min-width: 0; border: 0; background: transparent; outline: none; font-family: inherit; font-size: var(--ath-font-size-body); color: var(--ath-text-default); }
 .ath-search__hint { font-family: var(--ath-font-family-mono); font-size: var(--ath-font-size-small); color: var(--ath-text-mute); }
-.ath-field { display: inline-flex; flex-direction: column; gap: 6px; min-width: 240px; }
-.ath-field__label { font-weight: var(--ath-font-weight-semibold); font-size: var(--ath-font-size-small); color: var(--ath-text-secondary); }
-.ath-input { font-family: inherit; font-size: var(--ath-font-size-body); color: var(--ath-text-default); background: var(--ath-surface-default); border: var(--ath-border-width-hairline) solid var(--ath-border-control); padding: 6px 10px; outline: none; transition: border-color var(--ath-motion-default); }
-.ath-input:hover { border-color: var(--ath-text-heading); }
-.ath-input:focus { border: var(--ath-border-width-strong) solid var(--ath-border-focus); padding: 5px 9px; }
-.ath-input:disabled { background: var(--ath-surface-hover); color: var(--ath-text-mute); cursor: not-allowed; }
-.ath-input--error { border-color: var(--ath-state-danger-border); }
+/* Champs (T-0133) : champ texte, liste, recherche et bouton ont la même hauteur ; un seul anneau de focus pour tous les contrôles. */
+.ath-field { display: inline-flex; flex-direction: column; gap: var(--ath-space-xs); min-width: 240px; }
+.ath-field__label { display: inline-flex; align-items: center; gap: var(--ath-space-xs); font-weight: var(--ath-font-weight-semibold); font-size: var(--ath-font-size-small); color: var(--ath-text-secondary); }
+.ath-input, .ath-select { box-sizing: border-box; height: var(--ath-size-control-md); font-family: inherit; font-size: var(--ath-font-size-body); color: var(--ath-text-default); background: var(--ath-surface-default); border: var(--ath-border-width-hairline) solid var(--ath-border-control); padding: 0 var(--ath-space-md); transition: border-color var(--ath-motion-default); }
+.ath-select { padding-right: var(--ath-space-sm); cursor: pointer; }
+.ath-textarea { height: auto; min-height: calc(var(--ath-size-control-md) * 2); padding: var(--ath-space-sm) var(--ath-space-md); line-height: var(--ath-font-leading-body); }
+.ath-input:hover, .ath-select:hover { border-color: var(--ath-text-heading); }
+.ath-input:focus-visible, .ath-select:focus-visible, .ath-checkbox:focus-visible, .ath-radio:focus-visible, .ath-switch:focus-visible { outline: var(--ath-border-width-strong) solid var(--ath-focus-ring); outline-offset: 1px; }
+.ath-input:focus, .ath-select:focus { border-color: var(--ath-border-focus); }
+.ath-input:disabled, .ath-select:disabled { background: var(--ath-surface-hover); color: var(--ath-text-mute); border-color: var(--ath-border-default); cursor: not-allowed; }
+.ath-input--error, .ath-input[aria-invalid="true"], .ath-select[aria-invalid="true"] { border-color: var(--ath-state-danger-border); }
+/* Lecture seule : la valeur reste lisible et sélectionnable, sans cadre ; le libellé porte un cadenas, la raison est en info-bulle. */
+.ath-input[readonly], .ath-input[readonly]:hover, .ath-field--readonly .ath-input { border-color: transparent; background: transparent; padding-inline: 0; cursor: default; }
+.ath-lock { flex: none; color: var(--ath-text-mute); }
+.ath-checkbox, .ath-radio { width: var(--ath-size-toggle); height: var(--ath-size-toggle); margin: var(--ath-space-xs); accent-color: var(--ath-action-primary-bg); cursor: pointer; vertical-align: middle; }
+.ath-checkbox:disabled, .ath-radio:disabled, .ath-switch:disabled { cursor: not-allowed; }
+.ath-switch { appearance: none; position: relative; width: var(--ath-size-control-md); height: calc(var(--ath-size-toggle) + var(--ath-space-2xs)); margin: var(--ath-space-xs) 0; border: var(--ath-border-width-hairline) solid var(--ath-border-control); background: var(--ath-surface-muted); cursor: pointer; vertical-align: middle; }
+.ath-switch::before { content: ""; position: absolute; top: var(--ath-space-2xs); left: var(--ath-space-2xs); width: calc(var(--ath-size-toggle) - var(--ath-space-xs)); height: calc(var(--ath-size-toggle) - var(--ath-space-xs)); background: var(--ath-text-secondary); transition: left var(--ath-motion-default); }
+.ath-switch:checked { background: var(--ath-action-primary-bg); border-color: var(--ath-action-primary-bg); }
+.ath-switch:checked::before { left: calc(100% - var(--ath-size-toggle) + var(--ath-space-2xs)); background: var(--ath-action-primary-fg); }
 .ath-field__error { font-size: var(--ath-font-size-small); color: var(--ath-state-danger-fg); }
 

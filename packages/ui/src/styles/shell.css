@@ -78,7 +78,6 @@
 .ath-ticket__title { margin: var(--ath-space-xs) 0; }
 .ath-link { color: var(--ath-text-link); text-decoration: underline; text-underline-offset: 2px; }
 .ath-link:hover { text-decoration-thickness: 2px; }
-.ath-select { font-family: inherit; font-size: var(--ath-font-size-body); padding: 5px var(--ath-space-sm); background: var(--ath-surface-default); border: var(--ath-border-width-hairline) solid var(--ath-border-control); color: var(--ath-text-default); }
 .ath-diff__from { color: var(--ath-state-danger-fg); }
 .ath-diff__to { color: var(--ath-state-success-fg); }
 

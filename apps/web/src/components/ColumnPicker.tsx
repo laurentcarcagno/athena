@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Btn } from '@athena/ui';
+import { Btn, Checkbox } from '@athena/ui';
 import { fr } from '../i18n';
 import type { ColumnOption } from '../lib/columns';
 
@@ -14,7 +14,7 @@ export function ColumnPicker({ options, selected, onChange }: { options: ColumnO
         <fieldset className="ath-row">
           <legend className="ath-field__label">{fr.columns.legend}</legend>
           {options.map((o) => (
-            <label key={o.id} className="ath-row"><input type="checkbox" checked={selected.includes(o.id)} onChange={(e) => toggle(o.id, e.target.checked)} />{o.label}</label>
+            <label key={o.id} className="ath-row"><Checkbox checked={selected.includes(o.id)} onChange={(e) => toggle(o.id, e.target.checked)} />{o.label}</label>
           ))}
         </fieldset>
       )}

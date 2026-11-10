@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Btn, Modal, useToast } from '@athena/ui';
+import { Btn, Modal, Select, Textarea, useToast } from '@athena/ui';
 import { api, type Artifact, type Field, type TrackerDefinition } from '../api';
 import { useBusy, useFailure } from '../hooks';
 import { fr } from '../i18n';
@@ -22,12 +22,12 @@ function Input({ field, value, onChange }: { field: Field; value: string; onChan
     <div className="ath-field">
       <label className="ath-field__label" htmlFor={id}>{label}</label>
       {field.type === 'select' ? (
-        <select id={id} className="ath-select" value={value} onChange={(e) => onChange(e.target.value)}>
+        <Select id={id} value={value} onChange={(e) => onChange(e.target.value)}>
           <option value="" />
           {options.map((o) => <option key={o} value={o}>{o}</option>)}
-        </select>
+        </Select>
       ) : field.type === 'richtext' ? (
-        <textarea id={id} className="ath-input" rows={4} value={value} onChange={(e) => onChange(e.target.value)} />
+        <Textarea id={id} rows={4} value={value} onChange={(e) => onChange(e.target.value)} />
       ) : (
         <input id={id} className={`ath-input${field.type === 'number' || field.type === 'date' ? ' ath-mono' : ''}`} type={field.type === 'number' ? 'number' : field.type === 'date' ? 'date' : 'text'} value={value} onChange={(e) => onChange(e.target.value)} />
       )}
@@ -103,18 +103,18 @@ export function CreateArtifact({ target, open, onClose, onCreated }: {
         {target.scope === 'global' && (
           <div className="ath-field">
             <label className="ath-field__label" htmlFor="new-project">{fr.create.project}</label>
-            <select id="new-project" className="ath-select" value={project} onChange={(e) => setProject(e.target.value)}>
+            <Select id="new-project" value={project} onChange={(e) => setProject(e.target.value)}>
               <option value="" />
               {projects.map((p) => <option key={p.key} value={p.key}>{p.key} · {p.name}</option>)}
-            </select>
+            </Select>
           </div>
         )}
         {project && trackers !== null && (trackers.length === 0 ? <p>{fr.create.noTracker}</p> : (
           <div className="ath-field">
             <label className="ath-field__label" htmlFor="new-tracker">{fr.create.tracker}</label>
-            <select id="new-tracker" className="ath-select" value={tracker} onChange={(e) => setTracker(e.target.value)}>
+            <Select id="new-tracker" value={tracker} onChange={(e) => setTracker(e.target.value)}>
               {trackers.map((t) => <option key={t.key} value={t.key}>{t.key} · {t.name}</option>)}
-            </select>
+            </Select>
           </div>
         ))}
         {definition?.fields.map((f) => <Input key={f.key} field={f} value={values[f.key] ?? ''} onChange={(v) => setValues((s) => ({ ...s, [f.key]: v }))} />)}

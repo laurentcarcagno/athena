@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../api';
 import { useFailure } from '../hooks';
 import { fr, getLocale } from '../i18n';
+import { Checkbox, Select } from '@athena/ui';
 
 export type NotifyEvent = 'transition' | 'mention' | 'suspect' | 'comment' | 'approval';
 export const NOTIFY_EVENTS: NotifyEvent[] = ['transition', 'mention', 'suspect', 'comment', 'approval'];
@@ -46,7 +47,7 @@ export function NotificationSettings({ id = 'notify-settings' }: { id?: string }
         <legend>{fr.notify.settingsLegend}</legend>
         {NOTIFY_EVENTS.map((event) => (
           <label key={event} className="ath-notify__pref">
-            <input type="checkbox" checked={prefs?.[event] ?? true} disabled={prefs === null} onChange={(e) => void setPref(event, e.target.checked)} />
+            <Checkbox checked={prefs?.[event] ?? true} disabled={prefs === null} onChange={(e) => void setPref(event, e.target.checked)} />
             {fr.notify.eventNames[event]}
           </label>
         ))}
@@ -57,14 +58,14 @@ export function NotificationSettings({ id = 'notify-settings' }: { id?: string }
           {digest.available ? (
             <>
               <label className="ath-notify__pref">
-                <input type="checkbox" checked={digest.enabled} onChange={(e) => void saveDigest({ enabled: e.target.checked })} />
+                <Checkbox checked={digest.enabled} onChange={(e) => void saveDigest({ enabled: e.target.checked })} />
                 {fr.notify.digestEnabled}
               </label>
               <label className="ath-notify__pref">
                 {fr.notify.digestHour(browserZone())}
-                <select className="ath-select" value={digest.hour} disabled={!digest.enabled} onChange={(e) => void saveDigest({ hour: Number(e.target.value) })}>
+                <Select value={digest.hour} disabled={!digest.enabled} onChange={(e) => void saveDigest({ hour: Number(e.target.value) })}>
                   {Array.from({ length: 24 }, (_, h) => <option key={h} value={h}>{String(h).padStart(2, '0')}:00</option>)}
-                </select>
+                </Select>
               </label>
             </>
           ) : <p className="ath-notify__empty">{fr.notify.digestUnavailable}</p>}

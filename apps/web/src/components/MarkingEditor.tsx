@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Btn, Tag, useToast } from '@athena/ui';
+import { Btn, Select, Tag, useToast } from '@athena/ui';
 import { api, type Artifact } from '../api';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
@@ -36,9 +36,9 @@ export function MarkingEditor({ project, itemKey, value, canEdit, onChanged }: {
         <>
           <div className="ath-field">
             <label className="ath-field__label" htmlFor={`marking-${itemKey}`}>{t.current}</label>
-            <select id={`marking-${itemKey}`} className="ath-select" value={choice} onChange={(e) => setChoice(e.target.value as Marking | '')}>
+            <Select id={`marking-${itemKey}`} value={choice} onChange={(e) => setChoice(e.target.value as Marking | '')}>
               {OPTIONS.map((o) => <option key={o || 'none'} value={o}>{o === '' ? t.none : t.labels[o]}</option>)}
-            </select>
+            </Select>
           </div>
           <Btn size="sm" disabled={choice === current} onClick={() => void apply()}>{t.set}</Btn>
         </>
@@ -81,9 +81,9 @@ export function ExportControlMembers({ project }: { project: string }) {
       <div className="ath-toolbar">
         <div className="ath-field">
           <label className="ath-field__label" htmlFor="ec-add">{t.addMember}</label>
-          <select id="ec-add" className="ath-select" value={pick} onChange={(e) => setPick(e.target.value)}>
+          <Select id="ec-add" value={pick} onChange={(e) => setPick(e.target.value)}>
             <option value="" />{users.filter((u) => !subjects.includes(u.subject)).map((u) => <option key={u.subject} value={u.subject}>{u.displayName} ({u.username})</option>)}
-          </select>
+          </Select>
         </div>
         <Btn disabled={!pick} onClick={() => void save([...subjects, pick])}>{t.add}</Btn>
       </div>

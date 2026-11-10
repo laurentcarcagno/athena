@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Btn, Tag, useToast } from '@athena/ui';
+import { Btn, Tag, Textarea, useToast } from '@athena/ui';
 import { api } from '../api';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
 import { useConfirm } from './ConfirmDialog';
-import { formatDateTime } from '../lib/dates';
+import { DateTime } from '../lib/dates';
 
 type State = 'not_required' | 'pending' | 'approved' | 'rejected';
 interface Decision { approver: string; approverName: string; decision: 'approved' | 'rejected'; comment: string; decidedAt: string }
@@ -17,7 +17,7 @@ export interface ItemApproval {
   invalidated: { at: string; version: number | null; count: number } | null; canDecide: boolean;
 }
 
-const stamp = (iso: string) => formatDateTime(iso);
+const stamp = (iso: string) => <DateTime iso={iso} />;
 
 /**
  * Circuit d'approbation d'un item : les étapes dans l'ordre, qui est désigné, les décisions nominatives et horodatées, l'état dit en
@@ -80,7 +80,7 @@ export function ApprovalPanel({ project, itemKey, version, onChanged }: { projec
       {data.canDecide ? (
         <div className="ath-stack">
           <label className="ath-field__label" htmlFor="approval-comment">{t.comment}</label>
-          <textarea id="approval-comment" className="ath-input" rows={2} maxLength={2000} value={comment} onChange={(e) => setComment(e.target.value)} />
+          <Textarea id="approval-comment" rows={2} maxLength={2000} value={comment} onChange={(e) => setComment(e.target.value)} />
           <div className="ath-row">
             <Btn onClick={() => void decide('approved')}>{t.approve}</Btn>
             <Btn variant="ghost" onClick={() => void decide('rejected')}>{t.reject}</Btn>

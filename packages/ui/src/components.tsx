@@ -1,6 +1,6 @@
 import {
-  createContext, useCallback, useContext, useEffect, useId, useRef, useState,
-  type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode,
+  createContext, forwardRef, useCallback, useContext, useEffect, useId, useRef, useState,
+  type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes,
 } from 'react';
 
 const cx = (...parts: Array<string | false | undefined>) => parts.filter(Boolean).join(' ');
@@ -119,16 +119,53 @@ export function SearchInput({ placeholder = 'Rechercher…', onSearch, ...rest }
 }
 
 /** Champ de formulaire : l'étiquette est toujours visible ; le placeholder ne la remplace jamais. */
-export function Field({ label, error, mono = false, ...rest }: InputHTMLAttributes<HTMLInputElement> & { label: string; error?: string; mono?: boolean }) {
+/** Cadenas d'un champ en lecture seule (décoratif : la raison est dite en texte). */
+export function LockIcon() {
+  return <svg className="ath-lock" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="square" aria-hidden="true"><rect x="5" y="11" width="14" height="10" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>;
+}
+
+/**
+ * Champ de formulaire. En lecture seule (`readOnly`), la valeur reste lisible et sélectionnable mais sans cadre, le libellé
+ * porte un cadenas et la raison (`readOnlyReason`) est donnée en info-bulle et aux lecteurs d'écran (T-0133).
+ */
+export function Field({ label, error, mono = false, readOnlyReason, ...rest }: InputHTMLAttributes<HTMLInputElement> & { label: string; error?: string; mono?: boolean; readOnlyReason?: string }) {
   const id = useId();
+  const readOnly = Boolean(rest.readOnly);
+  const reason = readOnly ? (readOnlyReason ?? 'Lecture seule') : undefined;
+  const described = [error && `${id}-error`, reason && `${id}-ro`].filter(Boolean).join(' ') || undefined;
   return (
-    <div className="ath-field">
-      <label className="ath-field__label" htmlFor={id}>{label}</label>
-      <input id={id} className={cx('ath-input', error && 'ath-input--error', mono && 'ath-mono')} aria-invalid={error ? true : undefined} aria-describedby={error ? `${id}-error` : undefined} {...rest} />
+    <div className={cx('ath-field', readOnly && 'ath-field--readonly')} title={reason}>
+      <label className="ath-field__label" htmlFor={id}>{readOnly && <LockIcon />}{label}</label>
+      <input id={id} className={cx('ath-input', error && 'ath-input--error', mono && 'ath-mono')} aria-invalid={error ? true : undefined} aria-describedby={described} {...rest} />
+      {reason && <span id={`${id}-ro`} className="ath-visually-hidden">{reason}</span>}
       {error && <span id={`${id}-error`} className="ath-field__error" role="alert">{error}</span>}
     </div>
   );
 }
+
+/** Liste déroulante : même hauteur, focus et états que le champ texte. */
+export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSelectElement> & { invalid?: boolean }>(function Select({ className, invalid, ...rest }, ref) {
+  return <select ref={ref} className={cx('ath-select', invalid && 'ath-input--error', className)} aria-invalid={invalid ? true : rest['aria-invalid']} {...rest} />;
+});
+
+/** Zone de texte : mêmes bordures, focus et états que le champ texte ; hauteur libre. */
+export const Textarea = forwardRef<HTMLTextAreaElement, TextareaHTMLAttributes<HTMLTextAreaElement> & { invalid?: boolean }>(function Textarea({ className, invalid, ...rest }, ref) {
+  return <textarea ref={ref} className={cx('ath-input', 'ath-textarea', invalid && 'ath-input--error', className)} aria-invalid={invalid ? true : rest['aria-invalid']} {...rest} />;
+});
+
+type ToggleProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'type'>;
+/** Case à cocher de la charte (cible de 24 px, couleur d'action, focus visible). */
+export const Checkbox = forwardRef<HTMLInputElement, ToggleProps>(function Checkbox({ className, ...rest }, ref) {
+  return <input ref={ref} type="checkbox" className={cx('ath-checkbox', className)} {...rest} />;
+});
+/** Bouton radio de la charte. */
+export const Radio = forwardRef<HTMLInputElement, ToggleProps>(function Radio({ className, ...rest }, ref) {
+  return <input ref={ref} type="radio" className={cx('ath-radio', className)} {...rest} />;
+});
+/** Interrupteur (réglage pris en compte immédiatement) : case à cocher annoncée comme `switch`. */
+export const Switch = forwardRef<HTMLInputElement, ToggleProps>(function Switch({ className, ...rest }, ref) {
+  return <input ref={ref} type="checkbox" role="switch" className={cx('ath-switch', className)} {...rest} />;
+});
 
 const CardContext = createContext(false);
 /** Carte. Les cartes imbriquées sont interdites par la charte : elles lèvent une erreur. */

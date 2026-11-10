@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
-import { Btn, Card, EmptyState, Field, PageHeader, Table, Tabs, Tag, Td, Th, useToast } from '@athena/ui';
+import { Btn, Card, Checkbox, EmptyState, Field, PageHeader, Select, Table, Tabs, Tag, Td, Textarea, Th, useToast } from '@athena/ui';
 import { api, type Session } from '../api';
 import { NormativeTemplateEditor, type NormativeDraft, type NormativeTemplateEntry } from '../components/NormativeTemplateEditor';
 import { ProjectTemplateEditor } from '../components/ProjectTemplateEditor';
@@ -65,27 +65,27 @@ function ProjectsTab({ users, templates }: { users: UserEntry[]; templates: Temp
         <Field label={fr.org.projectName} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
         <div className="ath-field">
           <label className="ath-field__label" htmlFor="project-template">{fr.org.template}</label>
-          <select id="project-template" className="ath-select" value={form.template} onChange={(e) => setForm({ ...form, template: e.target.value, version: '', criticality: '' })}>
+          <Select id="project-template" value={form.template} onChange={(e) => setForm({ ...form, template: e.target.value, version: '', criticality: '' })}>
             <option value="">{fr.org.noTemplate}</option>
             {templates.map((t) => <option key={t.key} value={t.key}>{t.name} ({t.trackers.length})</option>)}
-          </select>
+          </Select>
         </div>
         {chosen && (chosen.versions?.length ?? 0) > 0 && (
           <div className="ath-field">
             <label className="ath-field__label" htmlFor="project-template-version">{fr.normTpl.projectVersion}</label>
-            <select id="project-template-version" className="ath-select" value={form.version} onChange={(e) => setForm({ ...form, version: e.target.value })}>
+            <Select id="project-template-version" value={form.version} onChange={(e) => setForm({ ...form, version: e.target.value })}>
               <option value="">{fr.normTpl.latest}</option>
               {[...(chosen.versions ?? [])].reverse().map((v) => <option key={v} value={v}>{v}</option>)}
-            </select>
+            </Select>
           </div>
         )}
         {chosen && (chosen.normative?.criticality?.categories.length ?? 0) > 0 && (
           <div className="ath-field">
             <label className="ath-field__label" htmlFor="project-criticality">{fr.normTpl.projectCriticality}</label>
-            <select id="project-criticality" className="ath-select" value={form.criticality} onChange={(e) => setForm({ ...form, criticality: e.target.value })}>
+            <Select id="project-criticality" value={form.criticality} onChange={(e) => setForm({ ...form, criticality: e.target.value })}>
               <option value="">{fr.normTpl.noCriticality}</option>
               {chosen.normative!.criticality!.categories.map((c) => <option key={c.key} value={c.key}>{c.name}</option>)}
-            </select>
+            </Select>
           </div>
         )}
         <Btn type="submit" loading={busy} disabled={form.key.length < 2 || !form.name.trim()}>{fr.org.createProject}</Btn>
@@ -104,10 +104,10 @@ function ProjectsTab({ users, templates }: { users: UserEntry[]; templates: Temp
                 <div className="ath-toolbar">
                   <div className="ath-field">
                     <label className="ath-field__label" htmlFor={`mgr-${p.key}`}>{fr.org.assignManager}</label>
-                    <select id={`mgr-${p.key}`} className="ath-select" value={pick[p.key] ?? ''} onChange={(e) => setPick({ ...pick, [p.key]: e.target.value })}>
+                    <Select id={`mgr-${p.key}`} value={pick[p.key] ?? ''} onChange={(e) => setPick({ ...pick, [p.key]: e.target.value })}>
                       <option value="">{fr.org.chooseUser}</option>
                       {users.map((u) => <option key={u.subject} value={u.subject}>{u.displayName} ({u.username})</option>)}
-                    </select>
+                    </Select>
                   </div>
                   <Btn size="sm" disabled={!pick[p.key]} onClick={() => assign(p.key)}>{fr.org.assignManager}</Btn>
                 </div>
@@ -207,16 +207,16 @@ function ProjectTemplates({ templates, trackerTemplates, reload, reloadTrackerTe
         <fieldset className="ath-row">
           <legend className="ath-field__label">{fr.builder.trackerTemplates}</legend>
           {trackerTemplates.map((t) => (
-            <label key={t.key} className="ath-row"><input type="checkbox" checked={form.tplPicked.includes(t.key)}
+            <label key={t.key} className="ath-row"><Checkbox checked={form.tplPicked.includes(t.key)}
               onChange={(e) => setForm({ ...form, tplPicked: e.target.checked ? [...form.tplPicked, t.key] : form.tplPicked.filter((x) => x !== t.key) })} />{t.name} <span className="ath-mono">{t.tracker.key}</span></label>
           ))}
         </fieldset>
         <div className="ath-toolbar">
           <div className="ath-field">
             <label className="ath-field__label" htmlFor="template-project">{fr.org.fromProject}</label>
-            <select id="template-project" className="ath-select" value={form.project} onChange={(e) => void chooseProject(e.target.value)}>
+            <Select id="template-project" value={form.project} onChange={(e) => void chooseProject(e.target.value)}>
               <option value="" />{projects.map((p) => <option key={p.key} value={p.key}>{p.name} ({p.key})</option>)}
-            </select>
+            </Select>
           </div>
           <Btn type="button" variant="ghost" onClick={() => setCreating(!creating)} aria-expanded={creating}>{fr.builder.newTrackerForTemplate}</Btn>
         </div>
@@ -224,7 +224,7 @@ function ProjectTemplates({ templates, trackerTemplates, reload, reloadTrackerTe
           <fieldset className="ath-row">
             <legend className="ath-field__label">{fr.org.pickTrackers}</legend>
             {projectTrackers.map((t) => (
-              <label key={t.key} className="ath-row"><input type="checkbox" checked={form.picked.includes(t.key)}
+              <label key={t.key} className="ath-row"><Checkbox checked={form.picked.includes(t.key)}
                 onChange={(e) => setForm({ ...form, picked: e.target.checked ? [...form.picked, t.key] : form.picked.filter((x) => x !== t.key) })} /><span className="ath-mono">{t.key}</span> {t.name}</label>
             ))}
           </fieldset>
@@ -357,11 +357,11 @@ function PluginsTab() {
       <form className="ath-stack" onSubmit={install}>
         <span className="ath-eyebrow">{fr.org.install}</span>
         <label className="ath-field__label" htmlFor="plugin-package">{fr.org.packageJson}</label>
-        <textarea id="plugin-package" className="ath-input ath-mono" rows={6} value={raw} onChange={(e) => setRaw(e.target.value)} />
+        <Textarea id="plugin-package" className="ath-mono" rows={6} value={raw} onChange={(e) => setRaw(e.target.value)} />
         <fieldset className="ath-row">
           <legend className="ath-field__label">{fr.org.grants}</legend>
           {['storage', 'artifacts:read'].map((g) => (
-            <label key={g} className="ath-row"><input type="checkbox" checked={grants.includes(g)} onChange={(e) => setGrants(e.target.checked ? [...grants, g] : grants.filter((x) => x !== g))} /><span className="ath-mono">{g}</span></label>
+            <label key={g} className="ath-row"><Checkbox checked={grants.includes(g)} onChange={(e) => setGrants(e.target.checked ? [...grants, g] : grants.filter((x) => x !== g))} /><span className="ath-mono">{g}</span></label>
           ))}
         </fieldset>
         <div><Btn type="submit" disabled={!raw.trim()}>{fr.org.installAction}</Btn></div>
