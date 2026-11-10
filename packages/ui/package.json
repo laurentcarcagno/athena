@@ -14,12 +14,12 @@
     "./styles.css": "./src/styles.css"
   },
   "scripts": {
-    "tokens": "node scripts/build-tokens.mjs && node scripts/build-themes.mjs",
-    "build": "node scripts/build-tokens.mjs && node scripts/build-themes.mjs && tsc -p tsconfig.json",
-    "typecheck": "node scripts/build-tokens.mjs && node scripts/build-themes.mjs && tsc -p tsconfig.json --noEmit && tsc -p tsconfig.test.json",
-    "lint": "node scripts/lint-design.mjs src && node scripts/validate-design.mjs --strict --check-css src/styles.css",
-    "design:check": "node scripts/validate-design.mjs --strict --check-css src/styles.css",
-    "test": "node scripts/build-tokens.mjs && node scripts/build-themes.mjs && vitest run",
+    "tokens": "node scripts/build-themes.mjs",
+    "build": "node scripts/build-themes.mjs && tsc -p tsconfig.json",
+    "typecheck": "node scripts/build-themes.mjs && tsc -p tsconfig.json --noEmit && tsc -p tsconfig.test.json",
+    "lint": "node scripts/build-themes.mjs && node scripts/lint-design.mjs src && node scripts/validate-design.mjs --strict",
+    "design:check": "node scripts/validate-design.mjs --strict",
+    "test": "node scripts/build-themes.mjs && vitest run",
     "storybook": "storybook dev -p 6006 --no-open",
     "build-storybook": "storybook build -o storybook-static"
   },
@@ -42,7 +42,6 @@
     "jsdom": "25.0.1",
     "storybook": "8.6.19",
     "vite": "^6.4.5",
-    "vitest": "4.1.12",
-    "yaml": "2.6.0"
+    "vitest": "4.1.12"
   }
 }

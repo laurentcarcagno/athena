@@ -64,10 +64,10 @@ describe('charte du bandeau', () => {
   it('n’utilise ni le rouge de cérémonie, ni ombre, ni dégradé, ni coin arrondi', async () => {
     const { readFileSync } = await import('node:fs');
     const { resolve } = await import('node:path');
-    const css = readFileSync(resolve(process.cwd(), '../../packages/ui/src/styles.css'), 'utf8');
+    const css = readFileSync(resolve(process.cwd(), '../../packages/ui/src/styles/documents.css'), 'utf8'); // bandeau de protection (T-0131 : feuille découpée)
     const rule = css.split('\n').filter((l) => l.startsWith('.ath-protection') || l.startsWith('.ath-root--protected')).join('\n');
     expect(rule).toContain('.ath-protection {');
-    expect(rule).not.toMatch(/tricolor-red|C80A26|gradient|shadow|radius/i);
+    expect(rule).not.toMatch(/tricolor-red|brand-accent|C80A26|gradient|shadow|radius/i);
     expect(rule).toMatch(/sticky/);
   });
 });

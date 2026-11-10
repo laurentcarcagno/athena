@@ -1,0 +1,33 @@
+/* Tiroir de navigation sous 768 px, défilement et éléments collants. */
+/* Audit F-09 : sous 768 px la navigation se replie derrière le bouton Menu (barre basse, T-0110) ; la page ne déborde pas. */
+@media (max-width: 768px) {
+  .ath-sidebar:not(.ath-sidebar--open) .ath-nav { display: none; }
+  .ath-page__main { min-width: 0; }
+  .ath-table-wrap { overflow-x: auto; }
+  .ath-pageheader { flex-wrap: wrap; align-items: flex-start; gap: var(--ath-space-md); }
+  .ath-pageheader__actions { flex-wrap: wrap; }
+  .ath-suggest { max-width: 100%; flex: 1 1 100%; }
+  .ath-suggest .ath-input { width: 100%; box-sizing: border-box; }
+}
+.ath-table-wrap { max-width: 100%; }
+
+/* Défilement : la barre latérale occupe la hauteur de la fenêtre (la navigation défile dedans, le pied reste visible) ;
+   l'en-tête de page et les en-têtes de tableau restent visibles. */
+.ath-pageheader { position: sticky; top: 0; z-index: var(--ath-z-sticky); background: var(--ath-surface-app); margin-top: calc(-1 * var(--ath-space-xl)); padding-top: var(--ath-space-xl); }
+.ath-th { position: sticky; top: var(--ath-pageheader-h, 0px); z-index: calc(var(--ath-z-base) + 2); }
+@media (max-width: 768px) {
+  /* Tiroir : fermé, le rail n'occupe aucune place ; ouvert, il couvre la gauche de l'écran au-dessus d'un fond (le panneau de détail est à 900). */
+  .ath-sidebar:not(.ath-sidebar--open) { display: none; }
+  .ath-sidebar--open { position: fixed; top: 0; left: 0; bottom: 0; width: min(86vw, 320px); height: 100dvh; z-index: calc(var(--ath-z-drawer) + 50); border-right: var(--ath-border-width-hairline) solid var(--ath-inverse-line); }
+  .ath-sidebar--open .ath-nav { max-height: none; }
+  .ath-sidebar--collapsed .ath-nav, .ath-sidebar--collapsed .ath-sidebar__brand, .ath-sidebar--collapsed .ath-avatar, .ath-sidebar--collapsed .ath-sidebar__role, .ath-sidebar--collapsed .ath-sidebar__actions > :not(.ath-collapse-btn) { display: revert; }
+  .ath-sidebar--collapsed { width: min(86vw, 320px); }
+  .ath-collapse-btn { display: none; }
+  .ath-drawer-backdrop { position: fixed; inset: 0; z-index: calc(var(--ath-z-drawer) + 40); background: var(--ath-surface-scrim); }
+  .ath-pageheader { position: static; margin-top: 0; padding-top: 0; }
+  .ath-th { top: 0; }
+}
+
+/* Pas de marge du navigateur : la barre latérale occupe exactement la hauteur de la fenêtre. */
+html, body { margin: 0; }
+

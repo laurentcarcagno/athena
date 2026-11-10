@@ -1,0 +1,44 @@
+/* Lien d’évitement, cibles, troncature, mini-workflow, panneau de détail, informations clés. */
+/* Audit F-04 : lien d'évitement, visible au focus seulement. */
+.ath-skip { position: absolute; left: 8px; top: -48px; z-index: var(--ath-z-toast); padding: var(--ath-space-sm) 14px; background: var(--ath-surface-default); color: var(--ath-text-heading); border: var(--ath-border-width-strong) solid var(--ath-text-heading); font-weight: var(--ath-font-weight-bold); font-size: var(--ath-font-size-sm); letter-spacing: var(--ath-font-tracking-label); text-transform: uppercase; text-decoration: none; }
+.ath-skip:focus { top: 8px; outline: var(--ath-border-width-strong) solid var(--ath-border-focus); outline-offset: 2px; }
+.ath-page__main:focus { outline: none; }
+
+/* Audit F-06 : cibles de 24 px minimum pour les liens des tableaux, des cartes et des listes. */
+.ath-table .ath-link, .ath-ticket .ath-link, .ath-row .ath-link, .ath-stack .ath-link, .ath-pageheader__sub .ath-link { display: inline-flex; align-items: center; min-height: var(--ath-size-touch-target-min); }
+
+/* Audit F-07 : un identifiant ne se coupe pas, un titre long se tronque (texte complet dans l'attribut title). */
+.ath-table .ath-link.ath-mono, .ath-table .ath-mono, .ath-ticket .ath-link { white-space: nowrap; }
+.ath-stackbar { display: block; width: 100%; height: 8px; border: var(--ath-border-width-hairline) solid var(--ath-border-default); background: var(--ath-surface-app); box-sizing: border-box; }
+.ath-stackbar__seg--todo { fill: var(--ath-border-focus); }
+.ath-stackbar__seg--in_progress { fill: var(--ath-state-warning-border); }
+.ath-stackbar__seg--done { fill: var(--ath-state-success-border); }
+.ath-miniworkflow { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ath-space-sm); list-style: none; margin: 0; padding: 0; }
+.ath-miniworkflow__state { display: inline-flex; align-items: center; gap: var(--ath-space-sm); }
+.ath-miniworkflow__arrow { color: var(--ath-text-mute); }
+.ath-miniworkflow__btn { background: transparent; border: var(--ath-border-width-hairline) solid transparent; padding: var(--ath-space-2xs) var(--ath-space-sm); cursor: pointer; font-family: inherit; color: inherit; min-height: var(--ath-size-touch-target-min); }
+.ath-miniworkflow__btn[aria-pressed="true"] { border-color: var(--ath-border-focus); background: var(--ath-surface-hover); }
+.ath-miniworkflow__btn:focus-visible { outline: var(--ath-border-width-strong) solid var(--ath-border-focus); outline-offset: 2px; }
+.ath-trackercard { display: grid; gap: var(--ath-space-sm); }
+.ath-split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(360px, 520px); gap: var(--ath-space-md); align-items: start; }
+.ath-split__panel { border: var(--ath-border-width-hairline) solid var(--ath-border-default); background: var(--ath-surface-default); padding: var(--ath-space-md); position: sticky; top: var(--ath-pageheader-h, 0); max-height: 100vh; overflow: auto; }
+.ath-split__panel:focus-visible { outline: var(--ath-border-width-strong) solid var(--ath-border-focus); outline-offset: 2px; }
+.ath-detail__head { display: grid; gap: var(--ath-space-sm); margin-bottom: var(--ath-space-md); }
+.ath-detail__title { margin: 0; font-size: var(--ath-font-size-xl); }
+/* Informations clés d'un ticket (en-tête de la fiche) : libellé au-dessus, valeur dessous, grille qui se replie. */
+.ath-facts { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: var(--ath-space-sm) var(--ath-space-md); margin: 0; padding: var(--ath-space-sm) 0; border-top: var(--ath-border-width-hairline) solid var(--ath-border-default); border-bottom: var(--ath-border-width-hairline) solid var(--ath-border-default); }
+.ath-facts__item { display: grid; gap: var(--ath-space-2xs); min-width: 0; }
+.ath-facts__item dt { font-weight: var(--ath-font-weight-bold); font-size: var(--ath-font-size-xs); letter-spacing: var(--ath-font-tracking-label); text-transform: uppercase; color: var(--ath-text-mute); }
+.ath-facts__item dd { margin: 0; overflow-wrap: anywhere; }
+.ath-facts--compact { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
+.ath-row--selected { background: var(--ath-surface-hover); }
+@media (max-width: 767px) { .ath-split { grid-template-columns: 1fr; } .ath-split__panel { position: fixed; inset: 0; z-index: var(--ath-z-drawer); max-height: none; } }
+.ath-tree { display: flex; flex-direction: column; border: var(--ath-border-width-hairline) solid var(--ath-border-default); background: var(--ath-surface-default); }
+.ath-tree__row { display: flex; align-items: center; gap: var(--ath-space-sm); min-height: 32px; padding: 0 var(--ath-space-sm); border-bottom: var(--ath-border-width-hairline) solid var(--ath-border-default); cursor: pointer; }
+.ath-tree__row:hover { background: var(--ath-surface-hover); }
+.ath-tree__row[aria-selected="true"] { background: var(--ath-surface-hover); border-left: var(--ath-border-width-accent) solid var(--ath-border-focus); }
+.ath-tree__row:focus-visible { outline: var(--ath-border-width-strong) solid var(--ath-border-focus); outline-offset: -2px; }
+.ath-tree__row[data-level="2"] { padding-left: 28px; } .ath-tree__row[data-level="3"] { padding-left: var(--ath-space-3xl); } .ath-tree__row[data-level="4"] { padding-left: 68px; }
+.ath-tree__row[data-level="5"] { padding-left: 88px; } .ath-tree__row[data-level="6"] { padding-left: 108px; } .ath-tree__row[data-level="7"] { padding-left: 128px; } .ath-tree__row[data-level="8"] { padding-left: 148px; }
+.ath-tree__toggle { display: inline-flex; align-items: center; justify-content: center; width: 24px; min-height: var(--ath-size-touch-target-min); color: var(--ath-text-mute); }
+.ath-tree__chapter { color: var(--ath-text-mute); min-width: 3.5ch; }

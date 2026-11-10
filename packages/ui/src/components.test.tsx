@@ -9,6 +9,10 @@ import {
   StatusPill, Table, Tabs, Td, Th, ToastProvider, useToast, type SortState,
 } from './components';
 
+/** Feuille de style complète : styles.css et ses imports, dans l'ordre (T-0131). */
+const readStyles = (): string => readFileSync(join(__dirname, 'styles.css'), 'utf8')
+  .replace(/@import "\.\/(styles\/[a-z-]+\.css)";/g, (_, part: string) => readFileSync(join(__dirname, part), 'utf8'));
+
 describe('boutons, pastilles, identifiants', () => {
   it('applique la variante et la taille', () => {
     render(<><Btn variant="danger" size="sm">Supprimer</Btn><Btn disabled>Off</Btn></>);
@@ -225,7 +229,7 @@ describe('notifications d’erreur (constat F-02)', () => {
 });
 
 describe('contenus longs (constat F-07)', () => {
-  const css = readFileSync(join(__dirname, 'styles.css'), 'utf8');
+  const css = readStyles();
   const rule = (selector: string) => new RegExp(`${selector.replace(/[.\\[\]()]/g, '\\$&')}\\s*\\{([^}]*)\\}`).exec(css)?.[1] ?? '';
   it('un titre long est tronqué sur une ligne avec points de suspension', () => {
     const body = rule('.ath-clip');
@@ -240,12 +244,14 @@ describe('contenus longs (constat F-07)', () => {
 });
 
 describe('tiroir mobile (constat F-09, charte : sans transform ni ombre)', () => {
-  const css = readFileSync(join(__dirname, 'styles.css'), 'utf8');
+  const css = readStyles();
   const mobile = css.slice(css.indexOf('Tiroir : fermé'), css.indexOf('}', css.indexOf('.ath-drawer-backdrop {', css.indexOf('Tiroir : fermé'))) + 1);
   it('masque le rail fermé et le fixe au-dessus du panneau de détail quand il est ouvert', () => {
     expect(mobile).toContain('.ath-sidebar:not(.ath-sidebar--open) { display: none; }');
-    expect(mobile).toMatch(/\.ath-sidebar--open \{[^}]*position: fixed[^}]*z-index: 950/);
-    expect(mobile).toMatch(/\.ath-drawer-backdrop \{[^}]*position: fixed[^}]*z-index: 940/);
+    // Couches (T-0131) : le tiroir (drawer + 50) et son fond (drawer + 40) passent au-dessus du panneau de détail (drawer).
+    expect(mobile).toMatch(/\.ath-sidebar--open \{[^}]*position: fixed[^}]*z-index: calc\(var\(--ath-z-drawer\) \+ 50\)/);
+    expect(mobile).toMatch(/\.ath-drawer-backdrop \{[^}]*position: fixed[^}]*z-index: calc\(var\(--ath-z-drawer\) \+ 40\)/);
+    expect(css).toMatch(/\.ath-split__panel \{[^}]*position: fixed[^}]*z-index: var\(--ath-z-drawer\)/);
     expect(mobile).toContain('.ath-collapse-btn { display: none; }');
   });
   it('n’utilise ni transform, ni ombre, ni dégradé', () => {
@@ -278,7 +284,7 @@ describe('structure de page', () => {
 });
 
 describe('conformité Hemeria de la feuille de style', () => {
-  const css = readFileSync(join(process.cwd(), 'src', 'styles.css'), 'utf8');
+  const css = readStyles();
   it('ne contient ni ombre, ni dégradé, ni flou, ni arrondi', () => {
     expect(css).not.toMatch(/box-shadow\s*:\s*(?!none)/);
     expect(css).not.toMatch(/gradient\(/);

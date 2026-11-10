@@ -1,0 +1,18 @@
+/* Bandeau de protection, documents StrictDoc. */
+/* Bandeau du niveau de protection de l'instance : fixe en tête de page, bleu profond (jamais le rouge de cérémonie), sans ombre. */
+.ath-protection { position: sticky; top: 0; z-index: var(--ath-z-banner); display: flex; align-items: center; justify-content: center; min-height: 28px; padding: 0 var(--ath-space-md); background: var(--ath-surface-inverse); color: var(--ath-text-on-inverse); border-bottom: var(--ath-border-width-strong) solid var(--ath-border-focus); font-weight: var(--ath-font-weight-bold); font-size: var(--ath-font-size-sm); letter-spacing: var(--ath-font-tracking-eyebrow); text-transform: uppercase; text-align: center; }
+.ath-root--protected .ath-sidebar { top: 28px; height: calc(100vh - 28px); height: calc(100dvh - 28px); }
+
+/* Documents StrictDoc en lecture seule : plan et contenu côte à côte, indentation par profondeur (classes, pas d'attribut style). */
+.ath-doc { display: grid; grid-template-columns: minmax(220px, 280px) minmax(0, 1fr); gap: var(--ath-space-lg); align-items: start; }
+.ath-doc__outline { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--ath-space-xs); }
+.ath-doc__banner { margin: 0; padding: var(--ath-space-sm) var(--ath-space-md); border: var(--ath-border-width-hairline) solid var(--ath-border-default); border-left: var(--ath-border-width-stripe) solid var(--ath-border-focus); background: var(--ath-surface-default); }
+.ath-doc__content { display: flex; flex-direction: column; gap: var(--ath-space-md); }
+.ath-doc__heading { margin: 0; font-size: var(--ath-font-size-ml); }
+.ath-doc__uid { font-weight: var(--ath-font-weight-medium); }
+.ath-doc__text { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.ath-doc__req { padding: var(--ath-space-md); border: var(--ath-border-width-hairline) solid var(--ath-border-default); background: var(--ath-surface-default); display: flex; flex-direction: column; gap: var(--ath-space-sm); }
+.ath-doc__req--selected { border-left: var(--ath-border-width-stripe) solid var(--ath-border-focus); }
+.ath-doc__depth-0 { margin-left: 0; } .ath-doc__depth-1 { margin-left: var(--ath-space-base); } .ath-doc__depth-2 { margin-left: var(--ath-space-2xl); } .ath-doc__depth-3 { margin-left: var(--ath-space-3xl); } .ath-doc__depth-4 { margin-left: 64px; }
+@media (max-width: 768px) { .ath-doc { grid-template-columns: 1fr; } }
+

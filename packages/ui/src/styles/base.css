@@ -1,0 +1,12 @@
+/* Racine, police, libellés et rappel de la règle des couleurs. */
+/* Styles Athena, conformes à Hemeria : angles droits, aplats, aucune ombre, aucun dégradé.
+   Jetons générés par @nuance/theming (themes.generated.css). */
+.ath-root { font-family: var(--ath-type-body-font-family); font-size: var(--ath-type-body-font-size); line-height: var(--ath-font-leading-body); color: var(--ath-text-default); background: var(--ath-surface-app); }
+.ath-root *, .ath-root *::before, .ath-root *::after { box-sizing: border-box; border-radius: 0; }
+.ath-mono { font-family: var(--ath-font-family-mono); font-weight: var(--ath-font-weight-medium); letter-spacing: var(--ath-font-tracking-tight); font-variant-numeric: tabular-nums; }
+.ath-label { font-weight: var(--ath-font-weight-bold); font-size: var(--ath-font-size-xs); letter-spacing: var(--ath-font-tracking-label); text-transform: uppercase; }
+.ath-eyebrow { font-weight: var(--ath-font-weight-bold); font-size: var(--ath-font-size-xs); letter-spacing: var(--ath-font-tracking-eyebrow); text-transform: uppercase; color: var(--ath-text-mute); }
+
+/* Couleurs : uniquement des jetons sémantiques (--ath-surface-*, --ath-text-*, --ath-border-*, --ath-action-*, --ath-state-*, --ath-focus-*,
+   --ath-inverse-*, --ath-brand-*) générés par @nuance/theming depuis le thème actif (ADR-0004). Aucune primitive, aucune couleur littérale. */
+
