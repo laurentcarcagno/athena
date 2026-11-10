@@ -46,7 +46,7 @@ suite('liens et commentaires', () => {
     await links.link(org, 'ARI', 'ARI-BUG-0001', 'ARI-REQ-0001', 'verifies', actor);
     const fromBug = await links.list(org, 'ARI', 'ARI-BUG-0001');
     const fromReq = await links.list(org, 'ARI', 'ARI-REQ-0001');
-    expect(fromBug).toMatchObject([{ direction: 'outward', label: 'vérifie', other: 'ARI-REQ-0001', suspect: false, hierarchical: false }]);
+    expect(fromBug).toMatchObject([{ direction: 'outward', label: 'vérifie', other: 'ARI-REQ-0001', suspect: false, hierarchical: false, propagatesSuspect: true }]);
     expect(fromReq).toMatchObject([{ direction: 'inward', label: 'vérifié par', other: 'ARI-BUG-0001', hierarchical: false }]);
   });
 
