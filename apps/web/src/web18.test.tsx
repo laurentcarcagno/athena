@@ -115,7 +115,7 @@ describe('éditeur par étapes d’un gabarit normatif', () => {
 describe('création de projet depuis un gabarit', () => {
   it('propose la version et la catégorie de criticité du gabarit choisi', async () => {
     render(<ToastProvider><MemoryRouter initialEntries={['/org']}><Routes><Route path="/org" element={<OrgAdminPage session={admin} />} /></Routes></MemoryRouter></ToastProvider>);
-    const select = await screen.findByLabelText(/^Template/);
+    const select = await screen.findByLabelText(/^Gabarit/);
     expect(screen.queryByLabelText('Version du gabarit')).toBeNull();
     await userEvent.selectOptions(select, 'spatial');
     const version = await screen.findByLabelText('Version du gabarit');

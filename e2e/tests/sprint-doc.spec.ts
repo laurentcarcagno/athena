@@ -34,7 +34,7 @@ test('une action de sprint cite une exigence de l’URD, signale sa modification
   // le document montre l'action parmi les citations de l'exigence, lien suspect compris
   await page.goto('/p/ARI/documents/urd.docs-urd#URD-1');
   await page.locator('#URD-1').getByRole('button', { name: '1 citation' }).click();
-  const panel = page.getByRole('region', { name: 'Artefacts citant URD-1' });
+  const panel = page.getByRole('region', { name: 'Tickets citant URD-1' });
   await expect(panel.getByRole('link', { name: item })).toBeVisible();
   await expect(panel.getByText('Lien suspect')).toBeVisible();
 

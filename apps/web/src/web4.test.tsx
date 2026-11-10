@@ -103,7 +103,7 @@ afterEach(() => { vi.unstubAllGlobals(); setLocale('fr'); });
 const admin: Session = { authenticated: true, user: { username: 'a', name: 'Alice', email: null, roles: ['athena-admin', 'athena-user'], groups: [] } };
 
 describe('vue projet', () => {
-  it('affiche chaque tracker sur une ligne : nom, nombre d’artefacts et attributs', async () => {
+  it('affiche chaque tracker sur une ligne : nom, nombre d’tickets et attributs', async () => {
     routes.push(['GET', /\/v1\/projects$/, [{ key: 'ARI', name: 'Ariane' }]]);
     routes.push(['GET', /\/v1\/projects\/ARI\/trackers$/, [{ key: 'BUG', name: 'Bugs', artifacts: 12 }, { key: 'REQ', name: 'Exigences', artifacts: 3 }]]);
     routes.push(['GET', /\/trackers\/BUG$/, { fields: [{ label: 'Titre' }, { label: 'Sévérité' }] }]);
@@ -120,36 +120,36 @@ describe('vue projet', () => {
   });
 });
 
-describe('templates de projet', () => {
+describe('gabarits de projet', () => {
   const templates = [
     { key: 'vide', name: 'Projet vide', description: '', builtin: true, trackers: [] },
     { key: 'qualite', name: 'Qualité', description: '', builtin: true, trackers: [{ key: 'REQ', name: 'Exigences', fields: [{ label: 'Énoncé' }], statuses: [], transitions: [] }, { key: 'BUG', name: 'Bugs', fields: [{ label: 'Titre' }], statuses: [], transitions: [] }] },
   ];
   const app = () => render(<ToastProvider><MemoryRouter><OrgAdminPage session={admin} /></MemoryRouter></ToastProvider>);
 
-  it('crée un projet à partir du template choisi', async () => {
+  it('crée un projet à partir du gabarit choisi', async () => {
     routes.push(['GET', /\/v1\/users$/, []], ['GET', /\/v1\/project-templates$/, templates], ['GET', /\/v1\/projects$/, []], ['POST', /\/v1\/projects$/, {}]);
     app();
     const user = userEvent.setup();
-    await user.selectOptions(await screen.findByLabelText('Template du projet'), 'qualite');
+    await user.selectOptions(await screen.findByLabelText('Gabarit du projet'), 'qualite');
     await user.type(screen.getByLabelText('Clé du projet (2 à 10 majuscules)'), 'qua');
     await user.type(screen.getByLabelText('Nom du projet'), 'Qualité');
     await user.click(screen.getByRole('button', { name: 'Créer le projet' }));
     await waitFor(() => expect(calls.find((c) => c.method === 'POST' && c.url.endsWith('/v1/projects'))?.body).toEqual({ key: 'QUA', name: 'Qualité', template: 'qualite' }));
   });
 
-  it('enregistre un template depuis les trackers d’un projet', async () => {
+  it('enregistre un gabarit depuis les trackers d’un projet', async () => {
     routes.push(['GET', /\/v1\/users$/, []], ['GET', /\/v1\/project-templates$/, templates], ['GET', /\/v1\/projects$/, [{ key: 'ARI', name: 'Ariane' }]], ['GET', /\/members$/, []],
       ['GET', /\/v1\/projects\/ARI\/trackers$/, [{ key: 'BUG', name: 'Bugs' }, { key: 'REQ', name: 'Exigences' }]], ['POST', /\/v1\/project-templates$/, {}]);
     app();
     const user = userEvent.setup();
-    await user.click(await screen.findByRole('tab', { name: 'Templates' }));
+    await user.click(await screen.findByRole('tab', { name: 'Gabarits' }));
     expect(await screen.findByText('Qualité')).toBeInTheDocument();
-    await user.type(screen.getByLabelText('Clé du template (minuscules)'), 'mon-modele');
-    await user.type(screen.getByLabelText('Nom du template'), 'Mon modèle');
+    await user.type(screen.getByLabelText('Clé du gabarit (minuscules)'), 'mon-modele');
+    await user.type(screen.getByLabelText('Nom du gabarit'), 'Mon modèle');
     await user.selectOptions(screen.getByLabelText('Reprendre les trackers du projet'), 'ARI');
     await user.click(await screen.findByRole('checkbox', { name: /REQ/ }));
-    await user.click(screen.getByRole('button', { name: 'Créer le template' }));
+    await user.click(screen.getByRole('button', { name: 'Créer le gabarit' }));
     await waitFor(() => expect(calls.find((c) => c.method === 'POST' && c.url.endsWith('/v1/project-templates'))?.body)
       .toEqual({ key: 'mon-modele', name: 'Mon modèle', fromProject: { project: 'ARI', trackers: ['BUG'] } }));
   });

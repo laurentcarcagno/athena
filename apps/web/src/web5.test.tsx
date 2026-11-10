@@ -90,11 +90,11 @@ describe('création d’un tracker dans un projet', () => {
     </Routes></MemoryRouter></ToastProvider>,
   );
 
-  it('part d’un template de tracker, le modifie, puis crée le tracker', async () => {
+  it('part d’un gabarit de tracker, le modifie, puis crée le tracker', async () => {
     routes.push(['GET', /\/v1\/tracker-templates$/, templates], ['POST', /\/v1\/projects\/ARI\/trackers$/, { id: 'x', key: 'DEF' }]);
     page();
     const user = userEvent.setup();
-    await user.selectOptions(await screen.findByLabelText('Partir d’un template de tracker'), 'bug');
+    await user.selectOptions(await screen.findByLabelText('Partir d’un gabarit de tracker'), 'bug');
     expect(screen.getByDisplayValue('BUG')).toBeInTheDocument();
     expect(screen.getAllByText('Sévérité').length).toBeGreaterThanOrEqual(2); // tableau des champs et aperçu de la disposition
     await user.clear(screen.getByLabelText('Clé du tracker (2 à 10 majuscules)'));
@@ -115,92 +115,92 @@ describe('création d’un tracker dans un projet', () => {
   });
 });
 
-describe('templates de tracker et de projet', () => {
+describe('gabarits de tracker et de projet', () => {
   const app = () => render(<ToastProvider><MemoryRouter><OrgAdminPage session={admin} /></MemoryRouter></ToastProvider>);
   const base = () => routes.push(['GET', /\/v1\/users$/, []], ['GET', /\/v1\/projects$/, []], ['GET', /\/v1\/tracker-templates$/, templates],
     ['GET', /\/v1\/project-templates$/, [{ key: 'vide', name: 'Projet vide', description: '', builtin: true, trackers: [] }]]);
 
-  it('crée un template de tracker en partant d’un template existant', async () => {
+  it('crée un gabarit de tracker en partant d’un gabarit existant', async () => {
     base();
     routes.push(['POST', /\/v1\/tracker-templates$/, { key: 'bug-plus' }]);
     app();
     const user = userEvent.setup();
-    await user.click(await screen.findByRole('tab', { name: 'Templates' }));
-    await user.click(await screen.findByRole('tab', { name: 'Templates de tracker' }));
-    await user.type(await screen.findByLabelText('Clé du template de tracker (minuscules)'), 'bug-plus');
-    await user.type(screen.getByLabelText('Nom du template de tracker'), 'Bugs plus');
-    await user.selectOptions(screen.getByLabelText('Partir d’un template de tracker'), 'bug');
-    await user.click(screen.getByRole('button', { name: 'Créer le template de tracker' }));
+    await user.click(await screen.findByRole('tab', { name: 'Gabarits' }));
+    await user.click(await screen.findByRole('tab', { name: 'Gabarits de tracker' }));
+    await user.type(await screen.findByLabelText('Clé du gabarit de tracker (minuscules)'), 'bug-plus');
+    await user.type(screen.getByLabelText('Nom du gabarit de tracker'), 'Bugs plus');
+    await user.selectOptions(screen.getByLabelText('Partir d’un gabarit de tracker'), 'bug');
+    await user.click(screen.getByRole('button', { name: 'Créer le gabarit de tracker' }));
     await waitFor(() => expect(calls.find((c) => c.method === 'POST')?.body).toMatchObject({ key: 'bug-plus', name: 'Bugs plus', tracker: { key: 'BUG', fields: expect.any(Array) } }));
   });
 
-  it('modifie un template de tracker livré, puis propose de le réinitialiser', async () => {
+  it('modifie un gabarit de tracker livré, puis propose de le réinitialiser', async () => {
     base();
     routes.push(['PUT', /\/v1\/tracker-templates\/bug$/, { key: 'bug' }]);
     app();
     const user = userEvent.setup();
-    await user.click(await screen.findByRole('tab', { name: 'Templates' }));
-    await user.click(await screen.findByRole('tab', { name: 'Templates de tracker' }));
+    await user.click(await screen.findByRole('tab', { name: 'Gabarits' }));
+    await user.click(await screen.findByRole('tab', { name: 'Gabarits de tracker' }));
     expect(screen.queryByRole('button', { name: 'Réinitialiser Bugs' })).toBeNull(); // livré et intact : rien à réinitialiser
     await user.click(await screen.findByRole('button', { name: 'Modifier Bugs' }));
-    expect(screen.getByLabelText('Clé du template de tracker (minuscules)')).toHaveAttribute('readonly');
-    await user.clear(screen.getByLabelText('Nom du template de tracker'));
-    await user.type(screen.getByLabelText('Nom du template de tracker'), 'Bugs maison');
+    expect(screen.getByLabelText('Clé du gabarit de tracker (minuscules)')).toHaveAttribute('readonly');
+    await user.clear(screen.getByLabelText('Nom du gabarit de tracker'));
+    await user.type(screen.getByLabelText('Nom du gabarit de tracker'), 'Bugs maison');
     await user.click(screen.getByRole('button', { name: 'Supprimer severity' }));
     await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
     await waitFor(() => expect(calls.find((c) => c.method === 'PUT')?.body).toMatchObject({ name: 'Bugs maison', tracker: { key: 'BUG', fields: [{ key: 'title' }] } }));
     expect(calls.find((c) => c.method === 'PUT')?.body).not.toHaveProperty('key');
   });
 
-  it('propose de réinitialiser un template livré modifié', async () => {
+  it('propose de réinitialiser un gabarit livré modifié', async () => {
     routes.push(['GET', /\/v1\/users$/, []], ['GET', /\/v1\/projects$/, []], ['GET', /\/v1\/project-templates$/, []],
       ['GET', /\/v1\/tracker-templates$/, [{ ...templates[0], modified: true, name: 'Bugs maison' }]], ['DELETE', /\/v1\/tracker-templates\/bug$/, {}]);
     app();
     const user = userEvent.setup();
-    await user.click(await screen.findByRole('tab', { name: 'Templates' }));
-    await user.click(await screen.findByRole('tab', { name: 'Templates de tracker' }));
+    await user.click(await screen.findByRole('tab', { name: 'Gabarits' }));
+    await user.click(await screen.findByRole('tab', { name: 'Gabarits de tracker' }));
     expect(await screen.findByText('Modifié')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Réinitialiser Bugs maison' }));
     await user.click(await screen.findByRole('button', { name: 'Réinitialiser' }));
     await waitFor(() => expect(calls.some((c) => c.method === 'DELETE' && c.url.endsWith('/v1/tracker-templates/bug'))).toBe(true));
   });
 
-  it('modifie un template de projet : renomme, retire un tracker et en ajoute un depuis un template de tracker', async () => {
+  it('modifie un gabarit de projet : renomme, retire un tracker et en ajoute un depuis un gabarit de tracker', async () => {
     routes.push(['GET', /\/v1\/users$/, []], ['GET', /\/v1\/projects$/, []], ['GET', /\/v1\/tracker-templates$/, templates],
       ['GET', /\/v1\/project-templates$/, [{ key: 'qualite', name: 'Qualité', description: '', builtin: true, modified: false, trackers: [{ ...templates[0]!.tracker, key: 'REQ', name: 'Exigences' }] }]],
       ['PUT', /\/v1\/project-templates\/qualite$/, { key: 'qualite' }]);
     app();
     const user = userEvent.setup();
-    await user.click(await screen.findByRole('tab', { name: 'Templates' }));
+    await user.click(await screen.findByRole('tab', { name: 'Gabarits' }));
     await user.click(await screen.findByRole('button', { name: 'Modifier Qualité' }));
     const editor = within(screen.getByRole('form', { name: /Modification de/ }));
-    await user.clear(editor.getByLabelText('Nom du template'));
-    await user.type(editor.getByLabelText('Nom du template'), 'Qualité+');
-    await user.selectOptions(editor.getByLabelText('Ajouter un tracker depuis un template de tracker'), 'bug');
+    await user.clear(editor.getByLabelText('Nom du gabarit'));
+    await user.type(editor.getByLabelText('Nom du gabarit'), 'Qualité+');
+    await user.selectOptions(editor.getByLabelText('Ajouter un tracker depuis un gabarit de tracker'), 'bug');
     await user.click(editor.getByRole('button', { name: 'Ajouter ce tracker' }));
     await user.click(editor.getByRole('button', { name: 'Retirer le tracker REQ' }));
     await user.click(editor.getByRole('button', { name: 'Enregistrer' }));
     await waitFor(() => expect(calls.find((c) => c.method === 'PUT')?.body).toMatchObject({ name: 'Qualité+', trackers: [{ key: 'BUG' }] }));
   });
 
-  it('crée un template de projet avec un template de tracker coché et un nouveau tracker', async () => {
+  it('crée un gabarit de projet avec un gabarit de tracker coché et un nouveau tracker', async () => {
     base();
     routes.push(['POST', /\/v1\/tracker-templates$/, { key: 'risques' }], ['POST', /\/v1\/project-templates$/, { key: 'assemble' }]);
     app();
     const user = userEvent.setup();
-    await user.click(await screen.findByRole('tab', { name: 'Templates' }));
-    await user.type(await screen.findByLabelText('Clé du template (minuscules)'), 'assemble');
-    await user.type(screen.getByLabelText('Nom du template'), 'Assemblé');
+    await user.click(await screen.findByRole('tab', { name: 'Gabarits' }));
+    await user.type(await screen.findByLabelText('Clé du gabarit (minuscules)'), 'assemble');
+    await user.type(screen.getByLabelText('Nom du gabarit'), 'Assemblé');
     await user.click(screen.getByRole('checkbox', { name: /Bugs/ }));
-    await user.click(screen.getByRole('button', { name: 'Nouveau tracker pour ce template' }));
-    const card = screen.getByRole('heading', { name: 'Nouveau tracker pour ce template' }).closest('section')!;
-    await user.type(within(card).getByLabelText('Clé du template de tracker (minuscules)'), 'risques');
-    await user.type(within(card).getByLabelText('Nom du template de tracker'), 'Risques');
+    await user.click(screen.getByRole('button', { name: 'Nouveau tracker pour ce gabarit' }));
+    const card = screen.getByRole('heading', { name: 'Nouveau tracker pour ce gabarit' }).closest('section')!;
+    await user.type(within(card).getByLabelText('Clé du gabarit de tracker (minuscules)'), 'risques');
+    await user.type(within(card).getByLabelText('Nom du gabarit de tracker'), 'Risques');
     await user.type(within(card).getByLabelText('Clé du tracker (2 à 10 majuscules)'), 'risk');
     await user.type(within(card).getByLabelText('Nom du tracker'), 'Risques');
-    await user.click(within(card).getByRole('button', { name: 'Créer le template de tracker' }));
+    await user.click(within(card).getByRole('button', { name: 'Créer le gabarit de tracker' }));
     await waitFor(() => expect(calls.find((c) => c.method === 'POST' && c.url.endsWith('/v1/tracker-templates'))?.body).toMatchObject({ key: 'risques', tracker: { key: 'RISK' } }));
-    await user.click(await screen.findByRole('button', { name: 'Créer le template' }));
+    await user.click(await screen.findByRole('button', { name: 'Créer le gabarit' }));
     await waitFor(() => expect(calls.find((c) => c.method === 'POST' && c.url.endsWith('/v1/project-templates'))?.body).toEqual({ key: 'assemble', name: 'Assemblé', trackerTemplates: ['bug', 'risques'] }));
   });
 });

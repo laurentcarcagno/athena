@@ -94,7 +94,7 @@ describe('page de recherche', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('Valeur attendue');
     vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ total: 0, hits: [] }), { status: 200 })));
     render(<ToastProvider><MemoryRouter initialEntries={['/p/ARI?q=x%20%3D%201']}><Routes><Route path="/p/:project" element={<ListPage />} /></Routes></MemoryRouter></ToastProvider>);
-    expect(await screen.findByText('Aucun artefact ne correspond à la requête.')).toBeInTheDocument();
+    expect(await screen.findByText('Aucun ticket ne correspond à la requête.')).toBeInTheDocument();
   });
 });
 
@@ -121,7 +121,7 @@ function artifactHandlers(extra: Handler[] = []) {
 }
 const session = { authenticated: true, user: { username: 'alice', name: 'Alice', email: null, roles: ['athena-user'], groups: [] } };
 
-describe('fiche d’artefact', () => {
+describe('fiche d’ticket', () => {
   it('propose les transitions du workflow et les applique avec la version courante', async () => {
     artifactHandlers([route('POST', /\/transitions$/, { body: { status: 'doing', version: 2 } })]);
     renderAt('/p/ARI/a/BUG-1', <ArtifactPage session={session} />, '/p/:project/a/:key');

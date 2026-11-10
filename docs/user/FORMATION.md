@@ -3,10 +3,10 @@
 Trois sessions courtes, chacune avec un exercice à faire dans un projet de formation (jeu de données : tracker `BUG` du modèle fourni).
 
 ## Session 1 : utilisateur (1 h)
-Objectifs : trouver, créer, faire avancer un artefact.
+Objectifs : trouver, créer, faire avancer un ticket.
 1. Connexion, sélecteur de langue, palette de commandes (Ctrl+K).
 2. Liste, tri, recherche ATQL (`status = open AND severity = majeure`), filtre enregistré, autocomplétion.
-3. Créer un artefact, modifier un champ, appliquer une transition, lire l'historique et restaurer une version.
+3. Créer un ticket, modifier un champ, appliquer une transition, lire l'historique et restaurer une version.
 4. Commentaires, liens, pièces jointes.
 5. Board : déplacer une carte (souris et clavier), couloirs par responsable.
 Exercice : créer 3 bugs, lier l'un à un autre (`bloque`), le déplacer jusqu'à « Terminé », retrouver la révision dans l'historique.
@@ -16,7 +16,7 @@ Exercice : créer 3 bugs, lier l'un à un autre (`bloque`), le déplacer jusqu'�
 2. Tableau de bord, vélocité, flux.
 3. Intégration GitLab : clés dans les messages de commit, branche et merge request depuis une fiche, déploiements, rétroportages, notes de version.
 4. Documentation StrictDoc : liens, liens suspects, couverture, report par merge request.
-Exercice : un commit `ARI-BUG-0001: …` fait passer l'artefact « En revue » ; produire les notes de version d'une version.
+Exercice : un commit `ARI-BUG-0001: …` fait passer le ticket « En revue » ; produire les notes de version d'une version.
 
 ## Session 3 : administrateur (2 h)
 1. Configuration d'un tracker : champs, statuts, transitions, rôles par champ et par transition, mode d'historique (direct ou merge request), aperçu d'impact avant suppression d'un champ.
@@ -27,4 +27,4 @@ Exercice : un commit `ARI-BUG-0001: …` fait passer l'artefact « En revue » ;
 Exercice : créer un tracker « Demandes » avec un champ `budget` visible du seul rôle `finance`, vérifier qu'un utilisateur sans ce rôle ne le voit ni dans la fiche, ni dans la recherche, ni dans le board.
 
 ## Évaluation
-Chaque exercice se valide par un contrôle fonctionnel (artefact dans l'état attendu, absence de fuite de champ restreint). Une session de rappel est conseillée après un mois d'usage.
+Chaque exercice se valide par un contrôle fonctionnel (ticket dans l'état attendu, absence de fuite de champ restreint). Une session de rappel est conseillée après un mois d'usage.

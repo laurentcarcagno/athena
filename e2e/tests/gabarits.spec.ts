@@ -14,7 +14,7 @@ async function createFrom(page: Page, key: string, name: string, template: strin
   await page.goto('/org');
   await page.getByLabel(/^Clé du projet/).fill(key);
   await page.getByLabel('Nom du projet').fill(name);
-  await page.getByLabel(/^Template/).selectOption(template);
+  await page.getByLabel(/^Gabarit/).selectOption(template);
   await expect(page.getByLabel('Version du gabarit')).toBeVisible();
   await page.getByLabel('Catégorie de criticité').selectOption(criticality);
   await page.getByRole('button', { name: 'Créer le projet' }).click();
@@ -65,7 +65,7 @@ test('un projet créé depuis le gabarit Défense reçoit ses trackers et ses r�
 test('dérivation d’un gabarit livré : éditeur par étapes jusqu’à la publication', async ({ page }) => {
   await login(page, 'admin.dev', 'dev-only-admin');
   await page.goto('/org');
-  await page.getByRole('tab', { name: 'Templates' }).click();
+  await page.getByRole('tab', { name: 'Gabarits' }).click();
   await page.getByRole('button', { name: 'Dériver Spatial (ECSS)' }).click();
   await expect(page.getByRole('button', { name: 'Étape suivante' })).toBeDisabled();
   await page.getByLabel('Clé', { exact: true }).fill('spatial-b-e2e');

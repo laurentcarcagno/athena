@@ -105,14 +105,14 @@ describe('onglet Documents', () => {
     expect(await screen.findByText('Aucun résultat.')).toBeInTheDocument();
   });
 
-  it('citations : le nombre dans la liste, le détail (artefact, état, lien suspect) dans le panneau de l’exigence', async () => {
+  it('citations : le nombre dans la liste, le détail (ticket, état, lien suspect) dans le panneau de l’exigence', async () => {
     app('/p/ARI/documents/urd.docs-urd');
     const req = (await screen.findByRole('heading', { name: /Authentification/ })).closest('article')!;
     const button = within(req).getByRole('button', { name: '2 citations' });
     expect(button).toHaveAttribute('aria-expanded', 'false');
     expect(within(screen.getByRole('heading', { name: /Journalisation/ }).closest('article')!).getByRole('button', { name: '0 citation' })).toBeInTheDocument();
     await userEvent.click(button);
-    const panel = await within(req).findByRole('region', { name: 'Artefacts citant URD-1' });
+    const panel = await within(req).findByRole('region', { name: 'Tickets citant URD-1' });
     expect(within(panel).getByRole('link', { name: 'ARI-ACT-0001' })).toHaveAttribute('href', '/p/ARI/a/ARI-ACT-0001');
     expect(within(panel).getByText('En cours')).toBeInTheDocument();
     expect(within(panel).getByText('Lien suspect')).toBeInTheDocument();

@@ -35,7 +35,7 @@ describe('F-01 : confirmation avant suppression irréversible', () => {
     routes.push(['GET', /\/v1\/users$/, []], ['GET', /\/v1\/projects$/, []], ['GET', /\/v1\/tracker-templates$/, []], ['GET', /\/v1\/project-templates$/, templates], ['DELETE', /\/project-templates\/mien$/, {}]);
     render(<ToastProvider><MemoryRouter><OrgAdminPage session={admin} /></MemoryRouter></ToastProvider>);
     const user = userEvent.setup();
-    await user.click(await screen.findByRole('tab', { name: 'Templates' }));
+    await user.click(await screen.findByRole('tab', { name: 'Gabarits' }));
     await user.click(await screen.findByRole('button', { name: 'Supprimer Mon modèle' }));
     const dialog = await screen.findByRole('dialog', { name: 'Supprimer « mien »' });
     expect(calls.some((c) => c.method === 'DELETE')).toBe(false);

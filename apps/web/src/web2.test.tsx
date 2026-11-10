@@ -42,7 +42,7 @@ const simple: Session = { authenticated: true, user: { username: 'b', name: 'Bob
 
 describe('langue', () => {
   it('bascule entre français et anglais et mémorise le choix', () => {
-    expect(fr.list.create).toBe('Nouvel artefact');
+    expect(fr.list.create).toBe('Nouveau ticket');
     setLocale('en');
     expect(getLocale()).toBe('en');
     expect(fr.list.create).toBe('New artifact');
@@ -76,7 +76,7 @@ describe('tableau de bord', () => {
   });
 });
 
-describe('création d’artefact', () => {
+describe('création d’ticket', () => {
   const definition = { key: 'BUG', name: 'Bugs', statuses: [], transitions: [], fields: [
     { id: '1', key: 'title', label: 'Titre', type: 'text', config: {}, required: true, semanticRole: 'title' },
     { id: '2', key: 'points', label: 'Points', type: 'number', config: {}, required: false, semanticRole: null },
@@ -191,7 +191,7 @@ describe('palette de commandes', () => {
     expect(screen.getByTestId('where')).toHaveTextContent('/p/ARI/recherche');
     expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
   });
-  it('cherche des artefacts du projet et ouvre celui qui est sélectionné', async () => {
+  it('cherche des tickets du projet et ouvre celui qui est sélectionné', async () => {
     handlers = [
       on('GET', '/v1/projects', { body: [{ key: 'ARI', name: 'Ariane' }] }),
       on('GET', /\/search\?/, { body: { total: 1, hits: [{ key: 'BUG-12', project: 'ARI', title: 'Crash au démarrage', tracker: 'BUG', status: 'open', category: 'todo', version: 1, updatedAt: '', values: { title: 'Crash au démarrage' } }] } }),

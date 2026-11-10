@@ -29,7 +29,7 @@ async function showTrackers(page: Page, project: string): Promise<void> {
   await expect(toggle).toHaveAttribute('aria-expanded', 'true');
 }
 
-test('connexion Keycloak, liste des projets, ouverture d’un artefact et transition', async ({ page }) => {
+test('connexion Keycloak, liste des projets, ouverture d’un ticket et transition', async ({ page }) => {
   await login(page, 'user.dev', 'dev-only-user');
   await page.goto('/projets'); // T-0123 : « / » est Mon travail
   await expect(page.getByText('Ariane')).toBeVisible();
@@ -108,7 +108,7 @@ test('administrateur : ajoute un champ avec rôles puis le supprime dans l’éd
   expect(await axeViolations(page)).toEqual([]);
 });
 
-test('utilisateur : « Mon travail » liste les artefacts à prendre, sans accès à l’organisation', async ({ page }) => {
+test('utilisateur : « Mon travail » liste les tickets à prendre, sans accès à l’organisation', async ({ page }) => {
   await login(page, 'user.dev', 'dev-only-user');
   await page.goto('/me');
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Mon travail');
@@ -123,7 +123,7 @@ test('administrateur : crée un projet, nomme un chef de projet et gère les act
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Administration de l’organisation');
   await page.getByLabel('Clé du projet (2 à 10 majuscules)').fill('PAY');
   await page.getByLabel('Nom du projet').fill('Paiement');
-  await page.getByLabel('Template du projet').selectOption('qualite');
+  await page.getByLabel('Gabarit du projet').selectOption('qualite');
   await page.getByRole('button', { name: 'Créer le projet' }).click();
   await expect(page.getByText('Projet PAY créé.')).toBeVisible();
   await page.goto('/projets');
@@ -132,7 +132,7 @@ test('administrateur : crée un projet, nomme un chef de projet et gère les act
   await expect(page.getByRole('row', { name: /^Bugs/ })).toBeVisible();
   expect(await axeViolations(page)).toEqual([]);
   await page.goto('/org');
-  await page.getByRole('tab', { name: 'Templates' }).click();
+  await page.getByRole('tab', { name: 'Gabarits' }).click();
   await expect(page.getByRole('row', { name: /Qualité/ })).toBeVisible();
   expect(await axeViolations(page)).toEqual([]);
   await page.goto('/p/PAY/membres');
@@ -141,10 +141,10 @@ test('administrateur : crée un projet, nomme un chef de projet et gère les act
   expect(await axeViolations(page)).toEqual([]);
 });
 
-test('administrateur : crée un tracker depuis un template de tracker modifié et un template de tracker neuf', async ({ page }) => {
+test('administrateur : crée un tracker depuis un gabarit de tracker modifié et un gabarit de tracker neuf', async ({ page }) => {
   await login(page, 'admin.dev', 'dev-only-admin');
   await page.goto('/p/ARI/trackers/new');
-  await page.getByLabel('Partir d’un template de tracker').selectOption('tache');
+  await page.getByLabel('Partir d’un gabarit de tracker').selectOption('tache');
   await expect(page.getByRole('cell', { name: 'Échéance' })).toBeVisible();
   await page.getByRole('button', { name: 'Supprimer due' }).click();
   await page.getByLabel('Clé du tracker (2 à 10 majuscules)').fill('TSK');
@@ -154,13 +154,13 @@ test('administrateur : crée un tracker depuis un template de tracker modifié e
   await expect(page.getByRole('cell', { name: 'due', exact: true })).toHaveCount(0);
 
   await page.goto('/org');
-  await page.getByRole('tab', { name: 'Templates' }).click();
-  await page.getByRole('tab', { name: 'Templates de tracker' }).click();
-  await page.getByLabel('Clé du template de tracker (minuscules)').fill('risques');
-  await page.getByLabel('Nom du template de tracker').fill('Risques');
+  await page.getByRole('tab', { name: 'Gabarits' }).click();
+  await page.getByRole('tab', { name: 'Gabarits de tracker' }).click();
+  await page.getByLabel('Clé du gabarit de tracker (minuscules)').fill('risques');
+  await page.getByLabel('Nom du gabarit de tracker').fill('Risques');
   await page.getByLabel('Clé du tracker (2 à 10 majuscules)').fill('RISK');
   await page.getByLabel('Nom du tracker').fill('Risques');
-  await page.getByRole('button', { name: 'Créer le template de tracker' }).click();
+  await page.getByRole('button', { name: 'Créer le gabarit de tracker' }).click();
   await expect(page.getByRole('row', { name: /Risques/ })).toBeVisible();
   expect(await axeViolations(page)).toEqual([]);
 });
@@ -168,7 +168,7 @@ test('administrateur : crée un tracker depuis un template de tracker modifié e
 test('administrateur : personnalise la disposition de la vue détails à la création d’un tracker', async ({ page, request }) => {
   await login(page, 'admin.dev', 'dev-only-admin');
   await page.goto('/p/ARI/trackers/new');
-  await page.getByLabel('Partir d’un template de tracker').selectOption('bug');
+  await page.getByLabel('Partir d’un gabarit de tracker').selectOption('bug');
   await page.getByLabel('Clé du tracker (2 à 10 majuscules)').fill('LAY');
   await page.getByLabel('Nom du tracker').fill('Mise en page');
   await expect(page.getByText('Disposition automatique')).toBeVisible();
@@ -199,21 +199,21 @@ test('administrateur : personnalise la disposition de la vue détails à la cré
   expect(await axeViolations(page)).toEqual([]);
 });
 
-test('administrateur : modifie un template livré (tracker et projet), l’utilise, puis le réinitialise', async ({ page }) => {
+test('administrateur : modifie un gabarit livré (tracker et projet), l’utilise, puis le réinitialise', async ({ page }) => {
   await login(page, 'admin.dev', 'dev-only-admin');
   await page.goto('/org');
-  await page.getByRole('tab', { name: 'Templates' }).click();
-  await page.getByRole('tab', { name: 'Templates de tracker' }).click();
+  await page.getByRole('tab', { name: 'Gabarits' }).click();
+  await page.getByRole('tab', { name: 'Gabarits de tracker' }).click();
   await expect(page.getByRole('button', { name: 'Réinitialiser Tâches' })).toHaveCount(0);
   await page.getByRole('button', { name: 'Modifier Tâches' }).click();
-  await page.getByLabel('Nom du template de tracker').fill('Tâches maison');
+  await page.getByLabel('Nom du gabarit de tracker').fill('Tâches maison');
   expect(await axeViolations(page)).toEqual([]);
   await page.getByRole('button', { name: 'Enregistrer' }).click();
   await expect(page.getByRole('row', { name: /Tâches maison/ })).toContainText('Modifié');
 
-  await page.getByRole('tab', { name: 'Templates de projet' }).click();
+  await page.getByRole('tab', { name: 'Gabarits de projet' }).click();
   await page.getByRole('button', { name: 'Modifier Suivi de bugs' }).click();
-  await page.getByRole('form', { name: /Modification de/ }).getByLabel('Nom du template', { exact: true }).fill('Bugs maison');
+  await page.getByRole('form', { name: /Modification de/ }).getByLabel('Nom du gabarit', { exact: true }).fill('Bugs maison');
   await page.getByRole('button', { name: 'Enregistrer' }).click();
   await expect(page.getByRole('row', { name: /Bugs maison/ })).toContainText('Modifié');
   await page.getByRole('button', { name: 'Réinitialiser Bugs maison' }).click();

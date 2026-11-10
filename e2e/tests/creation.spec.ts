@@ -14,7 +14,7 @@ test('écran Tracker : « + Nouvel item » crée dans ce tracker, la liste reste
   await login(page, 'user.dev', 'dev-only-user');
   await page.goto('/p/ARI/t/BUG/tableau');
   await page.getByRole('button', { name: '+ Nouvel item' }).click();
-  const form = page.getByRole('dialog', { name: 'Nouvel artefact' });
+  const form = page.getByRole('dialog', { name: 'Nouveau ticket' });
   await expect(form.getByLabel('Tracker')).toHaveValue('BUG');
   await form.getByLabel('Titre (obligatoire)').fill('Écran figé après mise en veille');
   await form.getByRole('button', { name: 'Créer' }).click();
@@ -28,7 +28,7 @@ test('« Créer » depuis Mon travail : projet puis tracker, on reste sur Mon tr
   await login(page, 'user.dev', 'dev-only-user');
   await page.goto('/');
   await page.getByRole('button', { name: 'Créer un ticket' }).click();
-  const form = page.getByRole('dialog', { name: 'Nouvel artefact' });
+  const form = page.getByRole('dialog', { name: 'Nouveau ticket' });
   await form.getByLabel('Projet').selectOption('ARI');
   await expect(form.getByLabel('Tracker')).toHaveValue('BUG');
   await form.getByLabel('Titre (obligatoire)').fill('Créé depuis Mon travail');
@@ -47,7 +47,7 @@ test('la touche N ouvre la création du projet courant', async ({ page }) => {
   await page.goto('/p/ARI');
   await expect(page.getByRole('heading', { level: 1 })).toContainText('ARI');
   await page.keyboard.press('n');
-  const form = page.getByRole('dialog', { name: 'Nouvel artefact' });
+  const form = page.getByRole('dialog', { name: 'Nouveau ticket' });
   await expect(form.getByLabel('Tracker')).toHaveValue('BUG');
   await expect(form.getByLabel('Projet')).toHaveCount(0);
 });

@@ -36,7 +36,7 @@ afterEach(() => vi.unstubAllGlobals());
 function Where() { const l = useLocation(); return <span data-testid="where">{l.pathname}{l.search}</span>; }
 const session: Session = { authenticated: true, user: { username: 'u', name: 'Ulysse', email: null, roles: ['athena-user'], groups: [] } };
 const app = (path: string) => render(<ToastProvider><MemoryRouter initialEntries={[path]}><Where /><AuthenticatedApp session={session} /></MemoryRouter></ToastProvider>);
-const dialog = () => screen.findByRole('dialog', { name: 'Nouvel artefact' });
+const dialog = () => screen.findByRole('dialog', { name: 'Nouveau ticket' });
 const where = () => screen.getByTestId('where').textContent;
 
 describe('cible de création déduite de l’adresse', () => {
@@ -77,7 +77,7 @@ describe('« Créer » de la barre haute', () => {
     app('/p/ARI/recherche');
     const field = await screen.findByRole('textbox', { name: 'Requête ATQL' });
     await userEvent.type(field, 'n');
-    expect(screen.queryByRole('dialog', { name: 'Nouvel artefact' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('dialog', { name: 'Nouveau ticket' })).not.toBeInTheDocument();
     field.blur();
     await userEvent.keyboard('n');
     expect(await dialog()).toBeInTheDocument();
@@ -97,9 +97,9 @@ describe('après création, on reste dans la liste', () => {
     await waitFor(() => expect(calls.filter((c) => c.includes('/search?')).length).toBeGreaterThan(searches));
   });
 
-  it('Recherche : « Nouvel artefact » crée dans le projet et reste sur la recherche, rechargée', async () => {
+  it('Recherche : « Nouveau ticket » crée dans le projet et reste sur la recherche, rechargée', async () => {
     app('/p/ARI/recherche?q=status%20%3D%20open');
-    await userEvent.click(await screen.findByRole('button', { name: 'Nouvel artefact' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Nouveau ticket' }));
     const form = within(await dialog());
     await userEvent.type(await form.findByLabelText('Titre (obligatoire)'), 'Nouveau');
     const searches = calls.filter((c) => c.includes('/search?')).length;
