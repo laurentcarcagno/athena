@@ -15,6 +15,7 @@ import { AgileController } from '../agile/agile.controller';
 import { BoardService } from '../agile/board.service';
 import { ReportService } from '../agile/report.service';
 import { SprintService } from '../agile/sprint.service';
+import { BacklogService } from '../agile/backlog.service';
 import { DocController } from '../docs/doc.controller';
 import { DocLinkService } from '../docs/doc-link.service';
 import { DocReadService } from '../docs/doc-read.service';
@@ -150,6 +151,7 @@ export { PG_POOL } from './core.tokens';
     { provide: NormativeService, useFactory: (db: Db, a: ArtifactService) => new NormativeService(db, a), inject: [Db, ArtifactService] },
     { provide: MemberService, useFactory: (db: Db) => new MemberService(db), inject: [Db] },
     { provide: SprintService, useFactory: (db: Db) => new SprintService(db), inject: [Db] },
+    { provide: BacklogService, useFactory: (db: Db) => new BacklogService(db), inject: [Db] },
     {
       provide: BASELINES,
       useFactory: (pool: Pool): BaselineService | null => {

@@ -56,7 +56,61 @@ async function prepare() {
     await artifacts.create(org, 'ARI', 'BUG', { title: 'Premier bug de démonstration', severity: 'majeure' }, actor);
     console.log('base athena_dev amorcée : organisation demo, projet ARI, tracker BUG');
   }
+  await seedAgile(pool, db, trackers, artifacts);
   await pool.end();
+}
+
+/**
+ * Démonstration agile (ADR-0003 § 2.6, T-0115) : projet NOVA avec un tracker Tâche, un backlog classé, un sprint actif et
+ * un sprint planifié. Idempotent : rien n'est fait si le projet existe déjà (bases amorcées avant le Lot 9 comprises).
+ */
+async function seedAgile(pool, db, trackers, artifacts) {
+  const org = (await pool.query("select organization_id_by_key('demo') as id")).rows[0].id;
+  if (!org) return;
+  const exists = await db.tx(org, async (c) => (await c.query("select 1 from project where key = 'NOVA'")).rowCount > 0);
+  if (exists) return;
+  const { SprintService } = dist('agile/sprint.service.js');
+  const { BacklogService } = dist('agile/backlog.service.js');
+  const actor = { id: 'seed', roles: ['athena-user', 'athena-admin'] };
+  await trackers.createProject(org, 'NOVA', 'Nova (démonstration agile)', actor);
+  await trackers.createTracker(org, {
+    projectKey: 'NOVA', key: 'TSK', name: 'Tâches', typeKey: 'task',
+    fields: [
+      { key: 'title', label: 'Titre', type: 'text', required: true, semanticRole: 'title' },
+      { key: 'description', label: 'Description', type: 'richtext', semanticRole: 'description' },
+      { key: 'assignee', label: 'Responsable', type: 'user', semanticRole: 'assignee', isContent: false },
+      { key: 'priority', label: 'Priorité', type: 'select', config: { options: ['basse', 'moyenne', 'haute'] }, semanticRole: 'priority', isContent: false },
+      { key: 'due', label: 'Échéance', type: 'date', semanticRole: 'due_date', isContent: false },
+      { key: 'points', label: 'Points', type: 'number', semanticRole: 'estimate', isContent: false },
+    ],
+    statuses: [
+      { key: 'todo', name: 'À faire', category: 'todo' },
+      { key: 'doing', name: 'En cours', category: 'in_progress' },
+      { key: 'done', name: 'Terminé', category: 'done' },
+    ],
+    transitions: [
+      { name: 'Démarrer', from: 'todo', to: 'doing' },
+      { name: 'Terminer', from: 'doing', to: 'done' },
+      { name: 'Rouvrir', from: null, to: 'todo' },
+    ],
+  }, actor);
+  const titles = [
+    ['Écran de connexion', 5, 'haute'], ['Export CSV des tickets', 3, 'moyenne'], ['Notifications par courriel', 8, 'haute'],
+    ['Thème sombre du tableau de bord', 2, 'basse'], ['Recherche par étiquette', 5, 'moyenne'], ['Historique des sprints', 3, 'basse'],
+    ['Import depuis Jira', 13, 'haute'], ['Raccourcis clavier du board', 2, 'moyenne'],
+  ];
+  const keys = [];
+  for (const [title, points, priority] of titles) keys.push((await artifacts.create(org, 'NOVA', 'TSK', { title, points, priority }, actor)).key);
+  const sprints = new SprintService(db);
+  const day = (n) => new Date(Date.now() + n * 86_400_000).toISOString().slice(0, 10);
+  const active = await sprints.create(org, 'NOVA', { name: 'Sprint 1', goal: 'Socle utilisable', startsOn: day(-5), endsOn: day(9) }, actor);
+  for (const key of keys.slice(0, 3)) await sprints.addItem(org, active, key, 'NOVA', actor);
+  await sprints.start(org, active, actor);
+  const planned = await sprints.create(org, 'NOVA', { name: 'Sprint 2', goal: 'Import et recherche', startsOn: day(10), endsOn: day(23) }, actor);
+  await sprints.addItem(org, planned, keys[6], 'NOVA', actor);
+  // Backlog classé : la recherche passe en tête.
+  await new BacklogService(db).rank(org, 'NOVA', keys[4], null, actor);
+  console.log('démonstration agile amorcée : projet NOVA, tracker Tâches, backlog, sprints actif et planifié');
 }
 
 /** Garantit les rôles athena-pm et athena-qa et les comptes pm.dev et qa.dev sur un Keycloak déjà initialisé (l'import du royaume n'a lieu qu'une fois). */

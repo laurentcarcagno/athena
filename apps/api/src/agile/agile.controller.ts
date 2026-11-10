@@ -4,6 +4,7 @@ import { BodySchema } from '../openapi/body-schema';
 import { Roles, type AuthedRequest } from '../auth/auth.guard';
 import { OrgResolver, parseBody } from '../core/http';
 import { MemberService } from '../core/member.service';
+import { BacklogService } from './backlog.service';
 import { BoardService } from './board.service';
 import { ReportService } from './report.service';
 import { SprintService } from './sprint.service';
@@ -20,11 +21,12 @@ const SprintBody = z.object({
   startsOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), endsOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
 });
 const ItemBody = z.object({ artifact: z.string().min(1) });
+const RankBody = z.object({ key: z.string().min(1).max(64), after: z.string().min(1).max(64).nullable() });
 
 const CreateReleaseBody = z.object({ name: z.string().min(1).max(100), startsOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), endsOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) });
 @Controller('v1/projects/:project')
 export class AgileController {
-  constructor(private readonly orgs: OrgResolver, private readonly boards: BoardService, private readonly sprints: SprintService, private readonly reports: ReportService, private readonly members: MemberService) {}
+  constructor(private readonly orgs: OrgResolver, private readonly boards: BoardService, private readonly sprints: SprintService, private readonly reports: ReportService, private readonly members: MemberService, private readonly backlogs: BacklogService) {}
 
   private ctx = (request: AuthedRequest) => this.orgs.resolve(request.principal!);
   /** Gestion de projet : administrateur, ou chef de ce projet. */
@@ -111,6 +113,25 @@ export class AgileController {
   @Get('sprints/:id')
   async sprint(@Req() request: AuthedRequest, @Param('id') id: string) {
     return this.sprints.get((await this.ctx(request)).organizationId, id);
+  }
+
+  // --- Backlog (T-0115) : tickets des trackers Tâche hors sprint, dans l'ordre du rang ---
+  @Roles('athena-user', 'athena-admin')
+  @Get('backlog')
+  async backlog(@Req() request: AuthedRequest, @Param('project') project: string) {
+    const { organizationId, actor } = await this.ctx(request);
+    return { items: await this.backlogs.list(organizationId, project, actor.roles) };
+  }
+
+  /** Réordonne : place `key` après `after` (`null` : en tête). Réservé aux administrateurs et au chef de ce projet. */
+  @Roles('athena-admin', 'athena-pm')
+  @HttpCode(200)
+  @Post('backlog/rank')
+  @BodySchema(RankBody)
+  async rankBacklog(@Req() request: AuthedRequest, @Param('project') project: string, @Body() body: unknown) {
+    const { organizationId, actor } = await this.manager(request, project);
+    const input = parseBody(RankBody, body);
+    return { items: await this.backlogs.rank(organizationId, project, input.key, input.after, actor) };
   }
 
   /** Sprint en cours ou planifié du ticket (en-tête de la fiche) ; `null` s'il n'est dans aucun. */
