@@ -7,7 +7,7 @@
 .ath-bar__fill { fill: var(--ath-border-focus); }
 .ath-suggest { position: relative; display: inline-block; }
 .ath-suggest__list { position: absolute; top: 100%; left: 0; right: 0; z-index: calc(var(--ath-z-base) + 5); margin: 0; padding: 0; list-style: none; background: var(--ath-surface-default); border: var(--ath-border-width-hairline) solid var(--ath-border-default); }
-.ath-suggest__item { display: block; width: 100%; padding: 6px 10px; border: 0; background: transparent; text-align: left; color: var(--ath-text-default); cursor: pointer; font-size: var(--ath-font-size-body); }
+.ath-suggest__item { display: block; width: 100%; padding: var(--ath-space-xs) var(--ath-space-sm); border: 0; background: transparent; text-align: left; color: var(--ath-text-default); cursor: pointer; font-size: var(--ath-font-size-body); }
 .ath-suggest__item:hover, .ath-suggest__item:focus-visible { background: var(--ath-surface-hover); }
 .ath-gantt { display: block; margin: var(--ath-space-xs) 0 var(--ath-space-sm); }
 .ath-gantt__track { fill: var(--ath-surface-muted); stroke: var(--ath-border-default); stroke-width: 1; }
@@ -16,14 +16,14 @@
 
 /* Palette de commandes */
 .ath-palette { list-style: none; margin: 0; padding: 0; max-height: 320px; overflow-y: auto; border: var(--ath-border-width-hairline) solid var(--ath-border-default); }
-.ath-palette__item { display: flex; gap: 10px; padding: var(--ath-space-sm) var(--ath-space-md); cursor: pointer; border-bottom: var(--ath-border-width-hairline) solid var(--ath-border-default); }
+.ath-palette__item { display: flex; gap: var(--ath-space-sm); padding: var(--ath-space-sm) var(--ath-space-md); cursor: pointer; border-bottom: var(--ath-border-width-hairline) solid var(--ath-border-default); }
 .ath-palette__item--active { background: var(--ath-surface-selected); border-left: var(--ath-border-width-strong) solid var(--ath-border-focus); }
 
 /* Un formulaire placé en tête d'un panneau d'onglets ne doit pas toucher le filet des onglets. */
 [role="tabpanel"] > .ath-stack > .ath-toolbar:first-child { margin-top: var(--ath-space-md); }
 
 /* Liste d'attributs d'un tracker (vue projet). */
-.ath-taglist { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; margin: 0; padding: 0; }
+.ath-taglist { display: flex; flex-wrap: wrap; gap: var(--ath-space-xs); list-style: none; margin: 0; padding: 0; }
 
 /* Éditeur graphique de workflow (machine à états) : angles droits, aucune ombre. */
 .ath-wf { display: block; background: var(--ath-surface-default); border: var(--ath-border-width-hairline) solid var(--ath-border-default); }

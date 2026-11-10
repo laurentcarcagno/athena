@@ -9,7 +9,7 @@ import { initTheme } from './lib/theme';
 
 /** T-0123 : navigation globale (ADR-0003 § 2) : `/` = Mon travail, `/projets`, `/profil`, `/notifications`, `/admin`, rail ≤ 6. */
 const calls: string[] = [];
-let stored: { home: string | null; locale: string | null; theme: string | null };
+let stored: { home: string | null; locale: string | null; theme: string | null; density?: string | null };
 let preferencesGate: Promise<void> | null = null;
 let puts: unknown[];
 beforeEach(() => {
@@ -105,6 +105,19 @@ describe('Profil et notifications', () => {
     await waitFor(() => expect(where()).toBe('/projets'));
     expect(document.documentElement.getAttribute('data-mode')).toBe('dark');
     document.documentElement.removeAttribute('data-mode');
+  });
+  it('la densité du compte s’applique sur un navigateur neuf ; le Profil la règle et l’enregistre (T-0135)', async () => {
+    stored = { home: null, locale: null, theme: null, density: 'compact' };
+    localStorage.clear();
+    initTheme();
+    const first = app('/profil');
+    await waitFor(() => expect(document.documentElement.getAttribute('data-density')).toBe('compact'));
+    const select = await screen.findByLabelText('Densité');
+    expect(select).toHaveValue('compact');
+    await userEvent.selectOptions(select, 'Normale');
+    expect(document.documentElement.getAttribute('data-density')).toBe('normal');
+    await waitFor(() => expect(puts).toContainEqual({ density: 'normal' }));
+    first.unmount();
   });
   it('un thème choisi pendant le chargement des préférences n’est pas écrasé par celui du compte', async () => {
     stored = { home: null, locale: null, theme: 'dark' };

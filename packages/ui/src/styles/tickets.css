@@ -1,6 +1,6 @@
 /* Lien d’évitement, cibles, troncature, mini-workflow, panneau de détail, informations clés. */
 /* Audit F-04 : lien d'évitement, visible au focus seulement. */
-.ath-skip { position: absolute; left: 8px; top: -48px; z-index: var(--ath-z-toast); padding: var(--ath-space-sm) 14px; background: var(--ath-surface-default); color: var(--ath-text-heading); border: var(--ath-border-width-strong) solid var(--ath-text-heading); font-weight: var(--ath-font-weight-semibold); font-size: var(--ath-font-size-small); text-decoration: none; }
+.ath-skip { position: absolute; left: 8px; top: -48px; z-index: var(--ath-z-toast); padding: var(--ath-space-sm) var(--ath-space-md); background: var(--ath-surface-default); color: var(--ath-text-heading); border: var(--ath-border-width-strong) solid var(--ath-text-heading); font-weight: var(--ath-font-weight-semibold); font-size: var(--ath-font-size-small); text-decoration: none; }
 .ath-skip:focus { top: 8px; outline: var(--ath-border-width-strong) solid var(--ath-border-focus); outline-offset: 2px; }
 .ath-page__main:focus { outline: none; }
 

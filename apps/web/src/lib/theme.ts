@@ -6,6 +6,11 @@ export type ThemeChoice = 'system' | 'light' | 'dark';
 export const THEME_CHOICES: ThemeChoice[] = ['system', 'light', 'dark'];
 export const THEME_KEY = 'athena.theme';
 
+/** Densité (T-0135) : normale ou compacte ; mémorisée dans le navigateur et sur le compte. */
+export type DensityChoice = 'normal' | 'compact';
+export const DENSITIES: DensityChoice[] = ['normal', 'compact'];
+export const DENSITY_KEY = 'athena.density';
+
 /**
  * Contrôleur du moteur `@nuance/theming` (ADR-0004) : `data-theme` porte la famille (Hemeria, seul thème jusqu'à T-0136),
  * `data-mode` le mode (absent pour « système »). La densité arrive en T-0135. La mémoire garde le format historique
@@ -16,12 +21,22 @@ const memory = storagePersistence({
   encode: (state) => (state.mode === SYSTEM ? null : state.mode),
   decode: (raw) => ({ mode: raw }),
 });
+const densityMemory = storagePersistence({
+  key: DENSITY_KEY,
+  encode: (state) => (state.density === 'normal' || !state.density ? null : state.density),
+  decode: (raw) => ({ density: raw }),
+});
 const controller = createThemeController({
-  defaults: { theme: 'hemeria', mode: SYSTEM, density: null },
+  defaults: { theme: 'hemeria', mode: SYSTEM, density: 'normal' },
   themes: ['hemeria'],
   modes: THEME_CHOICES,
-  attributes: { theme: 'data-theme', mode: 'data-mode', density: null },
-  persistence: memory,
+  densities: DENSITIES,
+  attributes: { theme: 'data-theme', mode: 'data-mode', density: 'data-density' },
+  // Deux clés du navigateur : le mode (format historique) et la densité.
+  persistence: {
+    load: () => ({ ...memory.load(), ...densityMemory.load() }),
+    save: (state) => { memory.save(state); densityMemory.save(state); },
+  },
 });
 
 const choiceOf = (state: ThemeState): ThemeChoice => state.mode as ThemeChoice;
@@ -55,4 +70,12 @@ export function useTheme(): ThemeChoice {
 /** Relit le réglage mémorisé (tests, retour dans l'onglet) et l'applique. */
 export function initTheme(): void {
   controller.reload();
+}
+
+export const getDensity = (): DensityChoice => (controller.get().density as DensityChoice | null) ?? 'normal';
+export function setDensity(density: DensityChoice): void {
+  controller.set({ density });
+}
+export function useDensity(): DensityChoice {
+  return (useThemeState(controller).density as DensityChoice | null) ?? 'normal';
 }

@@ -1,0 +1,25 @@
+/* Densité (T-0135, ADR-0004) : Normale par défaut, Compacte au choix de l'utilisateur (data-density="compact").
+   Compact resserre contrôles, lignes et tailles de titre ; jamais de texte sous 12 px ni de cible sous 24 px.
+   Sur écran tactile (pointer: coarse), les cibles passent à 44 px quelle que soit la densité. */
+:root { --ath-row-y: var(--ath-space-sm); }
+:root[data-density="compact"] {
+  --ath-row-y: var(--ath-space-xs);
+  --ath-size-control-md: 28px;
+  --ath-size-icon-button: 24px;
+  --ath-font-size-body: 13px;
+  --ath-font-size-subsection: 13px;
+  --ath-font-size-section: 15px;
+  --ath-font-size-title: 20px;
+  --ath-font-size-display: 24px;
+  --ath-font-leading-body: 1.45;
+}
+@media (pointer: coarse) {
+  :root[data-density], :root:not([data-density]) {
+    --ath-size-control-sm: 44px;
+    --ath-size-control-md: 44px;
+    --ath-size-icon-button: 44px;
+    --ath-size-icon-button-compact: 44px;
+    --ath-size-touch-target-min: 44px;
+    --ath-size-toggle: 24px;
+  }
+}

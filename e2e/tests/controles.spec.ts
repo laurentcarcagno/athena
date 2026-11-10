@@ -32,3 +32,17 @@ test('contrôles de formulaire : même hauteur, focus visible de 2 px au clavier
     expect(await outline(control)).toBe('solid 2px');
   }
 });
+
+test('densité Compacte : réglée dans le Profil, contrôles à 28 px, retrouvée au rechargement (T-0135)', async ({ page }) => {
+  await login(page);
+  await page.goto('/profil');
+  await page.getByLabel('Densité').selectOption('compact');
+  await expect(page.locator('html')).toHaveAttribute('data-density', 'compact');
+  await page.goto('/p/ARI/t/BUG/tableau');
+  expect(await height(page.getByRole('combobox', { name: 'Sévérité' }))).toBe(28);
+  await page.reload();
+  await expect(page.locator('html')).toHaveAttribute('data-density', 'compact');
+  await page.goto('/profil');
+  await page.getByLabel('Densité').selectOption('normal');
+  await expect(page.locator('html')).toHaveAttribute('data-density', 'normal');
+});

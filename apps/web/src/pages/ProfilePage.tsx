@@ -5,7 +5,7 @@ import { NotificationSettings } from '../components/NotificationSettings';
 import { fr, getLocale, setLocale, type Locale } from '../i18n';
 import type { HomeChoice } from '../lib/home';
 import { savePreference, usePreferences } from '../lib/preferences';
-import { setTheme, useTheme, type ThemeChoice, THEME_CHOICES } from '../lib/theme';
+import { DENSITIES, setDensity, setTheme, useDensity, useTheme, type DensityChoice, type ThemeChoice, THEME_CHOICES } from '../lib/theme';
 
 /**
  * Profil `/profil` (ADR-0003, T-0123) : les réglages de la personne en un seul endroit : langue, thème, notifications et page
@@ -13,6 +13,7 @@ import { setTheme, useTheme, type ThemeChoice, THEME_CHOICES } from '../lib/them
  */
 export function ProfilePage({ session }: { session: Session }) {
   const theme = useTheme();
+  const density = useDensity();
   const [locale, setLocaleState] = useState<Locale>(getLocale());
   const { home, setHomePreference } = usePreferences();
   const p = fr.profile;
@@ -34,6 +35,12 @@ export function ProfilePage({ session }: { session: Session }) {
             {p.theme}
             <Select value={theme} onChange={(e) => { const next = e.target.value as ThemeChoice; setTheme(next); savePreference({ theme: next }); }}>
               {THEME_CHOICES.map((t) => <option key={t} value={t}>{fr.theme.names[t]}</option>)}
+            </Select>
+          </label>
+          <label className="ath-notify__pref">
+            {p.density}
+            <Select value={density} onChange={(e) => { const next = e.target.value as DensityChoice; setDensity(next); savePreference({ density: next }); }}>
+              {DENSITIES.map((d) => <option key={d} value={d}>{fr.density.names[d]}</option>)}
             </Select>
           </label>
           <label className="ath-notify__pref">

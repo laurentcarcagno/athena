@@ -44,7 +44,8 @@ const frDict = {
     deleteTitle: (name: string) => `Supprimer la vue « ${name} » ?`, deleteBody: 'La vue disparaît de vos vues enregistrées ; les tickets ne changent pas.',
     empty: 'Aucun ticket ne correspond.', origin: 'Recherche globale',
   },
-  profile: { eyebrow: 'Mon compte', title: 'Profil', display: 'Affichage', language: 'Langue', theme: 'Thème', home: 'Page d’accueil', notifications: 'Notifications' },
+  profile: { eyebrow: 'Mon compte', title: 'Profil', display: 'Affichage', language: 'Langue', theme: 'Thème', density: 'Densité', home: 'Page d’accueil', notifications: 'Notifications' },
+  density: { names: { normal: 'Normale', compact: 'Compacte' } as Record<string, string> },
   home: {
     label: 'Tableau de bord', projectLabel: 'Tableau de bord du projet', noTracker: 'Aucun tracker.', customize: 'Personnaliser', done: 'Terminer', addLabel: 'Ajouter un widget', choose: 'Choisir…', add: 'Ajouter', added: 'Widget ajouté.',
     reset: 'Réinitialiser', resetTitle: 'Réinitialiser le tableau de bord ?', resetBody: 'Votre disposition est remplacée par la disposition par défaut ; vos vues enregistrées ne changent pas.', resetDone: 'Disposition par défaut rétablie.',
@@ -438,7 +439,8 @@ const enDict: Dictionary = {
     deleteTitle: (name: string) => `Delete view “${name}”?`, deleteBody: 'The view leaves your saved views; tickets are unchanged.',
     empty: 'No ticket matches.', origin: 'Global search',
   },
-  profile: { eyebrow: 'My account', title: 'Profile', display: 'Display', language: 'Language', theme: 'Theme', home: 'Home page', notifications: 'Notifications' },
+  profile: { eyebrow: 'My account', title: 'Profile', display: 'Display', language: 'Language', theme: 'Theme', density: 'Density', home: 'Home page', notifications: 'Notifications' },
+  density: { names: { normal: 'Normal', compact: 'Compact' } as Record<string, string> },
   home: {
     label: 'Dashboard', projectLabel: 'Project dashboard', noTracker: 'No tracker.', customize: 'Customize', done: 'Done', addLabel: 'Add a widget', choose: 'Choose…', add: 'Add', added: 'Widget added.',
     reset: 'Reset', resetTitle: 'Reset the dashboard?', resetBody: 'Your layout is replaced by the default one; your saved views do not change.', resetDone: 'Default layout restored.',

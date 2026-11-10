@@ -1,6 +1,6 @@
 /* Boutons, pastilles, étiquettes, filtres, champs. */
 /* Boutons */
-.ath-btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--ath-space-sm); height: var(--ath-size-control-md); padding: 0 14px; border: var(--ath-border-width-hairline) solid; cursor: pointer; font-family: inherit; font-weight: var(--ath-font-weight-semibold); font-size: var(--ath-font-size-body); transition: filter var(--ath-motion-default), background var(--ath-motion-default), color var(--ath-motion-default); }
+.ath-btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--ath-space-sm); height: var(--ath-size-control-md); padding: 0 var(--ath-space-md); border: var(--ath-border-width-hairline) solid; cursor: pointer; font-family: inherit; font-weight: var(--ath-font-weight-semibold); font-size: var(--ath-font-size-body); transition: filter var(--ath-motion-default), background var(--ath-motion-default), color var(--ath-motion-default); }
 .ath-btn--sm { height: var(--ath-size-control-sm); font-size: var(--ath-font-size-small); }
 .ath-btn--lg { height: var(--ath-size-control-lg); font-size: var(--ath-font-size-body); }
 .ath-btn:disabled { opacity: 0.55; cursor: not-allowed; }
@@ -16,7 +16,7 @@
 .ath-btn--danger:hover:not(:disabled) { background: var(--ath-state-danger-border); color: var(--ath-action-primary-fg); }
 
 /* Pastilles, étiquettes, filtres */
-.ath-pill { display: inline-flex; align-items: center; gap: 6px; padding: var(--ath-space-2xs) var(--ath-space-sm); border: var(--ath-border-width-hairline) solid; font-weight: var(--ath-font-weight-semibold); font-size: var(--ath-font-size-small); line-height: var(--ath-font-leading-small); background: var(--ath-surface-default); color: var(--ath-text-secondary); border-color: var(--ath-text-heading); }
+.ath-pill { display: inline-flex; align-items: center; gap: var(--ath-space-xs); padding: var(--ath-space-2xs) var(--ath-space-sm); border: var(--ath-border-width-hairline) solid; font-weight: var(--ath-font-weight-semibold); font-size: var(--ath-font-size-small); line-height: var(--ath-font-leading-small); background: var(--ath-surface-default); color: var(--ath-text-secondary); border-color: var(--ath-text-heading); }
 .ath-pill__dot { width: 7px; height: 7px; background: currentColor; display: inline-block; }
 .ath-pill--success { background: var(--ath-state-success-bg); color: var(--ath-state-success-fg); border-color: var(--ath-state-success-border); }
 .ath-pill--warning { background: var(--ath-state-warning-bg); color: var(--ath-state-warning-fg); border-color: var(--ath-state-warning-border); }

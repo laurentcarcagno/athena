@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import axe from 'axe-core';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { ThemeToggle } from '../components/ThemeToggle';
-import { applyTheme, initTheme, nextTheme, readTheme, setTheme, THEME_KEY } from './theme';
+import { applyTheme, DENSITY_KEY, getDensity, initTheme, nextTheme, readTheme, setDensity, setTheme, THEME_KEY } from './theme';
 
 beforeEach(() => { window.localStorage.clear(); initTheme(); });
 afterEach(() => { window.localStorage.clear(); initTheme(); });
@@ -66,5 +66,18 @@ describe('bouton de thème', () => {
     expect(result.violations.map((v) => v.id)).toEqual([]);
     await user.keyboard('{Enter}');
     expect(document.documentElement.hasAttribute('data-mode')).toBe(false);
+  });
+});
+
+describe('densité (T-0135)', () => {
+  it('Normale par défaut ; Compacte posée en attribut et mémorisée ; Normale efface la mémoire', () => {
+    expect(getDensity()).toBe('normal');
+    expect(document.documentElement.getAttribute('data-density')).toBe('normal');
+    setDensity('compact');
+    expect(document.documentElement.getAttribute('data-density')).toBe('compact');
+    expect(window.localStorage.getItem(DENSITY_KEY)).toBe('compact');
+    expect(window.localStorage.getItem(THEME_KEY)).toBeNull();
+    setDensity('normal');
+    expect(window.localStorage.getItem(DENSITY_KEY)).toBeNull();
   });
 });

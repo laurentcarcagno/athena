@@ -2,10 +2,10 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 import { api } from '../api';
 import { getLocale, setLocale, type Locale } from '../i18n';
 import { readHome, setHome, type HomeChoice } from './home';
-import { getTheme, setTheme, type ThemeChoice } from './theme';
+import { getDensity, getTheme, setDensity, setTheme, type DensityChoice, type ThemeChoice } from './theme';
 
 /** Préférences enregistrées sur le compte (migration 052) : `null` = aucune, le réglage local du navigateur s'applique. */
-interface Stored { home: HomeChoice | null; locale: Locale | null; theme: ThemeChoice | null }
+interface Stored { home: HomeChoice | null; locale: Locale | null; theme: ThemeChoice | null; density?: DensityChoice | null }
 export type PreferencePatch = Partial<Stored>;
 
 interface PreferencesApi { loaded: boolean; home: HomeChoice; setHomePreference: (home: HomeChoice) => void }
@@ -29,10 +29,12 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
     // il n'est pas écrasé à l'arrivée de la réponse.
     const localeAtStart = getLocale();
     const themeAtStart = getTheme();
+    const densityAtStart = getDensity();
     api<Stored>('GET', '/v1/me/preferences').then((stored) => {
       if (!alive) return;
       if (stored?.locale && stored.locale !== getLocale() && getLocale() === localeAtStart) setLocale(stored.locale);
       if (stored?.theme && stored.theme !== getTheme() && getTheme() === themeAtStart) setTheme(stored.theme);
+      if (stored?.density && stored.density !== getDensity() && getDensity() === densityAtStart) setDensity(stored.density);
       const home = stored?.home ?? readHome();
       setHome(home); // copie locale : l'accueil se décide sans attendre au prochain chargement
       setState({ loaded: true, home });
