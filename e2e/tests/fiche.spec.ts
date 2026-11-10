@@ -40,4 +40,27 @@ test('fiche : en-tête complet (blocage), onglet dans l’adresse, Précédent r
   await page.getByRole('tab', { name: 'Historique' }).focus();
   await page.keyboard.press('l');
   await expect(page).toHaveURL(/onglet=links$/);
+
+  // T-0113 : relations groupées ; saut vers le ticket lié en 1 action, retour en 1 action.
+  const relations = page.getByRole('group', { name: 'Relations' });
+  await relations.getByRole('list', { name: 'Est bloqué par' }).getByRole('link', { name: blocker }).click();
+  await expect(page.getByRole('heading', { level: 1, name: new RegExp(blocker) })).toBeVisible();
+  await expect(page).toHaveURL(new RegExp(`/p/ARI/a/${blocker}$`)); // un autre ticket s'ouvre sur Détails
+  await page.getByRole('link', { name: `Retour : ${item}` }).click();
+  await expect(page).toHaveURL(new RegExp(`/p/ARI/a/${item}\\?onglet=links$`));
+});
+
+test('fiche ouverte depuis la recherche : précédent, suivant, retour à la liste filtrée', async ({ page }) => {
+  await login(page, 'user.dev', 'dev-only-user');
+  await page.goto('/p/ARI/recherche?q=tracker%20%3D%20BUG');
+  const first = page.getByRole('table').first().getByRole('link').first();
+  const key = (await first.textContent())!.trim();
+  await first.click();
+  await expect(page.getByRole('heading', { level: 1, name: new RegExp(key) })).toBeVisible();
+  const nav = page.getByRole('navigation', { name: 'Navigation depuis l’origine' });
+  await expect(nav.getByText(/^1 \/ \d+$/)).toBeVisible();
+  await nav.getByRole('button', { name: 'Suivant' }).click();
+  await expect(nav.getByText(/^2 \/ \d+$/)).toBeVisible();
+  await page.getByRole('link', { name: 'Retour : Recherche' }).click();
+  await expect(page).toHaveURL(/\/p\/ARI\/recherche\?q=tracker%20%3D%20BUG$|\/p\/ARI\/recherche\?q=tracker\+%3D\+BUG$/);
 });

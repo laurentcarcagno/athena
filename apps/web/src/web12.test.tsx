@@ -53,7 +53,7 @@ describe('liens depuis la fiche', () => {
     links = [link('l1', 'vérifie', 'ARI-REQ-0007'), link('l2', 'est vérifié par', 'ARI-TST-0002', { direction: 'inward', suspect: true })];
     page();
     await openLinks();
-    const list = screen.getByRole('list', { name: 'Liens' });
+    const list = screen.getByRole('group', { name: 'Relations' }); // T-0113 : relations groupées
     const rows = within(list).getAllByRole('listitem');
     expect(rows).toHaveLength(2);
     expect(within(rows[0]!).getByRole('link', { name: 'ARI-REQ-0007' })).toHaveClass('ath-mono');

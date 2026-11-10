@@ -26,7 +26,7 @@ test('liens depuis la fiche : créer (raccourci L, autocomplétion), suspect, ac
   await page.getByLabel('Item cible (clé ou titre)').fill('Cible des');
   await page.getByRole('button', { name: new RegExp(target) }).click();
   await page.getByRole('button', { name: 'Lier', exact: true }).click();
-  const list = page.getByRole('list', { name: 'Liens' });
+  const list = page.getByRole('group', { name: 'Relations' }); // T-0113 : relations groupées
   await expect(list.getByRole('link', { name: target })).toBeVisible();
 
   // Modifier la cible rend le lien suspect : l'acquittement est un clic.

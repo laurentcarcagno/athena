@@ -1,8 +1,8 @@
 # Journal de la tâche T-0112
 
 ## Fait (2026-11-10)
-- `c1df2c2` : découpage sans changement de comportement. `components/ItemHeader.tsx` porte l'en-tête du panneau et celui de la page, les transitions (`availableTransitions`), l'abonnement et l'épingle.
-- API (`10e00a9`) :
+- `0ab617a` : découpage sans changement de comportement. `components/ItemHeader.tsx` porte l'en-tête du panneau et celui de la page, les transitions (`availableTransitions`), l'abonnement et l'épingle.
+- API (`c95ed26`) :
   - migration 047 : rôles sémantiques `priority` et `version`. Les gabarits Bugs (`severity`, `fixed_version`) et Exigences (`priority`) les portent ; les gabarits normatifs Spatial et Défense ne sont pas touchés (versions publiées) ;
   - `GET /v1/projects/:p/artifacts/:clé/sprint` rend `{ sprint: { id, name, state } | null }` (sprint non clos) ;
   - `LinkView.hierarchical`.

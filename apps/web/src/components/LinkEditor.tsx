@@ -1,12 +1,29 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { Link } from 'react-router-dom';
-import { Btn, Field, StatusPill, Tag, useToast } from '@athena/ui';
+import { Link, useLocation } from 'react-router-dom';
+import { Btn, Field, Id, StatusPill, Tag, useToast } from '@athena/ui';
 import { api, type SearchResult } from '../api';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
+import { fromHere } from '../lib/origin';
 import { useConfirm } from './ConfirmDialog';
 
-export interface LinkRow { id: string; type: string; direction: string; label: string; other: string | null; restricted?: boolean; suspect: boolean }
+export interface LinkRow { id: string; type: string; direction: string; label: string; other: string | null; restricted?: boolean; suspect: boolean; hierarchical?: boolean; propagatesSuspect?: boolean }
+
+/** Groupes de relations de la fiche, dans l'ordre d'affichage (T-0113). */
+export const RELATION_GROUPS = ['parent', 'children', 'blocks', 'blockedBy', 'duplicates', 'traceability', 'related'] as const;
+export type RelationGroup = typeof RELATION_GROUPS[number];
+
+/**
+ * Groupe d'un lien, déduit des propriétés de son type : hiérarchique (sortant = parent, entrant = enfant), `blocks`,
+ * `duplicates`, puis traçabilité (le type propage la suspicion) ; le reste est « Relié à ».
+ */
+export function relationGroup(link: LinkRow): RelationGroup {
+  const out = link.direction === 'outward';
+  if (link.hierarchical) return out ? 'parent' : 'children';
+  if (link.type === 'blocks') return out ? 'blocks' : 'blockedBy';
+  if (link.type === 'duplicates') return 'duplicates';
+  return link.propagatesSuspect ? 'traceability' : 'related';
+}
 interface LinkType { key: string; outwardLabel: string; inwardLabel: string; hierarchical: boolean }
 interface Suggestion { key: string; title: string }
 
@@ -18,6 +35,7 @@ export function LinkEditor({ project, itemKey, links, onChanged, focusSignal = 0
   const toast = useToast();
   const fail = useFailure();
   const confirm = useConfirm();
+  const location = useLocation();
   const [types, setTypes] = useState<LinkType[]>([]);
   const [choice, setChoice] = useState('');
   const [query, setQuery] = useState('');
@@ -70,16 +88,27 @@ export function LinkEditor({ project, itemKey, links, onChanged, focusSignal = 0
     <div className="ath-stack">
       {confirm.dialog}
       {links.length === 0 ? <p>{fr.artifact.noLinks}</p> : (
-        <ul className="ath-stack" aria-label={fr.artifact.links}>
-          {links.map((l) => (
-            <li key={l.id} className="ath-row">
-              <span>{l.label}</span> {l.other === null ? <Tag variant="ghost">{fr.marking.restrictedLink}</Tag> : <Link className="ath-link ath-mono" to={`/p/${project}/a/${l.other}`}>{l.other}</Link>}
-              {l.suspect && <StatusPill kind="warning">{fr.artifact.suspect}</StatusPill>}
-              {l.suspect && <Btn size="sm" variant="ghost" aria-label={`${fr.links.acknowledge} ${l.other ?? fr.marking.restrictedLink}`} onClick={() => acknowledge(l)}>{fr.links.acknowledge}</Btn>}
-              <Btn icon="trash" size="sm" variant="ghost" aria-label={l.other === null ? fr.marking.restrictedUnlink : `${fr.links.unlink} ${l.other}`} onClick={() => remove(l)}>{fr.links.unlink}</Btn>
-            </li>
-          ))}
-        </ul>
+        <div className="ath-stack" role="group" aria-label={fr.relations.label}>
+          {RELATION_GROUPS.map((group) => {
+            const rows = links.filter((l) => relationGroup(l) === group);
+            if (rows.length === 0) return null;
+            return (
+              <section key={group} aria-labelledby={`rel-${group}`}>
+                <h4 id={`rel-${group}`} className="ath-label">{fr.relations[group]} <Id>{rows.length}</Id></h4>
+                <ul className="ath-stack" aria-label={fr.relations[group]}>
+                  {rows.map((l) => (
+                    <li key={l.id} className="ath-row">
+                      <span>{l.label}</span> {l.other === null ? <Tag variant="ghost">{fr.marking.restrictedLink}</Tag> : <Link className="ath-link ath-mono" to={`/p/${project}/a/${l.other}`} state={fromHere(location, itemKey)}>{l.other}</Link>}
+                      {l.suspect && <StatusPill kind="warning">{fr.artifact.suspect}</StatusPill>}
+                      {l.suspect && <Btn size="sm" variant="ghost" aria-label={`${fr.links.acknowledge} ${l.other ?? fr.marking.restrictedLink}`} onClick={() => acknowledge(l)}>{fr.links.acknowledge}</Btn>}
+                      <Btn icon="trash" size="sm" variant="ghost" aria-label={l.other === null ? fr.marking.restrictedUnlink : `${fr.links.unlink} ${l.other}`} onClick={() => remove(l)}>{fr.links.unlink}</Btn>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            );
+          })}
+        </div>
       )}
       {types.length === 0 ? <p className="ath-eyebrow">{fr.links.noTypes}</p> : (
         <form className="ath-toolbar" onSubmit={create}>

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Btn, EmptyState, Id, PageHeader, type SortState } from '@athena/ui';
 import { ApiError, api, type SavedFilter, type SearchResult, type Session, type TrackerDefinition, type TrackerOverview, type TrackerTypeEntry } from '../../api';
 import { ArtifactTable, columnFor, type TableColumn } from '../../components/ArtifactTable';
@@ -18,6 +18,7 @@ import { BoardView } from '../BoardPage';
 import { fr } from '../../i18n';
 import { columnOptions, columnsParam, selectedColumns } from '../../lib/columns';
 import { emptyModel, fromAtql, toAtql } from '../../lib/filter-query';
+import { fromHere } from '../../lib/origin';
 import { TRACKER_VIEWS, viewsFor, type TrackerViewId } from '../../lib/tracker-views';
 
 export { TRACKER_VIEWS, viewsFor, type TrackerViewId };
@@ -28,6 +29,7 @@ const PAGE = 25;
 export function TrackerScreen({ session }: { session: Session }) {
   const { project, tracker, vue } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const fail = useFailure();
   const [params, setParams] = useSearchParams();
   const [def, setDef] = useState<TrackerDefinition | null>(null);
@@ -89,7 +91,11 @@ export function TrackerScreen({ session }: { session: Session }) {
   const rows = result?.hits ?? [];
   // L'onglet de la fiche (`onglet`) suit le panneau : il reste d'un item à l'autre et disparaît à la fermeture.
   const withItem = (key: string | null) => { const copy = new URLSearchParams(params); if (key) copy.set('i', key); else { copy.delete('i'); copy.delete('onglet'); } return copy; };
-  const expand = () => { const tab = params.get('onglet'); navigate(`/p/${project}/a/${item}${tab ? `?onglet=${encodeURIComponent(tab)}` : ''}`); };
+  // « Agrandir » : la fiche garde l'onglet, et revient à cette liste (filtres, tri, panneau) avec précédent et suivant.
+  const expand = () => {
+    const tab = params.get('onglet');
+    navigate(`/p/${project}/a/${item}${tab ? `?onglet=${encodeURIComponent(tab)}` : ''}`, { state: fromHere(location, def?.name ?? String(tracker), rows.map((h) => h.key)) });
+  };
   // Ticket créé depuis cette page (bouton du tracker, « Créer », N) : on reste ici, la liste se recharge et, s'il est de ce
   // tracker, il s'ouvre dans le panneau (Tableau, Arbre).
   useOnCreated((created) => {

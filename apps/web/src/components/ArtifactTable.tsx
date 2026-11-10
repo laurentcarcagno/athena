@@ -1,8 +1,9 @@
 import type { ReactNode } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Btn, Id, StatusPill, Table, Td, Th, type PillKind, type SortState } from '@athena/ui';
 import type { SearchResult, TrackerDefinition } from '../api';
 import { fr } from '../i18n';
+import { fromHere } from '../lib/origin';
 
 /** Couleur de la pastille selon la catégorie du statut. */
 export const pillKind = (category: string): PillKind => (category === 'done' ? 'success' : category === 'in_progress' ? 'warning' : 'info');
@@ -37,8 +38,10 @@ export function columnFor(id: string, def: TrackerDefinition | null): TableColum
 }
 
 /** Tableau d'artefacts triable avec pagination : partagé par la Recherche et l'écran Tracker. */
-export function ArtifactTable({ project, result, offset, pageSize, sortOf, sortBy, onPage, linkFor, selected, columns, groupByTracker = false }: {
+export function ArtifactTable({ project, result, offset, pageSize, sortOf, sortBy, onPage, linkFor, selected, columns, groupByTracker = false, origin }: {
   project: string; selected?: string | null; columns?: TableColumn[];
+  /** Libellé de la liste : la fiche ouverte depuis le tableau propose « Retour », précédent et suivant (T-0113). */
+  origin?: string;
   result: SearchResult; offset: number; pageSize: number;
   sortOf: (field: string) => SortState; sortBy: (field: string) => (next: SortState) => void; onPage: (offset: number) => void;
   /** Adresse d'un item (par défaut la fiche complète) ; l'écran Tracker ouvre le panneau de détail. */
@@ -48,6 +51,8 @@ export function ArtifactTable({ project, result, offset, pageSize, sortOf, sortB
 }) {
   const href = linkFor ?? ((key: string) => `/p/${project}/a/${key}`);
   const cols = columns ?? searchColumns();
+  const location = useLocation();
+  const state = origin ? fromHere(location, origin, result.hits.map((h) => h.key)) : undefined;
   const renderTable = (hits: SearchResult['hits']) => (
     <Table>
       <thead>
@@ -59,7 +64,7 @@ export function ArtifactTable({ project, result, offset, pageSize, sortOf, sortB
       <tbody>
         {hits.map((hit) => (
           <tr key={hit.key} className={selected === hit.key ? 'ath-row--selected' : undefined}>
-            <Td><Link id={`row-${hit.key}`} className="ath-link ath-mono" to={href(hit.key)} aria-current={selected === hit.key ? 'true' : undefined}>{hit.key}</Link></Td>
+            <Td><Link id={`row-${hit.key}`} className="ath-link ath-mono" to={href(hit.key)} state={state} aria-current={selected === hit.key ? 'true' : undefined}>{hit.key}</Link></Td>
             {cols.map((c) => <Td key={c.id} mono={c.mono} mute={c.mute}>{c.render(hit)}</Td>)}
           </tr>
         ))}

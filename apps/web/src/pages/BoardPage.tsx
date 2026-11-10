@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState, type DragEvent } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import { EmptyState, Id, PageHeader, StatusPill, useToast } from '@athena/ui';
 import { api, type BoardView } from '../api';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
+import { fromHere } from '../lib/origin';
 
 type Card = BoardView['columns'][number]['cards'][number];
 
@@ -13,6 +14,7 @@ export function BoardView({ project, board, header = true }: { project: string; 
   const [laneBy, setLaneBy] = useState<'none' | 'assignee' | 'tracker'>('none');
   const toast = useToast();
   const fail = useFailure();
+  const location = useLocation();
   const load = useCallback(() => api<BoardView>('GET', `/v1/projects/${project}/boards/${board}`).then(setView), [project, board]);
   useEffect(() => { load().catch(fail); }, [load, fail]);
 
@@ -50,7 +52,7 @@ export function BoardView({ project, board, header = true }: { project: string; 
               {cardsOf(column).length === 0 && <p className="ath-eyebrow">{fr.board.empty}</p>}
               {cardsOf(column).map((card) => (
                 <article key={card.key} className="ath-ticket" draggable onDragStart={(e) => e.dataTransfer.setData('application/x-athena-card', JSON.stringify(card))}>
-                  <Link className="ath-link" to={`/p/${project}/a/${card.key}`}><Id>{card.key}</Id></Link>
+                  <Link className="ath-link" to={`/p/${project}/a/${card.key}`} state={fromHere(location, view.name, view.columns.flatMap((c) => c.cards.map((x) => x.key)))}><Id>{card.key}</Id></Link>
                   <p className="ath-ticket__title">{card.title}</p>
                   <div className="ath-row">
                     <StatusPill>{card.statusName ?? card.status}</StatusPill>

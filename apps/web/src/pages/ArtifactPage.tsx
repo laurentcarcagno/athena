@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Btn, Card, EmptyState, Id, StatusPill, Table, Tabs, Td, Th, Tag, useToast } from '@athena/ui';
 import { ApiError, api, upload, type Artifact, type AttachmentView, type Field, type Revision, type Session, type TrackerDefinition } from '../api';
 import { useBusy, useFailure } from '../hooks';
@@ -86,15 +86,16 @@ export function ArtifactView({ session, project, itemKey: key, embedded = false,
   // Onglet actif dans l'adresse (`?onglet=`) : Précédent le restaure ; Détails, l'onglet par défaut, n'y figure pas.
   const [params, setParams] = useSearchParams();
   const wanted = params.get('onglet');
-  const search = useRef(params);
-  search.current = params; // lu par la redirection d'une ancienne clé, sans relancer le chargement à chaque changement d'onglet
+  const location = useLocation();
+  const search = useRef({ params, state: location.state as unknown });
+  search.current = { params, state: location.state }; // lu par la redirection d'une ancienne clé et les onglets, sans relancer le chargement
   const [circuit, setCircuit] = useState(false);
   const tab = wanted && (TABS as readonly string[]).includes(wanted) && (wanted !== 'approval' || circuit) ? wanted : 'details';
   const setTab = useCallback((id: string) => setParams((current) => {
     const next = new URLSearchParams(current);
     if (id === 'details') next.delete('onglet'); else next.set('onglet', id);
     return next;
-  }), [setParams]);
+  }, { state: search.current.state }), [setParams]); // l'origine de la fiche (T-0113) survit au changement d'onglet
   const [focusLinks, setFocusLinks] = useState(0);
   // Raccourci L : ouvre l'onglet Liens et place le focus sur la création d'un lien (ignoré pendant une saisie).
   useEffect(() => {
@@ -123,7 +124,7 @@ export function ArtifactView({ session, project, itemKey: key, embedded = false,
   const reload = useCallback(async () => {
     const a = await api<Artifact>('GET', base);
     // Ancienne clé (alias) : l'adresse canonique remplace l'adresse saisie (ADR-0002 § 2).
-    if (key && a.key !== key) { if (canonical.current) canonical.current(a.key); else navigate(`/p/${project}/a/${a.key}${search.current.toString() ? `?${search.current.toString()}` : ''}`, { replace: true }); }
+    if (key && a.key !== key) { if (canonical.current) canonical.current(a.key); else navigate(`/p/${project}/a/${a.key}${search.current.params.toString() ? `?${search.current.params.toString()}` : ''}`, { replace: true, state: search.current.state }); }
     setArtifact(a);
     setDef(await api<TrackerDefinition>('GET', `/v1/projects/${project}/trackers/${a.trackerKey}`));
     const [l, d, c, h, r] = await Promise.all([

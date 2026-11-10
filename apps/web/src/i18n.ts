@@ -144,6 +144,14 @@ const frDict = {
     label: 'Informations clés', assignee: 'Responsable', priority: 'Priorité', due: 'Échéance', version: 'Version', sprint: 'Sprint',
     parent: 'Parent', blockedBy: 'Bloqué par', none: '—', noneLabel: 'non renseigné',
   },
+  origin: {
+    nav: 'Navigation depuis l’origine', back: (label: string) => `Retour : ${label}`, position: 'Position dans la liste', previous: 'Précédent', next: 'Suivant',
+    search: 'Recherche', myWork: 'Mon travail',
+  },
+  relations: {
+    label: 'Relations', parent: 'Parent', children: 'Enfants', blocks: 'Bloque', blockedBy: 'Est bloqué par', duplicates: 'Duplique',
+    traceability: 'Traçabilité', related: 'Relié à',
+  },
   rail: {
     favorites: 'Favoris', recents: 'Récents', project: 'Projet', trackers: 'Trackers', pin: 'Épingler', unpin: 'Désépingler', moveUp: 'Monter', moveDown: 'Descendre', noFavorites: 'Aucun favori. Utilisez l’étoile d’une page pour en ajouter.', noRecents: 'Aucun élément récent.',
     collapse: 'Replier le rail', expand: 'Déplier le rail',
@@ -484,6 +492,14 @@ const enDict: Dictionary = {
   facts: {
     label: 'Key information', assignee: 'Assignee', priority: 'Priority', due: 'Due date', version: 'Version', sprint: 'Sprint',
     parent: 'Parent', blockedBy: 'Blocked by', none: '—', noneLabel: 'not set',
+  },
+  origin: {
+    nav: 'Navigation from origin', back: (label: string) => `Back: ${label}`, position: 'Position in the list', previous: 'Previous', next: 'Next',
+    search: 'Search', myWork: 'My work',
+  },
+  relations: {
+    label: 'Relations', parent: 'Parent', children: 'Children', blocks: 'Blocks', blockedBy: 'Is blocked by', duplicates: 'Duplicates',
+    traceability: 'Traceability', related: 'Related to',
   },
   rail: {
     favorites: 'Favorites', recents: 'Recent', project: 'Project', trackers: 'Trackers', pin: 'Pin', unpin: 'Unpin', moveUp: 'Move up', moveDown: 'Move down', noFavorites: 'No favorites yet. Use the star on a page to add one.', noRecents: 'Nothing recent.',

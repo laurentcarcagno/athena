@@ -406,6 +406,18 @@ describe('panneau de détail scindé', () => {
     expect(await screen.findByRole('heading', { level: 1, name: /ARI-BUG-0003/ })).toBeInTheDocument();
   });
 
+  it('T-0113 : la fiche agrandie revient à la liste d’origine (filtres et panneau) et parcourt ses items', async () => {
+    app('/p/ARI/t/BUG/tableau?f=x&i=ARI-BUG-0003');
+    await within(await screen.findByRole('complementary', { name: 'Détail de l’item' })).findByRole('heading', { level: 2 });
+    await userEvent.click(within(panel()).getByRole('button', { name: 'Agrandir' }));
+    const nav = await screen.findByRole('navigation', { name: 'Navigation depuis l’origine' });
+    expect(within(nav).getByText(/^3 \/ \d+$/)).toBeInTheDocument();
+    await userEvent.click(within(nav).getByRole('button', { name: 'Suivant' }));
+    expect(await screen.findByRole('heading', { level: 1, name: /ARI-BUG-0004/ })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('link', { name: /^Retour : / }));
+    await waitFor(() => expect(screen.getByTestId('where')).toHaveTextContent('/p/ARI/t/BUG/tableau?f=x&i=ARI-BUG-0003'));
+  });
+
   it('Fermer retire ?i= de l’adresse', async () => {
     app('/p/ARI/t/BUG/tableau?i=ARI-BUG-0003');
     await within(await screen.findByRole('complementary', { name: 'Détail de l’item' })).findByRole('heading', { level: 2 });

@@ -1,8 +1,9 @@
-import type { ReactNode } from 'react';
-import { Link } from 'react-router-dom';
-import { Btn, PageHeader, StatusPill } from '@athena/ui';
+import { useEffect, useRef, type ReactNode } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Btn, Id, PageHeader, StatusPill } from '@athena/ui';
 import type { Artifact, Session, TrackerDefinition } from '../api';
 import { fr } from '../i18n';
+import { fromHere, originOf } from '../lib/origin';
 import { pillKind } from '../pages/ListPage';
 import { PinToggle } from './PinToggle';
 import { SubscribeToggle } from './SubscribeToggle';
@@ -15,14 +16,62 @@ export function availableTransitions(def: TrackerDefinition, artifact: Artifact,
 }
 
 /** Lien vu depuis la fiche (`GET .../links`). */
-export interface ItemLink { id: string; type: string; direction: string; label: string; other: string | null; restricted?: boolean; suspect: boolean; hierarchical?: boolean }
+export interface ItemLink { id: string; type: string; direction: string; label: string; other: string | null; restricted?: boolean; suspect: boolean; hierarchical?: boolean; propagatesSuspect?: boolean }
 export interface ItemSprint { id: string; name: string; state: string }
 
 const None = () => <><span aria-hidden="true">{fr.facts.none}</span><span className="ath-visually-hidden">{fr.facts.noneLabel}</span></>;
 
-function Keys({ project, keys }: { project: string; keys: Array<string | null> }) {
+function Keys({ project, from, keys }: { project: string; from: string; keys: Array<string | null> }) {
+  const location = useLocation();
   if (keys.length === 0) return <None />;
-  return <>{keys.map((k, i) => <span key={k ?? `r${i}`}>{i > 0 && ', '}{k === null ? fr.marking.restrictedLink : <Link className="ath-link ath-mono" to={`/p/${project}/a/${k}`}>{k}</Link>}</span>)}</>;
+  return <>{keys.map((k, i) => <span key={k ?? `r${i}`}>{i > 0 && ', '}{k === null ? fr.marking.restrictedLink : <Link className="ath-link ath-mono" to={`/p/${project}/a/${k}`} state={fromHere(location, from)}>{k}</Link>}</span>)}</>;
+}
+
+/**
+ * Navigation de la fiche depuis son origine (T-0113) : « Retour » vers la liste ou le ticket d'où l'on vient, puis, depuis
+ * une liste, précédent et suivant avec la position (boutons, ou J / K hors saisie). L'onglet courant est conservé.
+ */
+export function ItemNav({ project, itemKey }: { project: string; itemKey: string }) {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const origin = originOf(location);
+  const keys = origin?.keys ?? [];
+  const index = keys.indexOf(itemKey);
+  const tab = new URLSearchParams(location.search).get('onglet');
+  const go = (step: number) => {
+    const key = keys[index + step];
+    if (index < 0 || !key || !origin) return;
+    navigate(`/p/${project}/a/${key}${tab ? `?onglet=${encodeURIComponent(tab)}` : ''}`, { state: { from: origin } });
+  };
+  const latest = useRef(go);
+  latest.current = go;
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.ctrlKey || event.metaKey || event.altKey) return;
+      const target = event.target as HTMLElement | null;
+      if (target && (['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) || target.isContentEditable)) return;
+      if (document.querySelector('[role="dialog"]')) return;
+      const step = event.key === 'j' || event.key === 'J' ? 1 : event.key === 'k' || event.key === 'K' ? -1 : 0;
+      if (step === 0) return;
+      event.preventDefault();
+      latest.current(step);
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, []);
+  if (!origin) return null;
+  return (
+    <nav className="ath-row"aria-label={fr.origin.nav}>
+      <Link className="ath-link" to={origin.href} state={origin.from ? { from: origin.from } : null}>{fr.origin.back(origin.label)}</Link>
+      {index >= 0 && (
+        <div className="ath-row" role="group" aria-label={fr.origin.position}>
+          <Btn size="sm" variant="ghost" icon="previous" disabled={index === 0} onClick={() => go(-1)}>{fr.origin.previous}</Btn>
+          <Id>{index + 1} / {keys.length}</Id>
+          <Btn size="sm" variant="ghost" icon="next" disabled={index === keys.length - 1} onClick={() => go(1)}>{fr.origin.next}</Btn>
+        </div>
+      )}
+    </nav>
+  );
 }
 
 /**
@@ -49,8 +98,8 @@ export function ItemFacts({ project, def, artifact, links, sprint, compact = fal
     [label('due_date', fr.facts.due), value('due_date', true)],
     [label('version', fr.facts.version), value('version', true)],
     [fr.facts.sprint, sprint ? sprint.name : <None />],
-    [fr.facts.parent, <Keys project={project} keys={parents} />],
-    [fr.facts.blockedBy, <Keys project={project} keys={blockers} />],
+    [fr.facts.parent, <Keys project={project} from={artifact.key} keys={parents} />],
+    [fr.facts.blockedBy, <Keys project={project} from={artifact.key} keys={blockers} />],
   ];
   return (
     <dl className={compact ? 'ath-facts ath-facts--compact' : 'ath-facts'} aria-label={fr.facts.label}>
@@ -103,6 +152,8 @@ export function ItemHeader({ session, project, def, artifact, links, sprint, emb
       sub={<>{pill} <Link className="ath-link" to={`/p/${project}`}>{project}</Link></>}
       actions={<>{transitions('md')}<SubscribeToggle project={project} scope="item" target={artifact.key} size="md" /><PinToggle entry={{ kind: 'item', project: String(project), ref: artifact.key, label: artifact.key }} /></>}
     />
+    {/* Sous l'en-tête collant, qui recouvrirait sinon la navigation une fois la page défilée. */}
+    <ItemNav project={project} itemKey={artifact.key} />
     {facts}
     </>
   );

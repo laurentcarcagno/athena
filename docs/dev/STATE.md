@@ -14,7 +14,9 @@ Dernière mise à jour : 2026-11-10
   T-0110 faite (mobile : sélecteur de section du projet, barre basse Mon travail / Projets / Chercher / Menu, focus de la palette corrigé ; e2e 33 sur 33).
   T-0111 faite (création contextuelle : « Créer » dans la barre haute et touche N, cible déduite de l'adresse, on reste sur la page, message « Ouvrir » ; e2e 36 sur 36).
   T-0112 faite (fiche : `ItemHeader`, informations clés dans l'en-tête, `?onglet=` restauré par Précédent ; migration 047, rôles `priority` et `version` ; e2e 37 sur 37).
-- **Tâche en cours** : T-0113 (relations groupées, retour à la liste d'origine, précédent et suivant). Migration réelle suivante : 048.
+  T-0113 faite (relations groupées dans l'onglet Liens, origine de la fiche : « Retour », précédent et suivant ; e2e 38 sur 38).
+- **Tâche en cours** : T-0114 (Board : carte enrichie, clic = panneau, filtre rapide, création par colonne). Migration réelle suivante : 048.
+- **Historique** : réécrit le 2026-11-10 à la demande de l'utilisateur (lot 8 en `@gmail.com`) ; sauvegarde `backup/avant-reecriture-email`, à supprimer quand l'utilisateur le décide.
 - **Reste à faire** (par priorité) :
   1. Test d'intrusion externe (à commander) ; déploiement de recette sur Kubernetes et mesures de charge concurrente.
   5. Écarts mineurs : interface des rôles de champ, permissions par transition, suppression/renommage de champs, swimlanes, Gantt.
