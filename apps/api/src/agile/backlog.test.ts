@@ -87,6 +87,23 @@ suite('backlog (intégration)', () => {
     expect((await keys()).slice(0, 2)).toEqual(['NOV-TSK-0004', 'NOV-TSK-0002']);
   });
 
+  it('T-0116 : retirer d’un sprint rend le ticket au backlog ; clore reporte le reste au sprint planifié choisi', async () => {
+    const s2 = await sprints.create(org, 'NOV', { name: 'S2', startsOn: '2026-11-15', endsOn: '2026-11-28' }, admin);
+    const s3 = await sprints.create(org, 'NOV', { name: 'S3', startsOn: '2026-11-29', endsOn: '2026-12-12' }, admin);
+    await sprints.addItem(org, s2, 'NOV-TSK-0004', 'NOV', admin);
+    await sprints.addItem(org, s2, 'NOV-TSK-0005', 'NOV', admin);
+    await sprints.removeItem(org, s2, 'NOV-TSK-0005', 'NOV', admin);
+    expect(await keys()).toContain('NOV-TSK-0005');
+    expect(await code(sprints.removeItem(org, s2, 'NOV-TSK-0005', 'NOV', admin))).toMatch(/not_found/);
+    expect((await sprints.get(org, s2)).items).toMatchObject([{ key: 'NOV-TSK-0004', title: 'D', statusName: 'À faire' }]);
+    await sprints.start(org, s2, admin);
+    expect(await code(sprints.close(org, s2, admin, s2))).toMatch(/conflict.*planifié/);
+    expect(await sprints.close(org, s2, admin, s3)).toEqual({ completed: 0, returned: ['NOV-TSK-0004'], movedTo: s3 });
+    expect((await sprints.get(org, s3)).items.map((i) => i.key)).toEqual(['NOV-TSK-0004']);
+    expect(await keys()).not.toContain('NOV-TSK-0004');
+    await sprints.removeItem(org, s3, 'NOV-TSK-0004', 'NOV', admin);
+  });
+
   it('un ticket terminé quitte le backlog', async () => {
     const a = await artifacts.get(org, 'NOV', 'NOV-TSK-0003');
     await artifacts.transition(org, 'NOV', 'NOV-TSK-0003', 'Finir', a.version, admin);

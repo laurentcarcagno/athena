@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, Param, Post, Query, Req } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, Post, Query, Req } from '@nestjs/common';
 import { z } from 'zod';
 import { BodySchema } from '../openapi/body-schema';
 import { Roles, type AuthedRequest } from '../auth/auth.guard';
@@ -21,7 +21,8 @@ const SprintBody = z.object({
   startsOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), endsOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
 });
 const ItemBody = z.object({ artifact: z.string().min(1) });
-const RankBody = z.object({ key: z.string().min(1).max(64), after: z.string().min(1).max(64).nullable() });
+const CloseBody = z.object({ moveTo: z.string().uuid().optional() });
+const RankBody =z.object({ key: z.string().min(1).max(64), after: z.string().min(1).max(64).nullable() });
 
 const CreateReleaseBody = z.object({ name: z.string().min(1).max(100), startsOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), endsOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) });
 @Controller('v1/projects/:project')
@@ -95,12 +96,24 @@ export class AgileController {
     await this.sprints.start(organizationId, id, actor);
   }
 
+  /** Retire un ticket du sprint : il revient au backlog (T-0116). */
+  @Roles('athena-admin', 'athena-pm')
+  @HttpCode(204)
+  @Delete('sprints/:id/items/:key')
+  async removeItem(@Req() request: AuthedRequest, @Param('project') project: string, @Param('id') id: string, @Param('key') key: string) {
+    const { organizationId, actor } = await this.manager(request, project);
+    await this.sprints.removeItem(organizationId, id, key, project, actor);
+  }
+
+  /** Clôture ; `moveTo` (facultatif) : sprint planifié qui reçoit les tickets non terminés, sinon ils retournent au backlog. */
   @Roles('athena-admin', 'athena-pm')
   @HttpCode(200)
   @Post('sprints/:id/close')
-  async close(@Req() request: AuthedRequest, @Param('project') project: string, @Param('id') id: string) {
+  @BodySchema(CloseBody)
+  async close(@Req() request: AuthedRequest, @Param('project') project: string, @Param('id') id: string, @Body() body: unknown) {
     const { organizationId, actor } = await this.manager(request, project);
-    return this.sprints.close(organizationId, id, actor);
+    const input = parseBody(CloseBody, body ?? {});
+    return this.sprints.close(organizationId, id, actor, input.moveTo);
   }
 
   @Roles('athena-user', 'athena-admin')

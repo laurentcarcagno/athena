@@ -10,7 +10,7 @@ export interface SprintView {
   state: 'planned' | 'active' | 'closed';
   startsOn: string | null;
   endsOn: string | null;
-  items: Array<{ key: string; status: string; done: boolean; points: number }>;
+  items: Array<{ key: string; status: string; statusName: string; title: string; done: boolean; points: number }>;
   totalPoints: number;
   donePoints: number;
 }
@@ -97,24 +97,49 @@ export class SprintService {
     });
   }
 
-  /** Clôture : les éléments non terminés sortent du sprint et retournent au backlog. */
-  async close(organizationId: string, sprintId: string, actor: Actor): Promise<{ completed: number; returned: string[] }> {
+  /** Retire un ticket d'un sprint planifié ou actif : il revient au backlog avec son rang (T-0116). */
+  async removeItem(organizationId: string, sprintId: string, artifactKey: string, projectKey: string, actor: Actor): Promise<void> {
+    await this.db.tx(organizationId, async (c) => {
+      const sprint = await this.sprint(c, sprintId);
+      if (sprint.state === 'closed') throw conflict('Sprint terminé : retrait impossible.');
+      const removed = await c.query(
+        `delete from sprint_item i using artifact a, project p where i.sprint_id = $1 and i.artifact_id = a.id and a.project_id = p.id
+           and p.key = $2 and a.id = resolve_artifact(p.id, $3)`,
+        [sprintId, projectKey, artifactKey],
+      );
+      if (removed.rowCount === 0) throw notFound(`${artifactKey} dans ce sprint`);
+      await audit(c, organizationId, actor, 'sprint.remove_item', `sprint:${sprintId}`, { artifact: artifactKey });
+    });
+  }
+
+  /**
+   * Clôture : les éléments non terminés sortent du sprint et retournent au backlog, ou passent au sprint planifié `moveTo`
+   * du même projet (T-0116).
+   */
+  async close(organizationId: string, sprintId: string, actor: Actor, moveTo?: string): Promise<{ completed: number; returned: string[]; movedTo?: string }> {
     return this.db.tx(organizationId, async (c) => {
       const sprint = await this.sprint(c, sprintId);
       if (sprint.state !== 'active') throw conflict('Seul un sprint actif peut être clos.');
+      if (moveTo !== undefined) {
+        const target = (await c.query('select id, state, project_id from sprint where id = $1', [moveTo])).rows[0];
+        if (!target || target.project_id !== sprint.project_id) throw notFound('Sprint de destination');
+        if (target.state !== 'planned') throw conflict('Le sprint de destination doit être planifié.');
+      }
       const items = (await this.items(c, sprintId));
       const returned = items.filter((i) => !i.done).map((i) => i.key);
       if (returned.length) {
         await c.query(
-          `delete from sprint_item where sprint_id = $1 and artifact_id in (select a.id from artifact a where a.key = any($2))`,
-          [sprintId, returned],
+          moveTo === undefined
+            ? `delete from sprint_item where sprint_id = $1 and artifact_id in (select a.id from artifact a where a.key = any($2))`
+            : `update sprint_item set sprint_id = $3 where sprint_id = $1 and artifact_id in (select a.id from artifact a where a.key = any($2))`,
+          moveTo === undefined ? [sprintId, returned] : [sprintId, returned, moveTo],
         );
       }
       const completed = items.filter((i) => i.done).reduce((n, i) => n + i.points, 0);
       await c.query("update sprint set state = 'closed', closed_at = now(), completed_points = $2 where id = $1", [sprintId, completed]);
       await outbox(c, organizationId, 'sprint', sprintId, 'sprint.completed', { name: sprint.name, completed: items.length - returned.length, returned });
       await audit(c, organizationId, actor, 'sprint.close', `sprint:${sprintId}`);
-      return { completed: items.length - returned.length, returned };
+      return { completed: items.length - returned.length, returned, ...(moveTo !== undefined && returned.length ? { movedTo: moveTo } : {}) };
     });
   }
 
@@ -169,15 +194,19 @@ export class SprintService {
   private async items(c: PoolClient, sprintId: string) {
     const rows = (
       await c.query(
-        `select a.key, s.key as status, s.category, a."values" as values,
-                (select f.key from field_definition f where f.tracker_id = a.tracker_id and f.semantic_role = 'estimate') as estimate_field
+        `select a.key, s.key as status, s.name as status_name, s.category, a."values" as values,
+                (select f.key from field_definition f where f.tracker_id = a.tracker_id and f.semantic_role = 'estimate') as estimate_field,
+                (select f.key from field_definition f where f.tracker_id = a.tracker_id and f.semantic_role = 'title' and f.read_roles is null) as title_field
          from sprint_item i join artifact a on a.id = i.artifact_id join status s on s.id = a.status_id
-         where i.sprint_id = $1 order by a.created_at, a.id`,
+         left join backlog_rank r on r.artifact_id = a.id
+         where i.sprint_id = $1 order by r.rank nulls last, a.created_at, a.id`,
         [sprintId],
       )
     ).rows;
+    // Ordre du backlog (T-0116) ; le titre n'est donné que s'il n'est pas à lecture restreinte (sinon : la clé).
     return rows.map((r) => ({
-      key: r.key as string, status: r.status as string, done: r.category === 'done',
+      key: r.key as string, status: r.status as string, statusName: r.status_name as string, done: r.category === 'done',
+      title: r.title_field && r.values[r.title_field] != null ? String(r.values[r.title_field]) : (r.key as string),
       points: Number(r.estimate_field ? r.values[r.estimate_field] ?? 0 : 0) || 0,
     }));
   }
