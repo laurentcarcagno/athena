@@ -2,7 +2,7 @@
   "name": "@nuance/theming",
   "version": "0.1.0",
   "private": true,
-  "description": "Moteur de thèmes générique : jetons au format W3C Design Tokens, modes, héritage, contrôle des contrastes, génération CSS.",
+  "description": "Moteur de thèmes générique : jetons au format W3C Design Tokens, modes, héritage, contrôle des contrastes, génération CSS, runtime navigateur et liaisons React facultatives.",
   "license": "UNLICENSED",
   "type": "module",
   "main": "dist/index.js",
@@ -11,19 +11,39 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./react": {
+      "types": "./dist/react.d.ts",
+      "default": "./dist/react.js"
     }
   },
   "bin": {
     "theming": "dist/bin.js"
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run"
   },
+  "peerDependencies": {
+    "react": ">=18"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
   "devDependencies": {
+    "@testing-library/react": "16.0.1",
     "@types/node": "22.7.5",
+    "@types/react": "18.3.11",
+    "@types/react-dom": "18.3.1",
+    "jsdom": "25.0.1",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
     "typescript": "5.6.3",
     "vitest": "4.1.12"
   }

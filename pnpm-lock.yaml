@@ -88,6 +88,9 @@ importers:
       '@fontsource/ibm-plex-sans':
         specifier: 5.1.0
         version: 5.1.0
+      '@nuance/theming':
+        specifier: workspace:*
+        version: link:../../packages/theming
       react:
         specifier: 18.3.1
         version: 18.3.1
@@ -164,9 +167,27 @@ importers:
 
   packages/theming:
     devDependencies:
+      '@testing-library/react':
+        specifier: 16.0.1
+        version: 16.0.1(@testing-library/dom@10.4.0)(@types/react-dom@18.3.1)(@types/react@18.3.11)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@types/node':
         specifier: 22.7.5
         version: 22.7.5
+      '@types/react':
+        specifier: 18.3.11
+        version: 18.3.11
+      '@types/react-dom':
+        specifier: 18.3.1
+        version: 18.3.1
+      jsdom:
+        specifier: 25.0.1
+        version: 25.0.1
+      react:
+        specifier: 18.3.1
+        version: 18.3.1
+      react-dom:
+        specifier: 18.3.1
+        version: 18.3.1(react@18.3.1)
       typescript:
         specifier: 5.6.3
         version: 5.6.3

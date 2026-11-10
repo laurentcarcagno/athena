@@ -1,49 +1,57 @@
-import { useSyncExternalStore } from 'react';
+import { createThemeController, storagePersistence, SYSTEM, type ThemeState } from '@nuance/theming';
+import { useThemeState } from '@nuance/theming/react';
 
-/** Réglage du thème : `system` suit la préférence du système (aucun attribut), `light` et `dark` la forcent. */
+/** Réglage du mode : `system` suit la préférence du système (aucun attribut), `light` et `dark` la forcent. */
 export type ThemeChoice = 'system' | 'light' | 'dark';
 export const THEME_CHOICES: ThemeChoice[] = ['system', 'light', 'dark'];
 export const THEME_KEY = 'athena.theme';
 
-const listeners = new Set<() => void>();
+/**
+ * Contrôleur du moteur `@nuance/theming` (ADR-0004). Jusqu'à T-0129, les jetons générés (tokens.generated.css) lisent le
+ * mode dans `data-theme` : le contrôleur pose donc le mode sous ce nom et ne pose ni famille ni densité. La mémoire garde
+ * le format historique (le seul mode, clé effacée pour « système ») pour ne rien perdre des réglages existants.
+ */
+const memory = storagePersistence({
+  key: THEME_KEY,
+  encode: (state) => (state.mode === SYSTEM ? null : state.mode),
+  decode: (raw) => ({ mode: raw }),
+});
+const controller = createThemeController({
+  defaults: { theme: null, mode: SYSTEM, density: null },
+  modes: THEME_CHOICES,
+  attributes: { theme: null, mode: 'data-theme', density: null },
+  persistence: memory,
+});
+
+const choiceOf = (state: ThemeState): ThemeChoice => state.mode as ThemeChoice;
 
 /** Réglage mémorisé dans ce navigateur ; une valeur absente, illisible ou inconnue donne « système ». */
 export function readTheme(): ThemeChoice {
   try {
-    const saved = window.localStorage.getItem(THEME_KEY);
-    return saved === 'light' || saved === 'dark' ? saved : 'system';
+    const mode = memory.load()?.mode;
+    return THEME_CHOICES.includes(mode as ThemeChoice) ? (mode as ThemeChoice) : 'system';
   } catch { return 'system'; }
 }
 
-/** Pose le thème sur l'élément `html` : l'attribut `data-theme` pilote les jetons générés (tokens.generated.css). */
+/** Pose un mode sur l'élément `html` sans le mémoriser. */
 export function applyTheme(choice: ThemeChoice = readTheme()): void {
-  const root = document.documentElement;
-  if (choice === 'system') root.removeAttribute('data-theme');
-  else root.setAttribute('data-theme', choice);
+  controller.apply({ ...controller.get(), mode: choice });
 }
 
-let current: ThemeChoice = readTheme();
-export const getTheme = (): ThemeChoice => current;
+export const getTheme = (): ThemeChoice => choiceOf(controller.get());
 
 export function setTheme(choice: ThemeChoice): void {
-  current = choice;
-  try {
-    if (choice === 'system') window.localStorage.removeItem(THEME_KEY);
-    else window.localStorage.setItem(THEME_KEY, choice);
-  } catch { /* stockage indisponible : le réglage vaut pour la session */ }
-  applyTheme(choice);
-  listeners.forEach((l) => l());
+  controller.set({ mode: choice });
 }
 
 /** Réglage suivant dans l'ordre système, clair, sombre. */
 export const nextTheme = (choice: ThemeChoice): ThemeChoice => THEME_CHOICES[(THEME_CHOICES.indexOf(choice) + 1) % THEME_CHOICES.length]!;
 
 export function useTheme(): ThemeChoice {
-  return useSyncExternalStore((l) => { listeners.add(l); return () => listeners.delete(l); }, getTheme, getTheme);
+  return choiceOf(useThemeState(controller));
 }
 
 /** Relit le réglage mémorisé (tests, retour dans l'onglet) et l'applique. */
 export function initTheme(): void {
-  current = readTheme();
-  applyTheme(current);
+  controller.reload();
 }

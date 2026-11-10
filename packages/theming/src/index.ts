@@ -7,4 +7,6 @@ export type { Contract, Issue } from './check.js';
 export { emitCss, variableName } from './css.js';
 export type { CssOptions } from './css.js';
 export { runCli } from './cli.js';
+export { createThemeController, storagePersistence, SYSTEM, THEME_CHANGE_EVENT } from './runtime.js';
+export type { ThemeController, ThemeControllerOptions, ThemePersistence, ThemeState } from './runtime.js';
 export type { CliIo } from './cli.js';

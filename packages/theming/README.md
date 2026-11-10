@@ -14,3 +14,20 @@ theming build --contract contrat.json --out themes.css --prefix ath- --default h
 ```
 
 La génération refuse d'émettre un thème non conforme.
+
+## Runtime navigateur
+
+```ts
+import { createThemeController, storagePersistence } from '@nuance/theming';
+const theme = createThemeController({
+  defaults: { theme: 'hemeria', mode: 'system', density: 'normal' },
+  themes: ['hemeria', 'nord'], modes: ['system', 'light', 'dark'], densities: ['normal', 'compact'],
+  persistence: storagePersistence({ key: 'app.theme' }),
+});
+theme.apply();                 // avant le premier rendu
+theme.set({ mode: 'dark' });   // applique, mémorise, prévient (abonnés et événement DOM `themechange`)
+```
+
+- Attributs posés sur `<html>` : `data-theme`, `data-mode` (absent pour `system`), `data-density` ; noms configurables, `null` pour ne pas poser un axe.
+- Valeur mémorisée inconnue ou illisible : la valeur par défaut s'applique. Mémoire en panne : le choix vaut pour la session.
+- React (facultatif, dépendance pair) : `import { ThemeProvider, useTheme, useThemeState } from '@nuance/theming/react'`.

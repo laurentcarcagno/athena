@@ -114,11 +114,15 @@ describe('ligne de commande', () => {
 });
 
 describe('découplage', () => {
-  it('aucun fichier source n’importe un paquet du produit (@athena/*) ni React', () => {
-    const dir = dirname(fileURLToPath(import.meta.url));
-    const offenders = readdirSync(dir)
-      .filter((f) => f.endsWith('.ts') && !f.endsWith('.test.ts'))
-      .filter((f) => /from ['"](@athena\/|react)/.test(readFileSync(join(dir, f), 'utf8')));
-    expect(offenders).toEqual([]);
+  const dir = dirname(fileURLToPath(import.meta.url));
+  const sources = readdirSync(dir).filter((f) => /\.tsx?$/.test(f) && !/\.test\.tsx?$/.test(f));
+
+  it('aucun fichier source n’importe un paquet du produit (@athena/*)', () => {
+    expect(sources.filter((f) => /from ['"]@athena\//.test(readFileSync(join(dir, f), 'utf8')))).toEqual([]);
+  });
+
+  it('React n’est importé que par react.ts, que l’entrée principale n’exporte pas', () => {
+    expect(sources.filter((f) => /from ['"]react/.test(readFileSync(join(dir, f), 'utf8')))).toEqual(['react.ts']);
+    expect(readFileSync(join(dir, 'index.ts'), 'utf8')).not.toContain('./react');
   });
 });
