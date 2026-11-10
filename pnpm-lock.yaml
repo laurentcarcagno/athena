@@ -162,6 +162,18 @@ importers:
         specifier: 4.1.12
         version: 4.1.12(@types/node@22.7.5)(jsdom@25.0.1)(vite@6.4.5(@types/node@22.7.5)(yaml@2.9.1))
 
+  packages/theming:
+    devDependencies:
+      '@types/node':
+        specifier: 22.7.5
+        version: 22.7.5
+      typescript:
+        specifier: 5.6.3
+        version: 5.6.3
+      vitest:
+        specifier: 4.1.12
+        version: 4.1.12(@types/node@22.7.5)(jsdom@25.0.1)(vite@6.4.5(@types/node@22.7.5)(yaml@2.9.1))
+
   packages/ui:
     dependencies:
       react:
