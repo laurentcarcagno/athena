@@ -167,7 +167,7 @@ export function TrackerScreen({ session }: { session: Session }) {
           <Link key={v} to={`${base}/${v}`} className="ath-tab" aria-current={v === current ? 'page' : undefined}>{fr.trackerScreen.viewNames[v]}</Link>
         ))}
       </nav>
-      {current === 'board' ? <BoardView key={refresh} project={String(project)} board={`~${tracker}`} header={false} /> : current === 'matrice' ? (
+      {current === 'board' ? <BoardView key={refresh} session={session} project={String(project)} board={`~${tracker}`} header={false} /> : current === 'matrice' ? (
         <MatrixView project={String(project)} tracker={String(tracker)} columnsTracker={params.get('mx')} linkType={params.get('mt')}
           trackers={siblings} onChange={next} />
       ) : current === 'arbre' ? (

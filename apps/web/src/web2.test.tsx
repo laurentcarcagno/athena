@@ -351,7 +351,7 @@ describe('couloirs du board', () => {
   it('regroupe les cartes par responsable', async () => {
     const { BoardPage } = await import('./pages/BoardPage');
     handlers = [on('GET', '/v1/projects/ARI/boards/kanban', { body: board })];
-    wrap('/p/ARI/board/kanban', <BoardPage />, '/p/:project/board/:board');
+    wrap('/p/ARI/board/kanban', <BoardPage session={simple} />, '/p/:project/board/:board');
     await screen.findByText('Crash');
     await userEvent.selectOptions(screen.getByLabelText('Couloirs'), 'assignee');
     const alice = screen.getByRole('region', { name: 'alice' });

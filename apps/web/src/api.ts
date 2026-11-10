@@ -106,6 +106,12 @@ export interface AttachmentView { id: string; name: string; contentType: string;
 export interface SavedFilter { id: string; name: string; query: string; owner: string; shared: boolean; trackerKey?: string | null; view?: string; columns?: string[] | null; isDefault?: boolean }
 export interface Revision { version: number; diff: Record<string, { from: unknown; to: unknown }>; gitSha: string | null; at: string; actor: string }
 export interface BoardView {
-  key: string; name: string; unmapped: number;
-  columns: Array<{ name: string; wipLimit: number | null; count: number; overLimit: boolean; cards: Array<{ key: string; tracker: string; title: string; status: string; statusName: string; assignee: string | null; version: number }> }>;
+  key: string; name: string; unmapped: number; trackers?: string[];
+  columns: Array<{
+    name: string; wipLimit: number | null; count: number; overLimit: boolean; creatable?: boolean;
+    cards: Array<{
+      key: string; tracker: string; title: string; status: string; statusName: string; assignee: string | null; version: number;
+      trackerName?: string; assigneeName?: string | null; priority?: string | null; priorityLabel?: string | null; due?: string | null; blocked?: boolean;
+    }>;
+  }>;
 }

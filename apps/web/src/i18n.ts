@@ -26,7 +26,9 @@ const frDict = {
     required: 'obligatoire', version: 'Version', author: 'Auteur', date: 'Date', changes: 'Modifications', type: 'Type', reference: 'Référence', titleCol: 'Titre', state: 'État', pipeline: 'Pipeline', absent: 'absente',
     restore: 'Restaurer', restored: (v: number) => `Révision ${v} restaurée.`,
   },
-  board: { eyebrow: 'Board', moveTo: 'Déplacer vers', unmapped: (n: number) => `${n} artefact(s) hors colonnes`, wip: 'Limite WIP', laneBy: 'Couloirs', laneNone: 'Aucun', laneAssignee: 'Responsable', laneTracker: 'Tracker', noAssignee: 'Non assigné', moved: 'Carte déplacée.', empty: 'Aucune carte.' },
+  board: { eyebrow: 'Board', moveTo: 'Déplacer vers', unmapped: (n: number) => `${n} artefact(s) hors colonnes`, wip: 'Limite WIP', laneBy: 'Couloirs', laneNone: 'Aucun', laneAssignee: 'Responsable', laneTracker: 'Tracker', noAssignee: 'Non assigné', moved: 'Carte déplacée.', empty: 'Aucune carte.',
+    filter: 'Filtrer les cartes (clé ou titre)', mine: 'Mes tickets', blockedOnly: 'Bloqués', blocked: 'Bloqué', createIn: (column: string) => `Créer un ticket dans « ${column} »`, noMatch: 'Aucune carte ne correspond aux filtres.',
+    indexTitle: 'Boards', projectBoards: 'Boards du projet', trackerBoards: 'Board de chaque tracker', noBoards: 'Aucun board configuré.' },
   dashboard: {
     eyebrow: 'Pilotage', title: 'Tableau de bord', todo: 'À faire', inProgress: 'En cours', done: 'Terminés', open: 'Ouverts', total: 'Total',
     flow: 'Flux des 7 derniers jours', velocity: 'Vélocité', forecast: 'Prévision du prochain sprint', points: 'points', roadmap: 'Roadmap', noSprint: 'Aucun sprint clos.', noRelease: 'Aucune release.',
@@ -76,7 +78,7 @@ const frDict = {
   },
   project: {
     navLabel: (p: string) => `Projet ${p}`,
-    tabs: { overview: 'Vue d’ensemble', trackers: 'Trackers', planning: 'Planification', traceability: 'Traçabilité', conformity: 'Conformité', documents: 'Documents', code: 'Code et intégration', activity: 'Activité', members: 'Membres' },
+    tabs: { overview: 'Vue d’ensemble', board: 'Board', trackers: 'Trackers', planning: 'Planification', traceability: 'Traçabilité', conformity: 'Conformité', documents: 'Documents', code: 'Code et intégration', activity: 'Activité', members: 'Membres' },
   },
   overview: {
     eyebrow: 'Projet', title: 'Vue d’ensemble', mine: 'À traiter par moi', noMine: 'Rien n’est assigné à votre nom.', allMine: 'Tout voir dans la Recherche', trackersTitle: 'Trackers', openTrackers: 'Voir les trackers',
@@ -375,7 +377,9 @@ const enDict: Dictionary = {
     required: 'required', version: 'Version', author: 'Author', date: 'Date', changes: 'Changes', type: 'Type', reference: 'Reference', titleCol: 'Title', state: 'State', pipeline: 'Pipeline', absent: 'missing',
     restore: 'Restore', restored: (v: number) => `Revision ${v} restored.`,
   },
-  board: { eyebrow: 'Board', moveTo: 'Move to', unmapped: (n: number) => `${n} artifact(s) outside columns`, wip: 'WIP limit', laneBy: 'Swimlanes', laneNone: 'None', laneAssignee: 'Assignee', laneTracker: 'Tracker', noAssignee: 'Unassigned', moved: 'Card moved.', empty: 'No card.' },
+  board: { eyebrow: 'Board', moveTo: 'Move to', unmapped: (n: number) => `${n} artifact(s) outside columns`, wip: 'WIP limit', laneBy: 'Swimlanes', laneNone: 'None', laneAssignee: 'Assignee', laneTracker: 'Tracker', noAssignee: 'Unassigned', moved: 'Card moved.', empty: 'No card.',
+    filter: 'Filter cards (key or title)', mine: 'My tickets', blockedOnly: 'Blocked', blocked: 'Blocked', createIn: (column: string) => `Create a ticket in “${column}”`, noMatch: 'No card matches the filters.',
+    indexTitle: 'Boards', projectBoards: 'Project boards', trackerBoards: 'Board of each tracker', noBoards: 'No board configured.' },
   dashboard: {
     eyebrow: 'Overview', title: 'Dashboard', todo: 'To do', inProgress: 'In progress', done: 'Done', open: 'Open', total: 'Total',
     flow: 'Flow, last 7 days', velocity: 'Velocity', forecast: 'Next sprint forecast', points: 'points', roadmap: 'Roadmap', noSprint: 'No closed sprint.', noRelease: 'No release.',
@@ -425,7 +429,7 @@ const enDict: Dictionary = {
   },
   project: {
     navLabel: (p: string) => `Project ${p}`,
-    tabs: { overview: 'Overview', trackers: 'Trackers', planning: 'Planning', traceability: 'Traceability', conformity: 'Conformity', documents: 'Documents', code: 'Code and integration', activity: 'Activity', members: 'Members' },
+    tabs: { overview: 'Overview', board: 'Board', trackers: 'Trackers', planning: 'Planning', traceability: 'Traceability', conformity: 'Conformity', documents: 'Documents', code: 'Code and integration', activity: 'Activity', members: 'Members' },
   },
   overview: {
     eyebrow: 'Project', title: 'Overview', mine: 'Assigned to me', noMine: 'Nothing is assigned to you.', allMine: 'See all in Search', trackersTitle: 'Trackers', openTrackers: 'See the trackers',

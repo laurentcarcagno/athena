@@ -178,7 +178,7 @@ describe('board et projets', () => {
   };
   it('déplace une carte via le sélecteur accessible, avec sa version', async () => {
     handlers = [route('GET', '/v1/projects/ARI/boards/kanban', { body: board }), route('POST', /\/move$/, { body: {} })];
-    renderAt('/p/ARI/board/kanban', <BoardPage />, '/p/:project/board/:board');
+    renderAt('/p/ARI/board/kanban', <BoardPage session={session} />, '/p/:project/board/:board');
     await screen.findByText('Crash');
     await userEvent.selectOptions(screen.getByLabelText('Déplacer vers'), 'En cours');
     await waitFor(() => expect(calls.find((c) => c.url.endsWith('/move'))?.body).toEqual({ column: 'En cours', version: 4 }));
@@ -186,7 +186,7 @@ describe('board et projets', () => {
   });
   it('affiche la limite WIP et le message d’erreur du serveur', async () => {
     handlers = [route('GET', '/v1/projects/ARI/boards/kanban', { body: board }), route('POST', /\/move$/, { status: 409, body: { error: 'conflict', message: 'Limite WIP atteinte pour « En cours » (1).', details: [] } })];
-    renderAt('/p/ARI/board/kanban', <BoardPage />, '/p/:project/board/:board');
+    renderAt('/p/ARI/board/kanban', <BoardPage session={session} />, '/p/:project/board/:board');
     await screen.findByText('Crash');
     expect(screen.getByText('1 / 1')).toBeInTheDocument();
     await userEvent.selectOptions(screen.getByLabelText('Déplacer vers'), 'En cours');

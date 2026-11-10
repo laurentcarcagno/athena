@@ -15,7 +15,7 @@ import { PinsProvider } from './lib/pins';
 import { fr, getLocale, setLocale, useLocale } from './i18n';
 import { AdminPage } from './pages/AdminPage';
 import { ArtifactPage } from './pages/ArtifactPage';
-import { BoardPage } from './pages/BoardPage';
+import { BoardIndexPage, BoardPage } from './pages/BoardPage';
 import { ListPage } from './pages/ListPage';
 import { MyWorkPage } from './pages/MyWorkPage';
 import { HelpPage } from './pages/HelpPage';
@@ -174,7 +174,8 @@ export function AuthenticatedApp({ session }: { session: Session }) {
           <Route path="dashboard" element={<RedirectTo to="" />} />
           <Route path="admin" element={<AdminPage session={session} />} />
           <Route path="a/:key" element={<ArtifactPage session={session} />} />
-          <Route path="board/:board" element={<BoardPage />} />
+          <Route path="board" element={<BoardIndexPage />} />
+          <Route path="board/:board" element={<BoardPage session={session} />} />
           <Route path="trackers/new" element={<TrackerCreatePage session={session} />} />
           <Route path="trackers/:tracker/config" element={<TrackerConfigPage session={session} />} />
           <Route path="*" element={<NotFound />} />

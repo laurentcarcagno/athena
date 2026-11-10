@@ -31,7 +31,7 @@ export function crumbsFor(pathname: string, search = ''): Crumb[] {
   else if (head in TAB_PATHS) out.push({ label: fr.project.tabs[TAB_PATHS[head]!] });
   else if (head === 'recherche') out.push({ label: fr.nav.search });
   else if (head === 'admin') out.push({ label: fr.nav.admin });
-  else if (head === 'board') out.push({ label: fr.project.tabs.planning, to: `/p/${project}/planification` }, { label: second ?? '', mono: true });
+  else if (head === 'board') out.push(second ? { label: fr.project.tabs.board, to: `/p/${project}/board` } : { label: fr.project.tabs.board }, ...(second ? [{ label: second, mono: true }] : []));
   else if (head === 't' && second) {
     const view = third ?? 'tableau';
     const item = new URLSearchParams(search).get('i');

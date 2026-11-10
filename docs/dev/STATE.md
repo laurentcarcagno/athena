@@ -15,7 +15,8 @@ Dernière mise à jour : 2026-11-10
   T-0111 faite (création contextuelle : « Créer » dans la barre haute et touche N, cible déduite de l'adresse, on reste sur la page, message « Ouvrir » ; e2e 36 sur 36).
   T-0112 faite (fiche : `ItemHeader`, informations clés dans l'en-tête, `?onglet=` restauré par Précédent ; migration 047, rôles `priority` et `version` ; e2e 37 sur 37).
   T-0113 faite (relations groupées dans l'onglet Liens, origine de la fiche : « Retour », précédent et suivant ; e2e 38 sur 38).
-- **Tâche en cours** : T-0114 (Board : carte enrichie, clic = panneau, filtre rapide, création par colonne). Migration réelle suivante : 048.
+  T-0114 faite (Board : carte enrichie, clic = panneau, filtres dans l'adresse, création par colonne, index `/p/:p/board`, section Board au rail ; e2e 40 sur 40).
+- **Tâche en cours** : T-0115 (Backlog, côté API). Migration réelle suivante : 048.
 - **Historique** : réécrit le 2026-11-10 à la demande de l'utilisateur (lot 8 en `@gmail.com`) ; sauvegarde `backup/avant-reecriture-email`, à supprimer quand l'utilisateur le décide.
 - **Reste à faire** (par priorité) :
   1. Test d'intrusion externe (à commander) ; déploiement de recette sur Kubernetes et mesures de charge concurrente.

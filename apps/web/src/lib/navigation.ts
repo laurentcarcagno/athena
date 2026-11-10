@@ -7,7 +7,7 @@
 /** Module de projet calculé par le serveur (`GET /v1/projects/:p/modules`). */
 export type ModuleId = 'overview' | 'trackers' | 'planning' | 'traceability' | 'conformity' | 'documents' | 'code' | 'activity' | 'members';
 
-export type ProjectSectionId = ModuleId | 'search' | 'admin';
+export type ProjectSectionId = ModuleId | 'board' | 'search' | 'admin';
 
 /** Qui voit la section : tout le monde, ou les seuls porteurs de l'un des rôles. */
 export type Access = { kind: 'everyone' } | { kind: 'roles'; roles: readonly string[] };
@@ -27,6 +27,7 @@ const MANAGERS: Access = { kind: 'roles', roles: ['athena-admin', 'athena-pm'] }
 /** Ordre fixe : une section masquée ne décale jamais les autres. */
 export const PROJECT_SECTIONS: readonly ProjectSection[] = [
   { id: 'overview', path: '', gated: true, access: EVERYONE },
+  { id: 'board', path: 'board', gated: false, access: EVERYONE }, // T-0114 : boards du projet et des trackers
   { id: 'trackers', path: 'trackers', gated: true, access: EVERYONE },
   // L'assurance qualité y trouve les approbations ; les autres membres n'y ont rien.
   { id: 'planning', path: 'planification', gated: true, access: { kind: 'roles', roles: ['athena-admin', 'athena-pm', 'athena-qa'] } },
@@ -73,7 +74,7 @@ export function placeOf(pathname: string): Place | null {
   if (head === 't' && second) return { project, section: 'trackers', tracker: second };
   if (head === 'trackers' && second && second !== 'new' && third === 'config') return { project, section: 'trackers', tracker: second };
   if (head === 'a' && second) return { project, section: 'trackers', tracker: CANONICAL_KEY.exec(second)?.[1] ?? null };
-  if (head === 'board') return { project, section: 'planning', tracker: null }; // les boards se créent dans Planification
+  if (head === 'board') return { project, section: 'board', tracker: null };
   const section = PROJECT_SECTIONS.find((s) => s.path === head)?.id ?? ALIASES[head] ?? null;
   return { project, section, tracker: null };
 }
