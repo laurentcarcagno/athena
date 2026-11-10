@@ -10,7 +10,7 @@ Critère : rail global ≤ 6 entrées ; redirections testées ; Vue d'ensemble d
 - Tests : API `dashboard.test.ts` ; web `global-nav.test.tsx`, `web3`, `web6`, `web9`, `web11`, `create-flow` ; e2e : les specs qui lisaient la liste des projets sur `/` vont à `/projets`. Web 415 environ, e2e 44/44.
 
 ## Pièges
-- La page d'accueil choisie est stockée dans le navigateur (pas de table) : à documenter dans `docs/user` (T-0124).
+- La page d'accueil, la langue et le thème sont enregistrés sur le compte (migration 052, `/v1/me/preferences`, ajoutée après la vérification du lot) ; copie locale pour l'affichage immédiat.
 - `web15`, `web16` instables sous charge (déjà signalé).
 
 ## Prompt de reprise

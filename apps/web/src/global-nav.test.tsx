@@ -8,13 +8,21 @@ import type { Session } from './api';
 
 /** T-0123 : navigation globale (ADR-0003 § 2) : `/` = Mon travail, `/projets`, `/profil`, `/notifications`, `/admin`, rail ≤ 6. */
 const calls: string[] = [];
+let stored: { home: string | null; locale: string | null; theme: string | null };
+let puts: unknown[];
 beforeEach(() => {
   calls.length = 0;
+  stored = { home: null, locale: null, theme: null };
+  puts = [];
   try { localStorage.clear(); } catch { /* sans stockage */ }
   vi.stubGlobal('fetch', vi.fn(async (input: string, init?: RequestInit) => {
     const method = init?.method ?? 'GET';
     calls.push(`${method} ${input}`);
     const ok = (body: unknown) => new Response(JSON.stringify(body), { status: 200 });
+    if (/\/v1\/me\/preferences$/.test(input)) {
+      if (method === 'PUT') { const patch = JSON.parse(String(init?.body)); puts.push(patch); stored = { ...stored, ...patch }; }
+      return ok(stored);
+    }
     if (/\/v1\/me\/pins$/.test(input)) return ok({ favorites: [], recents: [] });
     if (/\/v1\/me\/dashboard$/.test(input)) return ok({ widgets: [{ id: 'mentions', kind: 'mentions' }], isDefault: true });
     if (/\/v1\/me\/notification-prefs$/.test(input)) return ok({ transition: true, mention: true, suspect: true, comment: true, approval: true });
@@ -73,6 +81,21 @@ describe('Profil et notifications', () => {
     first.unmount();
     app('/');
     await waitFor(() => expect(where()).toBe('/projets'));
+  });
+  it('la page d’accueil est enregistrée sur le compte, pas seulement dans le navigateur', async () => {
+    app('/profil');
+    await userEvent.selectOptions(await screen.findByLabelText('Page d’accueil'), 'Projets');
+    await waitFor(() => expect(puts).toContainEqual({ home: 'projects' }));
+    await userEvent.selectOptions(screen.getByLabelText('Thème'), 'sombre');
+    await waitFor(() => expect(puts).toContainEqual({ theme: 'dark' }));
+  });
+  it('une préférence du compte s’applique sur un navigateur neuf (accueil, thème)', async () => {
+    stored = { home: 'projects', locale: null, theme: 'dark' };
+    localStorage.clear();
+    app('/');
+    await waitFor(() => expect(where()).toBe('/projets'));
+    expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
+    document.documentElement.removeAttribute('data-theme');
   });
   it('/notifications liste les notifications, marque lu, et mène aux réglages du Profil', async () => {
     app('/notifications');

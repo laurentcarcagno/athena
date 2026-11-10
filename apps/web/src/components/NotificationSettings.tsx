@@ -20,11 +20,12 @@ export function NotificationSettings({ id = 'notify-settings' }: { id?: string }
 
   useEffect(() => {
     if (prefs) return;
-    api<Record<NotifyEvent, boolean>>('GET', '/v1/me/notification-prefs').then(setPrefs).catch(fail);
+    // Une réponse tardive (double chargement en développement) n'écrase jamais un choix déjà fait : seule la première compte.
+    api<Record<NotifyEvent, boolean>>('GET', '/v1/me/notification-prefs').then((loaded) => setPrefs((current) => current ?? loaded)).catch(fail);
   }, [prefs, fail]);
   useEffect(() => {
     if (digest) return;
-    api<Digest>('GET', '/v1/me/notification-digest').then(setDigest).catch(fail);
+    api<Digest>('GET', '/v1/me/notification-digest').then((loaded) => setDigest((current) => current ?? loaded)).catch(fail);
   }, [digest, fail]);
 
   const setPref = async (event: NotifyEvent, enabled: boolean) => {

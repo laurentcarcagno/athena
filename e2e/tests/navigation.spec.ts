@@ -31,8 +31,10 @@ test('J / K parcourent la liste, Échap ferme le panneau, l’ancienne adresse d
   await expect(page.getByRole('link', { name: 'ARI-BUG-0001' })).toBeVisible();
   await page.keyboard.press('j');
   await expect(page).toHaveURL(/i=ARI-BUG-0001/);
+  const panel = page.getByRole('complementary', { name: 'Détail de l’item' });
+  await expect(panel).toBeVisible(); // le panneau est affiché avant d'être fermé : Échap n'est pas perdu pendant son ouverture
   await page.keyboard.press('Escape');
-  await expect(page.getByRole('complementary', { name: 'Détail de l’item' })).toHaveCount(0);
+  await expect(panel).toHaveCount(0);
   await page.goto('/p/ARI?q=status%3Dopen');
   await expect(page).toHaveURL(/\/p\/ARI\/recherche\?q=/);
 });

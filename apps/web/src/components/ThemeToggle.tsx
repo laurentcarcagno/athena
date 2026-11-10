@@ -1,4 +1,5 @@
 import { fr } from '../i18n';
+import { savePreference } from '../lib/preferences';
 import { nextTheme, setTheme, useTheme, type ThemeChoice } from '../lib/theme';
 
 const ICONS: Record<ThemeChoice, JSX.Element> = {
@@ -13,7 +14,7 @@ export function ThemeToggle() {
   const choice = useTheme();
   const label = fr.theme.label(fr.theme.names[choice] ?? choice);
   return (
-    <button type="button" className="ath-iconbtn" onClick={() => setTheme(nextTheme(choice))} aria-label={label} title={label} data-theme-choice={choice}>
+    <button type="button" className="ath-iconbtn" onClick={() => { const next = nextTheme(choice); setTheme(next); savePreference({ theme: next }); }} aria-label={label} title={label} data-theme-choice={choice}>
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="square" aria-hidden="true">{ICONS[choice]}</svg>
     </button>
   );
