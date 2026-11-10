@@ -1,8 +1,11 @@
-import { Body, Controller, Delete, Get, HttpCode, Inject, Put, Req } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Inject, Put, Query, Req } from '@nestjs/common';
 import { Roles, type AuthedRequest } from '../auth/auth.guard';
 import { BodySchema } from '../openapi/body-schema';
-import { DashboardService, LayoutInput } from './dashboard.service';
+import { DashboardService, LayoutInput, ScopeSchema } from './dashboard.service';
 import { OrgResolver, parseBody } from './http';
+
+/** `?project=ARI` : la Vue d'ensemble de ce projet ; sans paramètre, l'accueil personnel. */
+const scopeOf = (project: string | undefined): string => parseBody(ScopeSchema, project ?? '');
 
 /** Disposition du tableau de bord personnel : donnée personnelle, accessible à toute personne connectée (y compris l'assurance qualité). */
 @Controller('v1/me')
@@ -14,24 +17,24 @@ export class DashboardController {
 
   @Roles('athena-user', 'athena-admin', 'athena-pm', 'athena-qa')
   @Get('dashboard')
-  async get(@Req() request: AuthedRequest) {
+  async get(@Req() request: AuthedRequest, @Query('project') project?: string) {
     const { organizationId, actor } = await this.orgs.resolve(request.principal!);
-    return this.dashboard.get(organizationId, actor);
+    return this.dashboard.get(organizationId, actor, scopeOf(project));
   }
 
   @Roles('athena-user', 'athena-admin', 'athena-pm', 'athena-qa')
   @Put('dashboard')
   @BodySchema(LayoutInput)
-  async put(@Req() request: AuthedRequest, @Body() body: unknown) {
+  async put(@Req() request: AuthedRequest, @Body() body: unknown, @Query('project') project?: string) {
     const { organizationId, actor } = await this.orgs.resolve(request.principal!);
-    return this.dashboard.put(organizationId, parseBody(LayoutInput, body), actor);
+    return this.dashboard.put(organizationId, parseBody(LayoutInput, body), actor, scopeOf(project));
   }
 
   @Roles('athena-user', 'athena-admin', 'athena-pm', 'athena-qa')
   @HttpCode(204)
   @Delete('dashboard')
-  async reset(@Req() request: AuthedRequest) {
+  async reset(@Req() request: AuthedRequest, @Query('project') project?: string) {
     const { organizationId, actor } = await this.orgs.resolve(request.principal!);
-    await this.dashboard.reset(organizationId, actor);
+    await this.dashboard.reset(organizationId, actor, scopeOf(project));
   }
 }

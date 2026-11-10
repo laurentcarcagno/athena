@@ -47,6 +47,19 @@ suite('tableau de bord personnel (intégration)', () => {
     expect((await dash.get(org, alice)).isDefault).toBe(true);
   });
 
+  it('donne à chaque projet sa propre Vue d’ensemble, indépendante de l’accueil', async () => {
+    const d = await dash.get(org, alice, 'NOVA');
+    expect(d.isDefault).toBe(true);
+    expect(d.widgets.map((w) => w.id)).toEqual(['assigned', 'due', 'trackers', 'mentions']);
+    expect(d.widgets[0]!.projects).toEqual(['NOVA']);
+    await dash.put(org, { widgets: [{ id: 'trackers', kind: 'trackers', projects: ['NOVA'] }] }, alice, 'NOVA');
+    expect((await dash.get(org, alice, 'NOVA')).widgets.map((w) => w.id)).toEqual(['trackers']);
+    expect((await dash.get(org, alice)).isDefault).toBe(true); // l'accueil n'est pas touché
+    expect((await dash.get(org, alice, 'ARI')).isDefault).toBe(true);
+    await dash.reset(org, alice, 'NOVA');
+    expect((await dash.get(org, alice, 'NOVA')).isDefault).toBe(true);
+  });
+
   it('refuse un identifiant en double, une requête invalide et une requête sur un widget qui n’en a pas', async () => {
     expect(await code(dash.put(org, { widgets: [{ id: 'a', kind: 'mentions' }, { id: 'a', kind: 'recents' }] }, alice))).toMatch(/^validation.*double/);
     expect(await code(dash.put(org, { widgets: [{ id: 'a', kind: 'search', query: 'status =' }] }, alice))).toMatch(/^validation/);
