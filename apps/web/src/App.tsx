@@ -1,9 +1,10 @@
 import { ProtectionBanner } from './components/ProtectionBanner';
 import { setProtectionLevel } from './lib/protection';
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { BrowserRouter, Link, Navigate, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Btn, EmptyState, PageHeader, Sidebar, ToastProvider } from '@athena/ui';
-import { loadSession, loginUrl, logout, type Session } from './api';
+import { loadSession, loginUrl, logout, RateLimitedError, type Session } from './api';
+import { SessionBusy } from './components/SessionBusy';
 import { Breadcrumb } from './components/Breadcrumb';
 import { CommandPalette } from './components/CommandPalette';
 import { CreateButton, CreateProvider } from './components/CreateArtifact';
@@ -242,14 +243,24 @@ export function AuthenticatedApp({ session }: { session: Session }) {
 export function App() {
   const locale = useLocale(); // redessine l'arbre entier au changement de langue
   const [session, setSession] = useState<Session | null>(null);
-  useEffect(() => {
-    document.documentElement.lang = getLocale();
+  const [busy, setBusy] = useState<number | null>(null);
+  const start = useCallback(() => {
+    setBusy(null);
     loadSession().then((s) => {
       if (!s.authenticated) window.location.assign(loginUrl(window.location.pathname + window.location.search));
       else setSession(s);
       setProtectionLevel(s.protectionLevel);
-    }).catch(() => setSession({ authenticated: false }));
+    }).catch((error: unknown) => {
+      // Serveur saturé : la session est intacte, on attend au lieu de renvoyer vers la connexion (T-0142).
+      if (error instanceof RateLimitedError) setBusy(error.retryAfter);
+      else setSession({ authenticated: false });
+    });
   }, []);
+  useEffect(() => {
+    document.documentElement.lang = getLocale();
+    start();
+  }, [start]);
+  if (busy !== null) return <SessionBusy seconds={busy} onRetry={start} />;
   if (!session) return <div className="ath-root ath-page__main" role="status">{fr.loading}</div>;
   setProtectionLevel(session.protectionLevel);
   if (!session.authenticated) return <div className="ath-root"><ProtectionBanner level={session.protectionLevel} /><div className="ath-page__main"><EmptyState eyebrow={fr.errors.unavailableEyebrow} title={fr.errors.unavailable} /></div></div>;

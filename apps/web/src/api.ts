@@ -16,6 +16,15 @@ export class UnauthorizedError extends ApiError {
   }
 }
 
+/** Trop de requêtes (429) : jamais une déconnexion ; `retryAfter` en secondes (ADR-0005, T-0142). */
+export class RateLimitedError extends ApiError {
+  constructor(message: string, readonly retryAfter: number) {
+    super(message, 429, 'rate_limited', []);
+  }
+}
+
+const retryAfterOf = (response: Response) => Math.min(120, Math.max(1, Number(response.headers.get('Retry-After')) || 20));
+
 export interface Session {
   authenticated: boolean;
   user?: { id?: string; username: string; name: string; email: string | null; roles: string[]; groups: string[] };
@@ -28,6 +37,7 @@ let csrf: string | null = null;
 
 export async function loadSession(): Promise<Session> {
   const response = await fetch('/auth/session', { credentials: 'include' });
+  if (response.status === 429) throw new RateLimitedError('Trop de requêtes.', retryAfterOf(response));
   const session = (await response.json()) as Session;
   csrf = session.csrf ?? null;
   return session;
@@ -57,6 +67,7 @@ async function send<T>(method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE', path
   if (method !== 'GET' && csrf) headers['X-CSRF-Token'] = csrf;
   const response = await fetch(path, { method, headers, credentials: 'include', ...(body !== undefined ? { body: JSON.stringify(body) } : {}) });
   if (response.status === 401) throw new UnauthorizedError();
+  if (response.status === 429) throw new RateLimitedError(((await response.json().catch(() => ({}))) as { message?: string }).message ?? 'Trop de requêtes.', retryAfterOf(response));
   if (response.status === 204) return undefined as T;
   const payload = (await response.json().catch(() => ({}))) as { error?: string; message?: string; details?: string[] };
   if (!response.ok) throw new ApiError(payload.message ?? 'Erreur.', response.status, payload.error ?? 'error', payload.details ?? []);

@@ -24,6 +24,7 @@ describe('durcissement HTTP', () => {
     fastify.get('/healthz', async () => ({ ok: true }));
     fastify.get('/v1/x', async () => ({ ok: true }));
     fastify.post('/auth/logout', async () => ({ ok: true }));
+    fastify.get('/auth/session', async () => ({ authenticated: true }));
     fastify.post('/hooks/in/gitlab/o/P', async () => ({ ok: true }));
     await fastify.ready();
     return fastify;
@@ -67,6 +68,12 @@ describe('durcissement HTTP', () => {
     const other = await app();
     expect(await Promise.all([1, 2, 3].map(() => other.inject({ method: 'POST', url: '/hooks/in/gitlab/o/P' }).then((r) => r.statusCode)))).toEqual([200, 200, 429]);
     expect((await codes('GET', '/healthz', 20)).every((c) => c === 200)).toBe(true);
+    // La session suit la limite générale (5 ici), pas celle des connexions (2) : T-0142.
+    const session = await app();
+    const reads: number[] = [];
+    for (let i = 0; i < 6; i++) reads.push((await session.inject({ method: 'GET', url: '/auth/session' })).statusCode);
+    expect(reads).toEqual([200, 200, 200, 200, 200, 429]);
+    expect((await session.inject({ method: 'POST', url: '/auth/logout' })).statusCode).toBe(200); // le seau sensible est intact
     const limited = await fastify.inject({ method: 'GET', url: '/v1/x' });
     expect(limited.statusCode).toBe(429);
     expect(limited.headers['retry-after']).toBeDefined();

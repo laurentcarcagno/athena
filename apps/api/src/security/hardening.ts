@@ -44,6 +44,9 @@ interface FastifyLike {
 
 const bucketOf = (url: string): 'sensitive' | 'api' | 'none' => {
   if (url === '/healthz') return 'none';
+  // La lecture de la session accompagne chaque page : elle suit la limite générale, sinon une équipe derrière un même proxy
+  // épuise le seau « sensible » et chacun se croit déconnecté (ADR-0005, T-0142).
+  if (url === '/auth/session') return 'api';
   return url.startsWith('/auth') || url.startsWith('/hooks') ? 'sensitive' : 'api';
 };
 

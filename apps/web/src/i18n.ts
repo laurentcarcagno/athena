@@ -293,6 +293,7 @@ const frDict = {
   errors: {
     generic: 'Une erreur est survenue. Réessayez.', notFoundTitle: 'Page introuvable', notFoundEyebrow: 'Erreur 404', notFound: 'Cette adresse ne correspond à aucune page.',
     unavailableEyebrow: 'Connexion', unavailable: 'Authentification indisponible.',
+    busyTitle: 'Athena est très sollicité.', busyBody: (s: number) => `Votre session est intacte ; nouvel essai automatique dans ${s} s.`, retryNow: 'Réessayer maintenant',
   },
   upgrade: {
     title: (from: string, to: string) => `Montée de version du gabarit : ${from} → ${to}`,
@@ -690,6 +691,7 @@ const enDict: Dictionary = {
   errors: {
     generic: 'An error occurred. Try again.', notFoundTitle: 'Page not found', notFoundEyebrow: 'Error 404', notFound: 'This address does not match any page.',
     unavailableEyebrow: 'Sign in', unavailable: 'Authentication unavailable.',
+    busyTitle: 'Athena is very busy.', busyBody: (s: number) => `Your session is intact; retrying automatically in ${s} s.`, retryNow: 'Retry now',
   },
   upgrade: {
     title: (from: string, to: string) => `Template upgrade: ${from} → ${to}`,
