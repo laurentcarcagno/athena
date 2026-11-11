@@ -64,10 +64,10 @@ async function send<T>(method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE', path
 }
 
 /** Envoie un fichier brut (corps binaire) avec le jeton CSRF. */
-export async function upload<T>(path: string, file: File): Promise<T> {
+export async function upload<T>(path: string, file: File, method: 'POST' | 'PUT' = 'POST'): Promise<T> {
   const headers: Record<string, string> = { Accept: 'application/json', 'Content-Type': 'application/octet-stream', 'X-File-Type': file.type };
   if (csrf) headers['X-CSRF-Token'] = csrf;
-  const response = await fetch(`${path}?name=${encodeURIComponent(file.name)}`, { method: 'POST', headers, credentials: 'include', body: file });
+  const response = await fetch(`${path}?name=${encodeURIComponent(file.name)}`, { method, headers, credentials: 'include', body: file });
   if (response.status === 401) throw new UnauthorizedError();
   const payload = (await response.json().catch(() => ({}))) as { error?: string; message?: string; details?: string[] };
   if (!response.ok) throw new ApiError(payload.message ?? 'Erreur.', response.status, payload.error ?? 'error', payload.details ?? []);

@@ -13,6 +13,8 @@ import { ThemeToggle } from './components/ThemeToggle';
 import { useRailSections, useRecordVisits } from './components/Rail';
 import { PinsProvider } from './lib/pins';
 import { PreferencesProvider, savePreference } from './lib/preferences';
+import { loadBrand, logoUrl, markUrl, useBrand, useFavicon } from './lib/brand';
+import { useThemeFamily } from './lib/theme';
 import { fr, getLocale, setLocale, useLocale } from './i18n';
 import { ArtifactPage } from './pages/ArtifactPage';
 import { BoardIndexPage, BoardPage } from './pages/BoardPage';
@@ -89,6 +91,15 @@ function Shell({ session, children }: { session: Session; children: ReactNode })
   }, [tablet]);
   const collapsed = choice ?? narrow;
   const toggleRail = () => { const next = !collapsed; setChoice(next); try { localStorage.setItem('athena.rail.collapsed', next ? '1' : '0'); } catch { /* préférence facultative */ } };
+  // Marque (T-0137) : icône du thème actif ou de l'organisation, dans le rail et en favicon.
+  const family = useThemeFamily();
+  useBrand();
+  useEffect(() => { void loadBrand(); }, []);
+  useFavicon(family);
+  const mark = markUrl(family);
+  const logo = logoUrl(family);
+  // Logo horizontal (rail déplié) s'il existe, sinon icône et nom ; rail replié : l'icône seule.
+  const brand = <>{mark && <img className="ath-sidebar__mark" src={mark} alt="" />}{logo ? <img className="ath-sidebar__logo" src={logo} alt="ATHENA" /> : <span className="ath-sidebar__name">ATHENA</span>}</>;
   const out = async () => { window.location.assign(await logout()); };
   const [menuOpen, setMenuOpen] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
@@ -120,7 +131,7 @@ function Shell({ session, children }: { session: Session; children: ReactNode })
     <div className="ath-page">
       <a className="ath-skip" href="#contenu" onClick={(e) => { e.preventDefault(); document.getElementById('contenu')?.focus(); }}>{fr.nav.skip}</a>
       {menuOpen && <div className="ath-drawer-backdrop" data-testid="drawer-backdrop" onClick={closeMenu} />}
-      <Sidebar id="rail" open={menuOpen} collapsed={collapsed} sections={sections} current={current} onNavigate={(id) => { setMenuOpen(false); navigate(id); }} user={{ name: session.user!.name, role: admin ? 'Administrateur' : manager ? 'Chef de projet' : 'Utilisateur', roleKind: admin ? 'admin' : manager ? 'manager' : 'user' }}
+      <Sidebar id="rail" open={menuOpen} collapsed={collapsed} brand={brand} sections={sections} current={current} onNavigate={(id) => { setMenuOpen(false); navigate(id); }} user={{ name: session.user!.name, role: admin ? 'Administrateur' : manager ? 'Chef de projet' : 'Utilisateur', roleKind: admin ? 'admin' : manager ? 'manager' : 'user' }}
         userActions={<>
           <button type="button" className="ath-iconbtn ath-iconbtn--inverse ath-collapse-btn" onClick={toggleRail} aria-expanded={!collapsed} aria-label={collapsed ? fr.rail.expand : fr.rail.collapse} title={collapsed ? fr.rail.expand : fr.rail.collapse}>{collapsed ? '»' : '«'}</button>
           <ThemeToggle />

@@ -90,3 +90,37 @@ test('apparence : l’administration restreint les thèmes et fixe le défaut ; 
   await page.getByRole('button', { name: 'Enregistrer l’apparence' }).click();
   await expect(page.getByText('Apparence enregistrée.')).toBeVisible();
 });
+
+test('icône de marque : un SVG piégé est servi nettoyé, typé et isolé ; affiché par <img> dans le rail ; retiré après confirmation (T-0137)', async ({ page }) => {
+  await login(page);
+  await page.goto('/admin');
+  await page.getByRole('tab', { name: 'Apparence' }).click();
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" onload="alert(1)"><script>alert(2)</script><path d="M2 2h20v20H2z" fill="#E0B000"/></svg>';
+  // Script interdit : refus explicite.
+  await page.getByLabel('Téléverser l’icône : Tous les thèmes').setInputFiles({ name: 'piege.svg', mimeType: 'image/svg+xml', buffer: Buffer.from(svg) });
+  await expect(page.getByText(/élément <script> interdit/)).toBeVisible();
+  // Gestionnaire d'événement : retiré, l'image est acceptée.
+  const clean = svg.replace('<script>alert(2)</script>', '');
+  await page.getByLabel('Téléverser l’icône : Tous les thèmes').setInputFiles({ name: 'marque.svg', mimeType: 'image/svg+xml', buffer: Buffer.from(clean) });
+  await expect(page.getByText('Icône enregistrée.')).toBeVisible();
+  const mark = page.locator('#rail .ath-sidebar__mark');
+  await expect(mark).toHaveAttribute('src', /\/v1\/brand\/hemeria\/mark\?v=/);
+  const response = await page.request.get((await mark.getAttribute('src'))!);
+  expect(response.headers()['content-type']).toBe('image/svg+xml');
+  expect(response.headers()['content-security-policy']).toContain('sandbox');
+  expect(response.headers()['x-content-type-options']).toBe('nosniff');
+  expect(await response.text()).not.toMatch(/onload|script/i);
+  await expect(page.locator('link[rel="icon"]')).toHaveAttribute('href', /\/v1\/brand\/hemeria\/mark/);
+  // Retrait, après confirmation : l'icône par défaut du thème revient.
+  await page.getByRole('button', { name: 'Retirer l’icône : Tous les thèmes' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Supprimer' }).click();
+  await expect(page.getByText('Icône retirée.')).toBeVisible();
+  await expect(mark).toHaveAttribute('src', /^data:image\/svg\+xml/);
+  // Logo horizontal (PNG) : remplace icône et nom dans le rail déplié ; retiré ensuite.
+  const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64');
+  await page.getByLabel('Téléverser le logo : Tous les thèmes').setInputFiles({ name: 'logo.png', mimeType: 'image/png', buffer: png });
+  await expect(page.locator('#rail .ath-sidebar__logo')).toHaveAttribute('src', /\/v1\/brand\/hemeria\/logo\?v=/);
+  await page.getByRole('button', { name: 'Retirer le logo : Tous les thèmes' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Supprimer' }).click();
+  await expect(page.locator('#rail .ath-sidebar__logo')).toHaveCount(0);
+});

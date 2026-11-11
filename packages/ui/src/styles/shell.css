@@ -22,7 +22,7 @@
 .ath-nav { display: flex; flex-direction: column; flex: 1; min-height: 0; overflow-y: auto; }
 .ath-nav-item { display: flex; align-items: center; gap: var(--ath-space-sm); padding: var(--ath-space-sm) var(--ath-space-base); border-left: var(--ath-border-width-accent) solid transparent; color: var(--ath-inverse-text-nav); text-decoration: none; font-weight: var(--ath-font-weight-semibold); font-size: var(--ath-font-size-body); background: transparent; border-top: 0; border-right: 0; border-bottom: 0; cursor: pointer; font-family: inherit; text-align: left; transition: background var(--ath-motion-default); }
 /* Rail replié (T-0136) : icônes seules, libellés en info-bulle et nom accessible ; marque, rôle, titres et sous-entrées masqués. */
-.ath-sidebar--collapsed .ath-sidebar__brand, .ath-sidebar--collapsed .ath-avatar, .ath-sidebar--collapsed .ath-sidebar__role, .ath-sidebar--collapsed .ath-sidebar__actions > :not(.ath-collapse-btn), .ath-sidebar--collapsed .ath-nav__title, .ath-sidebar--collapsed .ath-nav-item[data-depth="1"], .ath-sidebar--collapsed .ath-nav-item[data-depth="2"], .ath-sidebar--collapsed .ath-nav-item:not(.ath-nav-item--icon):not(.ath-flyout__toggle), .ath-sidebar--collapsed .ath-flyout__chevron, .ath-sidebar--collapsed .ath-nav__move { display: none; }
+.ath-sidebar--collapsed .ath-sidebar__name, .ath-sidebar--collapsed .ath-avatar, .ath-sidebar--collapsed .ath-sidebar__role, .ath-sidebar--collapsed .ath-sidebar__actions > :not(.ath-collapse-btn), .ath-sidebar--collapsed .ath-nav__title, .ath-sidebar--collapsed .ath-nav-item[data-depth="1"], .ath-sidebar--collapsed .ath-nav-item[data-depth="2"], .ath-sidebar--collapsed .ath-nav-item:not(.ath-nav-item--icon):not(.ath-flyout__toggle), .ath-sidebar--collapsed .ath-flyout__chevron, .ath-sidebar--collapsed .ath-nav__move { display: none; }
 .ath-sidebar--collapsed .ath-nav-item__label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
 .ath-sidebar--collapsed .ath-nav-item { justify-content: center; padding-inline: 0; }
 .ath-sidebar--collapsed .ath-flyout__panel { left: var(--ath-size-sidebar-collapsed); }
@@ -98,3 +98,11 @@
 .ath-nav-item__icon { display: inline-flex; flex: none; align-items: center; justify-content: center; width: var(--ath-size-toggle); height: var(--ath-size-toggle); }
 .ath-nav-item__icon svg { display: block; }
 .ath-flyout__toggle .ath-nav-item__label { flex: 1; text-align: left; }
+/* Marque (T-0137) : icône du thème (ou de l'organisation) et nom ; rail replié : l'icône seule. */
+.ath-sidebar__brand { display: flex; align-items: center; gap: var(--ath-space-sm); }
+.ath-sidebar__mark { display: block; flex: none; width: var(--ath-size-icon-button); height: var(--ath-size-icon-button); object-fit: contain; }
+.ath-sidebar--collapsed .ath-sidebar__brand { justify-content: center; padding-inline: 0; }
+.ath-sidebar__logo { display: block; height: var(--ath-size-icon-button); max-width: 168px; object-fit: contain; }
+.ath-sidebar__brand:has(.ath-sidebar__logo) .ath-sidebar__mark { display: none; }
+.ath-sidebar--collapsed .ath-sidebar__logo { display: none; }
+.ath-sidebar--collapsed .ath-sidebar__brand .ath-sidebar__mark { display: block; }

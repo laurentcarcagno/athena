@@ -1,6 +1,8 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Btn, Checkbox, Radio, Select, THEME_CATALOG, useToast, type ThemeEntry } from '@athena/ui';
-import { api } from '../api';
+import { api, upload } from '../api';
+import { loadBrand, logoUrl, markUrl, useBrand } from '../lib/brand';
+import { useConfirm } from './ConfirmDialog';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
 import { savePreference } from '../lib/preferences';
@@ -91,6 +93,58 @@ export function AppearanceTab() {
         ))}
       </fieldset>
       <div><Btn type="submit">{fr.appearance.save}</Btn></div>
+      <BrandSection kind="mark" />
+      <BrandSection kind="logo" />
     </form>
+  );
+}
+
+/** Icône de marque par thème ou pour tous les thèmes (T-0137) : aperçu, téléversement, retrait. */
+function BrandSection({ kind }: { kind: 'mark' | 'logo' }) {
+  const fail = useFailure();
+  const toast = useToast();
+  const entries = useBrand();
+  const confirm = useConfirm();
+  const scopes = [{ name: '*', label: fr.appearance.allThemes }, ...THEME_CATALOG.map((t) => ({ name: t.name, label: t.label }))];
+  const send = async (scope: string, file: File | undefined) => {
+    if (!file) return;
+    try {
+      await upload(`/v1/admin/brand/${encodeURIComponent(scope)}/${kind}`, file, 'PUT');
+      await loadBrand();
+      toast('success', fr.appearance.uploaded);
+    } catch (error) { fail(error); }
+  };
+  const remove = async (scope: string, label: string) => {
+    if (!(await confirm.ask({ title: kind === 'mark' ? fr.appearance.removeFor(label) : fr.appearance.removeLogoFor(label), body: fr.appearance.removeBody, confirm: fr.confirm.delete }))) return;
+    try {
+      await api('DELETE', `/v1/admin/brand/${encodeURIComponent(scope)}/${kind}`);
+      await loadBrand();
+      toast('success', fr.appearance.removed);
+    } catch (error) { fail(error); }
+  };
+  return (
+    <section className="ath-stack" aria-labelledby={`brand-${kind}`}>
+      <h3 id={`brand-${kind}`} className="ath-subsection-title">{kind === 'mark' ? fr.appearance.brandTitle : fr.appearance.logoTitle}</h3>
+      <p>{kind === 'mark' ? fr.appearance.brandHelp : fr.appearance.logoHelp}</p>
+      <ul className="ath-stack ath-brand-list">
+        {scopes.map((s) => {
+          const entry = entries.find((e) => e.kind === kind && e.theme === s.name);
+          const own = Boolean(entry);
+          const src = s.name === '*' ? (entry ? `/v1/brand/*/${kind}?v=${encodeURIComponent(entry.updatedAt)}` : null) : kind === 'mark' ? markUrl(s.name) : logoUrl(s.name);
+          return (
+            <li key={s.name} className="ath-row">
+              <span className="ath-brand-list__preview">{src ? <img className="ath-sidebar__mark" src={src} alt="" /> : null}</span>
+              <span className="ath-brand-list__label">{s.label}{!own && s.name !== '*' && kind === 'mark' ? ` (${fr.appearance.themeDefault})` : ''}</span>
+              <label className="ath-btn ath-btn--ghost ath-btn--sm">
+                {kind === 'mark' ? fr.appearance.uploadFor(s.label) : fr.appearance.uploadLogoFor(s.label)}
+                <input type="file" className="ath-visually-hidden" accept="image/png,image/webp,image/svg+xml" onChange={(e) => { void send(s.name, e.target.files?.[0]); e.target.value = ''; }} />
+              </label>
+              {own && <Btn variant="danger" size="sm" onClick={() => void remove(s.name, s.label)}>{kind === 'mark' ? fr.appearance.removeFor(s.label) : fr.appearance.removeLogoFor(s.label)}</Btn>}
+            </li>
+          );
+        })}
+      </ul>
+      {confirm.dialog}
+    </section>
   );
 }

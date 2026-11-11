@@ -496,13 +496,13 @@ function NavFlyout({ group, current, onNavigate }: { group: NavSection; current:
     </div>
   );
 }
-export function Sidebar({ id, items, sections, current, onNavigate, user, userActions, collapsed = false, open = false }: { id?: string; items?: NavItem[]; sections?: NavSection[]; current: string; onNavigate?: (id: string) => void; user?: { name: string; role: string; roleKind?: 'admin' | 'manager' | 'user' }; userActions?: ReactNode; collapsed?: boolean; open?: boolean }) {
+export function Sidebar({ id, items, sections, current, onNavigate, user, userActions, collapsed = false, open = false, brand }: { id?: string; items?: NavItem[]; sections?: NavSection[]; current: string; onNavigate?: (id: string) => void; user?: { name: string; role: string; roleKind?: 'admin' | 'manager' | 'user' }; userActions?: ReactNode; collapsed?: boolean; open?: boolean; brand?: ReactNode }) {
   const groups: NavSection[] = sections ?? [{ id: 'main', items: items ?? [] }];
   const initials = user?.name.split(/\s+/).map((p) => p[0]).slice(0, 2).join('').toUpperCase() ?? '';
   return (
     <aside id={id} className={cx('ath-sidebar', collapsed && 'ath-sidebar--collapsed', open && 'ath-sidebar--open')}>
       <div className="ath-sidebar__brand">
-        ATHENA
+        {brand ?? 'ATHENA'}
       </div>
       <nav className="ath-nav" aria-label="Navigation principale">
         {groups.map((group) => group.flyout ? <NavFlyout key={group.id} group={group} current={current} onNavigate={onNavigate} /> : (

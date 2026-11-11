@@ -67,8 +67,11 @@ export function applyHardening(fastify: FastifyLike, options: HardeningOptions, 
     reply.header('X-Content-Type-Options', 'nosniff');
     reply.header('X-Frame-Options', 'DENY');
     reply.header('Referrer-Policy', 'no-referrer');
-    reply.header('Cache-Control', 'no-store');
-    reply.header('Content-Security-Policy', "default-src 'none'; frame-ancestors 'none'");
+    // Une route peut poser sa propre politique (fichier servi en bac à sable, image mise en cache) : elle est gardée et
+    // complétée de frame-ancestors ; sinon la politique par défaut s'applique.
+    if (!reply.getHeader('Cache-Control')) reply.header('Cache-Control', 'no-store');
+    const own = reply.getHeader('Content-Security-Policy');
+    reply.header('Content-Security-Policy', own ? `${String(own)}; frame-ancestors 'none'` : "default-src 'none'; frame-ancestors 'none'");
     reply.header('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
     reply.header('Cross-Origin-Resource-Policy', 'same-origin');
     if (options.hsts) reply.header('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');

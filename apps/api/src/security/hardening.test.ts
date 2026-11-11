@@ -40,6 +40,20 @@ describe('durcissement HTTP', () => {
     expect(noHsts.headers['strict-transport-security']).toBeUndefined();
   });
 
+  it('garde la politique propre à une route (fichier en bac à sable, image en cache) et la complète de frame-ancestors (T-0137)', async () => {
+    const fastify = Fastify();
+    applyHardening(fastify, { apiPerMinute: 50, sensitivePerMinute: 5, hsts: false });
+    fastify.get('/v1/fichier', async (_req, reply) => {
+      void reply.header('content-security-policy', "sandbox; default-src 'none'");
+      void reply.header('cache-control', 'private, max-age=300');
+      return 'x';
+    });
+    await fastify.ready();
+    const response = await fastify.inject({ method: 'GET', url: '/v1/fichier' });
+    expect(response.headers['content-security-policy']).toBe("sandbox; default-src 'none'; frame-ancestors 'none'");
+    expect(response.headers['cache-control']).toBe('private, max-age=300');
+  });
+
   it('limite l’API, plus strictement les routes d’authentification et de webhooks, jamais la sonde de santé', async () => {
     const fastify = await app();
     const codes = async (method: 'GET' | 'POST', url: string, n: number) => {

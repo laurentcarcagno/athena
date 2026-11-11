@@ -36,6 +36,8 @@ import { FieldTypeRegistry } from './field-types';
 import { SearchService } from '../atql/search.service';
 import { DashboardController } from './dashboard.controller';
 import { AppearanceController } from './appearance.controller';
+import { BrandController } from './brand.controller';
+import { BrandService } from './brand.service';
 import { AppearanceService } from './appearance.service';
 import { PreferenceController } from './preference.controller';
 import { PreferenceService } from './preference.service';
@@ -87,7 +89,7 @@ import { TrackerService } from './tracker.service';
 export { PG_POOL } from './core.tokens';
 
 @Module({
-  controllers: [CoreController, AttachmentController, SavedFilterController, SearchController, IntegrationsController, AgileController, MemberController, TemplateController, ProjectTemplateController, TrackerTemplateController, TrackerTypeController, ProjectOverviewController, PinController, LinkTypeController, TreeController, MatrixController, CoverageController, NormativeController, AccessController, ApprovalController, ItemApprovalController, DocController, NotifyController, DashboardController, PreferenceController, AppearanceController],
+  controllers: [CoreController, AttachmentController, SavedFilterController, SearchController, IntegrationsController, AgileController, MemberController, TemplateController, ProjectTemplateController, TrackerTemplateController, TrackerTypeController, ProjectOverviewController, PinController, LinkTypeController, TreeController, MatrixController, CoverageController, NormativeController, AccessController, ApprovalController, ItemApprovalController, DocController, NotifyController, DashboardController, PreferenceController, AppearanceController, BrandController],
   providers: [
     { provide: PG_POOL, useFactory: () => new Pool({ connectionString: loadConfig().DATABASE_URL, max: 10 }) },
     { provide: FieldTypeRegistry, useValue: new FieldTypeRegistry() },
@@ -117,6 +119,17 @@ export { PG_POOL } from './core.tokens';
     { provide: SearchService, useFactory: (db: Db) => new SearchService(db), inject: [Db] },
     { provide: PreferenceService, useFactory: (db: Db) => new PreferenceService(db), inject: [Db] },
     { provide: AppearanceService, useFactory: (db: Db) => new AppearanceService(db), inject: [Db] },
+    {
+      provide: BrandService,
+      useFactory: (db: Db): BrandService => {
+        const c = loadConfig();
+        if (!c.S3_ENDPOINT || !c.S3_ACCESS_KEY || !c.S3_SECRET_KEY) {
+          return new BrandService(db, { put: async () => { throw new Error('Stockage S3 non configuré'); }, get: async () => null, delete: async () => undefined });
+        }
+        return new BrandService(db, new S3Client({ endpoint: c.S3_ENDPOINT, region: c.S3_REGION, accessKey: c.S3_ACCESS_KEY, secretKey: c.S3_SECRET_KEY, bucket: c.S3_BUCKET }));
+      },
+      inject: [Db],
+    },
     { provide: DashboardService, useFactory: (db: Db) => new DashboardService(db), inject: [Db] },
     { provide: SavedSearchService, useFactory: (db: Db) => new SavedSearchService(db), inject: [Db] },
     {

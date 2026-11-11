@@ -26,7 +26,7 @@ Dernière mise à jour : 2026-11-10
   T-0122 faite (migration 050 `dashboard_layout`, `/v1/me/dashboard`, widgets sur recherches enregistrées, Personnaliser dans Mon travail ; e2e 44 sur 44).
   T-0123 faite (`/` = Mon travail, `/projets`, `/profil`, `/notifications`, `/admin`, rail global ≤ 6, Vue d’ensemble sur le moteur ; migration 051 ; e2e 44 sur 44).
   T-0124 faite (glossaire Ticket, Version, Gabarit ; test de vocabulaire ; messages de l’API ; `docs/user`).
-  T-0125 faite (`docs/dev/tasks/LOT9-VERIFICATION.md` ; e2e 44 sur 44). **Lot 9 terminé, arrêt pour compte rendu** ; quatre écarts à décider avant tout nouveau lot (voir la vérification). Migration réelle suivante : 056.
+  T-0125 faite (`docs/dev/tasks/LOT9-VERIFICATION.md` ; e2e 44 sur 44). **Lot 9 terminé, arrêt pour compte rendu** ; quatre écarts à décider avant tout nouveau lot (voir la vérification). Migration réelle suivante : 057.
 - **Lot 10, thèmes et refonte visuelle (2026-11-10)** : ouvert par l'utilisateur après l'audit visuel et technique (écart 4 du lot 9 accepté comme reporté). Décisions : `docs/dev/DECISIONS/ADR-0004-themes.md` (Hemeria devient un thème ; moteur `@nuance/theming` et thèmes `@nuance/themes` découplés d'Athena ; casse de phrase ; densités Normal et Compact ; teintes nommées des statuts ; icône de marque par thème). Plan : `docs/dev/tasks/LOT10-PLAN.md` (T-0126 à T-0141).
   T-0126 faite (ADR-0004, plan, D-019 dans la charte 3.2.0, `CLAUDE.md`, non-régression visuelle `e2e/tests/visuel.spec.ts` : `cd e2e && pnpm visuel`, 96 captures sur 96).
   Hors plan, à la demande de l'utilisateur : « Configurer » en bouton-icône, « ticket » au lieu d'« item » partout (test de vocabulaire étendu).
@@ -41,7 +41,8 @@ Dernière mise à jour : 2026-11-10
   T-0134 faite (TabLinks, IconButton unique, pastille / tag / filtre distincts, sélection commune, tableau à en-tête clair, projet au-dessus du titre, étoile du projet visible, pied du rail sur deux lignes ; e2e 45/45).
   T-0135 faite (densités Normale et Compacte, préférence sur le compte (migration 053), 44 px au doigt, espacements sur l’échelle ; e2e 46/46).
   T-0136 faite (thèmes Contraste élevé (AAA), Catppuccin, Nord, Gruvbox dérivés et conformes ; CSS par thème chargé à la demande ; rayon et ombre par jetons ; Profil : vignettes ; Administration > Apparence (migration 054) ; rail en icônes et panneau en superposition sous 1024 px ; 60 audits axe verts).
-- **Tâche en cours** : T-0137 (icône de marque). Prochaine migration : 056 (055 prise par T-0137). Écarts du lot 9 : 1 comblé (`GET /v1/me/approvals`), 2 accepté, 3 comblé (préférences sur le compte, migration 052), 4 reporté (accepté le 2026-11-10). **Le manuel utilisateur (Word, captures) est mis à jour à la toute fin du projet** (décision du 2026-11-10).
+  T-0137 faite (icône de marque par thème (défaut embarqué, remplacement par l’organisation, SVG nettoyé, servi typé et isolé), logo horizontal, favicon ; CSP propre aux routes conservée par le durcissement ; migration 055 ; e2e 50/50).
+- **Tâche en cours** : T-0138 (teintes nommées des statuts). Prochaine migration : 057 (056 prise par T-0138). Écarts du lot 9 : 1 comblé (`GET /v1/me/approvals`), 2 accepté, 3 comblé (préférences sur le compte, migration 052), 4 reporté (accepté le 2026-11-10). **Le manuel utilisateur (Word, captures) est mis à jour à la toute fin du projet** (décision du 2026-11-10).
 - **Historique** : réécrit le 2026-11-10 à la demande de l'utilisateur (lot 8 en `@gmail.com`) ; sauvegarde `backup/avant-reecriture-email`, à supprimer quand l'utilisateur le décide.
 - **Reste à faire** (par priorité) :
   1. Test d'intrusion externe (à commander) ; déploiement de recette sur Kubernetes et mesures de charge concurrente.
