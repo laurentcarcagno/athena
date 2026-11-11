@@ -169,9 +169,7 @@
       "groups": [
         "/org-demo"
       ],
-      "requiredActions": [
-        "CONFIGURE_TOTP"
-      ]
+      "requiredActions": []
     },
     {
       "username": "pm.dev",

@@ -20,7 +20,7 @@ docker compose down -v      # arrêt et effacement des données
 ```
 
 ## Notes
-- Le compte `admin.dev` doit configurer un TOTP à la première connexion (MFA administrateurs).
+- Le compte `admin.dev` se connecte sans TOTP (environnement de développement). En production, la MFA des administrateurs reste exigée (voir `docs/admin/INSTALLATION.md`).
 - Le client `athena-web` est confidentiel avec PKCE S256 (modèle BFF).
 - GitLab n'est pas démarré ici : on utilise l'instance interne existante. Un GitLab local ne serait ajouté qu'en cas de besoin de tests isolés (≥ 4 Go de mémoire).
 - `.env` est ignoré par Git.

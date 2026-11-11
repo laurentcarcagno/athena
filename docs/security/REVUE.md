@@ -29,7 +29,7 @@ Cette revue est interne et automatisée. **Elle ne remplace pas le test d'intrus
 - **Limitation de débit** : en mémoire, par instance. Derrière plusieurs instances, prévoir un stockage partagé (Redis).
 - **Secret de session** : lu depuis l'environnement ; à fournir par OpenBao en production.
 - **Déconnexion back-channel Keycloak** : non implémentée (la session expire à 8 h ou à la déconnexion).
-- **MFA** : appliquée par Keycloak aux administrateurs (compte de démonstration : TOTP requis) ; à vérifier sur l'instance cible.
+- **MFA** : appliquée par Keycloak aux administrateurs (le compte de démonstration n’en a pas : environnement de développement) ; à vérifier sur l'instance cible.
 - **Signature des commits d'historique** : signature unique du service (décision 23.1) ; signature par utilisateur non faite.
 - **Réseau des plugins** : Node 22 ne permet pas de le restreindre ; l'API exposée aux plugins n'offre aucun accès réseau.
 - **gitleaks** : exécuté en CI seulement ; non installé sur le poste de développement.

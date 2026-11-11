@@ -169,7 +169,7 @@ const procs = [
   child.on('exit', (code) => console.log(`[${name}] arrêté (${code})`));
   return child;
 });
-console.log('Athena démarre : http://localhost:3000  (utilisateurs : user.dev / dev-only-user ; admin.dev / dev-only-admin, TOTP à configurer ; pm.dev / dev-only-pm ; qa.dev / dev-only-qa, assurance qualité étatique)');
+console.log('Athena démarre : http://localhost:3000  (utilisateurs : user.dev / dev-only-user ; admin.dev / dev-only-admin ; pm.dev / dev-only-pm ; qa.dev / dev-only-qa, assurance qualité étatique)');
 const stop = () => { procs.forEach((p) => p.kill()); process.exit(0); };
 process.on('SIGINT', stop);
 process.on('SIGTERM', stop);
