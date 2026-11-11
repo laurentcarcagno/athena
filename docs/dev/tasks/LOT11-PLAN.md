@@ -1,0 +1,25 @@
+# Lot 11 : ergonomie des parcours et cartes organisables (2026-11-11)
+
+Décisions : `docs/dev/DECISIONS/ADR-0005-ergonomie-et-cartes.md`. Revue d'origine : page de relecture de l'audit d'ergonomie (deux tours, avis du demandeur enregistrés le 2026-11-11).
+Règle : une tâche par session, dans l'ordre ci-dessous ; arrêt et compte rendu en fin de lot ; aucun écart toléré sans accord explicite. Les références visuelles (`pnpm visuel:reference`) sont reprises à chaque tâche qui change un écran capturé, après relecture des différences.
+
+## Tâches
+
+| Tâche | Réf. revue | Objet | Critères d'acceptation |
+| --- | --- | --- | --- |
+| T-0142 | B1 | Session et limitation de débit : `/auth/session` dans la limite générale ; client : un 429 n'est jamais une déconnexion (message, nouvel essai selon `Retry-After`, « Réessayer maintenant ») | Test API : 61 lectures de session en une minute passent ; test web : 429 → message, aucune redirection vers la connexion, nouvel essai ; e2e vert |
+| T-0143 | B2, B3 | Onglets : Rapports sous l'en-tête, titre = rapport ouvert ; onglets défilants sur téléphone (fiche, paramètres, rapports) | e2e : onglets des rapports visibles et cliquables ; à 390 px, `scrollWidth` du document = 390 sur la fiche |
+| T-0144 | B5 | Droits manquants : composant « Accès réservé » (qui peut agir, comment demander, retour) ; entrées masquées selon le rôle (Ajouter un tracker) ; section ou rapport non autorisé = message, plus de bascule silencieuse | Tests web par rôle ; e2e : chef de projet sur `/trackers/new` et `/parametres/trackers/BUG`, assurance qualité sur `/rapports/conformite` |
+| T-0145 | B4 | Automatisations : formulaire « Quand / Si / Alors » (déclencheurs, condition ATQL, actions commenter, transition, modifier), 3 modèles réalisables, explication ; liste avec activation | Test web du formulaire ; e2e : un administrateur crée une règle depuis un modèle, elle apparaît active |
+| T-0146 | O1 | Nouveau ticket : « Annuler » et « Créer le ticket », obligatoires et description d'abord, « Plus de champs (n) », Responsable avec « Moi », exemple de titre, Entrée / Échap | Tests web ; e2e création inchangé et vert |
+| T-0147 | O2, O12 | Tracker : vues au-dessus, une barre de filtres (recherche à la touche Entrée, priorité, puces, vue, colonnes, requête avancée) ; sur téléphone recherche + « Filtres » en panneau | Aucun bouton sans texte dans la barre ; à 390 px le tableau commence dans le premier écran ; e2e verts |
+| T-0148 | O4 | Fiche : informations clés = valeurs des champs (rôles), « M'assigner », « + Ajouter », « Enregistré automatiquement », conflit sans perte de saisie, marquage export en badge | Test : priorité affichée = champ ; conflit 409 → saisie conservée et proposée ; e2e fiche vert |
+| T-0149 | O5 | Recherche : texte libre par défaut (mots → `text ~`, clé → ouverture), « Requête avancée (ATQL) », titre « Recherche » | Tests web de traduction ; e2e recherche verte |
+| T-0150 | O6, O7, O8 | Board : dernier board ouvert directement, index en cartes ; Backlog : burndown à venir, dates en clair, « Planifier un sprint » ; Roadmap : frise datée avec repère du jour | Tests web ; e2e board, backlog, roadmap verts |
+| T-0151 | O9, O10 | Membres : « Ajouter au projet », « Retirer… » avec confirmation, accès restreint et contrôle export repliés ; Administration > Projets : tableau et « Nouveau projet » | Tests web ; e2e membres et administration verts |
+| T-0152 | O11, microcopie | Projets en cartes (trackers, tickets ouverts, board, Ouvrir, favori) ; étiquettes de page inutiles retirées ; états traduits (« planned ») ; états vides avec action | Test de vocabulaire étendu (aucun état anglais en français) ; e2e vert |
+| T-0153 | Cartes 1 | Modèle de carte commun (`DashCard`) et grille 12 colonnes S / M / L à hauteur fixe ; migration 057 (disposition par page, largeur, réglages) ; Mon travail (O3 : « Rien d'urgent », « Me l'assigner ») et Vue d'ensemble migrés | Tests UI et API ; aucune carte de grille sans le modèle commun ; e2e verts |
+| T-0154 | Cartes 2 | Organiser : glisser-déposer, clavier, largeur, « + Ajouter une carte », disposition par page enregistrée, retour au défaut | Tests web (souris et clavier) ; e2e : déplacer et redimensionner, retrouvé au rechargement |
+| T-0155 | Cartes 3 | Avancement en cartes : indicateurs A, flux cumulé A, vélocité A (et message sans sprint clos), prochaine version C, trackers B, activité A (API dédoublonnée, auteur et changement) ; organisable | Tests API (activité sans doublon) et web ; axe sur l'Avancement dans chaque thème |
+| T-0156 | Cartes 4 | Cartes graphiques sur une recherche : anneau, barres, indicateur ; `GET /v1/search/facets` (comptes par champ, mêmes droits que la recherche) | Tests API (droits, regroupement « Autres ») et web ; e2e : ajouter un anneau par statut |
+| T-0157 | — | Vérification du lot critère par critère (`LOT11-VERIFICATION.md`) : captures, axe-core par thème sur les écrans modifiés, e2e complet | Tous les critères tenus ou écart accepté explicitement |
