@@ -330,6 +330,15 @@ const frDict = {
     did: (kind: string, fields: string[], to: string | null) => (kind === 'created' ? 'a créé' : kind === 'comment' ? 'a commenté' : kind === 'transition' ? `a passé à « ${to ?? '?'} »` : fields.length ? `a modifié ${fields.slice(0, 2).join(', ')} de` : 'a modifié'),
     seeHistory: 'Tout l’historique', seeTickets: 'Voir les tickets ouverts', seeRoadmap: 'Ouvrir la roadmap', seeTrackers: 'Tous les trackers', seeData: 'Voir le tableau des données', day: 'Jour',
   },
+  chart: {
+    unavailable: 'Graphique indisponible.', none: 'Aucun ticket ne correspond à cette recherche.', empty: '(vide)', others: 'Autres',
+    tickets: (n: number) => `ticket${n > 1 ? 's' : ''} correspondant${n > 1 ? 's' : ''}`, barsLabel: (n: number) => `Répartition de ${n} tickets`, donutLabel: (n: number, parts: string) => `${n} tickets : ${parts}`,
+    openSearch: 'Ouvrir la recherche', newOption: 'Graphique sur une recherche…', title: 'Titre de la carte', titleExample: 'Ex. : Bugs ouverts par sévérité',
+    query: 'Recherche (ATQL, vide : tous les tickets)', queryExample: 'tracker = BUG AND category != done', form: 'Forme', field: 'Répartir par', add: 'Ajouter le graphique',
+    forms: { donut: 'Anneau de répartition', bars: 'Barres par valeur', count: 'Indicateur chiffré' } as Record<string, string>,
+    fields: { status: 'Statut', category: 'Catégorie de statut', tracker: 'Tracker', project: 'Projet', priority: 'Priorité', severity: 'Sévérité' } as Record<string, string>,
+    categories: { todo: 'À faire', in_progress: 'En cours', done: 'Terminé' } as Record<string, string>,
+  },
   denied: {
     eyebrow: 'Accès réservé', ask: 'Décrivez votre besoin à un administrateur de l’organisation : il peut le faire pour vous ou vous donner le rôle nécessaire.',
     trackerCreate: 'Seul un administrateur peut ajouter un tracker.', backTrackers: 'Retour aux trackers',
@@ -775,6 +784,15 @@ const enDict: Dictionary = {
     noActivity: 'No recent activity.',
     did: (kind: string, fields: string[], to: string | null) => (kind === 'created' ? 'created' : kind === 'comment' ? 'commented on' : kind === 'transition' ? `moved to “${to ?? '?'}”` : fields.length ? `changed ${fields.slice(0, 2).join(', ')} of` : 'changed'),
     seeHistory: 'Full history', seeTickets: 'See open tickets', seeRoadmap: 'Open the roadmap', seeTrackers: 'All trackers', seeData: 'See the data table', day: 'Day',
+  },
+  chart: {
+    unavailable: 'Chart unavailable.', none: 'No ticket matches this search.', empty: '(empty)', others: 'Others',
+    tickets: (n: number) => `matching ticket${n > 1 ? 's' : ''}`, barsLabel: (n: number) => `Breakdown of ${n} tickets`, donutLabel: (n: number, parts: string) => `${n} tickets: ${parts}`,
+    openSearch: 'Open the search', newOption: 'Chart on a search…', title: 'Card title', titleExample: 'E.g.: Open bugs by severity',
+    query: 'Search (ATQL, empty: all tickets)', queryExample: 'tracker = BUG AND category != done', form: 'Form', field: 'Break down by', add: 'Add the chart',
+    forms: { donut: 'Breakdown ring', bars: 'Bars by value', count: 'Key figure' } as Record<string, string>,
+    fields: { status: 'Status', category: 'Status category', tracker: 'Tracker', project: 'Project', priority: 'Priority', severity: 'Severity' } as Record<string, string>,
+    categories: { todo: 'To do', in_progress: 'In progress', done: 'Done' } as Record<string, string>,
   },
   denied: {
     eyebrow: 'Restricted access', ask: 'Describe what you need to an organization administrator: they can do it for you or give you the required role.',

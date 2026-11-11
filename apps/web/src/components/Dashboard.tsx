@@ -6,15 +6,16 @@ import { useFailure } from '../hooks';
 import { fr } from '../i18n';
 import { pinHref, usePins } from '../lib/pins';
 import { ActivityCard, FlowCard, IndicatorsCard, ReleaseCard, TrackerStatusCard, VelocityCard, velocityFooter } from './ProgressCards';
+import { ChartBody, ChartForm, type ChartForm as ChartFormKind } from './ChartCard';
 import { pillKind } from '../pages/ListPage';
 import { useConfirm } from './ConfirmDialog';
 import { statusPill } from '../lib/status';
 
 export type WidgetKind = 'search' | 'mentions' | 'approvals' | 'favorites' | 'recents' | 'trackers'
-  | 'indicators' | 'flow' | 'velocity' | 'release' | 'tracker-status' | 'activity';
+  | 'indicators' | 'flow' | 'velocity' | 'release' | 'tracker-status' | 'activity' | 'chart';
 /** Cartes d'avancement d'un projet (T-0155) : elles portent la clé du projet dans `projects`. */
 const PROGRESS: WidgetKind[] = ['indicators', 'flow', 'velocity', 'release', 'tracker-status', 'activity'];
-export interface Widget { id: string; kind: WidgetKind; title?: string; query?: string; projects?: string[]; size?: DashSize }
+export interface Widget { id: string; kind: WidgetKind; title?: string; query?: string; projects?: string[]; size?: DashSize; field?: string; form?: ChartFormKind }
 /** Largeur par défaut d'une carte (T-0153) : trois cartes par rangée. */
 export const sizeOf = (w: Widget): DashSize => w.size ?? 'S';
 /** Cartes qui, vides, se résument dans la ligne « Rien d'urgent » de Mon travail (T-0153, revue O3). */
@@ -65,6 +66,7 @@ const footerOf = (w: Widget, project: string | undefined): ReactNode => {
     case 'release': return <Link className="ath-link" to={`/p/${p}/roadmap`}>{fr.progress.seeRoadmap}</Link>;
     case 'tracker-status': return <Link className="ath-link" to={`/p/${p}/trackers`}>{fr.progress.seeTrackers}</Link>;
     case 'activity': return <Link className="ath-link" to={`/p/${p}/rapports/activite`}>{fr.progress.seeHistory}</Link>;
+    case 'chart': return <Link className="ath-link" to={searchHref(w)}>{fr.chart.openSearch}</Link>;
     default: return undefined;
   }
 };
@@ -192,6 +194,7 @@ function Body({ widget, objects, onEmpty, project }: { widget: Widget; objects: 
     case 'release': return <ReleaseCard project={p} />;
     case 'tracker-status': return <TrackerStatusCard project={p} />;
     case 'activity': return <ActivityCard project={p} />;
+    case 'chart': return <ChartBody spec={{ query: widget.query, projects: widget.projects, field: widget.field, form: widget.form }} />;
     case 'search': return <SearchBody widget={widget} onEmpty={onEmpty} />;
     case 'mentions': return <MentionsBody onEmpty={onEmpty} />;
     case 'approvals': return <ApprovalsBody objects={objects} onEmpty={onEmpty} />;
@@ -272,6 +275,13 @@ export function Dashboard({ project, page, qa = false }: { project?: string; pag
     setChoice('');
     toast('success', fr.home.added);
   };
+  // Carte graphique sur une recherche (T-0156), dans la portée de la page.
+  const addChart = async (c: { title: string; query: string; field: string; form: ChartFormKind }) => {
+    await save([...widgets, { id: `chart-${Date.now().toString(36)}`, kind: 'chart', title: c.title, query: c.query, form: c.form, size: 'S',
+      ...(c.form === 'count' ? {} : { field: c.field }), ...(project ? { projects: [project] } : {}) }]);
+    setChoice('');
+    toast('success', fr.home.added);
+  };
   const reset = async () => {
     if (!(await confirm.ask({ title: fr.home.resetTitle, body: fr.home.resetBody, confirm: fr.home.reset }))) return;
     try { await api('DELETE', endpoint); setLayout(await api<Layout>('GET', endpoint)); toast('success', fr.home.resetDone); } catch (error) { fail(error); }
@@ -342,8 +352,10 @@ export function Dashboard({ project, page, qa = false }: { project?: string; pag
               <option value="">{fr.home.choose}</option>
               {missing.map((b) => <option key={b.id} value={`builtin:${b.id}`}>{widgetTitle(b)}</option>)}
               {views.map((v) => <option key={v.id} value={`view:${v.id}`}>{fr.home.viewOption(v.name)}</option>)}
+              <option value="chart:new">{fr.chart.newOption}</option>
             </Select>
-            <div><Btn size="sm" disabled={choice === ''} onClick={() => void add()}>{fr.home.add}</Btn></div>
+            {choice === 'chart:new' ? <ChartForm onAdd={(c) => void addChart(c)} />
+              : <div><Btn size="sm" disabled={choice === ''} onClick={() => void add()}>{fr.home.add}</Btn></div>}
           </div>
         )}
       </DashGrid>

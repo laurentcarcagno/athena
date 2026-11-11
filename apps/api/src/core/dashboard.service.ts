@@ -6,8 +6,10 @@ import { AtqlError, parse } from '../atql/parser';
 /** Genres de widget (ADR-0003 § 2.1) : la grille est fixe, seuls le contenu, l'ordre et la présence se règlent. */
 export const WIDGET_KINDS = ['search', 'mentions', 'approvals', 'favorites', 'recents', 'trackers',
   // Cartes d'avancement d'un projet (ADR-0005, T-0155) : la clé du projet est dans `projects`.
-  'indicators', 'flow', 'velocity', 'release', 'tracker-status', 'activity'] as const;
-const PROJECT_KINDS = new Set<string>(['trackers', 'indicators', 'flow', 'velocity', 'release', 'tracker-status', 'activity']);
+  'indicators', 'flow', 'velocity', 'release', 'tracker-status', 'activity',
+  // Carte graphique sur une recherche (T-0156) : anneau, barres ou indicateur chiffré.
+  'chart'] as const;
+const PROJECT_KINDS = new Set<string>(['chart', 'trackers', 'indicators', 'flow', 'velocity', 'release', 'tracker-status', 'activity']);
 
 export const WidgetSchema = z.object({
   id: z.string().regex(/^[a-z0-9][a-z0-9-]{0,39}$/),
@@ -19,6 +21,9 @@ export const WidgetSchema = z.object({
   projects: z.array(z.string().regex(/^[A-Z][A-Z0-9]{1,9}$/)).max(50).optional(),
   /** Largeur sur la grille de 12 colonnes (ADR-0005, T-0153) : S = 4, M = 6, L = 8, XL = 12. Absente : largeur par défaut du genre. */
   size: z.enum(['S', 'M', 'L', 'XL']).optional(),
+  /** `chart` seulement (T-0156) : champ de répartition et forme du graphique. */
+  field: z.string().regex(/^[a-z][a-z0-9_]{0,39}$/).optional(),
+  form: z.enum(['donut', 'bars', 'count']).optional(),
 });
 export const LayoutInput = z.object({ widgets: z.array(WidgetSchema).max(24) });
 export type Widget = z.infer<typeof WidgetSchema>;
@@ -70,7 +75,9 @@ export class DashboardService {
     for (const w of input.widgets) {
       if (ids.has(w.id)) throw validation([`widgets : identifiant en double (${w.id})`]);
       ids.add(w.id);
-      if (w.kind === 'search') {
+      if ((w.field !== undefined || w.form !== undefined) && w.kind !== 'chart') throw validation([`${w.id} : field et form ne concernent que les cartes graphiques`]);
+      if (w.kind === 'chart' && (!w.form || (w.form !== 'count' && !w.field))) throw validation([`${w.id} : une carte graphique exige une forme, et un champ sauf pour un indicateur`]);
+      if (w.kind === 'search' || w.kind === 'chart') {
         try { parse(w.query ?? ''); } catch (error) {
           if (error instanceof AtqlError) throw validation([`${w.id} : ${error.message}`]);
           throw error;

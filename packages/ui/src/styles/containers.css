@@ -127,3 +127,24 @@
 .ath-velocity__label { fill: var(--ath-text-secondary); font-size: var(--ath-font-size-small); }
 .ath-legend { display: flex; flex-wrap: wrap; gap: var(--ath-space-md); list-style: none; margin: 0; padding: 0; color: var(--ath-text-secondary); font-size: var(--ath-font-size-small); }
 .ath-legend__swatch { display: inline-block; width: var(--ath-space-sm); height: var(--ath-space-sm); margin-right: var(--ath-space-xs); vertical-align: middle; }
+
+/* Cartes graphiques (T-0156) : séries de la palette de données, « Autres » en gris ; anneau, barres, indicateur. */
+.ath-series--1 { fill: var(--ath-data-1); stroke: var(--ath-data-1); background: var(--ath-data-1); }
+.ath-series--2 { fill: var(--ath-data-2); stroke: var(--ath-data-2); background: var(--ath-data-2); }
+.ath-series--3 { fill: var(--ath-data-3); stroke: var(--ath-data-3); background: var(--ath-data-3); }
+.ath-series--4 { fill: var(--ath-data-4); stroke: var(--ath-data-4); background: var(--ath-data-4); }
+.ath-series--5 { fill: var(--ath-data-5); stroke: var(--ath-data-5); background: var(--ath-data-5); }
+.ath-series--6 { fill: var(--ath-data-6); stroke: var(--ath-data-6); background: var(--ath-data-6); }
+.ath-series--7 { fill: var(--ath-data-7); stroke: var(--ath-data-7); background: var(--ath-data-7); }
+.ath-series--others { fill: var(--ath-border-strong); stroke: var(--ath-border-strong); background: var(--ath-border-strong); }
+.ath-donut { display: flex; align-items: center; gap: var(--ath-space-md); min-height: 0; }
+.ath-donut__svg { width: calc(var(--ath-size-dashcard) / 2); height: calc(var(--ath-size-dashcard) / 2); flex: none; }
+.ath-donut__hole { fill: none; }
+.ath-donut__arc { fill: none; stroke-width: 6; }
+.ath-donut__total { fill: var(--ath-text-heading); font-size: var(--ath-font-size-small); font-weight: var(--ath-font-weight-semibold); }
+.ath-legend--column { flex-direction: column; gap: var(--ath-space-2xs); }
+.ath-num { font-variant-numeric: tabular-nums; color: var(--ath-text-secondary); }
+.ath-chart-bar { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr) auto; align-items: center; gap: var(--ath-space-sm); }
+.ath-chart-bar__label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ath-chart-bar__track { display: block; }
+.ath-chart-count { display: flex; flex-direction: column; justify-content: center; flex: 1; }

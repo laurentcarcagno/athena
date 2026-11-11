@@ -34,6 +34,15 @@ export class SearchController {
     return this.searcher.searchOrganization(organizationId, String(q), actor.id, { projects, limit: Number(limit), offset: Number(offset), roles: actor.roles });
   }
 
+  /** Répartition d'une recherche par valeur d'un champ (cartes graphiques, T-0156) : mêmes droits que la recherche. */
+  @Roles('athena-user', 'athena-admin')
+  @Get('search/facets')
+  async facets(@Req() request: AuthedRequest, @Query('q') q = '', @Query('field') field = 'status', @Query('project') project = '') {
+    const { organizationId, actor } = await this.orgs.resolve(request.principal!);
+    const projects = String(project).split(',').map((p) => p.trim()).filter(Boolean);
+    return this.searcher.facets(organizationId, String(q), actor.id, String(field), { projects, roles: actor.roles });
+  }
+
   @Roles('athena-user', 'athena-admin')
   @Get('searches')
   async list(@Req() request: AuthedRequest) {

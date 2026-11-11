@@ -7,7 +7,7 @@ import { TrackerService } from '../core/tracker.service';
 import { createTestDb, pgUp, type TestDb } from '../testing/harness';
 import { compile } from './compile';
 import { AtqlError, parse } from './parser';
-import { SearchService } from './search.service';
+import { groupBuckets, SearchService } from './search.service';
 
 describe('analyse ATQL', () => {
   it('analyse conditions, priorité AND/OR et tri', () => {
@@ -177,5 +177,26 @@ suite('recherche ATQL (intégration)', () => {
     expect(await code(run('text > 3'))).toMatch(/validation.*n'accepte que l'opérateur ~/);
     const hidden = await search.search(org, 'ARI', 'text ~ "crash"', 'u1', 50, 0, ['athena-user']);
     expect(hidden.total).toBe(1); // aucun champ restreint dans ce jeu de données : le plein texte reste disponible
+  });
+
+  it('répartit une recherche par valeur d’un champ, avec les mêmes droits (cartes graphiques, T-0156)', async () => {
+    const bySeverity = await search.facets(org, '', 'u1', 'severity', { projects: ['ARI'] });
+    expect(bySeverity.total).toBe(4);
+    expect(bySeverity.buckets).toEqual([{ value: 'mineure', label: 'mineure', count: 2 }, { value: 'bloquante', label: 'bloquante', count: 1 }, { value: 'majeure', label: 'majeure', count: 1 }]);
+    expect(bySeverity.others).toBe(0);
+    const filtered = await search.facets(org, 'severity != mineure', 'u1', 'category', { projects: ['ARI'] });
+    expect(filtered.total).toBe(2);
+    expect(filtered.buckets.reduce((n, b) => n + b.count, 0)).toBe(2);
+    const byStatus = await search.facets(org, '', 'u1', 'status');
+    expect(byStatus.buckets.map((b) => b.label).sort()).toEqual([...new Set(byStatus.buckets.map((b) => b.label))].sort());
+    const code = async (p: Promise<unknown>) => { const e = await p.then(() => null, (x: unknown) => x); return e instanceof DomainError ? e.code : 'autre'; };
+    expect(await code(search.facets(org, '', 'u1', 'x; drop table'))).toBe('validation');
+    expect(await code(search.facets(org, 'status =', 'u1', 'status'))).toBe('validation');
+    // Au-delà de 7 valeurs, le reste est additionné dans « autres ».
+    const rows = Array.from({ length: 9 }, (_, i) => ({ value: `v${i}`, label: `V${i}`, n: 9 - i }));
+    expect(groupBuckets(rows)).toMatchObject({ total: 45, others: 3 });
+    expect(groupBuckets(rows).buckets).toHaveLength(7);
+    // Une autre organisation ne voit rien de celle-ci.
+    expect((await search.facets(crypto.randomUUID(), '', 'u1', 'severity')).total).toBe(0);
   });
 });

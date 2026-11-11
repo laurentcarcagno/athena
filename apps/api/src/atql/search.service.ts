@@ -30,6 +30,13 @@ export interface SearchResult {
   hits: SearchHit[];
 }
 
+/** Les 7 valeurs les plus fréquentes, le reste additionné dans « autres » (lisibilité d’un anneau ou de barres, T-0156). */
+export function groupBuckets(rows: Array<{ value: string; label: string; n: number }>, keep = 7) {
+  const total = rows.reduce((sum, r) => sum + r.n, 0);
+  const buckets = rows.slice(0, keep).map((r) => ({ value: r.value, label: r.label, count: r.n }));
+  return { total, buckets, others: total - buckets.reduce((sum, r) => sum + r.count, 0) };
+}
+
 export class SearchService {
   constructor(private readonly db: Db) {}
 
@@ -54,12 +61,41 @@ export class SearchService {
     return this.run(organizationId, projects, query, currentUser, options.limit ?? 50, options.offset ?? 0, options.roles);
   }
 
-  /** `projects` : périmètre explicite, ou `null` pour toute l'organisation. */
-  private async run(
-    organizationId: string, projects: string[] | null, query: string, currentUser: string, limit: number, offset: number, roles?: string[],
-  ): Promise<SearchResult> {
-    if (!Number.isInteger(limit) || limit < 1 || limit > 200) throw validation(['limit : entre 1 et 200']);
-    if (!Number.isInteger(offset) || offset < 0 || offset > 100_000) throw validation(['offset invalide']);
+  /**
+   * Répartition des tickets d'une recherche par valeur d'un champ (cartes graphiques, ADR-0005 § 2.3, T-0156) : mêmes droits
+   * que la recherche (même requête compilée, mêmes champs interdits). Les 7 valeurs les plus fréquentes, puis « autres ».
+   */
+  async facets(
+    organizationId: string, query: string, currentUser: string, field: string,
+    options: { projects?: string[]; roles?: string[] } = {},
+  ): Promise<{ total: number; field: string; buckets: Array<{ value: string; label: string; count: number }>; others: number }> {
+    const projects = options.projects && options.projects.length > 0 ? options.projects : null;
+    if (!/^[a-z][a-z0-9_]{0,39}$/.test(field)) throw validation(['field : nom de champ invalide']);
+    const { from, compiled, forbidden } = await this.prepare(organizationId, projects, query, currentUser, options.roles);
+    if (forbidden.has(field)) throw validation([`field : ${field} est à lecture restreinte`]);
+    const BUILT_IN: Record<string, [string, string]> = {
+      status: ['s.key', 's.name'], category: ['s.category', 's.category'], tracker: ['t.key', 't.name'], project: ['p.key', 'p.name'],
+    };
+    // Paramètres de la clause WHERE seulement (ceux du tri ne servent pas) ; un champ libre est passé en paramètre suivant.
+    const params: unknown[] = compiled.params.slice(0, compiled.whereParamCount);
+    const custom = `coalesce(a."values" ->> $${compiled.whereParamCount + 1}::text, '')`;
+    if (!BUILT_IN[field]) params.push(field);
+    const [valueExpr, labelExpr] = BUILT_IN[field] ?? [custom, custom];
+    return this.db.tx(organizationId, async (c) => {
+      await c.query("set local statement_timeout = '5s'");
+      const rows = (
+        await c.query(
+          `select value, min(label) as label, count(*)::int as n from (select ${valueExpr} as value, ${labelExpr} as label ${from} limit ${COUNT_CAP}) x
+           group by value order by n desc, value limit 51`,
+          params,
+        )
+      ).rows as Array<{ value: string; label: string; n: number }>;
+      return { field, ...groupBuckets(rows) };
+    });
+  }
+
+  /** Droits par champ, requête compilée et clause FROM communes à la recherche et à la répartition. */
+  private async prepare(organizationId: string, projects: string[] | null, query: string, currentUser: string, roles?: string[]) {
     // Champs à lecture restreinte : retirés des résultats et interdits dans les filtres et tris du lecteur.
     // Clé `PROJET/TRACKER` : une clé de tracker n'est unique que dans son projet.
     const restricted = new Map<string, Set<string>>();
@@ -91,6 +127,16 @@ export class SearchService {
     }
     const from = `from artifact a join tracker t on t.id = a.tracker_id join status s on s.id = a.status_id
                   join project p on p.id = a.project_id where ($1::text[] is null or p.key = any($1::text[])) and ${compiled.where}`;
+    return { from, compiled, restricted, forbidden };
+  }
+
+  /** `projects` : périmètre explicite, ou `null` pour toute l'organisation. */
+  private async run(
+    organizationId: string, projects: string[] | null, query: string, currentUser: string, limit: number, offset: number, roles?: string[],
+  ): Promise<SearchResult> {
+    if (!Number.isInteger(limit) || limit < 1 || limit > 200) throw validation(['limit : entre 1 et 200']);
+    if (!Number.isInteger(offset) || offset < 0 || offset > 100_000) throw validation(['offset invalide']);
+    const { from, compiled, restricted } = await this.prepare(organizationId, projects, query, currentUser, roles);
     return this.db.tx(organizationId, async (c) => {
       // Coût borné : délai maximal par requête dans cette transaction.
       await c.query("set local statement_timeout = '5s'");

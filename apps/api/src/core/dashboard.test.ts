@@ -78,6 +78,17 @@ suite('tableau de bord personnel (intégration)', () => {
     expect(WidgetSchema.safeParse({ id: 'x', kind: 'mentions', size: 'XXL' }).success).toBe(false);
   });
 
+  it('carte graphique (T-0156) : recherche, champ et forme gardés ; forme ou champ manquants refusés', async () => {
+    const chart = { id: 'c1', kind: 'chart' as const, title: 'Bugs par sévérité', query: 'tracker = BUG', projects: ['NOVA'], field: 'severity', form: 'donut' as const, size: 'S' as const };
+    await dash.put(org, { widgets: [chart, { id: 'c2', kind: 'chart', query: 'category != done', form: 'count' }] }, alice, 'NOVA');
+    expect((await dash.get(org, alice, 'NOVA')).widgets[0]).toEqual(chart);
+    const code = async (p: Promise<unknown>) => { const e = await p.then(() => null, (x: unknown) => x); return e instanceof DomainError ? `${e.code} ${e.details.join(' ')}` : 'autre'; };
+    expect(await code(dash.put(org, { widgets: [{ id: 'c3', kind: 'chart', query: '', form: 'bars' }] }, alice, 'NOVA'))).toMatch(/validation.*exige/);
+    expect(await code(dash.put(org, { widgets: [{ id: 'c4', kind: 'chart', query: 'status =', field: 'status', form: 'bars' }] }, alice, 'NOVA'))).toMatch(/validation/);
+    expect(await code(dash.put(org, { widgets: [{ id: 'c5', kind: 'mentions', form: 'donut' }] }, alice, 'NOVA'))).toMatch(/validation.*graphiques/);
+    await dash.reset(org, alice, 'NOVA');
+  });
+
   it('refuse un identifiant en double, une requête invalide et une requête sur un widget qui n’en a pas', async () => {
     expect(await code(dash.put(org, { widgets: [{ id: 'a', kind: 'mentions' }, { id: 'a', kind: 'recents' }] }, alice))).toMatch(/^validation.*double/);
     expect(await code(dash.put(org, { widgets: [{ id: 'a', kind: 'search', query: 'status =' }] }, alice))).toMatch(/^validation/);

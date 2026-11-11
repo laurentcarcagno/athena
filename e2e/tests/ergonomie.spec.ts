@@ -119,3 +119,21 @@ test('Organiser : glisser une carte et changer sa largeur, retrouvés au recharg
   await page.getByRole('dialog').getByRole('button', { name: 'Réinitialiser' }).click();
   await expect(cards.first()).toHaveAttribute('aria-label', 'Mes tickets');
 });
+
+test('carte graphique : ajouter un anneau des tickets par statut, puis le retirer (T-0156)', async ({ page }) => {
+  await login(page, 'user.dev', 'dev-only-user');
+  await page.goto('/p/ARI');
+  await page.getByRole('button', { name: 'Organiser' }).click();
+  await page.getByLabel('+ Ajouter une carte').selectOption({ label: 'Graphique sur une recherche…' });
+  await page.getByLabel('Titre de la carte').fill('Tickets par statut');
+  await page.getByLabel('Répartir par').selectOption({ label: 'Statut' });
+  await page.getByRole('button', { name: 'Ajouter le graphique' }).click();
+  const chart = page.locator('.ath-dashcard[aria-label="Tickets par statut"]');
+  await expect(chart.getByRole('img', { name: /tickets :/ })).toBeVisible();
+  await page.getByRole('button', { name: 'Terminer' }).click();
+  await page.reload();
+  await expect(chart.getByRole('img', { name: /tickets :/ })).toBeVisible();
+  await page.getByRole('button', { name: 'Organiser' }).click();
+  await page.getByRole('button', { name: 'Masquer Tickets par statut' }).click();
+  await expect(chart).toHaveCount(0);
+});
