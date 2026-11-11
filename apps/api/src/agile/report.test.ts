@@ -139,6 +139,10 @@ suite('vélocité, flux, roadmap et tableau de bord (intégration)', () => {
     expect(dashboard.byTracker).toEqual([{ tracker: 'STORY', total: 6, open: 2 }]);
     expect(dashboard.distribution).toEqual([{ value: 'alpha', count: 3 }, { value: 'beta', count: 3 }]);
     expect(dashboard.recent.length).toBeGreaterThan(0);
+    const keys = dashboard.recent.map((e) => e.key);
+    expect(new Set(keys).size).toBe(keys.length); // T-0155 : une ligne par ticket, sa dernière révision
+    const times = dashboard.recent.map((e) => e.at);
+    expect([...times].sort().reverse()).toEqual(times); // du plus récent au plus ancien
     expect((await reports.dashboard(org, 'ARI')).distribution).toBeNull();
     expect(await code(reports.dashboard(org, 'ARI', 'x"; drop'))).toMatch(/validation/);
   }, 30_000);

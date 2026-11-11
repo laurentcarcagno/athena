@@ -4,11 +4,10 @@ import type { Session } from '../../api';
 import { Dashboard } from '../../components/Dashboard';
 import { fr } from '../../i18n';
 import { ProjectTemplateCard } from '../../components/ProjectTemplateCard';
-import { DashboardPage } from '../DashboardPage';
 
 /**
  * Vue d'ensemble : le moteur de widgets du tableau de bord, limité au projet (T-0123). Mes tickets, échéances de la semaine,
- * trackers et mentions par défaut ; chaque widget renvoie à la liste qui le détaille. L'avancement détaillé suit.
+ * trackers, mentions et indicateurs par défaut ; les autres cartes d'avancement s'ajoutent par « Organiser » (T-0155).
  */
 export function OverviewTab({ session }: { session: Session }) {
   const { project } = useParams();
@@ -17,7 +16,6 @@ export function OverviewTab({ session }: { session: Session }) {
       <PageHeader title={fr.overview.title} />
       <Dashboard project={String(project)} />
       <ProjectTemplateCard project={String(project)} canManage={(session.user?.roles ?? []).some((r) => r === 'athena-admin' || r === 'athena-pm')} />
-      <DashboardPage embedded />
     </>
   );
 }

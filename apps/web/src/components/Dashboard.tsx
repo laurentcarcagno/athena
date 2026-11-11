@@ -5,11 +5,15 @@ import { api, type Hit, type SearchResult, type TrackerOverview } from '../api';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
 import { pinHref, usePins } from '../lib/pins';
+import { ActivityCard, FlowCard, IndicatorsCard, ReleaseCard, TrackerStatusCard, VelocityCard, velocityFooter } from './ProgressCards';
 import { pillKind } from '../pages/ListPage';
 import { useConfirm } from './ConfirmDialog';
 import { statusPill } from '../lib/status';
 
-export type WidgetKind = 'search' | 'mentions' | 'approvals' | 'favorites' | 'recents' | 'trackers';
+export type WidgetKind = 'search' | 'mentions' | 'approvals' | 'favorites' | 'recents' | 'trackers'
+  | 'indicators' | 'flow' | 'velocity' | 'release' | 'tracker-status' | 'activity';
+/** Cartes d'avancement d'un projet (T-0155) : elles portent la clé du projet dans `projects`. */
+const PROGRESS: WidgetKind[] = ['indicators', 'flow', 'velocity', 'release', 'tracker-status', 'activity'];
 export interface Widget { id: string; kind: WidgetKind; title?: string; query?: string; projects?: string[]; size?: DashSize }
 /** Largeur par défaut d'une carte (T-0153) : trois cartes par rangée. */
 export const sizeOf = (w: Widget): DashSize => w.size ?? 'S';
@@ -38,12 +42,32 @@ const projectWidgets = (project: string): Widget[] => [
   { id: 'due', kind: 'search', query: 'assignee = currentUser() AND category != done AND due <= daysFromNow(7)', projects: [project] },
   { id: 'trackers', kind: 'trackers', projects: [project] },
   { id: 'mentions', kind: 'mentions' },
+  { id: 'indicators', kind: 'indicators', projects: [project], size: 'XL' },
 ];
-/** Cartes par défaut de l'Avancement d'un projet (T-0155). */
-export const progressWidgets = (_project: string): Widget[] => [];
-const builtinFor = (project?: string, page?: string): Widget[] => (project && page ? progressWidgets(project) : project ? projectWidgets(project) : HOME_WIDGETS);
-/** Pied propre à une carte (lien vers le détail) ; complété par les cartes de l'Avancement (T-0155). */
-const footerOf = (_w: Widget, _project: string | undefined): ReactNode => undefined;
+/** Cartes par défaut de l'Avancement d'un projet (T-0155), variantes retenues à la revue ; miroir de l'API. */
+export const progressWidgets = (project: string): Widget[] => [
+  { id: 'indicators', kind: 'indicators', projects: [project], size: 'L' },
+  { id: 'release', kind: 'release', projects: [project], size: 'S' },
+  { id: 'flow', kind: 'flow', projects: [project], size: 'M' },
+  { id: 'tracker-status', kind: 'tracker-status', projects: [project], size: 'M' },
+  { id: 'velocity', kind: 'velocity', projects: [project], size: 'M' },
+  { id: 'activity', kind: 'activity', projects: [project], size: 'M' },
+];
+/** Cartes proposées par « + Ajouter une carte » : celles de la page, plus, dans un projet, toutes les cartes d'avancement. */
+const builtinFor = (project?: string, page?: string): Widget[] => (project && page ? progressWidgets(project)
+  : project ? [...projectWidgets(project), ...progressWidgets(project).filter((w) => w.id !== 'indicators')] : HOME_WIDGETS);
+/** Pied propre à une carte (lien vers le détail, T-0155). */
+const footerOf = (w: Widget, project: string | undefined): ReactNode => {
+  const p = w.projects?.[0] ?? project ?? '';
+  switch (w.kind) {
+    case 'indicators': return <Link className="ath-link" to={`/p/${p}/recherche?q=${encodeURIComponent('category != done')}`}>{fr.progress.seeTickets}</Link>;
+    case 'velocity': return velocityFooter(p);
+    case 'release': return <Link className="ath-link" to={`/p/${p}/roadmap`}>{fr.progress.seeRoadmap}</Link>;
+    case 'tracker-status': return <Link className="ath-link" to={`/p/${p}/trackers`}>{fr.progress.seeTrackers}</Link>;
+    case 'activity': return <Link className="ath-link" to={`/p/${p}/rapports/activite`}>{fr.progress.seeHistory}</Link>;
+    default: return undefined;
+  }
+};
 
 const titleOf = (hit: Hit) => String(hit.values['title'] ?? hit.values['name'] ?? '');
 const widgetTitle = (w: Widget) => w.title ?? fr.home.titles[w.id] ?? fr.home.kinds[w.kind] ?? w.id;
@@ -159,13 +183,21 @@ function PinsBody({ kind }: { kind: 'favorites' | 'recents' }) {
   return <Rows empty={kind === 'favorites' ? fr.rail.noFavorites : fr.rail.noRecents}>{list.map((p) => <li key={p.id}><Link className={`ath-link${p.kind === 'item' ? ' ath-mono' : ''}`} to={pinHref(p)}>{p.label}</Link></li>)}</Rows>;
 }
 
-function Body({ widget, objects, onEmpty }: { widget: Widget; objects: boolean; project?: string | undefined; onEmpty?: OnEmpty | undefined }) {
+function Body({ widget, objects, onEmpty, project }: { widget: Widget; objects: boolean; project?: string | undefined; onEmpty?: OnEmpty | undefined }) {
+  const p = widget.projects?.[0] ?? project ?? '';
   switch (widget.kind) {
+    case 'indicators': return <IndicatorsCard project={p} />;
+    case 'flow': return <FlowCard project={p} />;
+    case 'velocity': return <VelocityCard project={p} />;
+    case 'release': return <ReleaseCard project={p} />;
+    case 'tracker-status': return <TrackerStatusCard project={p} />;
+    case 'activity': return <ActivityCard project={p} />;
     case 'search': return <SearchBody widget={widget} onEmpty={onEmpty} />;
     case 'mentions': return <MentionsBody onEmpty={onEmpty} />;
     case 'approvals': return <ApprovalsBody objects={objects} onEmpty={onEmpty} />;
     case 'trackers': return <TrackersBody project={widget.projects?.[0] ?? ''} />;
-    default: return <PinsBody kind={widget.kind} />;
+    case 'favorites': case 'recents': return <PinsBody kind={widget.kind} />;
+    default: return null;
   }
 }
 

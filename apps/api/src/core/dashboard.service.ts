@@ -4,7 +4,10 @@ import { validation } from './errors';
 import { AtqlError, parse } from '../atql/parser';
 
 /** Genres de widget (ADR-0003 § 2.1) : la grille est fixe, seuls le contenu, l'ordre et la présence se règlent. */
-export const WIDGET_KINDS = ['search', 'mentions', 'approvals', 'favorites', 'recents', 'trackers'] as const;
+export const WIDGET_KINDS = ['search', 'mentions', 'approvals', 'favorites', 'recents', 'trackers',
+  // Cartes d'avancement d'un projet (ADR-0005, T-0155) : la clé du projet est dans `projects`.
+  'indicators', 'flow', 'velocity', 'release', 'tracker-status', 'activity'] as const;
+const PROJECT_KINDS = new Set<string>(['trackers', 'indicators', 'flow', 'velocity', 'release', 'tracker-status', 'activity']);
 
 export const WidgetSchema = z.object({
   id: z.string().regex(/^[a-z0-9][a-z0-9-]{0,39}$/),
@@ -39,7 +42,19 @@ export const defaultProjectWidgets = (project: string): Widget[] => [
   { id: 'due', kind: 'search', query: 'assignee = currentUser() AND category != done AND due <= daysFromNow(7)', projects: [project] },
   { id: 'trackers', kind: 'trackers', projects: [project] },
   { id: 'mentions', kind: 'mentions' },
+  { id: 'indicators', kind: 'indicators', projects: [project], size: 'XL' },
 ];
+
+/** Disposition initiale de l'Avancement d'un projet (T-0155) : variantes retenues à la revue d'ergonomie. */
+export const defaultProgressWidgets = (project: string): Widget[] => [
+  { id: 'indicators', kind: 'indicators', projects: [project], size: 'L' },
+  { id: 'release', kind: 'release', projects: [project], size: 'S' },
+  { id: 'flow', kind: 'flow', projects: [project], size: 'M' },
+  { id: 'tracker-status', kind: 'tracker-status', projects: [project], size: 'M' },
+  { id: 'velocity', kind: 'velocity', projects: [project], size: 'M' },
+  { id: 'activity', kind: 'activity', projects: [project], size: 'M' },
+];
+const defaultsFor = (scope: string): Widget[] => (scope.endsWith(':avancement') ? defaultProgressWidgets(scope.split(':')[0]!) : scope ? defaultProjectWidgets(scope) : [...DEFAULT_WIDGETS]);
 
 /** Tableau de bord personnel configurable (T-0122) : disposition par personne, défaut sans réglage, réinitialisation. */
 export class DashboardService {
@@ -47,7 +62,7 @@ export class DashboardService {
 
   async get(organizationId: string, actor: Actor, scope = ''): Promise<{ widgets: Widget[]; isDefault: boolean }> {
     const row = await this.db.tx(organizationId, async (c) => (await c.query('select widgets from dashboard_layout where owner = $1 and scope = $2', [actor.id, scope])).rows[0]);
-    return row ? { widgets: row.widgets as Widget[], isDefault: false } : { widgets: scope ? defaultProjectWidgets(scope) : [...DEFAULT_WIDGETS], isDefault: true };
+    return row ? { widgets: row.widgets as Widget[], isDefault: false } : { widgets: defaultsFor(scope), isDefault: true };
   }
 
   async put(organizationId: string, input: z.infer<typeof LayoutInput>, actor: Actor, scope = ''): Promise<{ widgets: Widget[]; isDefault: boolean }> {
@@ -61,7 +76,7 @@ export class DashboardService {
           throw error;
         }
       } else if (w.query !== undefined) throw validation([`${w.id} : query ne concerne que les widgets de recherche`]);
-      else if (w.projects !== undefined && w.kind !== 'trackers') throw validation([`${w.id} : projects ne concerne que les widgets de recherche et de trackers`]);
+      else if (w.projects !== undefined && !PROJECT_KINDS.has(w.kind)) throw validation([`${w.id} : projects ne concerne que les widgets de recherche, de trackers et d'avancement`]);
     }
     await this.db.tx(organizationId, (c) => c.query(
       `insert into dashboard_layout (organization_id, owner, scope, widgets) values ($1,$2,$3,$4)

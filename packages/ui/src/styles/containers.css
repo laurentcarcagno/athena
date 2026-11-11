@@ -100,3 +100,30 @@
 .ath-dashadd { grid-column: span 4; display: flex; flex-direction: column; gap: var(--ath-space-sm); justify-content: center; padding: var(--ath-space-md); min-height: calc(var(--ath-size-dashcard) / 2); border: var(--ath-border-width-hairline) dashed var(--ath-border-strong); }
 .ath-dashadd__title { font-weight: var(--ath-font-weight-semibold); color: var(--ath-text-link); }
 @media (max-width: 768px) { .ath-dashadd { grid-column: span 12; } }
+
+/* Cartes de l'Avancement (T-0155) : tuiles, flux cumulé, vélocité, barres de répartition, légende. */
+.ath-tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--ath-space-sm); }
+.ath-tiles--two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.ath-tile { display: flex; flex-direction: column; gap: var(--ath-space-2xs); padding: var(--ath-space-sm); border: var(--ath-border-width-hairline) solid var(--ath-border-default); }
+.ath-tile__label { color: var(--ath-text-secondary); font-size: var(--ath-font-size-small); }
+.ath-tile__value { color: var(--ath-text-heading); font-size: var(--ath-font-size-display); font-weight: var(--ath-font-weight-semibold); font-variant-numeric: tabular-nums; line-height: var(--ath-font-leading-title); }
+.ath-tile__delta { color: var(--ath-text-secondary); font-size: var(--ath-font-size-small); }
+.ath-dashcard__lead { margin: 0; }
+.ath-text-warning { color: var(--ath-state-warning-fg); }
+.ath-stack--tight { gap: var(--ath-space-2xs); }
+.ath-flow { display: block; width: 100%; height: calc(var(--ath-size-dashcard) / 2.4); }
+.ath-flow__todo, .ath-stackbar__todo, .ath-legend__swatch--todo { fill: var(--ath-state-info-border); background: var(--ath-state-info-border); }
+.ath-flow__in-progress, .ath-stackbar__in_progress, .ath-legend__swatch--in_progress { fill: var(--ath-state-warning-border); background: var(--ath-state-warning-border); }
+.ath-flow__done, .ath-stackbar__done, .ath-legend__swatch--done { fill: var(--ath-state-success-border); background: var(--ath-state-success-border); }
+.ath-flow__axis { display: flex; justify-content: space-between; color: var(--ath-text-secondary); font-size: var(--ath-font-size-small); }
+.ath-stackbar, .ath-progressbar { display: block; }
+.ath-progressbar__track { fill: var(--ath-surface-muted); }
+.ath-progressbar__fill { fill: var(--ath-data-1); }
+.ath-velocity { display: block; }
+.ath-velocity__committed, .ath-legend__swatch--committed { fill: var(--ath-surface-selected); stroke: var(--ath-data-1); stroke-width: 1; background: var(--ath-surface-selected); border: var(--ath-border-width-hairline) solid var(--ath-data-1); }
+.ath-velocity__completed, .ath-legend__swatch--completed { fill: var(--ath-data-1); background: var(--ath-data-1); }
+.ath-velocity__average { stroke: var(--ath-text-secondary); stroke-width: 1; stroke-dasharray: 4 3; }
+.ath-legend__swatch--average { border-top: var(--ath-border-width-strong) dashed var(--ath-text-secondary); }
+.ath-velocity__label { fill: var(--ath-text-secondary); font-size: var(--ath-font-size-small); }
+.ath-legend { display: flex; flex-wrap: wrap; gap: var(--ath-space-md); list-style: none; margin: 0; padding: 0; color: var(--ath-text-secondary); font-size: var(--ath-font-size-small); }
+.ath-legend__swatch { display: inline-block; width: var(--ath-space-sm); height: var(--ath-space-sm); margin-right: var(--ath-space-xs); vertical-align: middle; }

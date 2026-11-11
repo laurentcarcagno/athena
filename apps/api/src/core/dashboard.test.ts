@@ -50,7 +50,7 @@ suite('tableau de bord personnel (intégration)', () => {
   it('donne à chaque projet sa propre Vue d’ensemble, indépendante de l’accueil', async () => {
     const d = await dash.get(org, alice, 'NOVA');
     expect(d.isDefault).toBe(true);
-    expect(d.widgets.map((w) => w.id)).toEqual(['assigned', 'due', 'trackers', 'mentions']);
+    expect(d.widgets.map((w) => w.id)).toEqual(['assigned', 'due', 'trackers', 'mentions', 'indicators']); // T-0155 : indicateurs du projet en pleine largeur
     expect(d.widgets[0]!.projects).toEqual(['NOVA']);
     await dash.put(org, { widgets: [{ id: 'trackers', kind: 'trackers', projects: ['NOVA'] }] }, alice, 'NOVA');
     expect((await dash.get(org, alice, 'NOVA')).widgets.map((w) => w.id)).toEqual(['trackers']);
@@ -64,6 +64,14 @@ suite('tableau de bord personnel (intégration)', () => {
     await dash.put(org, { widgets: [{ id: 'trackers', kind: 'trackers', projects: ['NOVA'], size: 'L' }] }, alice, 'NOVA:avancement');
     expect((await dash.get(org, alice, 'NOVA:avancement')).widgets[0]).toMatchObject({ id: 'trackers', size: 'L' });
     expect((await dash.get(org, alice, 'NOVA')).isDefault).toBe(true); // la Vue d’ensemble est une autre page
+    await dash.reset(org, alice, 'NOVA:avancement');
+    // Avancement par défaut (T-0155) : les variantes retenues, avec la clé du projet ; elles acceptent un projet.
+    const progress = await dash.get(org, alice, 'NOVA:avancement');
+    expect(progress.isDefault).toBe(true);
+    expect(progress.widgets.map((w) => [w.id, w.size])).toEqual([['indicators', 'L'], ['release', 'S'], ['flow', 'M'], ['tracker-status', 'M'], ['velocity', 'M'], ['activity', 'M']]);
+    expect(progress.widgets.every((w) => w.projects?.[0] === 'NOVA')).toBe(true);
+    await dash.put(org, { widgets: [{ id: 'flow', kind: 'flow', projects: ['NOVA'], size: 'XL' }] }, alice, 'NOVA:avancement');
+    expect((await dash.get(org, alice, 'NOVA:avancement')).widgets).toEqual([{ id: 'flow', kind: 'flow', projects: ['NOVA'], size: 'XL' }]);
     await dash.reset(org, alice, 'NOVA:avancement');
     expect(ScopeSchema.safeParse('NOVA:avancement').success).toBe(true);
     expect(ScopeSchema.safeParse('NOVA:autre').success).toBe(false);

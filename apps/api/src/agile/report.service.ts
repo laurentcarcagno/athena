@@ -245,8 +245,11 @@ export class ReportService {
         : null;
       const recent = (
         await c.query(
-          `select a.key, r.created_at from artifact_revision r join artifact a on a.id = r.artifact_id join project p on p.id = a.project_id
-           where p.key = $1 order by r.created_at desc, r.version desc limit 10`,
+          // Une ligne par ticket, sa dernière révision (T-0155 : plus de doublon dans l'activité récente).
+          `select key, created_at from (
+             select distinct on (a.key) a.key, r.created_at, r.version from artifact_revision r join artifact a on a.id = r.artifact_id join project p on p.id = a.project_id
+             where p.key = $1 order by a.key, r.created_at desc, r.version desc
+           ) last order by created_at desc, version desc limit 10`,
           [projectKey],
         )
       ).rows.map((r) => ({ key: r.key as string, type: 'revision', at: (r.created_at as Date).toISOString() }));

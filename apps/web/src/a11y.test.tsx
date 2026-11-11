@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import { progressWidgets } from './components/Dashboard';
 import axe from 'axe-core';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { ToastProvider } from '@athena/ui';
@@ -39,9 +40,13 @@ describe('accessibilité (axe-core, WCAG 2.1 AA)', () => {
       [/\/velocity$/, { sprints: [{ sprint: 'S1', committed: 8, completed: 5 }], average: 5, forecast: 5 }],
       [/\/flow/, [{ date: '2026-10-31', todo: 3, in_progress: 2, done: 7 }]],
       [/\/roadmap$/, [{ id: 'r1', name: '1.0', startsOn: '2026-10-01', endsOn: '2026-11-01', state: 'planned', items: 4, doneItems: 2, progress: 0.5 }]],
+      [/\/v1\/me\/dashboard/, { widgets: progressWidgets('ARI'), isDefault: true }],
+      [/\/overview$/, { trackers: [{ key: 'BUG', name: 'Bugs', artifacts: 12, statuses: [{ category: 'todo', count: 5 }, { category: 'done', count: 7 }] }] }],
+      [/\/activity/, { items: [], next: null, people: [] }],
     ];
     const { container } = page('/p/ARI/dashboard', <DashboardPage />, '/p/:project/dashboard');
-    await screen.findByText('12 total');
+    await screen.findByText('12 tickets au total');
+    await screen.findByRole('img', { name: /Flux cumulé/ });
     expect(await violations(container)).toEqual([]);
   });
 

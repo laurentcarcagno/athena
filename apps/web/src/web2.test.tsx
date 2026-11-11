@@ -1,4 +1,5 @@
 import { render, screen, waitFor, within } from '@testing-library/react';
+import { progressWidgets } from './components/Dashboard';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { ToastProvider } from '@athena/ui';
@@ -58,20 +59,31 @@ describe('langue', () => {
 });
 
 describe('tableau de bord', () => {
-  it('compose indicateurs, flux, vélocité et roadmap sans style en ligne', async () => {
+  it('Avancement en cartes (T-0155) : indicateurs, prochaine version, flux, trackers, vélocité, activité, sans style en ligne', async () => {
     handlers = [
+      on('GET', /\/v1\/me\/dashboard/, { body: { widgets: progressWidgets('ARI'), isDefault: true } }),
+      on('GET', '/v1/projects/ARI/overview', { body: { trackers: [{ key: 'BUG', name: 'Bugs', artifacts: 12, statuses: [{ category: 'todo', count: 3 }, { category: 'in_progress', count: 2 }, { category: 'done', count: 7 }] }] } }),
+      on('GET', /\/activity/, { body: { items: [
+        { id: 'a1', kind: 'updated', at: '2026-10-31T10:00:00.000Z', key: 'ARI-BUG-0001', actorName: 'Alice', fields: ['Responsable'], to: null },
+        { id: 'a2', kind: 'transition', at: '2026-10-31T09:00:00.000Z', key: 'ARI-BUG-0001', actorName: 'Bob', fields: [], to: 'Ouvert' },
+      ], next: null, people: [] } }),
       on('GET', '/v1/projects/ARI/dashboard', { body: { byCategory: { todo: 3, in_progress: 2, done: 7 }, byTracker: [{ tracker: 'BUG', total: 12, open: 5 }], distribution: null, recent: [{ key: 'BUG-1', at: '2026-10-31T10:00:00.000Z' }] } }),
       on('GET', '/v1/projects/ARI/velocity', { body: { sprints: [{ sprint: 'S1', committed: 8, completed: 5 }], average: 5, forecast: 5 } }),
       on('GET', /\/flow\?days=7/, { body: [{ date: '2026-10-30', todo: 4, in_progress: 2, done: 6 }, { date: '2026-10-31', todo: 3, in_progress: 2, done: 7 }] }),
       on('GET', '/v1/projects/ARI/roadmap', { body: [{ id: 'r1', name: '1.0', startsOn: '2026-10-01', endsOn: '2026-11-01', state: 'planned', items: 4, doneItems: 2, progress: 0.5 }] }),
     ];
     const { container } = wrap('/p/ARI/dashboard', <DashboardPage />, '/p/:project/dashboard');
-    expect(await screen.findByText('5')).toHaveClass('ath-stat__value'); // ouverts = à faire + en cours
-    expect(screen.getByText('12 total')).toBeInTheDocument();
-    expect(screen.getByRole('img', { name: '1.0 : 50' })).toBeInTheDocument();
-    expect(screen.getByRole('img', { name: 'S1 Terminé : 5' })).toBeInTheDocument();
-    expect(screen.getByText(/Prévision du prochain sprint : 5 points/)).toBeInTheDocument();
-    expect(container.querySelectorAll('.ath-corner')).toHaveLength(1); // un seul réticule par page
+    const tickets = within(await screen.findByRole('group', { name: 'Tickets' }));
+    expect(await tickets.findByText('12 tickets au total')).toBeInTheDocument();
+    expect(tickets.getByText('-1 en 7 jours')).toBeInTheDocument(); // ouverts : 6 il y a 7 jours, 5 aujourd’hui
+    expect(await screen.findByRole('img', { name: /Flux cumulé sur 7 jours, aujourd’hui : 3 à faire, 2 en cours, 7 terminés/ })).toBeInTheDocument();
+    expect(await screen.findByRole('img', { name: 'Vélocité des derniers sprints, moyenne 5 points' })).toBeInTheDocument();
+    expect(await screen.findByRole('img', { name: 'Bugs : 3 à faire, 2 en cours, 7 terminés' })).toBeInTheDocument();
+    expect(await screen.findByRole('img', { name: 'Avancement 50 %' })).toBeInTheDocument();
+    const activity = within(screen.getByRole('group', { name: 'Activité récente' }));
+    expect(await activity.findAllByRole('link', { name: 'ARI-BUG-0001' })).toHaveLength(1); // une ligne par ticket
+    expect(container.querySelectorAll('.ath-dashgrid > .ath-dashcard')).toHaveLength(6);
+    expect(container.querySelectorAll('.ath-corner')).toHaveLength(0); // plus de réticule : le modèle de carte commun
     expect(container.querySelectorAll('[style]')).toHaveLength(0); // compatible CSP sans styles en ligne
   });
 });
