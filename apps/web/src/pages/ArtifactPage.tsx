@@ -126,6 +126,9 @@ export function ArtifactView({ session, project, itemKey: key, embedded = false,
   const [comment, setComment] = useState('');
   const [sprint, setSprint] = useState<ItemSprint | null>(null);
   const [files, setFiles] = useState<AttachmentView[]>([]);
+  // Saisie gardée après un conflit d'enregistrement (T-0148) et heure du dernier enregistrement automatique.
+  const [conflict, setConflict] = useState<{ key: string; raw: string } | null>(null);
+  const [savedAt, setSavedAt] = useState<Date | null>(null);
   const base = `/v1/projects/${project}/artifacts/${key}`;
 
   const reload = useCallback(async () => {
@@ -157,17 +160,31 @@ export function ArtifactView({ session, project, itemKey: key, embedded = false,
     try {
       const updated = await api<Artifact>('PATCH', base, { values: { [field.key]: parseValue(field, raw) }, version: artifact.version });
       setArtifact(updated);
+      setConflict((c) => (c?.key === field.key ? null : c));
+      setSavedAt(new Date());
       setHistory(await api<Revision[]>('GET', `${base}/history`));
       toast('success', fr.artifact.saved);
     } catch (error) {
-      if (error instanceof ApiError && error.status === 409) await reload();
+      // Conflit : le ticket a changé entre-temps. La saisie est gardée et proposée, rien n'est perdu (T-0148).
+      if (error instanceof ApiError && error.status === 409) { setConflict({ key: field.key, raw }); await reload(); return; }
       fail(error);
     }
+  };
+  const me = session.user?.id ?? session.user?.username ?? '';
+  const assigneeField = def.fields.find((f) => f.semanticRole === 'assignee' || f.key === 'assignee');
+  const roles = session.user?.roles ?? [];
+  // « + Ajouter » d'une information clé : le champ dans Détails, les liens dans Liens, le sprint dans le Backlog.
+  const addFact = (target: string) => {
+    if (target === 'parent' || target === 'blockedBy') { setTab('links'); return; }
+    if (target === 'sprint') { navigate(`/p/${project}/backlog`); return; }
+    setTab('details');
+    window.setTimeout(() => document.getElementById(`f-${target}`)?.focus(), 0);
   };
   const transition = async (name: string) => {
     try {
       const updated = await api<Artifact>('POST', `${base}/transitions`, { name, version: artifact.version });
       setArtifact({ ...artifact, status: updated.status, version: updated.version });
+      setSavedAt(new Date());
       setHistory(await api<Revision[]>('GET', `${base}/history`));
       toast('success', fr.artifact.transitioned(name));
     } catch (error) {
@@ -216,7 +233,9 @@ export function ArtifactView({ session, project, itemKey: key, embedded = false,
 
   return (
     <>
-      <ItemHeader session={session} project={project} def={def} artifact={artifact} links={links} sprint={sprint} embedded={embedded} onTransition={(name) => void transition(name)} onExpand={onExpand} onClose={onClose} />
+      <ItemHeader session={session} project={project} def={def} artifact={artifact} links={links} sprint={sprint} embedded={embedded} onTransition={(name) => void transition(name)} onExpand={onExpand} onClose={onClose}
+        savedAt={savedAt} onAdd={addFact}
+        onAssignMe={assigneeField && me && canWrite(assigneeField, roles) ? () => void save(assigneeField, me) : undefined} />
       <Tabs
         tabs={[
           { id: 'details', label: fr.artifact.details }, { id: 'links', label: fr.artifact.links }, { id: 'history', label: fr.artifact.history },
@@ -229,7 +248,8 @@ export function ArtifactView({ session, project, itemKey: key, embedded = false,
         {tab === 'details' && (
           <Card title={fr.artifact.details} meta={`v${artifact.version}`}>
             <div className="ath-stack">
-              <MarkingEditor project={project} itemKey={artifact.key} value={artifact.exportControl} canEdit={(session.user?.roles ?? []).some((r) => r === 'athena-admin' || r === 'athena-pm')} onChanged={reload} />
+              {/* Marquage export : modifiable par les responsables ; pour les autres, un badge dans l'en-tête suffit (T-0148). */}
+              {roles.some((r) => r === 'athena-admin' || r === 'athena-pm') && <MarkingEditor project={project} itemKey={artifact.key} value={artifact.exportControl} canEdit onChanged={reload} />}
               {resolveLayout(def.layout, def.fields, { general: fr.layout.general, details: fr.layout.details, others: fr.layout.others }).sections.map((section, i) => (
                 section.fields.length === 0 ? null : (
                   <section key={i} aria-label={section.title || undefined} className="ath-layout-view">
@@ -237,7 +257,18 @@ export function ArtifactView({ session, project, itemKey: key, embedded = false,
                     <div className="ath-layout-grid">
                       {section.fields.map((lf) => {
                         const f = def.fields.find((x) => x.key === lf.key)!;
-                        return <div key={f.key} className={`ath-span-${lf.span}`}><FieldEditor field={f} value={artifact.values[f.key]} roles={session.user?.roles ?? []} onCommit={(raw) => save(f, raw)} /></div>;
+                        const pending = conflict?.key === f.key ? conflict.raw : undefined;
+                        return (
+                          <div key={f.key} className={`ath-span-${lf.span}`}>
+                            {pending !== undefined && (
+                              <div className="ath-notice ath-stack" role="alert">
+                                <span>{fr.artifact.conflict(f.label)}</span>
+                                <div className="ath-row"><Btn size="sm" onClick={() => void save(f, pending)}>{fr.artifact.keepMine}</Btn><Btn size="sm" variant="ghost" onClick={() => setConflict(null)}>{fr.artifact.keepTheirs}</Btn></div>
+                              </div>
+                            )}
+                            <FieldEditor field={f} value={pending ?? artifact.values[f.key]} roles={roles} onCommit={(raw) => save(f, raw)} />
+                          </div>
+                        );
                       })}
                     </div>
                   </section>

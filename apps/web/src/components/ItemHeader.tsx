@@ -1,8 +1,8 @@
 import { useEffect, useRef, type ReactNode } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Btn, Id, PageHeader, StatusPill } from '@athena/ui';
+import { Btn, Id, PageHeader, StatusPill, Tag } from '@athena/ui';
 import type { Artifact, Session, TrackerDefinition } from '../api';
-import { fr } from '../i18n';
+import { fr, getLocale } from '../i18n';
 import { fromHere, originOf } from '../lib/origin';
 import { pillKind } from '../pages/ListPage';
 import { PinToggle } from './PinToggle';
@@ -80,27 +80,34 @@ export function ItemNav({ project, itemKey }: { project: string; itemKey: string
  * les champs des rôles `priority` et `version` (le libellé du champ remplace le libellé générique). Une information absente,
  * ou sans champ dans le tracker, vaut « — » : la grille reste la même d'un ticket à l'autre.
  */
-export function ItemFacts({ project, def, artifact, links, sprint, compact = false }: {
+export function ItemFacts({ project, def, artifact, links, sprint, compact = false, onAdd, onAssignMe }: {
   project: string; def: TrackerDefinition; artifact: Artifact; links: ItemLink[]; sprint: ItemSprint | null; compact?: boolean;
+  /** « + Ajouter » d'une information vide : clé du champ, ou sprint, parent, blockedBy (T-0148). */
+  onAdd?: ((target: string) => void) | undefined; onAssignMe?: (() => void) | undefined;
 }) {
-  const byRole = (role: string) => def.fields.find((f) => f.semanticRole === role);
-  const value = (role: string, mono = false) => {
+  // Rôle sémantique, sinon clé du même nom : un tracker dont le champ « priority » n'a pas de rôle affiche quand même sa valeur.
+  const byRole = (role: string) => def.fields.find((f) => f.semanticRole === role) ?? def.fields.find((f) => f.key === role);
+  const empty = (term: string, target: string | null) => (onAdd && target
+    ? <Btn size="sm" variant="ghost" aria-label={fr.facts.addLabel(term)} onClick={() => onAdd(target)}>{fr.facts.add}</Btn> : <None />);
+  const value = (role: string, term: string, mono = false) => {
     const field = byRole(role);
     const raw = field ? artifact.values[field.key] : undefined;
     const text = raw === undefined || raw === null || raw === '' ? '' : Array.isArray(raw) ? raw.join(', ') : String(raw);
-    return text === '' ? <None /> : <span className={mono ? 'ath-mono' : undefined}>{text}</span>;
+    if (text !== '') return <span className={mono ? 'ath-mono' : undefined}>{text}</span>;
+    if (role === 'assignee' && field) return <span className="ath-row">{fr.facts.unassigned}{onAssignMe && <Btn size="sm" variant="ghost" onClick={onAssignMe}>{fr.facts.assignMe}</Btn>}</span>;
+    return empty(term, field ? field.key : null);
   };
   const label = (role: string, fallback: string) => byRole(role)?.label ?? fallback;
   const parents = links.filter((l) => l.hierarchical && l.direction === 'outward').map((l) => l.other);
   const blockers = links.filter((l) => l.type === 'blocks' && l.direction === 'inward').map((l) => l.other);
   const facts: Array<[string, ReactNode]> = [
-    [label('assignee', fr.facts.assignee), value('assignee', true)],
-    [label('priority', fr.facts.priority), value('priority')],
-    [label('due_date', fr.facts.due), value('due_date', true)],
-    [label('version', fr.facts.version), value('version', true)],
-    [fr.facts.sprint, sprint ? sprint.name : <None />],
-    [fr.facts.parent, <Keys project={project} from={artifact.key} keys={parents} />],
-    [fr.facts.blockedBy, <Keys project={project} from={artifact.key} keys={blockers} />],
+    [label('assignee', fr.facts.assignee), value('assignee', label('assignee', fr.facts.assignee))],
+    [label('priority', fr.facts.priority), value('priority', label('priority', fr.facts.priority))],
+    [label('due_date', fr.facts.due), value('due_date', label('due_date', fr.facts.due), true)],
+    [label('version', fr.facts.version), value('version', label('version', fr.facts.version), true)],
+    [fr.facts.sprint, sprint ? sprint.name : empty(fr.facts.sprint, 'sprint')],
+    [fr.facts.parent, parents.length ? <Keys project={project} from={artifact.key} keys={parents} /> : empty(fr.facts.parent, 'parent')],
+    [fr.facts.blockedBy, blockers.length ? <Keys project={project} from={artifact.key} keys={blockers} /> : empty(fr.facts.blockedBy, 'blockedBy')],
   ];
   return (
     <dl className={compact ? 'ath-facts ath-facts--compact' : 'ath-facts'} aria-label={fr.facts.label}>
@@ -113,11 +120,15 @@ export function ItemFacts({ project, def, artifact, links, sprint, compact = fal
  * En-tête de la fiche : clé, titre, statut, transitions, abonnement. Dans le panneau de l'écran Tracker (`embedded`), il
  * porte aussi « Agrandir » et « Fermer » ; sur la page, l'épingle et le lien vers le projet.
  */
-export function ItemHeader({ session, project, def, artifact, links, sprint, embedded, onTransition, onExpand, onClose }: {
+export function ItemHeader({ session, project, def, artifact, links, sprint, embedded, onTransition, onExpand, onClose, savedAt = null, onAdd, onAssignMe }: {
   session: Session; project: string; def: TrackerDefinition; artifact: Artifact; links: ItemLink[]; sprint: ItemSprint | null; embedded: boolean;
   onTransition: (name: string) => void; onExpand?: (() => void) | undefined; onClose?: (() => void) | undefined;
+  savedAt?: Date | null; onAdd?: ((target: string) => void) | undefined; onAssignMe?: (() => void) | undefined;
 }) {
-  const facts = <ItemFacts project={project} def={def} artifact={artifact} links={links} sprint={sprint} compact={embedded} />
+  const facts = <ItemFacts project={project} def={def} artifact={artifact} links={links} sprint={sprint} compact={embedded} onAdd={onAdd} onAssignMe={onAssignMe} />;
+  // Chaque champ s'enregistre en le quittant : on le dit, puis on donne l'heure du dernier enregistrement (T-0148).
+  const saveNote = <span className="ath-field__hint" role="status">✓ {savedAt ? fr.facts.savedAt(savedAt.toLocaleTimeString(getLocale(), { hour: '2-digit', minute: '2-digit' })) : fr.facts.autosave}</span>;
+  const exportTag = artifact.exportControl ? <Tag variant="accent">{fr.facts.exportTag(artifact.exportControl)}</Tag> : null;
   const status = def.statuses.find((s) => s.key === artifact.status);
   const available = availableTransitions(def, artifact, session);
   const title = String(artifact.values['title'] ?? artifact.values['name'] ?? '');
@@ -136,6 +147,7 @@ export function ItemHeader({ session, project, def, artifact, links, sprint, emb
         </div>
         <div className="ath-row">
           {pill}
+          {exportTag}
           {transitions('sm')}
           <SubscribeToggle project={project} scope="item" target={artifact.key} />
           <Btn size="sm" variant="ghost" onClick={onExpand}>{fr.detail.expand}</Btn>
@@ -150,7 +162,7 @@ export function ItemHeader({ session, project, def, artifact, links, sprint, emb
     <PageHeader
       eyebrow={def.name}
       title={<><span className="ath-mono ath-nowrap">{artifact.key}</span> · {title}</>}
-      sub={<>{pill} <Link className="ath-link" to={`/p/${project}`}>{project}</Link></>}
+      sub={<>{pill} {exportTag} {saveNote}</>}
       actions={<>{transitions('md')}<SubscribeToggle project={project} scope="item" target={artifact.key} size="md" /><PinToggle entry={{ kind: 'item', project: String(project), ref: artifact.key, label: artifact.key }} /></>}
     />
     {/* Sous l'en-tête collant, qui recouvrirait sinon la navigation une fois la page défilée. */}

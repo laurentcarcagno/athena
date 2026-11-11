@@ -1,11 +1,12 @@
 import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import axe from 'axe-core';
-import { RouterProvider, createMemoryRouter, useLocation } from 'react-router-dom';
+import { MemoryRouter, RouterProvider, createMemoryRouter, useLocation } from 'react-router-dom';
 import { ToastProvider } from '@athena/ui';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Session } from './api';
 import { ArtifactPage } from './pages/ArtifactPage';
+import { ItemFacts } from './components/ItemHeader';
 
 // T-0112 : fiche du ticket, informations clés dans l'en-tête et onglet actif dans l'adresse.
 
@@ -75,12 +76,13 @@ describe('fiche : informations clés dans l’en-tête', () => {
     expect(fact(list, 'Bloqué par')).not.toHaveTextContent('ARI-TSK-0004'); // « bloque » n'est pas un blocage du ticket
   });
 
-  it('une information absente vaut « — », annoncée « non renseigné » aux lecteurs d’écran', async () => {
+  it('une information absente propose son action : « Non assigné » et « M’assigner », « + Ajouter » ailleurs (T-0148)', async () => {
     sheet();
     const list = await facts();
-    for (const term of ['Responsable', 'Sévérité', 'Échéance', 'Version corrigée', 'Sprint', 'Parent', 'Bloqué par']) {
-      expect(fact(list, term)).toHaveTextContent('—');
-      expect(within(fact(list, term)).getByText('non renseigné')).toHaveClass('ath-visually-hidden');
+    expect(fact(list, 'Responsable')).toHaveTextContent('Non assigné');
+    expect(within(fact(list, 'Responsable')).getByRole('button', { name: 'M’assigner' })).toBeInTheDocument();
+    for (const term of ['Sévérité', 'Échéance', 'Version corrigée', 'Sprint', 'Parent', 'Bloqué par']) {
+      expect(within(fact(list, term)).getByRole('button', { name: `Ajouter : ${term}` })).toHaveTextContent('+ Ajouter');
     }
   });
 
@@ -129,5 +131,15 @@ describe('fiche : onglet actif dans l’adresse (?onglet=)', () => {
     await userEvent.keyboard('l');
     await waitFor(() => expect(screen.getByTestId('where')).toHaveTextContent('?onglet=links'));
     expect(screen.getByRole('tab', { name: 'Liens', selected: true })).toBeInTheDocument();
+  });
+});
+
+describe('informations clés : champ sans rôle sémantique (T-0148)', () => {
+  it('la priorité d’un tracker dont le champ « priority » n’a pas de rôle s’affiche quand même', () => {
+    const def = { key: 'REQ', name: 'Exigences', statuses: [], transitions: [], fields: [{ id: '1', key: 'priority', label: 'Priorité', type: 'select', config: {}, required: false, semanticRole: null }] } as unknown as Parameters<typeof ItemFacts>[0]['def'];
+    const artifact = { id: 'a', key: 'SAT1-REQ-0001', trackerKey: 'REQ', status: 'approved', values: { priority: 'haute' }, version: 3 };
+    render(<MemoryRouter><ItemFacts project="SAT1" def={def} artifact={artifact} links={[]} sprint={null} /></MemoryRouter>);
+    const item = screen.getByText('Priorité').closest('.ath-facts__item') as HTMLElement;
+    expect(within(item).getByText('haute')).toBeInTheDocument();
   });
 });

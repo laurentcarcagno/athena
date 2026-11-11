@@ -23,7 +23,7 @@ const frDict = {
   artifact: {
     readOnlyBy: (roles: string[]) => `Lecture seule : modifiable par ${roles.join(', ')}.`,
     details: 'Détails', links: 'Liens', history: 'Historique', activity: 'Commentaires', development: 'Développement',
-    transitions: 'Transitions', save: 'Enregistrer', saved: 'Modification enregistrée.', comment: 'Commentaire', addComment: 'Ajouter',
+    transitions: 'Transitions', save: 'Enregistrer', saved: 'Modification enregistrée.', conflict: (label: string) => `« ${label} » a été modifié par quelqu’un d’autre entre-temps. Votre saisie est gardée ci-dessous.`, keepMine: 'Enregistrer ma version', keepTheirs: 'Garder la version actuelle', comment: 'Commentaire', addComment: 'Ajouter',
     attachments: 'Pièces jointes', noAttachments: 'Aucune pièce jointe.', upload: 'Ajouter un fichier', download: 'Télécharger', removeAttachment: 'Supprimer', uploaded: 'Fichier ajouté.', removedAttachment: 'Pièce jointe supprimée.',
     noHistory: 'Aucune révision.', noLinks: 'Aucun lien.', noComments: 'Aucun commentaire.', noCode: 'Aucune référence de code.', noDocs: 'Aucune exigence liée.',
     suspect: 'Suspect', commit: 'Commit', docs: 'Documentation liée', transitioned: (name: string) => `Transition « ${name} » appliquée.`,
@@ -193,6 +193,8 @@ const frDict = {
   facts: {
     label: 'Informations clés', assignee: 'Responsable', priority: 'Priorité', due: 'Échéance', version: 'Version', sprint: 'Sprint',
     parent: 'Parent', blockedBy: 'Bloqué par', none: '—', noneLabel: 'non renseigné',
+    unassigned: 'Non assigné', assignMe: 'M’assigner', add: '+ Ajouter', addLabel: (term: string) => `Ajouter : ${term}`,
+    autosave: 'Enregistrement automatique', savedAt: (time: string) => `Enregistré à ${time}`, exportTag: (v: string) => `Contrôle export : ${v}`,
   },
   origin: {
     nav: 'Navigation depuis l’origine', back: (label: string) => `Retour : ${label}`, position: 'Position dans la liste', previous: 'Précédent', next: 'Suivant',
@@ -447,7 +449,7 @@ const enDict: Dictionary = {
   artifact: {
     readOnlyBy: (roles: string[]) => `Read only: editable by ${roles.join(', ')}.`,
     details: 'Details', links: 'Links', history: 'History', activity: 'Comments', development: 'Development',
-    transitions: 'Transitions', save: 'Save', saved: 'Change saved.', comment: 'Comment', addComment: 'Add',
+    transitions: 'Transitions', save: 'Save', saved: 'Change saved.', conflict: (label: string) => `“${label}” was changed by someone else in the meantime. Your input is kept below.`, keepMine: 'Save my version', keepTheirs: 'Keep the current version', comment: 'Comment', addComment: 'Add',
     attachments: 'Attachments', noAttachments: 'No attachment.', upload: 'Add a file', download: 'Download', removeAttachment: 'Delete', uploaded: 'File added.', removedAttachment: 'Attachment deleted.',
     noHistory: 'No revision.', noLinks: 'No link.', noComments: 'No comment.', noCode: 'No code reference.', noDocs: 'No linked requirement.',
     suspect: 'Suspect', commit: 'Commit', docs: 'Linked documentation', transitioned: (name: string) => `Transition "${name}" applied.`,
@@ -617,6 +619,8 @@ const enDict: Dictionary = {
   facts: {
     label: 'Key information', assignee: 'Assignee', priority: 'Priority', due: 'Due date', version: 'Version', sprint: 'Sprint',
     parent: 'Parent', blockedBy: 'Blocked by', none: '—', noneLabel: 'not set',
+    unassigned: 'Unassigned', assignMe: 'Assign to me', add: '+ Add', addLabel: (term: string) => `Add: ${term}`,
+    autosave: 'Saved automatically', savedAt: (time: string) => `Saved at ${time}`, exportTag: (v: string) => `Export control: ${v}`,
   },
   origin: {
     nav: 'Navigation from origin', back: (label: string) => `Back: ${label}`, position: 'Position in the list', previous: 'Previous', next: 'Next',

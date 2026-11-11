@@ -72,3 +72,14 @@ test('tracker sur téléphone : la liste commence dans le premier écran ; « Fi
   await expect(toggle).toHaveAttribute('aria-expanded', 'true');
   await expect(page.getByRole('combobox', { name: 'Sévérité' })).toBeVisible();
 });
+
+test('fiche : enregistrement automatique annoncé ; « + Ajouter » mène au champ (T-0148)', async ({ page }) => {
+  await login(page);
+  await page.goto('/p/ARI/a/ARI-BUG-0001');
+  await expect(page.getByText('✓ Enregistrement automatique')).toBeVisible();
+  const facts = page.getByRole('definition').filter({ has: page.getByRole('button', { name: /^Ajouter : / }) }).first();
+  const button = facts.getByRole('button', { name: /^Ajouter : / });
+  const term = ((await button.getAttribute('aria-label')) ?? '').replace('Ajouter : ', '');
+  await button.click();
+  if (!['Sprint', 'Parent', 'Bloqué par'].includes(term)) await expect(page.getByLabel(new RegExp(`^${term}`))).toBeFocused();
+});

@@ -133,7 +133,7 @@ describe('fiche d’ticket', () => {
     expect(await screen.findByText('Transition « Démarrer » appliquée.')).toBeInTheDocument();
     expect(await screen.findByRole('button', { name: 'Revue' })).toBeInTheDocument();
   });
-  it('enregistre un champ modifié et recharge après un conflit de version', async () => {
+  it('conflit de version : la saisie est gardée et proposée, rien n’est perdu (T-0148)', async () => {
     artifactHandlers([route('PATCH', '/v1/projects/ARI/artifacts/BUG-1', { status: 409, body: { error: 'conflict', message: 'Version attendue 1, version courante 2.', details: [] } })]);
     renderAt('/p/ARI/a/BUG-1', <ArtifactPage session={session} />, '/p/:project/a/:key');
     const title = await screen.findByLabelText('Titre (obligatoire)');
@@ -141,7 +141,11 @@ describe('fiche d’ticket', () => {
     await userEvent.type(title, 'Nouveau titre');
     await userEvent.tab();
     await waitFor(() => expect(calls.find((c) => c.method === 'PATCH')?.body).toEqual({ values: { title: 'Nouveau titre' }, version: 1 }));
-    expect(await screen.findByText(/Version attendue 1, version courante 2/)).toBeInTheDocument();
+    expect(await screen.findByText(/a été modifié par quelqu’un d’autre entre-temps/)).toBeInTheDocument();
+    expect(screen.getByLabelText('Titre (obligatoire)')).toHaveValue('Nouveau titre');
+    expect(screen.getByRole('button', { name: 'Enregistrer ma version' })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Garder la version actuelle' }));
+    expect(screen.queryByText(/a été modifié par quelqu’un d’autre/)).toBeNull();
   });
   it('affiche historique avec SHA en mono, liens suspects et références de code', async () => {
     artifactHandlers();
