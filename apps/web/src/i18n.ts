@@ -290,6 +290,14 @@ const frDict = {
     emptySection: 'Section vide : déposez un attribut ici.', dragHint: 'Un attribut non placé reste visible à la suite des autres sur la fiche.', save: 'Enregistrer la disposition', saved: 'Disposition enregistrée.',
   },
   palette: { title: 'Commandes', placeholder: 'Aller à… ou rechercher un ticket (clé ou titre), tous projets', none: 'Aucun résultat.', create: 'Créer un ticket…', searchAll: (q: string) => `Rechercher « ${q} » dans tous les projets`, globalSearch: 'Recherche globale', projects: 'Projets', artifacts: 'Tickets', goto: 'Aller à' },
+  denied: {
+    eyebrow: 'Accès réservé', ask: 'Décrivez votre besoin à un administrateur de l’organisation : il peut le faire pour vous ou vous donner le rôle nécessaire.',
+    trackerCreate: 'Seul un administrateur peut ajouter un tracker.', backTrackers: 'Retour aux trackers',
+    section: (name: string, who: string) => `La section ${name} est réservée ${who}.`, backSettings: 'Retour aux paramètres', noSection: 'Les paramètres du projet sont réservés aux administrateurs, aux chefs de projet et à l’assurance qualité.', backProject: 'Retour au projet',
+    reportOff: (name: string) => `Le rapport ${name} n’est pas activé pour ce projet.`, reportOffHelp: 'Son module est désactivé : un administrateur peut l’activer dans les modules du projet.', backReports: 'Retour aux rapports',
+    org: 'L’administration de l’organisation est réservée aux administrateurs.', backHome: 'Retour à Mon travail', and: 'et',
+    roles: { 'athena-admin': 'aux administrateurs', 'athena-pm': 'aux chefs de projet', 'athena-qa': 'à l’assurance qualité' } as Record<string, string>,
+  },
   errors: {
     generic: 'Une erreur est survenue. Réessayez.', notFoundTitle: 'Page introuvable', notFoundEyebrow: 'Erreur 404', notFound: 'Cette adresse ne correspond à aucune page.',
     unavailableEyebrow: 'Connexion', unavailable: 'Authentification indisponible.',
@@ -688,6 +696,14 @@ const enDict: Dictionary = {
     emptySection: 'Empty section: drop an attribute here.', dragHint: 'An unplaced attribute still shows after the others on the sheet.', save: 'Save layout', saved: 'Layout saved.',
   },
   palette: { title: 'Commands', placeholder: 'Go to… or search for a ticket (key or title), all projects', none: 'No result.', create: 'Create a ticket…', searchAll: (q: string) => `Search “${q}” in all projects`, globalSearch: 'Global search', projects: 'Projects', artifacts: 'Artifacts', goto: 'Go to' },
+  denied: {
+    eyebrow: 'Restricted access', ask: 'Describe what you need to an organization administrator: they can do it for you or give you the required role.',
+    trackerCreate: 'Only an administrator can add a tracker.', backTrackers: 'Back to trackers',
+    section: (name: string, who: string) => `The ${name} section is reserved ${who}.`, backSettings: 'Back to settings', noSection: 'Project settings are reserved to administrators, project managers and quality assurance.', backProject: 'Back to the project',
+    reportOff: (name: string) => `The ${name} report is not enabled for this project.`, reportOffHelp: 'Its module is disabled: an administrator can enable it in the project modules.', backReports: 'Back to reports',
+    org: 'Organization administration is reserved to administrators.', backHome: 'Back to My work', and: 'and',
+    roles: { 'athena-admin': 'to administrators', 'athena-pm': 'to project managers', 'athena-qa': 'to quality assurance' } as Record<string, string>,
+  },
   errors: {
     generic: 'An error occurred. Try again.', notFoundTitle: 'Page not found', notFoundEyebrow: 'Error 404', notFound: 'This address does not match any page.',
     unavailableEyebrow: 'Sign in', unavailable: 'Authentication unavailable.',

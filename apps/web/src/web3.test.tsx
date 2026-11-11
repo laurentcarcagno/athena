@@ -66,12 +66,12 @@ describe('fenêtres par rôle', () => {
 
   it('refuse la gestion de projet à un simple utilisateur', () => {
     app('/p/ARI/manage', ['athena-user']);
-    expect(screen.getByText(/Réservé aux administrateurs, aux chefs de projet/)).toBeInTheDocument(); // T-0120 : /manage mène aux Paramètres
+    expect(screen.getByRole('heading', { name: /réservés aux administrateurs, aux chefs de projet/ })).toBeInTheDocument(); // T-0120 : /manage mène aux Paramètres
   });
 
   it('refuse l’administration de l’organisation à un chef de projet', () => {
     app('/org', ['athena-user', 'athena-pm']);
-    expect(screen.getByText('Réservé aux administrateurs.')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'L’administration de l’organisation est réservée aux administrateurs.' })).toBeInTheDocument();
   });
 
   it('l’administrateur crée un projet puis nomme un chef de projet', async () => {

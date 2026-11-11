@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Btn, PageHeader, useToast } from '@athena/ui';
 import { api, type Session } from '../api';
 import { TemplatePicker, type TrackerTemplateEntry } from '../components/TrackerTemplateForm';
+import { AccessNotice } from '../components/AccessNotice';
 import { TrackerBuilder, emptyTracker, trackerProblems, type DraftTracker } from '../components/TrackerBuilder';
 import { useBusy, useFailure } from '../hooks';
 import { fr } from '../i18n';
@@ -19,7 +20,7 @@ export function TrackerCreatePage({ session }: { session: Session }) {
   const [templates, setTemplates] = useState<TrackerTemplateEntry[]>([]);
   const [draft, setDraft] = useState<DraftTracker>(emptyTracker());
   useEffect(() => { if (admin) api<TrackerTemplateEntry[]>('GET', '/v1/tracker-templates').then(setTemplates).catch(fail); }, [admin, fail]);
-  if (!admin) return <><PageHeader eyebrow={fr.builder.newTracker} title={fr.builder.addTracker} /><p className="ath-field__error">{fr.builder.adminOnly}</p></>;
+  if (!admin) return <><PageHeader eyebrow={fr.builder.newTracker} title={fr.builder.addTracker} /><AccessNotice title={fr.denied.trackerCreate} help={fr.denied.ask} back={{ to: `/p/${project}/trackers`, label: fr.denied.backTrackers }} /></>;
   const problems = trackerProblems(draft);
   const submit = (event: FormEvent) => { event.preventDefault(); void guard(() => submitRun()); };
   const submitRun = async () => {

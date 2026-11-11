@@ -6,7 +6,8 @@ import { ApprovalsPanel } from '../components/ApprovalsPanel';
 import { BaselineCompare } from '../components/BaselineCompare';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
-import { visibleSettings, type SettingsId } from '../lib/navigation';
+import { SETTINGS_SECTIONS, visibleSettings, type SettingsId } from '../lib/navigation';
+import { AccessNotice, whoOf } from '../components/AccessNotice';
 import { MembersPanel } from './project/MembersTab';
 import { BoardsTab } from './ProjectManagePage';
 import { AutomationsTab, BaselineCreate } from './SettingsPanels';
@@ -45,8 +46,11 @@ export function SettingsPage({ session }: { session: Session }) {
   const roles = session.user?.roles ?? [];
   const sections = visibleSettings(roles);
   const header = (sub?: string) => <PageHeader title={sub ? `${fr.settings.title} · ${sub}` : fr.settings.title} />;
-  if (sections.length === 0) return <>{header()}<p className="ath-field__error">{fr.settings.restricted}</p></>;
+  if (sections.length === 0) return <>{header()}<AccessNotice title={fr.denied.noSection} help={fr.denied.ask} back={{ to: `/p/${project}`, label: fr.denied.backProject }} /></>;
   const current = sections.find((s) => s.id === section);
+  // Section connue mais réservée à d’autres rôles : on le dit, au lieu de basculer sans prévenir sur une autre (T-0144).
+  const known = SETTINGS_SECTIONS.find((s) => s.id === section);
+  if (!current && known && known.access.kind === 'roles') return <>{header(fr.settings.sections[known.id])}<AccessNotice title={fr.denied.section(fr.settings.sections[known.id]!, whoOf(known.access.roles))} help={fr.denied.ask} back={{ to: `/p/${project}/parametres/${sections[0]!.id}`, label: fr.denied.backSettings }} /></>;
   if (!current) return <Navigate replace to={`/p/${project}/parametres/${sections[0]!.id}`} />;
   if (current.id === 'trackers' && tracker) return <TrackerConfigPage session={session} />;
   const manager = roles.includes('athena-admin') || roles.includes('athena-pm');

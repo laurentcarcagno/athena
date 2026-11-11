@@ -35,3 +35,14 @@ test('téléphone (390 px) : la fiche garde la largeur de l’écran, ses onglet
   const tabs = page.locator('main .ath-tabs').first();
   expect(await tabs.evaluate((el) => el.scrollWidth > el.clientWidth)).toBe(true);
 });
+
+test('chef de projet : création de tracker et configuration d’un tracker disent qui peut agir, sans bascule silencieuse (T-0144)', async ({ page }) => {
+  await login(page, 'pm.dev', 'dev-only-pm');
+  await page.goto('/p/ARI/trackers/new');
+  await expect(page.getByRole('heading', { name: 'Seul un administrateur peut ajouter un tracker.' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Retour aux trackers' })).toBeVisible();
+  await page.goto('/p/ARI/parametres/trackers/BUG');
+  await expect(page.getByRole('heading', { name: 'La section Trackers est réservée aux administrateurs.' })).toBeVisible();
+  await expect(page).toHaveURL(/\/parametres\/trackers\/BUG$/);
+});
+

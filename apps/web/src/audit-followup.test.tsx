@@ -46,7 +46,7 @@ describe('F-13 et T-0120 : Paramètres du projet, sections selon le rôle', () =
 
   it('un simple utilisateur voit le message, sans section et sans aucun appel réseau', () => {
     mount(as(['athena-user']));
-    expect(screen.getByText(/Réservé aux administrateurs, aux chefs de projet/)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /réservés aux administrateurs, aux chefs de projet/ })).toBeInTheDocument();
     expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
     expect(fetchMock).not.toHaveBeenCalled();
   });

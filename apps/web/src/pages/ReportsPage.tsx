@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
-import { TabLinks } from '@athena/ui';
+import { PageHeader, TabLinks } from '@athena/ui';
 import { api, type Session } from '../api';
 import { fr } from '../i18n';
-import { visibleReports, type ReportId } from '../lib/navigation';
+import { REPORTS, visibleReports, type ReportId } from '../lib/navigation';
+import { AccessNotice } from '../components/AccessNotice';
 import { ActivityTab } from './project/ActivityTab';
 import { CodeTab } from './project/CodeTab';
 import { ConformityTab } from './project/ConformityTab';
@@ -24,6 +25,8 @@ export function ReportsPage({ session }: { session: Session }) {
   if (modules === undefined) return <p role="status">{fr.loading}</p>;
   const reports = visibleReports(modules);
   const current = reports.find((r) => r.id === report);
+  // Rapport connu mais dont le module est inactif : message, pas de bascule silencieuse vers un autre rapport (T-0144).
+  if (!current && REPORTS.some((r) => r.id === report)) return <><PageHeader title={fr.reports.names[report!]!} /><AccessNotice title={fr.denied.reportOff(fr.reports.names[report!]!)} help={fr.denied.reportOffHelp} back={{ to: `/p/${project}/rapports/${reports[0]!.id}`, label: fr.denied.backReports }} /></>;
   if (!current) return <Navigate replace to={`/p/${project}/rapports/${reports[0]!.id}`} />;
   // Les onglets se placent sous l'en-tête du rapport ouvert (ADR-0005, T-0143) : avant lui, l'en-tête collant les masquait.
   const tabs = <TabLinks label={fr.reports.nav} items={reports.map((r) => ({ id: r.id, label: fr.reports.names[r.id], current: r.id === current.id }))}

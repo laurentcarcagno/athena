@@ -203,7 +203,7 @@ describe('Paramètres (Membres) et Code', () => {
   it('Paramètres : réservés aux responsables et à l’assurance qualité', async () => {
     app('/p/ARI/parametres/membres');
     await screen.findByRole('heading', { level: 1, name: 'Paramètres' });
-    expect(screen.getByText(/Réservé aux administrateurs, aux chefs de projet/)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /réservés aux administrateurs, aux chefs de projet/ })).toBeInTheDocument();
   });
   it('Membres : un chef de projet voit la liste des acteurs, et les sections qui lui sont ouvertes', async () => {
     app('/p/ARI/parametres/membres', ['athena-user', 'athena-pm']);
@@ -235,9 +235,15 @@ describe('Rapports (T-0121)', () => {
     expect(reportNav().getAllByRole('link').map((l) => l.textContent)).toEqual(['Avancement', 'Traçabilité', 'Conformité', 'Livraison', 'Activité']);
     expect(reportNav().getByRole('link', { name: 'Livraison' })).toHaveAttribute('aria-current', 'page');
   });
-  it('masque un rapport dont le module est inactif et renvoie au premier rapport affiché', async () => {
+  it('rapport dont le module est inactif : le dit et propose de revenir aux rapports (T-0144, plus de bascule silencieuse)', async () => {
     modules = ['overview', 'activity'];
     app('/p/ARI/rapports/conformite');
+    expect(await screen.findByRole('heading', { name: 'Le rapport Conformité n’est pas activé pour ce projet.' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Retour aux rapports' })).toHaveAttribute('href', '/p/ARI/rapports/avancement');
+  });
+  it('masque un rapport dont le module est inactif dans les onglets', async () => {
+    modules = ['overview', 'activity'];
+    app('/p/ARI/rapports');
     await waitFor(() => expect(reportNav().getAllByRole('link').map((l) => l.textContent)).toEqual(['Avancement', 'Activité']));
     expect(reportNav().getByRole('link', { name: 'Avancement' })).toHaveAttribute('aria-current', 'page');
   });

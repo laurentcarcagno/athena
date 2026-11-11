@@ -65,10 +65,10 @@ test('audit : axe sur toutes les pages pour un utilisateur sans droit d’admini
   await login(page, 'user.dev', 'dev-only-user');
   await sweep(page, 'utilisateur');
   await page.goto('/org');
-  await expect(page.getByText('Réservé aux administrateurs.')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'L’administration de l’organisation est réservée aux administrateurs.' })).toBeVisible(); // T-0144
   await expect(page.getByRole('tab')).toHaveCount(0);
   // T-0120 : l'ancienne administration du projet mène aux Paramètres, réservés aux responsables et à l'assurance qualité.
   await page.goto('/p/ARI/admin');
-  await expect(page.getByText(/Réservé aux administrateurs, aux chefs de projet/)).toBeVisible();
+  await expect(page.getByRole('heading', { name: /réservés aux administrateurs, aux chefs de projet/ })).toBeVisible(); // T-0144
   await expect(page.getByRole('navigation', { name: 'Sections des paramètres' })).toHaveCount(0);
 });

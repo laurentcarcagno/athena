@@ -82,7 +82,7 @@ describe('listes d’ayants droit', () => {
 
   it('réservé aux responsables, et sans violation d’accessibilité', async () => {
     const first = open(session(['athena-user']));
-    expect(await screen.findByText(/Réservé|réservé/)).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: /réservé/ })).toBeInTheDocument();
     expect(screen.queryByText('Besoin d’en connaître')).toBeNull();
     first.unmount();
     const r = open();

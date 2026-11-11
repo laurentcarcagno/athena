@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { Btn, Card, Checkbox, EmptyState, Field, PageHeader, Select, Table, Tabs, Tag, Td, Textarea, Th, useToast } from '@athena/ui';
 import { api, type Session } from '../api';
 import { NormativeTemplateEditor, type NormativeDraft, type NormativeTemplateEntry } from '../components/NormativeTemplateEditor';
+import { AccessNotice } from '../components/AccessNotice';
 import { ProjectTemplateEditor } from '../components/ProjectTemplateEditor';
 import { TrackerTemplateForm, type TrackerTemplateEntry } from '../components/TrackerTemplateForm';
 import { useConfirm } from '../components/ConfirmDialog';
@@ -382,7 +383,7 @@ export function OrgAdminPage({ session }: { session: Session }) {
   const loadTemplates = useCallback(async () => setTemplates(await api<TemplateEntry[]>('GET', '/v1/project-templates')), []);
   const admin = session.user?.roles.includes('athena-admin') ?? false;
   useEffect(() => { if (admin) { api<UserEntry[]>('GET', '/v1/users').then(setUsers).catch(fail); loadTemplates().catch(fail); loadTrackerTemplates().catch(fail); } }, [admin, fail, loadTemplates, loadTrackerTemplates]);
-  if (!admin) return <><PageHeader eyebrow={fr.org.eyebrow} title={fr.org.title} /><p className="ath-field__error">{fr.config.adminOnly}</p></>;
+  if (!admin) return <><PageHeader eyebrow={fr.org.eyebrow} title={fr.org.title} /><AccessNotice title={fr.denied.org} help={fr.denied.ask} back={{ to: '/', label: fr.denied.backHome }} /></>;
   return (
     <>
       <PageHeader eyebrow={fr.org.eyebrow} title={fr.org.title} />

@@ -78,7 +78,7 @@ describe('approbation des jalons et baselines', () => {
     expect((await axe.run(qa.container, { rules: { 'color-contrast': { enabled: false } } })).violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.html.slice(0, 80)).join(' | ')}`)).toEqual([]);
     qa.unmount();
     page(as(['athena-user']));
-    expect(await screen.findByText(/Réservé|réservé/)).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: /réservé/ })).toBeInTheDocument();
   });
 
   it('un responsable trouve Approbations dans les Paramètres', async () => {
