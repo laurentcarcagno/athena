@@ -7,6 +7,13 @@ test('aperçus des thèmes', async ({ page }) => {
   test.setTimeout(5 * 60_000);
   await page.goto('/');
   await page.waitForURL(/localhost:8080\/realms\/athena/);
+  // Page de connexion (thème Keycloak généré, T-0139), en clair et en sombre selon le système.
+  await page.setViewportSize({ width: 1440, height: 900 });
+  for (const scheme of ['light', 'dark'] as const) {
+    await page.emulateMedia({ colorScheme: scheme });
+    await page.screenshot({ path: `visuel/apercu/connexion-${scheme}.png` });
+  }
+  await page.emulateMedia({ colorScheme: 'light' });
   await page.locator('#username').fill('admin.dev');
   await page.locator('#password').fill('dev-only-admin');
   await page.locator('#kc-login').click();

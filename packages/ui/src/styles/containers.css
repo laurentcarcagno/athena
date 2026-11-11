@@ -36,7 +36,7 @@
 
 /* Modale */
 .ath-modal-backdrop { position: fixed; inset: 0; background: var(--ath-surface-scrim); display: flex; align-items: center; justify-content: center; z-index: var(--ath-z-modal); }
-.ath-modal { background: var(--ath-surface-default); border: var(--ath-border-width-hairline) solid var(--ath-text-heading); width: var(--ath-size-dialog-sm); max-width: calc(100vw - 32px); border-radius: var(--ath-radius-surface); box-shadow: var(--ath-elevation-overlay); }
+.ath-modal { background: var(--ath-surface-raised); border: var(--ath-border-width-hairline) solid var(--ath-text-heading); width: var(--ath-size-dialog-sm); max-width: calc(100vw - 32px); border-radius: var(--ath-radius-surface); box-shadow: var(--ath-elevation-overlay); }
 .ath-modal--md { width: var(--ath-size-dialog-md); }
 .ath-modal--lg { width: var(--ath-size-dialog-lg); }
 .ath-modal__header { display: flex; align-items: center; justify-content: space-between; gap: var(--ath-space-md); padding: var(--ath-space-md); background: var(--ath-surface-inverse); color: var(--ath-text-on-inverse); }

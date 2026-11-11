@@ -1,0 +1,20 @@
+/* Règles du thème de connexion (T-0139, ADR-0004). Jetons uniquement : aucune couleur, taille ou rayon écrit en dur.
+   login.css = jetons du thème par défaut (générés par @nuance/theming, clair et sombre selon le système) + ces règles.
+   Régénérer : pnpm --filter @athena/ui login-theme */
+html, body, .login-pf-page, .pf-v5-c-login, .pf-v5-c-background-image { background: var(--ath-surface-inverse) !important; background-image: none !important; font-family: var(--ath-font-family-sans); font-size: var(--ath-font-size-body); color-scheme: inherit; }
+.pf-v5-c-login__container { color: var(--ath-text-on-inverse); }
+.pf-v5-c-login__main, .pf-v5-c-login__main-header, .login-pf .card-pf { background: var(--ath-surface-default); border: var(--ath-border-width-hairline) solid var(--ath-border-default); border-radius: var(--ath-radius-surface) !important; box-shadow: var(--ath-elevation-overlay) !important; color: var(--ath-text-default); }
+#kc-header-wrapper, .pf-v5-c-brand { font-weight: var(--ath-font-weight-bold); font-size: var(--ath-font-size-section); color: var(--ath-text-on-inverse); }
+#kc-page-title, .pf-v5-c-title { color: var(--ath-text-heading); font-weight: var(--ath-font-weight-semibold); font-size: var(--ath-font-size-title); letter-spacing: var(--ath-font-tracking-title); }
+.pf-v5-c-form-control, input[type="text"], input[type="password"], input[type="email"] { border-radius: var(--ath-radius-control) !important; box-shadow: none !important; border: var(--ath-border-width-hairline) solid var(--ath-border-control); background: var(--ath-surface-default); color: var(--ath-text-default); min-height: var(--ath-size-control-md); }
+.pf-v5-c-form-control:focus-within, input:focus-visible { outline: var(--ath-border-width-strong) solid var(--ath-focus-ring); outline-offset: 2px; }
+.pf-v5-c-button, #kc-login { border-radius: var(--ath-radius-control) !important; box-shadow: none !important; background: var(--ath-action-primary-bg) !important; color: var(--ath-action-primary-fg) !important; font-weight: var(--ath-font-weight-semibold); min-height: var(--ath-size-control-md); border: 0; }
+.pf-v5-c-button:hover, #kc-login:hover { background: var(--ath-action-deep-bg) !important; color: var(--ath-action-deep-fg) !important; }
+a, .pf-v5-c-login__main-footer-band a { color: var(--ath-text-link); }
+.pf-v5-c-alert { border-radius: var(--ath-radius-surface) !important; box-shadow: none !important; }
+/* Une colonne centrée : marque au-dessus, carte dessous. */
+.pf-v5-c-login__container { display: flex !important; flex-direction: column; align-items: center; gap: var(--ath-space-xl); max-width: 440px; margin: 0 auto; padding: var(--ath-space-3xl) var(--ath-space-base); grid-template-columns: none !important; }
+.pf-v5-c-login__header, .pf-v5-c-login__main { width: 100%; margin: 0; }
+.pf-v5-c-login__main-header { border: 0; border-bottom: var(--ath-border-width-hairline) solid var(--ath-border-default); }
+.pf-v5-c-login__header, #kc-header-wrapper { text-align: center; }
+.pf-v5-c-form__label, .pf-v5-c-form__group-label { display: inline-block; margin-bottom: var(--ath-space-xs); }

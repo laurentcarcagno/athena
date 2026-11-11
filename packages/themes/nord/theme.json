@@ -94,6 +94,9 @@
         "default": {
           "$value": "#FFFFFF"
         },
+        "raised": {
+          "$value": "#FFFFFF"
+        },
         "hover": {
           "$value": "#E5E9F0"
         },
@@ -410,6 +413,32 @@
           }
         }
       },
+      "data": {
+        "1": {
+          "$value": "#5E81AC"
+        },
+        "2": {
+          "$value": "#C8826C"
+        },
+        "3": {
+          "$value": "#759A99"
+        },
+        "4": {
+          "$value": "#AD88A6"
+        },
+        "5": {
+          "$value": "#DB2777"
+        },
+        "6": {
+          "$value": "#65A30D"
+        },
+        "7": {
+          "$value": "#7997B5"
+        },
+        "8": {
+          "$value": "#A99264"
+        }
+      },
       "inverse": {
         "selected": {
           "$value": "rgba(90, 124, 165, 0.22)"
@@ -432,6 +461,9 @@
         },
         "default": {
           "$value": "#2E3440"
+        },
+        "raised": {
+          "$value": "#3B414D"
         },
         "hover": {
           "$value": "#3B4252"
@@ -747,6 +779,32 @@
           "border": {
             "$value": "#B48EAD"
           }
+        }
+      },
+      "data": {
+        "1": {
+          "$value": "#81A1C1"
+        },
+        "2": {
+          "$value": "#D08770"
+        },
+        "3": {
+          "$value": "#8FBCBB"
+        },
+        "4": {
+          "$value": "#B48EAD"
+        },
+        "5": {
+          "$value": "#F472B6"
+        },
+        "6": {
+          "$value": "#A3E635"
+        },
+        "7": {
+          "$value": "#88C0D0"
+        },
+        "8": {
+          "$value": "#EBCB8B"
         }
       },
       "inverse": {

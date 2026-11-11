@@ -6,7 +6,7 @@
   .ath-section-picker { display: block; position: relative; z-index: var(--ath-z-dropdown); margin-bottom: var(--ath-space-md); }
   .ath-section-picker__toggle { display: flex; align-items: center; gap: var(--ath-space-sm); width: 100%; min-height: 44px; padding: 0 var(--ath-space-md); background: var(--ath-surface-default); border: var(--ath-border-width-hairline) solid var(--ath-border-default); color: var(--ath-text-default); font: inherit; font-weight: var(--ath-font-weight-semibold); text-align: left; cursor: pointer; }
   .ath-section-picker__toggle > :last-child { margin-left: auto; }
-  .ath-section-picker__list { position: absolute; top: 100%; left: 0; right: 0; margin: 0; padding: 0; list-style: none; background: var(--ath-surface-default); border: var(--ath-border-width-hairline) solid var(--ath-border-default); border-top: 0; }
+  .ath-section-picker__list { position: absolute; top: 100%; left: 0; right: 0; margin: 0; padding: 0; list-style: none; background: var(--ath-surface-raised); border: var(--ath-border-width-hairline) solid var(--ath-border-default); border-top: 0; }
   .ath-section-picker__link { display: flex; align-items: center; min-height: 44px; padding: 0 var(--ath-space-md); color: var(--ath-text-default); text-decoration: none; }
   .ath-section-picker__link[aria-current="page"] { background: var(--ath-surface-selected); font-weight: var(--ath-font-weight-semibold); }
   .ath-bottombar { display: grid; grid-template-columns: repeat(4, 1fr); position: fixed; left: 0; right: 0; bottom: 0; z-index: calc(var(--ath-z-drawer) - 100); background: var(--ath-surface-default); border-top: var(--ath-border-width-hairline) solid var(--ath-border-default); padding-bottom: env(safe-area-inset-bottom); }
@@ -22,14 +22,14 @@
 .ath-burndown { display: block; width: 100%; max-width: 640px; height: auto; }
 .ath-burndown__axis { stroke: var(--ath-border-default); stroke-width: 1; }
 .ath-burndown__ideal { fill: none; stroke: var(--ath-text-mute); stroke-width: 2; stroke-dasharray: 6 4; }
-.ath-burndown__remaining { fill: none; stroke: var(--ath-text-link); stroke-width: 2; }
-.ath-burndown__dot { fill: var(--ath-text-link); stroke: var(--ath-surface-default); stroke-width: 2; }
+.ath-burndown__remaining { fill: none; stroke: var(--ath-data-1); stroke-width: 2; }
+.ath-burndown__dot { fill: var(--ath-data-1); stroke: var(--ath-surface-default); stroke-width: 2; }
 .ath-burndown__hit { fill: transparent; }
 .ath-burndown__hit:hover + .ath-burndown__guide, .ath-burndown__hit:focus-visible + .ath-burndown__guide { visibility: visible; }
 .ath-burndown__guide { visibility: hidden; stroke: var(--ath-border-strong); stroke-width: 1; }
 .ath-burndown__label { fill: var(--ath-text-mute); font-size: var(--ath-font-size-small); }
 .ath-burndown__legend { display: flex; gap: var(--ath-space-md); margin: 0 0 var(--ath-space-xs); padding: 0; list-style: none; font-size: var(--ath-font-size-small); }
-.ath-burndown__swatch { display: inline-block; width: 20px; height: 0; margin-right: var(--ath-space-xs); vertical-align: middle; border-top: var(--ath-border-width-strong) solid var(--ath-text-link); }
+.ath-burndown__swatch { display: inline-block; width: 20px; height: 0; margin-right: var(--ath-space-xs); vertical-align: middle; border-top: var(--ath-border-width-strong) solid var(--ath-data-1); }
 .ath-burndown__swatch--ideal { border-top: var(--ath-border-width-strong) dashed var(--ath-text-mute); }
 
 /* Bouton secondaire sur surface inverse (en-tête de colonne du Board) : texte et contour clairs. */

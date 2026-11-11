@@ -1,25 +1,427 @@
-/* Thème de connexion Athena : charte HEMERIA (angles droits, aucune ombre, aucun dégradé, Console Sky = action).
-   Les valeurs reprennent packages/ui/design/DESIGN.json. */
-:root {
-  --ath-deep-blue: #12293A;
-  --ath-sky: #006EB1;
-  --ath-border: #C2DDF0;
-  --ath-white: #FCFDFE;
-  --ath-ink: #43474C;
+/* Généré par packages/ui/scripts/build-login.mjs depuis @nuance/themes et login.source.css. Ne pas modifier. */
+/* Généré par @nuance/theming. Ne pas modifier. */
+
+:root[data-theme="hemeria"],
+:root:not([data-theme]) {
+  color-scheme: light;
+  --ath-action-danger-bg: transparent;
+  --ath-action-danger-border: #BA1A1A;
+  --ath-action-danger-fg: #BA1A1A;
+  --ath-action-deep-bg: #12293A;
+  --ath-action-deep-fg: #FCFDFE;
+  --ath-action-ghost-bg: transparent;
+  --ath-action-ghost-border: #12293A;
+  --ath-action-ghost-fg: #12293A;
+  --ath-action-primary-bg: #006EB1;
+  --ath-action-primary-fg: #FCFDFE;
+  --ath-border-width-accent: 3px;
+  --ath-border-width-hairline: 1px;
+  --ath-border-width-stripe: 4px;
+  --ath-border-width-strong: 2px;
+  --ath-border-control: #73777D;
+  --ath-border-danger: #BA1A1A;
+  --ath-border-default: #C2DDF0;
+  --ath-border-focus: #006EB1;
+  --ath-border-strong: #12293A;
+  --ath-brand-accent: #C80A26;
+  --ath-brand-primary: #174082;
+  --ath-data-1: #2563EB;
+  --ath-data-2: #EA580C;
+  --ath-data-3: #0D9488;
+  --ath-data-4: #9333EA;
+  --ath-data-5: #DB2777;
+  --ath-data-6: #65A30D;
+  --ath-data-7: #0284C7;
+  --ath-data-8: #C28404;
+  --ath-elevation-overlay: none;
+  --ath-focus-ring: #006EB1;
+  --ath-focus-ring-on-inverse: #FCFDFE;
+  --ath-font-family-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --ath-font-family-sans: IBM Plex Sans, system-ui, -apple-system, sans-serif;
+  --ath-font-leading-body: 1.5;
+  --ath-font-leading-display: 1.2;
+  --ath-font-leading-none: 1;
+  --ath-font-leading-section: 1.35;
+  --ath-font-leading-small: 1.4;
+  --ath-font-leading-title: 1.25;
+  --ath-font-size-body: 14px;
+  --ath-font-size-display: 28px;
+  --ath-font-size-section: 16px;
+  --ath-font-size-small: 12px;
+  --ath-font-size-subsection: 14px;
+  --ath-font-size-title: 22px;
+  --ath-font-tracking-mono: 0.02em;
+  --ath-font-tracking-none: 0;
+  --ath-font-tracking-title: 0.01em;
+  --ath-font-weight-bold: 700;
+  --ath-font-weight-medium: 500;
+  --ath-font-weight-regular: 400;
+  --ath-font-weight-semibold: 600;
+  --ath-hue-blue-bg: #DEE7FB;
+  --ath-hue-blue-border: #2563EB;
+  --ath-hue-blue-fg: #235DDD;
+  --ath-hue-gray-bg: #E8EAEC;
+  --ath-hue-gray-border: #6B7280;
+  --ath-hue-gray-fg: #626976;
+  --ath-hue-green-bg: #DCF0E5;
+  --ath-hue-green-border: #16A34A;
+  --ath-hue-green-fg: #107937;
+  --ath-hue-lime-bg: #E7F0DC;
+  --ath-hue-lime-border: #65A30D;
+  --ath-hue-lime-fg: #497509;
+  --ath-hue-orange-bg: #F9E6DC;
+  --ath-hue-orange-border: #EA580C;
+  --ath-hue-orange-fg: #B24309;
+  --ath-hue-pink-bg: #F7DFEB;
+  --ath-hue-pink-border: #DB2777;
+  --ath-hue-pink-fg: #C12269;
+  --ath-hue-purple-bg: #EDE1FB;
+  --ath-hue-purple-border: #9333EA;
+  --ath-hue-purple-fg: #8D31E1;
+  --ath-hue-red-bg: #F8DFE0;
+  --ath-hue-red-border: #DC2626;
+  --ath-hue-red-fg: #C62222;
+  --ath-hue-sky-bg: #D9ECF6;
+  --ath-hue-sky-border: #0284C7;
+  --ath-hue-sky-fg: #026FA7;
+  --ath-hue-slate-bg: #E7EAEE;
+  --ath-hue-slate-border: #64748B;
+  --ath-hue-slate-fg: #5A687D;
+  --ath-hue-teal-bg: #DBEEED;
+  --ath-hue-teal-border: #0D9488;
+  --ath-hue-teal-fg: #0A766D;
+  --ath-hue-yellow-bg: #F5EDDB;
+  --ath-hue-yellow-border: #C28404;
+  --ath-hue-yellow-fg: #916303;
+  --ath-inverse-border: rgba(255, 255, 255, 0.35);
+  --ath-inverse-divider: rgba(255, 255, 255, 0.12);
+  --ath-inverse-hover: rgba(255, 255, 255, 0.06);
+  --ath-inverse-hover-strong: rgba(255, 255, 255, 0.1);
+  --ath-inverse-line: rgba(255, 255, 255, 0.2);
+  --ath-inverse-rule: rgba(255, 255, 255, 0.4);
+  --ath-inverse-selected: rgba(0, 110, 177, 0.18);
+  --ath-inverse-text-mute: #AAB3B9;
+  --ath-inverse-text-nav: #B6BDC3;
+  --ath-inverse-text-secondary: #C2C8CD;
+  --ath-motion-default: 120ms linear;
+  --ath-palette-cold-mist: #F0F7FC;
+  --ath-palette-console-border: #C2DDF0;
+  --ath-palette-console-sky: #006EB1;
+  --ath-palette-dim-ink: #43474C;
+  --ath-palette-hover-mist: #E6F3FA;
+  --ath-palette-ink: #001423;
+  --ath-palette-instrument-white: #FCFDFE;
+  --ath-palette-mute-ink: #73777D;
+  --ath-palette-muted-mist: #DBE7F0;
+  --ath-palette-pill-danger-bg: #FBE9E9;
+  --ath-palette-pill-success-bg: #EAF6EE;
+  --ath-palette-pill-warning-bg: #FBF3DC;
+  --ath-palette-selection-veil: #CEE5FC;
+  --ath-palette-signal-danger: #BA1A1A;
+  --ath-palette-signal-success: #1F8A4C;
+  --ath-palette-signal-warning: #C68A00;
+  --ath-palette-sovereign-deep-blue: #12293A;
+  --ath-palette-tricolor-blue: #174082;
+  --ath-palette-tricolor-red: #C80A26;
+  --ath-radius-control: 0;
+  --ath-radius-none: 0;
+  --ath-radius-surface: 0;
+  --ath-size-control-lg: 40px;
+  --ath-size-control-md: 32px;
+  --ath-size-control-sm: 26px;
+  --ath-size-dialog-lg: 880px;
+  --ath-size-dialog-md: 640px;
+  --ath-size-dialog-sm: 480px;
+  --ath-size-icon-button: 28px;
+  --ath-size-icon-button-compact: 24px;
+  --ath-size-sidebar: 232px;
+  --ath-size-sidebar-collapsed: 64px;
+  --ath-size-toast-max: 420px;
+  --ath-size-toast-min: 280px;
+  --ath-size-toggle: 16px;
+  --ath-size-touch-target-min: 24px;
+  --ath-space-2xl: 32px;
+  --ath-space-2xs: 2px;
+  --ath-space-3xl: 48px;
+  --ath-space-base: 16px;
+  --ath-space-lg: 20px;
+  --ath-space-md: 12px;
+  --ath-space-sm: 8px;
+  --ath-space-xl: 24px;
+  --ath-space-xs: 4px;
+  --ath-state-danger-bg: #FBE9E9;
+  --ath-state-danger-border: #BA1A1A;
+  --ath-state-danger-fg: #9E1616;
+  --ath-state-danger-fg-aa: #9E1616;
+  --ath-state-info-bg: #E6F3FA;
+  --ath-state-info-border: #006EB1;
+  --ath-state-info-fg: #005E96;
+  --ath-state-info-fg-aa: #005E96;
+  --ath-state-neutral-bg: #FCFDFE;
+  --ath-state-neutral-border: #12293A;
+  --ath-state-neutral-fg: #43474C;
+  --ath-state-neutral-fg-aa: #43474C;
+  --ath-state-success-bg: #EAF6EE;
+  --ath-state-success-border: #1F8A4C;
+  --ath-state-success-fg: #166337;
+  --ath-state-success-fg-aa: #166337;
+  --ath-state-warning-bg: #FBF3DC;
+  --ath-state-warning-border: #C68A00;
+  --ath-state-warning-fg: #6D4C00;
+  --ath-state-warning-fg-aa: #6D4C00;
+  --ath-surface-app: #F0F7FC;
+  --ath-surface-default: #FCFDFE;
+  --ath-surface-hover: #E6F3FA;
+  --ath-surface-inverse: #12293A;
+  --ath-surface-muted: #DBE7F0;
+  --ath-surface-raised: #FCFDFE;
+  --ath-surface-scrim: rgba(0, 20, 35, 0.55);
+  --ath-surface-selected: #CEE5FC;
+  --ath-text-default: #001423;
+  --ath-text-heading: #12293A;
+  --ath-text-link: #005E96;
+  --ath-text-link-aa: #005E96;
+  --ath-text-mute: #505358;
+  --ath-text-mute-aa: #505358;
+  --ath-text-on-action: #FCFDFE;
+  --ath-text-on-inverse: #FCFDFE;
+  --ath-text-secondary: #43474C;
+  --ath-z-banner: 1300;
+  --ath-z-base: 0;
+  --ath-z-drawer: 900;
+  --ath-z-dropdown: 70;
+  --ath-z-modal: 1000;
+  --ath-z-sticky: 50;
+  --ath-z-toast: 1100;
 }
-html, body, .login-pf-page, .pf-v5-c-login, .pf-v5-c-background-image { background: var(--ath-deep-blue) !important; background-image: none !important; font-family: "IBM Plex Sans", system-ui, sans-serif; }
-.pf-v5-c-login__container { color: var(--ath-white); }
-.pf-v5-c-login__main, .pf-v5-c-login__main-header, .login-pf .card-pf { background: var(--ath-white); border: 1px solid var(--ath-border); border-radius: 0 !important; box-shadow: none !important; color: var(--ath-ink); }
-#kc-header-wrapper, .pf-v5-c-brand { font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ath-white); }
-#kc-page-title, .pf-v5-c-title { color: var(--ath-deep-blue); font-weight: 600; letter-spacing: 0.04em; }
-.pf-v5-c-form-control, input[type="text"], input[type="password"], input[type="email"] { border-radius: 0 !important; box-shadow: none !important; border: 1px solid var(--ath-border); }
-.pf-v5-c-form-control:focus-within, input:focus-visible { outline: 2px solid var(--ath-sky); outline-offset: 2px; }
-.pf-v5-c-button, #kc-login { border-radius: 0 !important; box-shadow: none !important; background: var(--ath-sky) !important; color: var(--ath-white) !important; font-weight: 600; letter-spacing: 0.04em; border: 0; }
-.pf-v5-c-button:hover, #kc-login:hover { background: var(--ath-deep-blue) !important; }
-a, .pf-v5-c-login__main-footer-band a { color: var(--ath-sky); }
-.pf-v5-c-alert { border-radius: 0 !important; box-shadow: none !important; }
+
+@media (prefers-color-scheme: dark) {
+  :root[data-theme="hemeria"]:not([data-mode]),
+  :root:not([data-theme]):not([data-mode]) {
+    color-scheme: dark;
+    --ath-action-danger-border: #EE9C99;
+    --ath-action-danger-fg: #EE9C99;
+    --ath-action-deep-bg: #5C95BB;
+    --ath-action-deep-fg: #001423;
+    --ath-action-ghost-border: #5C95BB;
+    --ath-action-ghost-fg: #F0F7FC;
+    --ath-action-primary-bg: #B2DDF6;
+    --ath-action-primary-fg: #001423;
+    --ath-border-control: #5C95BB;
+    --ath-border-danger: #EE9C99;
+    --ath-border-default: #264E6E;
+    --ath-border-focus: #7EC4EC;
+    --ath-border-strong: #5C95BB;
+    --ath-data-1: #60A5FA;
+    --ath-data-2: #FB923C;
+    --ath-data-3: #2DD4BF;
+    --ath-data-4: #C084FC;
+    --ath-data-5: #F472B6;
+    --ath-data-6: #A3E635;
+    --ath-data-7: #38BDF8;
+    --ath-data-8: #FACC15;
+    --ath-focus-ring: #7EC4EC;
+    --ath-focus-ring-on-inverse: #F0F7FC;
+    --ath-hue-blue-bg: #224160;
+    --ath-hue-blue-border: #60A5FA;
+    --ath-hue-blue-fg: #70AEFB;
+    --ath-hue-gray-bg: #30414E;
+    --ath-hue-gray-border: #9CA3AF;
+    --ath-hue-gray-fg: #A4AAB5;
+    --ath-hue-green-bg: #1C4F43;
+    --ath-hue-green-border: #4ADE80;
+    --ath-hue-green-fg: #4ADE80;
+    --ath-hue-lime-bg: #325131;
+    --ath-hue-lime-border: #A3E635;
+    --ath-hue-lime-fg: #A3E635;
+    --ath-hue-orange-bg: #473D33;
+    --ath-hue-orange-border: #FB923C;
+    --ath-hue-orange-fg: #FB923C;
+    --ath-hue-pink-bg: #453550;
+    --ath-hue-pink-border: #F472B6;
+    --ath-hue-pink-fg: #F57DBC;
+    --ath-hue-purple-bg: #393A61;
+    --ath-hue-purple-border: #C084FC;
+    --ath-hue-purple-fg: #C690FC;
+    --ath-hue-red-bg: #463540;
+    --ath-hue-red-border: #F87171;
+    --ath-hue-red-fg: #F97F7F;
+    --ath-hue-sky-bg: #184760;
+    --ath-hue-sky-border: #38BDF8;
+    --ath-hue-sky-fg: #38BDF8;
+    --ath-hue-slate-bg: #2E4151;
+    --ath-hue-slate-border: #94A3B8;
+    --ath-hue-slate-fg: #9FACBF;
+    --ath-hue-teal-bg: #154D52;
+    --ath-hue-teal-border: #2DD4BF;
+    --ath-hue-teal-fg: #2DD4BF;
+    --ath-hue-yellow-bg: #474B2A;
+    --ath-hue-yellow-border: #FACC15;
+    --ath-hue-yellow-fg: #FACC15;
+    --ath-inverse-text-mute: #9EA7AE;
+    --ath-inverse-text-nav: #AAB2B9;
+    --ath-inverse-text-secondary: #B6BEC4;
+    --ath-state-danger-bg: #600C0E;
+    --ath-state-danger-border: #EE9C99;
+    --ath-state-danger-fg: #EE9C99;
+    --ath-state-danger-fg-aa: #EE9C99;
+    --ath-state-info-bg: #003157;
+    --ath-state-info-border: #7EC4EC;
+    --ath-state-info-fg: #7EC4EC;
+    --ath-state-info-fg-aa: #7EC4EC;
+    --ath-state-neutral-bg: #0E2230;
+    --ath-state-neutral-border: #5C95BB;
+    --ath-state-neutral-fg: #C7DAE2;
+    --ath-state-neutral-fg-aa: #C7DAE2;
+    --ath-state-success-bg: #0A3A1F;
+    --ath-state-success-border: #92D2AC;
+    --ath-state-success-fg: #92D2AC;
+    --ath-state-success-fg-aa: #92D2AC;
+    --ath-state-warning-bg: #4A3000;
+    --ath-state-warning-border: #F1D38A;
+    --ath-state-warning-fg: #F1D38A;
+    --ath-state-warning-fg-aa: #F1D38A;
+    --ath-surface-app: #0A1B27;
+    --ath-surface-default: #0E2230;
+    --ath-surface-hover: #1B3850;
+    --ath-surface-inverse: #06121C;
+    --ath-surface-muted: #264E6E;
+    --ath-surface-raised: #1E313E;
+    --ath-surface-scrim: rgba(0, 0, 0, 0.65);
+    --ath-surface-selected: #264E6E;
+    --ath-text-default: #F0F7FC;
+    --ath-text-heading: #F0F7FC;
+    --ath-text-link: #7EC4EC;
+    --ath-text-link-aa: #7EC4EC;
+    --ath-text-mute: #A8C0CB;
+    --ath-text-mute-aa: #A8C0CB;
+    --ath-text-on-action: #001423;
+    --ath-text-on-inverse: #F0F7FC;
+    --ath-text-secondary: #C7DAE2;
+  }
+}
+
+:root[data-theme="hemeria"][data-mode="dark"],
+:root:not([data-theme])[data-mode="dark"] {
+  color-scheme: dark;
+  --ath-action-danger-border: #EE9C99;
+  --ath-action-danger-fg: #EE9C99;
+  --ath-action-deep-bg: #5C95BB;
+  --ath-action-deep-fg: #001423;
+  --ath-action-ghost-border: #5C95BB;
+  --ath-action-ghost-fg: #F0F7FC;
+  --ath-action-primary-bg: #B2DDF6;
+  --ath-action-primary-fg: #001423;
+  --ath-border-control: #5C95BB;
+  --ath-border-danger: #EE9C99;
+  --ath-border-default: #264E6E;
+  --ath-border-focus: #7EC4EC;
+  --ath-border-strong: #5C95BB;
+  --ath-data-1: #60A5FA;
+  --ath-data-2: #FB923C;
+  --ath-data-3: #2DD4BF;
+  --ath-data-4: #C084FC;
+  --ath-data-5: #F472B6;
+  --ath-data-6: #A3E635;
+  --ath-data-7: #38BDF8;
+  --ath-data-8: #FACC15;
+  --ath-focus-ring: #7EC4EC;
+  --ath-focus-ring-on-inverse: #F0F7FC;
+  --ath-hue-blue-bg: #224160;
+  --ath-hue-blue-border: #60A5FA;
+  --ath-hue-blue-fg: #70AEFB;
+  --ath-hue-gray-bg: #30414E;
+  --ath-hue-gray-border: #9CA3AF;
+  --ath-hue-gray-fg: #A4AAB5;
+  --ath-hue-green-bg: #1C4F43;
+  --ath-hue-green-border: #4ADE80;
+  --ath-hue-green-fg: #4ADE80;
+  --ath-hue-lime-bg: #325131;
+  --ath-hue-lime-border: #A3E635;
+  --ath-hue-lime-fg: #A3E635;
+  --ath-hue-orange-bg: #473D33;
+  --ath-hue-orange-border: #FB923C;
+  --ath-hue-orange-fg: #FB923C;
+  --ath-hue-pink-bg: #453550;
+  --ath-hue-pink-border: #F472B6;
+  --ath-hue-pink-fg: #F57DBC;
+  --ath-hue-purple-bg: #393A61;
+  --ath-hue-purple-border: #C084FC;
+  --ath-hue-purple-fg: #C690FC;
+  --ath-hue-red-bg: #463540;
+  --ath-hue-red-border: #F87171;
+  --ath-hue-red-fg: #F97F7F;
+  --ath-hue-sky-bg: #184760;
+  --ath-hue-sky-border: #38BDF8;
+  --ath-hue-sky-fg: #38BDF8;
+  --ath-hue-slate-bg: #2E4151;
+  --ath-hue-slate-border: #94A3B8;
+  --ath-hue-slate-fg: #9FACBF;
+  --ath-hue-teal-bg: #154D52;
+  --ath-hue-teal-border: #2DD4BF;
+  --ath-hue-teal-fg: #2DD4BF;
+  --ath-hue-yellow-bg: #474B2A;
+  --ath-hue-yellow-border: #FACC15;
+  --ath-hue-yellow-fg: #FACC15;
+  --ath-inverse-text-mute: #9EA7AE;
+  --ath-inverse-text-nav: #AAB2B9;
+  --ath-inverse-text-secondary: #B6BEC4;
+  --ath-state-danger-bg: #600C0E;
+  --ath-state-danger-border: #EE9C99;
+  --ath-state-danger-fg: #EE9C99;
+  --ath-state-danger-fg-aa: #EE9C99;
+  --ath-state-info-bg: #003157;
+  --ath-state-info-border: #7EC4EC;
+  --ath-state-info-fg: #7EC4EC;
+  --ath-state-info-fg-aa: #7EC4EC;
+  --ath-state-neutral-bg: #0E2230;
+  --ath-state-neutral-border: #5C95BB;
+  --ath-state-neutral-fg: #C7DAE2;
+  --ath-state-neutral-fg-aa: #C7DAE2;
+  --ath-state-success-bg: #0A3A1F;
+  --ath-state-success-border: #92D2AC;
+  --ath-state-success-fg: #92D2AC;
+  --ath-state-success-fg-aa: #92D2AC;
+  --ath-state-warning-bg: #4A3000;
+  --ath-state-warning-border: #F1D38A;
+  --ath-state-warning-fg: #F1D38A;
+  --ath-state-warning-fg-aa: #F1D38A;
+  --ath-surface-app: #0A1B27;
+  --ath-surface-default: #0E2230;
+  --ath-surface-hover: #1B3850;
+  --ath-surface-inverse: #06121C;
+  --ath-surface-muted: #264E6E;
+  --ath-surface-raised: #1E313E;
+  --ath-surface-scrim: rgba(0, 0, 0, 0.65);
+  --ath-surface-selected: #264E6E;
+  --ath-text-default: #F0F7FC;
+  --ath-text-heading: #F0F7FC;
+  --ath-text-link: #7EC4EC;
+  --ath-text-link-aa: #7EC4EC;
+  --ath-text-mute: #A8C0CB;
+  --ath-text-mute-aa: #A8C0CB;
+  --ath-text-on-action: #001423;
+  --ath-text-on-inverse: #F0F7FC;
+  --ath-text-secondary: #C7DAE2;
+}
+
+/* Règles du thème de connexion (T-0139, ADR-0004). Jetons uniquement : aucune couleur, taille ou rayon écrit en dur.
+   login.css = jetons du thème par défaut (générés par @nuance/theming, clair et sombre selon le système) + ces règles.
+   Régénérer : pnpm --filter @athena/ui login-theme */
+html, body, .login-pf-page, .pf-v5-c-login, .pf-v5-c-background-image { background: var(--ath-surface-inverse) !important; background-image: none !important; font-family: var(--ath-font-family-sans); font-size: var(--ath-font-size-body); color-scheme: inherit; }
+.pf-v5-c-login__container { color: var(--ath-text-on-inverse); }
+.pf-v5-c-login__main, .pf-v5-c-login__main-header, .login-pf .card-pf { background: var(--ath-surface-default); border: var(--ath-border-width-hairline) solid var(--ath-border-default); border-radius: var(--ath-radius-surface) !important; box-shadow: var(--ath-elevation-overlay) !important; color: var(--ath-text-default); }
+#kc-header-wrapper, .pf-v5-c-brand { font-weight: var(--ath-font-weight-bold); font-size: var(--ath-font-size-section); color: var(--ath-text-on-inverse); }
+#kc-page-title, .pf-v5-c-title { color: var(--ath-text-heading); font-weight: var(--ath-font-weight-semibold); font-size: var(--ath-font-size-title); letter-spacing: var(--ath-font-tracking-title); }
+.pf-v5-c-form-control, input[type="text"], input[type="password"], input[type="email"] { border-radius: var(--ath-radius-control) !important; box-shadow: none !important; border: var(--ath-border-width-hairline) solid var(--ath-border-control); background: var(--ath-surface-default); color: var(--ath-text-default); min-height: var(--ath-size-control-md); }
+.pf-v5-c-form-control:focus-within, input:focus-visible { outline: var(--ath-border-width-strong) solid var(--ath-focus-ring); outline-offset: 2px; }
+.pf-v5-c-button, #kc-login { border-radius: var(--ath-radius-control) !important; box-shadow: none !important; background: var(--ath-action-primary-bg) !important; color: var(--ath-action-primary-fg) !important; font-weight: var(--ath-font-weight-semibold); min-height: var(--ath-size-control-md); border: 0; }
+.pf-v5-c-button:hover, #kc-login:hover { background: var(--ath-action-deep-bg) !important; color: var(--ath-action-deep-fg) !important; }
+a, .pf-v5-c-login__main-footer-band a { color: var(--ath-text-link); }
+.pf-v5-c-alert { border-radius: var(--ath-radius-surface) !important; box-shadow: none !important; }
 /* Une colonne centrée : marque au-dessus, carte dessous. */
-.pf-v5-c-login__container { display: flex !important; flex-direction: column; align-items: center; gap: 24px; max-width: 440px; margin: 0 auto; padding: 48px 16px; grid-template-columns: none !important; }
+.pf-v5-c-login__container { display: flex !important; flex-direction: column; align-items: center; gap: var(--ath-space-xl); max-width: 440px; margin: 0 auto; padding: var(--ath-space-3xl) var(--ath-space-base); grid-template-columns: none !important; }
 .pf-v5-c-login__header, .pf-v5-c-login__main { width: 100%; margin: 0; }
-.pf-v5-c-login__main-header { border: 0; border-bottom: 1px solid var(--ath-border); }
+.pf-v5-c-login__main-header { border: 0; border-bottom: var(--ath-border-width-hairline) solid var(--ath-border-default); }
 .pf-v5-c-login__header, #kc-header-wrapper { text-align: center; }
+.pf-v5-c-form__label, .pf-v5-c-form__group-label { display: inline-block; margin-bottom: var(--ath-space-xs); }

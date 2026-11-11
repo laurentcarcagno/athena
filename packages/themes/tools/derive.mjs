@@ -34,6 +34,12 @@ export const HUE_BASE = {
   light: { gray: '#6B7280', slate: '#64748B', blue: '#2563EB', sky: '#0284C7', teal: '#0D9488', green: '#16A34A', lime: '#65A30D', yellow: '#CA8A04', orange: '#EA580C', red: '#DC2626', pink: '#DB2777', purple: '#9333EA' },
   dark: { gray: '#9CA3AF', slate: '#94A3B8', blue: '#60A5FA', sky: '#38BDF8', teal: '#2DD4BF', green: '#4ADE80', lime: '#A3E635', yellow: '#FACC15', orange: '#FB923C', red: '#F87171', pink: '#F472B6', purple: '#C084FC' },
 };
+/** Palette de données (T-0139) : huit séries distinctes, prises parmi les teintes (bordure ≥ 3:1 sur la carte), jamais l'action ni un signal. */
+export const DATA_SERIES = ['blue', 'orange', 'teal', 'purple', 'pink', 'lime', 'sky', 'yellow'];
+export const dataOf = (hueSet) => Object.fromEntries(DATA_SERIES.map((name, i) => [String(i + 1), hueSet[name].border]));
+/** Surface des couches flottantes (menus, panneaux) : la carte en clair, un cran plus claire en sombre. */
+export const raisedOf = (surface, text, dark) => (dark ? mix(text, surface, 0.07) : surface);
+
 /** Fond, texte et bordure de chaque teinte sur la surface d'un mode : texte ≥ seuil sur son fond et sur la carte, bordure ≥ 3. */
 export function hues(surface, dark, overrides = {}, min = 4.5) {
   const base = { ...HUE_BASE[dark ? 'dark' : 'light'], ...overrides };
@@ -63,8 +69,9 @@ function mode(p) {
     return { bg, fg, 'fg-aa': fg, border: ensure(hue, s, 3) };
   };
   const inverseText = ensure(p.onInverse, p.inverse, 7);
+  const hueSet = hues(s, p.dark, p.hues, T);
   return {
-    surface: { app: p.app, default: s, hover: p.hover, muted: p.muted, selected: p.selected, inverse: p.inverse, scrim: p.dark ? 'rgba(0, 0, 0, 0.65)' : 'rgba(0, 0, 0, 0.45)' },
+    surface: { app: p.app, default: s, raised: raisedOf(s, p.text, p.dark), hover: p.hover, muted: p.muted, selected: p.selected, inverse: p.inverse, scrim: p.dark ? 'rgba(0, 0, 0, 0.65)' : 'rgba(0, 0, 0, 0.45)' },
     text: { default: ink, secondary, mute, 'mute-aa': mute, 'on-inverse': inverseText, 'on-action': primary.fg, link, 'link-aa': link, heading: ensure(p.heading ?? p.text, p.app, p.aaa ? 7 : 4.5) },
     border: { default: p.line, strong: ensure(p.strong ?? p.subtext, s, 3), focus, danger: ensure(p.danger, s, 3), control },
     action: {
@@ -75,7 +82,8 @@ function mode(p) {
     },
     state: { success: state(p.success), warning: state(p.warning), danger: state(p.danger), info: state(p.accent), neutral: { bg: s, fg: secondary, 'fg-aa': secondary, border: control } },
     focus: { ring: focus, 'ring-on-inverse': ensure(p.onInverse, p.inverse, 3) },
-    hue: hues(s, p.dark, p.hues, T),
+    hue: hueSet,
+    data: dataOf(hueSet),
     inverse: {
       selected: `rgba(${rgb(focus).join(', ')}, 0.22)`,
       'text-secondary': ensure(mix(inverseText, p.inverse, 0.75), p.inverse, T),

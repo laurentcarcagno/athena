@@ -10,9 +10,9 @@
 /* Audit F-07 : un identifiant ne se coupe pas, un titre long se tronque (texte complet dans l'attribut title). */
 .ath-table .ath-link.ath-mono, .ath-table .ath-mono, .ath-ticket .ath-link { white-space: nowrap; }
 .ath-stackbar { display: block; width: 100%; height: 8px; border: var(--ath-border-width-hairline) solid var(--ath-border-default); background: var(--ath-surface-app); box-sizing: border-box; }
-.ath-stackbar__seg--todo { fill: var(--ath-border-focus); }
-.ath-stackbar__seg--in_progress { fill: var(--ath-state-warning-border); }
-.ath-stackbar__seg--done { fill: var(--ath-state-success-border); }
+.ath-stackbar__seg--todo { fill: var(--ath-data-1); }
+.ath-stackbar__seg--in_progress { fill: var(--ath-data-2); }
+.ath-stackbar__seg--done { fill: var(--ath-data-3); }
 .ath-miniworkflow { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ath-space-sm); list-style: none; margin: 0; padding: 0; }
 .ath-miniworkflow__state { display: inline-flex; align-items: center; gap: var(--ath-space-sm); }
 .ath-miniworkflow__arrow { color: var(--ath-text-mute); }

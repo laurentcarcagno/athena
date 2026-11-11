@@ -38,6 +38,15 @@ Le job de migration s'exécute avant chaque installation ou mise à jour (hook H
 ## Keycloak
 Realm avec : client confidentiel `athena-web` (PKCE S256, URI de redirection `https://<hôte>/auth/callback`, URL de déconnexion back-channel `https://<hôte>/auth/backchannel-logout`), mappeurs d'audience `athena-api` et de groupes (`groups`, chemins complets), rôles `athena-user`, `athena-pm` (chef de projet) et `athena-admin`. Un chef de projet reçoit `athena-user` et `athena-pm`, puis est désigné chef de chaque projet par un administrateur (fenêtre **Organisation**). Chaque organisation est un groupe `/org-<clé>`. Activer la MFA (TOTP/WebAuthn) pour les administrateurs. Un exemple complet est dans `deploy/dev/keycloak/athena-realm.json` (**ne pas l'utiliser tel quel en production** : mots de passe de démonstration).
 
+### Thème de la page de connexion
+Le thème Keycloak `athena` (`deploy/dev/keycloak/themes/athena`) applique les jetons du thème par défaut de l'organisation (Administration > Apparence), clair ou sombre selon le système. Keycloak sert une feuille statique : la générer au déploiement avec le thème retenu, puis la livrer avec le thème Keycloak :
+
+```
+pnpm --filter @athena/ui login-theme -- --theme nord   # hemeria si l'option est omise
+```
+
+Thèmes disponibles : `hemeria`, `contrast`, `catppuccin`, `nord`, `gruvbox` et ceux de la vague 2 (voir `packages/themes`). Changer le thème par défaut dans l'interface ne régénère pas cette feuille.
+
 ## OpenBao
 - KV v2 : `secret/athena/<organisation>/…` (secrets de webhooks, intégrations), `secret/athena/platform/session` (secret de session, généré au premier démarrage).
 - Transit : une clé dérivée par organisation (`athena-org-<clé>`), créée à la demande.

@@ -166,7 +166,16 @@
     "hue.pink.border",
     "hue.purple.bg",
     "hue.purple.fg",
-    "hue.purple.border"
+    "hue.purple.border",
+    "surface.raised",
+    "data.1",
+    "data.2",
+    "data.3",
+    "data.4",
+    "data.5",
+    "data.6",
+    "data.7",
+    "data.8"
   ],
   "contrast": [
     {
@@ -571,6 +580,72 @@
       "bg": "surface.muted",
       "min": 4.5,
       "label": "texte sur en-tête de tableau"
+    },
+    {
+      "fg": "data.1",
+      "bg": "surface.default",
+      "min": 3,
+      "label": "série 1 de graphique sur carte"
+    },
+    {
+      "fg": "data.2",
+      "bg": "surface.default",
+      "min": 3,
+      "label": "série 2 de graphique sur carte"
+    },
+    {
+      "fg": "data.3",
+      "bg": "surface.default",
+      "min": 3,
+      "label": "série 3 de graphique sur carte"
+    },
+    {
+      "fg": "data.4",
+      "bg": "surface.default",
+      "min": 3,
+      "label": "série 4 de graphique sur carte"
+    },
+    {
+      "fg": "data.5",
+      "bg": "surface.default",
+      "min": 3,
+      "label": "série 5 de graphique sur carte"
+    },
+    {
+      "fg": "data.6",
+      "bg": "surface.default",
+      "min": 3,
+      "label": "série 6 de graphique sur carte"
+    },
+    {
+      "fg": "data.7",
+      "bg": "surface.default",
+      "min": 3,
+      "label": "série 7 de graphique sur carte"
+    },
+    {
+      "fg": "data.8",
+      "bg": "surface.default",
+      "min": 3,
+      "label": "série 8 de graphique sur carte"
+    },
+    {
+      "fg": "text.default",
+      "bg": "surface.raised",
+      "min": 4.5,
+      "label": "texte sur menu flottant"
+    },
+    {
+      "fg": "text.link",
+      "bg": "surface.raised",
+      "min": 4.5,
+      "label": "lien sur menu flottant"
+    },
+    {
+      "fg": "text.mute",
+      "bg": "surface.raised",
+      "min": 4.5,
+      "label": "texte atténué sur menu flottant"
     }
   ]
 }
