@@ -29,6 +29,6 @@ test('board du tracker : carte › panneau › retour en 1 action, filtres conse
 test('index des boards : le board de chaque tracker en 1 clic', async ({ page }) => {
   await login(page, 'user.dev', 'dev-only-user');
   await page.goto('/p/ARI/board');
-  await page.getByRole('list', { name: 'Board de chaque tracker' }).getByRole('link').first().click();
+  await page.getByRole('group', { name: 'Board de chaque tracker' }).getByRole('link').first().click(); // T-0150 : cartes
   await expect(page).toHaveURL(/\/p\/ARI\/t\/[A-Z0-9]+\/board$/);
 });

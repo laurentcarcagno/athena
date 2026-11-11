@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, type DragEvent } from 'react';
-import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { Btn, EmptyState, Id, isHue, PageHeader, Select, StatusPill, Tag, useToast } from '@athena/ui';
+import { Link, Navigate, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Btn, Card, EmptyState, Id, isHue, PageHeader, Select, StatusPill, Tag, useToast } from '@athena/ui';
 import { api, type BoardView, type Session, type TrackerOverview } from '../api';
 import { useCreate, useOnCreated } from '../components/CreateArtifact';
 import { DetailPanel } from '../components/DetailPanel';
@@ -151,7 +151,8 @@ export function BoardView({ session, project, board, header = true }: { session:
   );
   return (
     <>
-      {header && <PageHeader eyebrow={fr.board.eyebrow} title={view.name} sub={view.unmapped > 0 ? fr.board.unmapped(view.unmapped) : undefined} />}
+      {header && <PageHeader eyebrow={fr.board.eyebrow} title={view.name} sub={view.unmapped > 0 ? fr.board.unmapped(view.unmapped) : undefined}
+        actions={<Link className="ath-btn ath-btn--ghost ath-btn--sm" to={`/p/${project}/board?tous=1`}>{fr.board.all}</Link>} />}
       <div className={item ? 'ath-split' : undefined}>
         {content}
         {item && (
@@ -170,19 +171,37 @@ export function BoardView({ session, project, board, header = true }: { session:
 /** Page d'un board de projet `/p/:projet/board/:board`. */
 export function BoardPage({ session }: { session: Session }) {
   const { project, board } = useParams();
+  useEffect(() => rememberBoard(String(project), `/p/${project}/board/${board}`), [project, board]);
   return <BoardView session={session} project={String(project)} board={String(board)} />;
 }
+
+/** Dernier board ouvert dans un projet (ce navigateur) : « Board » du rail y mène directement (ADR-0005, T-0150). */
+const LAST_BOARD = (project: string) => `athena.lastBoard.${project}`;
+export function rememberBoard(project: string, path: string): void { try { localStorage.setItem(LAST_BOARD(project), path); } catch { /* sans stockage */ } }
+const lastBoard = (project: string): string | null => { try { return localStorage.getItem(LAST_BOARD(project)); } catch { return null; } };
 
 /** Index des boards `/p/:projet/board` : boards configurés du projet, puis le board de chaque tracker. */
 export function BoardIndexPage() {
   const { project } = useParams();
   const fail = useFailure();
+  const [params] = useSearchParams();
   const [boards, setBoards] = useState<Array<{ key: string; name: string }> | null>(null);
   const [trackers, setTrackers] = useState<TrackerOverview[]>([]);
+  const last = params.has('tous') ? null : lastBoard(String(project));
   useEffect(() => {
     api<Array<{ key: string; name: string }>>('GET', `/v1/projects/${project}/boards`).then((b) => setBoards(Array.isArray(b) ? b : [])).catch((e: unknown) => { setBoards([]); fail(e); });
     api<{ trackers: TrackerOverview[] }>('GET', `/v1/projects/${project}/overview`).then((r) => setTrackers(r.trackers)).catch(() => setTrackers([]));
   }, [project, fail]);
+  if (last) return <Navigate replace to={last} />;
+  const card = (key: string, name: string, kind: string, to: string, count?: number) => (
+    <Card key={key} title={name} meta={<Id>{key}</Id>}>
+      <div className="ath-stack">
+        <p>{kind}</p>
+        {count !== undefined && <p className="ath-mono">{fr.board.tickets(count)}</p>}
+        <div><Link className="ath-btn ath-btn--primary ath-btn--sm" to={to} aria-label={fr.board.openNamed(name)}>{fr.board.open}</Link></div>
+      </div>
+    </Card>
+  );
   return (
     <>
       <PageHeader eyebrow={fr.board.eyebrow} title={fr.board.indexTitle} />
@@ -190,16 +209,17 @@ export function BoardIndexPage() {
         <div className="ath-stack">
           <h2 className="ath-section-title">{fr.board.projectBoards}</h2>
           {boards.length === 0 ? <p>{fr.board.noBoards}</p> : (
-            <ul className="ath-stack" aria-label={fr.board.projectBoards}>
-              {boards.map((b) => <li key={b.key}><Link className="ath-link" to={`/p/${project}/board/${b.key}`}>{b.name}</Link> <Id>{b.key}</Id></li>)}
-            </ul>
+            <div className="ath-cards" role="group" aria-label={fr.board.projectBoards}>
+              {boards.map((b) => card(b.key, b.name, fr.board.teamBoard, `/p/${project}/board/${b.key}`))}
+            </div>
           )}
           {trackers.length > 0 && <>
             <h2 className="ath-section-title">{fr.board.trackerBoards}</h2>
-            <ul className="ath-stack" aria-label={fr.board.trackerBoards}>
-              {trackers.map((t) => <li key={t.key}><Link className="ath-link" to={`/p/${project}/t/${t.key}/board`}>{t.name}</Link> <Id>{t.key}</Id></li>)}
-            </ul>
+            <div className="ath-cards" role="group" aria-label={fr.board.trackerBoards}>
+              {trackers.map((t) => card(t.key, t.name, fr.board.trackerBoard, `/p/${project}/t/${t.key}/board`, t.artifacts))}
+            </div>
           </>}
+          <p className="ath-field__hint">{fr.board.remember}</p>
         </div>
       )}
     </>

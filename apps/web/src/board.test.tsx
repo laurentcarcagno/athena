@@ -5,7 +5,7 @@ import { ToastProvider } from '@athena/ui';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Session } from './api';
 import { CreateProvider } from './components/CreateArtifact';
-import { BoardIndexPage, BoardPage } from './pages/BoardPage';
+import { BoardIndexPage, BoardPage, rememberBoard } from './pages/BoardPage';
 
 // T-0114 : carte enrichie, clic = panneau, filtres rapides dans l'adresse, création par colonne, index des boards.
 
@@ -128,9 +128,17 @@ describe('board : création par colonne et index', () => {
     expect(await screen.findByRole('dialog')).toBeInTheDocument();
   });
 
-  it('/p/:p/board liste les boards du projet et le board de chaque tracker', async () => {
+  it('/p/:p/board présente les boards du projet et le board de chaque tracker en cartes (T-0150)', async () => {
+    localStorage.removeItem('athena.lastBoard.ARI');
     mount('/p/ARI/board');
-    expect(await within(await screen.findByRole('list', { name: 'Boards du projet' })).findByRole('link', { name: 'Kanban' })).toHaveAttribute('href', '/p/ARI/board/kanban');
-    expect(within(await screen.findByRole('list', { name: 'Board de chaque tracker' })).getByRole('link', { name: 'Anomalies' })).toHaveAttribute('href', '/p/ARI/t/BUG/board');
+    expect(await within(await screen.findByRole('group', { name: 'Boards du projet' })).findByRole('link', { name: 'Ouvrir le board Kanban' })).toHaveAttribute('href', '/p/ARI/board/kanban');
+    expect(within(await screen.findByRole('group', { name: 'Board de chaque tracker' })).getByRole('link', { name: 'Ouvrir le board Anomalies' })).toHaveAttribute('href', '/p/ARI/t/BUG/board');
+  });
+  it('Board mène au dernier board consulté ; « tous » affiche l’index (T-0150)', async () => {
+    rememberBoard('ARI', '/p/ARI/board/kanban');
+    mount('/p/ARI/board');
+    expect(await screen.findByRole('heading', { level: 1, name: 'Kanban' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Tous les boards' })).toHaveAttribute('href', '/p/ARI/board?tous=1');
+    localStorage.removeItem('athena.lastBoard.ARI');
   });
 });

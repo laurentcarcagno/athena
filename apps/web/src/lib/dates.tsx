@@ -1,4 +1,4 @@
-import { getLocale } from '../i18n';
+import { fr, getLocale } from '../i18n';
 
 /**
  * Dates et heures affichées selon la langue de l'interface et le fuseau du navigateur (T-0132, DESIGN.md § 6.4) :
@@ -22,4 +22,21 @@ export const formatDate = (iso: string | null | undefined): string => format(iso
 export function DateTime({ iso, date = false }: { iso: string | null | undefined; date?: boolean }) {
   if (!iso) return null;
   return <time dateTime={iso}>{date ? formatDate(iso) : formatDateTime(iso)}</time>;
+}
+
+/** Jour du calendrier en clair : « 20 nov. », ou « 3 déc. 2026 » avec l'année (T-0150). */
+export const formatDay = (iso: string | null | undefined, year = false): string => format(iso, { day: 'numeric', month: 'short', ...(year ? { year: 'numeric' } : {}) });
+
+/** Période en clair : « du 20 nov. au 3 déc. 2026 » (T-0150). */
+export const formatSpan = (start: string | null | undefined, end: string | null | undefined): string =>
+  (start && end ? fr.when.span(formatDay(start), formatDay(end, true)) : '');
+
+/** Où en est une période par rapport à aujourd'hui : « commence dans 9 jours », « se termine dans 3 jours », « terminée ». */
+export function relativeSpan(start: string | null | undefined, end: string | null | undefined, today = new Date()): string {
+  const day = (iso: string) => { const [y, m, d] = iso.split('-').map(Number); return Date.UTC(y!, m! - 1, d!); };
+  const now = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+  const days = (t: number) => Math.round((t - now) / 86_400_000);
+  if (start && days(day(start)) > 0) return fr.when.startsIn(days(day(start)));
+  if (end && days(day(end)) >= 0) return fr.when.endsIn(days(day(end)));
+  return end ? fr.when.ended : '';
 }

@@ -5,7 +5,7 @@ import { api, type Session } from '../api';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
 import { fromHere } from '../lib/origin';
-import { DateTime, formatDate } from '../lib/dates';
+import { DateTime, formatDate, formatDay, formatSpan, relativeSpan } from '../lib/dates';
 
 interface BacklogItem { key: string; tracker: string; title: string; status: string; statusName: string; category: string; points: number | null; assignee: string | null }
 interface SprintSummary { id: string; name: string; goal: string; state: 'planned' | 'active' | 'closed'; startsOn: string | null; endsOn: string | null }
@@ -14,6 +14,10 @@ interface SprintDetail extends SprintSummary { items: SprintItem[]; totalPoints:
 interface BurndownPoint { date: string; remaining: number; ideal: number }
 
 const t = fr.backlog;
+
+/** Sprint pas encore commencé (date de début après aujourd’hui) : le burndown n’a pas encore de point (T-0150). */
+const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+export const notStarted = (startsOn: string | null): startsOn is string => !!startsOn && startsOn > today();
 
 /**
  * Burndown du sprint en cours : une série (« Reste à faire », trait plein et points) et une ligne de référence (« Idéal »,
@@ -129,7 +133,7 @@ export function BacklogPage({ session }: { session: Session }) {
   const planned = sprints.filter((s) => s.state === 'planned');
   const keys = (items ?? []).map((i) => i.key);
   const sprintCard = (s: SprintDetail) => (
-    <Card key={s.id} title={s.name} meta={`${s.startsOn ?? '—'} → ${s.endsOn ?? '—'}`}>
+    <Card key={s.id} title={s.name} meta={s.startsOn && s.endsOn ? `${formatSpan(s.startsOn, s.endsOn)} · ${relativeSpan(s.startsOn, s.endsOn)}` : '—'}>
       <div className="ath-stack">
         {s.goal && <p>{s.goal}</p>}
         <p className="ath-mono">{t.totals(s.donePoints, s.totalPoints)}</p>
@@ -157,7 +161,7 @@ export function BacklogPage({ session }: { session: Session }) {
             <Btn type="submit" variant="deep">{t.close}</Btn>
           </form>
         )}
-        {s.state === 'active' && <><h3 className="ath-subsection-title">{t.burndown}</h3><Burndown points={burndown} /></>}
+        {s.state === 'active' && <><h3 className="ath-subsection-title">{t.burndown}</h3>{notStarted(s.startsOn) ? <p>{t.burndownSoon(formatDay(s.startsOn))}</p> : <Burndown points={burndown} />}</>}
       </div>
     </Card>
   );
@@ -173,6 +177,7 @@ export function BacklogPage({ session }: { session: Session }) {
           </section>
           <section aria-labelledby="bk-planned" className="ath-stack">
             <h2 id="bk-planned" className="ath-section-title">{t.planned}</h2>
+            {planned.length === 0 && <p>{canPlan ? t.noPlannedPlan : t.noPlanned}</p>}
             {planned.map(sprintCard)}
             {canPlan && (
               <form className="ath-toolbar" aria-label={t.newSprint} onSubmit={createSprint}>

@@ -3,9 +3,10 @@ import { Link, useLocation, useParams } from 'react-router-dom';
 import { Btn, Card, EmptyState, Field, Id, PageHeader, StatusPill, useToast } from '@athena/ui';
 import { api, type Session } from '../api';
 import { useConfirm } from '../components/ConfirmDialog';
-import { Bar, Gantt } from '../components/ReleaseCharts';
+import { Bar, Timeline } from '../components/ReleaseCharts';
+import { formatSpan } from '../lib/dates';
 import { useFailure } from '../hooks';
-import { fr } from '../i18n';
+import { fr, getLocale } from '../i18n';
 import { fromHere } from '../lib/origin';
 
 interface Release { id: string; name: string; startsOn: string; endsOn: string; state: string; items: number; doneItems: number; totalPoints: number; donePoints: number; progress: number }
@@ -63,7 +64,7 @@ export function RoadmapPage({ session }: { session: Session }) {
     const list = items[r.id] ?? [];
     const open = r.state !== 'released';
     return (
-      <Card key={r.id} title={r.name} meta={`${r.startsOn} → ${r.endsOn}`}>
+      <Card key={r.id} title={r.name} meta={formatSpan(r.startsOn, r.endsOn)}>
         <div className="ath-stack">
           <div className="ath-row">
             <StatusPill kind={open ? 'info' : 'success'}>{open ? t.planned : t.released}</StatusPill>
@@ -108,7 +109,8 @@ export function RoadmapPage({ session }: { session: Session }) {
             <>
               <section aria-labelledby="rm-timeline" className="ath-stack">
                 <h2 id="rm-timeline" className="ath-section-title">{t.timeline}</h2>
-                <Gantt releases={releases} label={t.timeline} />
+                <Timeline releases={releases} label={t.timeline} locale={getLocale()} todayLabel={fr.when.today}
+                  counts={Object.fromEntries(releases.map((r) => [r.id, t.counts(r.doneItems, r.items)]))} />
               </section>
               {releases.map(card)}
             </>

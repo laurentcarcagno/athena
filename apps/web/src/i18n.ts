@@ -36,7 +36,7 @@ const frDict = {
     remove: (key: string) => `Retirer ${key} du sprint`, start: 'Démarrer', close: 'Clore', closeRest: 'Tickets non terminés', toBacklog: 'Retour au backlog', toSprint: (name: string) => `Vers « ${name} »`,
     active: 'Sprint en cours', planned: 'Sprints à venir', noSprint: 'Aucun sprint en cours ni planifié.', sprintEmpty: 'Aucun ticket dans ce sprint.',
     totals: (done: number, total: number) => `${done} / ${total} pt terminés`, newSprint: 'Nouveau sprint', name: 'Nom', starts: 'Début', ends: 'Fin', create: 'Créer le sprint',
-    burndown: 'Burndown', remaining: 'Reste à faire', ideal: 'Idéal', day: 'Jour', data: 'Données du burndown', noBurndown: 'Burndown indisponible : dates du sprint absentes.',
+    burndown: 'Burndown', remaining: 'Reste à faire', ideal: 'Idéal', day: 'Jour', data: 'Données du burndown', noBurndown: 'Burndown indisponible : dates du sprint absentes.', burndownSoon: (d: string) => `Le burndown s’affichera dès le premier jour du sprint (${d}).`, noPlanned: 'Aucun sprint à venir.', noPlannedPlan: 'Aucun sprint à venir : planifiez le suivant ci-dessous.',
     moved: 'Backlog réordonné.', added: 'Ticket ajouté au sprint.', removed: 'Ticket retiré du sprint.', started: 'Sprint démarré.', closed: (n: number) => `Sprint clos : ${n} ticket(s) non terminé(s) reporté(s).`, created: 'Sprint créé.',
   },
   globalSearch: {
@@ -76,7 +76,8 @@ const frDict = {
   },
   board: { eyebrow: 'Board', moveTo: 'Déplacer vers', unmapped: (n: number) => `${n} ticket(s) hors colonnes`, wip: 'Limite WIP', laneBy: 'Couloirs', laneNone: 'Aucun', laneAssignee: 'Responsable', laneTracker: 'Tracker', noAssignee: 'Non assigné', moved: 'Carte déplacée.', empty: 'Aucune carte.',
     filter: 'Filtrer les cartes (clé ou titre)', mine: 'Mes tickets', blockedOnly: 'Bloqués', blocked: 'Bloqué', createIn: (column: string) => `Créer un ticket dans « ${column} »`, noMatch: 'Aucune carte ne correspond aux filtres.',
-    indexTitle: 'Boards', projectBoards: 'Boards du projet', trackerBoards: 'Board de chaque tracker', noBoards: 'Aucun board configuré.' },
+    indexTitle: 'Boards', projectBoards: 'Boards du projet', trackerBoards: 'Board de chaque tracker', noBoards: 'Aucun board configuré.',
+    teamBoard: 'Board d’équipe, colonnes configurées', trackerBoard: 'Une colonne par statut du tracker', tickets: (n: number) => `${n} ticket${n > 1 ? 's' : ''}`, open: 'Ouvrir le board', openNamed: (n: string) => `Ouvrir le board ${n}`, all: 'Tous les boards', remember: 'Board ouvre ensuite directement le dernier board consulté ; « Tous les boards » ramène ici.' },
   dashboard: {
     eyebrow: 'Pilotage', title: 'Tableau de bord', todo: 'À faire', inProgress: 'En cours', done: 'Terminés', open: 'Ouverts', total: 'Total',
     flow: 'Flux des 7 derniers jours', velocity: 'Vélocité', forecast: 'Prévision du prochain sprint', points: 'points', roadmap: 'Roadmap', noSprint: 'Aucun sprint clos.', noRelease: 'Aucune version.',
@@ -310,6 +311,7 @@ const frDict = {
       { name: 'Relance des tickets bloqués', summary: 'chaque jour, un commentaire relance les tickets toujours bloqués', body: 'Toujours bloqué : à traiter au prochain point d’équipe.' },
     ],
   },
+  when: { span: (a: string, b: string) => `du ${a} au ${b}`, startsIn: (n: number) => (n === 1 ? 'commence demain' : `commence dans ${n} jours`), endsIn: (n: number) => (n === 0 ? 'se termine aujourd’hui' : n === 1 ? 'se termine demain' : `se termine dans ${n} jours`), ended: 'terminée', today: 'aujourd’hui' },
   denied: {
     eyebrow: 'Accès réservé', ask: 'Décrivez votre besoin à un administrateur de l’organisation : il peut le faire pour vous ou vous donner le rôle nécessaire.',
     trackerCreate: 'Seul un administrateur peut ajouter un tracker.', backTrackers: 'Retour aux trackers',
@@ -462,7 +464,7 @@ const enDict: Dictionary = {
     remove: (key: string) => `Remove ${key} from sprint`, start: 'Start', close: 'Close', closeRest: 'Unfinished tickets', toBacklog: 'Back to backlog', toSprint: (name: string) => `To “${name}”`,
     active: 'Current sprint', planned: 'Upcoming sprints', noSprint: 'No current or planned sprint.', sprintEmpty: 'No ticket in this sprint.',
     totals: (done: number, total: number) => `${done} / ${total} pt done`, newSprint: 'New sprint', name: 'Name', starts: 'Start', ends: 'End', create: 'Create sprint',
-    burndown: 'Burndown', remaining: 'Remaining', ideal: 'Ideal', day: 'Day', data: 'Burndown data', noBurndown: 'Burndown unavailable: sprint dates missing.',
+    burndown: 'Burndown', remaining: 'Remaining', ideal: 'Ideal', day: 'Day', data: 'Burndown data', noBurndown: 'Burndown unavailable: sprint dates missing.', burndownSoon: (d: string) => `The burndown will show from the first day of the sprint (${d}).`, noPlanned: 'No upcoming sprint.', noPlannedPlan: 'No upcoming sprint: plan the next one below.',
     moved: 'Backlog reordered.', added: 'Ticket added to sprint.', removed: 'Ticket removed from sprint.', started: 'Sprint started.', closed: (n: number) => `Sprint closed: ${n} unfinished ticket(s) carried over.`, created: 'Sprint created.',
   },
   globalSearch: {
@@ -502,7 +504,8 @@ const enDict: Dictionary = {
   },
   board: { eyebrow: 'Board', moveTo: 'Move to', unmapped: (n: number) => `${n} artifact(s) outside columns`, wip: 'WIP limit', laneBy: 'Swimlanes', laneNone: 'None', laneAssignee: 'Assignee', laneTracker: 'Tracker', noAssignee: 'Unassigned', moved: 'Card moved.', empty: 'No card.',
     filter: 'Filter cards (key or title)', mine: 'My tickets', blockedOnly: 'Blocked', blocked: 'Blocked', createIn: (column: string) => `Create a ticket in “${column}”`, noMatch: 'No card matches the filters.',
-    indexTitle: 'Boards', projectBoards: 'Project boards', trackerBoards: 'Board of each tracker', noBoards: 'No board configured.' },
+    indexTitle: 'Boards', projectBoards: 'Project boards', trackerBoards: 'Board of each tracker', noBoards: 'No board configured.',
+    teamBoard: 'Team board, configured columns', trackerBoard: 'One column per tracker status', tickets: (n: number) => `${n} ticket${n > 1 ? 's' : ''}`, open: 'Open the board', openNamed: (n: string) => `Open the board ${n}`, all: 'All boards', remember: 'Board then opens the last board you viewed directly; “All boards” brings you back here.' },
   dashboard: {
     eyebrow: 'Overview', title: 'Dashboard', todo: 'To do', inProgress: 'In progress', done: 'Done', open: 'Open', total: 'Total',
     flow: 'Flow, last 7 days', velocity: 'Velocity', forecast: 'Next sprint forecast', points: 'points', roadmap: 'Roadmap', noSprint: 'No closed sprint.', noRelease: 'No release.',
@@ -736,6 +739,7 @@ const enDict: Dictionary = {
       { name: 'Follow-up on blocked tickets', summary: 'every day, a comment follows up on tickets that are still blocked', body: 'Still blocked: to discuss at the next team meeting.' },
     ],
   },
+  when: { span: (a: string, b: string) => `from ${a} to ${b}`, startsIn: (n: number) => (n === 1 ? 'starts tomorrow' : `starts in ${n} days`), endsIn: (n: number) => (n === 0 ? 'ends today' : n === 1 ? 'ends tomorrow' : `ends in ${n} days`), ended: 'ended', today: 'today' },
   denied: {
     eyebrow: 'Restricted access', ask: 'Describe what you need to an organization administrator: they can do it for you or give you the required role.',
     trackerCreate: 'Only an administrator can add a tracker.', backTrackers: 'Back to trackers',

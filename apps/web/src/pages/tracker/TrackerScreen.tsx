@@ -14,7 +14,7 @@ import { SubscribeToggle } from '../../components/SubscribeToggle';
 import { MatrixView } from '../../components/MatrixView';
 import { TreeView } from '../../components/TreeView';
 import { useFailure } from '../../hooks';
-import { BoardView } from '../BoardPage';
+import { BoardView, rememberBoard } from '../BoardPage';
 import { fr } from '../../i18n';
 import { columnOptions, columnsParam, selectedColumns } from '../../lib/columns';
 import { emptyModel, fromAtql, toAtql } from '../../lib/filter-query';
@@ -147,6 +147,8 @@ export function TrackerScreen({ session }: { session: Session }) {
   const tableColumns = chosenColumns.map((id) => columnFor(id, def)).filter((c): c is TableColumn => c !== null);
   const states = counts?.statuses ?? def?.statuses.map((s) => ({ key: s.key, name: s.name, category: s.category, color: s.color ?? null, count: 0 })) ?? [];
 
+  // Le board d’un tracker compte comme dernier board ouvert du projet (T-0150).
+  if (current === 'board') rememberBoard(String(project), `${base}/board`);
   return (
     <>
       <PageHeader eyebrow={fr.trackerScreen.eyebrow} title={def?.name ?? String(tracker)}

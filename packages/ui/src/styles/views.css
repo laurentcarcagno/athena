@@ -60,3 +60,18 @@
 .ath-filterbar__more .ath-stack, .ath-filterbar__more .ath-toolbar { margin: 0; }
 .ath-filterbar__spacer { flex: 1 1 0; }
 .ath-filterbar__toggle { display: none; }
+
+/* Frise des versions (T-0150) : mois, versions nommées, repère du jour. */
+.ath-timeline { display: block; margin: var(--ath-space-xs) 0 var(--ath-space-md); overflow: visible; }
+.ath-timeline__grid { stroke: var(--ath-border-default); stroke-width: 1; }
+.ath-timeline__month { fill: var(--ath-text-secondary); font-size: var(--ath-font-size-small); }
+.ath-timeline__bar { fill: var(--ath-surface-selected); stroke: var(--ath-border-focus); stroke-width: 1; }
+.ath-timeline__done { fill: var(--ath-data-1); }
+.ath-timeline__label { font-size: var(--ath-font-size-small); fill: var(--ath-text-default); }
+.ath-timeline__name { font-weight: var(--ath-font-weight-semibold); fill: var(--ath-text-heading); }
+.ath-timeline__dates { fill: var(--ath-text-secondary); }
+.ath-timeline__today { stroke: var(--ath-state-danger-border); stroke-width: 2; }
+.ath-timeline__today-label { fill: var(--ath-state-danger-fg); font-size: var(--ath-font-size-small); }
+
+/* Grille de cartes (index des boards, T-0150) : autant de colonnes que la largeur le permet. */
+.ath-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: var(--ath-space-md); }
