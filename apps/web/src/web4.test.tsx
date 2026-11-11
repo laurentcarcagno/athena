@@ -131,6 +131,7 @@ describe('gabarits de projet', () => {
     routes.push(['GET', /\/v1\/users$/, []], ['GET', /\/v1\/project-templates$/, templates], ['GET', /\/v1\/projects$/, []], ['POST', /\/v1\/projects$/, {}]);
     app();
     const user = userEvent.setup();
+    await user.click(await screen.findByRole('button', { name: '+ Nouveau projet' }));
     await user.selectOptions(await screen.findByLabelText('Gabarit du projet'), 'qualite');
     await user.type(screen.getByLabelText('Clé du projet (2 à 10 majuscules)'), 'qua');
     await user.type(screen.getByLabelText('Nom du projet'), 'Qualité');

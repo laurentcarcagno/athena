@@ -12,6 +12,7 @@ async function login(page: Page, username: string, password: string) {
 /** Crée un projet depuis la page Organisation : gabarit, version et catégorie de criticité choisis dans le formulaire. */
 async function createFrom(page: Page, key: string, name: string, template: string, criticality: string) {
   await page.goto('/org');
+  await page.getByRole('button', { name: '+ Nouveau projet' }).click(); // T-0151 : création à la demande
   await page.getByLabel(/^Clé du projet/).fill(key);
   await page.getByLabel('Nom du projet').fill(name);
   await page.getByLabel(/^Gabarit/).selectOption(template);

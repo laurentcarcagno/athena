@@ -82,12 +82,14 @@ describe('fenêtres par rôle', () => {
     routes.push(['PUT', /\/members\/s1$/, []]);
     app('/org', ['athena-user', 'athena-admin']);
     const user = userEvent.setup();
+    await user.click(await screen.findByRole('button', { name: '+ Nouveau projet' })); // T-0151 : création à la demande
     await user.type(await screen.findByLabelText('Clé du projet (2 à 10 majuscules)'), 'pay');
     await user.type(screen.getByLabelText('Nom du projet'), 'Paiement');
     await user.click(screen.getByRole('button', { name: 'Créer le projet' }));
     await waitFor(() => expect(calls.find((c) => c.method === 'POST' && c.url.endsWith('/v1/projects'))?.body).toEqual({ key: 'PAY', name: 'Paiement' }));
-    await user.selectOptions(await screen.findByLabelText('Nommer chef de projet'), 's1');
-    await user.click(screen.getAllByRole('button', { name: 'Nommer chef de projet' })[0]!);
+    await user.click(await screen.findByRole('button', { name: 'Nommer un chef de projet : Ariane' })); // depuis la ligne du projet
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Nommer un chef de projet : Ariane' }), 's1');
+    await user.click(screen.getByRole('button', { name: 'Nommer chef de projet' }));
     await waitFor(() => expect(calls.find((c) => c.method === 'PUT')?.body).toEqual({ role: 'manager' }));
   });
 });

@@ -8,6 +8,7 @@ import { Btn, Card, EmptyState, Field, PageHeader, Select, StatusPill, Table, Ta
 import { api, type Session } from '../api';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
+import { useConfirm } from '../components/ConfirmDialog';
 import type { MemberEntry, UserEntry } from './OrgAdminPage';
 
 
@@ -28,32 +29,36 @@ export function ActorsTab({ project }: { project: string }) {
   const [members, setMembers] = useState<MemberEntry[]>([]);
   const [users, setUsers] = useState<UserEntry[]>([]);
   const [pick, setPick] = useState({ subject: '', role: 'member' });
+  const confirm = useConfirm();
   const load = useCallback(async () => setMembers(await api<MemberEntry[]>('GET', `/v1/projects/${project}/members`)), [project]);
   useEffect(() => { load().catch(fail); api<UserEntry[]>('GET', '/v1/users').then(setUsers).catch(fail); }, [load, fail]);
   const set = async (subject: string, role: string) => {
     try { await api('PUT', `/v1/projects/${project}/members/${encodeURIComponent(subject)}`, { role }); toast('success', fr.manage.actorSet); await load(); } catch (e) { fail(e); }
   };
-  const remove = async (subject: string) => {
-    try { await api('DELETE', `/v1/projects/${project}/members/${encodeURIComponent(subject)}`); // sans confirmation : réversible (le rôle se redonne)
+  // Retirer demande confirmation (T-0151) : l'accès au projet cesse aussitôt pour la personne.
+  const remove = async (m: MemberEntry) => {
+    if (!(await confirm.ask({ title: fr.manage.removeTitle(m.displayName), body: fr.manage.removeBody, confirm: fr.manage.removeActor }))) return;
+    try { await api('DELETE', `/v1/projects/${project}/members/${encodeURIComponent(m.subject)}`);
       toast('success', fr.manage.actorRemoved); await load(); } catch (e) { fail(e); }
   };
   const candidates = users.filter((u) => !members.some((m) => m.subject === u.subject));
   return (
     <div className="ath-stack">
+      {confirm.dialog}
       {members.length === 0 ? <EmptyState eyebrow={fr.manage.actors} title={fr.admin.empty} /> : (
         <Table>
-          <thead><tr><Th>{fr.org.displayName}</Th><Th>{fr.org.username}</Th><Th>{fr.manage.role}</Th><Th>{fr.manage.removeActor}</Th></tr></thead>
+          <thead><tr><Th>{fr.org.displayName}</Th><Th>{fr.org.username}</Th><Th>{fr.manage.role}</Th><Th><span className="ath-visually-hidden">{fr.manage.actions}</span></Th></tr></thead>
           <tbody>{members.map((m) => (
             <tr key={m.subject}><Td>{m.displayName}</Td><Td mono>{m.username}</Td>
               <Td><Select aria-label={`${fr.manage.role} ${m.username}`} value={m.role} onChange={(e) => set(m.subject, e.target.value)}>
                 <option value="manager">{fr.manage.manager}</option><option value="member">{fr.manage.member}</option></Select></Td>
-              <Td><Btn icon="trash" size="sm" variant="ghost" aria-label={`${fr.manage.removeActor} ${m.username}`} onClick={() => remove(m.subject)}>{fr.manage.removeActor}</Btn></Td></tr>
+              <Td><Btn size="sm" variant="ghost" aria-label={`${fr.manage.removeActor} ${m.username}`} onClick={() => void remove(m)}>{fr.manage.removeEllipsis}</Btn></Td></tr>
           ))}</tbody>
         </Table>
       )}
       <form className="ath-toolbar" onSubmit={(e) => { e.preventDefault(); void set(pick.subject, pick.role).then(() => setPick({ subject: '', role: 'member' })); }}>
         <div className="ath-field">
-          <label className="ath-field__label" htmlFor="actor-user">{fr.org.chooseUser}</label>
+          <label className="ath-field__label" htmlFor="actor-user">{fr.manage.addMember}</label>
           <Select id="actor-user" value={pick.subject} onChange={(e) => setPick({ ...pick, subject: e.target.value })}>
             <option value="" />{candidates.map((u) => <option key={u.subject} value={u.subject}>{u.displayName} ({u.username})</option>)}
           </Select>
@@ -64,7 +69,7 @@ export function ActorsTab({ project }: { project: string }) {
             <option value="member">{fr.manage.member}</option><option value="manager">{fr.manage.manager}</option>
           </Select>
         </div>
-        <Btn type="submit" icon="plus" disabled={!pick.subject}>{fr.manage.addActor}</Btn>
+        <Btn type="submit" disabled={!pick.subject}>{fr.manage.addToProject}</Btn>
       </form>
     </div>
   );

@@ -30,6 +30,8 @@ function ProjectsTab({ users, templates }: { users: UserEntry[]; templates: Temp
   const [projects, setProjects] = useState<Array<{ key: string; name: string; managers: MemberEntry[] }>>([]);
   const [form, setForm] = useState({ key: '', name: '', template: '', version: '', criticality: '' });
   const [pick, setPick] = useState<Record<string, string>>({});
+  const [creating, setCreating] = useState(false);
+  const [naming, setNaming] = useState<string | null>(null);
   const load = useCallback(async () => {
     const list = await api<Array<{ key: string; name: string }>>('GET', '/v1/projects');
     setProjects(await Promise.all(list.map(async (p) => ({ ...p, managers: (await api<MemberEntry[]>('GET', `/v1/projects/${p.key}/members`)).filter((m) => m.role === 'manager') }))));
@@ -41,6 +43,7 @@ function ProjectsTab({ users, templates }: { users: UserEntry[]; templates: Temp
     try {
       await api('POST', '/v1/projects', { key: form.key, name: form.name, ...(form.template ? { template: form.template } : {}), ...(form.template && form.version ? { templateVersion: form.version } : {}), ...(form.template && form.criticality ? { criticality: form.criticality } : {}) });
       toast('success', fr.org.projectCreated(form.key));
+      setCreating(false);
       setForm({ key: '', name: '', template: form.template, version: form.version, criticality: form.criticality });
       await load();
     } catch (error) { fail(error); }
@@ -60,63 +63,78 @@ function ProjectsTab({ users, templates }: { users: UserEntry[]; templates: Temp
       await load();
     } catch (error) { fail(error); }
   };
+  // Liste d'abord, création à la demande, nomination depuis la ligne du projet (ADR-0005, T-0151).
   return (
     <div className="ath-stack">
-      <form className="ath-toolbar" onSubmit={create}>
-        <Field label={fr.org.projectKey} value={form.key} onChange={(e) => setForm({ ...form, key: e.target.value.toUpperCase() })} mono />
-        <Field label={fr.org.projectName} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-        <div className="ath-field">
-          <label className="ath-field__label" htmlFor="project-template">{fr.org.template}</label>
-          <Select id="project-template" value={form.template} onChange={(e) => setForm({ ...form, template: e.target.value, version: '', criticality: '' })}>
-            <option value="">{fr.org.noTemplate}</option>
-            {templates.map((t) => <option key={t.key} value={t.key}>{t.name} ({t.trackers.length})</option>)}
-          </Select>
-        </div>
-        {chosen && (chosen.versions?.length ?? 0) > 0 && (
-          <div className="ath-field">
-            <label className="ath-field__label" htmlFor="project-template-version">{fr.normTpl.projectVersion}</label>
-            <Select id="project-template-version" value={form.version} onChange={(e) => setForm({ ...form, version: e.target.value })}>
-              <option value="">{fr.normTpl.latest}</option>
-              {[...(chosen.versions ?? [])].reverse().map((v) => <option key={v} value={v}>{v}</option>)}
-            </Select>
-          </div>
-        )}
-        {chosen && (chosen.normative?.criticality?.categories.length ?? 0) > 0 && (
-          <div className="ath-field">
-            <label className="ath-field__label" htmlFor="project-criticality">{fr.normTpl.projectCriticality}</label>
-            <Select id="project-criticality" value={form.criticality} onChange={(e) => setForm({ ...form, criticality: e.target.value })}>
-              <option value="">{fr.normTpl.noCriticality}</option>
-              {chosen.normative!.criticality!.categories.map((c) => <option key={c.key} value={c.key}>{c.name}</option>)}
-            </Select>
-          </div>
-        )}
-        <Btn type="submit" loading={busy} disabled={form.key.length < 2 || !form.name.trim()}>{fr.org.createProject}</Btn>
-      </form>
-      {projects.length === 0 ? <EmptyState eyebrow={fr.org.projects} title={fr.admin.empty} /> : (
-        <div className="ath-grid-2">
-          {projects.map((p) => (
-            <Card key={p.key} title={p.name} meta={p.key}>
-              <div className="ath-stack">
-                <span className="ath-eyebrow">{fr.org.managers}</span>
-                {p.managers.length === 0 && <p>{fr.org.noManager}</p>}
-                {p.managers.map((m) => (
-                  <div key={m.subject} className="ath-row"><span>{m.displayName}</span> <span className="ath-mono">{m.username}</span>
-                    <Btn size="sm" variant="ghost" aria-label={`${fr.org.revoke} ${m.username}`} onClick={() => revoke(p.key, m.subject)}>{fr.org.revoke}</Btn></div>
-                ))}
-                <div className="ath-toolbar">
-                  <div className="ath-field">
-                    <label className="ath-field__label" htmlFor={`mgr-${p.key}`}>{fr.org.assignManager}</label>
-                    <Select id={`mgr-${p.key}`} value={pick[p.key] ?? ''} onChange={(e) => setPick({ ...pick, [p.key]: e.target.value })}>
-                      <option value="">{fr.org.chooseUser}</option>
-                      {users.map((u) => <option key={u.subject} value={u.subject}>{u.displayName} ({u.username})</option>)}
-                    </Select>
-                  </div>
-                  <Btn size="sm" disabled={!pick[p.key]} onClick={() => assign(p.key)}>{fr.org.assignManager}</Btn>
-                </div>
+      <div className="ath-row ath-row--between">
+        <p className="ath-field__hint">{fr.org.projectCount(projects.length)}</p>
+        {!creating && <Btn onClick={() => setCreating(true)}>{fr.org.newProject}</Btn>}
+      </div>
+      {creating && (
+        <Card title={fr.org.newProjectTitle}>
+          <form className="ath-toolbar" onSubmit={create}>
+            <Field label={fr.org.projectKey} value={form.key} onChange={(e) => setForm({ ...form, key: e.target.value.toUpperCase() })} mono />
+            <Field label={fr.org.projectName} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+            <div className="ath-field">
+              <label className="ath-field__label" htmlFor="project-template">{fr.org.template}</label>
+              <Select id="project-template" value={form.template} onChange={(e) => setForm({ ...form, template: e.target.value, version: '', criticality: '' })}>
+                <option value="">{fr.org.noTemplate}</option>
+                {templates.map((t) => <option key={t.key} value={t.key}>{t.name} ({t.trackers.length})</option>)}
+              </Select>
+            </div>
+            {chosen && (chosen.versions?.length ?? 0) > 0 && (
+              <div className="ath-field">
+                <label className="ath-field__label" htmlFor="project-template-version">{fr.normTpl.projectVersion}</label>
+                <Select id="project-template-version" value={form.version} onChange={(e) => setForm({ ...form, version: e.target.value })}>
+                  <option value="">{fr.normTpl.latest}</option>
+                  {[...(chosen.versions ?? [])].reverse().map((v) => <option key={v} value={v}>{v}</option>)}
+                </Select>
               </div>
-            </Card>
-          ))}
-        </div>
+            )}
+            {chosen && (chosen.normative?.criticality?.categories.length ?? 0) > 0 && (
+              <div className="ath-field">
+                <label className="ath-field__label" htmlFor="project-criticality">{fr.normTpl.projectCriticality}</label>
+                <Select id="project-criticality" value={form.criticality} onChange={(e) => setForm({ ...form, criticality: e.target.value })}>
+                  <option value="">{fr.normTpl.noCriticality}</option>
+                  {chosen.normative!.criticality!.categories.map((c) => <option key={c.key} value={c.key}>{c.name}</option>)}
+                </Select>
+              </div>
+            )}
+            <Btn type="submit" loading={busy} disabled={form.key.length < 2 || !form.name.trim()}>{fr.org.createProject}</Btn>
+            <Btn type="button" variant="ghost" onClick={() => setCreating(false)}>{fr.builder.cancel}</Btn>
+          </form>
+        </Card>
+      )}
+      {projects.length === 0 ? <EmptyState eyebrow={fr.org.projects} title={fr.admin.empty} /> : (
+        <Table>
+          <thead><tr><Th>{fr.org.projectName}</Th><Th>{fr.org.key}</Th><Th>{fr.org.managers}</Th><Th><span className="ath-visually-hidden">{fr.manage.actions}</span></Th></tr></thead>
+          <tbody>
+            {projects.map((p) => (
+              <tr key={p.key}>
+                <Td>{p.name}</Td>
+                <Td mono>{p.key}</Td>
+                <Td>
+                  {p.managers.length === 0 ? <span className="ath-field__hint">{fr.org.noManager}</span> : p.managers.map((m) => (
+                    <div key={m.subject} className="ath-row"><span>{m.displayName}</span> <span className="ath-mono">{m.username}</span>
+                      <Btn size="sm" variant="ghost" aria-label={`${fr.org.revoke} ${m.username}`} onClick={() => revoke(p.key, m.subject)}>{fr.org.revoke}</Btn></div>
+                  ))}
+                </Td>
+                <Td>
+                  {naming === p.key ? (
+                    <div className="ath-row">
+                      <Select id={`mgr-${p.key}`} aria-label={fr.org.assignManagerOf(p.name)} value={pick[p.key] ?? ''} onChange={(e) => setPick({ ...pick, [p.key]: e.target.value })}>
+                        <option value="">{fr.org.chooseUser}</option>
+                        {users.map((u) => <option key={u.subject} value={u.subject}>{u.displayName} ({u.username})</option>)}
+                      </Select>
+                      <Btn size="sm" disabled={!pick[p.key]} onClick={() => void assign(p.key).then(() => setNaming(null))}>{fr.org.assignManager}</Btn>
+                      <Btn size="sm" variant="ghost" onClick={() => setNaming(null)}>{fr.builder.cancel}</Btn>
+                    </div>
+                  ) : <Btn size="sm" variant="ghost" aria-label={fr.org.assignManagerOf(p.name)} onClick={() => setNaming(p.key)}>{fr.org.assignManagerEllipsis}</Btn>}
+                </Td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
       )}
     </div>
   );

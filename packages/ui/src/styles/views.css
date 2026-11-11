@@ -75,3 +75,9 @@
 
 /* Grille de cartes (index des boards, T-0150) : autant de colonnes que la largeur le permet. */
 .ath-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: var(--ath-space-md); }
+
+/* Section avancée repliée (Membres, T-0151). */
+.ath-advanced { padding: var(--ath-space-sm) var(--ath-space-md); }
+.ath-advanced__summary { cursor: pointer; }
+.ath-advanced__body { margin-top: var(--ath-space-md); }
+.ath-row--between { justify-content: space-between; }

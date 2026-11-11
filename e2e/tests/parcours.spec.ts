@@ -121,6 +121,7 @@ test('administrateur : crée un projet, nomme un chef de projet et gère les act
   await login(page, 'admin.dev', 'dev-only-admin');
   await page.goto('/org');
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Administration de l’organisation');
+  await page.getByRole('button', { name: '+ Nouveau projet' }).click(); // T-0151 : création à la demande
   await page.getByLabel('Clé du projet (2 à 10 majuscules)').fill('PAY');
   await page.getByLabel('Nom du projet').fill('Paiement');
   await page.getByLabel('Gabarit du projet').selectOption('qualite');
