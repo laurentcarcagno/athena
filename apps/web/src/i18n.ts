@@ -146,9 +146,9 @@ const frDict = {
   },
   filters: {
     bar: 'Filtres du tracker', mine: 'Assigné à moi', suspect: 'Liens suspects', all: 'Tous', text: 'Recherche dans le tracker', apply: 'Appliquer', clear: 'Effacer les filtres',
-    atqlMode: 'Mode requête', chipsMode: 'Mode filtres', atqlLabel: 'Requête ATQL du tracker', atqlPlaceholder: 'status = open AND severity = majeure',
+    atqlMode: 'Requête avancée', chipsMode: 'Filtres simples', searchIn: (name: string) => (name ? `Rechercher dans ${name} (titre, clé, texte)…` : 'Rechercher (titre, clé, texte)…'), toggle: 'Filtres', toggleCount: (n: number) => `Filtres (${n})`, allOf: (label: string) => `${label} : tous`, atqlLabel: 'Requête ATQL du tracker', atqlPlaceholder: 'status = open AND severity = majeure',
     notRepresentable: 'Cette requête ne s’affiche pas en filtres : modifiez-la en mode requête.',
-    views: 'Vues enregistrées', noView: 'Aucune vue', saveView: 'Enregistrer la vue', viewName: 'Nom de la vue', sharedView: 'Partager avec le projet', defaultView: 'Vue par défaut du tracker',
+    views: 'Vues enregistrées', noView: 'Vue : par défaut', saveView: 'Enregistrer la vue', viewName: 'Nom de la vue', sharedView: 'Partager avec le projet', defaultView: 'Vue par défaut du tracker',
     deleteView: 'Supprimer la vue', makeDefault: 'Définir par défaut', unsetDefault: 'Retirer le défaut', defaultTag: 'Par défaut',
     viewSaved: 'Vue enregistrée.', viewDeleted: 'Vue supprimée.', defaultSet: 'Vue par défaut enregistrée.', defaultUnset: 'Vue par défaut retirée.',
     deleteViewTitle: (n: string) => `Supprimer la vue « ${n} »`, deleteViewBody: 'La vue est supprimée définitivement, y compris pour ceux avec qui elle est partagée.', badQuery: 'Requête invalide.',
@@ -570,9 +570,9 @@ const enDict: Dictionary = {
   },
   filters: {
     bar: 'Tracker filters', mine: 'Assigned to me', suspect: 'Suspect links', all: 'All', text: 'Search in the tracker', apply: 'Apply', clear: 'Clear filters',
-    atqlMode: 'Query mode', chipsMode: 'Filter mode', atqlLabel: 'Tracker ATQL query', atqlPlaceholder: 'status = open AND severity = major',
+    atqlMode: 'Advanced query', chipsMode: 'Simple filters', searchIn: (name: string) => (name ? `Search in ${name} (title, key, text)…` : 'Search (title, key, text)…'), toggle: 'Filters', toggleCount: (n: number) => `Filters (${n})`, allOf: (label: string) => `${label}: all`, atqlLabel: 'Tracker ATQL query', atqlPlaceholder: 'status = open AND severity = major',
     notRepresentable: 'This query cannot be shown as filters: edit it in query mode.',
-    views: 'Saved views', noView: 'No view', saveView: 'Save view', viewName: 'View name', sharedView: 'Share with the project', defaultView: 'Default view of the tracker',
+    views: 'Saved views', noView: 'View: default', saveView: 'Save view', viewName: 'View name', sharedView: 'Share with the project', defaultView: 'Default view of the tracker',
     deleteView: 'Delete view', makeDefault: 'Make default', unsetDefault: 'Remove default', defaultTag: 'Default',
     viewSaved: 'View saved.', viewDeleted: 'View deleted.', defaultSet: 'Default view saved.', defaultUnset: 'Default view removed.',
     deleteViewTitle: (n: string) => `Delete view “${n}”`, deleteViewBody: 'The view is deleted permanently, including for those it is shared with.', badQuery: 'Invalid query.',

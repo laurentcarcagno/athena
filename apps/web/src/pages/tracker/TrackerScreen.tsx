@@ -158,12 +158,15 @@ export function TrackerScreen({ session }: { session: Session }) {
           {admin && <Btn variant="ghost" size="sm" icon="settings" onClick={() => navigate(`/p/${project}/parametres/trackers/${tracker}`)}>{fr.trackerScreen.configure}</Btn>}
         </>} />
       {current === 'tableau' && <MiniWorkflow states={states} active={status} onPick={(key) => next({ f: toAtql({ ...(fromAtql(fragment, username) ?? emptyModel()), status: key ?? undefined }, username) || null, o: null })} />}
-      {current === 'tableau' && <FilterBar def={def} fragment={fragment} username={username} error={queryError} onChange={(f) => next({ f: f || null, o: null })} />}
-      {current === 'tableau' && <SavedViews project={String(project)} tracker={String(tracker)} current={{ fragment, sort, columns: cols }} roles={session.user?.roles ?? []} onLoaded={onViews}
-        onApply={(v) => setParams(viewToParams(v))} />}
-      {current === 'tableau' && <ColumnPicker options={columnOptions(def)} selected={chosenColumns} onChange={(ids) => next({ cols: columnsParam(ids, def) })} />}
+      {/* Les vues d'abord, puis une seule barre de filtres où se rangent vue enregistrée et colonnes (T-0147). */}
       <TabLinks label={fr.trackerScreen.views} items={views.map((v) => ({ id: v, label: fr.trackerScreen.viewNames[v], current: v === current }))}
         link={(item, props) => <Link to={`${base}/${item.id}`} {...props} />} />
+      {current === 'tableau' && <FilterBar def={def} fragment={fragment} username={username} error={queryError} onChange={(f) => next({ f: f || null, o: null })}
+        extras={<>
+          <SavedViews project={String(project)} tracker={String(tracker)} current={{ fragment, sort, columns: cols }} roles={session.user?.roles ?? []} onLoaded={onViews}
+            onApply={(v) => setParams(viewToParams(v))} />
+          <ColumnPicker options={columnOptions(def)} selected={chosenColumns} onChange={(ids) => next({ cols: columnsParam(ids, def) })} />
+        </>} />}
       {current === 'board' ? <BoardView key={refresh} session={session} project={String(project)} board={`~${tracker}`} header={false} /> : current === 'matrice' ? (
         <MatrixView project={String(project)} tracker={String(tracker)} columnsTracker={params.get('mx')} linkType={params.get('mt')}
           trackers={siblings} onChange={next} />

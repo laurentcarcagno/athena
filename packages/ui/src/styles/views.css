@@ -50,3 +50,13 @@
 
 /* Nouveau ticket (T-0146) : rappel des touches à gauche du pied de la fenêtre, boutons à droite. */
 .ath-create__keys { margin-right: auto; }
+
+/* Barre de filtres du tracker (T-0147) : une rangée, recherche extensible, réglages de vue à droite. */
+.ath-filterbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ath-space-sm); }
+.ath-filterbar__search { flex: 1 1 260px; min-width: 0; }
+.ath-filterbar__search .ath-input { width: 100%; }
+.ath-filterbar__more { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ath-space-sm); flex: 999 1 auto; }
+.ath-filterbar__more .ath-select { width: auto; }
+.ath-filterbar__more .ath-stack, .ath-filterbar__more .ath-toolbar { margin: 0; }
+.ath-filterbar__spacer { flex: 1 1 0; }
+.ath-filterbar__toggle { display: none; }

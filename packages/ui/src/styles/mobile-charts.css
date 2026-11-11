@@ -20,6 +20,12 @@
   /* Onglets d’état (fiche, paramètres) : même règle ; la page garde la largeur de l’écran (ADR-0005, T-0143). */
   .ath-tabs { overflow-x: auto; overflow-y: hidden; scrollbar-width: thin; }
   .ath-tab { white-space: nowrap; flex: 0 0 auto; }
+  /* Tracker sur téléphone (T-0147) : recherche et « Filtres » ; le reste se déplie en panneau ; le workflow défile sur une ligne. */
+  .ath-filterbar__toggle { display: inline-flex; }
+  .ath-filterbar__more { display: none; flex-basis: 100%; flex-direction: column; align-items: stretch; }
+  .ath-filterbar__more[data-open="true"] { display: flex; }
+  .ath-filterbar__spacer { display: none; }
+  .ath-miniworkflow { flex-wrap: nowrap; overflow-x: auto; }
   /* Dans un cadre défilant, le soulignement décalé de 2 px serait rogné : chaque onglet porte la ligne. */
   .ath-tabs, .ath-tabs--links { border-bottom: 0; }
   .ath-tabs .ath-tab { margin-bottom: 0; border-bottom-color: var(--ath-border-default); }

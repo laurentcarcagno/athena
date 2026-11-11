@@ -160,32 +160,45 @@ describe('barre de filtres', () => {
   it('« Assigné à moi », un champ à liste et le texte écrivent un fragment ATQL dans l’adresse', async () => {
     app('/p/ARI/t/BUG/tableau');
     await screen.findByRole('link', { name: 'ARI-BUG-0001' });
-    await userEvent.click(screen.getByRole('checkbox', { name: 'Assigné à moi' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Assigné à moi' }));
     await waitFor(() => expect(lastSearch()).toContain('tracker = BUG AND (assignee = "u")'));
     await userEvent.selectOptions(screen.getByLabelText('Sévérité'), 'très haute');
     await waitFor(() => expect(lastSearch()).toContain('(assignee = "u" AND severity = "très haute")'));
     await userEvent.type(screen.getByLabelText('Recherche dans le tracker'), 'crash{enter}');
     await waitFor(() => expect(lastSearch()).toContain('AND text ~ "crash")'));
-    expect(screen.getAllByText('très haute').length).toBeGreaterThan(1); // l’option et la puce active
+    expect(screen.getByRole('option', { name: 'Sévérité : très haute' })).toBeInTheDocument(); // l’option porte son libellé (T-0147)
+    expect(screen.getByText('très haute')).toBeInTheDocument(); // la puce active
     await userEvent.click(screen.getByRole('button', { name: 'Effacer les filtres' }));
     await waitFor(() => expect(lastSearch()).toContain('q=tracker = BUG&'));
     expect(screen.getByTestId('where')).not.toHaveTextContent('f=');
   });
 
+  it('une seule barre (T-0147) : les vues avant la recherche, aucun bouton sans texte, vue enregistrée et colonnes dans la barre', async () => {
+    app('/p/ARI/t/BUG/tableau');
+    await screen.findByRole('link', { name: 'ARI-BUG-0001' });
+    const views = screen.getByRole('navigation', { name: 'Vues du tracker' });
+    const bar = screen.getByRole('search', { name: 'Filtres du tracker' });
+    expect(views.compareDocumentPosition(bar) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    for (const b of within(bar).getAllByRole('button')) expect(b.textContent?.trim()).not.toBe('');
+    expect(within(bar).getByLabelText('Vues enregistrées')).toBeInTheDocument();
+    expect(within(bar).getByRole('button', { name: 'Colonnes' })).toBeInTheDocument();
+    expect(within(bar).getByRole('button', { name: 'Filtres' })).toHaveAttribute('aria-expanded', 'false');
+  });
+
   it('« Liens suspects » écrit suspect() et se relit comme une puce', async () => {
     app('/p/ARI/t/BUG/tableau');
     await screen.findByRole('link', { name: 'ARI-BUG-0001' });
-    await userEvent.click(screen.getByRole('checkbox', { name: 'Liens suspects' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Liens suspects' }));
     await waitFor(() => expect(lastSearch()).toContain('tracker = BUG AND (suspect())'));
-    expect(screen.getByRole('checkbox', { name: 'Liens suspects' })).toBeChecked();
-    await userEvent.click(screen.getByRole('button', { name: 'Mode requête' }));
+    expect(screen.getByRole('button', { name: 'Liens suspects' })).toHaveAttribute('aria-pressed', 'true');
+    await userEvent.click(screen.getByRole('button', { name: 'Requête avancée' }));
     expect(screen.getByLabelText('Requête ATQL du tracker')).toHaveValue('suspect()');
   });
 
   it('bascule en mode requête : le fragment est affiché, modifiable et reste synchronisé avec les puces', async () => {
     app('/p/ARI/t/BUG/tableau?f=status%20%3D%20open');
     await screen.findByRole('link', { name: 'ARI-BUG-0001' });
-    await userEvent.click(screen.getByRole('button', { name: 'Mode requête' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Requête avancée' }));
     const input = screen.getByLabelText('Requête ATQL du tracker');
     expect(input).toHaveValue('status = open');
     await userEvent.clear(input);
@@ -199,7 +212,7 @@ describe('barre de filtres', () => {
     await screen.findByRole('link', { name: 'ARI-BUG-0001' });
     expect(screen.getByLabelText('Requête ATQL du tracker')).toHaveValue('status = open OR status = done');
     expect(screen.getByText(/ne s’affiche pas en filtres/)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Mode filtres' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Filtres simples' })).toBeDisabled();
     expect(lastSearch()).toContain('(status = open OR status = done)');
   });
 
@@ -207,7 +220,7 @@ describe('barre de filtres', () => {
     badQuery = true;
     app('/p/ARI/t/BUG/tableau?f=nope%20%3D%20x');
     expect(await screen.findByRole('alert')).toHaveTextContent('Champ inconnu ou invalide : nope');
-    await userEvent.click(screen.getByRole('button', { name: 'Mode requête' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Requête avancée' }));
     expect(screen.getByLabelText('Requête ATQL du tracker')).toHaveValue('nope = x');
   });
 });

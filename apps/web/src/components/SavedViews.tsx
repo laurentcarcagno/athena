@@ -75,7 +75,7 @@ export function SavedViews({ project, tracker, current, roles, onApply, onLoaded
       {confirm.dialog}
       <div className="ath-toolbar">
         <div className="ath-field">
-          <label className="ath-field__label" htmlFor="saved-views">{fr.filters.views}</label>
+          <label className="ath-visually-hidden" htmlFor="saved-views">{fr.filters.views}</label>
           <Select id="saved-views" value={active?.id ?? ''} onChange={(e) => { const v = views.find((x) => x.id === e.target.value); onApply(v ? viewOf(v) : { fragment: '', sort: null, columns: null }); }}>
             <option value="">{fr.filters.noView}</option>
             {views.map((v) => <option key={v.id} value={v.id}>{v.name}{v.shared ? ' ⇄' : ''}{v.isDefault ? ` · ${fr.filters.defaultTag}` : ''}</option>)}

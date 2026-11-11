@@ -4,7 +4,7 @@
 .ath-btn--sm { height: var(--ath-size-control-sm); font-size: var(--ath-font-size-small); }
 .ath-btn--lg { height: var(--ath-size-control-lg); font-size: var(--ath-font-size-body); }
 .ath-btn:disabled { opacity: 0.55; cursor: not-allowed; }
-.ath-btn:focus-visible, .ath-tab:focus-visible { outline: var(--ath-border-width-strong) solid var(--ath-focus-ring); outline-offset: 2px; }
+.ath-btn:focus-visible, .ath-tab:focus-visible, .ath-chip:focus-visible { outline: var(--ath-border-width-strong) solid var(--ath-focus-ring); outline-offset: 2px; }
 /* Sur surface inverse (barre latérale) : focus ring blanc, 14,69:1 contre 2,75:1 pour le bleu ciel. */
 .ath-nav-item:focus-visible { outline: var(--ath-border-width-strong) solid var(--ath-text-on-inverse); outline-offset: -2px; }
 .ath-btn--primary { background: var(--ath-action-primary-bg); color: var(--ath-action-primary-fg); border-color: var(--ath-action-primary-bg); }

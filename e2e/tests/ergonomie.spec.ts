@@ -58,3 +58,17 @@ test('automatisations : un administrateur crée une règle depuis un modèle, el
   await expect(row.getByText('Active', { exact: true })).toBeVisible();
   await expect(row.getByText('À intervalle régulier')).toBeVisible();
 });
+
+test('tracker sur téléphone : la liste commence dans le premier écran ; « Filtres » déplie les réglages (T-0147)', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await login(page);
+  await page.goto('/p/ARI/t/BUG/tableau');
+  const first = page.getByRole('link', { name: 'ARI-BUG-0001' });
+  await expect(first).toBeVisible();
+  expect((await first.boundingBox())!.y).toBeLessThan(844);
+  const toggle = page.getByRole('button', { name: /^Filtres/ });
+  await expect(page.getByRole('combobox', { name: 'Sévérité' })).toBeHidden();
+  await toggle.click();
+  await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+  await expect(page.getByRole('combobox', { name: 'Sévérité' })).toBeVisible();
+});

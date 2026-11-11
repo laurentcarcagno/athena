@@ -24,7 +24,7 @@ test('contrôles de formulaire : même hauteur, focus visible de 2 px au clavier
   expect(await height(input)).toBe(32);
   expect(await height(button)).toBe(32);
 
-  for (const control of [select, input, page.getByRole('checkbox', { name: 'Liens suspects' })]) {
+  for (const control of [select, input, page.getByRole('button', { name: 'Liens suspects' })]) {
     await control.focus();
     await page.keyboard.press('Shift+Tab');
     await page.keyboard.press('Tab');
