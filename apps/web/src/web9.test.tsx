@@ -192,8 +192,9 @@ describe('Vue d’ensemble', () => {
     expect(await within(mine).findByText('Aucun ticket.')).toBeInTheDocument();
     expect(within(mine).getByRole('link', { name: 'Tout voir' })).toHaveAttribute('href', `/recherche?q=${encodeURIComponent('assignee = currentUser() AND category != done')}&p=ARI`);
     const card = screen.getByRole('group', { name: 'Trackers' });
-    expect(await within(card).findByRole('link', { name: 'REQ' })).toHaveAttribute('href', '/p/ARI/t/REQ/tableau');
-    expect(within(card).getByText('5 ouverts / 10')).toBeInTheDocument();
+    // T-0157 : même rendu que « Trackers par statut » (nom, ouverts sur total, barre par catégorie).
+    expect(await within(card).findByRole('link', { name: 'Exigences' })).toHaveAttribute('href', '/p/ARI/t/REQ/tableau');
+    expect(within(card).getByText('5 ouverts sur 10')).toBeInTheDocument();
     expect(screen.getAllByRole('group').map((g) => g.getAttribute('aria-label'))).toEqual(expect.arrayContaining(['Mes tickets', 'Échéances de la semaine', 'Trackers', 'Mentions']));
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
   });

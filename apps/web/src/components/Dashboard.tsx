@@ -161,24 +161,6 @@ function ApprovalsBody({ objects, onEmpty }: { objects: boolean; onEmpty?: OnEmp
   );
 }
 
-function TrackersBody({ project }: { project: string }) {
-  const [trackers, setTrackers] = useState<TrackerOverview[] | null>(null);
-  useEffect(() => { api<{ trackers: TrackerOverview[] }>('GET', `/v1/projects/${project}/overview`).then((r) => setTrackers(Array.isArray(r.trackers) ? r.trackers : [])).catch(() => setTrackers([])); }, [project]);
-  if (trackers === null) return <p role="status">{fr.loading}</p>;
-  return (
-    <div className="ath-stack">
-      <Rows empty={fr.home.noTracker}>
-        {trackers.map((t) => (
-          <li key={t.key} className="ath-row">
-            <Link className="ath-link ath-mono" to={`/p/${project}/t/${t.key}/tableau`}>{t.key}</Link>
-            <span className="ath-mono">{t.statuses.filter((s) => s.category !== 'done').reduce((n, s) => n + s.count, 0)} {fr.overview.open} / {t.artifacts}</span>
-          </li>
-        ))}
-      </Rows>
-    </div>
-  );
-}
-
 function PinsBody({ kind }: { kind: 'favorites' | 'recents' }) {
   const pins = usePins();
   const list = (kind === 'favorites' ? pins.favorites : pins.recents).slice(0, 5);
@@ -198,7 +180,8 @@ function Body({ widget, objects, onEmpty, project }: { widget: Widget; objects: 
     case 'search': return <SearchBody widget={widget} onEmpty={onEmpty} />;
     case 'mentions': return <MentionsBody onEmpty={onEmpty} />;
     case 'approvals': return <ApprovalsBody objects={objects} onEmpty={onEmpty} />;
-    case 'trackers': return <TrackersBody project={widget.projects?.[0] ?? ''} />;
+    // Même rendu que la carte « Trackers par statut » de l’Avancement (T-0157, uniformité des cartes).
+    case 'trackers': return <TrackerStatusCard project={p} />;
     case 'favorites': case 'recents': return <PinsBody kind={widget.kind} />;
     default: return null;
   }
