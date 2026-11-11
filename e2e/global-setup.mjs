@@ -29,14 +29,19 @@ async function relaxAdminLogin() {
   const put = (requiredActions) => fetch(target, { method: 'PUT', headers, body: JSON.stringify({ requiredActions }) });
   const res = await put([]);
   if (!res.ok) throw new Error(`Keycloak : mise à jour de admin.dev impossible (${res.status})`);
-  // Un TOTP déjà enregistré par le compte déclencherait l'étape OTP : elle est désactivée le temps des tests, dans le
-  // seul realm de développement, puis rétablie par global-teardown.mjs (lot 11).
-  const flow = encodeURIComponent((await (await fetch(`${base}/admin/realms/athena`, { headers })).json()).browserFlow);
-  const executions = await (await fetch(`${base}/admin/realms/athena/authentication/flows/${flow}/executions`, { headers })).json();
-  const otp = executions.filter((e) => /otp/i.test(`${e.displayName} ${e.providerId ?? ''}`) && e.requirement !== 'DISABLED');
-  for (const e of otp) {
-    const r = await fetch(`${base}/admin/realms/athena/authentication/flows/${flow}/executions`, { method: 'PUT', headers, body: JSON.stringify({ ...e, requirement: 'DISABLED' }) });
-    if (!r.ok) throw new Error(`Keycloak : désactivation de l'étape OTP impossible (${r.status})`);
+  // Un TOTP déjà enregistré par le compte déclencherait l'étape OTP, à la connexion (navigateur) comme pour les jetons des
+  // tests (direct grant) : elle est désactivée le temps des tests, dans le seul realm de développement, puis rétablie par
+  // global-teardown.mjs (lot 11).
+  const realm = await (await fetch(`${base}/admin/realms/athena`, { headers })).json();
+  const otp = [];
+  for (const name of [realm.browserFlow, realm.directGrantFlow]) {
+    const flow = encodeURIComponent(name);
+    const executions = await (await fetch(`${base}/admin/realms/athena/authentication/flows/${flow}/executions`, { headers })).json();
+    for (const e of executions.filter((x) => /otp/i.test(`${x.displayName} ${x.providerId ?? ''}`) && x.requirement !== 'DISABLED')) {
+      const r = await fetch(`${base}/admin/realms/athena/authentication/flows/${flow}/executions`, { method: 'PUT', headers, body: JSON.stringify({ ...e, requirement: 'DISABLED' }) });
+      if (!r.ok) throw new Error(`Keycloak : désactivation de l'étape OTP impossible (${r.status})`);
+      otp.push({ ...e, flow: name });
+    }
   }
   // Mémorise l'état d'origine : global-teardown.mjs le restaure après les tests. Un état déjà mémorisé (préparation relancée
   // sans fin de tests) est gardé, pour ne jamais enregistrer l'état modifié comme état d'origine.
@@ -45,7 +50,7 @@ async function relaxAdminLogin() {
   writeFileSync(file, JSON.stringify({
     id: users[0].id,
     requiredActions: before?.requiredActions ?? previous,
-    otp: [...(before?.otp ?? []), ...otp.filter((e) => !(before?.otp ?? []).some((b) => b.id === e.id)).map((e) => ({ id: e.id, requirement: e.requirement }))],
+    otp: [...(before?.otp ?? []), ...otp.filter((e) => !(before?.otp ?? []).some((b) => b.id === e.id)).map((e) => ({ id: e.id, flow: e.flow, requirement: e.requirement }))],
   }));
 }
 

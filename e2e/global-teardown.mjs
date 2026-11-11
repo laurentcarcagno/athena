@@ -18,9 +18,10 @@ export default async function globalTeardown() {
   // Étape OTP du flux de connexion, désactivée par global-setup.mjs quand le compte a un TOTP enregistré (lot 11).
   if (otp.length) {
     const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
-    const flow = encodeURIComponent((await (await fetch(`${base}/admin/realms/athena`, { headers })).json()).browserFlow);
-    const executions = await (await fetch(`${base}/admin/realms/athena/authentication/flows/${flow}/executions`, { headers })).json();
-    for (const { id: execution, requirement } of otp) {
+    const realm = await (await fetch(`${base}/admin/realms/athena`, { headers })).json();
+    for (const { id: execution, flow: name = realm.browserFlow, requirement } of otp) {
+      const flow = encodeURIComponent(name);
+      const executions = await (await fetch(`${base}/admin/realms/athena/authentication/flows/${flow}/executions`, { headers })).json();
       const current = executions.find((e) => e.id === execution);
       if (!current) continue;
       const r = await fetch(`${base}/admin/realms/athena/authentication/flows/${flow}/executions`, { method: 'PUT', headers, body: JSON.stringify({ ...current, requirement }) });
