@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -29,8 +29,24 @@ async function relaxAdminLogin() {
   const put = (requiredActions) => fetch(target, { method: 'PUT', headers, body: JSON.stringify({ requiredActions }) });
   const res = await put([]);
   if (!res.ok) throw new Error(`Keycloak : mise à jour de admin.dev impossible (${res.status})`);
-  // Mémorise les actions requises d'origine : global-teardown.mjs les restaure après les tests.
-  writeFileSync(join(here, '.admin-required-actions.json'), JSON.stringify({ id: users[0].id, requiredActions: previous }));
+  // Un TOTP déjà enregistré par le compte déclencherait l'étape OTP : elle est désactivée le temps des tests, dans le
+  // seul realm de développement, puis rétablie par global-teardown.mjs (lot 11).
+  const flow = encodeURIComponent((await (await fetch(`${base}/admin/realms/athena`, { headers })).json()).browserFlow);
+  const executions = await (await fetch(`${base}/admin/realms/athena/authentication/flows/${flow}/executions`, { headers })).json();
+  const otp = executions.filter((e) => /otp/i.test(`${e.displayName} ${e.providerId ?? ''}`) && e.requirement !== 'DISABLED');
+  for (const e of otp) {
+    const r = await fetch(`${base}/admin/realms/athena/authentication/flows/${flow}/executions`, { method: 'PUT', headers, body: JSON.stringify({ ...e, requirement: 'DISABLED' }) });
+    if (!r.ok) throw new Error(`Keycloak : désactivation de l'étape OTP impossible (${r.status})`);
+  }
+  // Mémorise l'état d'origine : global-teardown.mjs le restaure après les tests. Un état déjà mémorisé (préparation relancée
+  // sans fin de tests) est gardé, pour ne jamais enregistrer l'état modifié comme état d'origine.
+  const file = join(here, '.admin-required-actions.json');
+  const before = existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')) : null;
+  writeFileSync(file, JSON.stringify({
+    id: users[0].id,
+    requiredActions: before?.requiredActions ?? previous,
+    otp: [...(before?.otp ?? []), ...otp.filter((e) => !(before?.otp ?? []).some((b) => b.id === e.id)).map((e) => ({ id: e.id, requirement: e.requirement }))],
+  }));
 }
 
 async function globalSetup() {
