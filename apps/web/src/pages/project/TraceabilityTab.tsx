@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Btn, EmptyState, PageHeader, Select, Table, Tag, Td, Th, useToast } from '@athena/ui';
 import { api, type Session } from '../../api';
@@ -26,7 +26,7 @@ export function listHref(project: string, tracker: string, atql: string): string
 }
 
 /** Onglet Traçabilité : taux de respect de chaque règle de couverture, items en défaut et items à lien suspect. */
-export function TraceabilityTab({ session }: { session: Session }) {
+export function TraceabilityTab({ session, tabs }: { session: Session; tabs?: ReactNode }) {
   const { project } = useParams();
   const fail = useFailure();
   const toast = useToast();
@@ -56,6 +56,7 @@ export function TraceabilityTab({ session }: { session: Session }) {
     <>
       {confirm.dialog}
       <PageHeader title={t.title} actions={admin ? <Btn onClick={() => { setEditing(null); setAdding(true); }}>{t.addRule}</Btn> : undefined} />
+      {tabs}
       {(adding || editing) && <RuleForm key={editing?.key ?? 'new'} project={String(project)} trackers={trackers} types={types} editing={editing} onCancel={() => { setAdding(false); setEditing(null); }}
         onSaved={() => { toast('success', editing ? t.saved : t.created); setAdding(false); setEditing(null); load(); }} />}
       {rules === null ? <p role="status">{fr.loading}</p> : rules.length === 0 ? (

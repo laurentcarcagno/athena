@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Card, CornerFrame, EmptyState, Id, PageHeader, StatCard, StatusPill, Table, Td, Th } from '@athena/ui';
 import { api } from '../api';
@@ -66,7 +66,7 @@ function PluginWidgets({ project }: { project: string }) {
 }
 
 /** Indicateurs du projet ; `embedded` retire l'en-tête quand la page est une partie de la Vue d'ensemble. */
-export function DashboardPage({ embedded = false }: { embedded?: boolean } = {}) {
+export function DashboardPage({ embedded = false, tabs, title = fr.dashboard.title }: { embedded?: boolean; tabs?: ReactNode; title?: string } = {}) {
   const { project } = useParams();
   const fail = useFailure();
   const [data, setData] = useState<DashboardData | null>(null);
@@ -88,7 +88,8 @@ export function DashboardPage({ embedded = false }: { embedded?: boolean } = {})
 
   return (
     <>
-      {!embedded && <PageHeader title={fr.dashboard.title} />}
+      {!embedded && <PageHeader title={title} />}
+      {tabs}
       {/* Composition asymétrique : un indicateur principal large, deux secondaires (pas de grille de tuiles identiques). */}
       <div className="ath-dash">
         <div className="ath-dash__main"><StatCard label={fr.dashboard.open} value={data.byCategory.todo + data.byCategory.in_progress} delta={`${total} ${fr.dashboard.total.toLowerCase()}`} /></div>

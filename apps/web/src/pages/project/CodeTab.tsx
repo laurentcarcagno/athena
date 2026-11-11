@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { useParams } from 'react-router-dom';
 import { Card, EmptyState, PageHeader, Table, Td, Th } from '@athena/ui';
 import { api } from '../../api';
@@ -11,7 +11,7 @@ interface Dora { windowDays: number; deployments: number; deploymentFrequency: n
 const num = (value: number | null, digits = 1) => (value === null ? fr.codeTab.none : value.toFixed(digits));
 
 /** Onglet Code et intégration : dépôts liés au projet et indicateurs de livraison (DORA). */
-export function CodeTab() {
+export function CodeTab({ tabs }: { tabs?: ReactNode } = {}) {
   const { project } = useParams();
   const fail = useFailure();
   const [repos, setRepos] = useState<Repo[] | null>(null);
@@ -23,6 +23,7 @@ export function CodeTab() {
   return (
     <>
       <PageHeader title={fr.codeTab.title} />
+      {tabs}
       <div className="ath-stack">
         {repos === null ? <p role="status">{fr.loading}</p> : repos.length === 0 ? <EmptyState eyebrow={fr.codeTab.repos} title={fr.codeTab.noRepos} /> : (
           <Table>

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Btn, EmptyState, PageHeader, Select, Table, Tag, Td, Textarea, Th, useToast } from '@athena/ui';
 import { api, type Session } from '../../api';
@@ -12,7 +12,7 @@ interface ImportLine { line: number; reference: string; status: 'created' | 'upd
 interface ImportReport { created: number; updated: number; unchanged: number; errors: number; lines: ImportLine[] }
 
 /** Onglet Conformité : taux de clauses applicables couvertes par une preuve, tailoring par clause et catégorie, import et export CSV. */
-export function ConformityTab({ session }: { session: Session }) {
+export function ConformityTab({ session, tabs }: { session: Session; tabs?: ReactNode }) {
   const { project } = useParams();
   const fail = useFailure();
   const toast = useToast();
@@ -46,6 +46,7 @@ export function ConformityTab({ session }: { session: Session }) {
     <>
       <PageHeader title={t.title}
         actions={<><Btn variant="ghost" onClick={() => void exportCsv()}>{t.exportCsv}</Btn>{canEdit && <Btn icon="check" onClick={() => { setImporting(true); setReport(null); }}>{t.importClauses}</Btn>}</>} />
+      {tabs}
       {importing && <ImportForm project={String(project)} report={report} onReport={(r) => { setReport(r); toast('success', t.imported(r.created, r.updated, r.unchanged, r.errors)); load(); }} onClose={() => setImporting(false)} />}
       {data === null ? <p role="status">{fr.loading}</p> : data.totals.clauses === 0 ? <EmptyState eyebrow={t.title} title={t.empty} /> : (
         <>

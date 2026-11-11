@@ -25,18 +25,15 @@ export function ReportsPage({ session }: { session: Session }) {
   const reports = visibleReports(modules);
   const current = reports.find((r) => r.id === report);
   if (!current) return <Navigate replace to={`/p/${project}/rapports/${reports[0]!.id}`} />;
+  // Les onglets se placent sous l'en-tête du rapport ouvert (ADR-0005, T-0143) : avant lui, l'en-tête collant les masquait.
+  const tabs = <TabLinks label={fr.reports.nav} items={reports.map((r) => ({ id: r.id, label: fr.reports.names[r.id], current: r.id === current.id }))}
+    link={(item, props) => <Link to={`/p/${project}/rapports/${item.id}`} {...props} />} />;
   const bodies: Record<ReportId, () => JSX.Element> = {
-    avancement: () => <DashboardPage />,
-    tracabilite: () => <TraceabilityTab session={session} />,
-    conformite: () => <ConformityTab session={session} />,
-    livraison: () => <CodeTab />,
-    activite: () => <ActivityTab />,
+    avancement: () => <DashboardPage tabs={tabs} title={fr.reports.names.avancement} />,
+    tracabilite: () => <TraceabilityTab session={session} tabs={tabs} />,
+    conformite: () => <ConformityTab session={session} tabs={tabs} />,
+    livraison: () => <CodeTab tabs={tabs} />,
+    activite: () => <ActivityTab tabs={tabs} />,
   };
-  return (
-    <>
-      <TabLinks label={fr.reports.nav} items={reports.map((r) => ({ id: r.id, label: fr.reports.names[r.id], current: r.id === current.id }))}
-        link={(item, props) => <Link to={`/p/${project}/rapports/${item.id}`} {...props} />} />
-      {bodies[current.id]()}
-    </>
-  );
+  return bodies[current.id]();
 }

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { Btn, EmptyState, PageHeader, Select, Table, Td, Th } from '@athena/ui';
 import { api } from '../../api';
@@ -22,7 +22,7 @@ function Sentence({ item }: { item: Item }) {
 }
 
 /** Onglet Activité : flux chronologique du projet, filtrable par tracker, personne et type d'événement. */
-export function ActivityTab() {
+export function ActivityTab({ tabs }: { tabs?: ReactNode } = {}) {
   const { project } = useParams();
   const fail = useFailure();
   const [params, setParams] = useSearchParams();
@@ -54,6 +54,7 @@ export function ActivityTab() {
   return (
     <>
       <PageHeader title={fr.activity.title} />
+      {tabs}
       <div className="ath-toolbar" role="search" aria-label={fr.activity.filters}>
         <div className="ath-field">
           <label className="ath-field__label" htmlFor="act-tracker">{fr.activity.tracker}</label>
