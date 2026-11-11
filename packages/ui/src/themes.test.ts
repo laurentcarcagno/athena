@@ -61,6 +61,12 @@ describe('feuille de style : rien que des jetons (T-0130, T-0131)', () => {
     expect(lintSource(styles, 'styles.css')).toEqual([]);
   });
 
+  it('le lint refuse taille de police, couche et transition en dur, et accepte les jetons (T-0131)', () => {
+    for (const bad of ['.a{font-size:14px}', '.a{z-index:10}', '.a{transition: color .2s}']) expect(lintSource(bad, 'x.css'), bad).toHaveLength(1);
+    for (const good of ['.a{font-size:var(--ath-font-size-body)}', '.a{z-index:calc(var(--ath-z-modal) + 1)}', '.a{transition:none}', '.a{transition:left var(--ath-motion-default)}', ':root{--ath-font-size-body:14px}'])
+      expect(lintSource(good, 'x.css'), good).toEqual([]);
+  });
+
   it('aucun texte sous 11 px (audit F-05) : toutes les tailles viennent d’un jeton d’au moins 11 px', () => {
     const used = [...styles.matchAll(/font-size:\s*var\((--ath-[a-z0-9-]+)\)/g)].map((m) => m[1]!);
     expect(used.length).toBeGreaterThan(40);

@@ -26,6 +26,10 @@ const CSS_RULES = [
   { re: /--ath-(color|palette)-[a-z]/, msg: 'primitive de thème lue par un composant (jeton sémantique ou de composant attendu)' },
   { re: /\brgba?\(|\bhsla?\(|color-mix\(/i, msg: 'couleur calculée en dur (jeton attendu)' },
   { re: /#[0-9A-Fa-f]{3,8}\b/, msg: 'couleur hexadécimale en dur (jeton attendu)' },
+  // Typographie, couches et mouvement (T-0131) : seulement par les jetons.
+  { re: /(?<![-\w])font-size\s*:(?!\s*(?:var\(--ath-|calc\(var\(--ath-|inherit\b))/i, msg: 'font-size en dur interdit (jeton --ath-font-size-* attendu)' },
+  { re: /(?<![-\w])z-index\s*:(?!\s*(?:var\(--ath-z-|calc\(var\(--ath-z-))/i, msg: 'z-index en dur interdit (jeton --ath-z-* attendu)' },
+  { re: /(?<![-\w])transition\s*:(?!\s*(?:none\b|[a-z-]+\s+var\(--ath-motion-))/i, msg: 'transition en dur interdit (durée --ath-motion-* attendue)' },
 ];
 
 export function lintSource(text, file = '<source>') {
