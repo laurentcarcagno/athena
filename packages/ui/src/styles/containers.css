@@ -85,3 +85,18 @@
   .ath-dashcard--S, .ath-dashcard--M, .ath-dashcard--L, .ath-dashcard--XL { grid-column: span 12; height: auto; min-height: calc(var(--ath-size-dashcard) / 2); }
 }
 .ath-dash-quiet { margin: 0; padding: var(--ath-space-sm) var(--ath-space-md); }
+
+/* Organiser (T-0154) : poignée, largeur, carte saisie, case d'ajout. */
+.ath-dash-toolbar { justify-content: flex-end; }
+.ath-dashgrid--editing .ath-dashcard { outline: var(--ath-border-width-strong) dashed var(--ath-border-focus); outline-offset: calc(var(--ath-border-width-strong) * -1); }
+.ath-dashcard__handle { background: transparent; border: 0; padding: 0 var(--ath-space-xs); color: var(--ath-text-secondary); font: inherit; cursor: grab; min-height: var(--ath-size-icon-button-compact); }
+.ath-dashcard__handle:focus-visible { outline: var(--ath-border-width-strong) solid var(--ath-focus-ring); outline-offset: 2px; }
+.ath-dashcard__handle[aria-pressed="true"] { color: var(--ath-text-link); }
+.ath-dashcard--grabbed, .ath-dashcard--dragging { background: var(--ath-surface-selected); }
+.ath-segmented { display: inline-flex; border: var(--ath-border-width-hairline) solid var(--ath-border-default); }
+.ath-segmented__item { background: transparent; border: 0; padding: 0 var(--ath-space-sm); font: inherit; font-size: var(--ath-font-size-small); color: var(--ath-text-secondary); cursor: pointer; min-height: var(--ath-size-icon-button-compact); }
+.ath-segmented__item[aria-pressed="true"] { background: var(--ath-surface-selected); color: var(--ath-text-default); font-weight: var(--ath-font-weight-semibold); }
+.ath-segmented__item:focus-visible { outline: var(--ath-border-width-strong) solid var(--ath-focus-ring); outline-offset: -2px; }
+.ath-dashadd { grid-column: span 4; display: flex; flex-direction: column; gap: var(--ath-space-sm); justify-content: center; padding: var(--ath-space-md); min-height: calc(var(--ath-size-dashcard) / 2); border: var(--ath-border-width-hairline) dashed var(--ath-border-strong); }
+.ath-dashadd__title { font-weight: var(--ath-font-weight-semibold); color: var(--ath-text-link); }
+@media (max-width: 768px) { .ath-dashadd { grid-column: span 12; } }

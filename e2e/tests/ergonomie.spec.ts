@@ -91,8 +91,31 @@ test('recherche simple : un mot trouve le ticket, une clé ouvre sa fiche (T-014
   const box = page.getByRole('textbox', { name: 'Rechercher un ticket' });
   await box.fill('démarrage');
   await box.press('Enter');
+  await expect(page).toHaveURL(/q=text/); // la recherche est appliquée (avant elle, la page liste déjà tous les tickets)
   await expect(page.getByRole('link', { name: 'ARI-BUG-0001' })).toBeVisible();
   await box.fill('ari-bug-0001');
   await box.press('Enter');
   await expect(page).toHaveURL(/\/p\/ARI\/a\/ARI-BUG-0001/);
+});
+
+test('Organiser : glisser une carte et changer sa largeur, retrouvés au rechargement (T-0154)', async ({ page }) => {
+  await login(page, 'user.dev', 'dev-only-user');
+  await page.goto('/');
+  const cards = page.locator('section[aria-label="Tableau de bord"] .ath-dashcard');
+  const card = (name: string) => page.locator(`section[aria-label="Tableau de bord"] .ath-dashcard[aria-label="${name}"]`);
+  await expect(cards).toHaveCount(6);
+  await page.getByRole('button', { name: 'Organiser' }).click();
+  await card('Récents').dragTo(card('Mes tickets'));
+  await expect(cards.first()).toHaveAttribute('aria-label', 'Récents');
+  await page.getByRole('button', { name: 'Largeur L : Récents' }).click();
+  await expect(card('Récents')).toHaveClass(/ath-dashcard--L/);
+  await page.getByRole('button', { name: 'Terminer' }).click();
+  await page.reload();
+  await expect(cards.first()).toHaveAttribute('aria-label', 'Récents');
+  await expect(cards.first()).toHaveClass(/ath-dashcard--L/);
+  // Remise à l'état initial.
+  await page.getByRole('button', { name: 'Organiser' }).click();
+  await page.getByRole('button', { name: 'Rétablir la disposition par défaut' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Réinitialiser' }).click();
+  await expect(cards.first()).toHaveAttribute('aria-label', 'Mes tickets');
 });

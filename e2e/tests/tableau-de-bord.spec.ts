@@ -28,13 +28,18 @@ const TITLES = ['Mes tickets', 'À approuver', 'Mentions', 'Échéances de la se
 test('tableau de bord : disposition par défaut, masquer et réordonner survivent au rechargement, réinitialiser la rétablit', async ({ page }) => {
   await login(page, 'user.dev', 'dev-only-user');
   await page.goto('/me');
-  const groups = page.locator('section[aria-label="Tableau de bord"] [role="group"]');
+  // Toutes les cartes de la disposition (une carte vide est résumée dans « Rien d'urgent » mais reste dans la grille, T-0153).
+  const groups = page.locator('section[aria-label="Tableau de bord"] .ath-dashcard');
   await expect(groups).toHaveCount(6);
   expect(await groups.evaluateAll((els) => els.map((e) => e.getAttribute('aria-label')))).toEqual(TITLES);
 
-  await page.getByRole('button', { name: 'Personnaliser' }).click();
+  await page.getByRole('button', { name: 'Organiser' }).click();
   await page.getByRole('button', { name: 'Masquer Récents' }).click();
-  await page.getByRole('button', { name: 'Descendre Mes tickets' }).click();
+  // Déplacer au clavier (T-0154) : saisir la carte par sa poignée, flèche, poser.
+  await page.getByRole('button', { name: 'Déplacer la carte Mes tickets' }).focus();
+  await page.keyboard.press('Enter');
+  await page.keyboard.press('ArrowRight');
+  await page.keyboard.press('Enter');
   await expect(groups).toHaveCount(5);
 
   await page.reload();
@@ -42,8 +47,8 @@ test('tableau de bord : disposition par défaut, masquer et réordonner surviven
   expect(await groups.evaluateAll((els) => els.map((e) => e.getAttribute('aria-label')))).toEqual(['À approuver', 'Mes tickets', 'Mentions', 'Échéances de la semaine', 'Projets favoris']);
   expect(await axeViolations(page)).toEqual([]);
 
-  await page.getByRole('button', { name: 'Personnaliser' }).click();
-  await page.getByRole('button', { name: 'Réinitialiser' }).click();
+  await page.getByRole('button', { name: 'Organiser' }).click();
+  await page.getByRole('button', { name: 'Rétablir la disposition par défaut' }).click();
   await page.getByRole('dialog').getByRole('button', { name: 'Réinitialiser' }).click();
   await expect(groups).toHaveCount(6);
   await page.reload();
