@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
-import { Link, useLocation, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { Btn, EmptyState, Field, PageHeader, Select, StatusPill, Table, Tag, Td, Th, useToast } from '@athena/ui';
 import { ApiError, api, type SearchResult, type Session } from '../api';
 import { pillKind } from '../components/ArtifactTable';
@@ -22,6 +22,21 @@ export function toggleClause(query: string, clause: string): string {
   return (parts.includes(clause) ? parts.filter((p) => p !== clause) : [...parts, clause]).join(' AND ');
 }
 
+/** Clause de texte libre (`text ~ "…"`) d'une requête, ou chaîne vide. */
+const TEXT = /^text ~ "((?:[^"\\]|\\.)*)"$/;
+export const textOf = (query: string): string => {
+  const clause = conjuncts(query).find((c) => TEXT.test(c));
+  return clause ? TEXT.exec(clause)![1]!.replace(/\\(.)/g, '$1') : '';
+};
+/** Remplace la clause de texte libre par ces mots (aucune clause si vide), sans toucher aux autres clauses. */
+export function withText(query: string, words: string): string {
+  const rest = conjuncts(query).filter((c) => !TEXT.test(c));
+  const text = words.trim();
+  return [...rest, ...(text ? [`text ~ "${text.replace(/["\\]/g, (c) => `\\${c}`)}"`] : [])].join(' AND ');
+}
+/** Clé de ticket (`SAT1-BUG-0002`) : la saisie ouvre directement la fiche. */
+export const ticketKey = (input: string): string | null => (/^[A-Z][A-Z0-9]*-[A-Z][A-Z0-9]*-\d+$/.test(input.trim().toUpperCase()) ? input.trim().toUpperCase() : null);
+
 /**
  * Recherche globale `/recherche` (ADR-0003, T-0119) : tickets de tous les projets autorisés, filtres rapides en puces,
  * requête ATQL, périmètre de projets et vues enregistrées personnelles. Tout l'état est dans l'adresse (`q`, `p`, `o`).
@@ -29,6 +44,7 @@ export function toggleClause(query: string, clause: string): string {
 export function GlobalSearchPage({ session }: { session: Session }) {
   const [params, setParams] = useSearchParams();
   const location = useLocation();
+  const navigate = useNavigate();
   const toast = useToast();
   const fail = useFailure();
   const confirm = useConfirm();
@@ -36,6 +52,9 @@ export function GlobalSearchPage({ session }: { session: Session }) {
   const scope = (params.get('p') ?? '').split(',').filter(Boolean);
   const offset = Number(params.get('o') ?? '0') || 0;
   const [draft, setDraft] = useState(query);
+  // Recherche simple par défaut (mots, clé) ; « Requête avancée » pour l'ATQL complet (ADR-0005, T-0149).
+  const [advanced, setAdvanced] = useState(false);
+  const [words, setWords] = useState(textOf(query));
   const [result, setResult] = useState<SearchResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [projects, setProjects] = useState<Array<{ key: string; name: string }>>([]);
@@ -53,7 +72,7 @@ export function GlobalSearchPage({ session }: { session: Session }) {
     setParams({ ...(q ? { q } : {}), ...(p.length ? { p: p.join(',') } : {}), ...(next.o ? { o: String(next.o) } : {}) });
   };
 
-  useEffect(() => setDraft(query), [query]);
+  useEffect(() => { setDraft(query); setWords(textOf(query)); }, [query]);
   useEffect(() => { api<Array<{ key: string; name: string }>>('GET', '/v1/projects').then((p) => setProjects(Array.isArray(p) ? p : [])).catch(() => setProjects([])); }, []);
   const loadViews = useCallback(() => api<SavedSearch[]>('GET', '/v1/searches').then((v) => setViews(Array.isArray(v) ? v : [])).catch(() => setViews([])), []);
   useEffect(() => { void loadViews(); }, [loadViews]);
@@ -67,6 +86,12 @@ export function GlobalSearchPage({ session }: { session: Session }) {
 
   const active = views.find((v) => v.query === query && v.projects.join(',') === scope.join(','));
   const submit = (event: FormEvent) => { event.preventDefault(); go({ q: draft.trim(), o: 0 }); };
+  const submitWords = (event: FormEvent) => {
+    event.preventDefault();
+    const key = ticketKey(words);
+    if (key) { navigate(`/p/${key.split('-')[0]}/a/${key}`, { state: fromHere(location, t.origin) }); return; }
+    go({ q: withText(query, words), o: 0 });
+  };
   const save = async (event: FormEvent) => {
     event.preventDefault();
     try { await api('POST', '/v1/searches', { name: saving, query, projects: scope }); setSaving(null); toast('success', t.saved); await loadViews(); } catch (e) { fail(e); }
@@ -97,9 +122,12 @@ export function GlobalSearchPage({ session }: { session: Session }) {
             })}
           </div>
         )}
-        <form className="ath-toolbar" onSubmit={submit}>
-          <input className="ath-input ath-mono" size={60} aria-label={t.atql} placeholder={fr.list.placeholder} value={draft} onChange={(e) => setDraft(e.target.value)} autoComplete="off" />
+        <form className="ath-toolbar" onSubmit={advanced ? submit : submitWords}>
+          {advanced
+            ? <input className="ath-input ath-mono" size={60} aria-label={t.atql} placeholder={fr.list.placeholder} value={draft} onChange={(e) => setDraft(e.target.value)} autoComplete="off" />
+            : <input className="ath-input" size={60} aria-label={t.words} placeholder={t.wordsPlaceholder} value={words} onChange={(e) => setWords(e.target.value)} autoComplete="off" />}
           <Btn type="submit" icon="search">{t.run}</Btn>
+          <Btn type="button" variant="ghost" size="sm" aria-pressed={advanced} onClick={() => setAdvanced(!advanced)}>{advanced ? t.simple : t.advanced}</Btn>
           <label className="ath-field__label" htmlFor="global-views">{t.views}</label>
           <Select id="global-views" value={active?.id ?? ''} onChange={(e) => { const v = views.find((x) => x.id === e.target.value); go({ q: v?.query ?? '', p: v?.projects ?? [], o: 0 }); }}>
             <option value="">{t.noView}</option>

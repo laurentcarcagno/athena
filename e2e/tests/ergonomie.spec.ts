@@ -83,3 +83,16 @@ test('fiche : enregistrement automatique annoncé ; « + Ajouter » mène au cha
   await button.click();
   if (!['Sprint', 'Parent', 'Bloqué par'].includes(term)) await expect(page.getByLabel(new RegExp(`^${term}`))).toBeFocused();
 });
+
+test('recherche simple : un mot trouve le ticket, une clé ouvre sa fiche (T-0149)', async ({ page }) => {
+  await login(page);
+  await page.goto('/recherche');
+  await expect(page.locator('h1')).toHaveText('Recherche');
+  const box = page.getByRole('textbox', { name: 'Rechercher un ticket' });
+  await box.fill('démarrage');
+  await box.press('Enter');
+  await expect(page.getByRole('link', { name: 'ARI-BUG-0001' })).toBeVisible();
+  await box.fill('ari-bug-0001');
+  await box.press('Enter');
+  await expect(page).toHaveURL(/\/p\/ARI\/a\/ARI-BUG-0001/);
+});

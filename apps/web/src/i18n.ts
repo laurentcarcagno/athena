@@ -40,7 +40,7 @@ const frDict = {
     moved: 'Backlog réordonné.', added: 'Ticket ajouté au sprint.', removed: 'Ticket retiré du sprint.', started: 'Sprint démarré.', closed: (n: number) => `Sprint clos : ${n} ticket(s) non terminé(s) reporté(s).`, created: 'Sprint créé.',
   },
   globalSearch: {
-    title: 'Recherche globale', eyebrow: 'Tous les projets', quick: 'Filtres rapides', mine: 'Mes tickets', open: 'Ouverts', recent: 'Modifiés depuis 7 jours',
+    title: 'Recherche', eyebrow: 'Tous les projets', words: 'Rechercher un ticket', wordsPlaceholder: 'Rechercher un ticket : un mot, une clé (SAT1-BUG-0002), un nom…', advanced: 'Requête avancée (ATQL)', simple: 'Recherche simple', quick: 'Filtres rapides', mine: 'Mes tickets', open: 'Ouverts', recent: 'Modifiés depuis 7 jours',
     projects: 'Projets', allProjects: 'Tous les projets', atql: 'Requête ATQL', run: 'Rechercher', project: 'Projet',
     views: 'Vues enregistrées', noView: 'Aucune', save: 'Enregistrer la vue', viewName: 'Nom de la vue', saved: 'Vue enregistrée.', deleteView: 'Supprimer la vue',
     deleteTitle: (name: string) => `Supprimer la vue « ${name} » ?`, deleteBody: 'La vue disparaît de vos vues enregistrées ; les tickets ne changent pas.',
@@ -466,7 +466,7 @@ const enDict: Dictionary = {
     moved: 'Backlog reordered.', added: 'Ticket added to sprint.', removed: 'Ticket removed from sprint.', started: 'Sprint started.', closed: (n: number) => `Sprint closed: ${n} unfinished ticket(s) carried over.`, created: 'Sprint created.',
   },
   globalSearch: {
-    title: 'Global search', eyebrow: 'All projects', quick: 'Quick filters', mine: 'My tickets', open: 'Open', recent: 'Updated in the last 7 days',
+    title: 'Search', eyebrow: 'All projects', words: 'Search for a ticket', wordsPlaceholder: 'Search for a ticket: a word, a key (SAT1-BUG-0002), a name…', advanced: 'Advanced query (ATQL)', simple: 'Simple search', quick: 'Quick filters', mine: 'My tickets', open: 'Open', recent: 'Updated in the last 7 days',
     projects: 'Projects', allProjects: 'All projects', atql: 'ATQL query', run: 'Search', project: 'Project',
     views: 'Saved views', noView: 'None', save: 'Save view', viewName: 'View name', saved: 'View saved.', deleteView: 'Delete view',
     deleteTitle: (name: string) => `Delete view “${name}”?`, deleteBody: 'The view leaves your saved views; tickets are unchanged.',

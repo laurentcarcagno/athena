@@ -65,7 +65,18 @@ describe('recherche globale', () => {
     await userEvent.click(within(screen.getByRole('group', { name: 'Projets' })).getByRole('button', { name: 'NOVA' }));
     await waitFor(() => expect(lastSearch()).toContain('q=assignee = "alice" AND category != done&project=NOVA'));
     expect(screen.getByTestId('where')).toHaveTextContent('/recherche?q=assignee = "alice" AND category != done&p=NOVA');
+    await userEvent.click(screen.getByRole('button', { name: 'Requête avancée (ATQL)' })); // T-0149 : l’ATQL complet est en requête avancée
     expect(screen.getByRole('textbox', { name: 'Requête ATQL' })).toHaveValue('assignee = "alice" AND category != done');
+  });
+
+  it('recherche simple (T-0149) : des mots deviennent text ~ « … » sans toucher aux puces ; une clé ouvre la fiche', async () => {
+    page('/recherche?q=category != done');
+    await screen.findByRole('link', { name: 'ARI-BUG-0001' });
+    await userEvent.type(screen.getByRole('textbox', { name: 'Rechercher un ticket' }), 'bus CAN{enter}');
+    await waitFor(() => expect(screen.getByTestId('where')).toHaveTextContent('q=category != done AND text ~ "bus CAN"'));
+    await userEvent.clear(screen.getByRole('textbox', { name: 'Rechercher un ticket' }));
+    await userEvent.type(screen.getByRole('textbox', { name: 'Rechercher un ticket' }), 'sat1-bug-0002{enter}');
+    await waitFor(() => expect(screen.getByTestId('where')).toHaveTextContent('/p/SAT1/a/SAT1-BUG-0002'));
   });
 
   it('vues enregistrées : appliquer, enregistrer la recherche courante, supprimer après confirmation', async () => {
