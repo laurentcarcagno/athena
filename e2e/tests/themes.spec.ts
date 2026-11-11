@@ -7,7 +7,9 @@ const axeSource = readFileSync(join(process.cwd(), 'node_modules/axe-core/axe.mi
 const THEMES = ['hemeria', 'contrast', 'catppuccin', 'nord', 'gruvbox', 'solarized', 'dracula', 'tokyo-night', 'rose-pine'];
 /** Thèmes décochés par le test d'apparence : il ne reste que Hemeria et Nord. */
 const HIDDEN = ['Catppuccin', 'Contraste élevé', 'Gruvbox', 'Solarized', 'Dracula', 'Tokyo Night', 'Rosé Pine'];
-const PAGES = ['/projets', '/', '/p/ARI', '/p/ARI/t/BUG/tableau', '/p/ARI/a/ARI-BUG-0001', '/p/ARI/parametres/membres', '/p/ARI/rapports/avancement'];
+const PAGES = ['/projets', '/', '/p/ARI', '/p/ARI/t/BUG/tableau', '/p/ARI/a/ARI-BUG-0001', '/p/ARI/parametres/membres', '/p/ARI/rapports/avancement',
+  // Lot 11 (T-0157) : autres écrans modifiés.
+  '/recherche', '/p/ARI/backlog', '/p/ARI/roadmap', '/p/ARI/board?tous=1', '/p/ARI/parametres/automatisations'];
 
 async function login(page: Page) {
   await page.goto('/');
