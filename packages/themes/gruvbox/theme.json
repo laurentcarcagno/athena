@@ -121,10 +121,10 @@
           "$value": "#504945"
         },
         "mute": {
-          "$value": "#665C54"
+          "$value": "#5A514A"
         },
         "mute-aa": {
-          "$value": "#665C54"
+          "$value": "#5A514A"
         },
         "on-inverse": {
           "$value": "#EBDBB2"
@@ -133,10 +133,10 @@
           "$value": "#FBF1C7"
         },
         "link": {
-          "$value": "#076678"
+          "$value": "#065A6A"
         },
         "link-aa": {
-          "$value": "#076678"
+          "$value": "#065A6A"
         },
         "heading": {
           "$value": "#3C3836"
@@ -489,10 +489,10 @@
           "$value": "#D5C4A1"
         },
         "mute": {
-          "$value": "#BDAE93"
+          "$value": "#C5B8A0"
         },
         "mute-aa": {
-          "$value": "#BDAE93"
+          "$value": "#C5B8A0"
         },
         "on-inverse": {
           "$value": "#EBDBB2"
@@ -501,10 +501,10 @@
           "$value": "#1D2021"
         },
         "link": {
-          "$value": "#96B3A8"
+          "$value": "#A7BFB6"
         },
         "link-aa": {
-          "$value": "#96B3A8"
+          "$value": "#A7BFB6"
         },
         "heading": {
           "$value": "#EBDBB2"

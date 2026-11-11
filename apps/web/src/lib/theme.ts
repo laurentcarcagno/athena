@@ -79,6 +79,10 @@ const THEME_CSS: Record<string, () => Promise<unknown>> = {
   contrast: () => import('@athena/ui/themes/contrast.css'),
   gruvbox: () => import('@athena/ui/themes/gruvbox.css'),
   nord: () => import('@athena/ui/themes/nord.css'),
+  dracula: () => import('@athena/ui/themes/dracula.css'),
+  'rose-pine': () => import('@athena/ui/themes/rose-pine.css'),
+  solarized: () => import('@athena/ui/themes/solarized.css'),
+  'tokyo-night': () => import('@athena/ui/themes/tokyo-night.css'),
 };
 let allowed: { list: string[]; fallback: string } | null = null;
 const permitted = (name: string): string => {

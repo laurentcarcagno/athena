@@ -1,6 +1,6 @@
 # État du projet
 
-Dernière mise à jour : 2026-11-10
+Dernière mise à jour : 2026-11-11
 
 - **Phase** : toutes les phases du plan sont engagées ; voir le tableau « État d'implémentation » (§ 25) de `ATHENA_PLAN_DEVELOPPEMENT.md`.
 - **Fait** : T-0001 à T-0040 (e2e Playwright, accessibilité, interface et quotas des pièces jointes, actions/widgets de plugins, rétroportages, DORA, notes de version, CLI, job CI, permissions par champ, plein texte, pièces jointes, OpenAPI) (voir `docs/dev/tasks/`). Backend complet (noyau, historique GitLab, ATQL, agile, plugins, webhooks, automatisations, import, sécurité), application web FR/EN, images de conteneur, chart Helm, documentation (`docs/admin`, `docs/user`, `docs/plugins`, `docs/api`, `docs/security`, `docs/perf`).
@@ -44,7 +44,8 @@ Dernière mise à jour : 2026-11-10
   T-0137 faite (icône de marque par thème (défaut embarqué, remplacement par l’organisation, SVG nettoyé, servi typé et isolé), logo horizontal, favicon ; CSP propre aux routes conservée par le durcissement ; migration 055 ; e2e 50/50).
   T-0138 faite (12 teintes nommées des statuts : migration 056, PATCH de statut, tracker.yaml, gabarits ; teinte dans les lectures ; pastilles teintées ; nuancier dans la configuration et le créateur de tracker ; sans teinte rien ne change (visuel 96/96) ; e2e 51/51).
   T-0139 faite (palette de données data.1-8 et surface flottante dans chaque thème ; graphiques et couches flottantes migrés ; page de connexion Keycloak générée sur le thème par défaut de l’organisation ; 78 paires de contraste).
-- **Tâche en cours** : T-0140 (thèmes de la vague 2). Écarts du lot 9 : 1 comblé (`GET /v1/me/approvals`), 2 accepté, 3 comblé (préférences sur le compte, migration 052), 4 reporté (accepté le 2026-11-10). **Le manuel utilisateur (Word, captures) est mis à jour à la toute fin du projet** (décision du 2026-11-10).
+  T-0140 faite (thèmes Solarized, Dracula / Alucard, Tokyo Night / Day, Rosé Pine / Dawn dérivés et conformes ; textes lisibles sur l’en-tête de tableau dans tous les thèmes ; 108 audits axe verts ; visuel 96/96 ; e2e 51/51).
+- **Tâche en cours** : T-0141 (vérification du lot). Écarts du lot 9 : 1 comblé (`GET /v1/me/approvals`), 2 accepté, 3 comblé (préférences sur le compte, migration 052), 4 reporté (accepté le 2026-11-10). **Le manuel utilisateur (Word, captures) est mis à jour à la toute fin du projet** (décision du 2026-11-10).
 - **Historique** : réécrit le 2026-11-10 à la demande de l'utilisateur (lot 8 en `@gmail.com`) ; sauvegarde `backup/avant-reecriture-email`, à supprimer quand l'utilisateur le décide.
 - **Reste à faire** (par priorité) :
   1. Test d'intrusion externe (à commander) ; déploiement de recette sur Kubernetes et mesures de charge concurrente.

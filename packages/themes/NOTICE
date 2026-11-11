@@ -16,6 +16,23 @@ Gruvbox (thème « gruvbox »)
   Source : https://github.com/morhetz/gruvbox
   Licence : MIT/X11. Copyright (c) 2012 Pavel Pertsev.
 
+Solarized (thème « solarized »)
+  Source : https://ethanschoonover.com/solarized/
+  Licence : MIT. Copyright (c) 2011 Ethan Schoonover.
+
+Dracula et Alucard (thème « dracula »)
+  Source : https://draculatheme.com
+  Licence : MIT. Copyright (c) 2016 Dracula Theme.
+
+Tokyo Night (thème « tokyo-night », variantes Night et Day)
+  Source : https://github.com/folke/tokyonight.nvim (palette d'origine : enkia/tokyo-night-vscode-theme)
+  Licence : Apache-2.0 (http://www.apache.org/licenses/LICENSE-2.0). Copyright (c) Folke Lemaitre.
+  Modification : valeurs de texte, d'action et d'état ajustées pour le contrat de contraste.
+
+Rosé Pine (thème « rose-pine », variantes Main et Dawn)
+  Source : https://rosepinetheme.com
+  Licence : MIT. Copyright (c) 2023 Rosé Pine.
+
 Texte de la licence MIT :
   Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
   documentation files (the "Software"), to deal in the Software without restriction, including without limitation the

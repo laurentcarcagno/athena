@@ -52,9 +52,10 @@ export function hues(surface, dark, overrides = {}, min = 4.5) {
 function mode(p) {
   const s = p.surface;
   const T = p.aaa ? 7 : 4.5; // seuil du texte : AAA pour le thème Contraste élevé
-  const ink = ensure(p.text, s, p.aaa ? 7 : 4.5);
   // Lisibles sur toutes les surfaces où ils se posent (carte, page, ligne survolée ou sélectionnée).
-  const over = (color, min) => [s, p.app, p.hover, p.selected].reduce((c, bg) => ensure(c, bg, min), color);
+  const over = (color, min) => [s, p.app, p.hover, p.selected, p.muted].reduce((c, bg) => ensure(c, bg, min), color);
+  const ink = over(p.text, T);
+  const heading = over(p.heading ?? p.text, T);
   const secondary = over(p.subtext, T);
   const mute = over(p.mute, T);
   const link = over(p.accent, T);
@@ -72,7 +73,7 @@ function mode(p) {
   const hueSet = hues(s, p.dark, p.hues, T);
   return {
     surface: { app: p.app, default: s, raised: raisedOf(s, p.text, p.dark), hover: p.hover, muted: p.muted, selected: p.selected, inverse: p.inverse, scrim: p.dark ? 'rgba(0, 0, 0, 0.65)' : 'rgba(0, 0, 0, 0.45)' },
-    text: { default: ink, secondary, mute, 'mute-aa': mute, 'on-inverse': inverseText, 'on-action': primary.fg, link, 'link-aa': link, heading: ensure(p.heading ?? p.text, p.app, p.aaa ? 7 : 4.5) },
+    text: { default: ink, secondary, mute, 'mute-aa': mute, 'on-inverse': inverseText, 'on-action': primary.fg, link, 'link-aa': link, heading },
     border: { default: p.line, strong: ensure(p.strong ?? p.subtext, s, 3), focus, danger: ensure(p.danger, s, 3), control },
     action: {
       primary: primary,

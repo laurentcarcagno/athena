@@ -45,7 +45,7 @@ Le thème Keycloak `athena` (`deploy/dev/keycloak/themes/athena`) applique les j
 pnpm --filter @athena/ui login-theme -- --theme nord   # hemeria si l'option est omise
 ```
 
-Thèmes disponibles : `hemeria`, `contrast`, `catppuccin`, `nord`, `gruvbox` et ceux de la vague 2 (voir `packages/themes`). Changer le thème par défaut dans l'interface ne régénère pas cette feuille.
+Thèmes disponibles : `hemeria`, `contrast`, `catppuccin`, `nord`, `gruvbox`, `solarized`, `dracula`, `tokyo-night`, `rose-pine` (voir `packages/themes`). Changer le thème par défaut dans l'interface ne régénère pas cette feuille.
 
 ## OpenBao
 - KV v2 : `secret/athena/<organisation>/…` (secrets de webhooks, intégrations), `secret/athena/platform/session` (secret de session, généré au premier démarrage).

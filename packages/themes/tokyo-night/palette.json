@@ -1,0 +1,106 @@
+{
+  "name": "tokyo-night",
+  "label": "Tokyo Night",
+  "description": "Bleu nuit et néon discret (Night) ; variante claire Day.",
+  "source": "https://github.com/folke/tokyonight.nvim",
+  "license": "Apache-2.0",
+  "palette": {
+    "bg": "#1A1B26",
+    "bg-dark": "#16161E",
+    "bg-highlight": "#292E42",
+    "fg": "#C0CAF5",
+    "fg-dark": "#A9B1D6",
+    "comment": "#565F89",
+    "blue": "#7AA2F7",
+    "cyan": "#7DCFFF",
+    "teal": "#1ABC9C",
+    "green": "#9ECE6A",
+    "magenta": "#BB9AF7",
+    "orange": "#FF9E64",
+    "red": "#F7768E",
+    "yellow": "#E0AF68",
+    "day-bg": "#E1E2E7",
+    "day-fg": "#3760BF",
+    "day-blue": "#2E7DE9"
+  },
+  "brand": {
+    "primary": "#7AA2F7",
+    "accent": "#F7768E"
+  },
+  "radius": {
+    "none": "0",
+    "control": "4px",
+    "surface": "4px"
+  },
+  "elevation": {
+    "overlay": "0 8px 20px rgba(22, 22, 30, 0.3)"
+  },
+  "modes": {
+    "light": {
+      "app": "#D5D6DB",
+      "surface": "#E1E2E7",
+      "hover": "#D7D8DE",
+      "muted": "#C4C8DA",
+      "selected": "#C8D3EE",
+      "inverse": "#1A1B26",
+      "line": "#C4C8DA",
+      "text": "#3760BF",
+      "subtext": "#4A5A9A",
+      "mute": "#6172B0",
+      "control": "#848CB5",
+      "accent": "#2E7DE9",
+      "deep": "#3760BF",
+      "success": "#587539",
+      "warning": "#8C6C3E",
+      "danger": "#F52A65",
+      "onInverse": "#C0CAF5",
+      "onDark": "#E1E2E7",
+      "onLight": "#1A1B26",
+      "hues": {
+        "blue": "#2E7DE9",
+        "sky": "#007197",
+        "teal": "#118C74",
+        "green": "#587539",
+        "yellow": "#8C6C3E",
+        "orange": "#B15C00",
+        "red": "#F52A65",
+        "purple": "#9854F1",
+        "slate": "#6172B0",
+        "gray": "#848CB5"
+      }
+    },
+    "dark": {
+      "app": "#16161E",
+      "surface": "#1A1B26",
+      "hover": "#292E42",
+      "muted": "#2F3549",
+      "selected": "#2D3F76",
+      "inverse": "#16161E",
+      "line": "#292E42",
+      "text": "#C0CAF5",
+      "subtext": "#A9B1D6",
+      "mute": "#737AA2",
+      "control": "#565F89",
+      "accent": "#7AA2F7",
+      "deep": "#BB9AF7",
+      "success": "#9ECE6A",
+      "warning": "#E0AF68",
+      "danger": "#F7768E",
+      "onInverse": "#C0CAF5",
+      "onDark": "#E1E2E7",
+      "onLight": "#16161E",
+      "hues": {
+        "blue": "#7AA2F7",
+        "sky": "#7DCFFF",
+        "teal": "#1ABC9C",
+        "green": "#9ECE6A",
+        "yellow": "#E0AF68",
+        "orange": "#FF9E64",
+        "red": "#F7768E",
+        "purple": "#BB9AF7",
+        "slate": "#565F89",
+        "gray": "#737AA2"
+      }
+    }
+  }
+}

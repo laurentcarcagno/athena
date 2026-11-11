@@ -495,10 +495,10 @@
           "$value": "#BAC2DE"
         },
         "mute": {
-          "$value": "#A6ADC8"
+          "$value": "#B1B7CF"
         },
         "mute-aa": {
-          "$value": "#A6ADC8"
+          "$value": "#B1B7CF"
         },
         "on-inverse": {
           "$value": "#CDD6F4"
@@ -507,10 +507,10 @@
           "$value": "#11111B"
         },
         "link": {
-          "$value": "#89B4FA"
+          "$value": "#90B9FA"
         },
         "link-aa": {
-          "$value": "#89B4FA"
+          "$value": "#90B9FA"
         },
         "heading": {
           "$value": "#CDD6F4"

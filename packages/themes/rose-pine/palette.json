@@ -1,0 +1,107 @@
+{
+  "name": "rose-pine",
+  "label": "Rosé Pine",
+  "description": "Doux et désaturé (Main) ; variante claire Dawn.",
+  "source": "https://rosepinetheme.com/palette/",
+  "license": "MIT",
+  "palette": {
+    "base": "#191724",
+    "surface": "#1F1D2E",
+    "overlay": "#26233A",
+    "muted": "#6E6A86",
+    "subtle": "#908CAA",
+    "text": "#E0DEF4",
+    "love": "#EB6F92",
+    "gold": "#F6C177",
+    "rose": "#EBBCBA",
+    "pine": "#31748F",
+    "foam": "#9CCFD8",
+    "iris": "#C4A7E7",
+    "dawn-base": "#FAF4ED",
+    "dawn-text": "#575279",
+    "dawn-pine": "#286983",
+    "dawn-love": "#B4637A"
+  },
+  "brand": {
+    "primary": "#C4A7E7",
+    "accent": "#EB6F92"
+  },
+  "radius": {
+    "none": "0",
+    "control": "6px",
+    "surface": "8px"
+  },
+  "elevation": {
+    "overlay": "0 8px 24px rgba(25, 23, 36, 0.22)"
+  },
+  "modes": {
+    "light": {
+      "app": "#FAF4ED",
+      "surface": "#FFFAF3",
+      "hover": "#F2E9E1",
+      "muted": "#DFDAD9",
+      "selected": "#E9E1EE",
+      "inverse": "#191724",
+      "line": "#DFDAD9",
+      "text": "#575279",
+      "subtext": "#575279",
+      "mute": "#797593",
+      "control": "#9893A5",
+      "accent": "#286983",
+      "deep": "#575279",
+      "success": "#286983",
+      "warning": "#EA9D34",
+      "danger": "#B4637A",
+      "onInverse": "#E0DEF4",
+      "onDark": "#FFFAF3",
+      "onLight": "#191724",
+      "hues": {
+        "blue": "#286983",
+        "sky": "#56949F",
+        "teal": "#56949F",
+        "green": "#286983",
+        "yellow": "#EA9D34",
+        "orange": "#D7827E",
+        "red": "#B4637A",
+        "pink": "#D7827E",
+        "purple": "#907AA9",
+        "slate": "#797593",
+        "gray": "#9893A5"
+      }
+    },
+    "dark": {
+      "app": "#191724",
+      "surface": "#1F1D2E",
+      "hover": "#26233A",
+      "muted": "#403D52",
+      "selected": "#2A2840",
+      "inverse": "#14121F",
+      "line": "#403D52",
+      "text": "#E0DEF4",
+      "subtext": "#908CAA",
+      "mute": "#908CAA",
+      "control": "#6E6A86",
+      "accent": "#C4A7E7",
+      "deep": "#31748F",
+      "success": "#9CCFD8",
+      "warning": "#F6C177",
+      "danger": "#EB6F92",
+      "onInverse": "#E0DEF4",
+      "onDark": "#FFFAF3",
+      "onLight": "#191724",
+      "hues": {
+        "blue": "#31748F",
+        "sky": "#9CCFD8",
+        "teal": "#9CCFD8",
+        "green": "#9CCFD8",
+        "yellow": "#F6C177",
+        "orange": "#EBBCBA",
+        "red": "#EB6F92",
+        "pink": "#EBBCBA",
+        "purple": "#C4A7E7",
+        "slate": "#908CAA",
+        "gray": "#6E6A86"
+      }
+    }
+  }
+}

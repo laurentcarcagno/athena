@@ -1,0 +1,104 @@
+{
+  "name": "dracula",
+  "label": "Dracula",
+  "description": "Violet et rose sur fond nuit (Dracula) ; variante claire officielle Alucard.",
+  "source": "https://draculatheme.com/contribute",
+  "license": "MIT",
+  "palette": {
+    "background": "#282A36",
+    "current-line": "#44475A",
+    "foreground": "#F8F8F2",
+    "comment": "#6272A4",
+    "cyan": "#8BE9FD",
+    "green": "#50FA7B",
+    "orange": "#FFB86C",
+    "pink": "#FF79C6",
+    "purple": "#BD93F9",
+    "red": "#FF5555",
+    "yellow": "#F1FA8C",
+    "alucard-background": "#FFFBEB",
+    "alucard-foreground": "#1F1F1F",
+    "alucard-purple": "#644AC9",
+    "alucard-red": "#CB3A2A"
+  },
+  "brand": {
+    "primary": "#BD93F9",
+    "accent": "#FF5555"
+  },
+  "radius": {
+    "none": "0",
+    "control": "6px",
+    "surface": "6px"
+  },
+  "elevation": {
+    "overlay": "0 8px 24px rgba(25, 26, 33, 0.3)"
+  },
+  "modes": {
+    "light": {
+      "app": "#F3EED9",
+      "surface": "#FFFBEB",
+      "hover": "#F0EBD6",
+      "muted": "#E6E0C8",
+      "selected": "#E2DCF2",
+      "inverse": "#282A36",
+      "line": "#DED8C2",
+      "text": "#1F1F1F",
+      "subtext": "#3A3A3A",
+      "mute": "#635D97",
+      "control": "#8A85B0",
+      "accent": "#644AC9",
+      "deep": "#282A36",
+      "success": "#14710A",
+      "warning": "#A34D14",
+      "danger": "#CB3A2A",
+      "onInverse": "#F8F8F2",
+      "onDark": "#FFFBEB",
+      "onLight": "#1F1F1F",
+      "hues": {
+        "blue": "#036A96",
+        "sky": "#036A96",
+        "teal": "#036A96",
+        "green": "#14710A",
+        "yellow": "#846E15",
+        "orange": "#A34D14",
+        "red": "#CB3A2A",
+        "pink": "#A3144D",
+        "purple": "#644AC9",
+        "slate": "#635D97"
+      }
+    },
+    "dark": {
+      "app": "#21222C",
+      "surface": "#282A36",
+      "hover": "#343746",
+      "muted": "#44475A",
+      "selected": "#3E3A5C",
+      "inverse": "#191A21",
+      "line": "#44475A",
+      "text": "#F8F8F2",
+      "subtext": "#E2E2DC",
+      "mute": "#A4ABCB",
+      "control": "#6272A4",
+      "accent": "#BD93F9",
+      "deep": "#FF79C6",
+      "success": "#50FA7B",
+      "warning": "#FFB86C",
+      "danger": "#FF5555",
+      "onInverse": "#F8F8F2",
+      "onDark": "#F8F8F2",
+      "onLight": "#191A21",
+      "hues": {
+        "blue": "#8BE9FD",
+        "sky": "#8BE9FD",
+        "teal": "#8BE9FD",
+        "green": "#50FA7B",
+        "yellow": "#F1FA8C",
+        "orange": "#FFB86C",
+        "red": "#FF5555",
+        "pink": "#FF79C6",
+        "purple": "#BD93F9",
+        "slate": "#6272A4"
+      }
+    }
+  }
+}

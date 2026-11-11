@@ -1,0 +1,107 @@
+{
+  "name": "solarized",
+  "label": "Solarized",
+  "description": "Le classique d'Ethan Schoonover : mêmes teintes d'accent sur fonds clair et sombre ; textes renforcés pour tenir le contrat.",
+  "source": "https://ethanschoonover.com/solarized/",
+  "license": "MIT",
+  "palette": {
+    "base03": "#002B36",
+    "base02": "#073642",
+    "base01": "#586E75",
+    "base00": "#657B83",
+    "base0": "#839496",
+    "base1": "#93A1A1",
+    "base2": "#EEE8D5",
+    "base3": "#FDF6E3",
+    "yellow": "#B58900",
+    "orange": "#CB4B16",
+    "red": "#DC322F",
+    "magenta": "#D33682",
+    "violet": "#6C71C4",
+    "blue": "#268BD2",
+    "cyan": "#2AA198",
+    "green": "#859900"
+  },
+  "brand": {
+    "primary": "#268BD2",
+    "accent": "#DC322F"
+  },
+  "radius": {
+    "none": "0",
+    "control": "2px",
+    "surface": "2px"
+  },
+  "elevation": {
+    "overlay": "0 6px 16px rgba(0, 43, 54, 0.2)"
+  },
+  "modes": {
+    "light": {
+      "app": "#EEE8D5",
+      "surface": "#FDF6E3",
+      "hover": "#F3EDDA",
+      "muted": "#E4DDC8",
+      "selected": "#DDE7E4",
+      "inverse": "#002B36",
+      "line": "#DDD6C1",
+      "text": "#586E75",
+      "subtext": "#586E75",
+      "mute": "#657B83",
+      "control": "#93A1A1",
+      "accent": "#268BD2",
+      "deep": "#073642",
+      "success": "#859900",
+      "warning": "#B58900",
+      "danger": "#DC322F",
+      "onInverse": "#EEE8D5",
+      "onDark": "#FDF6E3",
+      "onLight": "#002B36",
+      "hues": {
+        "blue": "#268BD2",
+        "sky": "#2AA198",
+        "teal": "#2AA198",
+        "green": "#859900",
+        "yellow": "#B58900",
+        "orange": "#CB4B16",
+        "red": "#DC322F",
+        "pink": "#D33682",
+        "purple": "#6C71C4",
+        "slate": "#657B83",
+        "gray": "#839496"
+      }
+    },
+    "dark": {
+      "app": "#00212B",
+      "surface": "#002B36",
+      "hover": "#073642",
+      "muted": "#0B4252",
+      "selected": "#0A3D4C",
+      "inverse": "#001E26",
+      "line": "#0B4252",
+      "text": "#93A1A1",
+      "subtext": "#93A1A1",
+      "mute": "#839496",
+      "control": "#586E75",
+      "accent": "#268BD2",
+      "deep": "#6C71C4",
+      "success": "#859900",
+      "warning": "#B58900",
+      "danger": "#DC322F",
+      "onInverse": "#EEE8D5",
+      "onDark": "#FDF6E3",
+      "onLight": "#002B36",
+      "hues": {
+        "blue": "#268BD2",
+        "sky": "#2AA198",
+        "teal": "#2AA198",
+        "green": "#859900",
+        "yellow": "#B58900",
+        "orange": "#CB4B16",
+        "red": "#DC322F",
+        "pink": "#D33682",
+        "purple": "#6C71C4",
+        "slate": "#839496",
+        "gray": "#93A1A1"
+      }
+    }
+  }
+}

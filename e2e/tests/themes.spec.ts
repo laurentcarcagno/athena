@@ -4,7 +4,9 @@ import { expect, test, type Page } from '@playwright/test';
 
 /** T-0136 (ADR-0004) : chaque thème, dans chaque mode, passe axe-core (contraste compris) sur six écrans ; palier tablette. */
 const axeSource = readFileSync(join(process.cwd(), 'node_modules/axe-core/axe.min.js'), 'utf8');
-const THEMES = ['hemeria', 'contrast', 'catppuccin', 'nord', 'gruvbox'];
+const THEMES = ['hemeria', 'contrast', 'catppuccin', 'nord', 'gruvbox', 'solarized', 'dracula', 'tokyo-night', 'rose-pine'];
+/** Thèmes décochés par le test d'apparence : il ne reste que Hemeria et Nord. */
+const HIDDEN = ['Catppuccin', 'Contraste élevé', 'Gruvbox', 'Solarized', 'Dracula', 'Tokyo Night', 'Rosé Pine'];
 const PAGES = ['/projets', '/', '/p/ARI', '/p/ARI/t/BUG/tableau', '/p/ARI/a/ARI-BUG-0001', '/p/ARI/parametres/membres'];
 
 async function login(page: Page) {
@@ -33,7 +35,7 @@ async function violations(page: Page): Promise<string[]> {
 }
 
 test('chaque thème × mode : axe-core sans violation, contraste compris, sur six écrans', async ({ page }) => {
-  test.setTimeout(10 * 60_000);
+  test.setTimeout(15 * 60_000);
   await login(page);
   for (const theme of THEMES) {
     for (const mode of ['light', 'dark'] as const) {
@@ -74,7 +76,7 @@ test('apparence : l’administration restreint les thèmes et fixe le défaut ; 
   await page.evaluate(() => { localStorage.removeItem('athena.themeFamily'); });
   await page.goto('/admin');
   await page.getByRole('tab', { name: 'Apparence' }).click();
-  for (const name of ['Catppuccin', 'Contraste élevé', 'Gruvbox']) await page.getByRole('checkbox', { name }).uncheck();
+  for (const name of HIDDEN) await page.getByRole('checkbox', { name }).uncheck();
   await page.getByLabel('Thème par défaut').selectOption('nord');
   await page.getByRole('button', { name: 'Enregistrer l’apparence' }).click();
   await expect(page.getByText('Apparence enregistrée.')).toBeVisible();
@@ -85,7 +87,7 @@ test('apparence : l’administration restreint les thèmes et fixe le défaut ; 
   // Remise à l'état initial : tous les thèmes, Hemeria par défaut.
   await page.goto('/admin');
   await page.getByRole('tab', { name: 'Apparence' }).click();
-  for (const name of ['Catppuccin', 'Contraste élevé', 'Gruvbox']) await page.getByRole('checkbox', { name }).check();
+  for (const name of HIDDEN) await page.getByRole('checkbox', { name }).check();
   await page.getByLabel('Thème par défaut').selectOption('hemeria');
   await page.getByRole('button', { name: 'Enregistrer l’apparence' }).click();
   await expect(page.getByText('Apparence enregistrée.')).toBeVisible();
