@@ -7,7 +7,7 @@
 - Vérifications : moteur 19/19 ; 9 thèmes conformes (78 paires) ; `@athena/ui` 56/56, lint et charte ; web 445/445, `tsc` ; API du lot 25/25, `tsc` ; visuel 96/96 ; e2e 51/51 ; aperçus 72.
 
 ## Reste à faire
-- Relecture des captures par l'utilisateur (critère de T-0132), soumise dans le compte rendu de fin de lot.
+- Rien. Captures relues et validées par l'utilisateur le 2026-11-11 (critère de T-0132).
 
 ## Décisions et pièges
 - Lancer les aperçus après `node global-setup.mjs` : après une suite e2e, `global-teardown` remet le TOTP de `admin.dev` et la connexion bloque.

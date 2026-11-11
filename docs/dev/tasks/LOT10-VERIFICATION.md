@@ -50,7 +50,7 @@ Résultats de la vérification (2026-11-11) : `@nuance/theming` 19/19 ; `@nuance
 |---|---|
 | Aucun `text-transform: uppercase` | `typographie.test.ts` ; recherche : 0 occurrence |
 | Un seul traitement par niveau de titre | `typographie.test.ts` (classes `.ath-section-title`, `.ath-subsection-title`, `.ath-group-title`) |
-| Captures revues par l'utilisateur | Captures relues pendant la tâche puis reprises comme référence ; **la relecture par l'utilisateur reste à faire** : voir « Points soumis à l'utilisateur » |
+| Captures revues par l'utilisateur | Captures relues pendant la tâche, puis aperçus de chaque thème × mode × 4 largeurs relus et validés par l'utilisateur le 2026-11-11 |
 
 ## T-0133 Contrôles de formulaire
 | Critère | Preuve |
@@ -108,5 +108,5 @@ Résultats de la vérification (2026-11-11) : `@nuance/theming` 19/19 ; `@nuance
 | e2e | Suite complète : 51 sur 51 |
 
 ## Points soumis à l'utilisateur
-- T-0132 : la relecture des captures par l'utilisateur. Les aperçus de chaque thème sont dans `e2e/visuel/apercu/`.
+- T-0132 : relecture des captures par l'utilisateur, validée le 2026-11-11.
 - Hors lot : `gabarits.spec.ts` dépend de GitLab démarré (voir `T-0128/CONTEXT.md`). Dans cette vérification, il était démarré.
