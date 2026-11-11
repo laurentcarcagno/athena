@@ -1,7 +1,7 @@
 import { Db } from './db';
 import { notFound, validation } from './errors';
 
-export interface MatrixItem { key: string; title: string; status: string; statusName: string; category: string }
+export interface MatrixItem { key: string; title: string; status: string; statusName: string; statusColor: string | null; category: string }
 export interface MatrixRow extends MatrixItem {
   /** Au moins un lien de ce type avec un item du tracker en colonnes, même hors de la fenêtre de colonnes affichée. */
   linked: boolean;
@@ -59,9 +59,9 @@ export class MatrixService {
       const [rowTitle, colTitle] = [await readable(rowsId), await readable(colsId)];
       const item = (r: Record<string, unknown>, title: { field: string; ok: boolean }): MatrixItem => ({
         key: r.key as string, title: title.ok ? String((r.values as Record<string, unknown>)[title.field] ?? r.key) : (r.key as string),
-        status: r.status as string, statusName: r.status_name as string, category: r.category as string,
+        status: r.status as string, statusName: r.status_name as string, statusColor: (r.status_color as string | null) ?? null, category: r.category as string,
       });
-      const select = `a.id, a.key, a."values" as values, s.key as status, s.name as status_name, s.category`;
+      const select = `a.id, a.key, a."values" as values, s.key as status, s.name as status_name, s.color as status_color, s.category`;
       const rows = (await c.query(
         `select ${select}, exists (select 1 from artifact_link l join artifact o on o.id = case when l.from_artifact_id = a.id then l.to_artifact_id else l.from_artifact_id end
                                    where l.link_type_id = $2 and (l.from_artifact_id = a.id or l.to_artifact_id = a.id) and o.tracker_id = $3) as linked

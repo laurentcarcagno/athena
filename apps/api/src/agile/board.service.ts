@@ -15,6 +15,8 @@ export interface Card {
   title: string;
   status: string;
   statusName: string;
+  /** Teinte nommée du statut (T-0138), nulle : celle de la catégorie. */
+  statusColor: string | null;
   assignee: string | null;
   version: number;
   /** Nom du tracker (type du ticket). */
@@ -92,7 +94,7 @@ export class BoardService {
       const board = await this.load(c, projectKey, boardKey);
       const rows = (
         await c.query(
-          `select a.key, a.version, a."values" as values, t.id as tracker_id, t.key as tracker, t.name as tracker_name, s.key as status, s.name as status_name,
+          `select a.key, a.version, a."values" as values, t.id as tracker_id, t.key as tracker, t.name as tracker_name, s.key as status, s.name as status_name, s.color as status_color,
                   exists (select 1 from artifact_link l join link_type ty on ty.id = l.link_type_id join artifact b on b.id = l.from_artifact_id
                           join status bs on bs.id = b.status_id where l.to_artifact_id = a.id and ty.key = 'blocks' and bs.category <> 'done') as blocked
            from artifact a join tracker t on t.id = a.tracker_id join status s on s.id = a.status_id join project p on p.id = a.project_id
@@ -137,7 +139,7 @@ export class BoardService {
         const assignee = read(r, 'assignee');
         const priority = read(r, 'priority');
         columns[index]!.cards.push({
-          key: r.key, tracker: r.tracker, trackerName: r.tracker_name, status: r.status, statusName: r.status_name, version: r.version,
+          key: r.key, tracker: r.tracker, trackerName: r.tracker_name, status: r.status, statusName: r.status_name, statusColor: (r.status_color as string | null) ?? null, version: r.version,
           title: !titleField || canRead(titleField.readRoles) ? String(r.values[titleField?.key ?? 'title'] ?? r.key) : r.key,
           assignee, assigneeName: assignee ? names.get(assignee) ?? assignee : null,
           priority, priorityLabel: priority ? roleFields.get(r.tracker_id)?.['priority']?.label ?? null : null,

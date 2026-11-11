@@ -1,4 +1,5 @@
 import { LayoutSchema } from './layout';
+import { HueSchema } from './hues';
 import { TemplateService } from './template.service';
 import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Query, Req } from '@nestjs/common';
 import { z } from 'zod';
@@ -27,7 +28,7 @@ const TrackerBody = z.object({
     semanticRole: z.enum(['title', 'description', 'status', 'assignee', 'due_date', 'estimate', 'priority', 'version']).optional(),
   })).max(100),
   statuses: z.array(z.object({
-    key: z.string(), name: z.string().min(1), category: z.enum(['todo', 'in_progress', 'done']),
+    key: z.string(), name: z.string().min(1), category: z.enum(['todo', 'in_progress', 'done']), color: HueSchema.nullable().optional(),
   })).min(1).max(50),
   transitions: z.array(z.object({
     name: z.string().min(1), from: z.string().nullable(), to: z.string(),
@@ -63,7 +64,9 @@ const AddFieldBody = z.object({
       readRoles: z.array(z.string().max(60)).min(1).max(20).optional(), writeRoles: z.array(z.string().max(60)).min(1).max(20).optional(),
       required: z.boolean().optional(), isContent: z.boolean().optional(), semanticRole: z.enum(['title', 'description', 'status', 'assignee', 'due_date', 'estimate', 'priority', 'version']).optional(),
     });
-const AddStatusBody = z.object({ key: z.string(), name: z.string().min(1).max(100), category: z.enum(['todo', 'in_progress', 'done']) });
+const AddStatusBody = z.object({ key: z.string(), name: z.string().min(1).max(100), category: z.enum(['todo', 'in_progress', 'done']), color: HueSchema.nullable().optional() });
+/** Modification d'un statut (T-0138) : nom, catégorie, teinte nommée (null = teinte de la catégorie). */
+const PatchStatusBody = z.object({ name: z.string().min(1).max(100).optional(), category: z.enum(['todo', 'in_progress', 'done']).optional(), color: HueSchema.nullable().optional() }).strict();
 const AddTransitionBody = z.object({
       name: z.string().min(1).max(100), from: z.string().nullable(), to: z.string(),
       conditions: z.array(z.unknown()).optional(), validators: z.array(z.unknown()).optional(), postActions: z.array(z.unknown()).optional(),
@@ -229,6 +232,16 @@ export class CoreController {
     const input = parseBody(AddStatusBody, body);
     await this.trackers.addStatus(organizationId, project, tracker, input, actor);
     return { added: input.key };
+  }
+
+  @Roles('athena-admin')
+  @Patch(':project/trackers/:tracker/statuses/:status')
+  @BodySchema(PatchStatusBody)
+  async patchStatus(@Req() request: AuthedRequest, @Param('project') project: string, @Param('tracker') tracker: string, @Param('status') status: string, @Body() body: unknown) {
+    const { organizationId, actor } = await this.orgs.resolve(principalOf(request));
+    const input = parseBody(PatchStatusBody, body);
+    await this.trackers.updateStatus(organizationId, project, tracker, status, stripUndefined(input), actor);
+    return { updated: status };
   }
 
   @Roles('athena-admin')

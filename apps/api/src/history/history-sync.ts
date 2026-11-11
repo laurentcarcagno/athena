@@ -217,7 +217,7 @@ async function loadTrackerYaml(c: PoolClient, projectKey: string, trackerKey: st
   return {
     key: t.key, name: t.name, schemaVersion: t.schema_version, ...(t.layout ? { layout: t.layout } : {}), ...(t.type_key ? { type: t.type_key } : {}),
     fields: fields.map((f) => ({ key: f.key, label: f.label, type: f.type, config: f.config, required: f.required, ...(f.is_content === false ? { isContent: false } : {}), semanticRole: f.semantic_role, readRoles: f.read_roles ?? null, writeRoles: f.write_roles ?? null })),
-    statuses: statuses.map((s) => ({ key: s.key, name: s.name, category: s.category })),
+    statuses: statuses.map((s) => ({ key: s.key, name: s.name, category: s.category, ...(s.color ? { color: s.color } : {}) })),
     transitions: transitions.map((x) => ({
       name: x.name, from: x.from_status_id ? keyOf.get(x.from_status_id) ?? null : null, to: keyOf.get(x.to_status_id)!,
       conditions: x.conditions, validators: x.validators, postActions: x.post_actions,

@@ -7,6 +7,7 @@ import { fr } from '../i18n';
 import { Dashboard } from '../components/Dashboard';
 import { pillKind } from './ListPage';
 import { fromHere } from '../lib/origin';
+import { statusPill } from '../lib/status';
 
 interface Item { project: string; hit: Hit }
 
@@ -47,7 +48,7 @@ export function MyWorkPage({ session }: { session: Session }) {
           {/* Précédent et suivant parcourent les tickets du même projet de cette liste (la fiche est une adresse de projet). */}
           <Td><Link className="ath-link ath-mono" to={`/p/${i.project}/a/${i.hit.key}`} state={fromHere(location, fr.origin.myWork, items.filter((x) => x.project === i.project).map((x) => x.hit.key))}>{i.hit.key}</Link></Td>
           <Td><span className="ath-clip" title={titleOf(i.hit)}>{titleOf(i.hit)}</span></Td>
-          <Td><StatusPill kind={pillKind(i.hit.category)}>{i.hit.statusName ?? i.hit.status}</StatusPill></Td>
+          <Td><StatusPill {...statusPill(i.hit.category, i.hit.statusColor)}>{i.hit.statusName ?? i.hit.status}</StatusPill></Td>
           {action && <Td><Btn icon="check" size="sm" variant="ghost" loading={busy} onClick={() => action(i)}>{fr.work.take}</Btn></Td>}
         </tr>
       ))}</tbody>

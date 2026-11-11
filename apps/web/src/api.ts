@@ -83,7 +83,7 @@ export async function logout(): Promise<string> {
 export const loginUrl = (returnTo: string) => `/auth/login?returnTo=${encodeURIComponent(returnTo)}`;
 
 // --- Types de l'API ---
-export interface Hit { key: string; project?: string; title?: string; tracker: string; status: string; statusName: string; category: string; values: Record<string, unknown>; version: number; updatedAt: string }
+export interface Hit { key: string; project?: string; title?: string; tracker: string; status: string; statusName: string; statusColor?: string | null; category: string; values: Record<string, unknown>; version: number; updatedAt: string }
 export interface SearchResult { total: number; totalCapped?: boolean; hits: Hit[] }
 export interface Field { id: string; key: string; label: string; type: string; config: Record<string, unknown>; required: boolean; isContent?: boolean; semanticRole: string | null; readRoles?: string[] | null; writeRoles?: string[] | null }
 export interface TrackerTypeEntry {
@@ -93,12 +93,12 @@ export interface TrackerTypeEntry {
 }
 export interface TrackerOverview {
   key: string; name: string; typeKey: string | null; category: string; artifacts: number; mine: number; lastActivity: string | null;
-  statuses: Array<{ key: string; name: string; category: string; count: number }>;
+  statuses: Array<{ key: string; name: string; category: string; color?: string | null; count: number }>;
 }
 export interface TrackerDefinition {
   key: string; name: string; typeKey?: string | null; historyMode?: 'direct' | 'merge_request'; layout?: import('./lib/layout').Layout | null;
   fields: Field[];
-  statuses: Array<{ id: string; key: string; name: string; category: string }>;
+  statuses: Array<{ id: string; key: string; name: string; category: string; color?: string | null }>;
   transitions: Array<{ id: string; name: string; fromStatusId: string | null; toStatusId: string; conditions?: Array<{ type: string; roles?: string[] }> }>;
 }
 export interface Artifact { id: string; key: string; trackerKey: string; status: string; values: Record<string, unknown>; version: number; exportControl?: 'ITAR' | 'EAR' | 'dual_use' }
@@ -110,7 +110,7 @@ export interface BoardView {
   columns: Array<{
     name: string; wipLimit: number | null; count: number; overLimit: boolean; creatable?: boolean;
     cards: Array<{
-      key: string; tracker: string; title: string; status: string; statusName: string; assignee: string | null; version: number;
+      key: string; tracker: string; title: string; status: string; statusName: string; statusColor?: string | null; assignee: string | null; version: number;
       trackerName?: string; assigneeName?: string | null; priority?: string | null; priorityLabel?: string | null; due?: string | null; blocked?: boolean;
     }>;
   }>;

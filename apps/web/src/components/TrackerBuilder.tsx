@@ -1,13 +1,14 @@
 import { useEffect, useId, useState } from 'react';
-import { Btn, Card, Checkbox, Field, Select, StatusPill, Table, Td, Th } from '@athena/ui';
+import { Btn, Card, Checkbox, Field, Select, Table, Td, Th, type Hue } from '@athena/ui';
 import { api, type TrackerTypeEntry } from '../api';
 import { fr } from '../i18n';
 import type { Layout } from '../lib/layout';
 import { LayoutEditor } from './LayoutEditor';
 import { WorkflowEditor } from './WorkflowEditor';
+import { HueSelect } from './HueSelect';
 
 export interface DraftField { key: string; label: string; type: string; required?: boolean; isContent?: boolean; config?: Record<string, unknown>; semanticRole?: string; readRoles?: string[]; writeRoles?: string[] }
-export interface DraftStatus { key: string; name: string; category: 'todo' | 'in_progress' | 'done' }
+export interface DraftStatus { key: string; name: string; category: 'todo' | 'in_progress' | 'done'; color?: Hue | null }
 export interface DraftTransition { name: string; from: string | null; to: string; conditions?: unknown[]; validators?: unknown[]; postActions?: unknown[] }
 export interface DraftTracker { layout?: Layout | null; typeKey?: string | null; key: string; name: string; description?: string; fields: DraftField[]; statuses: DraftStatus[]; transitions: DraftTransition[] }
 
@@ -118,7 +119,7 @@ export function TrackerBuilder({ value, onChange }: { value: DraftTracker; onCha
         <div className="ath-stack">
           <div className="ath-row">{value.statuses.map((s) => (
             <span key={s.key} className="ath-row">
-              <StatusPill kind={s.category === 'done' ? 'success' : s.category === 'in_progress' ? 'warning' : 'info'}>{s.name}</StatusPill>
+              <HueSelect status={s} onChange={(color) => onChange({ ...value, statuses: value.statuses.map((x) => (x.key === s.key ? { ...x, color } : x)) })} />
               <Btn icon="trash" size="sm" variant="ghost" aria-label={`${fr.config.remove} ${s.name}`} onClick={() => removeStatus(s.key)}>{fr.config.remove}</Btn>
             </span>
           ))}</div>

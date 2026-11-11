@@ -7,6 +7,7 @@ import { fromHere, originOf } from '../lib/origin';
 import { pillKind } from '../pages/ListPage';
 import { PinToggle } from './PinToggle';
 import { SubscribeToggle } from './SubscribeToggle';
+import { statusPill } from '../lib/status';
 
 /** Transitions proposées depuis le statut courant, filtrées par les conditions de rôle. */
 export function availableTransitions(def: TrackerDefinition, artifact: Artifact, session: Session) {
@@ -120,7 +121,7 @@ export function ItemHeader({ session, project, def, artifact, links, sprint, emb
   const status = def.statuses.find((s) => s.key === artifact.status);
   const available = availableTransitions(def, artifact, session);
   const title = String(artifact.values['title'] ?? artifact.values['name'] ?? '');
-  const pill = <StatusPill kind={pillKind(status?.category ?? '')}>{status?.name ?? artifact.status}</StatusPill>;
+  const pill = <StatusPill {...statusPill(status?.category ?? '', status?.color)}>{status?.name ?? artifact.status}</StatusPill>;
   const transitions = (size: 'sm' | 'md') => (
     <div className="ath-row" role="group" aria-label={fr.artifact.transitions}>
       {available.map((t) => <Btn key={t.id} {...(size === 'sm' ? { size } : {})} variant="deep" onClick={() => onTransition(t.name)}>{t.name}</Btn>)}

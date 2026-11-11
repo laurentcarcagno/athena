@@ -1,4 +1,5 @@
 import { typeExists } from './tracker-types';
+import type { Hue } from './hues';
 import { layoutProblems, type Layout } from './layout';
 import type { PoolClient } from 'pg';
 import { Db, type Actor } from './db';
@@ -22,6 +23,8 @@ export interface StatusSpec {
   key: string;
   name: string;
   category: 'todo' | 'in_progress' | 'done';
+  /** Teinte nommée (T-0138) ; absente ou nulle : celle de la catégorie. */
+  color?: Hue | null;
 }
 export interface TransitionSpec {
   name: string;
@@ -122,9 +125,9 @@ export class TrackerService {
       position = 0;
       for (const s of spec.statuses) {
         const row = await c.query(
-          `insert into status (organization_id, tracker_id, key, name, category, position)
-           values ($1,$2,$3,$4,$5,$6) returning id`,
-          [organizationId, tracker, s.key, s.name, s.category, position++],
+          `insert into status (organization_id, tracker_id, key, name, category, position, color)
+           values ($1,$2,$3,$4,$5,$6,$7) returning id`,
+          [organizationId, tracker, s.key, s.name, s.category, position++, s.color ?? null],
         );
         statusIds.set(s.key, row.rows[0].id);
       }
@@ -257,14 +260,14 @@ export class TrackerService {
     if (!/^[a-z][a-z0-9_]{0,39}$/.test(status.key)) throw validation(['clé de statut invalide']);
     await this.mutate(organizationId, projectKey, trackerKey, actor, `statut ${status.key}`, async (c, tracker) => {
       const position = Number((await c.query('select coalesce(max(position) + 1, 0) n from status where tracker_id = $1', [tracker])).rows[0].n);
-      await c.query('insert into status (organization_id, tracker_id, key, name, category, position) values ($1,$2,$3,$4,$5,$6)', [organizationId, tracker, status.key, status.name, status.category, position]);
+      await c.query('insert into status (organization_id, tracker_id, key, name, category, position, color) values ($1,$2,$3,$4,$5,$6,$7)', [organizationId, tracker, status.key, status.name, status.category, position, status.color ?? null]);
     });
   }
 
   /** Renomme un statut ou change sa catégorie (la clé est immuable : les artefacts y sont rattachés). */
-  async updateStatus(organizationId: string, projectKey: string, trackerKey: string, statusKey: string, patch: { name?: string; category?: StatusSpec['category'] }, actor: Actor): Promise<void> {
+  async updateStatus(organizationId: string, projectKey: string, trackerKey: string, statusKey: string, patch: { name?: string; category?: StatusSpec['category']; color?: Hue | null }, actor: Actor): Promise<void> {
     await this.mutate(organizationId, projectKey, trackerKey, actor, `statut ${statusKey} modifié`, async (c, tracker) => {
-      const updated = await c.query('update status set name = coalesce($3, name), category = coalesce($4, category) where tracker_id = $1 and key = $2', [tracker, statusKey, patch.name ?? null, patch.category ?? null]);
+      const updated = await c.query('update status set name = coalesce($3, name), category = coalesce($4, category), color = case when $5::boolean then $6 else color end where tracker_id = $1 and key = $2', [tracker, statusKey, patch.name ?? null, patch.category ?? null, patch.color !== undefined, patch.color ?? null]);
       if (updated.rowCount === 0) throw notFound(`Statut ${statusKey}`);
     });
   }
@@ -331,7 +334,7 @@ export class TrackerService {
       fields: fields.map((f) => ({
         id: f.id, key: f.key, label: f.label, type: f.type, config: f.config, required: f.required, semanticRole: f.semantic_role, readRoles: f.read_roles ?? null, writeRoles: f.write_roles ?? null, isContent: f.is_content as boolean,
       })),
-      statuses: statuses.map((s) => ({ id: s.id, key: s.key, name: s.name, category: s.category, position: s.position })),
+      statuses: statuses.map((s) => ({ id: s.id, key: s.key, name: s.name, category: s.category, color: s.color ?? null, position: s.position })),
       transitions: transitions.map((x) => ({
         id: x.id, name: x.name, fromStatusId: x.from_status_id, toStatusId: x.to_status_id,
         conditions: x.conditions, validators: x.validators, postActions: x.post_actions,

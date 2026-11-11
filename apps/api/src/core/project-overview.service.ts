@@ -106,7 +106,7 @@ export class ProjectOverviewService {
       const out: TrackerOverview[] = [];
       for (const t of trackers) {
         const statuses = (await c.query(
-          `select s.key, s.name, s.category, count(a.id)::int as n from status s left join artifact a on a.status_id = s.id
+          `select s.key, s.name, s.category, s.color, count(a.id)::int as n from status s left join artifact a on a.status_id = s.id
            where s.tracker_id = $1 group by s.id order by s.position`, [t.id])).rows;
         const assignee = (await c.query("select key from field_definition where tracker_id = $1 and semantic_role = 'assignee'", [t.id])).rows[0]?.key as string | undefined;
         const mine = assignee
@@ -118,7 +118,7 @@ export class ProjectOverviewService {
         out.push({
           key: t.key, name: t.name, typeKey: t.type_key ?? null, category: (t.type_key && categories.get(t.type_key)) || 'other',
           artifacts: statuses.reduce((n, s) => n + (s.n as number), 0), mine, lastActivity: last ? last.toISOString() : null,
-          statuses: statuses.map((s) => ({ key: s.key, name: s.name, category: s.category, count: s.n })),
+          statuses: statuses.map((s) => ({ key: s.key, name: s.name, category: s.category, color: s.color ?? null, count: s.n })),
         });
       }
       return { trackers: out };
@@ -128,7 +128,7 @@ export class ProjectOverviewService {
 
 export interface TrackerOverview {
   key: string; name: string; typeKey: string | null; category: string; artifacts: number; mine: number; lastActivity: string | null;
-  statuses: Array<{ key: string; name: string; category: string; count: number }>;
+  statuses: Array<{ key: string; name: string; category: string; color: string | null; count: number }>;
 }
 export interface ProjectOverview { trackers: TrackerOverview[] }
 

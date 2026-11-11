@@ -71,9 +71,14 @@ export function Btn({ variant = 'primary', size = 'md', className, loading = fal
 }
 
 export type PillKind = 'success' | 'warning' | 'danger' | 'info' | 'default';
-export function StatusPill({ kind = 'default', children }: { kind?: PillKind; children: ReactNode }) {
+/** Teintes nommées des statuts (T-0138) : chaque thème en fournit le fond, le texte et la bordure. */
+export const HUES = ['gray', 'slate', 'blue', 'sky', 'teal', 'green', 'lime', 'yellow', 'orange', 'red', 'pink', 'purple'] as const;
+export type Hue = (typeof HUES)[number];
+export const isHue = (value: unknown): value is Hue => typeof value === 'string' && (HUES as readonly string[]).includes(value);
+/** Pastille de statut : la teinte choisie par l'administration l'emporte ; sans teinte, la couleur suit le sens (`kind`). */
+export function StatusPill({ kind = 'default', hue, children }: { kind?: PillKind; hue?: Hue | null; children: ReactNode }) {
   return (
-    <span className={cx('ath-pill', kind !== 'default' && `ath-pill--${kind}`)}>
+    <span className={cx('ath-pill', hue ? `ath-pill--hue-${hue}` : kind !== 'default' && `ath-pill--${kind}`)}>
       <span className="ath-pill__dot" aria-hidden="true" />
       {children}
     </span>

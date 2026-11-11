@@ -4,8 +4,9 @@ import { api } from '../api';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
 import { pillKind } from './ArtifactTable';
+import { statusPill } from '../lib/status';
 
-export interface TreeNodeData { key: string; title: string; status: string; statusName: string; category: string; childCount: number; suspect: boolean }
+export interface TreeNodeData { key: string; title: string; status: string; statusName: string; statusColor?: string | null; category: string; childCount: number; suspect: boolean }
 interface Row { id: string; node: TreeNodeData; chapter: string; level: number; parentId: string | null; posinset: number; setsize: number }
 
 /**
@@ -98,7 +99,7 @@ export function TreeView({ project, tracker, selected, onOpen }: { project: stri
             <span className="ath-mono ath-tree__chapter">{row.chapter}</span>
             <span className="ath-mono ath-nowrap">{row.node.key}</span>
             <span className="ath-clip" title={row.node.title}>{row.node.title}</span>
-            <StatusPill kind={pillKind(row.node.category)}>{row.node.statusName}</StatusPill>
+            <StatusPill {...statusPill(row.node.category, row.node.statusColor)}>{row.node.statusName}</StatusPill>
             {row.node.suspect && <StatusPill kind="warning">{fr.artifact.suspect}</StatusPill>}
           </div>
         );

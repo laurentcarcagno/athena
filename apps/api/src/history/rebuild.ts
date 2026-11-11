@@ -19,7 +19,7 @@ interface TrackerFile {
   layout?: unknown;
   type?: string;
   fields: Array<{ key: string; label: string; type: string; config: unknown; required: boolean; isContent?: boolean; semanticRole: string | null; readRoles?: string[] | null; writeRoles?: string[] | null }>;
-  statuses: Array<{ key: string; name: string; category: string }>;
+  statuses: Array<{ key: string; name: string; category: string; color?: string | null }>;
   transitions: Array<{ name: string; from: string | null; to: string; conditions: unknown; validators: unknown; postActions: unknown }>;
 }
 interface ArtifactFile {
@@ -78,7 +78,7 @@ export class RebuildService {
         const statusIds = new Map<string, string>();
         position = 0;
         for (const s of t.statuses) {
-          const row = await c.query('insert into status (organization_id, tracker_id, key, name, category, position) values ($1,$2,$3,$4,$5,$6) returning id', [organizationId, id, s.key, s.name, s.category, position++]);
+          const row = await c.query('insert into status (organization_id, tracker_id, key, name, category, position, color) values ($1,$2,$3,$4,$5,$6,$7) returning id', [organizationId, id, s.key, s.name, s.category, position++, s.color ?? null]);
           statusIds.set(s.key, row.rows[0].id);
         }
         for (const x of t.transitions) {

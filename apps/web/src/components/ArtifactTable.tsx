@@ -5,9 +5,10 @@ import type { SearchResult, TrackerDefinition } from '../api';
 import { fr } from '../i18n';
 import { fromHere } from '../lib/origin';
 import { DateTime } from '../lib/dates';
+import { statusPill } from '../lib/status';
 
 /** Couleur de la pastille selon la catégorie du statut. */
-export const pillKind = (category: string): PillKind => (category === 'done' ? 'success' : category === 'in_progress' ? 'warning' : 'info');
+export { pillKind } from '../lib/status';
 
 type Hit = SearchResult['hits'][number];
 const titleOf = (hit: Hit) => String(hit.values['title'] ?? hit.values['name'] ?? '');
@@ -18,7 +19,7 @@ export interface TableColumn { id: string; label: string; sortField?: string; mo
 
 const STANDARD: Record<string, TableColumn> = {
   title: { id: 'title', label: '', render: (hit) => <span className="ath-clip" title={titleOf(hit)}>{titleOf(hit)}</span> },
-  status: { id: 'status', label: '', sortField: 'status', render: (hit) => <StatusPill kind={pillKind(hit.category)}>{hit.statusName ?? hit.status}</StatusPill> },
+  status: { id: 'status', label: '', sortField: 'status', render: (hit) => <StatusPill {...statusPill(hit.category, hit.statusColor)}>{hit.statusName ?? hit.status}</StatusPill> },
   tracker: { id: 'tracker', label: '', sortField: 'tracker', mono: true, render: (hit) => hit.tracker },
   updated: { id: 'updated', label: '', sortField: 'updated', mono: true, mute: true, render: (hit) => <DateTime iso={hit.updatedAt} /> },
 };

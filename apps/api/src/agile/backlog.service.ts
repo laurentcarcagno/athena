@@ -9,6 +9,8 @@ export interface BacklogItem {
   title: string;
   status: string;
   statusName: string;
+  /** Teinte nommée du statut (T-0138), nulle : celle de la catégorie. */
+  statusColor: string | null;
   category: string;
   points: number | null;
   assignee: string | null;
@@ -64,14 +66,14 @@ export class BacklogService {
 
   private async ordered(c: PoolClient, projectKey: string) {
     return (await c.query(
-      `select a.id, a.key, a.version, a."values" as values, t.id as tracker_id, t.key as tracker, s.key as status, s.name as status_name, s.category, r.rank
+      `select a.id, a.key, a.version, a."values" as values, t.id as tracker_id, t.key as tracker, s.key as status, s.name as status_name, s.color as status_color, s.category, r.rank
        from artifact a join tracker t on t.id = a.tracker_id join status s on s.id = a.status_id join project p on p.id = a.project_id
        left join backlog_rank r on r.artifact_id = a.id
        where p.key = $1 and t.type_key = 'task' and s.category <> 'done'
          and not exists (select 1 from sprint_item i join sprint sp on sp.id = i.sprint_id where i.artifact_id = a.id and sp.state <> 'closed')
        order by r.rank nulls last, a.created_at, a.id`,
       [projectKey],
-    )).rows as Array<{ id: string; key: string; version: number; values: Record<string, unknown>; tracker_id: string; tracker: string; status: string; status_name: string; category: string; rank: number | null }>;
+    )).rows as Array<{ id: string; key: string; version: number; values: Record<string, unknown>; tracker_id: string; tracker: string; status: string; status_name: string; status_color: string | null; category: string; rank: number | null }>;
   }
 
   private async items(c: PoolClient, projectKey: string, roles: string[]): Promise<BacklogItem[]> {
@@ -96,7 +98,7 @@ export class BacklogService {
       const points = value(r, 'estimate');
       const assignee = value(r, 'assignee');
       return {
-        key: r.key, tracker: r.tracker, status: r.status, statusName: r.status_name, category: r.category, version: r.version,
+        key: r.key, tracker: r.tracker, status: r.status, statusName: r.status_name, statusColor: (r.status_color as string | null) ?? null, category: r.category, version: r.version,
         title: title === undefined || title === null ? r.key : String(title),
         points: typeof points === 'number' ? points : null,
         assignee: assignee === undefined || assignee === null || assignee === '' ? null : String(assignee),

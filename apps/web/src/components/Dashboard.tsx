@@ -7,6 +7,7 @@ import { fr } from '../i18n';
 import { pinHref, usePins } from '../lib/pins';
 import { pillKind } from '../pages/ListPage';
 import { useConfirm } from './ConfirmDialog';
+import { statusPill } from '../lib/status';
 
 export type WidgetKind = 'search' | 'mentions' | 'approvals' | 'favorites' | 'recents' | 'trackers';
 export interface Widget { id: string; kind: WidgetKind; title?: string; query?: string; projects?: string[] }
@@ -59,7 +60,7 @@ function SearchBody({ widget }: { widget: Widget }) {
           <li key={`${h.project}-${h.key}`} className="ath-row">
             <Link className="ath-link ath-mono" to={`/p/${h.project}/a/${h.key}`}>{h.key}</Link>
             <span className="ath-clip" title={titleOf(h)}>{titleOf(h)}</span>
-            <StatusPill kind={pillKind(h.category)}>{h.statusName ?? h.status}</StatusPill>
+            <StatusPill {...statusPill(h.category, h.statusColor)}>{h.statusName ?? h.status}</StatusPill>
           </li>
         ))}
       </Rows>

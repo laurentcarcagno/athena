@@ -5,6 +5,8 @@ import { ApiError, api, type Session, type TrackerDefinition, type TrackerTypeEn
 import { useConfirm } from '../components/ConfirmDialog';
 import { useBusy, useFailure } from '../hooks';
 import { WorkflowEditor } from '../components/WorkflowEditor';
+import { HueSelect } from '../components/HueSelect';
+import { statusPill } from '../lib/status';
 import { ApprovalFlowEditor } from '../components/ApprovalFlowEditor';
 import { LayoutEditor } from '../components/LayoutEditor';
 import { fr } from '../i18n';
@@ -33,6 +35,14 @@ export function TrackerConfigPage({ session }: { session: Session }) {
     setLayout(loaded.layout ?? null);
     setTypes(await api<string[]>('GET', '/v1/field-types'));
   }, [base]);
+  /** Teinte d'un statut (T-0138) : enregistrée aussitôt, puis la définition est relue. */
+  const recolor = async (key: string, color: string | null) => {
+    try {
+      await api('PATCH', `${base}/statuses/${encodeURIComponent(key)}`, { color });
+      await reload();
+      toast('success', fr.hues.saved);
+    } catch (error) { fail(error); }
+  };
   useEffect(() => { reload().catch(fail); }, [reload, fail]);
   useEffect(() => { if (admin) api<TrackerTypeEntry[]>('GET', '/v1/tracker-types').then((t) => setTrackerTypes(Array.isArray(t) ? t : [])).catch(() => undefined); }, [admin]);
   const saveType = async (typeKey: string) => {
@@ -155,7 +165,11 @@ export function TrackerConfigPage({ session }: { session: Session }) {
           </Card>
         )}
         <Card title={fr.config.statuses} meta={String(def.statuses.length)}>
-          <div className="ath-row">{def.statuses.map((s) => <StatusPill key={s.id} kind={s.category === 'done' ? 'success' : s.category === 'in_progress' ? 'warning' : 'info'}>{s.name}</StatusPill>)}</div>
+          {admin ? (
+            <ul className="ath-stack ath-brand-list" aria-label={fr.hues.title}>
+              {def.statuses.map((s) => <li key={s.id}><HueSelect status={s} onChange={(hue) => void recolor(s.key, hue)} /></li>)}
+            </ul>
+          ) : <div className="ath-row">{def.statuses.map((s) => <StatusPill key={s.id} {...statusPill(s.category, s.color)}>{s.name}</StatusPill>)}</div>}
           {admin && (
             <form className="ath-toolbar" onSubmit={submit('statuses', status, () => setStatus({ key: '', name: '', category: 'todo' }))}>
               <TextField label={fr.config.key} value={status.key} onChange={(e) => setStatus({ ...status, key: e.target.value })} mono />

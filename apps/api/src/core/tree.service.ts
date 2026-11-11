@@ -6,6 +6,8 @@ export interface TreeNode {
   title: string;
   status: string;
   statusName: string;
+  /** Teinte nommée du statut (T-0138), nulle : celle de la catégorie. */
+  statusColor: string | null;
   category: string;
   /** Enfants directs (dans ce tracker), pour afficher le triangle de dépliage sans les charger. */
   childCount: number;
@@ -42,7 +44,7 @@ export class TreeService {
       const args: unknown[] = [tracker.id, ...(parentId === null ? [] : [parentId])];
       const total = Number((await c.query(`select count(*) n from artifact a where a.tracker_id = $1 and ${scope}`, args)).rows[0].n);
       const rows = (await c.query(
-        `select a.key, a."values" as values, s.key as status, s.name as status_name, s.category,
+        `select a.key, a."values" as values, s.key as status, s.name as status_name, s.color as status_color, s.category,
                 (select count(distinct kid.from_artifact_id) from artifact_link kid join link_type kt on kt.id = kid.link_type_id join artifact ka on ka.id = kid.from_artifact_id
                   where kid.to_artifact_id = a.id and kt.hierarchical and ka.tracker_id = a.tracker_id)::int as child_count,
                 exists (select 1 from artifact_link sl where sl.suspect and (sl.from_artifact_id = a.id or sl.to_artifact_id = a.id)) as suspect
@@ -55,7 +57,7 @@ export class TreeService {
         items: rows.map((r): TreeNode => ({
           key: r.key as string,
           title: readable ? String((r.values as Record<string, unknown>)[titleField?.key ?? 'title'] ?? r.key) : (r.key as string),
-          status: r.status as string, statusName: r.status_name as string, category: r.category as string,
+          status: r.status as string, statusName: r.status_name as string, statusColor: (r.status_color as string | null) ?? null, category: r.category as string,
           childCount: r.child_count as number, suspect: r.suspect as boolean,
         })),
       };

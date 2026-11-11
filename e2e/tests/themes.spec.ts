@@ -124,3 +124,17 @@ test('icône de marque : un SVG piégé est servi nettoyé, typé et isolé ; af
   await page.getByRole('dialog').getByRole('button', { name: 'Supprimer' }).click();
   await expect(page.locator('#rail .ath-sidebar__logo')).toHaveCount(0);
 });
+
+test('teinte d’un statut : choisie dans la configuration du tracker, visible dans le tableau, effacée ensuite (T-0138)', async ({ page }) => {
+  await login(page);
+  await page.goto('/p/ARI/parametres/trackers/BUG');
+  await page.getByLabel('Teinte du statut Ouvert').selectOption('teal');
+  await expect(page.getByText('Teinte enregistrée.')).toBeVisible();
+  await page.goto('/p/ARI/t/BUG/tableau');
+  await expect(page.locator('tbody .ath-pill', { hasText: 'Ouvert' }).first()).toHaveClass(/ath-pill--hue-teal/);
+  await page.goto('/p/ARI/parametres/trackers/BUG');
+  await page.getByLabel('Teinte du statut Ouvert').selectOption('');
+  await expect(page.getByText('Teinte enregistrée.')).toBeVisible();
+  await page.goto('/p/ARI/t/BUG/tableau');
+  await expect(page.locator('tbody .ath-pill', { hasText: 'Ouvert' }).first()).not.toHaveClass(/ath-pill--hue-/);
+});

@@ -189,7 +189,7 @@ export class TemplateService {
         out.push(TemplateTrackerSchema.parse(JSON.parse(JSON.stringify({
           key: d.key, name: d.name, ...(d.layout ? { layout: d.layout } : {}), ...(d.typeKey ? { typeKey: d.typeKey } : {}),
           fields: d.fields.map((f) => ({ key: f.key, label: f.label, type: f.type, config: f.config, required: f.required, ...(f.isContent === false ? { isContent: false } : {}), ...(f.semanticRole ? { semanticRole: f.semanticRole } : {}), ...(f.readRoles ? { readRoles: f.readRoles } : {}), ...(f.writeRoles ? { writeRoles: f.writeRoles } : {}) })),
-          statuses: [...d.statuses].sort((a, b) => a.position - b.position).map((s) => ({ key: s.key, name: s.name, category: s.category })),
+          statuses: [...d.statuses].sort((a, b) => a.position - b.position).map((s) => ({ key: s.key, name: s.name, category: s.category, ...(s.color ? { color: s.color } : {}) })),
           transitions: d.transitions.map((t) => ({ name: t.name, from: keyOf(t.fromStatusId), to: keyOf(t.toStatusId)!, conditions: t.conditions, validators: t.validators, postActions: t.postActions })),
         }))));
       }

@@ -145,7 +145,7 @@ export function TrackerScreen({ session }: { session: Session }) {
   const sortBy = (f: string) => (state: SortState) => next({ sort: state ? `${f}:${state}` : null, o: null });
   const chosenColumns = selectedColumns(cols, def);
   const tableColumns = chosenColumns.map((id) => columnFor(id, def)).filter((c): c is TableColumn => c !== null);
-  const states = counts?.statuses ?? def?.statuses.map((s) => ({ key: s.key, name: s.name, category: s.category, count: 0 })) ?? [];
+  const states = counts?.statuses ?? def?.statuses.map((s) => ({ key: s.key, name: s.name, category: s.category, color: s.color ?? null, count: 0 })) ?? [];
 
   return (
     <>

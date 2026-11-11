@@ -7,6 +7,7 @@ import { useConfirm } from '../components/ConfirmDialog';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
 import { fromHere } from '../lib/origin';
+import { statusPill } from '../lib/status';
 
 interface SavedSearch { id: string; name: string; query: string; projects: string[] }
 const PAGE = 50;
@@ -128,7 +129,7 @@ export function GlobalSearchPage({ session }: { session: Session }) {
                   <Td>{h.title && h.title !== h.key ? h.title : ''}</Td>
                   <Td mono>{h.project}</Td>
                   <Td><Tag variant="ghost">{h.tracker}</Tag></Td>
-                  <Td><StatusPill kind={pillKind(h.category)}>{h.statusName}</StatusPill></Td>
+                  <Td><StatusPill {...statusPill(h.category, h.statusColor)}>{h.statusName}</StatusPill></Td>
                 </tr>
               ))}
             </tbody>

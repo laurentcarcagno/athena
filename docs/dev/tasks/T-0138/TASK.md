@@ -1,0 +1,5 @@
+# T-0138 : teintes nommées des statuts
+
+- **Objectif** : l'administration choisit pour chaque statut une teinte nommée parmi 12 ; chaque thème en fournit le rendu, vérifié en contraste.
+- **Critères d'acceptation** : défaut par catégorie (écrans inchangés sans choix : `pnpm visuel` 96 sur 96 sans reprise de référence) ; teinte inconnue refusée par l'API et par la base ; 12 teintes AA dans chaque thème × mode (contrat) ; nuancier ; pastilles du tableau, de la recherche, de la fiche, de l'arbre, du board, du mini-workflow.
+- **Fichiers** : `apps/api` (migration 056, `hues.ts`, `tracker.service.ts`, `core.controller.ts` (PATCH statut), `template-tracker.ts`, `template.service.ts`, `history-sync.ts`, `rebuild.ts`, lectures avec `statusColor` : recherche, backlog, board, matrice, arbre, vue d'ensemble ; tests) ; `packages/themes` (`tools/derive.mjs`, `tools/hues.mjs`, `hue.*` dans chaque thème, contrat) ; `packages/ui` (`HUES`, `StatusPill` `hue`, styles) ; `apps/web` (`lib/status.ts`, `HueSelect`, `TrackerConfigPage`, `TrackerBuilder`, pastilles, types, `i18n.ts`, `hues.test.tsx`) ; `e2e/tests/themes.spec.ts`.

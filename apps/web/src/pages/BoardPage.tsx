@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, type DragEvent } from 'react';
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { Btn, EmptyState, Id, PageHeader, Select, StatusPill, Tag, useToast } from '@athena/ui';
+import { Btn, EmptyState, Id, isHue, PageHeader, Select, StatusPill, Tag, useToast } from '@athena/ui';
 import { api, type BoardView, type Session, type TrackerOverview } from '../api';
 import { useCreate, useOnCreated } from '../components/CreateArtifact';
 import { DetailPanel } from '../components/DetailPanel';
@@ -109,7 +109,7 @@ export function BoardView({ session, project, board, header = true }: { session:
                   </div>
                   <p className="ath-ticket__title">{card.title}</p>
                   <div className="ath-row">
-                    <StatusPill>{card.statusName ?? card.status}</StatusPill>
+                    <StatusPill hue={isHue(card.statusColor) ? card.statusColor : null}>{card.statusName ?? card.status}</StatusPill>
                     {card.priority && <span title={card.priorityLabel ?? undefined}>{card.priority}</span>}
                     {card.due && <span className="ath-mono"><DateTime iso={card.due} date /></span>}
                     {card.assignee && <span>{card.assigneeName ?? card.assignee}</span>}

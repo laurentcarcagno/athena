@@ -69,3 +69,16 @@
 .ath-brand-list__preview { display: inline-flex; align-items: center; justify-content: center; width: var(--ath-size-control-md); height: var(--ath-size-control-md); background: var(--ath-surface-inverse); }
 .ath-brand-list__label { min-width: 200px; }
 .ath-btn:focus-within { outline: var(--ath-border-width-strong) solid var(--ath-focus-ring); outline-offset: 2px; }
+/* Teintes nommées des statuts (T-0138). */
+.ath-pill--hue-gray { background: var(--ath-hue-gray-bg); color: var(--ath-hue-gray-fg); border-color: var(--ath-hue-gray-border); }
+.ath-pill--hue-slate { background: var(--ath-hue-slate-bg); color: var(--ath-hue-slate-fg); border-color: var(--ath-hue-slate-border); }
+.ath-pill--hue-blue { background: var(--ath-hue-blue-bg); color: var(--ath-hue-blue-fg); border-color: var(--ath-hue-blue-border); }
+.ath-pill--hue-sky { background: var(--ath-hue-sky-bg); color: var(--ath-hue-sky-fg); border-color: var(--ath-hue-sky-border); }
+.ath-pill--hue-teal { background: var(--ath-hue-teal-bg); color: var(--ath-hue-teal-fg); border-color: var(--ath-hue-teal-border); }
+.ath-pill--hue-green { background: var(--ath-hue-green-bg); color: var(--ath-hue-green-fg); border-color: var(--ath-hue-green-border); }
+.ath-pill--hue-lime { background: var(--ath-hue-lime-bg); color: var(--ath-hue-lime-fg); border-color: var(--ath-hue-lime-border); }
+.ath-pill--hue-yellow { background: var(--ath-hue-yellow-bg); color: var(--ath-hue-yellow-fg); border-color: var(--ath-hue-yellow-border); }
+.ath-pill--hue-orange { background: var(--ath-hue-orange-bg); color: var(--ath-hue-orange-fg); border-color: var(--ath-hue-orange-border); }
+.ath-pill--hue-red { background: var(--ath-hue-red-bg); color: var(--ath-hue-red-fg); border-color: var(--ath-hue-red-border); }
+.ath-pill--hue-pink { background: var(--ath-hue-pink-bg); color: var(--ath-hue-pink-fg); border-color: var(--ath-hue-pink-border); }
+.ath-pill--hue-purple { background: var(--ath-hue-purple-bg); color: var(--ath-hue-purple-fg); border-color: var(--ath-hue-purple-border); }

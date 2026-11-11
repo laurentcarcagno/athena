@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { HueSchema } from './hues';
 import { LayoutSchema } from './layout';
 
 const TrackerKey = z.string().regex(/^[A-Z][A-Z0-9]{1,9}$/, 'clé en majuscules, 2 à 10 caractères');
@@ -18,7 +19,7 @@ export const TemplateTrackerSchema = z.object({
     semanticRole: z.enum(['title', 'description', 'status', 'assignee', 'due_date', 'estimate', 'priority', 'version']).optional(), isContent: z.boolean().optional(),
     readRoles: z.array(Role).max(20).optional(), writeRoles: z.array(Role).max(20).optional(),
   })).max(100),
-  statuses: z.array(z.object({ key: z.string().min(1), name: z.string().min(1), category: z.enum(['todo', 'in_progress', 'done']) })).min(1).max(50),
+  statuses: z.array(z.object({ key: z.string().min(1), name: z.string().min(1), category: z.enum(['todo', 'in_progress', 'done']), color: HueSchema.nullable().optional() })).min(1).max(50),
   transitions: z.array(z.object({
     name: z.string().min(1), from: z.string().nullable(), to: z.string(),
     conditions: z.array(z.unknown()).optional(), validators: z.array(z.unknown()).optional(), postActions: z.array(z.unknown()).optional(),
