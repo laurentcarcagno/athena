@@ -14,6 +14,8 @@ export const WidgetSchema = z.object({
   /** `search` seulement : requête ATQL et périmètre de projets (vide : toute l'organisation). */
   query: z.string().max(2000).optional(),
   projects: z.array(z.string().regex(/^[A-Z][A-Z0-9]{1,9}$/)).max(50).optional(),
+  /** Largeur sur la grille de 12 colonnes (ADR-0005, T-0153) : S = 4, M = 6, L = 8, XL = 12. Absente : largeur par défaut du genre. */
+  size: z.enum(['S', 'M', 'L', 'XL']).optional(),
 });
 export const LayoutInput = z.object({ widgets: z.array(WidgetSchema).max(24) });
 export type Widget = z.infer<typeof WidgetSchema>;
@@ -28,8 +30,8 @@ export const DEFAULT_WIDGETS: readonly Widget[] = [
   { id: 'recents', kind: 'recents' },
 ];
 
-/** Portée du tableau de bord : '' (accueil) ou la clé d'un projet (Vue d'ensemble). */
-export const ScopeSchema = z.string().regex(/^([A-Z][A-Z0-9]{1,9})?$/);
+/** Portée du tableau de bord : '' (accueil), la clé d'un projet (Vue d'ensemble) ou « clé:avancement » (Avancement, T-0153). */
+export const ScopeSchema = z.string().regex(/^([A-Z][A-Z0-9]{1,9}(:avancement)?)?$/);
 
 /** Disposition initiale de la Vue d'ensemble d'un projet : mes tickets, échéances, trackers et mentions de ce projet. */
 export const defaultProjectWidgets = (project: string): Widget[] => [

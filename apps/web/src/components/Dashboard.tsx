@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Btn, Card, Select, StatusPill, useToast } from '@athena/ui';
+import { Btn, DashCard, DashGrid, Select, StatusPill, useToast, type DashSize } from '@athena/ui';
 import { api, type Hit, type SearchResult, type TrackerOverview } from '../api';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
@@ -10,7 +10,12 @@ import { useConfirm } from './ConfirmDialog';
 import { statusPill } from '../lib/status';
 
 export type WidgetKind = 'search' | 'mentions' | 'approvals' | 'favorites' | 'recents' | 'trackers';
-export interface Widget { id: string; kind: WidgetKind; title?: string; query?: string; projects?: string[] }
+export interface Widget { id: string; kind: WidgetKind; title?: string; query?: string; projects?: string[]; size?: DashSize }
+/** Largeur par défaut d'une carte (T-0153) : trois cartes par rangée. */
+export const sizeOf = (w: Widget): DashSize => w.size ?? 'S';
+/** Cartes qui, vides, se résument dans la ligne « Rien d'urgent » de Mon travail (T-0153, revue O3). */
+const QUIET: WidgetKind[] = ['search', 'approvals', 'mentions'];
+type OnEmpty = (empty: boolean) => void;
 interface Layout { widgets: Widget[]; isDefault: boolean }
 interface SavedSearch { id: string; name: string; query: string; projects: string[] }
 interface Mention { id: string; project: string; key: string; actorName: string; read: boolean }
@@ -45,8 +50,9 @@ function Rows({ children, empty }: { children: JSX.Element[]; empty: string }) {
   return children.length === 0 ? <p>{empty}</p> : <ul className="ath-stack">{children}</ul>;
 }
 
-function SearchBody({ widget }: { widget: Widget }) {
+function SearchBody({ widget, onEmpty }: { widget: Widget; onEmpty?: OnEmpty }) {
   const [res, setRes] = useState<SearchResult | null>(null);
+  useEffect(() => { if (res) onEmpty?.(res.total === 0); }, [res, onEmpty]);
   const scope = widget.projects?.join(',') ?? '';
   useEffect(() => {
     setRes(null);
@@ -64,13 +70,13 @@ function SearchBody({ widget }: { widget: Widget }) {
           </li>
         ))}
       </Rows>
-      <Link className="ath-link" to={searchHref(widget)}>{fr.home.seeAll}</Link>
     </div>
   );
 }
 
-function MentionsBody() {
+function MentionsBody({ onEmpty }: { onEmpty?: OnEmpty }) {
   const [items, setItems] = useState<Mention[] | null>(null);
+  useEffect(() => { if (items) onEmpty?.(items.length === 0); }, [items, onEmpty]);
   useEffect(() => {
     api<{ items: Mention[] }>('GET', '/v1/me/notifications?event=mention&limit=5').then((r) => setItems(Array.isArray(r.items) ? r.items : [])).catch(() => setItems([]));
   }, []);
@@ -88,9 +94,10 @@ function MentionsBody() {
   );
 }
 
-function ApprovalsBody({ objects }: { objects: boolean }) {
+function ApprovalsBody({ objects, onEmpty }: { objects: boolean; onEmpty?: OnEmpty }) {
   const [items, setItems] = useState<AwaitingItem[] | null>(null);
   const [rows, setRows] = useState<ApprovalRow[]>([]);
+  useEffect(() => { if (items) onEmpty?.(items.length + rows.length === 0); }, [items, rows, onEmpty]);
   useEffect(() => {
     api<{ items: AwaitingItem[] }>('GET', '/v1/me/approvals').then((r) => setItems(Array.isArray(r.items) ? r.items : [])).catch(() => setItems([]));
     if (!objects) return;
@@ -138,7 +145,6 @@ function TrackersBody({ project }: { project: string }) {
           </li>
         ))}
       </Rows>
-      <Link className="ath-link" to={`/p/${project}/trackers`}>{fr.overview.openTrackers}</Link>
     </div>
   );
 }
@@ -149,11 +155,11 @@ function PinsBody({ kind }: { kind: 'favorites' | 'recents' }) {
   return <Rows empty={kind === 'favorites' ? fr.rail.noFavorites : fr.rail.noRecents}>{list.map((p) => <li key={p.id}><Link className={`ath-link${p.kind === 'item' ? ' ath-mono' : ''}`} to={pinHref(p)}>{p.label}</Link></li>)}</Rows>;
 }
 
-function Body({ widget, objects }: { widget: Widget; objects: boolean }) {
+function Body({ widget, objects, onEmpty }: { widget: Widget; objects: boolean; onEmpty?: OnEmpty }) {
   switch (widget.kind) {
-    case 'search': return <SearchBody widget={widget} />;
-    case 'mentions': return <MentionsBody />;
-    case 'approvals': return <ApprovalsBody objects={objects} />;
+    case 'search': return <SearchBody widget={widget} onEmpty={onEmpty} />;
+    case 'mentions': return <MentionsBody onEmpty={onEmpty} />;
+    case 'approvals': return <ApprovalsBody objects={objects} onEmpty={onEmpty} />;
     case 'trackers': return <TrackersBody project={widget.projects?.[0] ?? ''} />;
     default: return <PinsBody kind={widget.kind} />;
   }
@@ -172,6 +178,8 @@ export function Dashboard({ project, qa = false }: { project?: string; qa?: bool
   const [editing, setEditing] = useState(false);
   const [views, setViews] = useState<SavedSearch[]>([]);
   const [choice, setChoice] = useState('');
+  const [empty, setEmpty] = useState<Record<string, boolean>>({});
+  const reportEmpty = useCallback((id: string) => (value: boolean) => setEmpty((s) => (s[id] === value ? s : { ...s, [id]: value })), []);
   const BUILTIN = builtinFor(project);
   const endpoint = `/v1/me/dashboard${project ? `?project=${project}` : ''}`;
 
@@ -184,6 +192,7 @@ export function Dashboard({ project, qa = false }: { project?: string; qa?: bool
 
   if (layout === null) return <p role="status">{fr.loading}</p>;
   const { widgets } = layout;
+  const quiet = widgets.filter((w) => QUIET.includes(w.kind) && empty[w.id]);
   const move = (i: number, d: -1 | 1) => { const next = [...widgets]; [next[i], next[i + d]] = [next[i + d]!, next[i]!]; return save(next); };
   const hide = (i: number) => save(widgets.filter((_, k) => k !== i));
   const duplicate = (i: number) => {
@@ -226,12 +235,14 @@ export function Dashboard({ project, qa = false }: { project?: string; qa?: bool
         )}
       </div>
       {widgets.length === 0 && <p>{fr.home.noWidget}</p>}
-      <div className="ath-layout-grid">
+      {/* Mon travail : les cartes vides se résument en une ligne, la liste utile remonte (T-0153, revue O3). */}
+      {!editing && !project && quiet.length > 0 && <p className="ath-card ath-dash-quiet"><strong>{fr.home.quietLead}</strong> {fr.home.quiet(quiet.map((w) => widgetTitle(w)))}</p>}
+      <DashGrid>
         {widgets.map((w, i) => (
-          <div key={w.id} className="ath-span-1" role="group" aria-label={widgetTitle(w)}>
-            <Card title={widgetTitle(w)}>
-              <div className="ath-stack">
-                <Body widget={w} objects={qa} />
+          <DashCard key={w.id} size={sizeOf(w)} title={widgetTitle(w)} role="group" aria-label={widgetTitle(w)} hidden={!editing && !project && quiet.includes(w)}
+            footer={w.kind === 'search' ? <Link className="ath-link" to={searchHref(w)}>{fr.home.seeAll}</Link>
+              : w.kind === 'trackers' ? <Link className="ath-link" to={`/p/${w.projects?.[0] ?? ''}/trackers`}>{fr.overview.openTrackers}</Link> : undefined}>
+                <Body widget={w} objects={qa} onEmpty={QUIET.includes(w.kind) ? reportEmpty(w.id) : undefined} />
                 {editing && (
                   <div className="ath-toolbar">
                     <Btn variant="ghost" size="sm" disabled={i === 0} aria-label={`${fr.home.up} ${widgetTitle(w)}`} onClick={() => void move(i, -1)}>↑</Btn>
@@ -240,11 +251,9 @@ export function Dashboard({ project, qa = false }: { project?: string; qa?: bool
                     <Btn variant="ghost" size="sm" aria-label={`${fr.home.hide} ${widgetTitle(w)}`} onClick={() => void hide(i)}>{fr.home.hide}</Btn>
                   </div>
                 )}
-              </div>
-            </Card>
-          </div>
+          </DashCard>
         ))}
-      </div>
+      </DashGrid>
       {confirm.dialog}
     </section>
   );

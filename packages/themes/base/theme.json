@@ -197,6 +197,11 @@
       "toggle": {
         "$value": "16px",
         "$type": "dimension"
+      },
+      "dashcard": {
+        "$value": "300px",
+        "$type": "dimension",
+        "$description": "Hauteur commune des cartes de tableau de bord (ADR-0005, T-0153)."
       }
     },
     "z": {

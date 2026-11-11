@@ -41,7 +41,7 @@ export function MyWorkPage({ session }: { session: Session }) {
 
   const rows = (items: Item[], action?: (i: Item) => void) => (
     <Table>
-      <thead><tr><Th>{fr.work.project}</Th><Th>{fr.list.key}</Th><Th>{fr.list.title}</Th><Th>{fr.list.status}</Th>{action && <Th>{fr.work.take}</Th>}</tr></thead>
+      <thead><tr><Th>{fr.work.project}</Th><Th>{fr.list.key}</Th><Th>{fr.list.title}</Th><Th>{fr.list.status}</Th>{action && <Th><span className="ath-visually-hidden">{fr.work.take}</span></Th>}</tr></thead>
       <tbody>{items.map((i) => (
         <tr key={`${i.project}-${i.hit.key}`}>
           <Td mono>{i.project}</Td>
@@ -49,7 +49,7 @@ export function MyWorkPage({ session }: { session: Session }) {
           <Td><Link className="ath-link ath-mono" to={`/p/${i.project}/a/${i.hit.key}`} state={fromHere(location, fr.origin.myWork, items.filter((x) => x.project === i.project).map((x) => x.hit.key))}>{i.hit.key}</Link></Td>
           <Td><span className="ath-clip" title={titleOf(i.hit)}>{titleOf(i.hit)}</span></Td>
           <Td><StatusPill {...statusPill(i.hit.category, i.hit.statusColor)}>{i.hit.statusName ?? i.hit.status}</StatusPill></Td>
-          {action && <Td><Btn icon="check" size="sm" variant="ghost" loading={busy} onClick={() => action(i)}>{fr.work.take}</Btn></Td>}
+          {action && <Td><Btn size="sm" variant="ghost" loading={busy} aria-label={fr.work.takeNamed(i.hit.key)} onClick={() => action(i)}>{fr.work.takeMe}</Btn></Td>}
         </tr>
       ))}</tbody>
     </Table>
@@ -60,7 +60,7 @@ export function MyWorkPage({ session }: { session: Session }) {
       <PageHeader title={fr.work.title} />
       <div className="ath-stack">
         <Dashboard qa={(session.user?.roles ?? []).includes('athena-qa')} />
-        <h2 className="ath-section-title">{fr.work.available}</h2>
+        <h2 className="ath-section-title">{fr.work.availableInProjects}</h2>
         {free === null ? <p role="status">{fr.loading}</p> : free.length === 0 ? <EmptyState eyebrow={fr.work.available} title={fr.work.none} /> : rows(free, take)}
       </div>
     </>

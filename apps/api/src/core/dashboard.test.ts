@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { Db, type Actor } from './db';
 import { DomainError } from './errors';
 import { createTestDb, pgUp, type TestDb } from '../testing/harness';
-import { DEFAULT_WIDGETS, DashboardService } from './dashboard.service';
+import { DEFAULT_WIDGETS, DashboardService, ScopeSchema, WidgetSchema } from './dashboard.service';
 
 // T-0122 : disposition personnelle du tableau de bord, défaut sans réglage, réinitialisation.
 
@@ -58,6 +58,16 @@ suite('tableau de bord personnel (intégration)', () => {
     expect((await dash.get(org, alice, 'ARI')).isDefault).toBe(true);
     await dash.reset(org, alice, 'NOVA');
     expect((await dash.get(org, alice, 'NOVA')).isDefault).toBe(true);
+  });
+
+  it('garde la largeur de chaque carte et accepte la page Avancement d’un projet (T-0153, migration 057)', async () => {
+    await dash.put(org, { widgets: [{ id: 'trackers', kind: 'trackers', projects: ['NOVA'], size: 'L' }] }, alice, 'NOVA:avancement');
+    expect((await dash.get(org, alice, 'NOVA:avancement')).widgets[0]).toMatchObject({ id: 'trackers', size: 'L' });
+    expect((await dash.get(org, alice, 'NOVA')).isDefault).toBe(true); // la Vue d’ensemble est une autre page
+    await dash.reset(org, alice, 'NOVA:avancement');
+    expect(ScopeSchema.safeParse('NOVA:avancement').success).toBe(true);
+    expect(ScopeSchema.safeParse('NOVA:autre').success).toBe(false);
+    expect(WidgetSchema.safeParse({ id: 'x', kind: 'mentions', size: 'XXL' }).success).toBe(false);
   });
 
   it('refuse un identifiant en double, une requête invalide et une requête sur un widget qui n’en a pas', async () => {

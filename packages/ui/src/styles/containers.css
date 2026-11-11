@@ -62,3 +62,26 @@
 .ath-empty__frame { width: 48px; height: 48px; border: var(--ath-border-width-hairline) solid var(--ath-border-default); display: flex; align-items: center; justify-content: center; color: var(--ath-text-mute); }
 .ath-empty__title { margin: 0; max-width: 280px; }
 
+
+/* Cartes de tableau de bord (ADR-0005 § 2.3, T-0153) : grille de 12 colonnes, largeurs S / M / L / XL, hauteur commune. */
+.ath-dashgrid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--ath-space-md); align-items: stretch; }
+.ath-dashcard { display: flex; flex-direction: column; min-width: 0; height: var(--ath-size-dashcard); background: var(--ath-surface-default); border: var(--ath-border-width-hairline) solid var(--ath-border-default); border-radius: var(--ath-radius-surface); }
+.ath-dashcard--S { grid-column: span 4; }
+.ath-dashcard--M { grid-column: span 6; }
+.ath-dashcard--L { grid-column: span 8; }
+.ath-dashcard--XL { grid-column: span 12; }
+.ath-dashcard__head { display: flex; align-items: baseline; gap: var(--ath-space-sm); padding: var(--ath-space-sm) var(--ath-space-md); border-bottom: var(--ath-border-width-hairline) solid var(--ath-border-default); }
+.ath-dashcard__title { margin: 0; font-size: var(--ath-font-size-subsection); font-weight: var(--ath-font-weight-semibold); color: var(--ath-text-heading); }
+.ath-dashcard__sub { color: var(--ath-text-secondary); font-size: var(--ath-font-size-small); }
+.ath-dashcard__actions { margin-left: auto; display: flex; align-items: center; gap: var(--ath-space-xs); }
+.ath-dashcard__body { flex: 1; min-height: 0; overflow: auto; padding: var(--ath-space-sm) var(--ath-space-md); display: flex; flex-direction: column; gap: var(--ath-space-sm); }
+.ath-dashcard__foot { display: flex; justify-content: space-between; gap: var(--ath-space-sm); padding: var(--ath-space-xs) var(--ath-space-md); border-top: var(--ath-border-width-hairline) solid var(--ath-border-default); font-size: var(--ath-font-size-small); color: var(--ath-text-secondary); }
+.ath-dashcard[hidden] { display: none; }
+@media (max-width: 1024px) {
+  .ath-dashcard--S, .ath-dashcard--M { grid-column: span 6; }
+  .ath-dashcard--L { grid-column: span 12; }
+}
+@media (max-width: 768px) {
+  .ath-dashcard--S, .ath-dashcard--M, .ath-dashcard--L, .ath-dashcard--XL { grid-column: span 12; height: auto; min-height: calc(var(--ath-size-dashcard) / 2); }
+}
+.ath-dash-quiet { margin: 0; padding: var(--ath-space-sm) var(--ath-space-md); }
