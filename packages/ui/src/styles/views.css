@@ -6,7 +6,7 @@
 .ath-bar__track { fill: var(--ath-surface-muted); }
 .ath-bar__fill { fill: var(--ath-border-focus); }
 .ath-suggest { position: relative; display: inline-block; }
-.ath-suggest__list { position: absolute; top: 100%; left: 0; right: 0; z-index: calc(var(--ath-z-base) + 5); margin: 0; padding: 0; list-style: none; background: var(--ath-surface-default); border: var(--ath-border-width-hairline) solid var(--ath-border-default); }
+.ath-suggest__list { position: absolute; top: 100%; left: 0; right: 0; z-index: calc(var(--ath-z-base) + 5); margin: 0; padding: 0; list-style: none; background: var(--ath-surface-default); border: var(--ath-border-width-hairline) solid var(--ath-border-default); border-radius: var(--ath-radius-surface); box-shadow: var(--ath-elevation-overlay); }
 .ath-suggest__item { display: block; width: 100%; padding: var(--ath-space-xs) var(--ath-space-sm); border: 0; background: transparent; text-align: left; color: var(--ath-text-default); cursor: pointer; font-size: var(--ath-font-size-body); }
 .ath-suggest__item:hover, .ath-suggest__item:focus-visible { background: var(--ath-surface-hover); }
 .ath-gantt { display: block; margin: var(--ath-space-xs) 0 var(--ath-space-sm); }

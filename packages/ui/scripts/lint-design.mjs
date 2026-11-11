@@ -1,4 +1,4 @@
-// Lint de conformité Hemeria (plan § 9.2). Interdit : border-radius non nul, box-shadow,
+// Lint de conformité (plan § 9.2, ADR-0004). Interdit : rayon et ombre hors jetons du thème,
 // dégradés, backdrop-filter, couleurs hors palette. Usage : node lint-design.mjs <dossier...>
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { dirname, join, extname } from 'node:path';
@@ -14,8 +14,9 @@ export const palette = new Set(
     .concat(['#ffffff', '#000000']),
 );
 const RULES = [
-  { re: /border-radius\s*:\s*(?=[^;}\s])(?!0(?:px|rem|em)?\s*(?:;|}|$))(?!var\(--ath-radius-none\))[^;}]+/i, msg: 'border-radius non nul interdit' },
-  { re: /box-shadow\s*:\s*(?!none\b)[^;}]+/i, msg: 'box-shadow interdit' },
+  // Forme et élévation (ADR-0004) : seulement par les jetons du thème (Hemeria : 0 et none).
+  { re: /border-radius\s*:\s*(?=[^;}\s])(?!0(?:px|rem|em)?\s*(?:;|}|$))(?!var\(--ath-radius-[a-z]+\))[^;}]+/i, msg: 'border-radius en dur interdit (jeton --ath-radius-* attendu)' },
+  { re: /box-shadow\s*:(?!\s*none\b)(?!\s*var\(--ath-elevation-[a-z]+\))[^;}]+/i, msg: 'box-shadow en dur interdit (jeton --ath-elevation-* attendu)' },
   { re: /(linear|radial|conic)-gradient\s*\(/i, msg: 'dégradé interdit' },
   { re: /backdrop-filter\s*:/i, msg: 'backdrop-filter interdit' },
 ];

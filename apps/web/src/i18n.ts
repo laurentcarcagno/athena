@@ -44,8 +44,9 @@ const frDict = {
     deleteTitle: (name: string) => `Supprimer la vue « ${name} » ?`, deleteBody: 'La vue disparaît de vos vues enregistrées ; les tickets ne changent pas.',
     empty: 'Aucun ticket ne correspond.', origin: 'Recherche globale',
   },
-  profile: { eyebrow: 'Mon compte', title: 'Profil', display: 'Affichage', language: 'Langue', theme: 'Thème', density: 'Densité', home: 'Page d’accueil', notifications: 'Notifications' },
+  profile: { eyebrow: 'Mon compte', title: 'Profil', display: 'Affichage', language: 'Langue', theme: 'Mode', density: 'Densité', home: 'Page d’accueil', notifications: 'Notifications' },
   density: { names: { normal: 'Normale', compact: 'Compacte' } as Record<string, string> },
+  appearance: { tab: 'Apparence', title: 'Apparence de l’organisation', help: 'Thème appliqué par défaut et thèmes que chaque personne peut choisir dans son Profil.', theme: 'Thème', defaultTheme: 'Thème par défaut', offered: 'Thèmes proposés', save: 'Enregistrer l’apparence', saved: 'Apparence enregistrée.' },
   home: {
     label: 'Tableau de bord', projectLabel: 'Tableau de bord du projet', noTracker: 'Aucun tracker.', customize: 'Personnaliser', done: 'Terminer', addLabel: 'Ajouter un widget', choose: 'Choisir…', add: 'Ajouter', added: 'Widget ajouté.',
     reset: 'Réinitialiser', resetTitle: 'Réinitialiser le tableau de bord ?', resetBody: 'Votre disposition est remplacée par la disposition par défaut ; vos vues enregistrées ne changent pas.', resetDone: 'Disposition par défaut rétablie.',
@@ -439,8 +440,9 @@ const enDict: Dictionary = {
     deleteTitle: (name: string) => `Delete view “${name}”?`, deleteBody: 'The view leaves your saved views; tickets are unchanged.',
     empty: 'No ticket matches.', origin: 'Global search',
   },
-  profile: { eyebrow: 'My account', title: 'Profile', display: 'Display', language: 'Language', theme: 'Theme', density: 'Density', home: 'Home page', notifications: 'Notifications' },
+  profile: { eyebrow: 'My account', title: 'Profile', display: 'Display', language: 'Language', theme: 'Mode', density: 'Density', home: 'Home page', notifications: 'Notifications' },
   density: { names: { normal: 'Normal', compact: 'Compact' } as Record<string, string> },
+  appearance: { tab: 'Appearance', title: 'Organisation appearance', help: 'Theme applied by default and themes each person can pick in their Profile.', theme: 'Theme', defaultTheme: 'Default theme', offered: 'Offered themes', save: 'Save appearance', saved: 'Appearance saved.' },
   home: {
     label: 'Dashboard', projectLabel: 'Project dashboard', noTracker: 'No tracker.', customize: 'Customize', done: 'Done', addLabel: 'Add a widget', choose: 'Choose…', add: 'Add', added: 'Widget added.',
     reset: 'Reset', resetTitle: 'Reset the dashboard?', resetBody: 'Your layout is replaced by the default one; your saved views do not change.', resetDone: 'Default layout restored.',

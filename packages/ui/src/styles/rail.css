@@ -1,7 +1,7 @@
 /* Menus latéraux du rail (Favoris, Récents), divers. */
 /* Menus latéraux du rail (Favoris, Récents) */
 .ath-flyout__toggle { width: 100%; justify-content: space-between; }
-.ath-flyout__panel { position: fixed; left: var(--ath-size-sidebar); z-index: calc(var(--ath-z-drawer) + 60); min-width: 220px; max-width: 320px; max-height: 60vh; overflow-y: auto; background: var(--ath-surface-inverse); color: var(--ath-text-on-inverse); border: var(--ath-border-width-hairline) solid var(--ath-inverse-line); }
+.ath-flyout__panel { position: fixed; left: var(--ath-size-sidebar); z-index: calc(var(--ath-z-drawer) + 60); min-width: 220px; max-width: 320px; max-height: 60vh; overflow-y: auto; background: var(--ath-surface-inverse); color: var(--ath-text-on-inverse); border: var(--ath-border-width-hairline) solid var(--ath-inverse-line); border-radius: var(--ath-radius-surface); box-shadow: var(--ath-elevation-overlay); }
 .ath-flyout__row { display: flex; align-items: stretch; }
 .ath-flyout__item { flex: 1; min-width: 0; text-align: left; padding: var(--ath-space-sm) var(--ath-space-md); background: transparent; border: 0; border-left: var(--ath-border-width-accent) solid transparent; color: inherit; font: inherit; font-size: var(--ath-font-size-body); cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ath-flyout__item:hover, .ath-flyout__item:focus-visible { background: var(--ath-inverse-hover-strong); }

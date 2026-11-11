@@ -31,6 +31,7 @@ export function check(themes: readonly Theme[], contract: Contract, only?: reado
   }
   for (const theme of themes) {
     if (only && !only.includes(theme.name)) continue;
+    if (theme.meta?.['abstract'] === true) continue; // thème de base : jamais émis, vérifié à travers ses héritiers
     for (const mode of contract.modes) {
       let tokens: Map<string, TokenValue>;
       try {

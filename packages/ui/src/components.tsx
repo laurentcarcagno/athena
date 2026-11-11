@@ -443,6 +443,8 @@ export function RoleIcon({ kind }: { kind: 'admin' | 'manager' | 'user' }) {
 }
 export interface NavItem {
   id: string; label: string; href?: string;
+  /** Icône (décorative) : seule visible quand le rail est replié, le libellé reste le nom accessible et l'info-bulle. */
+  icon?: ReactNode;
   /** Niveau d'indentation dans une arborescence (0 par défaut). */
   depth?: number;
   /** Identifiant mono (clé de projet, de tracker, d'item) : rendu en IBM Plex Mono. */
@@ -453,6 +455,8 @@ export interface NavItem {
 /** Rubrique du rail : un titre facultatif et ses entrées. */
 export interface NavSection {
   id: string; title?: string; items: NavItem[];
+  /** Icône de la rubrique repliée en menu (Favoris, Récents). */
+  icon?: ReactNode;
   /** Rubrique repliée : seul son titre (avec le nombre d'entrées) figure dans le rail, la liste s'ouvre dans un menu sur le côté. */
   flyout?: boolean;
   /** Texte du menu quand la rubrique est vide. */
@@ -474,9 +478,9 @@ function NavFlyout({ group, current, onNavigate }: { group: NavSection; current:
   const label = `${group.title ?? ''} (${group.items.length})`;
   return (
     <div ref={root} className="ath-nav__section ath-flyout" role="group" aria-label={group.title}>
-      <button type="button" className="ath-nav-item ath-flyout__toggle" aria-expanded={open}
+      <button type="button" className="ath-nav-item ath-flyout__toggle" aria-expanded={open} title={label}
         onClick={(e) => { setTop(e.currentTarget.getBoundingClientRect().top); setOpen(!open); }}>
-        <span>{label}</span><span aria-hidden="true">›</span>
+        {group.icon && <span className="ath-nav-item__icon" aria-hidden="true">{group.icon}</span>}<span className="ath-nav-item__label">{label}</span><span className="ath-flyout__chevron" aria-hidden="true">›</span>
       </button>
       {open && (
         <div className="ath-flyout__panel" role="group" aria-label={`${group.title ?? ''}, liste`} style={{ top }}>
@@ -506,8 +510,8 @@ export function Sidebar({ id, items, sections, current, onNavigate, user, userAc
             {group.title && <h2 className="ath-nav__title">{group.title}</h2>}
             {group.items.map((item) => (
               <div key={item.id} className="ath-nav__row">
-                <button type="button" className={cx('ath-nav-item', item.mono && 'ath-mono')} data-depth={item.depth ?? 0} aria-current={item.id === current ? 'page' : undefined} onClick={() => onNavigate?.(item.id)}>
-                  {item.label}
+                <button type="button" className={cx('ath-nav-item', item.mono && 'ath-mono', item.icon !== undefined && 'ath-nav-item--icon')} data-depth={item.depth ?? 0} aria-current={item.id === current ? 'page' : undefined} title={item.label} onClick={() => onNavigate?.(item.id)}>
+                  {item.icon && <span className="ath-nav-item__icon" aria-hidden="true">{item.icon}</span>}<span className="ath-nav-item__label">{item.label}</span>
                 </button>
                 {item.extra}
               </div>

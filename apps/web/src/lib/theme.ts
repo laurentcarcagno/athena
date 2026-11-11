@@ -1,3 +1,4 @@
+import { DEFAULT_THEME, THEME_CATALOG } from '@athena/ui';
 import { createThemeController, storagePersistence, SYSTEM, type ThemeState } from '@nuance/theming';
 import { useThemeState } from '@nuance/theming/react';
 
@@ -27,8 +28,8 @@ const densityMemory = storagePersistence({
   decode: (raw) => ({ density: raw }),
 });
 const controller = createThemeController({
-  defaults: { theme: 'hemeria', mode: SYSTEM, density: 'normal' },
-  themes: ['hemeria'],
+  defaults: { theme: DEFAULT_THEME, mode: SYSTEM, density: 'normal' },
+  themes: THEME_CATALOG.map((t) => t.name),
   modes: THEME_CHOICES,
   densities: DENSITIES,
   attributes: { theme: 'data-theme', mode: 'data-mode', density: 'data-density' },
@@ -67,9 +68,53 @@ export function useTheme(): ThemeChoice {
   return choiceOf(useThemeState(controller));
 }
 
+/**
+ * Famille de thème (T-0136) : Hemeria est toujours chargé ; les autres thèmes sont des CSS chargés à la demande. L'attribut
+ * `data-theme` ne change qu'une fois le CSS arrivé : jamais de page sans jetons. Mémoire : `athena.themeFamily` (navigateur) ;
+ * l'organisation peut restreindre la liste (`setAllowedThemes`), un thème hors liste cède la place au thème par défaut.
+ */
+export const FAMILY_KEY = 'athena.themeFamily';
+const THEME_CSS: Record<string, () => Promise<unknown>> = {
+  catppuccin: () => import('@athena/ui/themes/catppuccin.css'),
+  contrast: () => import('@athena/ui/themes/contrast.css'),
+  gruvbox: () => import('@athena/ui/themes/gruvbox.css'),
+  nord: () => import('@athena/ui/themes/nord.css'),
+};
+let allowed: { list: string[]; fallback: string } | null = null;
+const permitted = (name: string): string => {
+  const known = THEME_CATALOG.some((t) => t.name === name) ? name : DEFAULT_THEME;
+  if (!allowed || allowed.list.includes(known)) return known;
+  return allowed.list.includes(allowed.fallback) ? allowed.fallback : DEFAULT_THEME;
+};
+const readFamily = (): string | null => { try { return window.localStorage.getItem(FAMILY_KEY); } catch { return null; } };
+
+export const getThemeFamily = (): string => controller.get().theme ?? DEFAULT_THEME;
+export function useThemeFamily(): string {
+  return useThemeState(controller).theme ?? DEFAULT_THEME;
+}
+/** Change de famille : charge son CSS, puis l'applique ; `remember` la garde dans ce navigateur. */
+export async function setThemeFamily(name: string, remember = true): Promise<void> {
+  const next = permitted(name);
+  await THEME_CSS[next]?.();
+  controller.set({ theme: next });
+  if (!remember) return;
+  try {
+    if (next === DEFAULT_THEME) window.localStorage.removeItem(FAMILY_KEY);
+    else window.localStorage.setItem(FAMILY_KEY, next);
+  } catch { /* stockage indisponible : le choix vaut pour la session */ }
+}
+/** Thèmes proposés par l'organisation et thème par défaut ; le thème courant est ramené dans la liste si besoin. */
+export function setAllowedThemes(list: string[] | null, fallback: string = DEFAULT_THEME): void {
+  allowed = list ? { list, fallback } : null;
+  if (permitted(getThemeFamily()) !== getThemeFamily()) void setThemeFamily(permitted(getThemeFamily()), false);
+}
+export const allowedThemes = () => THEME_CATALOG.filter((t) => !allowed || allowed.list.includes(t.name));
+
 /** Relit le réglage mémorisé (tests, retour dans l'onglet) et l'applique. */
 export function initTheme(): void {
   controller.reload();
+  const family = readFamily();
+  if (family && family !== DEFAULT_THEME) void setThemeFamily(family, false);
 }
 
 export const getDensity = (): DensityChoice => (controller.get().density as DensityChoice | null) ?? 'normal';
@@ -78,4 +123,10 @@ export function setDensity(density: DensityChoice): void {
 }
 export function useDensity(): DensityChoice {
   return (useThemeState(controller).density as DensityChoice | null) ?? 'normal';
+}
+
+/** Mode effectif (clair ou sombre), préférence système comprise ; suit les changements. */
+export function useResolvedMode(): 'light' | 'dark' {
+  useThemeState(controller);
+  return controller.resolvedMode() === 'dark' ? 'dark' : 'light';
 }

@@ -1,6 +1,6 @@
 import { ProtectionBanner } from './components/ProtectionBanner';
 import { setProtectionLevel } from './lib/protection';
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { BrowserRouter, Link, Navigate, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Btn, EmptyState, PageHeader, Sidebar, ToastProvider } from '@athena/ui';
 import { loadSession, loginUrl, logout, type Session } from './api';
@@ -77,8 +77,18 @@ function Shell({ session, children }: { session: Session; children: ReactNode })
   const manager = admin || (session.user?.roles.includes('athena-pm') ?? false);
   const { sections, current, projectNav } = useRailSections({ pathname: location.pathname, project, roles: session.user?.roles ?? [] });
   useRecordVisits(location.pathname);
-  const [collapsed, setCollapsed] = useState(() => { try { return localStorage.getItem('athena.rail.collapsed') === '1'; } catch { return false; } });
-  const toggleRail = () => { const next = !collapsed; setCollapsed(next); try { localStorage.setItem('athena.rail.collapsed', next ? '1' : '0'); } catch { /* préférence facultative */ } };
+  // Rail replié en icônes : choix de l'utilisateur s'il existe, sinon replié sur tablette (769 à 1024 px, T-0136).
+  const tablet = useMemo(() => (typeof window !== 'undefined' && typeof window.matchMedia === 'function' ? window.matchMedia('(min-width: 769px) and (max-width: 1024px)') : null), []);
+  const [narrow, setNarrow] = useState(() => tablet?.matches ?? false);
+  const [choice, setChoice] = useState<boolean | null>(() => { try { const v = localStorage.getItem('athena.rail.collapsed'); return v === null ? null : v === '1'; } catch { return null; } });
+  useEffect(() => {
+    if (!tablet) return undefined;
+    const onChange = (e: MediaQueryListEvent) => setNarrow(e.matches);
+    tablet.addEventListener?.('change', onChange);
+    return () => tablet.removeEventListener?.('change', onChange);
+  }, [tablet]);
+  const collapsed = choice ?? narrow;
+  const toggleRail = () => { const next = !collapsed; setChoice(next); try { localStorage.setItem('athena.rail.collapsed', next ? '1' : '0'); } catch { /* préférence facultative */ } };
   const out = async () => { window.location.assign(await logout()); };
   const [menuOpen, setMenuOpen] = useState(false);
   const mainRef = useRef<HTMLElement>(null);

@@ -80,9 +80,21 @@ describe('Profil et notifications', () => {
     app('/profil');
     await screen.findByRole('heading', { level: 1, name: 'Profil' });
     expect(screen.getByLabelText('Langue')).toBeInTheDocument();
-    expect(screen.getByLabelText('Thème')).toBeInTheDocument();
+    expect(screen.getByLabelText('Mode')).toBeInTheDocument();
+    // Thème (T-0136) : vignettes en boutons radio, le thème courant est coché.
+    const themes = screen.getByRole('group', { name: 'Thème' });
+    expect(within(themes).getByRole('radio', { name: 'Hemeria' })).toBeChecked();
+    expect(within(themes).getAllByRole('radio').length).toBeGreaterThanOrEqual(5);
     expect(screen.getByLabelText('Page d’accueil')).toHaveValue('work');
     expect(await screen.findByRole('group', { name: 'Événements à notifier' })).toBeInTheDocument();
+  });
+  it('choisir un thème dans le Profil l’applique et l’enregistre sur le compte (T-0136)', async () => {
+    app('/profil');
+    await userEvent.click(await screen.findByRole('radio', { name: 'Nord' }));
+    await waitFor(() => expect(document.documentElement.getAttribute('data-theme')).toBe('nord'));
+    await waitFor(() => expect(puts).toContainEqual({ family: 'nord' }));
+    await userEvent.click(screen.getByRole('radio', { name: 'Hemeria' }));
+    await waitFor(() => expect(document.documentElement.getAttribute('data-theme')).toBe('hemeria'));
   });
   it('la page d’accueil choisie dans le Profil s’applique à /', async () => {
     const first = app('/profil');
@@ -95,7 +107,7 @@ describe('Profil et notifications', () => {
     app('/profil');
     await userEvent.selectOptions(await screen.findByLabelText('Page d’accueil'), 'Projets');
     await waitFor(() => expect(puts).toContainEqual({ home: 'projects' }));
-    await userEvent.selectOptions(screen.getByLabelText('Thème'), 'sombre');
+    await userEvent.selectOptions(screen.getByLabelText('Mode'), 'sombre');
     await waitFor(() => expect(puts).toContainEqual({ theme: 'dark' }));
   });
   it('une préférence du compte s’applique sur un navigateur neuf (accueil, thème)', async () => {
@@ -133,6 +145,25 @@ describe('Profil et notifications', () => {
     await new Promise((resolve) => setTimeout(resolve, 50));
     expect(document.documentElement.getAttribute('data-mode')).toBe('light');
     document.documentElement.removeAttribute('data-mode');
+  });
+  it('tablette (769 à 1024 px) : rail replié en icônes par défaut, entrées nommées ; un choix explicite l’emporte (T-0136)', async () => {
+    const original = window.matchMedia;
+    window.matchMedia = ((query: string) => ({ matches: query.includes('max-width: 1024px'), media: query, addEventListener: () => undefined, removeEventListener: () => undefined })) as unknown as typeof window.matchMedia;
+    try {
+      localStorage.removeItem('athena.rail.collapsed');
+      const first = app('/projets');
+      const rail = document.getElementById('rail')!;
+      expect(rail).toHaveClass('ath-sidebar--collapsed');
+      expect(within(rail).getByRole('button', { name: 'Projets' }).querySelector('.ath-nav-item__icon svg')).not.toBeNull();
+      await userEvent.click(within(rail).getByRole('button', { name: 'Déplier le rail' }));
+      expect(rail).not.toHaveClass('ath-sidebar--collapsed');
+      first.unmount();
+      app('/projets');
+      expect(document.getElementById('rail')).not.toHaveClass('ath-sidebar--collapsed');
+    } finally {
+      window.matchMedia = original;
+      localStorage.removeItem('athena.rail.collapsed');
+    }
   });
   it('/notifications liste les notifications, marque lu, et mène aux réglages du Profil', async () => {
     app('/notifications');

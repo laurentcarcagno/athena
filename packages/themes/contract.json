@@ -127,7 +127,10 @@
     "font.leading.section",
     "font.leading.small",
     "font.leading.body",
-    "size.toggle"
+    "size.toggle",
+    "radius.control",
+    "radius.surface",
+    "elevation.overlay"
   ],
   "contrast": [
     {

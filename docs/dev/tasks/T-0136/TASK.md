@@ -1,0 +1,5 @@
+# T-0136 : thèmes vague 1, sélecteur, apparence de l'organisation, palier 1024 px
+
+- **Objectif** : thèmes Contraste élevé, Catppuccin, Nord, Gruvbox ; choix du thème dans Profil ; thème par défaut et thèmes proposés par l'organisation ; rail replié en icônes et panneau en superposition sur tablette.
+- **Critères d'acceptation** : `theming check` vert pour chaque thème × mode (AAA pour Contraste élevé) ; axe-core vert sur 6 écrans par thème × mode (e2e) ; `NOTICE` des licences ; migration 054 ; tests et e2e verts.
+- **Fichiers** : `packages/themes` (`base`, `catppuccin`, `nord`, `gruvbox`, `contrast`, `tools/derive.mjs`, `check.mjs`, `contract.json`, `NOTICE`, `README.md`) ; `packages/theming/src/check.ts` ; `packages/ui` (`build-themes.mjs`, `components.tsx`, `styles/*`, lint, tests) ; `apps/api` (migration 054, `appearance.*`, préférences) ; `apps/web` (`lib/theme.ts`, `lib/preferences.tsx`, `components/Appearance.tsx`, `components/RailIcons.tsx`, `Rail.tsx`, `App.tsx`, `OrgAdminPage.tsx`, `ProfilePage.tsx`, `i18n.ts`, tests) ; `e2e/tests/themes.spec.ts`, `apercu-themes.spec.ts`.

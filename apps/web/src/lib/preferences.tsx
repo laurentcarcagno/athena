@@ -2,10 +2,10 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 import { api } from '../api';
 import { getLocale, setLocale, type Locale } from '../i18n';
 import { readHome, setHome, type HomeChoice } from './home';
-import { getDensity, getTheme, setDensity, setTheme, type DensityChoice, type ThemeChoice } from './theme';
+import { FAMILY_KEY, getDensity, getTheme, getThemeFamily, setAllowedThemes, setDensity, setTheme, setThemeFamily, type DensityChoice, type ThemeChoice } from './theme';
 
 /** Préférences enregistrées sur le compte (migration 052) : `null` = aucune, le réglage local du navigateur s'applique. */
-interface Stored { home: HomeChoice | null; locale: Locale | null; theme: ThemeChoice | null; density?: DensityChoice | null }
+interface Stored { home: HomeChoice | null; locale: Locale | null; theme: ThemeChoice | null; density?: DensityChoice | null; family?: string | null }
 export type PreferencePatch = Partial<Stored>;
 
 interface PreferencesApi { loaded: boolean; home: HomeChoice; setHomePreference: (home: HomeChoice) => void }
@@ -30,8 +30,17 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
     const localeAtStart = getLocale();
     const themeAtStart = getTheme();
     const densityAtStart = getDensity();
-    api<Stored>('GET', '/v1/me/preferences').then((stored) => {
+    const familyAtStart = getThemeFamily();
+    // Apparence de l'organisation (T-0136) : thèmes proposés et thème par défaut ; sans réponse, tous les thèmes restent proposés.
+    const appearance = api<{ defaultTheme: string; allowedThemes: string[] }>('GET', '/v1/appearance').catch(() => null);
+    api<Stored>('GET', '/v1/me/preferences').then(async (stored) => {
+      const org = await appearance;
       if (!alive) return;
+      if (org?.defaultTheme) setAllowedThemes(org.allowedThemes?.length ? org.allowedThemes : null, org.defaultTheme);
+      let localFamily: string | null = null;
+      try { localFamily = window.localStorage.getItem(FAMILY_KEY); } catch { /* sans stockage */ }
+      const family = stored?.family ?? localFamily ?? org?.defaultTheme;
+      if (family && family !== getThemeFamily() && getThemeFamily() === familyAtStart) void setThemeFamily(family, Boolean(stored?.family));
       if (stored?.locale && stored.locale !== getLocale() && getLocale() === localeAtStart) setLocale(stored.locale);
       if (stored?.theme && stored.theme !== getTheme() && getTheme() === themeAtStart) setTheme(stored.theme);
       if (stored?.density && stored.density !== getDensity() && getDensity() === densityAtStart) setDensity(stored.density);

@@ -11,7 +11,8 @@
       "default": "./dist/index.js"
     },
     "./tokens.css": "./src/themes.generated.css",
-    "./styles.css": "./src/styles.css"
+    "./styles.css": "./src/styles.css",
+    "./themes/*.css": "./src/themes/*.generated.css"
   },
   "scripts": {
     "tokens": "node scripts/build-themes.mjs",

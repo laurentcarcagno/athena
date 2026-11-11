@@ -1,0 +1,506 @@
+{
+  "$schema": "https://www.designtokens.org/schemas/2025.10/format.json",
+  "name": "catppuccin",
+  "label": "Catppuccin",
+  "extends": "base",
+  "meta": {
+    "description": "Pastels doux : Latte (clair) et Mocha (sombre). Teintes de la palette officielle, contrastes ajustés au contrat.",
+    "source": "https://github.com/catppuccin/palette",
+    "license": "MIT",
+    "derivedBy": "packages/themes/tools/derive.mjs"
+  },
+  "tokens": {
+    "palette": {
+      "latte-base": {
+        "$value": "#EFF1F5"
+      },
+      "latte-mantle": {
+        "$value": "#E6E9EF"
+      },
+      "latte-crust": {
+        "$value": "#DCE0E8"
+      },
+      "latte-text": {
+        "$value": "#4C4F69"
+      },
+      "latte-blue": {
+        "$value": "#1E66F5"
+      },
+      "latte-mauve": {
+        "$value": "#8839EF"
+      },
+      "latte-red": {
+        "$value": "#D20F39"
+      },
+      "latte-green": {
+        "$value": "#40A02B"
+      },
+      "latte-yellow": {
+        "$value": "#DF8E1D"
+      },
+      "mocha-base": {
+        "$value": "#1E1E2E"
+      },
+      "mocha-mantle": {
+        "$value": "#181825"
+      },
+      "mocha-crust": {
+        "$value": "#11111B"
+      },
+      "mocha-text": {
+        "$value": "#CDD6F4"
+      },
+      "mocha-blue": {
+        "$value": "#89B4FA"
+      },
+      "mocha-mauve": {
+        "$value": "#CBA6F7"
+      },
+      "mocha-red": {
+        "$value": "#F38BA8"
+      },
+      "mocha-green": {
+        "$value": "#A6E3A1"
+      },
+      "mocha-yellow": {
+        "$value": "#F9E2AF"
+      }
+    },
+    "brand": {
+      "primary": {
+        "$value": "#8839EF"
+      },
+      "accent": {
+        "$value": "#D20F39"
+      }
+    },
+    "radius": {
+      "none": {
+        "$value": "0"
+      },
+      "control": {
+        "$value": "6px"
+      },
+      "surface": {
+        "$value": "8px"
+      }
+    },
+    "elevation": {
+      "overlay": {
+        "$value": "0 8px 24px rgba(17, 17, 27, 0.18)"
+      }
+    }
+  },
+  "modes": {
+    "light": {
+      "surface": {
+        "app": {
+          "$value": "#EFF1F5"
+        },
+        "default": {
+          "$value": "#FFFFFF"
+        },
+        "hover": {
+          "$value": "#E6E9EF"
+        },
+        "muted": {
+          "$value": "#DCE0E8"
+        },
+        "selected": {
+          "$value": "#D3DCFB"
+        },
+        "inverse": {
+          "$value": "#1E1E2E"
+        },
+        "scrim": {
+          "$value": "rgba(0, 0, 0, 0.45)"
+        }
+      },
+      "text": {
+        "default": {
+          "$value": "#4C4F69"
+        },
+        "secondary": {
+          "$value": "#5C5F77"
+        },
+        "mute": {
+          "$value": "#686B80"
+        },
+        "mute-aa": {
+          "$value": "#686B80"
+        },
+        "on-inverse": {
+          "$value": "#CDD6F4"
+        },
+        "on-action": {
+          "$value": "#FFFFFF"
+        },
+        "link": {
+          "$value": "#1D62EB"
+        },
+        "link-aa": {
+          "$value": "#1D62EB"
+        },
+        "heading": {
+          "$value": "#4C4F69"
+        }
+      },
+      "border": {
+        "default": {
+          "$value": "#CCD0DA"
+        },
+        "strong": {
+          "$value": "#5C5F77"
+        },
+        "focus": {
+          "$value": "#1E66F5"
+        },
+        "danger": {
+          "$value": "#D20F39"
+        },
+        "control": {
+          "$value": "#8C8FA1"
+        }
+      },
+      "action": {
+        "primary": {
+          "bg": {
+            "$value": "#1E66F5"
+          },
+          "fg": {
+            "$value": "#FFFFFF"
+          }
+        },
+        "deep": {
+          "bg": {
+            "$value": "#4C4F69"
+          },
+          "fg": {
+            "$value": "#FFFFFF"
+          }
+        },
+        "ghost": {
+          "bg": {
+            "$value": "transparent"
+          },
+          "fg": {
+            "$value": "#4C4F69"
+          },
+          "border": {
+            "$value": "#4C4F69"
+          }
+        },
+        "danger": {
+          "bg": {
+            "$value": "transparent"
+          },
+          "fg": {
+            "$value": "#D20F39"
+          },
+          "border": {
+            "$value": "#D20F39"
+          }
+        }
+      },
+      "state": {
+        "success": {
+          "bg": {
+            "$value": "#E4F2E1"
+          },
+          "fg": {
+            "$value": "#317A21"
+          },
+          "fg-aa": {
+            "$value": "#317A21"
+          },
+          "border": {
+            "$value": "#40A02B"
+          }
+        },
+        "warning": {
+          "bg": {
+            "$value": "#FBEFDF"
+          },
+          "fg": {
+            "$value": "#986114"
+          },
+          "fg-aa": {
+            "$value": "#986114"
+          },
+          "border": {
+            "$value": "#CD831B"
+          }
+        },
+        "danger": {
+          "bg": {
+            "$value": "#F9DDE3"
+          },
+          "fg": {
+            "$value": "#CA0E37"
+          },
+          "fg-aa": {
+            "$value": "#CA0E37"
+          },
+          "border": {
+            "$value": "#D20F39"
+          }
+        },
+        "info": {
+          "bg": {
+            "$value": "#DFEAFE"
+          },
+          "fg": {
+            "$value": "#1C5EE1"
+          },
+          "fg-aa": {
+            "$value": "#1C5EE1"
+          },
+          "border": {
+            "$value": "#1E66F5"
+          }
+        },
+        "neutral": {
+          "bg": {
+            "$value": "#FFFFFF"
+          },
+          "fg": {
+            "$value": "#5C5F77"
+          },
+          "fg-aa": {
+            "$value": "#5C5F77"
+          },
+          "border": {
+            "$value": "#8C8FA1"
+          }
+        }
+      },
+      "focus": {
+        "ring": {
+          "$value": "#1E66F5"
+        },
+        "ring-on-inverse": {
+          "$value": "#CDD6F4"
+        }
+      },
+      "inverse": {
+        "selected": {
+          "$value": "rgba(30, 102, 245, 0.22)"
+        },
+        "text-secondary": {
+          "$value": "#A1A8C3"
+        },
+        "text-nav": {
+          "$value": "#999FB9"
+        },
+        "text-mute": {
+          "$value": "#9096AF"
+        }
+      }
+    },
+    "dark": {
+      "surface": {
+        "app": {
+          "$value": "#11111B"
+        },
+        "default": {
+          "$value": "#1E1E2E"
+        },
+        "hover": {
+          "$value": "#313244"
+        },
+        "muted": {
+          "$value": "#45475A"
+        },
+        "selected": {
+          "$value": "#313259"
+        },
+        "inverse": {
+          "$value": "#11111B"
+        },
+        "scrim": {
+          "$value": "rgba(0, 0, 0, 0.65)"
+        }
+      },
+      "text": {
+        "default": {
+          "$value": "#CDD6F4"
+        },
+        "secondary": {
+          "$value": "#BAC2DE"
+        },
+        "mute": {
+          "$value": "#A6ADC8"
+        },
+        "mute-aa": {
+          "$value": "#A6ADC8"
+        },
+        "on-inverse": {
+          "$value": "#CDD6F4"
+        },
+        "on-action": {
+          "$value": "#11111B"
+        },
+        "link": {
+          "$value": "#89B4FA"
+        },
+        "link-aa": {
+          "$value": "#89B4FA"
+        },
+        "heading": {
+          "$value": "#CDD6F4"
+        }
+      },
+      "border": {
+        "default": {
+          "$value": "#45475A"
+        },
+        "strong": {
+          "$value": "#BAC2DE"
+        },
+        "focus": {
+          "$value": "#89B4FA"
+        },
+        "danger": {
+          "$value": "#F38BA8"
+        },
+        "control": {
+          "$value": "#7F849C"
+        }
+      },
+      "action": {
+        "primary": {
+          "bg": {
+            "$value": "#89B4FA"
+          },
+          "fg": {
+            "$value": "#11111B"
+          }
+        },
+        "deep": {
+          "bg": {
+            "$value": "#CBA6F7"
+          },
+          "fg": {
+            "$value": "#11111B"
+          }
+        },
+        "ghost": {
+          "bg": {
+            "$value": "transparent"
+          },
+          "fg": {
+            "$value": "#CDD6F4"
+          },
+          "border": {
+            "$value": "#CDD6F4"
+          }
+        },
+        "danger": {
+          "bg": {
+            "$value": "transparent"
+          },
+          "fg": {
+            "$value": "#F38BA8"
+          },
+          "border": {
+            "$value": "#F38BA8"
+          }
+        }
+      },
+      "state": {
+        "success": {
+          "bg": {
+            "$value": "#3C4947"
+          },
+          "fg": {
+            "$value": "#A6E3A1"
+          },
+          "fg-aa": {
+            "$value": "#A6E3A1"
+          },
+          "border": {
+            "$value": "#A6E3A1"
+          }
+        },
+        "warning": {
+          "bg": {
+            "$value": "#4E494A"
+          },
+          "fg": {
+            "$value": "#F9E2AF"
+          },
+          "fg-aa": {
+            "$value": "#F9E2AF"
+          },
+          "border": {
+            "$value": "#F9E2AF"
+          }
+        },
+        "danger": {
+          "bg": {
+            "$value": "#4D3649"
+          },
+          "fg": {
+            "$value": "#F38BA8"
+          },
+          "fg-aa": {
+            "$value": "#F38BA8"
+          },
+          "border": {
+            "$value": "#F38BA8"
+          }
+        },
+        "info": {
+          "bg": {
+            "$value": "#363F5B"
+          },
+          "fg": {
+            "$value": "#89B4FA"
+          },
+          "fg-aa": {
+            "$value": "#89B4FA"
+          },
+          "border": {
+            "$value": "#89B4FA"
+          }
+        },
+        "neutral": {
+          "bg": {
+            "$value": "#1E1E2E"
+          },
+          "fg": {
+            "$value": "#BAC2DE"
+          },
+          "fg-aa": {
+            "$value": "#BAC2DE"
+          },
+          "border": {
+            "$value": "#7F849C"
+          }
+        }
+      },
+      "focus": {
+        "ring": {
+          "$value": "#89B4FA"
+        },
+        "ring-on-inverse": {
+          "$value": "#CDD6F4"
+        }
+      },
+      "inverse": {
+        "selected": {
+          "$value": "rgba(137, 180, 250, 0.22)"
+        },
+        "text-secondary": {
+          "$value": "#9EA5BE"
+        },
+        "text-nav": {
+          "$value": "#959BB3"
+        },
+        "text-mute": {
+          "$value": "#8B91A8"
+        }
+      }
+    }
+  }
+}

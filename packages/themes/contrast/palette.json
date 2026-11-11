@@ -1,0 +1,14 @@
+{
+  "name": "contrast", "label": "Contraste élevé",
+  "description": "Accessibilité renforcée : texte à 7:1 au moins (AAA), bordures nettes, angles droits, aucune ombre.",
+  "source": "Athena (ADR-0004)", "license": "UNLICENSED",
+  "aaa": true,
+  "palette": { "black": "#000000", "white": "#FFFFFF", "blue": "#0040A0", "sky": "#8AD4FF", "red": "#B00020", "green": "#006B21", "amber": "#7A4D00" },
+  "brand": { "primary": "#0040A0", "accent": "#B00020" },
+  "radius": { "none": "0", "control": "0", "surface": "0" },
+  "elevation": { "overlay": "none" },
+  "modes": {
+    "light": { "app": "#FFFFFF", "surface": "#FFFFFF", "hover": "#E8E8E8", "muted": "#D0D0D0", "selected": "#CCE0FF", "inverse": "#000000", "line": "#595959", "strong": "#000000", "text": "#000000", "subtext": "#1A1A1A", "mute": "#333333", "control": "#000000", "accent": "#0040A0", "deep": "#000000", "success": "#006B21", "warning": "#7A4D00", "danger": "#B00020", "onInverse": "#FFFFFF", "onDark": "#FFFFFF", "onLight": "#000000" },
+    "dark": { "app": "#000000", "surface": "#000000", "hover": "#1F1F1F", "muted": "#333333", "selected": "#002E5C", "inverse": "#000000", "line": "#A6A6A6", "strong": "#FFFFFF", "text": "#FFFFFF", "subtext": "#F0F0F0", "mute": "#D9D9D9", "control": "#FFFFFF", "accent": "#8AD4FF", "deep": "#FFFFFF", "success": "#7DEB9A", "warning": "#FFD166", "danger": "#FF8A9A", "onInverse": "#FFFFFF", "onDark": "#FFFFFF", "onLight": "#000000" }
+  }
+}

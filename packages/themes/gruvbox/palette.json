@@ -1,0 +1,13 @@
+{
+  "name": "gruvbox", "label": "Gruvbox",
+  "description": "Chaud et rétro, faible fatigue visuelle : variantes claire et sombre de la palette d'origine.",
+  "source": "https://github.com/morhetz/gruvbox", "license": "MIT/X11",
+  "palette": { "dark0": "#282828", "dark0-hard": "#1D2021", "dark1": "#3C3836", "dark2": "#504945", "light0": "#FBF1C7", "light0-hard": "#F9F5D7", "light1": "#EBDBB2", "light2": "#D5C4A1", "gray": "#928374", "red": "#CC241D", "green": "#98971A", "yellow": "#D79921", "blue": "#458588", "purple": "#B16286", "aqua": "#689D6A", "orange": "#D65D0E" },
+  "brand": { "primary": "#458588", "accent": "#CC241D" },
+  "radius": { "none": "0", "control": "2px", "surface": "2px" },
+  "elevation": { "overlay": "0 6px 16px rgba(29, 32, 33, 0.22)" },
+  "modes": {
+    "light": { "app": "#F2E5BC", "surface": "#FBF1C7", "hover": "#EBDBB2", "muted": "#D5C4A1", "selected": "#E4DCB4", "inverse": "#282828", "line": "#D5C4A1", "text": "#3C3836", "subtext": "#504945", "mute": "#665C54", "control": "#7C6F64", "accent": "#076678", "deep": "#504945", "success": "#79740E", "warning": "#B57614", "danger": "#9D0006", "onInverse": "#EBDBB2", "onDark": "#FBF1C7", "onLight": "#282828" },
+    "dark": { "app": "#1D2021", "surface": "#282828", "hover": "#3C3836", "muted": "#504945", "selected": "#45403D", "inverse": "#1D2021", "line": "#504945", "text": "#EBDBB2", "subtext": "#D5C4A1", "mute": "#BDAE93", "control": "#928374", "accent": "#83A598", "deep": "#D3869B", "success": "#B8BB26", "warning": "#FABD2F", "danger": "#FB4934", "onInverse": "#EBDBB2", "onDark": "#FBF1C7", "onLight": "#1D2021" }
+  }
+}

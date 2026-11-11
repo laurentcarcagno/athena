@@ -4,6 +4,7 @@ import { api, type SavedFilter } from '../api';
 import { fr } from '../i18n';
 import { PROJECT_SECTIONS, placeOf, sectionHref, visibleSections, type Place, type ProjectSectionId } from '../lib/navigation';
 import { entriesOf, pinHref, usePins, type Pin } from '../lib/pins';
+import { RAIL_ICONS, sectionIcon } from './RailIcons';
 
 interface TrackerRow { key: string; name: string }
 
@@ -65,15 +66,15 @@ export function useRailSections({ pathname, project, roles }: { pathname: string
   const recentItem = (pin: Pin): NavItem => ({ id: pinHref(pin), label: pin.label, mono: pin.kind === 'item' });
 
   const sections: NavSection[] = [];
-  sections.push({ id: 'favorites', title: fr.rail.favorites, flyout: true, emptyLabel: fr.rail.noFavorites, items: pins.favorites.map((p, i) => pinItem(p, i, pins.favorites.length)) });
+  sections.push({ id: 'favorites', title: fr.rail.favorites, icon: RAIL_ICONS['favorites'], flyout: true, emptyLabel: fr.rail.noFavorites, items: pins.favorites.map((p, i) => pinItem(p, i, pins.favorites.length)) });
   const recents = pins.recents.filter((r) => !pins.favorites.some((f) => f.kind === r.kind && f.project === r.project && f.ref === r.ref));
-  sections.push({ id: 'recents', title: fr.rail.recents, flyout: true, emptyLabel: fr.rail.noRecents, items: recents.map(recentItem) });
+  sections.push({ id: 'recents', title: fr.rail.recents, icon: RAIL_ICONS['recents'], flyout: true, emptyLabel: fr.rail.noRecents, items: recents.map(recentItem) });
   sections.push({
     id: 'main',
     items: [
       // Rail global : 4 entrées + Favoris et Récents = 6 au plus (ADR-0003) ; Profil et Aide sont au bas du rail, avec l'utilisateur.
-      { id: '/projets', label: fr.nav.projects }, { id: '/', label: fr.nav.work }, { id: '/recherche', label: fr.nav.search },
-      ...(admin ? [{ id: '/admin', label: fr.nav.admin }] : []),
+      { id: '/projets', label: fr.nav.projects, icon: RAIL_ICONS['projects'] }, { id: '/', label: fr.nav.work, icon: RAIL_ICONS['work'] }, { id: '/recherche', label: fr.nav.search, icon: RAIL_ICONS['search'] },
+      ...(admin ? [{ id: '/admin', label: fr.nav.admin, icon: RAIL_ICONS['admin'] }] : []),
     ],
   });
   let projectNav: ProjectNav | null = null;
@@ -89,7 +90,7 @@ export function useRailSections({ pathname, project, roles }: { pathname: string
     sections.push({
       id: 'project', title: `${fr.rail.project} ${project}`,
       items: visibleSections(modules, roles).flatMap((s): NavItem[] => [
-        { id: sectionHref(project, s), label: sectionLabel(s.id) },
+        { id: sectionHref(project, s), label: sectionLabel(s.id), icon: sectionIcon(s.id) },
         ...(s.id === 'trackers' ? trackerItems : []),
       ]),
     });

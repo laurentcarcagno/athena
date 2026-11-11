@@ -21,7 +21,7 @@
 .ath-miniworkflow__btn:focus-visible { outline: var(--ath-border-width-strong) solid var(--ath-border-focus); outline-offset: 2px; }
 .ath-trackercard { display: grid; gap: var(--ath-space-sm); }
 .ath-split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(360px, 520px); gap: var(--ath-space-md); align-items: start; }
-.ath-split__panel { border: var(--ath-border-width-hairline) solid var(--ath-border-default); background: var(--ath-surface-default); padding: var(--ath-space-md); position: sticky; top: var(--ath-pageheader-h, 0); max-height: 100vh; overflow: auto; }
+.ath-split__panel { border: var(--ath-border-width-hairline) solid var(--ath-border-default); background: var(--ath-surface-default); padding: var(--ath-space-md); position: sticky; top: var(--ath-pageheader-h, 0); max-height: 100vh; overflow: auto; border-radius: var(--ath-radius-surface); }
 .ath-split__panel:focus-visible { outline: var(--ath-border-width-strong) solid var(--ath-border-focus); outline-offset: 2px; }
 .ath-detail__head { display: grid; gap: var(--ath-space-sm); margin-bottom: var(--ath-space-md); }
 .ath-detail__title { margin: 0; }

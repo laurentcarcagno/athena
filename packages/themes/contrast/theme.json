@@ -1,0 +1,474 @@
+{
+  "$schema": "https://www.designtokens.org/schemas/2025.10/format.json",
+  "name": "contrast",
+  "label": "Contraste élevé",
+  "extends": "base",
+  "meta": {
+    "description": "Accessibilité renforcée : texte à 7:1 au moins (AAA), bordures nettes, angles droits, aucune ombre.",
+    "source": "Athena (ADR-0004)",
+    "license": "UNLICENSED",
+    "derivedBy": "packages/themes/tools/derive.mjs",
+    "aaa": true
+  },
+  "tokens": {
+    "palette": {
+      "black": {
+        "$value": "#000000"
+      },
+      "white": {
+        "$value": "#FFFFFF"
+      },
+      "blue": {
+        "$value": "#0040A0"
+      },
+      "sky": {
+        "$value": "#8AD4FF"
+      },
+      "red": {
+        "$value": "#B00020"
+      },
+      "green": {
+        "$value": "#006B21"
+      },
+      "amber": {
+        "$value": "#7A4D00"
+      }
+    },
+    "brand": {
+      "primary": {
+        "$value": "#0040A0"
+      },
+      "accent": {
+        "$value": "#B00020"
+      }
+    },
+    "radius": {
+      "none": {
+        "$value": "0"
+      },
+      "control": {
+        "$value": "0"
+      },
+      "surface": {
+        "$value": "0"
+      }
+    },
+    "elevation": {
+      "overlay": {
+        "$value": "none"
+      }
+    }
+  },
+  "modes": {
+    "light": {
+      "surface": {
+        "app": {
+          "$value": "#FFFFFF"
+        },
+        "default": {
+          "$value": "#FFFFFF"
+        },
+        "hover": {
+          "$value": "#E8E8E8"
+        },
+        "muted": {
+          "$value": "#D0D0D0"
+        },
+        "selected": {
+          "$value": "#CCE0FF"
+        },
+        "inverse": {
+          "$value": "#000000"
+        },
+        "scrim": {
+          "$value": "rgba(0, 0, 0, 0.45)"
+        }
+      },
+      "text": {
+        "default": {
+          "$value": "#000000"
+        },
+        "secondary": {
+          "$value": "#1A1A1A"
+        },
+        "mute": {
+          "$value": "#333333"
+        },
+        "mute-aa": {
+          "$value": "#333333"
+        },
+        "on-inverse": {
+          "$value": "#FFFFFF"
+        },
+        "on-action": {
+          "$value": "#FFFFFF"
+        },
+        "link": {
+          "$value": "#0040A0"
+        },
+        "link-aa": {
+          "$value": "#0040A0"
+        },
+        "heading": {
+          "$value": "#000000"
+        }
+      },
+      "border": {
+        "default": {
+          "$value": "#595959"
+        },
+        "strong": {
+          "$value": "#000000"
+        },
+        "focus": {
+          "$value": "#0040A0"
+        },
+        "danger": {
+          "$value": "#B00020"
+        },
+        "control": {
+          "$value": "#000000"
+        }
+      },
+      "action": {
+        "primary": {
+          "bg": {
+            "$value": "#0040A0"
+          },
+          "fg": {
+            "$value": "#FFFFFF"
+          }
+        },
+        "deep": {
+          "bg": {
+            "$value": "#000000"
+          },
+          "fg": {
+            "$value": "#FFFFFF"
+          }
+        },
+        "ghost": {
+          "bg": {
+            "$value": "transparent"
+          },
+          "fg": {
+            "$value": "#000000"
+          },
+          "border": {
+            "$value": "#000000"
+          }
+        },
+        "danger": {
+          "bg": {
+            "$value": "transparent"
+          },
+          "fg": {
+            "$value": "#B00020"
+          },
+          "border": {
+            "$value": "#B00020"
+          }
+        }
+      },
+      "state": {
+        "success": {
+          "bg": {
+            "$value": "#DBEAE0"
+          },
+          "fg": {
+            "$value": "#00561A"
+          },
+          "fg-aa": {
+            "$value": "#00561A"
+          },
+          "border": {
+            "$value": "#006B21"
+          }
+        },
+        "warning": {
+          "bg": {
+            "$value": "#ECE6DB"
+          },
+          "fg": {
+            "$value": "#694200"
+          },
+          "fg-aa": {
+            "$value": "#694200"
+          },
+          "border": {
+            "$value": "#7A4D00"
+          }
+        },
+        "danger": {
+          "bg": {
+            "$value": "#F4DBE0"
+          },
+          "fg": {
+            "$value": "#94001B"
+          },
+          "fg-aa": {
+            "$value": "#94001B"
+          },
+          "border": {
+            "$value": "#B00020"
+          }
+        },
+        "info": {
+          "bg": {
+            "$value": "#DBE4F2"
+          },
+          "fg": {
+            "$value": "#0040A0"
+          },
+          "fg-aa": {
+            "$value": "#0040A0"
+          },
+          "border": {
+            "$value": "#0040A0"
+          }
+        },
+        "neutral": {
+          "bg": {
+            "$value": "#FFFFFF"
+          },
+          "fg": {
+            "$value": "#1A1A1A"
+          },
+          "fg-aa": {
+            "$value": "#1A1A1A"
+          },
+          "border": {
+            "$value": "#000000"
+          }
+        }
+      },
+      "focus": {
+        "ring": {
+          "$value": "#0040A0"
+        },
+        "ring-on-inverse": {
+          "$value": "#FFFFFF"
+        }
+      },
+      "inverse": {
+        "selected": {
+          "$value": "rgba(0, 64, 160, 0.22)"
+        },
+        "text-secondary": {
+          "$value": "#BFBFBF"
+        },
+        "text-nav": {
+          "$value": "#B3B3B3"
+        },
+        "text-mute": {
+          "$value": "#A6A6A6"
+        }
+      }
+    },
+    "dark": {
+      "surface": {
+        "app": {
+          "$value": "#000000"
+        },
+        "default": {
+          "$value": "#000000"
+        },
+        "hover": {
+          "$value": "#1F1F1F"
+        },
+        "muted": {
+          "$value": "#333333"
+        },
+        "selected": {
+          "$value": "#002E5C"
+        },
+        "inverse": {
+          "$value": "#000000"
+        },
+        "scrim": {
+          "$value": "rgba(0, 0, 0, 0.65)"
+        }
+      },
+      "text": {
+        "default": {
+          "$value": "#FFFFFF"
+        },
+        "secondary": {
+          "$value": "#F0F0F0"
+        },
+        "mute": {
+          "$value": "#D9D9D9"
+        },
+        "mute-aa": {
+          "$value": "#D9D9D9"
+        },
+        "on-inverse": {
+          "$value": "#FFFFFF"
+        },
+        "on-action": {
+          "$value": "#000000"
+        },
+        "link": {
+          "$value": "#8AD4FF"
+        },
+        "link-aa": {
+          "$value": "#8AD4FF"
+        },
+        "heading": {
+          "$value": "#FFFFFF"
+        }
+      },
+      "border": {
+        "default": {
+          "$value": "#A6A6A6"
+        },
+        "strong": {
+          "$value": "#FFFFFF"
+        },
+        "focus": {
+          "$value": "#8AD4FF"
+        },
+        "danger": {
+          "$value": "#FF8A9A"
+        },
+        "control": {
+          "$value": "#FFFFFF"
+        }
+      },
+      "action": {
+        "primary": {
+          "bg": {
+            "$value": "#8AD4FF"
+          },
+          "fg": {
+            "$value": "#000000"
+          }
+        },
+        "deep": {
+          "bg": {
+            "$value": "#FFFFFF"
+          },
+          "fg": {
+            "$value": "#000000"
+          }
+        },
+        "ghost": {
+          "bg": {
+            "$value": "transparent"
+          },
+          "fg": {
+            "$value": "#FFFFFF"
+          },
+          "border": {
+            "$value": "#FFFFFF"
+          }
+        },
+        "danger": {
+          "bg": {
+            "$value": "transparent"
+          },
+          "fg": {
+            "$value": "#FF8A9A"
+          },
+          "border": {
+            "$value": "#FF8A9A"
+          }
+        }
+      },
+      "state": {
+        "success": {
+          "bg": {
+            "$value": "#1C3422"
+          },
+          "fg": {
+            "$value": "#7DEB9A"
+          },
+          "fg-aa": {
+            "$value": "#7DEB9A"
+          },
+          "border": {
+            "$value": "#7DEB9A"
+          }
+        },
+        "warning": {
+          "bg": {
+            "$value": "#382E16"
+          },
+          "fg": {
+            "$value": "#FFD166"
+          },
+          "fg-aa": {
+            "$value": "#FFD166"
+          },
+          "border": {
+            "$value": "#FFD166"
+          }
+        },
+        "danger": {
+          "bg": {
+            "$value": "#381E22"
+          },
+          "fg": {
+            "$value": "#FF8F9E"
+          },
+          "fg-aa": {
+            "$value": "#FF8F9E"
+          },
+          "border": {
+            "$value": "#FF8A9A"
+          }
+        },
+        "info": {
+          "bg": {
+            "$value": "#1E2F38"
+          },
+          "fg": {
+            "$value": "#8AD4FF"
+          },
+          "fg-aa": {
+            "$value": "#8AD4FF"
+          },
+          "border": {
+            "$value": "#8AD4FF"
+          }
+        },
+        "neutral": {
+          "bg": {
+            "$value": "#000000"
+          },
+          "fg": {
+            "$value": "#F0F0F0"
+          },
+          "fg-aa": {
+            "$value": "#F0F0F0"
+          },
+          "border": {
+            "$value": "#FFFFFF"
+          }
+        }
+      },
+      "focus": {
+        "ring": {
+          "$value": "#8AD4FF"
+        },
+        "ring-on-inverse": {
+          "$value": "#FFFFFF"
+        }
+      },
+      "inverse": {
+        "selected": {
+          "$value": "rgba(138, 212, 255, 0.22)"
+        },
+        "text-secondary": {
+          "$value": "#BFBFBF"
+        },
+        "text-nav": {
+          "$value": "#B3B3B3"
+        },
+        "text-mute": {
+          "$value": "#A6A6A6"
+        }
+      }
+    }
+  }
+}

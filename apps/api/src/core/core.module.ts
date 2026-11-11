@@ -35,6 +35,8 @@ import { Db } from './db';
 import { FieldTypeRegistry } from './field-types';
 import { SearchService } from '../atql/search.service';
 import { DashboardController } from './dashboard.controller';
+import { AppearanceController } from './appearance.controller';
+import { AppearanceService } from './appearance.service';
 import { PreferenceController } from './preference.controller';
 import { PreferenceService } from './preference.service';
 import { DashboardService } from './dashboard.service';
@@ -85,7 +87,7 @@ import { TrackerService } from './tracker.service';
 export { PG_POOL } from './core.tokens';
 
 @Module({
-  controllers: [CoreController, AttachmentController, SavedFilterController, SearchController, IntegrationsController, AgileController, MemberController, TemplateController, ProjectTemplateController, TrackerTemplateController, TrackerTypeController, ProjectOverviewController, PinController, LinkTypeController, TreeController, MatrixController, CoverageController, NormativeController, AccessController, ApprovalController, ItemApprovalController, DocController, NotifyController, DashboardController, PreferenceController],
+  controllers: [CoreController, AttachmentController, SavedFilterController, SearchController, IntegrationsController, AgileController, MemberController, TemplateController, ProjectTemplateController, TrackerTemplateController, TrackerTypeController, ProjectOverviewController, PinController, LinkTypeController, TreeController, MatrixController, CoverageController, NormativeController, AccessController, ApprovalController, ItemApprovalController, DocController, NotifyController, DashboardController, PreferenceController, AppearanceController],
   providers: [
     { provide: PG_POOL, useFactory: () => new Pool({ connectionString: loadConfig().DATABASE_URL, max: 10 }) },
     { provide: FieldTypeRegistry, useValue: new FieldTypeRegistry() },
@@ -114,6 +116,7 @@ export { PG_POOL } from './core.tokens';
     { provide: SavedFilterService, useFactory: (db: Db) => new SavedFilterService(db), inject: [Db] },
     { provide: SearchService, useFactory: (db: Db) => new SearchService(db), inject: [Db] },
     { provide: PreferenceService, useFactory: (db: Db) => new PreferenceService(db), inject: [Db] },
+    { provide: AppearanceService, useFactory: (db: Db) => new AppearanceService(db), inject: [Db] },
     { provide: DashboardService, useFactory: (db: Db) => new DashboardService(db), inject: [Db] },
     { provide: SavedSearchService, useFactory: (db: Db) => new SavedSearchService(db), inject: [Db] },
     {

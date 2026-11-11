@@ -73,6 +73,11 @@ describe('contrastes', () => {
     expect(check([veil], on(15))[0]!.message).toMatch(/ink sur tint : 1[0-4]\.\d\d:1/);
   });
 
+  it('ne vérifie pas un thème abstrait, seulement ses héritiers', () => {
+    expect(check([base], contract)).toEqual([]);
+    expect(check([base, child], contract)).toEqual([]);
+  });
+
   it('signale un jeton obligatoire absent', () => {
     const bare: Theme = { name: 'bare', tokens: { surface: { default: { $value: '#FFFFFF' } } } };
     expect(check([bare], contract).map((i) => i.message)).toEqual(['jeton obligatoire absent : text.default', 'jeton obligatoire absent : text.default']);

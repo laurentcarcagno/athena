@@ -8,9 +8,12 @@
   "files": [
     "contract.json",
     "*/theme.json",
+    "*/palette.json",
+    "tools",
     "NOTICE",
     "README.md",
-    "check.mjs"
+    "check.mjs",
+    "*/mark.svg"
   ],
   "exports": {
     "./contract.json": "./contract.json",

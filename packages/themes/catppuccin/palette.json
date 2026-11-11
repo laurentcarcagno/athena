@@ -1,0 +1,13 @@
+{
+  "name": "catppuccin", "label": "Catppuccin",
+  "description": "Pastels doux : Latte (clair) et Mocha (sombre). Teintes de la palette officielle, contrastes ajustés au contrat.",
+  "source": "https://github.com/catppuccin/palette", "license": "MIT",
+  "palette": { "latte-base": "#EFF1F5", "latte-mantle": "#E6E9EF", "latte-crust": "#DCE0E8", "latte-text": "#4C4F69", "latte-blue": "#1E66F5", "latte-mauve": "#8839EF", "latte-red": "#D20F39", "latte-green": "#40A02B", "latte-yellow": "#DF8E1D", "mocha-base": "#1E1E2E", "mocha-mantle": "#181825", "mocha-crust": "#11111B", "mocha-text": "#CDD6F4", "mocha-blue": "#89B4FA", "mocha-mauve": "#CBA6F7", "mocha-red": "#F38BA8", "mocha-green": "#A6E3A1", "mocha-yellow": "#F9E2AF" },
+  "brand": { "primary": "#8839EF", "accent": "#D20F39" },
+  "radius": { "none": "0", "control": "6px", "surface": "8px" },
+  "elevation": { "overlay": "0 8px 24px rgba(17, 17, 27, 0.18)" },
+  "modes": {
+    "light": { "app": "#EFF1F5", "surface": "#FFFFFF", "hover": "#E6E9EF", "muted": "#DCE0E8", "selected": "#D3DCFB", "inverse": "#1E1E2E", "line": "#CCD0DA", "text": "#4C4F69", "subtext": "#5C5F77", "mute": "#6C6F85", "control": "#8C8FA1", "accent": "#1E66F5", "deep": "#4C4F69", "success": "#40A02B", "warning": "#DF8E1D", "danger": "#D20F39", "onInverse": "#CDD6F4", "onDark": "#FFFFFF", "onLight": "#11111B" },
+    "dark": { "app": "#11111B", "surface": "#1E1E2E", "hover": "#313244", "muted": "#45475A", "selected": "#313259", "inverse": "#11111B", "line": "#45475A", "text": "#CDD6F4", "subtext": "#BAC2DE", "mute": "#A6ADC8", "control": "#7F849C", "accent": "#89B4FA", "deep": "#CBA6F7", "success": "#A6E3A1", "warning": "#F9E2AF", "danger": "#F38BA8", "onInverse": "#CDD6F4", "onDark": "#FFFFFF", "onLight": "#11111B" }
+  }
+}

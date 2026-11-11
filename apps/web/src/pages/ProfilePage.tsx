@@ -6,6 +6,7 @@ import { fr, getLocale, setLocale, type Locale } from '../i18n';
 import type { HomeChoice } from '../lib/home';
 import { savePreference, usePreferences } from '../lib/preferences';
 import { DENSITIES, setDensity, setTheme, useDensity, useTheme, type DensityChoice, type ThemeChoice, THEME_CHOICES } from '../lib/theme';
+import { ThemePicker } from '../components/Appearance';
 
 /**
  * Profil `/profil` (ADR-0003, T-0123) : les réglages de la personne en un seul endroit : langue, thème, notifications et page
@@ -37,6 +38,7 @@ export function ProfilePage({ session }: { session: Session }) {
               {THEME_CHOICES.map((t) => <option key={t} value={t}>{fr.theme.names[t]}</option>)}
             </Select>
           </label>
+          <ThemePicker />
           <label className="ath-notify__pref">
             {p.density}
             <Select value={density} onChange={(e) => { const next = e.target.value as DensityChoice; setDensity(next); savePreference({ density: next }); }}>

@@ -1,0 +1,13 @@
+{
+  "name": "nord", "label": "Nord",
+  "description": "Bleus froids et sobres : Snow Storm (clair) et Polar Night (sombre), Frost pour l'action, Aurora pour les états.",
+  "source": "https://www.nordtheme.com/docs/colors-and-palettes", "license": "MIT",
+  "palette": { "nord0": "#2E3440", "nord1": "#3B4252", "nord2": "#434C5E", "nord3": "#4C566A", "nord4": "#D8DEE9", "nord5": "#E5E9F0", "nord6": "#ECEFF4", "nord7": "#8FBCBB", "nord8": "#88C0D0", "nord9": "#81A1C1", "nord10": "#5E81AC", "nord11": "#BF616A", "nord12": "#D08770", "nord13": "#EBCB8B", "nord14": "#A3BE8C", "nord15": "#B48EAD" },
+  "brand": { "primary": "#5E81AC", "accent": "#BF616A" },
+  "radius": { "none": "0", "control": "4px", "surface": "4px" },
+  "elevation": { "overlay": "0 6px 18px rgba(46, 52, 64, 0.18)" },
+  "modes": {
+    "light": { "app": "#ECEFF4", "surface": "#FFFFFF", "hover": "#E5E9F0", "muted": "#D8DEE9", "selected": "#D4DFEC", "inverse": "#2E3440", "line": "#D8DEE9", "text": "#2E3440", "subtext": "#3B4252", "mute": "#4C566A", "control": "#7B88A1", "accent": "#5E81AC", "deep": "#3B4252", "success": "#A3BE8C", "warning": "#D08770", "danger": "#BF616A", "onInverse": "#ECEFF4", "onDark": "#FFFFFF", "onLight": "#2E3440" },
+    "dark": { "app": "#242933", "surface": "#2E3440", "hover": "#3B4252", "muted": "#434C5E", "selected": "#3E4B61", "inverse": "#1F232B", "line": "#434C5E", "text": "#ECEFF4", "subtext": "#E5E9F0", "mute": "#D8DEE9", "control": "#7B88A1", "accent": "#88C0D0", "deep": "#81A1C1", "success": "#A3BE8C", "warning": "#EBCB8B", "danger": "#BF616A", "onInverse": "#ECEFF4", "onDark": "#FFFFFF", "onLight": "#2E3440" }
+  }
+}

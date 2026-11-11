@@ -1,0 +1,500 @@
+{
+  "$schema": "https://www.designtokens.org/schemas/2025.10/format.json",
+  "name": "gruvbox",
+  "label": "Gruvbox",
+  "extends": "base",
+  "meta": {
+    "description": "Chaud et rétro, faible fatigue visuelle : variantes claire et sombre de la palette d'origine.",
+    "source": "https://github.com/morhetz/gruvbox",
+    "license": "MIT/X11",
+    "derivedBy": "packages/themes/tools/derive.mjs"
+  },
+  "tokens": {
+    "palette": {
+      "dark0": {
+        "$value": "#282828"
+      },
+      "dark0-hard": {
+        "$value": "#1D2021"
+      },
+      "dark1": {
+        "$value": "#3C3836"
+      },
+      "dark2": {
+        "$value": "#504945"
+      },
+      "light0": {
+        "$value": "#FBF1C7"
+      },
+      "light0-hard": {
+        "$value": "#F9F5D7"
+      },
+      "light1": {
+        "$value": "#EBDBB2"
+      },
+      "light2": {
+        "$value": "#D5C4A1"
+      },
+      "gray": {
+        "$value": "#928374"
+      },
+      "red": {
+        "$value": "#CC241D"
+      },
+      "green": {
+        "$value": "#98971A"
+      },
+      "yellow": {
+        "$value": "#D79921"
+      },
+      "blue": {
+        "$value": "#458588"
+      },
+      "purple": {
+        "$value": "#B16286"
+      },
+      "aqua": {
+        "$value": "#689D6A"
+      },
+      "orange": {
+        "$value": "#D65D0E"
+      }
+    },
+    "brand": {
+      "primary": {
+        "$value": "#458588"
+      },
+      "accent": {
+        "$value": "#CC241D"
+      }
+    },
+    "radius": {
+      "none": {
+        "$value": "0"
+      },
+      "control": {
+        "$value": "2px"
+      },
+      "surface": {
+        "$value": "2px"
+      }
+    },
+    "elevation": {
+      "overlay": {
+        "$value": "0 6px 16px rgba(29, 32, 33, 0.22)"
+      }
+    }
+  },
+  "modes": {
+    "light": {
+      "surface": {
+        "app": {
+          "$value": "#F2E5BC"
+        },
+        "default": {
+          "$value": "#FBF1C7"
+        },
+        "hover": {
+          "$value": "#EBDBB2"
+        },
+        "muted": {
+          "$value": "#D5C4A1"
+        },
+        "selected": {
+          "$value": "#E4DCB4"
+        },
+        "inverse": {
+          "$value": "#282828"
+        },
+        "scrim": {
+          "$value": "rgba(0, 0, 0, 0.45)"
+        }
+      },
+      "text": {
+        "default": {
+          "$value": "#3C3836"
+        },
+        "secondary": {
+          "$value": "#504945"
+        },
+        "mute": {
+          "$value": "#665C54"
+        },
+        "mute-aa": {
+          "$value": "#665C54"
+        },
+        "on-inverse": {
+          "$value": "#EBDBB2"
+        },
+        "on-action": {
+          "$value": "#FBF1C7"
+        },
+        "link": {
+          "$value": "#076678"
+        },
+        "link-aa": {
+          "$value": "#076678"
+        },
+        "heading": {
+          "$value": "#3C3836"
+        }
+      },
+      "border": {
+        "default": {
+          "$value": "#D5C4A1"
+        },
+        "strong": {
+          "$value": "#504945"
+        },
+        "focus": {
+          "$value": "#076678"
+        },
+        "danger": {
+          "$value": "#9D0006"
+        },
+        "control": {
+          "$value": "#7C6F64"
+        }
+      },
+      "action": {
+        "primary": {
+          "bg": {
+            "$value": "#076678"
+          },
+          "fg": {
+            "$value": "#FBF1C7"
+          }
+        },
+        "deep": {
+          "bg": {
+            "$value": "#504945"
+          },
+          "fg": {
+            "$value": "#FBF1C7"
+          }
+        },
+        "ghost": {
+          "bg": {
+            "$value": "transparent"
+          },
+          "fg": {
+            "$value": "#3C3836"
+          },
+          "border": {
+            "$value": "#3C3836"
+          }
+        },
+        "danger": {
+          "bg": {
+            "$value": "transparent"
+          },
+          "fg": {
+            "$value": "#9D0006"
+          },
+          "border": {
+            "$value": "#9D0006"
+          }
+        }
+      },
+      "state": {
+        "success": {
+          "bg": {
+            "$value": "#E9E0AD"
+          },
+          "fg": {
+            "$value": "#68640C"
+          },
+          "fg-aa": {
+            "$value": "#68640C"
+          },
+          "border": {
+            "$value": "#79740E"
+          }
+        },
+        "warning": {
+          "bg": {
+            "$value": "#F1E0AE"
+          },
+          "fg": {
+            "$value": "#8A5A0F"
+          },
+          "fg-aa": {
+            "$value": "#8A5A0F"
+          },
+          "border": {
+            "$value": "#B57614"
+          }
+        },
+        "danger": {
+          "bg": {
+            "$value": "#EECFAC"
+          },
+          "fg": {
+            "$value": "#9D0006"
+          },
+          "fg-aa": {
+            "$value": "#9D0006"
+          },
+          "border": {
+            "$value": "#9D0006"
+          }
+        },
+        "info": {
+          "bg": {
+            "$value": "#D9DEBC"
+          },
+          "fg": {
+            "$value": "#076678"
+          },
+          "fg-aa": {
+            "$value": "#076678"
+          },
+          "border": {
+            "$value": "#076678"
+          }
+        },
+        "neutral": {
+          "bg": {
+            "$value": "#FBF1C7"
+          },
+          "fg": {
+            "$value": "#504945"
+          },
+          "fg-aa": {
+            "$value": "#504945"
+          },
+          "border": {
+            "$value": "#7C6F64"
+          }
+        }
+      },
+      "focus": {
+        "ring": {
+          "$value": "#076678"
+        },
+        "ring-on-inverse": {
+          "$value": "#EBDBB2"
+        }
+      },
+      "inverse": {
+        "selected": {
+          "$value": "rgba(7, 102, 120, 0.22)"
+        },
+        "text-secondary": {
+          "$value": "#BAAE90"
+        },
+        "text-nav": {
+          "$value": "#B1A589"
+        },
+        "text-mute": {
+          "$value": "#A79C82"
+        }
+      }
+    },
+    "dark": {
+      "surface": {
+        "app": {
+          "$value": "#1D2021"
+        },
+        "default": {
+          "$value": "#282828"
+        },
+        "hover": {
+          "$value": "#3C3836"
+        },
+        "muted": {
+          "$value": "#504945"
+        },
+        "selected": {
+          "$value": "#45403D"
+        },
+        "inverse": {
+          "$value": "#1D2021"
+        },
+        "scrim": {
+          "$value": "rgba(0, 0, 0, 0.65)"
+        }
+      },
+      "text": {
+        "default": {
+          "$value": "#EBDBB2"
+        },
+        "secondary": {
+          "$value": "#D5C4A1"
+        },
+        "mute": {
+          "$value": "#BDAE93"
+        },
+        "mute-aa": {
+          "$value": "#BDAE93"
+        },
+        "on-inverse": {
+          "$value": "#EBDBB2"
+        },
+        "on-action": {
+          "$value": "#1D2021"
+        },
+        "link": {
+          "$value": "#83A598"
+        },
+        "link-aa": {
+          "$value": "#83A598"
+        },
+        "heading": {
+          "$value": "#EBDBB2"
+        }
+      },
+      "border": {
+        "default": {
+          "$value": "#504945"
+        },
+        "strong": {
+          "$value": "#D5C4A1"
+        },
+        "focus": {
+          "$value": "#83A598"
+        },
+        "danger": {
+          "$value": "#FB4934"
+        },
+        "control": {
+          "$value": "#928374"
+        }
+      },
+      "action": {
+        "primary": {
+          "bg": {
+            "$value": "#83A598"
+          },
+          "fg": {
+            "$value": "#1D2021"
+          }
+        },
+        "deep": {
+          "bg": {
+            "$value": "#D3869B"
+          },
+          "fg": {
+            "$value": "#1D2021"
+          }
+        },
+        "ghost": {
+          "bg": {
+            "$value": "transparent"
+          },
+          "fg": {
+            "$value": "#EBDBB2"
+          },
+          "border": {
+            "$value": "#EBDBB2"
+          }
+        },
+        "danger": {
+          "bg": {
+            "$value": "transparent"
+          },
+          "fg": {
+            "$value": "#FB5440"
+          },
+          "border": {
+            "$value": "#FB4934"
+          }
+        }
+      },
+      "state": {
+        "success": {
+          "bg": {
+            "$value": "#484828"
+          },
+          "fg": {
+            "$value": "#B8BB26"
+          },
+          "fg-aa": {
+            "$value": "#B8BB26"
+          },
+          "border": {
+            "$value": "#B8BB26"
+          }
+        },
+        "warning": {
+          "bg": {
+            "$value": "#56492A"
+          },
+          "fg": {
+            "$value": "#FABD2F"
+          },
+          "fg-aa": {
+            "$value": "#FABD2F"
+          },
+          "border": {
+            "$value": "#FABD2F"
+          }
+        },
+        "danger": {
+          "bg": {
+            "$value": "#562F2B"
+          },
+          "fg": {
+            "$value": "#FC8071"
+          },
+          "fg-aa": {
+            "$value": "#FC8071"
+          },
+          "border": {
+            "$value": "#FB4934"
+          }
+        },
+        "info": {
+          "bg": {
+            "$value": "#3C4441"
+          },
+          "fg": {
+            "$value": "#99B5AB"
+          },
+          "fg-aa": {
+            "$value": "#99B5AB"
+          },
+          "border": {
+            "$value": "#83A598"
+          }
+        },
+        "neutral": {
+          "bg": {
+            "$value": "#282828"
+          },
+          "fg": {
+            "$value": "#D5C4A1"
+          },
+          "fg-aa": {
+            "$value": "#D5C4A1"
+          },
+          "border": {
+            "$value": "#928374"
+          }
+        }
+      },
+      "focus": {
+        "ring": {
+          "$value": "#83A598"
+        },
+        "ring-on-inverse": {
+          "$value": "#EBDBB2"
+        }
+      },
+      "inverse": {
+        "selected": {
+          "$value": "rgba(131, 165, 152, 0.22)"
+        },
+        "text-secondary": {
+          "$value": "#B8AC8E"
+        },
+        "text-nav": {
+          "$value": "#ADA387"
+        },
+        "text-mute": {
+          "$value": "#A39A7F"
+        }
+      }
+    }
+  }
+}

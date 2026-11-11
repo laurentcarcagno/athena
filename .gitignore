@@ -9,6 +9,8 @@ coverage/
 
 # Généré par `pnpm --filter @athena/ui tokens` (@nuance/theming)
 packages/ui/src/themes.generated.css
+packages/ui/src/themes.catalog.generated.ts
+packages/ui/src/themes/
 apps/web/dist/
 apps/api/perf-report.txt
 e2e/test-results/
