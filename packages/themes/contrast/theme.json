@@ -104,10 +104,10 @@
           "$value": "#FFFFFF"
         },
         "link": {
-          "$value": "#0040A0"
+          "$value": "#003D9A"
         },
         "link-aa": {
-          "$value": "#0040A0"
+          "$value": "#003D9A"
         },
         "heading": {
           "$value": "#000000"
@@ -248,6 +248,140 @@
         },
         "ring-on-inverse": {
           "$value": "#FFFFFF"
+        }
+      },
+      "hue": {
+        "gray": {
+          "bg": {
+            "$value": "#EAEBED"
+          },
+          "fg": {
+            "$value": "#494E57"
+          },
+          "border": {
+            "$value": "#6B7280"
+          }
+        },
+        "slate": {
+          "bg": {
+            "$value": "#E9ECEF"
+          },
+          "fg": {
+            "$value": "#444F5F"
+          },
+          "border": {
+            "$value": "#64748B"
+          }
+        },
+        "blue": {
+          "bg": {
+            "$value": "#E0E9FC"
+          },
+          "fg": {
+            "$value": "#1A45A4"
+          },
+          "border": {
+            "$value": "#2563EB"
+          }
+        },
+        "sky": {
+          "bg": {
+            "$value": "#DCEEF7"
+          },
+          "fg": {
+            "$value": "#01527B"
+          },
+          "border": {
+            "$value": "#0284C7"
+          }
+        },
+        "teal": {
+          "bg": {
+            "$value": "#DDF0EE"
+          },
+          "fg": {
+            "$value": "#08564F"
+          },
+          "border": {
+            "$value": "#0D9488"
+          }
+        },
+        "green": {
+          "bg": {
+            "$value": "#DEF2E6"
+          },
+          "fg": {
+            "$value": "#0C5B29"
+          },
+          "border": {
+            "$value": "#16A34A"
+          }
+        },
+        "lime": {
+          "bg": {
+            "$value": "#E9F2DD"
+          },
+          "fg": {
+            "$value": "#375807"
+          },
+          "border": {
+            "$value": "#65A30D"
+          }
+        },
+        "yellow": {
+          "bg": {
+            "$value": "#F8EFDC"
+          },
+          "fg": {
+            "$value": "#694802"
+          },
+          "border": {
+            "$value": "#C28404"
+          }
+        },
+        "orange": {
+          "bg": {
+            "$value": "#FCE8DD"
+          },
+          "fg": {
+            "$value": "#883307"
+          },
+          "border": {
+            "$value": "#EA580C"
+          }
+        },
+        "red": {
+          "bg": {
+            "$value": "#FAE1E1"
+          },
+          "fg": {
+            "$value": "#911919"
+          },
+          "border": {
+            "$value": "#DC2626"
+          }
+        },
+        "pink": {
+          "bg": {
+            "$value": "#FAE1EC"
+          },
+          "fg": {
+            "$value": "#8C194C"
+          },
+          "border": {
+            "$value": "#DB2777"
+          }
+        },
+        "purple": {
+          "bg": {
+            "$value": "#F0E2FC"
+          },
+          "fg": {
+            "$value": "#6724A4"
+          },
+          "border": {
+            "$value": "#9333EA"
+          }
         }
       },
       "inverse": {
@@ -453,6 +587,140 @@
         },
         "ring-on-inverse": {
           "$value": "#FFFFFF"
+        }
+      },
+      "hue": {
+        "gray": {
+          "bg": {
+            "$value": "#25272A"
+          },
+          "fg": {
+            "$value": "#ACB2BC"
+          },
+          "border": {
+            "$value": "#9CA3AF"
+          }
+        },
+        "slate": {
+          "bg": {
+            "$value": "#24272C"
+          },
+          "fg": {
+            "$value": "#A7B4C5"
+          },
+          "border": {
+            "$value": "#94A3B8"
+          }
+        },
+        "blue": {
+          "bg": {
+            "$value": "#17283C"
+          },
+          "fg": {
+            "$value": "#7DB5FB"
+          },
+          "border": {
+            "$value": "#60A5FA"
+          }
+        },
+        "sky": {
+          "bg": {
+            "$value": "#0D2D3C"
+          },
+          "fg": {
+            "$value": "#44C1F8"
+          },
+          "border": {
+            "$value": "#38BDF8"
+          }
+        },
+        "teal": {
+          "bg": {
+            "$value": "#0B332E"
+          },
+          "fg": {
+            "$value": "#2DD4BF"
+          },
+          "border": {
+            "$value": "#2DD4BF"
+          }
+        },
+        "green": {
+          "bg": {
+            "$value": "#12351F"
+          },
+          "fg": {
+            "$value": "#4ADE80"
+          },
+          "border": {
+            "$value": "#4ADE80"
+          }
+        },
+        "lime": {
+          "bg": {
+            "$value": "#27370D"
+          },
+          "fg": {
+            "$value": "#A3E635"
+          },
+          "border": {
+            "$value": "#A3E635"
+          }
+        },
+        "yellow": {
+          "bg": {
+            "$value": "#3C3105"
+          },
+          "fg": {
+            "$value": "#FACC15"
+          },
+          "border": {
+            "$value": "#FACC15"
+          }
+        },
+        "orange": {
+          "bg": {
+            "$value": "#3C230E"
+          },
+          "fg": {
+            "$value": "#FB9F53"
+          },
+          "border": {
+            "$value": "#FB923C"
+          }
+        },
+        "red": {
+          "bg": {
+            "$value": "#3C1B1B"
+          },
+          "fg": {
+            "$value": "#FA9393"
+          },
+          "border": {
+            "$value": "#F87171"
+          }
+        },
+        "pink": {
+          "bg": {
+            "$value": "#3B1B2C"
+          },
+          "fg": {
+            "$value": "#F691C6"
+          },
+          "border": {
+            "$value": "#F472B6"
+          }
+        },
+        "purple": {
+          "bg": {
+            "$value": "#2E203C"
+          },
+          "fg": {
+            "$value": "#CD9DFD"
+          },
+          "border": {
+            "$value": "#C084FC"
+          }
         }
       },
       "inverse": {

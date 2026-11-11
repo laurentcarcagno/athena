@@ -3,7 +3,8 @@
 // de contraste du contrat (4,5 pour le texte, 3 pour les contours et repères). Usage : node tools/derive.mjs <palette.json>…
 // Chaque palette produit <dossier>/theme.json à côté d'elle ; relancer après modification d'une palette.
 import { readFileSync, writeFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { contrast } from '@nuance/theming';
 
 const hex = (c) => `#${c.map((v) => Math.round(Math.max(0, Math.min(255, v))).toString(16).padStart(2, '0')).join('').toUpperCase()}`;
@@ -28,13 +29,29 @@ function actionPair(color, light, dark, min = 4.5) {
 const tok = (v) => ({ $value: v });
 const group = (o) => Object.fromEntries(Object.entries(o).map(([k, v]) => [k, v && typeof v === 'object' ? group(v) : tok(v)]));
 
+/** Teintes de référence des statuts (T-0138), claires et sombres ; un thème peut les remplacer (palette.json → hues). */
+export const HUE_BASE = {
+  light: { gray: '#6B7280', slate: '#64748B', blue: '#2563EB', sky: '#0284C7', teal: '#0D9488', green: '#16A34A', lime: '#65A30D', yellow: '#CA8A04', orange: '#EA580C', red: '#DC2626', pink: '#DB2777', purple: '#9333EA' },
+  dark: { gray: '#9CA3AF', slate: '#94A3B8', blue: '#60A5FA', sky: '#38BDF8', teal: '#2DD4BF', green: '#4ADE80', lime: '#A3E635', yellow: '#FACC15', orange: '#FB923C', red: '#F87171', pink: '#F472B6', purple: '#C084FC' },
+};
+/** Fond, texte et bordure de chaque teinte sur la surface d'un mode : texte ≥ seuil sur son fond et sur la carte, bordure ≥ 3. */
+export function hues(surface, dark, overrides = {}, min = 4.5) {
+  const base = { ...HUE_BASE[dark ? 'dark' : 'light'], ...overrides };
+  return Object.fromEntries(Object.entries(base).map(([name, hue]) => {
+    const bg = mix(hue, surface, dark ? 0.24 : 0.14);
+    return [name, { bg, fg: ensure(ensure(hue, bg, min), surface, min), border: ensure(hue, surface, 3) }];
+  }));
+}
+
 function mode(p) {
   const s = p.surface;
   const T = p.aaa ? 7 : 4.5; // seuil du texte : AAA pour le thème Contraste élevé
   const ink = ensure(p.text, s, p.aaa ? 7 : 4.5);
-  const secondary = ensure(p.subtext, s, p.aaa ? 7 : 4.5);
-  const mute = ensure(p.mute, p.app, p.aaa ? 7 : 4.5);
-  const link = ensure(ensure(p.accent, s, T), p.app, T);
+  // Lisibles sur toutes les surfaces où ils se posent (carte, page, ligne survolée ou sélectionnée).
+  const over = (color, min) => [s, p.app, p.hover, p.selected].reduce((c, bg) => ensure(c, bg, min), color);
+  const secondary = over(p.subtext, T);
+  const mute = over(p.mute, T);
+  const link = over(p.accent, T);
   const control = ensure(p.control ?? p.mute, s, 3);
   // Repère d'accent : lisible sur toutes les surfaces où il se pose (carte, page, en-tête de tableau, sélection).
   const focus = [s, p.app, p.muted, p.selected].reduce((c, bg) => ensure(c, bg, 3), p.accent);
@@ -58,6 +75,7 @@ function mode(p) {
     },
     state: { success: state(p.success), warning: state(p.warning), danger: state(p.danger), info: state(p.accent), neutral: { bg: s, fg: secondary, 'fg-aa': secondary, border: control } },
     focus: { ring: focus, 'ring-on-inverse': ensure(p.onInverse, p.inverse, 3) },
+    hue: hues(s, p.dark, p.hues, T),
     inverse: {
       selected: `rgba(${rgb(focus).join(', ')}, 0.22)`,
       'text-secondary': ensure(mix(inverseText, p.inverse, 0.75), p.inverse, T),
@@ -67,7 +85,9 @@ function mode(p) {
   };
 }
 
-for (const file of process.argv.slice(2)) {
+// Lancé directement : écrit les thèmes ; importé (hues.mjs) : fournit seulement les fonctions.
+const direct = Boolean(process.argv[1]) && fileURLToPath(import.meta.url) === resolve(process.argv[1]);
+for (const file of direct ? process.argv.slice(2) : []) {
   const spec = JSON.parse(readFileSync(file, 'utf8'));
   const theme = {
     $schema: 'https://www.designtokens.org/schemas/2025.10/format.json',

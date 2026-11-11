@@ -130,7 +130,43 @@
     "size.toggle",
     "radius.control",
     "radius.surface",
-    "elevation.overlay"
+    "elevation.overlay",
+    "hue.gray.bg",
+    "hue.gray.fg",
+    "hue.gray.border",
+    "hue.slate.bg",
+    "hue.slate.fg",
+    "hue.slate.border",
+    "hue.blue.bg",
+    "hue.blue.fg",
+    "hue.blue.border",
+    "hue.sky.bg",
+    "hue.sky.fg",
+    "hue.sky.border",
+    "hue.teal.bg",
+    "hue.teal.fg",
+    "hue.teal.border",
+    "hue.green.bg",
+    "hue.green.fg",
+    "hue.green.border",
+    "hue.lime.bg",
+    "hue.lime.fg",
+    "hue.lime.border",
+    "hue.yellow.bg",
+    "hue.yellow.fg",
+    "hue.yellow.border",
+    "hue.orange.bg",
+    "hue.orange.fg",
+    "hue.orange.border",
+    "hue.red.bg",
+    "hue.red.fg",
+    "hue.red.border",
+    "hue.pink.bg",
+    "hue.pink.fg",
+    "hue.pink.border",
+    "hue.purple.bg",
+    "hue.purple.fg",
+    "hue.purple.border"
   ],
   "contrast": [
     {
@@ -349,6 +385,192 @@
       "bg": "surface.selected",
       "min": 3,
       "label": "repère de sélection"
+    },
+    {
+      "fg": "hue.gray.fg",
+      "bg": "hue.gray.bg",
+      "min": 4.5,
+      "label": "teinte gray : texte sur fond"
+    },
+    {
+      "fg": "hue.gray.border",
+      "bg": "surface.default",
+      "min": 3,
+      "label": "teinte gray : bordure"
+    },
+    {
+      "fg": "hue.slate.fg",
+      "bg": "hue.slate.bg",
+      "min": 4.5,
+      "label": "teinte slate : texte sur fond"
+    },
+    {
+      "fg": "hue.slate.border",
+      "bg": "surface.default",
+      "min": 3,
+      "label": "teinte slate : bordure"
+    },
+    {
+      "fg": "hue.blue.fg",
+      "bg": "hue.blue.bg",
+      "min": 4.5,
+      "label": "teinte blue : texte sur fond"
+    },
+    {
+      "fg": "hue.blue.border",
+      "bg": "surface.default",
+      "min": 3,
+      "label": "teinte blue : bordure"
+    },
+    {
+      "fg": "hue.sky.fg",
+      "bg": "hue.sky.bg",
+      "min": 4.5,
+      "label": "teinte sky : texte sur fond"
+    },
+    {
+      "fg": "hue.sky.border",
+      "bg": "surface.default",
+      "min": 3,
+      "label": "teinte sky : bordure"
+    },
+    {
+      "fg": "hue.teal.fg",
+      "bg": "hue.teal.bg",
+      "min": 4.5,
+      "label": "teinte teal : texte sur fond"
+    },
+    {
+      "fg": "hue.teal.border",
+      "bg": "surface.default",
+      "min": 3,
+      "label": "teinte teal : bordure"
+    },
+    {
+      "fg": "hue.green.fg",
+      "bg": "hue.green.bg",
+      "min": 4.5,
+      "label": "teinte green : texte sur fond"
+    },
+    {
+      "fg": "hue.green.border",
+      "bg": "surface.default",
+      "min": 3,
+      "label": "teinte green : bordure"
+    },
+    {
+      "fg": "hue.lime.fg",
+      "bg": "hue.lime.bg",
+      "min": 4.5,
+      "label": "teinte lime : texte sur fond"
+    },
+    {
+      "fg": "hue.lime.border",
+      "bg": "surface.default",
+      "min": 3,
+      "label": "teinte lime : bordure"
+    },
+    {
+      "fg": "hue.yellow.fg",
+      "bg": "hue.yellow.bg",
+      "min": 4.5,
+      "label": "teinte yellow : texte sur fond"
+    },
+    {
+      "fg": "hue.yellow.border",
+      "bg": "surface.default",
+      "min": 3,
+      "label": "teinte yellow : bordure"
+    },
+    {
+      "fg": "hue.orange.fg",
+      "bg": "hue.orange.bg",
+      "min": 4.5,
+      "label": "teinte orange : texte sur fond"
+    },
+    {
+      "fg": "hue.orange.border",
+      "bg": "surface.default",
+      "min": 3,
+      "label": "teinte orange : bordure"
+    },
+    {
+      "fg": "hue.red.fg",
+      "bg": "hue.red.bg",
+      "min": 4.5,
+      "label": "teinte red : texte sur fond"
+    },
+    {
+      "fg": "hue.red.border",
+      "bg": "surface.default",
+      "min": 3,
+      "label": "teinte red : bordure"
+    },
+    {
+      "fg": "hue.pink.fg",
+      "bg": "hue.pink.bg",
+      "min": 4.5,
+      "label": "teinte pink : texte sur fond"
+    },
+    {
+      "fg": "hue.pink.border",
+      "bg": "surface.default",
+      "min": 3,
+      "label": "teinte pink : bordure"
+    },
+    {
+      "fg": "hue.purple.fg",
+      "bg": "hue.purple.bg",
+      "min": 4.5,
+      "label": "teinte purple : texte sur fond"
+    },
+    {
+      "fg": "hue.purple.border",
+      "bg": "surface.default",
+      "min": 3,
+      "label": "teinte purple : bordure"
+    },
+    {
+      "fg": "text.link",
+      "bg": "surface.hover",
+      "min": 4.5,
+      "label": "lien sur ligne survolée"
+    },
+    {
+      "fg": "text.link",
+      "bg": "surface.selected",
+      "min": 4.5,
+      "label": "lien sur ligne sélectionnée"
+    },
+    {
+      "fg": "text.mute",
+      "bg": "surface.hover",
+      "min": 4.5,
+      "label": "texte atténué sur ligne survolée"
+    },
+    {
+      "fg": "text.mute",
+      "bg": "surface.selected",
+      "min": 4.5,
+      "label": "texte atténué sur ligne sélectionnée"
+    },
+    {
+      "fg": "text.secondary",
+      "bg": "surface.hover",
+      "min": 4.5,
+      "label": "texte secondaire sur ligne survolée"
+    },
+    {
+      "fg": "text.secondary",
+      "bg": "surface.selected",
+      "min": 4.5,
+      "label": "texte secondaire sur ligne sélectionnée"
+    },
+    {
+      "fg": "text.default",
+      "bg": "surface.muted",
+      "min": 4.5,
+      "label": "texte sur en-tête de tableau"
     }
   ]
 }

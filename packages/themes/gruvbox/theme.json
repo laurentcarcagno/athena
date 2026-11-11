@@ -276,6 +276,140 @@
           "$value": "#EBDBB2"
         }
       },
+      "hue": {
+        "gray": {
+          "bg": {
+            "$value": "#E9DFB9"
+          },
+          "fg": {
+            "$value": "#6B5F56"
+          },
+          "border": {
+            "$value": "#7C6F64"
+          }
+        },
+        "slate": {
+          "bg": {
+            "$value": "#E6E0BF"
+          },
+          "fg": {
+            "$value": "#566478"
+          },
+          "border": {
+            "$value": "#64748B"
+          }
+        },
+        "blue": {
+          "bg": {
+            "$value": "#D9DEBC"
+          },
+          "fg": {
+            "$value": "#076678"
+          },
+          "border": {
+            "$value": "#076678"
+          }
+        },
+        "sky": {
+          "bg": {
+            "$value": "#D8E2C7"
+          },
+          "fg": {
+            "$value": "#02679B"
+          },
+          "border": {
+            "$value": "#0284C7"
+          }
+        },
+        "teal": {
+          "bg": {
+            "$value": "#E1E0B7"
+          },
+          "fg": {
+            "$value": "#3A6C4D"
+          },
+          "border": {
+            "$value": "#427B58"
+          }
+        },
+        "green": {
+          "bg": {
+            "$value": "#E9E0AD"
+          },
+          "fg": {
+            "$value": "#68640C"
+          },
+          "border": {
+            "$value": "#79740E"
+          }
+        },
+        "lime": {
+          "bg": {
+            "$value": "#E6E6AD"
+          },
+          "fg": {
+            "$value": "#456F09"
+          },
+          "border": {
+            "$value": "#5F990C"
+          }
+        },
+        "yellow": {
+          "bg": {
+            "$value": "#F1E0AE"
+          },
+          "fg": {
+            "$value": "#8A5A0F"
+          },
+          "border": {
+            "$value": "#B57614"
+          }
+        },
+        "orange": {
+          "bg": {
+            "$value": "#F0D7AC"
+          },
+          "fg": {
+            "$value": "#A83803"
+          },
+          "border": {
+            "$value": "#AF3A03"
+          }
+        },
+        "red": {
+          "bg": {
+            "$value": "#EECFAC"
+          },
+          "fg": {
+            "$value": "#9D0006"
+          },
+          "border": {
+            "$value": "#9D0006"
+          }
+        },
+        "pink": {
+          "bg": {
+            "$value": "#F7D5BC"
+          },
+          "fg": {
+            "$value": "#B42062"
+          },
+          "border": {
+            "$value": "#DB2777"
+          }
+        },
+        "purple": {
+          "bg": {
+            "$value": "#ECD8BB"
+          },
+          "fg": {
+            "$value": "#8F3F71"
+          },
+          "border": {
+            "$value": "#8F3F71"
+          }
+        }
+      },
       "inverse": {
         "selected": {
           "$value": "rgba(7, 102, 120, 0.22)"
@@ -335,10 +469,10 @@
           "$value": "#1D2021"
         },
         "link": {
-          "$value": "#83A598"
+          "$value": "#96B3A8"
         },
         "link-aa": {
-          "$value": "#83A598"
+          "$value": "#96B3A8"
         },
         "heading": {
           "$value": "#EBDBB2"
@@ -479,6 +613,140 @@
         },
         "ring-on-inverse": {
           "$value": "#EBDBB2"
+        }
+      },
+      "hue": {
+        "gray": {
+          "bg": {
+            "$value": "#47433E"
+          },
+          "fg": {
+            "$value": "#BBAF9F"
+          },
+          "border": {
+            "$value": "#A89984"
+          }
+        },
+        "slate": {
+          "bg": {
+            "$value": "#42464B"
+          },
+          "fg": {
+            "$value": "#A7B4C5"
+          },
+          "border": {
+            "$value": "#94A3B8"
+          }
+        },
+        "blue": {
+          "bg": {
+            "$value": "#3E4643"
+          },
+          "fg": {
+            "$value": "#9CB7AD"
+          },
+          "border": {
+            "$value": "#83A598"
+          }
+        },
+        "sky": {
+          "bg": {
+            "$value": "#2C4C5A"
+          },
+          "fg": {
+            "$value": "#48C2F9"
+          },
+          "border": {
+            "$value": "#38BDF8"
+          }
+        },
+        "teal": {
+          "bg": {
+            "$value": "#404C3C"
+          },
+          "fg": {
+            "$value": "#95C484"
+          },
+          "border": {
+            "$value": "#8EC07C"
+          }
+        },
+        "green": {
+          "bg": {
+            "$value": "#4B4B28"
+          },
+          "fg": {
+            "$value": "#BBBE2F"
+          },
+          "border": {
+            "$value": "#B8BB26"
+          }
+        },
+        "lime": {
+          "bg": {
+            "$value": "#46562B"
+          },
+          "fg": {
+            "$value": "#A3E635"
+          },
+          "border": {
+            "$value": "#A3E635"
+          }
+        },
+        "yellow": {
+          "bg": {
+            "$value": "#5A4C2A"
+          },
+          "fg": {
+            "$value": "#FABD2F"
+          },
+          "border": {
+            "$value": "#FABD2F"
+          }
+        },
+        "orange": {
+          "bg": {
+            "$value": "#5B3D24"
+          },
+          "fg": {
+            "$value": "#FE9742"
+          },
+          "border": {
+            "$value": "#FE8019"
+          }
+        },
+        "red": {
+          "bg": {
+            "$value": "#5B302B"
+          },
+          "fg": {
+            "$value": "#FC8375"
+          },
+          "border": {
+            "$value": "#FB4934"
+          }
+        },
+        "pink": {
+          "bg": {
+            "$value": "#593A4A"
+          },
+          "fg": {
+            "$value": "#F68EC5"
+          },
+          "border": {
+            "$value": "#F472B6"
+          }
+        },
+        "purple": {
+          "bg": {
+            "$value": "#513F44"
+          },
+          "fg": {
+            "$value": "#DDA1B1"
+          },
+          "border": {
+            "$value": "#D3869B"
+          }
         }
       },
       "inverse": {
