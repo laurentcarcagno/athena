@@ -43,3 +43,7 @@
 .ath-wf__labelbg { fill: var(--ath-surface-default); stroke: var(--ath-border-default); stroke-width: 1; }
 .ath-wf__label { fill: var(--ath-text-secondary); font-size: var(--ath-font-size-small); }
 
+
+/* Automatisations (T-0145) : modèles prêts à l'emploi, une ligne par modèle. */
+.ath-list-plain { list-style: none; margin: 0; padding: 0; }
+.ath-automation-template { display: flex; align-items: center; justify-content: space-between; gap: var(--ath-space-md); padding: var(--ath-space-sm) var(--ath-space-md); }

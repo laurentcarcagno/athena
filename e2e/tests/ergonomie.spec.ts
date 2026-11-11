@@ -46,3 +46,15 @@ test('chef de projet : création de tracker et configuration d’un tracker dise
   await expect(page).toHaveURL(/\/parametres\/trackers\/BUG$/);
 });
 
+test('automatisations : un administrateur crée une règle depuis un modèle, elle apparaît active (T-0145)', async ({ page }) => {
+  await login(page);
+  await page.goto('/p/ARI/parametres/automatisations');
+  await expect(page.getByText(/Une automatisation agit seule/)).toBeVisible();
+  await page.getByRole('button', { name: 'Utiliser le modèle : Relance des tickets bloqués' }).click();
+  await expect(page.getByLabel('Quand')).toHaveValue('schedule');
+  await page.getByRole('button', { name: 'Créer l’automatisation' }).click();
+  await expect(page.getByText('Automatisation « Relance des tickets bloqués » créée et active.')).toBeVisible();
+  const row = page.getByRole('row', { name: /Relance des tickets bloqués/ });
+  await expect(row.getByText('Active', { exact: true })).toBeVisible();
+  await expect(row.getByText('À intervalle régulier')).toBeVisible();
+});

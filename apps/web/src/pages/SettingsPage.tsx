@@ -10,7 +10,8 @@ import { SETTINGS_SECTIONS, visibleSettings, type SettingsId } from '../lib/navi
 import { AccessNotice, whoOf } from '../components/AccessNotice';
 import { MembersPanel } from './project/MembersTab';
 import { BoardsTab } from './ProjectManagePage';
-import { AutomationsTab, BaselineCreate } from './SettingsPanels';
+import { BaselineCreate } from './SettingsPanels';
+import { AutomationsTab } from '../components/AutomationEditor';
 import { TrackerConfigPage } from './TrackerConfigPage';
 
 /** Paramètres › Trackers : liste des trackers, chacun mène à sa configuration ; création d'un tracker. */

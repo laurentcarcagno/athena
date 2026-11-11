@@ -1,4 +1,4 @@
-/** Panneaux des Paramètres du projet (T-0120) : automatisations, baselines ; et les webhooks de l'Administration. */
+/** Panneaux des Paramètres du projet (T-0120) : baselines ; et les webhooks de l'Administration. Automatisations : components/AutomationEditor (T-0145). */
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { Btn, Card, EmptyState, Field, StatusPill, Table, Td, Th, useToast } from '@athena/ui';
 import { api } from '../api';
@@ -6,7 +6,6 @@ import { useFailure } from '../hooks';
 import { fr } from '../i18n';
 
 interface Webhook { id: string; url: string; eventTypes: string[]; active: boolean }
-interface Rule { id: string; name: string; enabled: boolean; trigger: string; condition: string }
 
 /** Webhooks de l'organisation : objet global, réglé dans l'Administration (T-0120). */
 export function WebhooksTab() {
@@ -43,34 +42,6 @@ export function WebhooksTab() {
         <Btn icon="plus" type="submit" disabled={!url}>{fr.admin.create}</Btn>
       </form>
     </div>
-  );
-}
-
-export function AutomationsTab({ project }: { project: string }) {
-  const toast = useToast();
-  const fail = useFailure();
-  const [items, setItems] = useState<Rule[]>([]);
-  const load = useCallback(() => api<Rule[]>('GET', `/v1/projects/${project}/automations`).then(setItems).catch(fail), [project, fail]);
-  useEffect(() => { void load(); }, [load]);
-  const toggle = async (rule: Rule) => {
-    try {
-      await api('POST', `/v1/automations/${rule.id}/${rule.enabled ? 'disable' : 'enable'}`);
-      toast('success', fr.admin.toggled);
-      await load();
-    } catch (error) { fail(error); }
-  };
-  return items.length === 0 ? <EmptyState eyebrow={fr.admin.automations} title={fr.admin.empty} /> : (
-    <Table>
-      <thead><tr><Th>{fr.config.name}</Th><Th>{fr.admin.trigger}</Th><Th>ATQL</Th><Th>{fr.admin.active}</Th></tr></thead>
-      <tbody>
-        {items.map((r) => (
-          <tr key={r.id}>
-            <Td>{r.name}</Td><Td mono>{r.trigger}</Td><Td mono>{r.condition || '—'}</Td>
-            <Td><Btn size="sm" variant="ghost" onClick={() => toggle(r)}>{r.enabled ? fr.admin.disable : fr.admin.enable}</Btn></Td>
-          </tr>
-        ))}
-      </tbody>
-    </Table>
   );
 }
 
