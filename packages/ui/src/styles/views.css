@@ -81,3 +81,4 @@
 .ath-advanced__summary { cursor: pointer; }
 .ath-advanced__body { margin-top: var(--ath-space-md); }
 .ath-row--between { justify-content: space-between; }
+.ath-cards--wide { grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); }

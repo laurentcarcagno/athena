@@ -9,7 +9,7 @@ const frDict = {
   language: 'English',
   projectContext: 'Projet',
   nav: { overview: 'Vue d’ensemble', projects: 'Projets', search: 'Recherche', dashboard: 'Tableau de bord', admin: 'Administration', logout: 'Déconnexion', palette: 'Commandes', work: 'Mon travail', manage: 'Gestion de projet', organization: 'Organisation', help: 'Aide', menu: 'Menu', skip: 'Aller au contenu' },
-  projects: { eyebrow: 'Mission console', title: 'Projets', newProject: 'Nouveau projet', project: 'Projet', expand: 'Déplier les trackers de', collapse: 'Replier les trackers de', expandColumn: 'Trackers du projet', empty: 'Aucun projet.', emptyEyebrow: 'Aucun résultat', trackers: 'Trackers', boards: 'Boards', trackerName: 'Tracker', artifacts: 'Tickets', attributes: 'Attributs', noTracker: 'Aucun tracker.', noAttribute: 'Aucun attribut.' },
+  projects: { title: 'Projets', newProject: 'Nouveau projet', project: 'Projet', expand: 'Déplier les trackers de', collapse: 'Replier les trackers de', expandColumn: 'Trackers du projet', empty: 'Aucun projet.', emptyEyebrow: 'Aucun résultat', trackers: 'Trackers', boards: 'Boards', trackerName: 'Tracker', artifacts: 'Tickets', attributes: 'Attributs', noTracker: 'Aucun tracker.', noAttribute: 'Aucun attribut.', trackerCount: (n: number) => `${n} tracker${n > 1 ? 's' : ''}`, openTickets: (n: number) => `${n} ticket${n > 1 ? 's' : ''} ouvert${n > 1 ? 's' : ''}`, open: 'Ouvrir', openNamed: (p: string) => `Ouvrir ${p}` },
   list: {
     eyebrow: 'Recherche', placeholder: 'Requête ATQL, par exemple status = open AND severity = majeure', run: 'Rechercher',
     key: 'Clé', title: 'Titre', status: 'Statut', tracker: 'Tracker', updated: 'Mis à jour', total: (n: number) => `${n} résultat${n > 1 ? 's' : ''}`,
@@ -96,7 +96,7 @@ const frDict = {
     enable: 'Activer', disable: 'Désactiver', active: 'Actif', inactive: 'Inactif', baselineName: 'Nom de la baseline', createdBaseline: (n: string) => `Baseline ${n} créée.`,
     createdWebhook: 'Webhook créé.', toggled: 'État modifié.', trigger: 'Déclencheur',
   },
-  work: { eyebrow: 'Traitement', title: 'Mon travail', assigned: 'Assignés à moi', available: 'À prendre', take: 'Prendre', taken: (k: string) => `${k} vous est assigné.`, none: 'Rien à traiter.', project: 'Projet', mentions: 'Mentions', mentionsNone: 'Aucune mention.', mentionedBy: 'Par', when: 'Date', unread: 'Non lue' },
+  work: { title: 'Mon travail', assigned: 'Assignés à moi', available: 'À prendre', take: 'Prendre', taken: (k: string) => `${k} vous est assigné.`, none: 'Rien à traiter.', project: 'Projet', mentions: 'Mentions', mentionsNone: 'Aucune mention.', mentionedBy: 'Par', when: 'Date', unread: 'Non lue' },
   org: {
     eyebrow: 'Organisation', title: 'Administration de l’organisation', projects: 'Projets', users: 'Utilisateurs', plugins: 'Plugins', trackerTypes: 'Types', linkTypes: 'Liens',
     templates: 'Gabarits', template: 'Gabarit du projet', noTemplate: 'Projet vide', templateKey: 'Clé du gabarit (minuscules)', templateName: 'Nom du gabarit', templateDescription: 'Description', fromProject: 'Reprendre les trackers du projet', pickTrackers: 'Trackers à inclure', createTemplate: 'Créer le gabarit', templateCreated: 'Gabarit créé.', deleteTemplate: 'Supprimer', templateDeleted: 'Gabarit supprimé.', builtin: 'Livré', trackersCount: 'Trackers', attributes: 'Attributs',
@@ -437,7 +437,7 @@ const enDict: Dictionary = {
   language: 'Français',
   projectContext: 'Project',
   nav: { overview: 'Overview', projects: 'Projects', search: 'Search', dashboard: 'Dashboard', admin: 'Administration', logout: 'Sign out', palette: 'Commands', work: 'My work', manage: 'Project management', organization: 'Organization', help: 'Help', menu: 'Menu', skip: 'Skip to content' },
-  projects: { eyebrow: 'Mission console', title: 'Projects', newProject: 'New project', project: 'Project', expand: 'Show trackers of', collapse: 'Hide trackers of', expandColumn: 'Project trackers', empty: 'No project.', emptyEyebrow: 'No result', trackers: 'Trackers', boards: 'Boards', trackerName: 'Tracker', artifacts: 'Artifacts', attributes: 'Attributes', noTracker: 'No tracker.', noAttribute: 'No attribute.' },
+  projects: { title: 'Projects', newProject: 'New project', project: 'Project', expand: 'Show trackers of', collapse: 'Hide trackers of', expandColumn: 'Project trackers', empty: 'No project.', emptyEyebrow: 'No result', trackers: 'Trackers', boards: 'Boards', trackerName: 'Tracker', artifacts: 'Artifacts', attributes: 'Attributes', noTracker: 'No tracker.', noAttribute: 'No attribute.', trackerCount: (n: number) => `${n} tracker${n > 1 ? 's' : ''}`, openTickets: (n: number) => `${n} open ticket${n > 1 ? 's' : ''}`, open: 'Open', openNamed: (p: string) => `Open ${p}` },
   list: {
     eyebrow: 'Search', placeholder: 'ATQL query, for example status = open AND severity = major', run: 'Search',
     key: 'Key', title: 'Title', status: 'Status', tracker: 'Tracker', updated: 'Updated', total: (n: number) => `${n} result${n > 1 ? 's' : ''}`,
@@ -524,7 +524,7 @@ const enDict: Dictionary = {
     enable: 'Enable', disable: 'Disable', active: 'Active', inactive: 'Inactive', baselineName: 'Baseline name', createdBaseline: (n: string) => `Baseline ${n} created.`,
     createdWebhook: 'Webhook created.', toggled: 'State changed.', trigger: 'Trigger',
   },
-  work: { eyebrow: 'Work', title: 'My work', assigned: 'Assigned to me', available: 'To pick up', take: 'Take', taken: (k: string) => `${k} is now assigned to you.`, none: 'Nothing to process.', project: 'Project', mentions: 'Mentions', mentionsNone: 'No mention.', mentionedBy: 'By', when: 'Date', unread: 'Unread' },
+  work: { title: 'My work', assigned: 'Assigned to me', available: 'To pick up', take: 'Take', taken: (k: string) => `${k} is now assigned to you.`, none: 'Nothing to process.', project: 'Project', mentions: 'Mentions', mentionsNone: 'No mention.', mentionedBy: 'By', when: 'Date', unread: 'Unread' },
   org: {
     eyebrow: 'Organization', title: 'Organization administration', projects: 'Projects', users: 'Users', plugins: 'Plugins', trackerTypes: 'Types', linkTypes: 'Links',
     templates: 'Templates', template: 'Project template', noTemplate: 'Empty project', templateKey: 'Template key (lowercase)', templateName: 'Template name', templateDescription: 'Description', fromProject: 'Reuse the trackers of project', pickTrackers: 'Trackers to include', createTemplate: 'Create template', templateCreated: 'Template created.', deleteTemplate: 'Delete', templateDeleted: 'Template deleted.', builtin: 'Built-in', trackersCount: 'Trackers', attributes: 'Attributes',

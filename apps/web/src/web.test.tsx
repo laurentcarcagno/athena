@@ -196,19 +196,18 @@ describe('board et projets', () => {
     await userEvent.selectOptions(screen.getByLabelText('Déplacer vers'), 'En cours');
     expect(await screen.findByText(/Limite WIP atteinte/)).toBeInTheDocument();
   });
-  it('liste les projets avec trackers et boards', async () => {
+  it('présente chaque projet en carte : trackers, boards, Ouvrir (T-0152)', async () => {
     handlers = [
       route('GET', '/v1/projects', { body: [{ key: 'ARI', name: 'Ariane' }] }),
       route('GET', '/v1/projects/ARI/trackers', { body: [{ key: 'BUG', name: 'Bugs', description: '', artifacts: 12 }] }),
       route('GET', '/v1/projects/ARI/boards', { body: [{ key: 'kanban', name: 'Kanban' }] }),
     ];
     renderAt('/', <ProjectsPage />, '/');
-    const row = (await screen.findByText('Ariane')).closest('tr')!;
-    expect(within(row).getByRole('link', { name: 'Kanban' })).toHaveAttribute('href', '/p/ARI/board/kanban');
-    expect(within(row).getByRole('link', { name: 'Ariane' })).toHaveAttribute('href', '/p/ARI');
-    expect(within(row).getByRole('button', { name: 'Replier les trackers de Ariane' })).toHaveAttribute('aria-expanded', 'true'); // un seul projet : déplié d’office
-    const tracker = (await screen.findByRole('link', { name: 'Bugs' })).closest('tr')!;
-    expect(within(tracker).getByText('12')).toHaveClass('ath-mono');
-    expect(within(tracker).queryByText('BUG')).toBeNull(); // pas de tag de clé à côté du nom
+    const card = (await screen.findByRole('heading', { name: 'Ariane' })).closest('[role=listitem]') as HTMLElement;
+    expect(within(card).getByRole('link', { name: 'Kanban' })).toHaveAttribute('href', '/p/ARI/board/kanban');
+    expect(within(card).getByRole('link', { name: 'Ouvrir Ariane' })).toHaveAttribute('href', '/p/ARI');
+    expect(within(card).getByRole('link', { name: 'Bugs' })).toHaveAttribute('href', '/p/ARI/t/BUG/tableau');
+    expect(within(card).getByText('(12)')).toHaveClass('ath-mono');
   });
+
 });

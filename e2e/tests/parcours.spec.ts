@@ -22,12 +22,11 @@ async function login(page: Page, username: string, password: string) {
   await page.waitForURL(/localhost:3000/);
 }
 
-/** Page Projets : déplie les trackers d'un projet (repliés depuis le lot 8 ; l'état déplié est mémorisé d'une visite à l'autre). */
+/** Page Projets : la carte du projet (T-0152) montre ses trackers, sans dépliage. */
 async function showTrackers(page: Page, project: string): Promise<void> {
-  const toggle = page.getByRole('button', { name: new RegExp(`trackers de ${project}$`) });
-  if ((await toggle.getAttribute('aria-expanded')) === 'false') await toggle.click();
-  await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+  await expect(page.getByRole('heading', { name: project })).toBeVisible();
 }
+const projectCard = (page: Page, project: string) => page.getByRole('listitem').filter({ has: page.getByRole('heading', { name: project }) });
 
 test('connexion Keycloak, liste des projets, ouverture d’un ticket et transition', async ({ page }) => {
   await login(page, 'user.dev', 'dev-only-user');
@@ -129,8 +128,8 @@ test('administrateur : crée un projet, nomme un chef de projet et gère les act
   await expect(page.getByText('Projet PAY créé.')).toBeVisible();
   await page.goto('/projets');
   await showTrackers(page, 'Paiement'); // trackers affichés par leur nom depuis le lot 8
-  await expect(page.getByRole('row', { name: /^Exigences/ })).toBeVisible();
-  await expect(page.getByRole('row', { name: /^Bugs/ })).toBeVisible();
+  await expect(projectCard(page, 'Paiement').getByRole('link', { name: 'Exigences' })).toBeVisible();
+  await expect(projectCard(page, 'Paiement').getByRole('link', { name: 'Bugs' })).toBeVisible();
   expect(await axeViolations(page)).toEqual([]);
   await page.goto('/org');
   await page.getByRole('tab', { name: 'Gabarits' }).click();

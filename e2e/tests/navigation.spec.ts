@@ -14,7 +14,7 @@ test('Projets, tracker, ticket : trois actions, puis retour au projet par le fil
   await login(page, 'user.dev', 'dev-only-user');
   await page.goto('/projets'); // T-0123 : « / » est Mon travail
   await expect(page.getByText('Ariane')).toBeVisible();
-  await page.getByRole('link', { name: 'Ariane', exact: true }).click(); // 1 : le projet (les trackers de la page Projets sont repliés depuis le lot 8)
+  await page.getByRole('link', { name: 'Ouvrir Ariane' }).click(); // 1 : le projet, depuis sa carte (T-0152)
   await page.getByRole('group', { name: 'Projet ARI' }).getByRole('button', { name: /^BUG · / }).click(); // 2 : le tracker, au rail (ADR-0003)
   await expect(page).toHaveURL(/\/p\/ARI\/t\/BUG\/tableau/);
   await page.getByRole('link', { name: 'ARI-BUG-0001' }).click(); // 3 : l'item s'ouvre à droite

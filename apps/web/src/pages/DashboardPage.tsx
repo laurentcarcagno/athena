@@ -130,7 +130,7 @@ export function DashboardPage({ embedded = false, tabs, title = fr.dashboard.tit
               <Gantt releases={roadmap} />
               {roadmap.map((r) => (
                 <div key={r.id}>
-                  <div className="ath-row"><strong>{r.name}</strong> <StatusPill kind={r.state === 'released' ? 'success' : 'info'}>{r.state}</StatusPill> <span className="ath-mono">{r.startsOn} → {r.endsOn}</span></div>
+                  <div className="ath-row"><strong>{r.name}</strong> <StatusPill kind={r.state === 'released' ? 'success' : 'info'}>{r.state === 'released' ? fr.roadmap.released : fr.roadmap.planned}</StatusPill> <span className="ath-mono">{r.startsOn} → {r.endsOn}</span></div>
                   <Bar value={Math.round(r.progress * 100)} max={100} label={r.name} />
                   <span className="ath-mono">{r.doneItems} / {r.items}</span>
                 </div>

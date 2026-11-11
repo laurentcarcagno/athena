@@ -103,21 +103,19 @@ afterEach(() => { vi.unstubAllGlobals(); setLocale('fr'); });
 const admin: Session = { authenticated: true, user: { username: 'a', name: 'Alice', email: null, roles: ['athena-admin', 'athena-user'], groups: [] } };
 
 describe('vue projet', () => {
-  it('affiche chaque tracker sur une ligne : nom, nombre d’tickets et attributs', async () => {
+  it('chaque tracker : nom, nombre de tickets, attributs en info-bulle (T-0152)', async () => {
     routes.push(['GET', /\/v1\/projects$/, [{ key: 'ARI', name: 'Ariane' }]]);
     routes.push(['GET', /\/v1\/projects\/ARI\/trackers$/, [{ key: 'BUG', name: 'Bugs', artifacts: 12 }, { key: 'REQ', name: 'Exigences', artifacts: 3 }]]);
     routes.push(['GET', /\/trackers\/BUG$/, { fields: [{ label: 'Titre' }, { label: 'Sévérité' }] }]);
     routes.push(['GET', /\/trackers\/REQ$/, { fields: [{ label: 'Énoncé' }] }]);
     routes.push(['GET', /\/boards$/, []]);
     render(<ToastProvider><MemoryRouter><ProjectsPage /></MemoryRouter></ToastProvider>);
-    const row = (await screen.findByRole('link', { name: 'Bugs' })).closest('tr')!; // un seul projet : déplié d’office
-    expect(within(row).getByText('12')).toBeInTheDocument();
-    expect(within(row).getByText('Titre')).toBeInTheDocument();
-    expect(within(row).getByText('Sévérité')).toBeInTheDocument();
-    const second = screen.getByRole('link', { name: 'Exigences' }).closest('tr')!;
-    expect(within(second).getByText('3')).toBeInTheDocument();
-    expect(within(second).getByText('Énoncé')).toBeInTheDocument();
+    expect(await screen.findByRole('link', { name: 'Bugs' })).toHaveAttribute('title', 'Attributs : Titre, Sévérité');
+    expect(screen.getByText('(12)')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Exigences' })).toHaveAttribute('title', 'Attributs : Énoncé');
+    expect(screen.getByText('(3)')).toBeInTheDocument();
   });
+
 });
 
 describe('gabarits de projet', () => {

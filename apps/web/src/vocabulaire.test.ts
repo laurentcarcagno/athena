@@ -30,6 +30,11 @@ describe('vocabulaire (glossaire de l’ADR-0003)', () => {
     expect(fr.filter(([, text]) => FORBIDDEN.test(text)).map(([path, text]) => `${path} : ${text}`)).toEqual([]);
   });
 
+  it('aucun état ni étiquette en anglais dans les textes français (T-0152)', () => {
+    const ENGLISH = /\b(planned|released|nothing here|mission console|query mode|filter mode)\b/i;
+    expect(fr.filter(([, text]) => ENGLISH.test(text)).map(([path, text]) => `${path} : ${text}`)).toEqual([]);
+  });
+
   it('emploie les termes du glossaire', () => {
     const all = fr.map(([, text]) => text).join('\n');
     for (const term of ['Ticket', 'Version', 'Gabarit', 'Backlog', 'Roadmap', 'Rapports', 'Paramètres', 'Administration', 'Membre']) expect(all).toContain(term);

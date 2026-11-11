@@ -57,7 +57,7 @@ export function MyWorkPage({ session }: { session: Session }) {
 
   return (
     <>
-      <PageHeader eyebrow={fr.work.eyebrow} title={fr.work.title} />
+      <PageHeader title={fr.work.title} />
       <div className="ath-stack">
         <Dashboard qa={(session.user?.roles ?? []).includes('athena-qa')} />
         <h2 className="ath-section-title">{fr.work.available}</h2>
