@@ -17,7 +17,7 @@ test('écran Tracker : « + Nouveau ticket » crée dans ce tracker, la liste re
   const form = page.getByRole('dialog', { name: 'Nouveau ticket' });
   await expect(form.getByLabel('Tracker')).toHaveValue('BUG');
   await form.getByLabel('Titre (obligatoire)').fill('Écran figé après mise en veille');
-  await form.getByRole('button', { name: 'Créer' }).click();
+  await form.getByRole('button', { name: 'Créer le ticket' }).click();
   await expect(page.getByRole('complementary', { name: 'Détail du ticket' })).toBeVisible();
   await expect(page).toHaveURL(/\/p\/ARI\/t\/BUG\/tableau\?.*i=ARI-BUG-\d{4}/);
   const key = new URL(page.url()).searchParams.get('i')!;
@@ -32,7 +32,7 @@ test('« Créer » depuis Mon travail : projet puis tracker, on reste sur Mon tr
   await form.getByLabel('Projet').selectOption('ARI');
   await expect(form.getByLabel('Tracker')).toHaveValue('BUG');
   await form.getByLabel('Titre (obligatoire)').fill('Créé depuis Mon travail');
-  await form.getByRole('button', { name: 'Créer' }).click();
+  await form.getByRole('button', { name: 'Créer le ticket' }).click();
   const open = page.getByRole('button', { name: /^Ouvrir ARI-BUG-\d{4}$/ });
   await expect(open).toBeVisible();
   await expect(page).toHaveURL(/\/$/);

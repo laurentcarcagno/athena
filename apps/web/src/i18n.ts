@@ -17,7 +17,9 @@ const frDict = {
     previous: 'Précédent', next: 'Suivant', create: 'Nouveau ticket',
     suggestions: 'Suggestions', filters: 'Filtres enregistrés', noFilter: 'Aucun', saveFilter: 'Enregistrer', filterName: 'Nom du filtre', shareFilter: 'Partagé', filterSaved: 'Filtre enregistré.', deleteFilter: 'Supprimer le filtre',
   },
-  create: { title: 'Nouveau ticket', tracker: 'Tracker', project: 'Projet', submit: 'Créer', cancel: 'Annuler', created: (key: string) => `${key} créé.`, noTracker: 'Aucun tracker disponible.', openIt: (key: string) => `Ouvrir ${key}`, global: 'Créer un ticket' },
+  create: { title: 'Nouveau ticket', tracker: 'Tracker', project: 'Projet', submit: 'Créer', cancel: 'Annuler', created: (key: string) => `${key} créé.`, noTracker: 'Aucun tracker disponible.', openIt: (key: string) => `Ouvrir ${key}`, global: 'Créer un ticket',
+    submitLong: 'Créer le ticket', more: (n: number, labels: string) => `Plus de champs (${n}) : ${labels}`, less: 'Moins de champs', keys: 'Entrée pour créer · Échap pour annuler',
+    titleExample: 'Ex. : la télémétrie s’arrête après 2 h', me: 'Moi', you: (name: string) => `Vous (${name})`, change: 'Changer', assigneePlaceholder: 'Identifiant du compte' },
   artifact: {
     readOnlyBy: (roles: string[]) => `Lecture seule : modifiable par ${roles.join(', ')}.`,
     details: 'Détails', links: 'Liens', history: 'Historique', activity: 'Commentaires', development: 'Développement',
@@ -439,7 +441,9 @@ const enDict: Dictionary = {
     previous: 'Previous', next: 'Next', create: 'New artifact',
     suggestions: 'Suggestions', filters: 'Saved filters', noFilter: 'None', saveFilter: 'Save', filterName: 'Filter name', shareFilter: 'Shared', filterSaved: 'Filter saved.', deleteFilter: 'Delete filter',
   },
-  create: { title: 'New artifact', tracker: 'Tracker', project: 'Project', submit: 'Create', cancel: 'Cancel', created: (key: string) => `${key} created.`, noTracker: 'No tracker available.', openIt: (key: string) => `Open ${key}`, global: 'Create a ticket' },
+  create: { title: 'New artifact', tracker: 'Tracker', project: 'Project', submit: 'Create', cancel: 'Cancel', created: (key: string) => `${key} created.`, noTracker: 'No tracker available.', openIt: (key: string) => `Open ${key}`, global: 'Create a ticket',
+    submitLong: 'Create the ticket', more: (n: number, labels: string) => `More fields (${n}): ${labels}`, less: 'Fewer fields', keys: 'Enter to create · Esc to cancel',
+    titleExample: 'E.g.: telemetry stops after 2 h', me: 'Me', you: (name: string) => `You (${name})`, change: 'Change', assigneePlaceholder: 'Account identifier' },
   artifact: {
     readOnlyBy: (roles: string[]) => `Read only: editable by ${roles.join(', ')}.`,
     details: 'Details', links: 'Links', history: 'History', activity: 'Comments', development: 'Development',

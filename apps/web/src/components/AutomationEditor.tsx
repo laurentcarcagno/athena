@@ -117,7 +117,7 @@ export function AutomationsTab({ project }: { project: string }) {
           <tbody>
             {items.map((r) => (
               <tr key={r.id}>
-                <Td>{r.name}</Td><Td>{t.triggers[r.trigger] ?? r.trigger}</Td><Td mono>{r.condition || t.always}</Td><Td>{r.actions.map(actionText).join(' ; ')}</Td>
+                <Td>{r.name}</Td><Td>{t.triggers[r.trigger] ?? r.trigger}</Td><Td mono>{r.condition || t.always}</Td><Td>{(r.actions ?? []).map(actionText).join(' ; ')}</Td>
                 <Td><StatusPill kind={r.enabled ? 'success' : 'default'}>{r.enabled ? t.enabled : t.disabled}</StatusPill></Td>
                 <Td><Btn size="sm" variant="ghost" onClick={() => toggle(r)}>{r.enabled ? fr.admin.disable : fr.admin.enable}</Btn></Td>
               </tr>

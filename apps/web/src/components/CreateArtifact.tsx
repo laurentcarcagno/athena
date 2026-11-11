@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Btn, Modal, Select, Textarea, useToast } from '@athena/ui';
-import { api, type Artifact, type Field, type TrackerDefinition } from '../api';
+import { api, currentUser, type Artifact, type Field, type TrackerDefinition } from '../api';
 import { useBusy, useFailure } from '../hooks';
 import { fr } from '../i18n';
 import { projectOfTarget, targetOf, trackerOfTarget, type CreateTarget, type Created } from '../lib/create-target';
@@ -26,14 +26,32 @@ function Input({ field, value, onChange }: { field: Field; value: string; onChan
           <option value="" />
           {options.map((o) => <option key={o} value={o}>{o}</option>)}
         </Select>
+      ) : field.type === 'user' ? (
+        <Assignee id={id} value={value} onChange={onChange} />
       ) : field.type === 'richtext' ? (
         <Textarea id={id} rows={4} value={value} onChange={(e) => onChange(e.target.value)} />
       ) : (
-        <input id={id} className={`ath-input${field.type === 'number' || field.type === 'date' ? ' ath-mono' : ''}`} type={field.type === 'number' ? 'number' : field.type === 'date' ? 'date' : 'text'} value={value} onChange={(e) => onChange(e.target.value)} />
+        <input id={id} className={`ath-input${field.type === 'number' || field.type === 'date' ? ' ath-mono' : ''}`} type={field.type === 'number' ? 'number' : field.type === 'date' ? 'date' : 'text'} value={value} onChange={(e) => onChange(e.target.value)}
+          placeholder={field.key === 'title' ? fr.create.titleExample : undefined} />
       )}
     </div>
   );
 }
+
+/** Responsable : « Moi » en un clic ; le compte choisi s'affiche par son nom (T-0146). */
+function Assignee({ id, value, onChange }: { id: string; value: string; onChange: (v: string) => void }) {
+  const me = currentUser();
+  if (me && value === me.id) return <div className="ath-row"><span id={id}>{fr.create.you(me.name)}</span><Btn variant="ghost" size="sm" onClick={() => onChange('')}>{fr.create.change}</Btn></div>;
+  return (
+    <div className="ath-row">
+      <input id={id} className="ath-input" type="text" value={value} placeholder={fr.create.assigneePlaceholder} onChange={(e) => onChange(e.target.value)} />
+      {me && <Btn variant="ghost" size="sm" onClick={() => onChange(me.id)}>{fr.create.me}</Btn>}
+    </div>
+  );
+}
+
+/** D'abord les champs obligatoires et la description ; les autres attendent sous « Plus de champs » (T-0146). */
+export const essential = (f: Field) => f.required || f.key === 'description';
 
 interface Option { key: string; name: string }
 
@@ -52,6 +70,7 @@ export function CreateArtifact({ target, open, onClose, onCreated }: {
   const [tracker, setTracker] = useState(trackerOfTarget(target) ?? '');
   const [definition, setDefinition] = useState<TrackerDefinition | null>(null);
   const [values, setValues] = useState<Record<string, string>>({});
+  const [more, setMore] = useState(false);
   // Les effets dépendent d'une clé stable : l'appelant peut recréer l'objet cible à chaque rendu.
   const targetKey = `${target.scope}:${projectOfTarget(target) ?? ''}:${trackerOfTarget(target) ?? ''}`;
   const current = useRef(target);
@@ -64,6 +83,7 @@ export function CreateArtifact({ target, open, onClose, onCreated }: {
     setProject(projectOfTarget(t) ?? '');
     setTracker(trackerOfTarget(t) ?? '');
     setValues({});
+    setMore(false);
     if (t.scope === 'global') api<Option[]>('GET', '/v1/projects').then((p) => { setProjects(p); if (p.length === 1) setProject(p[0]!.key); }).catch(fail);
   }, [open, targetKey, fail]);
   // Trackers du projet choisi ; si la liste est indisponible, le tracker pré-choisi reste seul proposé.
@@ -98,7 +118,7 @@ export function CreateArtifact({ target, open, onClose, onCreated }: {
 
   return (
     <Modal open={open} title={fr.create.title} size="md" onClose={onClose}
-      footer={<><Btn icon="close" variant="ghost" onClick={onClose}>{fr.create.cancel}</Btn><Btn icon="plus" type="submit" form="create-artifact" loading={busy} disabled={!definition}>{fr.create.submit}</Btn></>}>
+      footer={<><span className="ath-field__hint ath-create__keys">{fr.create.keys}</span><Btn variant="ghost" onClick={onClose}>{fr.create.cancel}</Btn><Btn type="submit" form="create-artifact" loading={busy} disabled={!definition}>{fr.create.submitLong}</Btn></>}>
       <form id="create-artifact" className="ath-stack" onSubmit={submit}>
         {target.scope === 'global' && (
           <div className="ath-field">
@@ -117,7 +137,16 @@ export function CreateArtifact({ target, open, onClose, onCreated }: {
             </Select>
           </div>
         ))}
-        {definition?.fields.map((f) => <Input key={f.key} field={f} value={values[f.key] ?? ''} onChange={(v) => setValues((s) => ({ ...s, [f.key]: v }))} />)}
+        {definition && (() => {
+          const field = (f: Field) => <Input key={f.key} field={f} value={values[f.key] ?? ''} onChange={(v) => setValues((s) => ({ ...s, [f.key]: v }))} />;
+          const main = definition.fields.filter(essential);
+          const rest = definition.fields.filter((f) => !essential(f));
+          return <>
+            {main.map(field)}
+            {rest.length > 0 && <div><Btn variant="ghost" size="sm" aria-expanded={more} onClick={() => setMore(!more)}>{more ? fr.create.less : fr.create.more(rest.length, rest.map((f) => f.label.toLowerCase()).join(', '))}</Btn></div>}
+            {more && rest.map(field)}
+          </>;
+        })()}
       </form>
     </Modal>
   );

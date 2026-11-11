@@ -47,3 +47,6 @@
 /* Automatisations (T-0145) : modèles prêts à l'emploi, une ligne par modèle. */
 .ath-list-plain { list-style: none; margin: 0; padding: 0; }
 .ath-automation-template { display: flex; align-items: center; justify-content: space-between; gap: var(--ath-space-md); padding: var(--ath-space-sm) var(--ath-space-md); }
+
+/* Nouveau ticket (T-0146) : rappel des touches à gauche du pied de la fenêtre, boutons à droite. */
+.ath-create__keys { margin-right: auto; }

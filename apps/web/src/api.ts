@@ -34,12 +34,16 @@ export interface Session {
 }
 
 let csrf: string | null = null;
+let me: { id: string; name: string } | null = null;
+/** Compte connecté (identifiant porté par le champ Responsable, et nom affiché) ; null avant le chargement de la session. */
+export const currentUser = () => me;
 
 export async function loadSession(): Promise<Session> {
   const response = await fetch('/auth/session', { credentials: 'include' });
   if (response.status === 429) throw new RateLimitedError('Trop de requêtes.', retryAfterOf(response));
   const session = (await response.json()) as Session;
   csrf = session.csrf ?? null;
+  me = session.user ? { id: session.user.id ?? session.user.username, name: session.user.name } : null;
   return session;
 }
 

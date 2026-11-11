@@ -57,7 +57,7 @@ describe('« Créer » de la barre haute', () => {
     await userEvent.selectOptions(await form.findByLabelText('Projet'), 'ARI');
     expect(await form.findByLabelText('Tracker')).toHaveValue('BUG');
     await userEvent.type(await form.findByLabelText('Titre (obligatoire)'), 'Nouveau');
-    await userEvent.click(form.getByRole('button', { name: 'Créer' }));
+    await userEvent.click(form.getByRole('button', { name: 'Créer le ticket' }));
     expect(await screen.findByText('ARI-BUG-0009 créé.')).toBeInTheDocument();
     expect(calls).toContain('POST /v1/projects/ARI/trackers/BUG/artifacts');
     expect(where()).toBe('/'); // on reste sur la page
@@ -92,7 +92,7 @@ describe('après création, on reste dans la liste', () => {
     expect(await form.findByLabelText('Tracker')).toHaveValue('BUG');
     await userEvent.type(await form.findByLabelText('Titre (obligatoire)'), 'Nouveau');
     const searches = calls.filter((c) => c.includes('/search?')).length;
-    await userEvent.click(form.getByRole('button', { name: 'Créer' }));
+    await userEvent.click(form.getByRole('button', { name: 'Créer le ticket' }));
     await waitFor(() => expect(where()).toBe('/p/ARI/t/BUG/tableau?i=ARI-BUG-0009'));
     await waitFor(() => expect(calls.filter((c) => c.includes('/search?')).length).toBeGreaterThan(searches));
   });
@@ -103,7 +103,7 @@ describe('après création, on reste dans la liste', () => {
     const form = within(await dialog());
     await userEvent.type(await form.findByLabelText('Titre (obligatoire)'), 'Nouveau');
     const searches = calls.filter((c) => c.includes('/search?')).length;
-    await userEvent.click(form.getByRole('button', { name: 'Créer' }));
+    await userEvent.click(form.getByRole('button', { name: 'Créer le ticket' }));
     expect(await screen.findByText('ARI-BUG-0009 créé.')).toBeInTheDocument();
     expect(where()).toBe('/p/ARI/recherche?q=status%20%3D%20open');
     await waitFor(() => expect(calls.filter((c) => c.includes('/search?')).length).toBeGreaterThan(searches));

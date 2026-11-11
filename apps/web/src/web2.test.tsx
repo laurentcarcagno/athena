@@ -90,9 +90,10 @@ describe('création d’ticket', () => {
     const onCreated = vi.fn();
     render(<ToastProvider><MemoryRouter><CreateArtifact target={{ scope: 'tracker', project: 'ARI', tracker: 'BUG' }} open onClose={() => undefined} onCreated={onCreated} /></MemoryRouter></ToastProvider>);
     await userEvent.type(await screen.findByLabelText('Titre (obligatoire)'), 'Crash');
+    await userEvent.click(screen.getByRole('button', { name: /^Plus de champs/ })); // T-0146 : champs facultatifs repliés
     await userEvent.type(screen.getByLabelText('Points'), '8');
     await userEvent.selectOptions(screen.getByLabelText('Sévérité (obligatoire)'), 'majeure');
-    await userEvent.click(screen.getByRole('button', { name: 'Créer' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Créer le ticket' }));
     await waitFor(() => expect(onCreated).toHaveBeenCalledWith({ key: 'BUG-7', project: 'ARI', tracker: 'BUG' }));
     expect(calls.find((c) => c.method === 'POST')!.body).toEqual({ values: { title: 'Crash', points: 8, severity: 'majeure' } });
   });
@@ -103,7 +104,7 @@ describe('création d’ticket', () => {
     ];
     render(<ToastProvider><MemoryRouter><CreateArtifact target={{ scope: 'tracker', project: 'ARI', tracker: 'BUG' }} open onClose={() => undefined} onCreated={() => undefined} /></MemoryRouter></ToastProvider>);
     await screen.findByLabelText('Titre (obligatoire)');
-    await userEvent.click(screen.getByRole('button', { name: 'Créer' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Créer le ticket' }));
     expect(await screen.findByText(/title : obligatoire/)).toBeInTheDocument();
     const f = (type: string) => ({ id: '', key: 'k', label: '', type, config: {}, required: false, semanticRole: null });
     expect(coerce(f('number'), '3')).toBe(3);
