@@ -27,7 +27,8 @@ test('écran Tracker : « + Nouveau ticket » crée dans ce tracker, la liste re
 test('« Créer » depuis Mon travail : projet puis tracker, on reste sur Mon travail, le message ouvre le ticket', async ({ page }) => {
   await login(page, 'user.dev', 'dev-only-user');
   await page.goto('/');
-  await page.getByRole('button', { name: 'Créer un ticket' }).click();
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+  await page.keyboard.press('n'); // plus de bouton « + » dans l’en-tête : touche N
   const form = page.getByRole('dialog', { name: 'Nouveau ticket' });
   await form.getByLabel('Projet').selectOption('ARI');
   await expect(form.getByLabel('Tracker')).toHaveValue('BUG');

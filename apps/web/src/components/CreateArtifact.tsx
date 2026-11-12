@@ -207,8 +207,3 @@ export function CreateProvider({ children }: { children: ReactNode }) {
   );
 }
 
-/** Bouton « Créer » de la barre haute. */
-export function CreateButton() {
-  const open = useCreate();
-  return <Btn icon="plus" size="sm" aria-label={fr.create.global} title={`${fr.create.global} (N)`} onClick={() => open()}>{fr.create.submit}</Btn>;
-}

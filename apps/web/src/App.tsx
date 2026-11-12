@@ -7,7 +7,7 @@ import { loadSession, loginUrl, logout, RateLimitedError, type Session } from '.
 import { SessionBusy } from './components/SessionBusy';
 import { Breadcrumb } from './components/Breadcrumb';
 import { CommandPalette } from './components/CommandPalette';
-import { CreateButton, CreateProvider } from './components/CreateArtifact';
+import { CreateProvider } from './components/CreateArtifact';
 import { BottomBar, ProjectNavContext } from './components/MobileNav';
 import { NotificationCenter } from './components/NotificationCenter';
 import { ThemeToggle } from './components/ThemeToggle';
@@ -133,6 +133,7 @@ function Shell({ session, children }: { session: Session; children: ReactNode })
       <a className="ath-skip" href="#contenu" onClick={(e) => { e.preventDefault(); document.getElementById('contenu')?.focus(); }}>{fr.nav.skip}</a>
       {menuOpen && <div className="ath-drawer-backdrop" data-testid="drawer-backdrop" onClick={closeMenu} />}
       <Sidebar id="rail" open={menuOpen} collapsed={collapsed} brand={brand} sections={sections} current={current} onNavigate={(id) => { setMenuOpen(false); navigate(id); }} user={{ name: session.user!.name, role: admin ? 'Administrateur' : manager ? 'Chef de projet' : 'Utilisateur', roleKind: admin ? 'admin' : manager ? 'manager' : 'user' }}
+        userStatus={<NotificationCenter />}
         userActions={<>
           <button type="button" className="ath-iconbtn ath-iconbtn--inverse ath-collapse-btn" onClick={toggleRail} aria-expanded={!collapsed} aria-label={collapsed ? fr.rail.expand : fr.rail.collapse} title={collapsed ? fr.rail.expand : fr.rail.collapse}>{collapsed ? '»' : '«'}</button>
           <ThemeToggle />
@@ -142,9 +143,9 @@ function Shell({ session, children }: { session: Session; children: ReactNode })
           <button type="button" className="ath-iconbtn ath-iconbtn--inverse" onClick={out} aria-label={fr.nav.logout} title={fr.nav.logout}><LogoutIcon /></button>
         </>} />
       <main id="contenu" ref={mainRef} tabIndex={-1} className="ath-page__main">
+        {/* L'en-tête ne porte plus que le fil d'Ariane : la création passe par la touche N, la palette et les boutons des pages ; les notifications sont dans le rail. */}
         <div className="ath-topbar">
           <Breadcrumb pathname={location.pathname} search={location.search} />
-          <div className="ath-topbar__actions"><CreateButton /><NotificationCenter /></div>
         </div>
         <ProjectNavContext.Provider value={projectNav}>{children}</ProjectNavContext.Provider>
         <CommandPalette project={project} />

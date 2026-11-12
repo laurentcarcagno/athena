@@ -14,3 +14,17 @@
 .ath-codeblock { margin: 0; padding: var(--ath-space-sm) var(--ath-space-md); overflow-x: auto; background: var(--ath-surface-sunken, var(--ath-border-default)); font-size: var(--ath-font-size-small); }
 .ath-btn--icon[aria-pressed="true"] svg { fill: currentColor; }
 
+
+/* Notifications dans le pied du rail, à côté de l'icône de rôle : bouton sur la surface inverse ; le panneau s'ouvre en
+   position fixe à droite du rail (le rail masque ce qui déborde), ancré en bas comme le pied. */
+.ath-sidebar .ath-notify { margin-left: 0; }
+.ath-sidebar .ath-notify__button { color: var(--ath-text-on-inverse); min-width: var(--ath-size-icon-button); min-height: var(--ath-size-icon-button); }
+.ath-sidebar .ath-notify__button:hover { background: var(--ath-inverse-selected); }
+.ath-sidebar .ath-notify__button:focus-visible { outline-color: var(--ath-focus-ring-on-inverse); }
+.ath-sidebar .ath-notify__panel { position: fixed; top: auto; right: auto; bottom: var(--ath-space-md); left: calc(var(--ath-size-sidebar) + var(--ath-space-sm)); color: var(--ath-text-default); }
+.ath-sidebar--collapsed .ath-notify__panel { left: calc(var(--ath-size-sidebar-collapsed) + var(--ath-space-sm)); }
+@media (max-width: 768px) {
+  .ath-sidebar .ath-notify__panel { left: var(--ath-space-md); right: var(--ath-space-md); width: auto; bottom: calc(var(--ath-space-3xl) + var(--ath-space-md)); }
+}
+/* Rail replié : la cloche se range au bas du pied, juste au-dessus du bouton de dépliage. */
+.ath-sidebar--collapsed .ath-sidebar__user { align-content: flex-end; }

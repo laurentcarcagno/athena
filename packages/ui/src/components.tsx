@@ -533,7 +533,9 @@ function NavFlyout({ group, current, onNavigate }: { group: NavSection; current:
     </div>
   );
 }
-export function Sidebar({ id, items, sections, current, onNavigate, user, userActions, collapsed = false, open = false, brand }: { id?: string; items?: NavItem[]; sections?: NavSection[]; current: string; onNavigate?: (id: string) => void; user?: { name: string; role: string; roleKind?: 'admin' | 'manager' | 'user' }; userActions?: ReactNode; collapsed?: boolean; open?: boolean; brand?: ReactNode }) {
+export function Sidebar({ id, items, sections, current, onNavigate, user, userActions, collapsed = false, open = false, brand, userStatus }: { id?: string; items?: NavItem[]; sections?: NavSection[]; current: string; onNavigate?: (id: string) => void; user?: { name: string; role: string; roleKind?: 'admin' | 'manager' | 'user' }; userActions?: ReactNode; collapsed?: boolean; open?: boolean; brand?: ReactNode;
+  /** À côté de l'icône de rôle (indicateur de notifications d'Athena). */
+  userStatus?: ReactNode }) {
   const groups: NavSection[] = sections ?? [{ id: 'main', items: items ?? [] }];
   const initials = user?.name.split(/\s+/).map((p) => p[0]).slice(0, 2).join('').toUpperCase() ?? '';
   return (
@@ -560,6 +562,7 @@ export function Sidebar({ id, items, sections, current, onNavigate, user, userAc
         <div className="ath-sidebar__user">
           <div className="ath-avatar" role="img" aria-label={user.name} title={user.name}>{initials}</div>
           <span className="ath-sidebar__role" role="img" aria-label={user.role} title={user.role}><RoleIcon kind={user.roleKind ?? 'user'} /></span>
+          {userStatus}
           {userActions && <div className="ath-sidebar__actions">{userActions}</div>}
         </div>
       )}

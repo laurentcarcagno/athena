@@ -49,10 +49,12 @@ describe('cible de création déduite de l’adresse', () => {
   });
 });
 
-describe('« Créer » de la barre haute', () => {
+describe('création par la touche N (plus de bouton dans l’en-tête)', () => {
   it('hors projet : choisir le projet puis le tracker, créer, rester sur la page ; le message ouvre le ticket', async () => {
     app('/');
-    await userEvent.click(await screen.findByRole('button', { name: 'Créer un ticket' }));
+    await screen.findByRole('heading', { level: 1 });
+    expect(screen.queryByRole('button', { name: 'Créer un ticket' })).not.toBeInTheDocument(); // en-tête : fil d’Ariane seulement
+    await userEvent.keyboard('n');
     const form = within(await dialog());
     await userEvent.selectOptions(await form.findByLabelText('Projet'), 'ARI');
     expect(await form.findByLabelText('Tracker')).toHaveValue('BUG');
@@ -67,7 +69,8 @@ describe('« Créer » de la barre haute', () => {
 
   it('dans un projet : le projet est fixé, seul le tracker est à choisir', async () => {
     app('/p/ARI');
-    await userEvent.click(await screen.findByRole('button', { name: 'Créer un ticket' }));
+    await screen.findByRole('heading', { level: 1 });
+    await userEvent.keyboard('n');
     const form = within(await dialog());
     expect(await form.findByLabelText('Tracker')).toHaveValue('BUG');
     expect(form.queryByLabelText('Projet')).not.toBeInTheDocument();
@@ -108,4 +111,13 @@ describe('après création, on reste dans la liste', () => {
     expect(where()).toBe('/p/ARI/recherche?q=status%20%3D%20open');
     await waitFor(() => expect(calls.filter((c) => c.includes('/search?')).length).toBeGreaterThan(searches));
   });
+});
+
+it('les notifications sont dans le rail, à côté de l’icône de rôle ; l’en-tête ne porte plus que le fil d’Ariane', async () => {
+  app('/');
+  const bell = await screen.findByRole('button', { name: /Notifications/ });
+  expect(bell.closest('#rail')).not.toBeNull();
+  const role = document.querySelector('#rail .ath-sidebar__role')!;
+  expect(role.nextElementSibling?.contains(bell)).toBe(true);
+  expect(document.querySelector('.ath-topbar .ath-btn, .ath-topbar .ath-notify')).toBeNull();
 });
