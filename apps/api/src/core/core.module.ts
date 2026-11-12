@@ -185,11 +185,13 @@ export { PG_POOL } from './core.tokens';
     { provide: BacklogService, useFactory: (db: Db) => new BacklogService(db), inject: [Db] },
     {
       provide: BASELINES,
-      useFactory: (pool: Pool): BaselineService | null => {
+      useFactory: (pool: Pool, schedule: ScheduleService): BaselineService | null => {
         const c = loadConfig();
-        return c.GITLAB_URL && c.GITLAB_TOKEN && c.GITLAB_NAMESPACE ? new BaselineService(pool, new GitLabClient(c.GITLAB_URL, c.GITLAB_TOKEN), c.GITLAB_NAMESPACE) : null;
+        // Les dates planifiées du projet sont figées avec la baseline (T-0164).
+        const snapshot = (org: string, project: string) => schedule.snapshot(org, project);
+        return c.GITLAB_URL && c.GITLAB_TOKEN && c.GITLAB_NAMESPACE ? new BaselineService(pool, new GitLabClient(c.GITLAB_URL, c.GITLAB_TOKEN), c.GITLAB_NAMESPACE, 'main', snapshot) : null;
       },
-      inject: [PG_POOL],
+      inject: [PG_POOL, ScheduleService],
     },
     {
       provide: REVERSE_SYNC,

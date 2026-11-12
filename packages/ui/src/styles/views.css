@@ -125,3 +125,9 @@
 .ath-gantt-resize:hover { opacity: 0.8; }
 .ath-gantt-handle { fill: var(--ath-surface-default); stroke: var(--ath-border-focus); stroke-width: 2; cursor: crosshair; }
 .ath-gantt-link--preview { stroke: var(--ath-border-focus); stroke-dasharray: 4 3; pointer-events: none; }
+
+/* Chemin critique et calque de baseline (ADR-0006 D2, T-0164) : trait épais et mention « Critique », jamais la couleur seule. */
+.ath-gantt-critical .ath-gantt-bar { stroke: var(--ath-state-danger-border); stroke-width: 3; }
+.ath-gantt-critical polygon { stroke: var(--ath-state-danger-border); stroke-width: 3; }
+.ath-gantt-link--critical { stroke: var(--ath-state-danger-border); stroke-width: 3; }
+.ath-gantt-baseline { fill: none; stroke: var(--ath-text-secondary); stroke-width: 1.5; stroke-dasharray: 4 3; }

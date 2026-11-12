@@ -35,6 +35,10 @@ export interface BaselineDiff {
   docs: DocDiff[];
 }
 
+/** Dates planifiées d'un ticket au moment d'une baseline (début nul pour un jalon). */
+export interface ScheduleSnapshotRow { key: string; start: string | null; end: string }
+export type ScheduleSnapshot = (organizationId: string, projectKey: string) => Promise<ScheduleSnapshotRow[]>;
+
 const NAME = /^[A-Za-z0-9][A-Za-z0-9._-]{0,60}$/;
 
 /**
@@ -47,6 +51,7 @@ export class BaselineService {
     private readonly gitlab: GitLabClient,
     private readonly namespace: string,
     private readonly branch = 'main',
+    private readonly schedule?: ScheduleSnapshot,
   ) {}
 
   private get db(): Db {
@@ -79,6 +84,7 @@ export class BaselineService {
       if (head !== d.git_sha) stale.push(`${d.name} : indexé à ${String(d.git_sha ?? 'aucun').slice(0, 8)}, dépôt à ${head.slice(0, 8)}`);
     }
     if (stale.length) throw new DomainError('Index documentaire en retard sur le dépôt : ré-indexez les sources avant de créer la baseline.', 'conflict', stale);
+    const planned = this.schedule ? await this.schedule(organizationId, projectKey) : [];
     const repo = await this.gitlab.ensureRepository(this.namespace, repositoryName(context.orgKey, projectKey));
     const sha = await this.gitlab.branchHead(repo, this.branch);
     const tag = `baseline/${name}`;
@@ -98,7 +104,14 @@ export class BaselineService {
           [baseline, organizationId, context.nodes.map((n) => n.source), context.nodes.map((n) => n.uid), context.nodes.map((n) => n.title), context.nodes.map((n) => n.content_hash)],
         );
       }
-      await audit(c, organizationId, actor, 'baseline.create', `baseline:${projectKey}/${name}`, { sha, docShas, requirements: context.nodes.length });
+      if (planned.length) {
+        await c.query(
+          `insert into baseline_schedule (baseline_id, organization_id, artifact_key, planned_start, planned_end)
+           select $1, $2, k, s, e from unnest($3::text[], $4::date[], $5::date[]) as x(k, s, e)`,
+          [baseline, organizationId, planned.map((p) => p.key), planned.map((p) => p.start), planned.map((p) => p.end)],
+        );
+      }
+      await audit(c, organizationId, actor, 'baseline.create', `baseline:${projectKey}/${name}`, { sha, docShas, requirements: context.nodes.length, scheduled: planned.length });
     });
     await this.gitlab.createTag(repo, tag, sha, `Baseline ${name}\n\nAthena-Actor: ${actor.id}`);
     return { name, gitTag: tag, gitSha: sha, docShas, createdBy: actor.id, createdAt: new Date().toISOString() };

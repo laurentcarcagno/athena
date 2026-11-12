@@ -5,18 +5,26 @@ import type { CalendarService } from '../core/calendar.service';
 import { Db, type Actor } from '../core/db';
 import { notFound, validation } from '../core/errors';
 import { audit, outbox } from '../core/tracker.service';
-import { addWorkingDays, alignToWorkingDay, listWorkingDays } from '../core/work-calendar';
+import { addWorkingDays, alignToWorkingDay, listWorkingDays, workingDaysBetween } from '../core/work-calendar';
 import { computeSchedule, type PlanLink, type PlanTask, type PlannedTask, type Schedule } from './schedule-engine';
 
 export interface ScheduleTask extends PlannedTask {
   tracker: string;
   /** Version du ticket (pour une modification concurrente sûre). */
   version: number;
+  /** Dates planifiées figées par la baseline comparée (nulles sans baseline, ou si le ticket n'y était pas). */
+  baselineStart: string | null;
+  baselineEnd: string | null;
+  /** Écart de la fin planifiée à la fin de la baseline, en jours ouvrés (positif : en retard). */
+  variance: number | null;
 }
 export interface ScheduleView extends Omit<Schedule, 'tasks'> {
   tasks: ScheduleTask[];
   links: Array<{ id: string; from: string; to: string; lag: number }>;
+  /** Baseline comparée (nom et date de création), si demandée. */
+  baseline: { name: string; createdAt: string } | null;
 }
+export interface BaselineChoice { name: string; createdAt: string; tasks: number }
 export interface ApplyResult { moved: number; keys: string[]; batch: string | null }
 /** Modification d'une tâche : exactement un de ces trois champs. */
 export interface TaskChange { start?: string; due?: string; duration?: number }
@@ -35,17 +43,50 @@ export class ScheduleService {
   constructor(private readonly db: Db, private readonly artifacts: ArtifactService, private readonly calendar: CalendarService) {}
 
   /** Planning calculé ; un titre à lecture restreinte est remplacé par la clé. */
-  async get(organizationId: string, projectKey: string, roles: string[]): Promise<ScheduleView> {
+  async get(organizationId: string, projectKey: string, roles: string[], baselineName?: string): Promise<ScheduleView> {
     const cal = await this.calendar.load(organizationId);
     return this.db.tx(organizationId, async (c) => {
       const loaded = await this.load(c, projectKey, roles);
       const schedule = computeSchedule(loaded.tasks, loaded.links, cal);
+      let baseline: ScheduleView['baseline'] = null;
+      const frozen = new Map<string, { start: string | null; end: string }>();
+      if (baselineName !== undefined) {
+        const row = (await c.query(
+          'select b.id, b.name, b.created_at from baseline b join project p on p.id = b.project_id where p.key = $1 and b.name = $2', [projectKey, baselineName])).rows[0];
+        if (!row) throw notFound(`Baseline ${baselineName}`);
+        baseline = { name: row.name as string, createdAt: (row.created_at as Date).toISOString() };
+        for (const r of (await c.query("select artifact_key, to_char(planned_start, 'YYYY-MM-DD') s, to_char(planned_end, 'YYYY-MM-DD') e from baseline_schedule where baseline_id = $1", [row.id])).rows) {
+          frozen.set(r.artifact_key as string, { start: (r.s as string | null) ?? null, end: r.e as string });
+        }
+      }
       return {
         ...schedule,
-        tasks: schedule.tasks.map((t) => ({ ...t, tracker: loaded.meta.get(t.key)!.tracker, version: loaded.meta.get(t.key)!.version })),
+        baseline,
+        tasks: schedule.tasks.map((t) => {
+          const old = frozen.get(t.key);
+          return {
+            ...t, tracker: loaded.meta.get(t.key)!.tracker, version: loaded.meta.get(t.key)!.version,
+            baselineStart: old?.start ?? null, baselineEnd: old?.end ?? null,
+            variance: old && t.plannedEnd ? workingDaysBetween(cal, old.end, t.plannedEnd) : null,
+          };
+        }),
         links: loaded.links.map((l) => ({ id: l.id!, from: l.from, to: l.to, lag: l.lag })),
       };
     });
+  }
+
+  /** Dates planifiées de tous les tickets planifiés, pour les figer dans une baseline. */
+  async snapshot(organizationId: string, projectKey: string): Promise<Array<{ key: string; start: string | null; end: string }>> {
+    const view = await this.get(organizationId, projectKey, ['athena-admin']);
+    return view.tasks.filter((t) => t.scheduled && t.plannedEnd).map((t) => ({ key: t.key, start: t.milestone ? null : t.plannedStart, end: t.plannedEnd! }));
+  }
+
+  /** Baselines qui ont figé un planning, de la plus récente à la plus ancienne. */
+  async baselines(organizationId: string, projectKey: string): Promise<BaselineChoice[]> {
+    return this.db.tx(organizationId, async (c) => (await c.query(
+      `select b.name, b.created_at, (select count(*) from baseline_schedule s where s.baseline_id = b.id) as n
+       from baseline b join project p on p.id = b.project_id where p.key = $1 order by b.created_at desc`, [projectKey])).rows
+      .filter((r) => Number(r.n) > 0).map((r) => ({ name: r.name as string, createdAt: (r.created_at as Date).toISOString(), tasks: Number(r.n) })));
   }
 
   /**

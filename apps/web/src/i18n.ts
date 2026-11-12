@@ -86,6 +86,8 @@ const frDict = {
     chartLabel: (rows: number, from: string, to: string) => `Diagramme de Gantt : ${rows} ligne${rows > 1 ? 's' : ''}, du ${from} au ${to}`,
     empty: 'Aucune tâche planifiée dans ce projet.', emptyHelp: 'Donnez un début et une échéance aux tickets d’un tracker de tâches pour les voir ici.',
     legend: 'Losange : jalon. Trait vertical : aujourd’hui. Fond grisé : jours non ouvrés. Flèche : la tâche de départ précède l’autre.',
+    critical: { label: 'Chemin critique', tag: 'Critique', help: 'Trait épais et mention « Critique » : une tâche sans marge, dont tout retard décale la fin du projet.' },
+    baseline: { label: 'Comparer à une baseline', none: 'Aucune', gap: 'Écart', gapValue: (n: number) => (n === 0 ? '0 j' : `${n > 0 ? '+' : '−'}${Math.abs(n)} j`), gapLate: (n: number) => `${n} jour${n > 1 ? 's' : ''} ouvré${n > 1 ? 's' : ''} de retard`, gapEarly: (n: number) => `${n} jour${n > 1 ? 's' : ''} ouvré${n > 1 ? 's' : ''} d’avance`, onTime: 'dans les temps', frozen: (a: string, b: string) => `Baseline : ${a} → ${b}`, note: (name: string) => `Pointillés : dates figées par la baseline ${name}.`, none2: 'Aucune baseline n’a figé de planning.' },
     edit: {
       hint: 'Flèches : décaler d’un jour ouvré. Maj + flèches : changer la fin. Entrée : lier.', durationOf: (key: string) => `Durée de ${key} en jours ouvrés`,
       actions: 'Actions', linkTo: 'Lier à…', linkToNamed: (key: string) => `Lier ${key} à…`, linkTitle: (key: string) => `Lier ${key}`,
@@ -558,6 +560,8 @@ const enDict: Dictionary = {
     chartLabel: (rows: number, from: string, to: string) => `Gantt chart: ${rows} row${rows > 1 ? 's' : ''}, ${from} to ${to}`,
     empty: 'No scheduled task in this project.', emptyHelp: 'Give tickets of a task tracker a start and a due date to see them here.',
     legend: 'Diamond: milestone. Vertical line: today. Shaded background: non-working days. Arrow: the starting task precedes the other.',
+    critical: { label: 'Critical path', tag: 'Critical', help: 'Thick line and “Critical” label: a task with no slack, whose delay moves the project end.' },
+    baseline: { label: 'Compare with a baseline', none: 'None', gap: 'Variance', gapValue: (n: number) => (n === 0 ? '0 d' : `${n > 0 ? '+' : '−'}${Math.abs(n)} d`), gapLate: (n: number) => `${n} working day${n > 1 ? 's' : ''} late`, gapEarly: (n: number) => `${n} working day${n > 1 ? 's' : ''} early`, onTime: 'on time', frozen: (a: string, b: string) => `Baseline: ${a} → ${b}`, note: (name: string) => `Dashes: dates frozen by baseline ${name}.`, none2: 'No baseline has frozen a schedule.' },
     edit: {
       hint: 'Arrows: shift by one working day. Shift + arrows: change the end. Enter: link.', durationOf: (key: string) => `Duration of ${key} in working days`,
       actions: 'Actions', linkTo: 'Link to…', linkToNamed: (key: string) => `Link ${key} to…`, linkTitle: (key: string) => `Link ${key}`,

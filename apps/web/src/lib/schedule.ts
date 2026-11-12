@@ -5,9 +5,12 @@ export interface ScheduleTask {
   summary: boolean; milestone: boolean; scheduled: boolean;
   start: string | null; end: string | null; plannedStart: string | null; plannedEnd: string | null;
   duration: number; moved: boolean; slack: number | null; critical: boolean; progress: number | null; remaining: number | null; version: number;
+  /** Dates figées par la baseline comparée et écart de la fin en jours ouvrés (positif : en retard). */
+  baselineStart?: string | null; baselineEnd?: string | null; variance?: number | null;
 }
 export interface ScheduleLink { id: string; from: string; to: string; lag: number }
-export interface ScheduleData { tasks: ScheduleTask[]; links: ScheduleLink[]; projectEnd: string | null; criticalPath: string[]; moved: number }
+export interface ScheduleData { tasks: ScheduleTask[]; links: ScheduleLink[]; projectEnd: string | null; criticalPath: string[]; moved: number; baseline?: { name: string; createdAt: string } | null }
+export interface BaselineChoice { name: string; createdAt: string; tasks: number }
 export interface CalendarData { workDays: number[]; holidays: Array<{ day: string; label: string }> }
 
 export const DAY_MS = 86_400_000;
@@ -67,6 +70,8 @@ export function axisOf(tasks: ScheduleTask[]): Axis | null {
   for (const t of tasks) {
     if (t.plannedStart) days.push(dayNumber(t.plannedStart));
     if (t.plannedEnd) days.push(dayNumber(t.plannedEnd));
+    if (t.baselineStart) days.push(dayNumber(t.baselineStart));
+    if (t.baselineEnd) days.push(dayNumber(t.baselineEnd));
   }
   if (days.length === 0) return null;
   const first = Math.min(...days) - 2;

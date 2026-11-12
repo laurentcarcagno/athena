@@ -5,6 +5,7 @@ import { Db, type Actor } from '../core/db';
 import { FieldTypeRegistry } from '../core/field-types';
 import { LinkService } from '../core/link.service';
 import { TrackerService, type TrackerSpec } from '../core/tracker.service';
+import { BaselineService } from '../history/baseline.service';
 import { GitLabClient } from '../history/gitlab-client';
 import { HistorySync } from '../history/history-sync';
 import { createTestDb, fromEnv, pgUp, probe, type TestDb } from '../testing/harness';
@@ -214,6 +215,62 @@ suite('édition d’une tâche du planning (intégration)', () => {
   });
 });
 
+suite('planning figé par une baseline (intégration)', () => {
+  let f: Fixture;
+  let t: Awaited<ReturnType<typeof seedReference>>;
+
+  beforeAll(async () => {
+    f = await fixture('athena_test_schedule_baseline', 'sch3');
+    t = await seedReference(f);
+    await f.schedule.apply(f.org, 'NOVA', pm);
+  }, 60_000);
+  afterAll(async () => { await f?.testDb.drop(); });
+
+  /** Insère directement une baseline et ses dates figées (la création complète passe par GitLab, voir plus bas). */
+  async function freeze(name: string) {
+    const rows = await f.schedule.snapshot(f.org, 'NOVA');
+    await f.db.tx(f.org, async (c) => {
+      const project = (await c.query("select id from project where key = 'NOVA'")).rows[0].id as string;
+      const id = (await c.query("insert into baseline (organization_id, project_id, name, git_tag, git_sha, created_by) values ($1,$2,$3,$4,'abc','u') returning id", [f.org, project, name, `baseline/${name}`])).rows[0].id as string;
+      for (const r of rows) await c.query('insert into baseline_schedule (baseline_id, organization_id, artifact_key, planned_start, planned_end) values ($1,$2,$3,$4,$5)', [id, f.org, r.key, r.start, r.end]);
+    });
+    return rows;
+  }
+
+  it('l’instantané contient les dates planifiées, sans début pour un jalon', async () => {
+    const rows = await f.schedule.snapshot(f.org, 'NOVA');
+    expect(rows.find((r) => r.key === t.m.key)).toEqual({ key: t.m.key, start: null, end: '2026-11-19' });
+    expect(rows.find((r) => r.key === t.c.key)).toEqual({ key: t.c.key, start: '2026-11-16', end: '2026-11-19' });
+    expect(rows).toHaveLength(5);
+  });
+
+  it('compare à la baseline : dates figées et écart en jours ouvrés (positif = retard)', async () => {
+    await freeze('B1');
+    expect((await f.schedule.baselines(f.org, 'NOVA')).map((b) => [b.name, b.tasks])).toEqual([['B1', 5]]);
+    await f.schedule.edit(f.org, 'NOVA', t.a.key, { duration: 4 }, pm); // A finit le 13 (le 11 est férié : +2 jours ouvrés) ; B, C et le jalon glissent d’autant
+    const s = await f.schedule.get(f.org, 'NOVA', ['athena-user'], 'B1');
+    const row = (k: string) => s.tasks.find((x) => x.key === k)!;
+    expect(s.baseline).toMatchObject({ name: 'B1' });
+    expect(row(t.a.key)).toMatchObject({ baselineStart: '2026-11-09', baselineEnd: '2026-11-10', plannedEnd: '2026-11-13', variance: 2 });
+    expect(row(t.m.key)).toMatchObject({ baselineStart: null, baselineEnd: '2026-11-19', plannedEnd: '2026-11-23', variance: 2 });
+    expect(row(t.d.key)).toMatchObject({ variance: 0 });
+  });
+
+  it('une baseline ne change pas quand le planning bouge ; un ticket créé depuis n’y figure pas', async () => {
+    const late = await f.artifacts.create(f.org, 'NOVA', 'TSK', { title: 'Tardive', start: '2026-12-01', due: '2026-12-02' }, admin);
+    const s = await f.schedule.get(f.org, 'NOVA', ['athena-user'], 'B1');
+    expect(s.tasks.find((x) => x.key === late.key)).toMatchObject({ baselineEnd: null, variance: null });
+    expect(s.tasks.find((x) => x.key === t.d.key)).toMatchObject({ baselineStart: '2026-11-09' });
+  });
+
+  it('sans baseline demandée, aucun écart ; une baseline inconnue est introuvable', async () => {
+    const s = await f.schedule.get(f.org, 'NOVA', ['athena-user']);
+    expect(s.baseline).toBeNull();
+    expect(s.tasks.every((x) => x.variance === null && x.baselineEnd === null)).toBe(true);
+    await expect(f.schedule.get(f.org, 'NOVA', ['athena-user'], 'NOPE')).rejects.toMatchObject({ code: 'not_found' });
+  });
+});
+
 gitSuite('replanification dans l’historique (GitLab réel)', () => {
   let f: Fixture;
   let gitlab: GitLabClient;
@@ -250,5 +307,16 @@ gitSuite('replanification dans l’historique (GitLab réel)', () => {
     expect(unsynced).toBe(0);
     const revs = await f.db.tx(f.org, async (c2) => (await c2.query("select distinct git_sha from artifact_revision r join artifact a on a.id = r.artifact_id where a.key = any($1) and r.version = 2", [[t.b.key, t.c.key]])).rows);
     expect(revs).toEqual([{ git_sha: b[0]!.id }]);
+  }, 120_000);
+
+  it('une baseline créée par le service fige les dates planifiées', async () => {
+    const sync = new HistorySync(f.testDb.pool, gitlab, 'root');
+    await sync.runOnce();
+    const baselines = new BaselineService(f.testDb.pool, gitlab, 'root', 'main', (org, project) => f.schedule.snapshot(org, project));
+    await baselines.create(f.org, 'NOVA', 'PLAN-1', pm);
+    expect((await f.schedule.baselines(f.org, 'NOVA')).map((b) => [b.name, b.tasks])).toEqual([['PLAN-1', 5]]);
+    const view = await f.schedule.get(f.org, 'NOVA', ['athena-user'], 'PLAN-1');
+    expect(view.tasks.filter((x) => x.baselineEnd !== null)).toHaveLength(5);
+    expect(view.tasks.every((x) => x.variance === 0)).toBe(true);
   }, 120_000);
 });

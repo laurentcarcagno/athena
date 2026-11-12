@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Btn, Id, Modal, Select } from '@athena/ui';
+import { Btn, Id, Modal, Select, Tag } from '@athena/ui';
 import { fr, getLocale } from '../i18n';
 import { formatDay } from '../lib/dates';
 import { fromHere } from '../lib/origin';
@@ -36,7 +36,7 @@ function summarize(task: ScheduleTask): string {
  * du jour, jours non ouvrés grisés et liens fin → début. Au-delà de 80 lignes, seules les lignes visibles sont dessinées.
  * Le rayon des barres est celui du thème (jeton) ; tout est en attributs SVG ou en classes : aucun style en ligne.
  */
-export function ScheduleGantt({ project, data, calendar, today = new Date(), edit }: { project: string; data: ScheduleData; calendar: CalendarData | null; today?: Date; edit?: GanttEdit }) {
+export function ScheduleGantt({ project, data, calendar, today = new Date(), edit, critical = false }: { project: string; data: ScheduleData; calendar: CalendarData | null; today?: Date; edit?: GanttEdit; critical?: boolean }) {
   const location = useLocation();
   const body = useRef<HTMLDivElement>(null);
   const [scroll, setScroll] = useState({ top: 0, height: 600 });
@@ -47,6 +47,8 @@ export function ScheduleGantt({ project, data, calendar, today = new Date(), edi
   const index = new Map(rows.map((r, i) => [r.task.key, i]));
   const keys = rows.map((r) => r.task.key);
   const total = rows.length * ROW_HEIGHT;
+  const baseline = data.baseline ?? null;
+  const cols = 6 + (edit ? 1 : 0) + (baseline ? 1 : 0);
   const svgRef = useRef<SVGSVGElement>(null);
   const [drag, setDrag] = useState<Drag | null>(null);
   const dragRef = useRef<Drag | null>(null);
@@ -129,7 +131,7 @@ export function ScheduleGantt({ project, data, calendar, today = new Date(), edi
       const r = ROW_HEIGHT / 2 - BAR_PAD + 2;
       const shift = drag?.key === task.key && drag.mode === 'move' ? Math.round(drag.dx / DAY_WIDTH) * DAY_WIDTH : 0;
       return (
-        <g key={task.key} className={edit ? 'ath-gantt-milestone ath-gantt-editable' : 'ath-gantt-milestone'} transform={shift ? `translate(${shift},0)` : undefined}
+        <g key={task.key} className={`ath-gantt-milestone${edit ? ' ath-gantt-editable' : ''}${critical && task.critical ? ' ath-gantt-critical' : ''}`} transform={shift ? `translate(${shift},0)` : undefined}
           {...(edit ? { tabIndex: 0, role: 'button', 'aria-label': `${summarize(task)}. ${t.edit.hint}`, onKeyDown: (e: ReactKeyboardEvent) => onBarKey(e, task), onMouseDown: (e: ReactMouseEvent) => begin(e, task, 'move') } : {})}>
           <title>{summarize(task)}</title>
           <polygon points={`${cx},${cy - r} ${cx + r},${cy} ${cx},${cy + r} ${cx - r},${cy}`} />
@@ -147,7 +149,7 @@ export function ScheduleGantt({ project, data, calendar, today = new Date(), edi
     const moving = drag?.key === task.key && drag.mode === 'move' ? Math.round(drag.dx / DAY_WIDTH) * DAY_WIDTH : 0;
     const stretch = drag?.key === task.key && drag.mode === 'resize' ? Math.max(Math.round(drag.dx / DAY_WIDTH) * DAY_WIDTH, DAY_WIDTH / 2 - width) : 0;
     const w = width + stretch;
-    const className = `${task.summary ? 'ath-gantt-summary' : 'ath-gantt-task'}${editable ? ' ath-gantt-editable' : ''}`;
+    const className = `${task.summary ? 'ath-gantt-summary' : 'ath-gantt-task'}${editable ? ' ath-gantt-editable' : ''}${critical && task.critical ? ' ath-gantt-critical' : ''}`;
     return (
       <g key={task.key} className={className} transform={moving ? `translate(${moving},0)` : undefined}
         {...(editable ? { tabIndex: 0, role: 'button', 'aria-label': `${summarize(task)}. ${t.edit.hint}`, onKeyDown: (e: ReactKeyboardEvent) => onBarKey(e, task), onMouseDown: (e: ReactMouseEvent) => begin(e, task, 'move') } : {})}>
@@ -157,6 +159,19 @@ export function ScheduleGantt({ project, data, calendar, today = new Date(), edi
         {editable && <rect className="ath-gantt-resize" x={x1 + w - 4} y={top} width="8" height={height} onMouseDown={(e) => begin(e, task, 'resize')}><title>{t.edit.resizeHandle(task.key)}</title></rect>}
         {editable && <circle className="ath-gantt-handle" cx={x1 + w + 12} cy={y + ROW_HEIGHT / 2} r="4" onMouseDown={(e) => begin(e, task, 'link')}><title>{t.edit.linkHandle(task.key)}</title></circle>}
       </g>
+    );
+  };
+
+  /** Calque de la baseline : mêmes dates qu'à la baseline, en pointillés sous la barre (aucune information portée par la couleur seule). */
+  const ghostOf = (task: ScheduleTask, i: number) => {
+    if (!axis || !task.baselineEnd) return null;
+    const y = i * ROW_HEIGHT + ROW_HEIGHT - 8;
+    const x1 = xOf(axis, task.baselineStart ?? task.baselineEnd);
+    const x2 = xOf(axis, task.baselineEnd) + DAY_WIDTH;
+    return (
+      <rect key={`ghost-${task.key}`} className="ath-gantt-baseline" x={x1} y={y} width={Math.max(x2 - x1, DAY_WIDTH / 2)} height="5" aria-hidden="true">
+        <title>{t.baseline.frozen(formatDay(task.baselineStart ?? task.baselineEnd, true), formatDay(task.baselineEnd, true))}</title>
+      </rect>
     );
   };
 
@@ -211,24 +226,25 @@ export function ScheduleGantt({ project, data, calendar, today = new Date(), edi
       <table className="ath-gantt-table">
         <caption className="ath-visually-hidden">{t.tableCaption}</caption>
         <thead>
-          <tr><th scope="col">{t.key}</th><th scope="col">{t.titleCol}</th><th scope="col">{t.start}</th><th scope="col">{t.end}</th><th scope="col">{t.duration}</th><th scope="col">{t.progressCol}</th>{edit && <th scope="col">{t.edit.actions}</th>}</tr>
+          <tr><th scope="col">{t.key}</th><th scope="col">{t.titleCol}</th><th scope="col">{t.start}</th><th scope="col">{t.end}</th><th scope="col">{t.duration}</th><th scope="col">{t.progressCol}</th>{baseline && <th scope="col">{t.baseline.gap}</th>}{edit && <th scope="col">{t.edit.actions}</th>}</tr>
         </thead>
         <tbody>
-          {from > 0 && <tr aria-hidden="true"><td colSpan={edit ? 7 : 6}><svg width="1" height={from * ROW_HEIGHT} /></td></tr>}
+          {from > 0 && <tr aria-hidden="true"><td colSpan={cols}><svg width="1" height={from * ROW_HEIGHT} /></td></tr>}
           {shown.map(({ task, depth }, k) => (
             <tr key={task.key} aria-rowindex={from + k + 2} className={task.summary ? 'ath-gantt-row--summary' : undefined}>
               <td><Link className="ath-link ath-mono" to={`/p/${project}/a/${task.key}`} state={fromHere(location, t.title, keys)}>{task.key}</Link></td>
-              <td className={indent(depth)}>{task.title === task.key ? '' : task.title}</td>
+              <td className={indent(depth)}>{task.title === task.key ? '' : task.title}{critical && task.critical && <> <Tag variant="solid">{t.critical.tag}</Tag></>}</td>
               <td>{task.milestone ? '' : task.plannedStart ? <time dateTime={task.plannedStart}>{formatDay(task.plannedStart)}</time> : t.none}</td>
               <td>{task.plannedEnd ? <time dateTime={task.plannedEnd}>{formatDay(task.plannedEnd)}</time> : t.none}</td>
               <td>{edit && task.scheduled && !task.milestone && !task.summary
                 ? <DurationInput task={task} onCommit={(duration) => edit.onChange(task.key, { duration })} />
                 : task.scheduled ? (task.milestone ? t.milestone : t.days(task.duration)) : t.none}</td>
               <td>{task.progress !== null ? <Id>{`${task.progress} %`}</Id> : t.none}</td>
+              {baseline && <td>{task.variance === null || task.variance === undefined ? t.none : <span title={task.variance === 0 ? t.baseline.onTime : task.variance > 0 ? t.baseline.gapLate(task.variance) : t.baseline.gapEarly(-task.variance)}>{t.baseline.gapValue(task.variance)}</span>}</td>}
               {edit && <td><Btn size="sm" variant="ghost" aria-label={t.edit.linkToNamed(task.key)} onClick={() => setLinking(task.key)}>{t.edit.linkTo}</Btn></td>}
             </tr>
           ))}
-          {to < rows.length && <tr aria-hidden="true"><td colSpan={edit ? 7 : 6}><svg width="1" height={(rows.length - to) * ROW_HEIGHT} /></td></tr>}
+          {to < rows.length && <tr aria-hidden="true"><td colSpan={cols}><svg width="1" height={(rows.length - to) * ROW_HEIGHT} /></td></tr>}
         </tbody>
       </table>
       {axis && (
@@ -245,8 +261,9 @@ export function ScheduleGantt({ project, data, calendar, today = new Date(), edi
             {Array.from({ length: Math.max(0, to - from) }, (_, k) => <line key={k} className="ath-gantt-rule" x1="0" x2={axis.width} y1={(from + k + 1) * ROW_HEIGHT} y2={(from + k + 1) * ROW_HEIGHT} />)}
             {todayX !== null && <line className="ath-gantt-today" x1={todayX} x2={todayX} y1="0" y2={total}><title>{fr.when.today}</title></line>}
             <g aria-hidden="true">
-              {visibleLinks.map((l) => { const d = linkPath(l.from, l.to); return d ? <path key={`${l.from}>${l.to}`} className="ath-gantt-link" d={d} markerEnd="url(#ath-gantt-arrow)" /> : null; })}
+              {visibleLinks.map((l) => { const d = linkPath(l.from, l.to); const hot = critical && data.tasks.find((x) => x.key === l.from)?.critical && data.tasks.find((x) => x.key === l.to)?.critical; return d ? <path key={`${l.from}>${l.to}`} className={hot ? 'ath-gantt-link ath-gantt-link--critical' : 'ath-gantt-link'} d={d} markerEnd="url(#ath-gantt-arrow)" /> : null; })}
             </g>
+            {baseline && shown.map(({ task }, k) => ghostOf(task, from + k))}
             {shown.map(({ task }, k) => barOf(task, from + k))}
             {linkPreview}
           </svg>

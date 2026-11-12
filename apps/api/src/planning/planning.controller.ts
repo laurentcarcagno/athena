@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, Inject, Param, Patch, Post, Req } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Inject, Param, Patch, Post, Query, Req } from '@nestjs/common';
 import { z } from 'zod';
 import { Roles, type AuthedRequest } from '../auth/auth.guard';
 import { OrgResolver, parseBody } from '../core/http';
@@ -22,9 +22,17 @@ export class PlanningController {
 
   @Roles('athena-user', 'athena-admin', 'athena-pm', 'athena-qa')
   @Get('schedule')
-  async get(@Req() request: AuthedRequest, @Param('project') project: string) {
+  async get(@Req() request: AuthedRequest, @Param('project') project: string, @Query('baseline') baseline?: string) {
     const { organizationId, actor } = await this.orgs.resolve(request.principal!);
-    return this.schedules.get(organizationId, project, actor.roles);
+    return this.schedules.get(organizationId, project, actor.roles, baseline || undefined);
+  }
+
+  /** Baselines qui ont figé un planning (pour comparer le Gantt à l'une d'elles). */
+  @Roles('athena-user', 'athena-admin', 'athena-pm', 'athena-qa')
+  @Get('schedule/baselines')
+  async baselines(@Req() request: AuthedRequest, @Param('project') project: string) {
+    const { organizationId } = await this.orgs.resolve(request.principal!);
+    return this.schedules.baselines(organizationId, project);
   }
 
   /** Écrit les dates calculées dans les tickets qui bougent (un seul commit d'historique). */
