@@ -82,3 +82,36 @@
 .ath-advanced__body { margin-top: var(--ath-space-md); }
 .ath-row--between { justify-content: space-between; }
 .ath-cards--wide { grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); }
+
+/* Gantt en lecture (ADR-0006, T-0162) : tableau WBS collé à gauche, diagramme SVG à droite, une seule zone de défilement. */
+.ath-gantt-wrap { display: flex; align-items: flex-start; max-height: 70vh; overflow: auto; background: var(--ath-surface-default); border: var(--ath-border-width-hairline) solid var(--ath-border-default); border-radius: var(--ath-radius-surface); }
+.ath-gantt-table { flex: none; width: 520px; position: sticky; left: 0; z-index: var(--ath-z-base); border-collapse: separate; border-spacing: 0; background: var(--ath-surface-default); font-size: var(--ath-font-size-small); border-right: var(--ath-border-width-hairline) solid var(--ath-border-default); }
+.ath-gantt-table thead th { position: sticky; top: 0; z-index: var(--ath-z-base); box-sizing: border-box; height: 48px; padding: 0 var(--ath-space-sm); text-align: left; font-weight: var(--ath-font-weight-semibold); color: var(--ath-text-heading); background: var(--ath-surface-muted); border-bottom: var(--ath-border-width-hairline) solid var(--ath-border-default); white-space: nowrap; }
+.ath-gantt-table tbody td { box-sizing: border-box; height: 32px; padding: 0 var(--ath-space-sm); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 220px; border-bottom: var(--ath-border-width-hairline) solid var(--ath-border-default); }
+.ath-gantt-table tbody tr[aria-hidden="true"] td { height: auto; padding: 0; border: 0; }
+.ath-gantt-table tbody tr[aria-hidden="true"] svg { display: block; }
+.ath-gantt-table .ath-link { min-height: 0; }
+.ath-gantt-row--summary td { font-weight: var(--ath-font-weight-semibold); }
+.ath-gantt-table tbody td.ath-gantt-indent-0 { padding-left: var(--ath-space-sm); }
+.ath-gantt-table tbody td.ath-gantt-indent-1 { padding-left: calc(var(--ath-space-sm) + 16px); }
+.ath-gantt-table tbody td.ath-gantt-indent-2 { padding-left: calc(var(--ath-space-sm) + 32px); }
+.ath-gantt-table tbody td.ath-gantt-indent-3 { padding-left: calc(var(--ath-space-sm) + 48px); }
+.ath-gantt-table tbody td.ath-gantt-indent-4 { padding-left: calc(var(--ath-space-sm) + 64px); }
+.ath-gantt-table tbody td.ath-gantt-indent-5 { padding-left: calc(var(--ath-space-sm) + 80px); }
+.ath-gantt-table tbody td.ath-gantt-indent-6 { padding-left: calc(var(--ath-space-sm) + 96px); }
+.ath-gantt-chart { flex: none; }
+.ath-gantt-svg { display: block; }
+.ath-gantt-svg--head { position: sticky; top: 0; z-index: var(--ath-z-base); background: var(--ath-surface-muted); border-bottom: var(--ath-border-width-hairline) solid var(--ath-border-default); }
+.ath-gantt-month { fill: var(--ath-text-heading); font-size: var(--ath-font-size-small); font-weight: var(--ath-font-weight-semibold); }
+.ath-gantt-day { fill: var(--ath-text-secondary); font-size: var(--ath-font-size-small); }
+.ath-gantt-day--off { font-style: italic; }
+.ath-gantt-off { fill: var(--ath-surface-muted); }
+.ath-gantt-rule { stroke: var(--ath-border-default); stroke-width: 1; }
+.ath-gantt-bar { fill: var(--ath-surface-selected); stroke: var(--ath-border-focus); stroke-width: 1; rx: var(--ath-radius-control); }
+.ath-gantt-done { fill: var(--ath-data-1); rx: var(--ath-radius-control); }
+.ath-gantt-summary .ath-gantt-bar { fill: var(--ath-text-heading); stroke: var(--ath-text-heading); }
+.ath-gantt-summary .ath-gantt-done { fill: var(--ath-data-1); }
+.ath-gantt-milestone polygon { fill: var(--ath-text-heading); stroke: var(--ath-surface-default); stroke-width: 1; }
+.ath-gantt-link { fill: none; stroke: var(--ath-text-secondary); stroke-width: 1.5; }
+.ath-gantt-arrowhead { fill: var(--ath-text-secondary); }
+.ath-gantt-today { stroke: var(--ath-state-danger-border); stroke-width: 2; }

@@ -63,7 +63,7 @@ const footerOf = (w: Widget, project: string | undefined): ReactNode => {
   switch (w.kind) {
     case 'indicators': return <Link className="ath-link" to={`/p/${p}/recherche?q=${encodeURIComponent('category != done')}`}>{fr.progress.seeTickets}</Link>;
     case 'velocity': return velocityFooter(p);
-    case 'release': return <Link className="ath-link" to={`/p/${p}/roadmap`}>{fr.progress.seeRoadmap}</Link>;
+    case 'release': return <Link className="ath-link" to={`/p/${p}/planning?vue=versions`}>{fr.progress.seeRoadmap}</Link>;
     case 'tracker-status': return <Link className="ath-link" to={`/p/${p}/trackers`}>{fr.progress.seeTrackers}</Link>;
     case 'activity': return <Link className="ath-link" to={`/p/${p}/rapports/activite`}>{fr.progress.seeHistory}</Link>;
     case 'chart': return <Link className="ath-link" to={searchHref(w)}>{fr.chart.openSearch}</Link>;

@@ -9,7 +9,7 @@ export interface Siblings { kind: 'project' | 'tracker' | 'view'; project: strin
 export interface Crumb { label: string; to?: string; mono?: boolean; siblings?: Siblings }
 
 const TAB_PATHS: Record<string, keyof typeof fr.project.tabs> = {
-  backlog: 'backlog', trackers: 'trackers', roadmap: 'roadmap', documents: 'documents',
+  backlog: 'backlog', trackers: 'trackers', planning: 'planning', documents: 'documents',
 };
 
 /**

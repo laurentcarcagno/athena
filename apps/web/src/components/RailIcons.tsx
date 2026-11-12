@@ -19,7 +19,7 @@ export const RAIL_ICONS: Record<string, ReactNode> = {
   backlog: icon(<path d="M4 6h16M4 12h16M4 18h10" />),
   board: icon(<><rect x="3" y="4" width="5" height="16" /><rect x="10" y="4" width="5" height="10" /><rect x="17" y="4" width="4" height="13" /></>),
   trackers: icon(<path d="m12 3 9 5-9 5-9-5zM3 13l9 5 9-5" />),
-  roadmap: icon(<path d="M5 21V4h11l-2 4 2 4H5" />),
+  planning: icon(<path d="M5 21V4h11l-2 4 2 4H5" />),
   documents: icon(<><path d="M6 3h9l4 4v14H6z" /><path d="M9 12h7M9 16h7" /></>),
   reports: icon(<path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />),
   settings: icon(<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0M14 4v4M8 10v4M16 16v4" />),

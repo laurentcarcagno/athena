@@ -62,7 +62,7 @@ describe('navigation du projet au rail (ADR-0003)', () => {
   it('liste les sections dans l’ordre fixe, l’entrée courante signalée, sans barre d’onglets', async () => {
     app('/p/ARI', ADMIN);
     await screen.findByRole('heading', { level: 1, name: 'Vue d’ensemble' });
-    await waitFor(() => expect(sectionNames()).toEqual(['Vue d’ensemble', 'Backlog', 'Board', 'Trackers', 'Roadmap', 'Rapports', 'Documents', 'Recherche', 'Paramètres']));
+    await waitFor(() => expect(sectionNames()).toEqual(['Vue d’ensemble', 'Backlog', 'Board', 'Trackers', 'Planning', 'Rapports', 'Documents', 'Recherche', 'Paramètres']));
     expect(projectNav().getByRole('button', { name: 'Vue d’ensemble' })).toHaveAttribute('aria-current', 'page');
     expect(projectNav().getByRole('button', { name: 'Paramètres' })).not.toHaveAttribute('aria-current');
     expect(screen.queryByRole('navigation', { name: 'Projet ARI' })).not.toBeInTheDocument();
@@ -80,20 +80,20 @@ describe('navigation du projet au rail (ADR-0003)', () => {
     modules = ['overview', 'trackers', 'activity'];
     app('/p/ARI', ADMIN);
     await screen.findByRole('heading', { level: 1, name: 'Vue d’ensemble' });
-    await waitFor(() => expect(sectionNames()).toEqual(['Vue d’ensemble', 'Backlog', 'Board', 'Trackers', 'Roadmap', 'Rapports', 'Recherche', 'Paramètres']));
+    await waitFor(() => expect(sectionNames()).toEqual(['Vue d’ensemble', 'Backlog', 'Board', 'Trackers', 'Planning', 'Rapports', 'Recherche', 'Paramètres']));
   });
 
   it('garde toutes les sections autorisées quand la liste des modules est indisponible', async () => {
     modules = 'error';
     app('/p/ARI', ADMIN);
     await screen.findByRole('heading', { level: 1, name: 'Vue d’ensemble' });
-    await waitFor(() => expect(sectionNames()).toEqual(['Vue d’ensemble', 'Backlog', 'Board', 'Trackers', 'Roadmap', 'Rapports', 'Documents', 'Recherche', 'Paramètres']));
+    await waitFor(() => expect(sectionNames()).toEqual(['Vue d’ensemble', 'Backlog', 'Board', 'Trackers', 'Planning', 'Rapports', 'Documents', 'Recherche', 'Paramètres']));
   });
 
   it('n’affiche aucune entrée menant à « Réservé » : ni Planification, ni Membres, ni Administration pour un simple membre', async () => {
     app('/p/ARI');
     await screen.findByRole('heading', { level: 1, name: 'Vue d’ensemble' });
-    await waitFor(() => expect(sectionNames()).toEqual(['Vue d’ensemble', 'Backlog', 'Board', 'Trackers', 'Roadmap', 'Rapports', 'Documents', 'Recherche']));
+    await waitFor(() => expect(sectionNames()).toEqual(['Vue d’ensemble', 'Backlog', 'Board', 'Trackers', 'Planning', 'Rapports', 'Documents', 'Recherche']));
   });
 
   it('reste affichée sur toutes les adresses du projet, l’entrée courante comprise', async () => {

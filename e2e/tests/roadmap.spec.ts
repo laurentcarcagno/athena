@@ -39,9 +39,10 @@ test('roadmap : avancement en 1 clic depuis le rail, ajouter un ticket, publier'
 
   await login(page, 'admin.dev', 'dev-only-admin');
   await page.goto('/p/AGL/board');
-  // 1 clic : l'entrée Roadmap du rail affiche l'avancement de chaque version.
-  await page.getByRole('button', { name: 'Roadmap', exact: true }).click();
-  await expect(page).toHaveURL(/\/p\/AGL\/roadmap$/);
+  // 2 clics : l'entrée Planning du rail, puis l'onglet Versions (ex-Roadmap) affichent l'avancement de chaque version.
+  await page.getByRole('button', { name: 'Planning', exact: true }).click();
+  await page.getByRole('navigation', { name: 'Vues du planning' }).getByRole('link', { name: 'Versions' }).click();
+  await expect(page).toHaveURL(/\/p\/AGL\/planning\?vue=versions$/);
   const card = page.getByRole('list', { name }).locator('xpath=ancestor::section[1]');
   await expect(card.getByText('0 / 1 tickets terminés')).toBeVisible();
   await expect(card.getByText('Avancement 0 %')).toBeVisible();
@@ -56,5 +57,5 @@ test('roadmap : avancement en 1 clic depuis le rail, ajouter un ticket, publier'
   await expect(page.getByText('Version publiée.')).toBeVisible();
   await expect(card.getByText('Publiée')).toBeVisible();
   await expect(card.getByLabel('Clé du ticket')).toHaveCount(0);
-  await expect(page).toHaveURL(/\/p\/AGL\/roadmap$/);
+  await expect(page).toHaveURL(/\/p\/AGL\/planning\?vue=versions$/);
 });

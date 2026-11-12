@@ -6,13 +6,13 @@ const ALL_MODULES = ['overview', 'trackers', 'planning', 'traceability', 'confor
 
 describe('sections d’un projet', () => {
   it('suivent l’ordre fixe, pages existantes comprises (Recherche, Paramètres)', () => {
-    expect(ids(null, ['athena-admin'])).toEqual(['overview', 'backlog', 'board', 'trackers', 'roadmap', 'reports', 'documents', 'search', 'settings']);
+    expect(ids(null, ['athena-admin'])).toEqual(['overview', 'backlog', 'board', 'trackers', 'planning', 'reports', 'documents', 'search', 'settings']);
   });
   it('masquent un module inactif sans décaler les autres ; l’ordre renvoyé par le serveur est sans effet', () => {
-    expect(ids(['members', 'overview', 'code'], ['athena-admin'])).toEqual(['overview', 'backlog', 'board', 'roadmap', 'reports', 'search', 'settings']);
+    expect(ids(['members', 'overview', 'code'], ['athena-admin'])).toEqual(['overview', 'backlog', 'board', 'planning', 'reports', 'search', 'settings']);
   });
   it('n’affichent jamais une section réservée à un autre rôle', () => {
-    expect(ids(ALL_MODULES, ['athena-user'])).toEqual(['overview', 'backlog', 'board', 'trackers', 'roadmap', 'reports', 'documents', 'search']);
+    expect(ids(ALL_MODULES, ['athena-user'])).toEqual(['overview', 'backlog', 'board', 'trackers', 'planning', 'reports', 'documents', 'search']);
     expect(ids(ALL_MODULES, ['athena-qa'])).toContain('settings');
     expect(ids(ALL_MODULES, ['athena-pm'])).toContain('settings');
     // T-0120 : sections des Paramètres selon le rôle.
@@ -21,7 +21,7 @@ describe('sections d’un projet', () => {
     expect(visibleSettings(['athena-user'])).toEqual([]);
   });
   it('ont des adresses inchangées', () => {
-    expect(PROJECT_SECTIONS.map((s) => sectionHref('ARI', s))).toEqual(['/p/ARI', '/p/ARI/backlog', '/p/ARI/board', '/p/ARI/trackers', '/p/ARI/roadmap', '/p/ARI/rapports', '/p/ARI/documents', '/p/ARI/recherche', '/p/ARI/parametres']);
+    expect(PROJECT_SECTIONS.map((s) => sectionHref('ARI', s))).toEqual(['/p/ARI', '/p/ARI/backlog', '/p/ARI/board', '/p/ARI/trackers', '/p/ARI/planning', '/p/ARI/rapports', '/p/ARI/documents', '/p/ARI/recherche', '/p/ARI/parametres']);
   });
 });
 

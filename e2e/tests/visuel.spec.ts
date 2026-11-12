@@ -20,7 +20,7 @@ const PAGES: Array<[string, string]> = [
   ['fiche', '/p/ARI/a/ARI-BUG-0001'],
   ['board', '/p/ARI/board'],
   ['backlog', '/p/ARI/backlog'],
-  ['roadmap', '/p/ARI/roadmap'],
+  ['planning', '/p/ARI/planning'],
   ['rapports', '/p/ARI/rapports/avancement'],
   ['parametres', '/p/ARI/parametres/membres'],
 ];

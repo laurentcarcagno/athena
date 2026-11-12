@@ -19,7 +19,7 @@ const t = fr.roadmap;
  * tickets rattachés, ajout et retrait, publication et création d'une version, sans quitter la page.
  * Planifier est réservé aux administrateurs et aux chefs de projet (le serveur le vérifie aussi).
  */
-export function RoadmapPage({ session }: { session: Session }) {
+export function RoadmapPage({ session, bare = false }: { session: Session; bare?: boolean }) {
   const { project = '' } = useParams();
   const location = useLocation();
   const toast = useToast();
@@ -102,7 +102,7 @@ export function RoadmapPage({ session }: { session: Session }) {
 
   return (
     <>
-      <PageHeader title={t.title} />
+      {!bare && <PageHeader title={t.title} />}
       {releases === null ? <p role="status">{fr.loading}</p> : (
         <div className="ath-stack">
           {releases.length === 0 ? <EmptyState eyebrow={t.title} title={t.empty} /> : (

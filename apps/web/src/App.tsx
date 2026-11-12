@@ -20,7 +20,7 @@ import { fr, getLocale, setLocale, useLocale } from './i18n';
 import { ArtifactPage } from './pages/ArtifactPage';
 import { BoardIndexPage, BoardPage } from './pages/BoardPage';
 import { BacklogPage } from './pages/BacklogPage';
-import { RoadmapPage } from './pages/RoadmapPage';
+import { PlanningPage } from './pages/PlanningPage';
 import { GlobalSearchPage } from './pages/GlobalSearchPage';
 import { ListPage } from './pages/ListPage';
 import { HelpPage } from './pages/HelpPage';
@@ -227,7 +227,8 @@ export function AuthenticatedApp({ session }: { session: Session }) {
           <Route path="dashboard" element={<RedirectTo to="" />} />
           <Route path="a/:key" element={<ArtifactPage session={session} />} />
           <Route path="backlog" element={<BacklogPage session={session} />} />
-          <Route path="roadmap" element={<RoadmapPage session={session} />} />
+          <Route path="planning" element={<PlanningPage session={session} />} />
+          <Route path="roadmap" element={<RedirectTo to="planning?vue=versions" />} />
           <Route path="board" element={<BoardIndexPage />} />
           <Route path="board/:board" element={<BoardPage session={session} />} />
           <Route path="trackers/new" element={<TrackerCreatePage session={session} />} />

@@ -7,7 +7,7 @@
 /** Module de projet calculé par le serveur (`GET /v1/projects/:p/modules`). */
 export type ModuleId = 'overview' | 'trackers' | 'planning' | 'traceability' | 'conformity' | 'documents' | 'code' | 'activity' | 'members';
 
-export type ProjectSectionId = ModuleId | 'backlog' | 'board' | 'roadmap' | 'reports' | 'search' | 'settings';
+export type ProjectSectionId = ModuleId | 'backlog' | 'board' | 'reports' | 'search' | 'settings';
 
 /** Qui voit la section : tout le monde, ou les seuls porteurs de l'un des rôles. */
 export type Access = { kind: 'everyone' } | { kind: 'roles'; roles: readonly string[] };
@@ -30,7 +30,7 @@ export const PROJECT_SECTIONS: readonly ProjectSection[] = [
   { id: 'backlog', path: 'backlog', gated: false, access: EVERYONE }, // T-0116 : backlog des trackers Tâche et sprints
   { id: 'board', path: 'board', gated: false, access: EVERYONE }, // T-0114 : boards du projet et des trackers
   { id: 'trackers', path: 'trackers', gated: true, access: EVERYONE },
-  { id: 'roadmap', path: 'roadmap', gated: false, access: EVERYONE }, // T-0117 : versions, avancement, publication
+  { id: 'planning', path: 'planning', gated: false, access: EVERYONE }, // T-0162 : Planning (Gantt, versions), remplace la Roadmap (ADR-0006)
   { id: 'reports', path: 'rapports', gated: false, access: EVERYONE }, // T-0121 : avancement, traçabilité, conformité, livraison, activité
   { id: 'documents', path: 'documents', gated: true, access: EVERYONE },
   { id: 'search', path: 'recherche', gated: false, access: EVERYONE },

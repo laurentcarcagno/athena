@@ -79,6 +79,14 @@ const frDict = {
     publishTitle: (name: string) => `Publier la version « ${name} » ?`, publishBody: 'Une version publiée ne reçoit plus de tickets et ne peut plus en perdre.',
     newVersion: 'Nouvelle version', name: 'Nom', starts: 'Début', ends: 'Fin', create: 'Créer la version', created: 'Version créée.',
   },
+  planning: {
+    title: 'Planning', views: 'Vues du planning', gantt: 'Gantt', versions: 'Versions', tableCaption: 'Tâches du planning, dans l’ordre de la hiérarchie',
+    key: 'Clé', titleCol: 'Titre', start: 'Début', end: 'Fin', duration: 'Durée', progressCol: 'Avancement', none: '—',
+    milestone: 'Jalon', summary: 'Tâche parente', task: 'Tâche', unscheduled: 'sans date', days: (n: number) => `${n} j`, progress: (p: number) => `avancement ${p} %`,
+    chartLabel: (rows: number, from: string, to: string) => `Diagramme de Gantt : ${rows} ligne${rows > 1 ? 's' : ''}, du ${from} au ${to}`,
+    empty: 'Aucune tâche planifiée dans ce projet.', emptyHelp: 'Donnez un début et une échéance aux tickets d’un tracker de tâches pour les voir ici.',
+    legend: 'Losange : jalon. Trait vertical : aujourd’hui. Fond grisé : jours non ouvrés. Flèche : la tâche de départ précède l’autre.',
+  },
   board: { eyebrow: 'Board', moveTo: 'Déplacer vers', unmapped: (n: number) => `${n} ticket(s) hors colonnes`, wip: 'Limite WIP', laneBy: 'Couloirs', laneNone: 'Aucun', laneAssignee: 'Responsable', laneTracker: 'Tracker', noAssignee: 'Non assigné', moved: 'Carte déplacée.', empty: 'Aucune carte.',
     filter: 'Filtrer les cartes (clé ou titre)', mine: 'Mes tickets', blockedOnly: 'Bloqués', blocked: 'Bloqué', createIn: (column: string) => `Créer un ticket dans « ${column} »`, noMatch: 'Aucune carte ne correspond aux filtres.',
     indexTitle: 'Boards', projectBoards: 'Boards du projet', trackerBoards: 'Board de chaque tracker', noBoards: 'Aucun board configuré.',
@@ -132,7 +140,7 @@ const frDict = {
   },
   project: {
     navLabel: (p: string) => `Projet ${p}`,
-    tabs: { overview: 'Vue d’ensemble', backlog: 'Backlog', board: 'Board', trackers: 'Trackers', roadmap: 'Roadmap', reports: 'Rapports', settings: 'Paramètres', planning: 'Planification', traceability: 'Traçabilité', conformity: 'Conformité', documents: 'Documents', code: 'Code et intégration', activity: 'Activité', members: 'Membres' },
+    tabs: { overview: 'Vue d’ensemble', backlog: 'Backlog', board: 'Board', trackers: 'Trackers', reports: 'Rapports', settings: 'Paramètres', planning: 'Planning', traceability: 'Traçabilité', conformity: 'Conformité', documents: 'Documents', code: 'Code et intégration', activity: 'Activité', members: 'Membres' },
   },
   overview: {
     eyebrow: 'Projet', title: 'Vue d’ensemble', mine: 'À traiter par moi', noMine: 'Rien n’est assigné à votre nom.', allMine: 'Tout voir dans la Recherche', trackersTitle: 'Trackers', openTrackers: 'Voir les trackers',
@@ -329,7 +337,7 @@ const frDict = {
     openOf: (o: number, t: number) => `${o} ouvert${o > 1 ? 's' : ''} sur ${t}`, trackerLabel: (n: string, a: number, b: number, c: number) => `${n} : ${a} à faire, ${b} en cours, ${c} terminés`,
     noActivity: 'Aucune activité récente.',
     did: (kind: string, fields: string[], to: string | null) => (kind === 'created' ? 'a créé' : kind === 'comment' ? 'a commenté' : kind === 'transition' ? `a passé à « ${to ?? '?'} »` : fields.length ? `a modifié ${fields.slice(0, 2).join(', ')} de` : 'a modifié'),
-    seeHistory: 'Tout l’historique', seeTickets: 'Voir les tickets ouverts', seeRoadmap: 'Ouvrir la roadmap', seeTrackers: 'Tous les trackers', seeData: 'Voir le tableau des données', day: 'Jour',
+    seeHistory: 'Tout l’historique', seeTickets: 'Voir les tickets ouverts', seeRoadmap: 'Ouvrir les versions', seeTrackers: 'Tous les trackers', seeData: 'Voir le tableau des données', day: 'Jour',
   },
   chart: {
     unavailable: 'Graphique indisponible.', none: 'Aucun ticket ne correspond à cette recherche.', empty: '(vide)', others: 'Autres',
@@ -535,6 +543,14 @@ const enDict: Dictionary = {
     publishTitle: (name: string) => `Publish version “${name}”?`, publishBody: 'A published version no longer accepts or loses tickets.',
     newVersion: 'New version', name: 'Name', starts: 'Start', ends: 'End', create: 'Create version', created: 'Version created.',
   },
+  planning: {
+    title: 'Planning', views: 'Planning views', gantt: 'Gantt', versions: 'Versions', tableCaption: 'Planning tasks, in hierarchy order',
+    key: 'Key', titleCol: 'Title', start: 'Start', end: 'End', duration: 'Duration', progressCol: 'Progress', none: '—',
+    milestone: 'Milestone', summary: 'Parent task', task: 'Task', unscheduled: 'no date', days: (n: number) => `${n} d`, progress: (p: number) => `progress ${p}%`,
+    chartLabel: (rows: number, from: string, to: string) => `Gantt chart: ${rows} row${rows > 1 ? 's' : ''}, ${from} to ${to}`,
+    empty: 'No scheduled task in this project.', emptyHelp: 'Give tickets of a task tracker a start and a due date to see them here.',
+    legend: 'Diamond: milestone. Vertical line: today. Shaded background: non-working days. Arrow: the starting task precedes the other.',
+  },
   board: { eyebrow: 'Board', moveTo: 'Move to', unmapped: (n: number) => `${n} artifact(s) outside columns`, wip: 'WIP limit', laneBy: 'Swimlanes', laneNone: 'None', laneAssignee: 'Assignee', laneTracker: 'Tracker', noAssignee: 'Unassigned', moved: 'Card moved.', empty: 'No card.',
     filter: 'Filter cards (key or title)', mine: 'My tickets', blockedOnly: 'Blocked', blocked: 'Blocked', createIn: (column: string) => `Create a ticket in “${column}”`, noMatch: 'No card matches the filters.',
     indexTitle: 'Boards', projectBoards: 'Project boards', trackerBoards: 'Board of each tracker', noBoards: 'No board configured.',
@@ -588,7 +604,7 @@ const enDict: Dictionary = {
   },
   project: {
     navLabel: (p: string) => `Project ${p}`,
-    tabs: { overview: 'Overview', backlog: 'Backlog', board: 'Board', trackers: 'Trackers', roadmap: 'Roadmap', reports: 'Reports', settings: 'Settings', planning: 'Planning', traceability: 'Traceability', conformity: 'Conformity', documents: 'Documents', code: 'Code and integration', activity: 'Activity', members: 'Members' },
+    tabs: { overview: 'Overview', backlog: 'Backlog', board: 'Board', trackers: 'Trackers', reports: 'Reports', settings: 'Settings', planning: 'Planning', traceability: 'Traceability', conformity: 'Conformity', documents: 'Documents', code: 'Code and integration', activity: 'Activity', members: 'Members' },
   },
   overview: {
     eyebrow: 'Project', title: 'Overview', mine: 'Assigned to me', noMine: 'Nothing is assigned to you.', allMine: 'See all in Search', trackersTitle: 'Trackers', openTrackers: 'See the trackers',
@@ -785,7 +801,7 @@ const enDict: Dictionary = {
     openOf: (o: number, t: number) => `${o} open of ${t}`, trackerLabel: (n: string, a: number, b: number, c: number) => `${n}: ${a} to do, ${b} in progress, ${c} done`,
     noActivity: 'No recent activity.',
     did: (kind: string, fields: string[], to: string | null) => (kind === 'created' ? 'created' : kind === 'comment' ? 'commented on' : kind === 'transition' ? `moved to “${to ?? '?'}”` : fields.length ? `changed ${fields.slice(0, 2).join(', ')} of` : 'changed'),
-    seeHistory: 'Full history', seeTickets: 'See open tickets', seeRoadmap: 'Open the roadmap', seeTrackers: 'All trackers', seeData: 'See the data table', day: 'Day',
+    seeHistory: 'Full history', seeTickets: 'See open tickets', seeRoadmap: 'Open the versions', seeTrackers: 'All trackers', seeData: 'See the data table', day: 'Day',
   },
   chart: {
     unavailable: 'Chart unavailable.', none: 'No ticket matches this search.', empty: '(empty)', others: 'Others',
