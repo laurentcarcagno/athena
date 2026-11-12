@@ -167,6 +167,8 @@ const apiEnv = {
   OPENBAO_ADDR: 'http://127.0.0.1:8200', OPENBAO_TOKEN: get('BAO_DEV_ROOT_TOKEN'),
   GITLAB_URL: 'http://127.0.0.1:8929', GITLAB_TOKEN: get('GITLAB_DEV_TOKEN'), GITLAB_NAMESPACE: 'root',
   WEBHOOK_ALLOW_PRIVATE: 'true',
+  // Développement : les amorçages de démonstration (tools/demo-satellite.mjs) enchaînent plusieurs centaines d'appels.
+  RATE_LIMIT_API_PER_MINUTE: '6000', RATE_LIMIT_SENSITIVE_PER_MINUTE: '600',
 };
 const procs = [
   ['api', process.execPath, [join(apiDir, 'dist/main.js')], apiEnv, apiDir],
