@@ -20,6 +20,10 @@ export interface LinkView {
   hierarchical: boolean;
   /** Type de traçabilité : une modification de contenu rend le lien suspect (regroupement « Traçabilité » de la fiche). */
   propagatesSuspect: boolean;
+  /** Dépendance de planification (fin → début) : le lien sortant précède l'autre extrémité. */
+  ordered: boolean;
+  /** Décalage en jours ouvrés entre la fin du prédécesseur et le début du successeur (type ordonné). */
+  lagDays: number;
 }
 
 export interface LinkTypeView {
@@ -27,6 +31,7 @@ export interface LinkTypeView {
   outwardLabel: string;
   inwardLabel: string;
   hierarchical: boolean;
+  ordered: boolean;
   /** `project` : type propre au projet (il surcharge celui de l'organisation) ; `organization` : type de l'organisation ou livré. */
   scope: 'project' | 'organization';
 }
@@ -61,7 +66,7 @@ export class LinkService {
 
   /** Crée un lien orienté entre deux artefacts du même projet (trackers éventuellement différents). */
   async link(
-    organizationId: string, projectKey: string, fromKey: string, toKey: string, typeKey: string, actor: Actor,
+    organizationId: string, projectKey: string, fromKey: string, toKey: string, typeKey: string, actor: Actor, lagDays = 0,
   ): Promise<string> {
     return this.db.tx(organizationId, async (c) => {
       const project = await this.project(c, projectKey);
@@ -76,11 +81,15 @@ export class LinkService {
       if (type.hierarchical && (await this.reaches(c, to, from, type.id))) {
         throw conflict('Ce lien créerait un cycle dans la hiérarchie.');
       }
+      if (type.ordered && (await this.reaches(c, to, from, type.id))) {
+        throw validation([`le lien ${fromRow.key} → ${toRow.key} créerait un cycle de dépendances (${toRow.key} précède déjà ${fromRow.key}, directement ou non)`]);
+      }
+      if (lagDays !== 0 && !type.ordered) throw validation(['un décalage ne s’applique qu’à un type de lien ordonné']);
       const id = (
         await c.query(
-          `insert into artifact_link (organization_id, from_artifact_id, to_artifact_id, link_type_id)
-           values ($1,$2,$3,$4) returning id`,
-          [organizationId, from, to, type.id],
+          `insert into artifact_link (organization_id, from_artifact_id, to_artifact_id, link_type_id, lag_days)
+           values ($1,$2,$3,$4,$5) returning id`,
+          [organizationId, from, to, type.id, lagDays],
         )
       ).rows[0].id as string;
       await outbox(c, organizationId, 'artifact', from, 'link.created', { from: fromRow.key, to: toRow.key, type: typeKey, actor: actor.id });
@@ -95,7 +104,7 @@ export class LinkService {
       const id = await this.artifact(c, project, key);
       const rows = (
         await c.query(
-          `select l.id, l.suspect, t.key as type, t.outward_label, t.inward_label, t.hierarchical, t.propagates_suspect,
+          `select l.id, l.suspect, t.key as type, t.outward_label, t.inward_label, t.hierarchical, t.propagates_suspect, t.ordered, l.lag_days,
                   (l.from_artifact_id = $1) as outward, o.key as other
            from artifact_link l join link_type t on t.id = l.link_type_id
            left join artifact o on o.id = case when l.from_artifact_id = $1 then l.to_artifact_id else l.from_artifact_id end
@@ -107,6 +116,7 @@ export class LinkService {
         id: r.id, type: r.type, direction: r.outward ? 'outward' : 'inward',
         label: r.outward ? r.outward_label : r.inward_label, other: r.other ?? null, ...(r.other === null ? { restricted: true } : {}), suspect: r.suspect,
         hierarchical: r.hierarchical === true, propagatesSuspect: r.propagates_suspect === true,
+        ordered: r.ordered === true, lagDays: r.lag_days as number,
       }));
     });
   }
@@ -115,11 +125,11 @@ export class LinkService {
   async listTypes(organizationId: string, projectKey: string): Promise<LinkTypeView[]> {
     return this.db.tx(organizationId, async (c) => {
       const project = await this.project(c, projectKey);
-      const own = (await c.query('select key, outward_label, inward_label, hierarchical from link_type where project_id = $1', [project])).rows.map(
-        (r): LinkTypeView => ({ key: r.key as string, outwardLabel: r.outward_label as string, inwardLabel: r.inward_label as string, hierarchical: r.hierarchical as boolean, scope: 'project' }),
+      const own = (await c.query('select key, outward_label, inward_label, hierarchical, ordered from link_type where project_id = $1', [project])).rows.map(
+        (r): LinkTypeView => ({ key: r.key as string, outwardLabel: r.outward_label as string, inwardLabel: r.inward_label as string, hierarchical: r.hierarchical as boolean, ordered: r.ordered as boolean, scope: 'project' }),
       );
       const shared = (await orgLinkTypes(c)).filter((t) => !own.some((o) => o.key === t.key))
-        .map((t): LinkTypeView => ({ key: t.key, outwardLabel: t.outwardLabel, inwardLabel: t.inwardLabel, hierarchical: t.hierarchical, scope: 'organization' }));
+        .map((t): LinkTypeView => ({ key: t.key, outwardLabel: t.outwardLabel, inwardLabel: t.inwardLabel, hierarchical: t.hierarchical, ordered: t.ordered, scope: 'organization' }));
       return [...own, ...shared].sort((a, b) => a.key.localeCompare(b.key));
     });
   }

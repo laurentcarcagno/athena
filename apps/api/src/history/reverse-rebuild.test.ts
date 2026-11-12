@@ -53,7 +53,9 @@ suite('synchronisation inverse et reconstruction (GitLab réel)', () => {
       await c.query("insert into user_account (organization_id, subject, username, display_name, email) values ($1,'sub-alice','alice','Alice Martin','alice@example.test'), ($1,'sub-bob','bob','Bob Durand','bob@example.test')", [org]);
     });
     await trackers.createProject(org, 'ARI', 'Ariane', alice);
-    await trackers.createTracker(org, bugTemplate('ARI'), alice);
+    const bug = bugTemplate('ARI');
+    // Rôles de planification (T-0159) : la reconstruction depuis tracker.yaml doit les conserver (comparés dans `dump`).
+    await trackers.createTracker(org, { ...bug, fields: [...bug.fields, { key: 'start', label: 'Début', type: 'date', semanticRole: 'start_date' }, { key: 'progress', label: 'Avancement', type: 'number', semanticRole: 'progress' }, { key: 'remaining', label: 'Reste', type: 'number', semanticRole: 'remaining' }] }, alice);
     await artifacts.create(org, 'ARI', 'BUG', { title: 'Premier', severity: 'majeure' }, alice);
     await artifacts.create(org, 'ARI', 'BUG', { title: 'Second', severity: 'mineure' }, alice);
     await artifacts.update(org, 'ARI', 'ARI-BUG-0002', { assignee: 'sub-bob' }, 1, alice);
@@ -132,6 +134,7 @@ suite('synchronisation inverse et reconstruction (GitLab réel)', () => {
       transitions: (await c.query('select name from transition order by name')).rows,
     }));
     expect(await dump(other)).toEqual(await dump(org));
+    expect((await dump(other)).fields.filter((f) => ['start_date', 'progress', 'remaining'].includes(f.semantic_role)).map((f) => f.semantic_role).sort()).toEqual(['progress', 'remaining', 'start_date']);
 
     const copyArtifacts = new ArtifactService(db, new TrackerService(db, new FieldTypeRegistry()), new FieldTypeRegistry());
     const next = await copyArtifacts.create(other, 'ARI', 'BUG', { title: 'Après reconstruction', severity: 'mineure' }, alice);

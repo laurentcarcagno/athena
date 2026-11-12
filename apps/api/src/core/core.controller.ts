@@ -1,4 +1,5 @@
 import { LayoutSchema } from './layout';
+import { SEMANTIC_ROLES } from './semantic-roles';
 import { HueSchema } from './hues';
 import { TemplateService } from './template.service';
 import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Query, Req } from '@nestjs/common';
@@ -25,7 +26,7 @@ const TrackerBody = z.object({
   fields: z.array(z.object({
     key: z.string(), label: z.string().min(1), type: z.string(),
     config: z.record(z.string(), z.unknown()).optional(), required: z.boolean().optional(), isContent: z.boolean().optional(),
-    semanticRole: z.enum(['title', 'description', 'status', 'assignee', 'due_date', 'estimate', 'priority', 'version']).optional(),
+    semanticRole: z.enum(SEMANTIC_ROLES).optional(),
   })).max(100),
   statuses: z.array(z.object({
     key: z.string(), name: z.string().min(1), category: z.enum(['todo', 'in_progress', 'done']), color: HueSchema.nullable().optional(),
@@ -47,7 +48,7 @@ const LinkTypeBody = z.object({
   inwardLabel: z.string().min(1).max(100),
   hierarchical: z.boolean().optional(),
 });
-const LinkBody = z.object({ to: z.string().min(1), type: z.string().min(1) });
+const LinkBody = z.object({ to: z.string().min(1), type: z.string().min(1), lagDays: z.number().int().min(-365).max(365).optional() });
 const RestoreBody = z.object({ version: z.number().int().min(1), expectedVersion: z.number().int().min(1) });
 const CommentBody = z.object({ body: z.string().min(1).max(100_000) });
 
@@ -62,7 +63,7 @@ const UpdateFieldBody = z.object({
 const AddFieldBody = z.object({
       key: z.string(), label: z.string().min(1).max(100), type: z.string(), config: z.record(z.string(), z.unknown()).optional(),
       readRoles: z.array(z.string().max(60)).min(1).max(20).optional(), writeRoles: z.array(z.string().max(60)).min(1).max(20).optional(),
-      required: z.boolean().optional(), isContent: z.boolean().optional(), semanticRole: z.enum(['title', 'description', 'status', 'assignee', 'due_date', 'estimate', 'priority', 'version']).optional(),
+      required: z.boolean().optional(), isContent: z.boolean().optional(), semanticRole: z.enum(SEMANTIC_ROLES).optional(),
     });
 const AddStatusBody = z.object({ key: z.string(), name: z.string().min(1).max(100), category: z.enum(['todo', 'in_progress', 'done']), color: HueSchema.nullable().optional() });
 /** Modification d'un statut (T-0138) : nom, catégorie, teinte nommée (null = teinte de la catégorie). */
@@ -326,7 +327,7 @@ export class CoreController {
   async link(@Req() request: AuthedRequest, @Param('project') project: string, @Param('key') key: string, @Body() body: unknown) {
     const { organizationId, actor } = await this.orgs.resolve(principalOf(request));
     const input = parseBody(LinkBody, body);
-    return { id: await this.links.link(organizationId, project, key, input.to, input.type, actor) };
+    return { id: await this.links.link(organizationId, project, key, input.to, input.type, actor, input.lagDays ?? 0) };
   }
 
   @Roles('athena-user', 'athena-admin')

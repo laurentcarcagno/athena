@@ -1,4 +1,4 @@
-import { assignee, chain, clauseTracker, description, emptyThresholds, parseNormative, select, statuses, text, title, tracker, type BuiltinNormative } from './common';
+import { assignee, chain, clauseTracker, description, emptyThresholds, parseNormative, select, statuses, text, title, tracker, taskTracker, type BuiltinNormative } from './common';
 
 const LEVELS = ['A', 'B', 'C', 'D', 'E']; // niveaux de criticité par défaut (ex. DAL de la DO-178C) : à adapter au programme
 const MENTIONS = ['non protégé', 'diffusion restreinte'];
@@ -28,6 +28,7 @@ function trackers() {
       [{ name: 'Accorder', from: 'submitted', to: 'granted' }, { name: 'Refuser', from: 'submitted', to: 'refused' }, { name: 'Rouvrir', from: null, to: 'submitted' }]),
     tracker('RRV', 'Remarques de revue et actions', 'action', [title, description('Remarque', 'description'), text('review', 'Revue', { isContent: false }), assignee, ...marking()],
       statuses(['open', 'Ouverte', 'todo'], ['answered', 'Réponse', 'in_progress'], ['closed', 'Close', 'done']), chain(['open', 'answered', 'closed'], ['Répondre', 'Clore'])),
+    taskTracker(marking()),
   ];
 }
 

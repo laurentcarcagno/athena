@@ -44,7 +44,7 @@ describe('gabarits livrés : validité du schéma', () => {
     expect(v.normative.criticality!.categories.map((c) => c.key)).toEqual(['A', 'B', 'C', 'D']);
     expect(v.normative.reviews.map((r) => r.key)).toEqual(expect.arrayContaining(['srr', 'pdr', 'cdr', 'qr', 'ar', 'trr', 'trb']));
     expect(v.normative.phases.map((p) => p.review)).toEqual(['srr', 'pdr', 'cdr', 'qr', 'ar']);
-    expect(v.trackers.map((t) => t.key)).toEqual(['NORM', 'SYS', 'SRS', 'ICD', 'SDD', 'VER', 'SPR', 'NCR', 'CR', 'RFD', 'RID']);
+    expect(v.trackers.map((t) => t.key)).toEqual(['NORM', 'SYS', 'SRS', 'ICD', 'SDD', 'VER', 'SPR', 'NCR', 'CR', 'RFD', 'RID', 'TSK']);
     expect(v.trackers.find((t) => t.key === 'RID')!.statuses.map((s) => s.key)).toEqual(['open', 'answered', 'decided', 'action', 'closed']);
     expect(v.normative.rules.map((r) => r.key)).toEqual(['sw-req-traced', 'sw-req-verified']);
     expect(v.normative.phases.every((p) => p.exitCriteria.some((c) => c.kind === 'tracker_status' && c.tracker === 'RID' && c.statuses.includes('closed')))).toBe(true);
@@ -53,7 +53,7 @@ describe('gabarits livrés : validité du schéma', () => {
   it('Défense : AQAP-2110 et 2210 éd. B, trackers demandés et champs de marquage', () => {
     const v = BUILTIN_NORMATIVE.find((b) => b.key === 'defense')!.versions[0]!;
     expect(v.normative.standards.map((s) => s.key)).toEqual(['aqap-2110', 'aqap-2210']);
-    expect(v.trackers.map((t) => t.key)).toEqual(['NORM', 'STB', 'SWR', 'ICD', 'SDD', 'TC', 'PV', 'ACI', 'TF', 'CR', 'DRC', 'RRV']);
+    expect(v.trackers.map((t) => t.key)).toEqual(['NORM', 'STB', 'SWR', 'ICD', 'SDD', 'TC', 'PV', 'ACI', 'TF', 'CR', 'DRC', 'RRV', 'TSK']);
     expect(v.normative.marking.fields).toEqual(['mention', 'export_control']);
     for (const t of v.trackers.filter((x) => x.key !== 'NORM')) expect(t.fields.map((f) => f.key), t.key).toEqual(expect.arrayContaining(['mention', 'export_control']));
     expect(v.normative.rules.find((r) => r.key === 'fact-has-ci')).toMatchObject({ fromTracker: 'TF', linkType: 'concerns', minCount: 1 });
@@ -100,7 +100,7 @@ suite('projets créés depuis les gabarits livrés (intégration)', () => {
     expect(created.templateVersion).toBe('1.1');
     const p = await project('SPA');
     expect(p.row).toEqual({ template_key: 'spatial', template_version: '1.1', criticality: 'B', current_phase: 'requirements' });
-    expect(p.trackers.map((t) => t.key)).toEqual(['CR', 'ICD', 'NCR', 'NORM', 'RFD', 'RID', 'SDD', 'SPR', 'SRS', 'SYS', 'VER']);
+    expect(p.trackers.map((t) => t.key)).toEqual(['CR', 'ICD', 'NCR', 'NORM', 'RFD', 'RID', 'SDD', 'SPR', 'SRS', 'SYS', 'TSK', 'VER']);
     expect(p.trackers.find((t) => t.key === 'RID')!.type_key).toBe('action');
     expect(p.transitions).toBeGreaterThan(30);
     expect(p.rules).toEqual(['sw-req-designed', 'sw-req-traced', 'sw-req-verified']);
@@ -129,7 +129,7 @@ suite('projets créés depuis les gabarits livrés (intégration)', () => {
     await templates.createProject(org, 'DEF', 'Programme', 'defense', admin, { criticality: 'C' });
     const p = await project('DEF');
     expect(p.row).toEqual({ template_key: 'defense', template_version: '1.0', criticality: 'C', current_phase: 'requirements' });
-    expect(p.trackers.map((t) => t.key)).toEqual(['ACI', 'CR', 'DRC', 'ICD', 'NORM', 'PV', 'RRV', 'SDD', 'STB', 'SWR', 'TC', 'TF']);
+    expect(p.trackers.map((t) => t.key)).toEqual(['ACI', 'CR', 'DRC', 'ICD', 'NORM', 'PV', 'RRV', 'SDD', 'STB', 'SWR', 'TC', 'TF', 'TSK']);
     expect(p.rules).toEqual(['customer-req-traced', 'customer-req-verified', 'fact-has-ci']);
     const fields = await db.tx(org, async (c) => (await c.query("select f.key from field_definition f join tracker t on t.id = f.tracker_id join project p on p.id = t.project_id where p.key = 'DEF' and t.key = 'TF'")).rows.map((r) => r.key));
     expect(fields).toEqual(expect.arrayContaining(['mention', 'export_control']));

@@ -1,3 +1,4 @@
+import type { SemanticRole } from './semantic-roles';
 import { typeExists } from './tracker-types';
 import type { Hue } from './hues';
 import { layoutProblems, type Layout } from './layout';
@@ -5,6 +6,7 @@ import type { PoolClient } from 'pg';
 import { Db, type Actor } from './db';
 import { DomainError, conflict, notFound, validation } from './errors';
 import { FieldTypeRegistry } from './field-types';
+import { roleTypeProblems } from './semantic-roles';
 
 export interface FieldSpec {
   key: string;
@@ -12,7 +14,7 @@ export interface FieldSpec {
   type: string;
   config?: Record<string, unknown>;
   required?: boolean;
-  semanticRole?: 'title' | 'description' | 'status' | 'assignee' | 'due_date' | 'estimate' | 'priority' | 'version';
+  semanticRole?: SemanticRole;
   /** Rôles autorisés à lire / écrire ce champ (absent = tous). `athena-admin` passe toujours. */
   readRoles?: string[];
   writeRoles?: string[];
@@ -162,6 +164,8 @@ export class TrackerService {
   async addField(organizationId: string, projectKey: string, trackerKey: string, field: FieldSpec, actor: Actor): Promise<void> {
     if (!/^[a-z][a-z0-9_]{0,39}$/.test(field.key)) throw validation(['clé de champ invalide (minuscules, chiffres, tiret bas)']);
     if (!this.fieldTypes.has(field.type)) throw validation([`type de champ inconnu : ${field.type}`]);
+    const roleProblems = roleTypeProblems([field]);
+    if (roleProblems.length) throw validation(roleProblems);
     await this.mutate(organizationId, projectKey, trackerKey, actor, `champ ${field.key}`, async (c, tracker) => {
       const used = Number((await c.query('select count(*) n from artifact where tracker_id = $1', [tracker])).rows[0].n);
       if (field.required && used > 0) throw conflict('Un champ obligatoire ne peut pas être ajouté à un tracker qui contient déjà des tickets.');
@@ -352,6 +356,7 @@ export class TrackerService {
     dup(spec.statuses.map((s) => s.key), 'statut');
     if (spec.layout) errors.push(...layoutProblems(spec.layout, spec.fields.map((f) => f.key)));
     for (const f of spec.fields) if (!this.fieldTypes.has(f.type)) errors.push(`champ ${f.key} : type inconnu ${f.type}`);
+    errors.push(...roleTypeProblems(spec.fields));
     if (!spec.statuses.some((s) => s.category === 'todo')) errors.push('au moins un statut de catégorie todo est requis');
     const keys = new Set(spec.statuses.map((s) => s.key));
     for (const t of spec.transitions) {

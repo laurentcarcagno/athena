@@ -1,5 +1,5 @@
 export interface LinkPair { from: string; to: string }
-export interface BuiltinLinkType { key: string; outwardLabel: string; inwardLabel: string; hierarchical: boolean; propagatesSuspect: boolean; pairs: LinkPair[] }
+export interface BuiltinLinkType { key: string; outwardLabel: string; inwardLabel: string; hierarchical: boolean; propagatesSuspect: boolean; ordered?: boolean; pairs: LinkPair[] }
 
 const pairs = (...p: Array<[string, string]>): LinkPair[] => p.map(([from, to]) => ({ from, to }));
 
@@ -15,6 +15,7 @@ export function builtinLinkTypes(): BuiltinLinkType[] {
     { key: 'implements', outwardLabel: 'implémente', inwardLabel: 'est implémenté par', hierarchical: false, propagatesSuspect: true, pairs: pairs(['task', 'design'], ['task', 'requirement'], ['task', 'interface']) },
     { key: 'concerns', outwardLabel: 'concerne', inwardLabel: 'est concerné par', hierarchical: false, propagatesSuspect: false, pairs: [] },
     { key: 'blocks', outwardLabel: 'bloque', inwardLabel: 'est bloqué par', hierarchical: false, propagatesSuspect: false, pairs: [] },
+    { key: 'precedes', outwardLabel: 'précède', inwardLabel: 'succède à', hierarchical: false, propagatesSuspect: false, ordered: true, pairs: [] },
     { key: 'duplicates', outwardLabel: 'duplique', inwardLabel: 'duplique', hierarchical: false, propagatesSuspect: true, pairs: [] },
   ];
 }

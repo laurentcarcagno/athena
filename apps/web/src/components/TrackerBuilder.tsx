@@ -19,7 +19,7 @@ export const emptyTracker = (): DraftTracker => ({
   transitions: [{ name: 'Terminer', from: 'todo', to: 'done' }],
 });
 
-const ROLES = ['', 'title', 'description', 'assignee', 'due_date', 'estimate', 'priority', 'version'];
+const ROLES = ['', 'title', 'description', 'assignee', 'due_date', 'estimate', 'priority', 'version', 'start_date', 'progress', 'remaining'];
 const KEY = /^[a-z][a-z0-9_]{0,39}$/;
 const sameKey = (s: string) => s.trim().toLowerCase().replace(/[^a-z0-9_]/g, '_');
 

@@ -80,7 +80,10 @@ async function seedAgile(pool, db, trackers, artifacts) {
       { key: 'description', label: 'Description', type: 'richtext', semanticRole: 'description' },
       { key: 'assignee', label: 'Responsable', type: 'user', semanticRole: 'assignee', isContent: false },
       { key: 'priority', label: 'Priorité', type: 'select', config: { options: ['basse', 'moyenne', 'haute'] }, semanticRole: 'priority', isContent: false },
+      { key: 'start', label: 'Début', type: 'date', semanticRole: 'start_date', isContent: false },
       { key: 'due', label: 'Échéance', type: 'date', semanticRole: 'due_date', isContent: false },
+      { key: 'progress', label: 'Avancement (%)', type: 'number', config: { min: 0, max: 100 }, semanticRole: 'progress', isContent: false },
+      { key: 'remaining', label: 'Reste à faire (jours)', type: 'number', config: { min: 0 }, semanticRole: 'remaining', isContent: false },
       { key: 'points', label: 'Points', type: 'number', semanticRole: 'estimate', isContent: false },
     ],
     statuses: [
@@ -99,10 +102,18 @@ async function seedAgile(pool, db, trackers, artifacts) {
     ['Thème sombre du tableau de bord', 2, 'basse'], ['Recherche par étiquette', 5, 'moyenne'], ['Historique des sprints', 3, 'basse'],
     ['Import depuis Jira', 13, 'haute'], ['Raccourcis clavier du board', 2, 'moyenne'],
   ];
-  const keys = [];
-  for (const [title, points, priority] of titles) keys.push((await artifacts.create(org, 'NOVA', 'TSK', { title, points, priority }, actor)).key);
-  const sprints = new SprintService(db);
+  // Planning (ADR-0006, T-0159) : dates, avancement, reste à faire en jours ouvrés et dépendances « précède ».
   const day = (n) => new Date(Date.now() + n * 86_400_000).toISOString().slice(0, 10);
+  const plan = [[-6, -2, 100, 0], [-1, 2, 60, 2], [3, 7, 0, 5], [-1, 3, 25, 4], [0, 4, 10, 4], [5, 8, 0, 3], [8, 17, 0, 8], [3, 5, 0, 2]];
+  const keys = [];
+  for (const [i, [title, points, priority]] of titles.entries()) {
+    const [from, to, progress, remaining] = plan[i];
+    keys.push((await artifacts.create(org, 'NOVA', 'TSK', { title, points, priority, start: day(from), due: day(to), progress, remaining }, actor)).key);
+  }
+  const { LinkService } = dist('core/link.service.js');
+  const links = new LinkService(db);
+  for (const [a, b, lag] of [[0, 1, 0], [1, 2, 0], [0, 3, 0], [4, 5, 0], [2, 6, 1], [5, 6, 0], [3, 7, 0], [7, 6, 0]]) await links.link(org, 'NOVA', keys[a], keys[b], 'precedes', actor, lag);
+  const sprints = new SprintService(db);
   const active = await sprints.create(org, 'NOVA', { name: 'Sprint 1', goal: 'Socle utilisable', startsOn: day(-5), endsOn: day(9) }, actor);
   for (const key of keys.slice(0, 3)) await sprints.addItem(org, active, key, 'NOVA', actor);
   await sprints.start(org, active, actor);

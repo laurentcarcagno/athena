@@ -1,4 +1,4 @@
-import { assignee, chain, clauseTracker, description, emptyThresholds, parseNormative, select, statuses, text, title, tracker, type BuiltinNormative, type BuiltinVersion } from './common';
+import { assignee, chain, clauseTracker, description, emptyThresholds, parseNormative, select, statuses, text, title, tracker, taskTracker, type BuiltinNormative, type BuiltinVersion } from './common';
 
 const CATEGORIES = ['A', 'B', 'C', 'D'];
 const REVIEWS = ['srr', 'pdr', 'cdr', 'qr', 'ar'];
@@ -43,6 +43,7 @@ function trackers(version: '1.0' | '1.1') {
         { key: 'response', label: 'Réponse', type: 'richtext' }, select('decision', 'Décision', ['acceptée', 'rejetée', 'partiellement acceptée'], { isContent: false }), assignee],
       statuses(['open', 'Ouvert', 'todo'], ['answered', 'Réponse', 'in_progress'], ['decided', 'Décision', 'in_progress'], ['action', 'Action', 'in_progress'], ['closed', 'Clos', 'done']),
       chain(['open', 'answered', 'decided', 'action', 'closed'], ['Répondre', 'Décider', 'Lancer l’action', 'Clore'])),
+    taskTracker(),
   ];
 }
 
