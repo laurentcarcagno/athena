@@ -12,6 +12,7 @@ import { useBusy, useFailure } from '../hooks';
 import { WebhooksTab } from './SettingsPanels';
 import { fr } from '../i18n';
 import { AppearanceTab } from '../components/Appearance';
+import { CalendarTab } from '../components/Calendar';
 
 export interface UserEntry { subject: string; username: string; displayName: string; email: string | null }
 export interface MemberEntry extends UserEntry { role: 'manager' | 'member' }
@@ -405,7 +406,7 @@ export function OrgAdminPage({ session }: { session: Session }) {
   return (
     <>
       <PageHeader eyebrow={fr.org.eyebrow} title={fr.org.title} />
-      <Tabs tabs={[{ id: 'projects', label: fr.org.projects }, { id: 'templates', label: fr.org.templates }, { id: 'types', label: fr.org.trackerTypes }, { id: 'linktypes', label: fr.org.linkTypes }, { id: 'users', label: fr.org.users }, { id: 'appearance', label: fr.appearance.tab }, { id: 'webhooks', label: fr.admin.webhooks }, { id: 'plugins', label: fr.org.plugins }]} active={tab} onChange={setTab} />
+      <Tabs tabs={[{ id: 'projects', label: fr.org.projects }, { id: 'templates', label: fr.org.templates }, { id: 'types', label: fr.org.trackerTypes }, { id: 'linktypes', label: fr.org.linkTypes }, { id: 'users', label: fr.org.users }, { id: 'appearance', label: fr.appearance.tab }, { id: 'calendar', label: fr.calendar.tab }, { id: 'webhooks', label: fr.admin.webhooks }, { id: 'plugins', label: fr.org.plugins }]} active={tab} onChange={setTab} />
       <div role="tabpanel" className="ath-stack">
         {tab === 'projects' && <ProjectsTab users={users} templates={templates} />}
         {tab === 'templates' && <TemplatesTab templates={templates} trackerTemplates={trackerTemplates} reload={loadTemplates} reloadTrackerTemplates={loadTrackerTemplates} />}
@@ -413,6 +414,7 @@ export function OrgAdminPage({ session }: { session: Session }) {
         {tab === 'linktypes' && <LinkTypesTab />}
         {tab === 'users' && <UsersTab users={users} />}
         {tab === 'appearance' && <AppearanceTab />}
+        {tab === 'calendar' && <CalendarTab />}
         {tab === 'webhooks' && <WebhooksTab />}
         {tab === 'plugins' && <PluginsTab />}
       </div>

@@ -48,7 +48,7 @@ suite('API REST du noyau', () => {
 
   const token = (roles: string[], groups: string[] = ['/org-demo']) =>
     sign({ preferred_username: 'tester', realm_access: { roles }, groups });
-  const call = async (method: 'GET' | 'POST' | 'PATCH', url: string, jwt?: string, payload?: unknown) =>
+  const call = async (method: 'GET' | 'POST' | 'PATCH' | 'PUT', url: string, jwt?: string, payload?: unknown) =>
     app.inject({
       method, url,
       ...(jwt ? { headers: { authorization: `Bearer ${jwt}` } } : {}),
@@ -148,6 +148,19 @@ suite('API REST du noyau', () => {
     expect(bad.statusCode).toBe(422);
     expect(bad.json().details[0]).toMatch(/Valeur attendue/);
     expect((await call('GET', '/v1/projects/ARI/search?limit=9999', user)).statusCode).toBe(422);
+  });
+
+  it('calendrier : lu par toute personne connectée, modifié par l’administration seulement', async () => {
+    const week = { workDays: [1, 2, 3, 4], holidays: [{ day: '2026-12-25', label: 'Noël' }] };
+    expect((await call('GET', '/v1/calendar')).statusCode).toBe(401);
+    expect((await call('PUT', '/v1/admin/calendar', await token(['athena-user']), week)).statusCode).toBe(403);
+    expect((await call('PUT', '/v1/admin/calendar', await token(['athena-pm']), week)).statusCode).toBe(403);
+    expect((await call('PUT', '/v1/admin/calendar', await token(['athena-admin']), { workDays: [], holidays: [] })).statusCode).toBe(422);
+    const saved = await call('PUT', '/v1/admin/calendar', await token(['athena-admin']), week);
+    expect(saved.statusCode).toBe(200);
+    expect(saved.json()).toEqual(week);
+    for (const role of ['athena-user', 'athena-pm', 'athena-qa']) expect((await call('GET', '/v1/calendar', await token([role]))).json()).toEqual(week);
+    expect((await call('GET', '/v1/calendar', await token(['athena-user'], ['/org-autre']))).json()).toEqual({ workDays: [1, 2, 3, 4, 5], holidays: [] });
   });
 
   it("isole les organisations : l'autre organisation ne voit rien", async () => {
