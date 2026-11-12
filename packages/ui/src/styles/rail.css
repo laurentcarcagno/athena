@@ -26,5 +26,9 @@
 @media (max-width: 768px) {
   .ath-sidebar .ath-notify__panel { left: var(--ath-space-md); right: var(--ath-space-md); width: auto; bottom: calc(var(--ath-space-3xl) + var(--ath-space-md)); }
 }
-/* Rail replié : la cloche se range au bas du pied, juste au-dessus du bouton de dépliage. */
-.ath-sidebar--collapsed .ath-sidebar__user { align-content: flex-end; }
+/* Rail replié : le pied passe en colonne ancrée en bas. Le bouton de dépliage garde la place du bouton de repli (tout en bas),
+   les autres boutons s'empilent au-dessus, puis la cloche. Le tiroir du téléphone garde la disposition dépliée. */
+@media (min-width: 769px) {
+  .ath-sidebar--collapsed .ath-sidebar__user { flex-direction: column; flex-wrap: nowrap; justify-content: flex-end; align-items: center; }
+  .ath-sidebar--collapsed .ath-sidebar__actions { flex-direction: column-reverse; flex-wrap: nowrap; flex-basis: auto; }
+}

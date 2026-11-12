@@ -67,6 +67,18 @@ test('tablette (1000 px) : rail replié en icônes, entrées nommées, panneau d
   await expect(rail).toHaveClass(/ath-sidebar--collapsed/);
   expect(Math.round((await rail.boundingBox())!.width)).toBe(64);
   await expect(rail.getByRole('button', { name: 'Projets' })).toBeVisible();
+  // Pied replié : boutons visibles en colonne depuis le bas, le dépliage tout en bas, au même niveau que le repli.
+  const box = async (name: string) => (await rail.getByRole(name === 'Aide' ? 'link' : 'button', { name, exact: true }).boundingBox())!;
+  const expand = await box('Déplier le rail');
+  const logout = await box('Déconnexion');
+  const help = await box('Aide');
+  expect(help.y).toBeLessThan(expand.y);
+  expect(logout.y).toBeLessThan(help.y);
+  expect(Math.round(help.x)).toBe(Math.round(expand.x));
+  await rail.getByRole('button', { name: 'Déplier le rail' }).click();
+  const collapse = await box('Replier le rail');
+  expect(Math.round(collapse.y)).toBe(Math.round(expand.y));
+  await rail.getByRole('button', { name: 'Replier le rail' }).click();
   await page.getByRole('link', { name: 'ARI-BUG-0001' }).click();
   const panel = page.locator('.ath-split__panel');
   await expect(panel).toBeVisible();
