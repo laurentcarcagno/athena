@@ -107,14 +107,14 @@
 .ath-gantt-day--off { font-style: italic; }
 .ath-gantt-off { fill: var(--ath-surface-muted); }
 .ath-gantt-rule { stroke: var(--ath-border-default); stroke-width: 1; }
-.ath-gantt-bar { fill: var(--ath-surface-selected); stroke: var(--ath-border-focus); stroke-width: 1; rx: var(--ath-radius-control); }
+.ath-gantt-bar { fill: var(--ath-surface-default); stroke: var(--ath-border-focus); stroke-width: 1; rx: var(--ath-radius-control); }
 .ath-gantt-done { fill: var(--ath-data-1); rx: var(--ath-radius-control); }
 .ath-gantt-summary .ath-gantt-bar { fill: var(--ath-text-heading); stroke: var(--ath-text-heading); }
-.ath-gantt-summary .ath-gantt-done { fill: var(--ath-data-1); }
+.ath-gantt-summary .ath-gantt-done { fill: var(--ath-surface-default); }
 .ath-gantt-milestone polygon { fill: var(--ath-text-heading); stroke: var(--ath-surface-default); stroke-width: 1; }
 .ath-gantt-link { fill: none; stroke: var(--ath-text-secondary); stroke-width: 1.5; }
 .ath-gantt-arrowhead { fill: var(--ath-text-secondary); }
-.ath-gantt-today { stroke: var(--ath-state-danger-border); stroke-width: 2; }
+.ath-gantt-today { stroke: var(--ath-state-danger-fg-aa); stroke-width: 2; }
 
 /* Gantt éditable (ADR-0006, T-0163) : barres focalisables, poignées de fin et de lien, aperçu de glisser. */
 .ath-gantt-table .ath-gantt-duration { width: 64px; min-height: 24px; padding: 0 var(--ath-space-xs); }
@@ -127,7 +127,7 @@
 .ath-gantt-link--preview { stroke: var(--ath-border-focus); stroke-dasharray: 4 3; pointer-events: none; }
 
 /* Chemin critique et calque de baseline (ADR-0006 D2, T-0164) : trait épais et mention « Critique », jamais la couleur seule. */
-.ath-gantt-critical .ath-gantt-bar { stroke: var(--ath-state-danger-border); stroke-width: 3; }
-.ath-gantt-critical polygon { stroke: var(--ath-state-danger-border); stroke-width: 3; }
-.ath-gantt-link--critical { stroke: var(--ath-state-danger-border); stroke-width: 3; }
+.ath-gantt-critical .ath-gantt-bar { stroke: var(--ath-state-danger-fg-aa); stroke-width: 3; }
+.ath-gantt-critical polygon { stroke: var(--ath-state-danger-fg-aa); stroke-width: 3; }
+.ath-gantt-link--critical { stroke: var(--ath-state-danger-fg-aa); stroke-width: 3; }
 .ath-gantt-baseline { fill: none; stroke: var(--ath-text-secondary); stroke-width: 1.5; stroke-dasharray: 4 3; }

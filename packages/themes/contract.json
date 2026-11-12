@@ -646,6 +646,30 @@
       "bg": "surface.raised",
       "min": 4.5,
       "label": "texte atténué sur menu flottant"
+    },
+    {
+      "fg": "state.danger.fg-aa",
+      "bg": "surface.default",
+      "min": 3,
+      "label": "chemin critique du Gantt sur carte"
+    },
+    {
+      "fg": "state.danger.fg-aa",
+      "bg": "surface.muted",
+      "min": 3,
+      "label": "chemin critique du Gantt sur jour non ouvré"
+    },
+    {
+      "fg": "text.secondary",
+      "bg": "surface.muted",
+      "min": 3,
+      "label": "lien et pointillé de baseline du Gantt sur jour non ouvré"
+    },
+    {
+      "fg": "text.heading",
+      "bg": "surface.muted",
+      "min": 3,
+      "label": "barre parente du Gantt sur jour non ouvré"
     }
   ]
 }
