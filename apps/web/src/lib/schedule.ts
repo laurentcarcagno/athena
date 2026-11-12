@@ -4,9 +4,9 @@ export interface ScheduleTask {
   key: string; title: string; tracker: string; parent: string | null;
   summary: boolean; milestone: boolean; scheduled: boolean;
   start: string | null; end: string | null; plannedStart: string | null; plannedEnd: string | null;
-  duration: number; moved: boolean; slack: number | null; critical: boolean; progress: number | null; remaining: number | null;
+  duration: number; moved: boolean; slack: number | null; critical: boolean; progress: number | null; remaining: number | null; version: number;
 }
-export interface ScheduleLink { from: string; to: string; lag: number }
+export interface ScheduleLink { id: string; from: string; to: string; lag: number }
 export interface ScheduleData { tasks: ScheduleTask[]; links: ScheduleLink[]; projectEnd: string | null; criticalPath: string[]; moved: number }
 export interface CalendarData { workDays: number[]; holidays: Array<{ day: string; label: string }> }
 
@@ -21,6 +21,14 @@ export function workingPredicate(cal: CalendarData | null): (day: number) => boo
   const week = new Set(cal?.workDays ?? [1, 2, 3, 4, 5]);
   const holidays = new Set((cal?.holidays ?? []).map((h) => dayNumber(h.day)));
   return (day) => week.has(weekdayOf(day)) && !holidays.has(day);
+}
+
+/** Jour ouvré le plus proche de `iso` décalé de `days` jours civils : vers l'avant si `days` ≥ 0, vers l'arrière sinon. */
+export function shiftTo(isWorking: (day: number) => boolean, iso: string, days: number): string {
+  let d = dayNumber(iso) + days;
+  const step = days >= 0 ? 1 : -1;
+  for (let i = 0; i < 3660 && !isWorking(d); i++) d += step;
+  return isoOf(d);
 }
 
 export interface WbsRow { task: ScheduleTask; depth: number }

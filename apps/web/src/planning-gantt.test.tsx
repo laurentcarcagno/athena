@@ -12,7 +12,7 @@ import { axisOf, dayNumber, nonWorkingRuns, visibleWindow, wbsOrder, workingPred
 
 const task = (key: string, over: Partial<ScheduleTask> = {}): ScheduleTask => ({
   key, title: `Tâche ${key}`, tracker: 'TSK', parent: null, summary: false, milestone: false, scheduled: true,
-  start: '2026-11-09', end: '2026-11-10', plannedStart: '2026-11-09', plannedEnd: '2026-11-10', duration: 2, moved: false, slack: 0, critical: false, progress: null, remaining: null, ...over,
+  start: '2026-11-09', end: '2026-11-10', plannedStart: '2026-11-09', plannedEnd: '2026-11-10', duration: 2, moved: false, slack: 0, critical: false, progress: null, remaining: null, version: 1, ...over,
 });
 // Lundi 9 novembre 2026 ; le 11 est férié.
 const data: ScheduleData = {
@@ -23,7 +23,7 @@ const data: ScheduleData = {
     task('N-4', { title: 'Livraison', milestone: true, start: null, plannedStart: null, plannedEnd: '2026-11-17', end: '2026-11-17', duration: 0 }),
     task('N-5', { title: 'Idée', scheduled: false, start: null, end: null, plannedStart: null, plannedEnd: null, duration: 0 }),
   ],
-  links: [{ from: 'N-2', to: 'N-3', lag: 0 }, { from: 'N-3', to: 'N-4', lag: 0 }],
+  links: [{ id: 'l1', from: 'N-2', to: 'N-3', lag: 0 }, { id: 'l2', from: 'N-3', to: 'N-4', lag: 0 }],
   projectEnd: '2026-11-17', criticalPath: [], moved: 0,
 };
 const calendar = { workDays: [1, 2, 3, 4, 5], holidays: [{ day: '2026-11-11', label: 'Armistice' }] };

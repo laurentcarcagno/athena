@@ -95,7 +95,7 @@ suite('planning d’un projet (intégration)', () => {
     expect(s.projectEnd).toBe('2026-11-19');
     expect(s.moved).toBe(2);
     expect(s.tasks[0]).toMatchObject({ title: 'A', tracker: 'TSK' });
-    expect(s.links).toEqual([{ from: t.a.key, to: t.b.key, lag: 0 }, { from: t.b.key, to: t.c.key, lag: 1 }, { from: t.c.key, to: t.m.key, lag: 0 }]);
+    expect(s.links.map(({ id: _id, ...l }) => l)).toEqual([{ from: t.a.key, to: t.b.key, lag: 0 }, { from: t.b.key, to: t.c.key, lag: 1 }, { from: t.c.key, to: t.m.key, lag: 0 }]);
   });
 
   it('suit le calendrier de l’organisation : un jour férié de plus décale la suite', async () => {
@@ -150,6 +150,67 @@ suite('planning d’un projet (intégration)', () => {
 
   it('refuse un lien « précède » qui ferme un cycle avant tout calcul', async () => {
     await expect(f.links.link(f.org, 'NOVA', t.c.key, t.a.key, 'precedes', admin)).rejects.toMatchObject({ code: 'validation' });
+  });
+});
+
+suite('édition d’une tâche du planning (intégration)', () => {
+  let f: Fixture;
+  let t: Awaited<ReturnType<typeof seedReference>>;
+  const vals = async (key: string) => (await f.artifacts.get(f.org, 'NOVA', key)).values;
+
+  beforeAll(async () => {
+    f = await fixture('athena_test_schedule_edit', 'sch2');
+    t = await seedReference(f);
+    await f.schedule.apply(f.org, 'NOVA', pm); // part d’un planning cohérent
+  }, 60_000);
+  afterAll(async () => { await f?.testDb.drop(); });
+
+  it('une nouvelle durée repousse les successeurs, sous un seul lot', async () => {
+    // A dure 2 jours (9-10 nov.) ; 4 jours la font finir le 12 : B, C et le jalon glissent d’autant.
+    const r = await f.schedule.edit(f.org, 'NOVA', t.a.key, { duration: 4 }, pm);
+    expect(await vals(t.a.key)).toMatchObject({ start: '2026-11-09', due: '2026-11-13' });
+    expect(await vals(t.b.key)).toMatchObject({ start: '2026-11-16' });
+    expect(r.keys.sort()).toEqual([t.a.key, t.b.key, t.c.key, t.m.key].sort());
+    expect(r.moved).toBe(4);
+    const batches = await f.db.tx(f.org, async (c) => (await c.query("select distinct payload->>'batch' b from outbox_event where payload->>'batch' = $1", [r.batch])).rows);
+    expect(batches).toHaveLength(1);
+    const events = await f.db.tx(f.org, async (c) => Number((await c.query("select count(*) n from outbox_event where payload->>'batch' = $1 and type = 'artifact.updated'", [r.batch])).rows[0].n));
+    expect(events).toBe(4);
+  });
+
+  it('déplacer le début garde la durée en jours ouvrés et cale sur un jour ouvré', async () => {
+    const before = await vals(t.d.key); // D : 9-10 nov., deux jours
+    expect(before).toMatchObject({ start: '2026-11-09', due: '2026-11-10' });
+    await f.schedule.edit(f.org, 'NOVA', t.d.key, { start: '2026-11-14' }, pm); // samedi : lundi 16
+    expect(await vals(t.d.key)).toMatchObject({ start: '2026-11-16', due: '2026-11-17' });
+  });
+
+  it('étirer la fin change la durée ; une fin avant le début est refusée', async () => {
+    await f.schedule.edit(f.org, 'NOVA', t.d.key, { due: '2026-11-19' }, pm);
+    expect(await vals(t.d.key)).toMatchObject({ start: '2026-11-16', due: '2026-11-19' });
+    await expect(f.schedule.edit(f.org, 'NOVA', t.d.key, { due: '2026-11-13' }, pm)).rejects.toMatchObject({ code: 'validation' });
+  });
+
+  it('un jalon ne bouge que par sa date ; une tâche parente n’est pas modifiable', async () => {
+    await f.schedule.edit(f.org, 'NOVA', t.m.key, { due: '2026-12-01' }, pm);
+    expect(await vals(t.m.key)).toMatchObject({ due: '2026-12-01' });
+    await expect(f.schedule.edit(f.org, 'NOVA', t.m.key, { duration: 3 }, pm)).rejects.toMatchObject({ code: 'validation' });
+    const p = await f.artifacts.create(f.org, 'NOVA', 'TSK', { title: 'Parent', start: '2026-12-07', due: '2026-12-08' }, admin);
+    const x = await f.artifacts.create(f.org, 'NOVA', 'TSK', { title: 'Enfant', start: '2026-12-07', due: '2026-12-08' }, admin);
+    await f.links.link(f.org, 'NOVA', x.key, p.key, 'parent', admin);
+    await expect(f.schedule.edit(f.org, 'NOVA', p.key, { start: '2026-12-14' }, pm)).rejects.toMatchObject({ code: 'validation', details: [expect.stringContaining('tâche parente')] });
+  });
+
+  it('refuse zéro ou plusieurs champs, et une tâche inconnue', async () => {
+    await expect(f.schedule.edit(f.org, 'NOVA', t.a.key, {}, pm)).rejects.toMatchObject({ code: 'validation' });
+    await expect(f.schedule.edit(f.org, 'NOVA', t.a.key, { start: '2026-11-09', due: '2026-11-10' }, pm)).rejects.toMatchObject({ code: 'validation' });
+    await expect(f.schedule.edit(f.org, 'NOVA', 'NOVA-TSK-9999', { duration: 2 }, pm)).rejects.toMatchObject({ code: 'not_found' });
+  });
+
+  it('expose les identifiants de lien et la version des tickets pour l’interface', async () => {
+    const s = await f.schedule.get(f.org, 'NOVA', ['athena-user']);
+    expect(s.links.every((l) => typeof l.id === 'string' && l.id.length > 0)).toBe(true);
+    expect(s.tasks.find((x) => x.key === t.a.key)!.version).toBeGreaterThan(1);
   });
 });
 

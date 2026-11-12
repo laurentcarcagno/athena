@@ -1,16 +1,24 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Id } from '@athena/ui';
+import { Btn, Id, Modal, Select } from '@athena/ui';
 import { fr, getLocale } from '../i18n';
 import { formatDay } from '../lib/dates';
 import { fromHere } from '../lib/origin';
 import {
-  DAY_WIDTH, HEAD_HEIGHT, ROW_HEIGHT, axisOf, dayNumber, isoOf, nonWorkingRuns, visibleWindow, workingPredicate, wbsOrder, xOf,
+  DAY_WIDTH, HEAD_HEIGHT, ROW_HEIGHT, axisOf, dayNumber, isoOf, nonWorkingRuns, shiftTo, visibleWindow, workingPredicate, wbsOrder, xOf,
   type CalendarData, type ScheduleData, type ScheduleTask,
 } from '../lib/schedule';
 
 const t = fr.planning;
 const BAR_PAD = 6;
+
+/** Modifications demandées par le diagramme (chef de projet) ; l'appelant les envoie à l'API et recharge le planning. */
+export interface GanttEdit {
+  onChange: (key: string, change: { start?: string; due?: string; duration?: number }) => void;
+  onLink: (from: string, to: string, lag: number) => void;
+  onUnlink: (id: string) => void;
+}
+interface Drag { key: string; mode: 'move' | 'resize' | 'link'; x0: number; y0: number; dx: number; dy: number }
 
 /** Retrait d'une ligne du tableau : une classe par niveau (aucune mise en forme en ligne, CSP). */
 const indent = (depth: number) => `ath-gantt-indent-${Math.min(depth, 6)}`;
@@ -28,7 +36,7 @@ function summarize(task: ScheduleTask): string {
  * du jour, jours non ouvrés grisés et liens fin → début. Au-delà de 80 lignes, seules les lignes visibles sont dessinées.
  * Le rayon des barres est celui du thème (jeton) ; tout est en attributs SVG ou en classes : aucun style en ligne.
  */
-export function ScheduleGantt({ project, data, calendar, today = new Date() }: { project: string; data: ScheduleData; calendar: CalendarData | null; today?: Date }) {
+export function ScheduleGantt({ project, data, calendar, today = new Date(), edit }: { project: string; data: ScheduleData; calendar: CalendarData | null; today?: Date; edit?: GanttEdit }) {
   const location = useLocation();
   const body = useRef<HTMLDivElement>(null);
   const [scroll, setScroll] = useState({ top: 0, height: 600 });
@@ -39,6 +47,68 @@ export function ScheduleGantt({ project, data, calendar, today = new Date() }: {
   const index = new Map(rows.map((r, i) => [r.task.key, i]));
   const keys = rows.map((r) => r.task.key);
   const total = rows.length * ROW_HEIGHT;
+  const svgRef = useRef<SVGSVGElement>(null);
+  const [drag, setDrag] = useState<Drag | null>(null);
+  const dragRef = useRef<Drag | null>(null);
+  const [linking, setLinking] = useState<string | null>(null);
+  const isWorking = workingPredicate(calendar);
+  const latest = useRef({ edit, data, rows, isWorking });
+  latest.current = { edit, data, rows, isWorking };
+  const dragging = drag !== null;
+
+  /** Glisser une barre (déplacer), sa poignée de fin (étirer) ou sa poignée de lien (relier à une autre ligne). */
+  useEffect(() => {
+    if (!dragging) return;
+    const move = (e: MouseEvent) => {
+      if (!dragRef.current) return;
+      dragRef.current = { ...dragRef.current, dx: e.clientX - dragRef.current.x0, dy: e.clientY - dragRef.current.y0 };
+      setDrag(dragRef.current);
+    };
+    const up = (e: MouseEvent) => {
+      const d = dragRef.current;
+      dragRef.current = null;
+      setDrag(null);
+      const cur = latest.current;
+      const task = cur.data.tasks.find((x) => x.key === d?.key);
+      if (!d || !task || !cur.edit) return;
+      const days = Math.round(d.dx / DAY_WIDTH);
+      if (d.mode === 'move' && days !== 0) {
+        if (task.milestone && task.plannedEnd) cur.edit.onChange(task.key, { due: shiftTo(cur.isWorking, task.plannedEnd, days) });
+        else if (task.plannedStart) cur.edit.onChange(task.key, { start: shiftTo(cur.isWorking, task.plannedStart, days) });
+      } else if (d.mode === 'resize' && days !== 0 && task.plannedEnd) {
+        cur.edit.onChange(task.key, { due: shiftTo(cur.isWorking, task.plannedEnd, days) });
+      } else if (d.mode === 'link') {
+        const top = svgRef.current?.getBoundingClientRect().top ?? 0;
+        const target = cur.rows[Math.floor((e.clientY - top) / ROW_HEIGHT)]?.task;
+        if (target && target.key !== task.key) cur.edit.onLink(task.key, target.key, 0);
+      }
+    };
+    window.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', up);
+    return () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up); };
+  }, [dragging]);
+
+  const begin = (event: ReactMouseEvent, task: ScheduleTask, mode: Drag['mode']) => {
+    if (!edit || event.button !== 0) return;
+    event.preventDefault();
+    event.stopPropagation();
+    dragRef.current = { key: task.key, mode, x0: event.clientX, y0: event.clientY, dx: 0, dy: 0 };
+    setDrag(dragRef.current);
+  };
+
+  /** Équivalent clavier : flèches = début (ou date d'un jalon), Maj + flèches = fin, Entrée = ouvrir « Lier à… ». */
+  const onBarKey = (event: ReactKeyboardEvent, task: ScheduleTask) => {
+    if (!edit) return;
+    if (event.key === 'Enter') { event.preventDefault(); setLinking(task.key); return; }
+    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+    event.preventDefault();
+    const days = event.key === 'ArrowRight' ? 1 : -1;
+    if (task.milestone && task.plannedEnd) edit.onChange(task.key, { due: shiftTo(isWorking, task.plannedEnd, days) });
+    else if (event.shiftKey && task.plannedEnd) {
+      const due = shiftTo(isWorking, task.plannedEnd, days);
+      if (!task.plannedStart || due >= task.plannedStart) edit.onChange(task.key, { due });
+    } else if (task.plannedStart) edit.onChange(task.key, { start: shiftTo(isWorking, task.plannedStart, days) });
+  };
 
   const onScroll = () => {
     const el = body.current;
@@ -46,7 +116,6 @@ export function ScheduleGantt({ project, data, calendar, today = new Date() }: {
   };
 
   if (rows.length === 0) return null;
-  const isWorking = workingPredicate(calendar);
   const todayIso = today.toISOString().split('T')[0]!;
   const todayX = axis && dayNumber(todayIso) >= axis.first && dayNumber(todayIso) < axis.first + axis.days ? xOf(axis, todayIso) + DAY_WIDTH / 2 : null;
 
@@ -58,10 +127,13 @@ export function ScheduleGantt({ project, data, calendar, today = new Date() }: {
       const cx = xOf(axis, task.plannedEnd) + DAY_WIDTH / 2;
       const cy = y + ROW_HEIGHT / 2;
       const r = ROW_HEIGHT / 2 - BAR_PAD + 2;
+      const shift = drag?.key === task.key && drag.mode === 'move' ? Math.round(drag.dx / DAY_WIDTH) * DAY_WIDTH : 0;
       return (
-        <g key={task.key} className="ath-gantt-milestone">
+        <g key={task.key} className={edit ? 'ath-gantt-milestone ath-gantt-editable' : 'ath-gantt-milestone'} transform={shift ? `translate(${shift},0)` : undefined}
+          {...(edit ? { tabIndex: 0, role: 'button', 'aria-label': `${summarize(task)}. ${t.edit.hint}`, onKeyDown: (e: ReactKeyboardEvent) => onBarKey(e, task), onMouseDown: (e: ReactMouseEvent) => begin(e, task, 'move') } : {})}>
           <title>{summarize(task)}</title>
           <polygon points={`${cx},${cy - r} ${cx + r},${cy} ${cx},${cy + r} ${cx - r},${cy}`} />
+          {edit && <circle className="ath-gantt-handle" cx={cx + r + 8} cy={cy} r="4" onMouseDown={(e) => begin(e, task, 'link')}><title>{t.edit.linkHandle(task.key)}</title></circle>}
         </g>
       );
     }
@@ -71,11 +143,19 @@ export function ScheduleGantt({ project, data, calendar, today = new Date() }: {
     const done = Math.min(100, Math.max(0, task.progress ?? 0));
     const height = task.summary ? ROW_HEIGHT / 2 - BAR_PAD / 2 : ROW_HEIGHT - 2 * BAR_PAD;
     const top = y + (ROW_HEIGHT - height) / 2;
+    const editable = Boolean(edit) && !task.summary;
+    const moving = drag?.key === task.key && drag.mode === 'move' ? Math.round(drag.dx / DAY_WIDTH) * DAY_WIDTH : 0;
+    const stretch = drag?.key === task.key && drag.mode === 'resize' ? Math.max(Math.round(drag.dx / DAY_WIDTH) * DAY_WIDTH, DAY_WIDTH / 2 - width) : 0;
+    const w = width + stretch;
+    const className = `${task.summary ? 'ath-gantt-summary' : 'ath-gantt-task'}${editable ? ' ath-gantt-editable' : ''}`;
     return (
-      <g key={task.key} className={task.summary ? 'ath-gantt-summary' : 'ath-gantt-task'}>
+      <g key={task.key} className={className} transform={moving ? `translate(${moving},0)` : undefined}
+        {...(editable ? { tabIndex: 0, role: 'button', 'aria-label': `${summarize(task)}. ${t.edit.hint}`, onKeyDown: (e: ReactKeyboardEvent) => onBarKey(e, task), onMouseDown: (e: ReactMouseEvent) => begin(e, task, 'move') } : {})}>
         <title>{summarize(task)}</title>
-        <rect className="ath-gantt-bar" x={x1} y={top} width={width} height={height} />
-        {done > 0 && <rect className="ath-gantt-done" x={x1} y={top} width={(width * done) / 100} height={height} />}
+        <rect className="ath-gantt-bar" x={x1} y={top} width={w} height={height} />
+        {done > 0 && <rect className="ath-gantt-done" x={x1} y={top} width={(w * done) / 100} height={height} />}
+        {editable && <rect className="ath-gantt-resize" x={x1 + w - 4} y={top} width="8" height={height} onMouseDown={(e) => begin(e, task, 'resize')}><title>{t.edit.resizeHandle(task.key)}</title></rect>}
+        {editable && <circle className="ath-gantt-handle" cx={x1 + w + 12} cy={y + ROW_HEIGHT / 2} r="4" onMouseDown={(e) => begin(e, task, 'link')}><title>{t.edit.linkHandle(task.key)}</title></circle>}
       </g>
     );
   };
@@ -110,6 +190,15 @@ export function ScheduleGantt({ project, data, calendar, today = new Date() }: {
       dayCells.push({ x: i * DAY_WIDTH, label: String(d.getUTCDate()), off: !isWorking(day) });
     }
   }
+  const linkPreview = (() => {
+    if (!drag || drag.mode !== 'link' || !axis) return null;
+    const task = data.tasks.find((x) => x.key === drag.key);
+    const i = index.get(drag.key);
+    if (!task?.plannedEnd || i === undefined) return null;
+    const sx = xOf(axis, task.plannedEnd) + DAY_WIDTH + 12;
+    const sy = i * ROW_HEIGHT + ROW_HEIGHT / 2;
+    return <line className="ath-gantt-link ath-gantt-link--preview" x1={sx} y1={sy} x2={sx + drag.dx} y2={sy + drag.dy} />;
+  })();
   const runs = axis ? nonWorkingRuns(axis, isWorking) : [];
   const visibleLinks = data.links.filter((l) => {
     const a = index.get(l.from);
@@ -122,21 +211,24 @@ export function ScheduleGantt({ project, data, calendar, today = new Date() }: {
       <table className="ath-gantt-table">
         <caption className="ath-visually-hidden">{t.tableCaption}</caption>
         <thead>
-          <tr><th scope="col">{t.key}</th><th scope="col">{t.titleCol}</th><th scope="col">{t.start}</th><th scope="col">{t.end}</th><th scope="col">{t.duration}</th><th scope="col">{t.progressCol}</th></tr>
+          <tr><th scope="col">{t.key}</th><th scope="col">{t.titleCol}</th><th scope="col">{t.start}</th><th scope="col">{t.end}</th><th scope="col">{t.duration}</th><th scope="col">{t.progressCol}</th>{edit && <th scope="col">{t.edit.actions}</th>}</tr>
         </thead>
         <tbody>
-          {from > 0 && <tr aria-hidden="true"><td colSpan={6}><svg width="1" height={from * ROW_HEIGHT} /></td></tr>}
+          {from > 0 && <tr aria-hidden="true"><td colSpan={edit ? 7 : 6}><svg width="1" height={from * ROW_HEIGHT} /></td></tr>}
           {shown.map(({ task, depth }, k) => (
             <tr key={task.key} aria-rowindex={from + k + 2} className={task.summary ? 'ath-gantt-row--summary' : undefined}>
               <td><Link className="ath-link ath-mono" to={`/p/${project}/a/${task.key}`} state={fromHere(location, t.title, keys)}>{task.key}</Link></td>
               <td className={indent(depth)}>{task.title === task.key ? '' : task.title}</td>
               <td>{task.milestone ? '' : task.plannedStart ? <time dateTime={task.plannedStart}>{formatDay(task.plannedStart)}</time> : t.none}</td>
               <td>{task.plannedEnd ? <time dateTime={task.plannedEnd}>{formatDay(task.plannedEnd)}</time> : t.none}</td>
-              <td>{task.scheduled ? (task.milestone ? t.milestone : t.days(task.duration)) : t.none}</td>
+              <td>{edit && task.scheduled && !task.milestone && !task.summary
+                ? <DurationInput task={task} onCommit={(duration) => edit.onChange(task.key, { duration })} />
+                : task.scheduled ? (task.milestone ? t.milestone : t.days(task.duration)) : t.none}</td>
               <td>{task.progress !== null ? <Id>{`${task.progress} %`}</Id> : t.none}</td>
+              {edit && <td><Btn size="sm" variant="ghost" aria-label={t.edit.linkToNamed(task.key)} onClick={() => setLinking(task.key)}>{t.edit.linkTo}</Btn></td>}
             </tr>
           ))}
-          {to < rows.length && <tr aria-hidden="true"><td colSpan={6}><svg width="1" height={(rows.length - to) * ROW_HEIGHT} /></td></tr>}
+          {to < rows.length && <tr aria-hidden="true"><td colSpan={edit ? 7 : 6}><svg width="1" height={(rows.length - to) * ROW_HEIGHT} /></td></tr>}
         </tbody>
       </table>
       {axis && (
@@ -145,7 +237,7 @@ export function ScheduleGantt({ project, data, calendar, today = new Date() }: {
             {months.map((m) => <text key={m.x} className="ath-gantt-month" x={m.x + 4} y="16">{m.label}</text>)}
             {dayCells.map((d) => <text key={d.x} className={d.off ? 'ath-gantt-day ath-gantt-day--off' : 'ath-gantt-day'} x={d.x + DAY_WIDTH / 2} y="38" textAnchor="middle">{d.label}</text>)}
           </svg>
-          <svg className="ath-gantt-svg" width={axis.width} height={total} role="img" aria-label={t.chartLabel(rows.length, formatDay(isoOf(axis.first), true), formatDay(isoOf(axis.first + axis.days - 1), true))}>
+          <svg ref={svgRef} className="ath-gantt-svg" width={axis.width} height={total} role={edit ? 'group' : 'img'} aria-label={t.chartLabel(rows.length, formatDay(isoOf(axis.first), true), formatDay(isoOf(axis.first + axis.days - 1), true))}>
             <defs>
               <marker id="ath-gantt-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path className="ath-gantt-arrowhead" d="M0,0 L8,4 L0,8 z" /></marker>
             </defs>
@@ -156,9 +248,67 @@ export function ScheduleGantt({ project, data, calendar, today = new Date() }: {
               {visibleLinks.map((l) => { const d = linkPath(l.from, l.to); return d ? <path key={`${l.from}>${l.to}`} className="ath-gantt-link" d={d} markerEnd="url(#ath-gantt-arrow)" /> : null; })}
             </g>
             {shown.map(({ task }, k) => barOf(task, from + k))}
+            {linkPreview}
           </svg>
         </div>
       )}
+      {edit && linking && <LinkDialog task={data.tasks.find((x) => x.key === linking)!} data={data} edit={edit} onClose={() => setLinking(null)} />}
     </div>
+  );
+}
+
+/** Durée en jours ouvrés d'une tâche, modifiable dans le tableau : validée à la sortie du champ ou par Entrée. */
+function DurationInput({ task, onCommit }: { task: ScheduleTask; onCommit: (duration: number) => void }) {
+  const commit = (input: HTMLInputElement) => {
+    const value = Number(input.value);
+    if (Number.isInteger(value) && value >= 1 && value !== task.duration) onCommit(value);
+    else input.value = String(task.duration);
+  };
+  return (
+    <input key={`${task.key}-${task.duration}`} className="ath-input ath-gantt-duration" type="number" min={1} max={2000} defaultValue={task.duration} aria-label={t.edit.durationOf(task.key)}
+      onBlur={(e) => commit(e.currentTarget)} onKeyDown={(e) => { if (e.key === 'Enter') commit(e.currentTarget); }} />
+  );
+}
+
+/** « Lier à… » : choisir la tâche qui suit, avec un décalage ; liste aussi les liens de la tâche, qu'on peut retirer. */
+function LinkDialog({ task, data, edit, onClose }: { task: ScheduleTask; data: ScheduleData; edit: GanttEdit; onClose: () => void }) {
+  const others = data.tasks.filter((x) => x.key !== task.key);
+  const [target, setTarget] = useState(others[0]?.key ?? '');
+  const [lag, setLag] = useState('0');
+  const mine = data.links.filter((l) => l.from === task.key || l.to === task.key);
+  const submit = (event: FormEvent) => {
+    event.preventDefault();
+    const n = Number(lag);
+    if (!target || !Number.isInteger(n)) return;
+    edit.onLink(task.key, target, n);
+    onClose();
+  };
+  return (
+    <Modal open title={t.edit.linkTitle(task.key)} onClose={onClose} footer={<Btn variant="ghost" onClick={onClose}>{t.edit.cancel}</Btn>}>
+      <form className="ath-stack" onSubmit={submit} aria-label={t.edit.linkTitle(task.key)}>
+        <label className="ath-field">
+          <span className="ath-field__label">{t.edit.successor}</span>
+          <Select value={target} onChange={(e) => setTarget(e.target.value)}>
+            {others.map((x) => <option key={x.key} value={x.key}>{`${x.key} ${x.title === x.key ? '' : x.title}`.trim()}</option>)}
+          </Select>
+        </label>
+        <label className="ath-field">
+          <span className="ath-field__label">{t.edit.lag}</span>
+          <input className="ath-input ath-mono" type="number" min={-365} max={365} step={1} value={lag} onChange={(e) => setLag(e.target.value)} />
+        </label>
+        <div><Btn type="submit" disabled={!target}>{t.edit.link}</Btn></div>
+      </form>
+      <ul className="ath-stack" aria-label={`${t.edit.predecessors} / ${t.edit.successors}`}>
+        {mine.length === 0 ? <li>{t.edit.noLinks}</li> : mine.map((l) => {
+          const label = l.from === task.key ? `${t.edit.predecessors} ${l.to}` : `${t.edit.successors} ${l.from}`;
+          return (
+            <li key={l.id} className="ath-row">
+              <span>{label}{l.lag !== 0 ? ` (${l.lag > 0 ? '+' : ''}${l.lag} j)` : ''}</span>
+              <Btn size="sm" variant="ghost" icon="trash" aria-label={t.edit.unlink(label)} onClick={() => { edit.onUnlink(l.id); onClose(); }}>{fr.confirm.delete}</Btn>
+            </li>
+          );
+        })}
+      </ul>
+    </Modal>
   );
 }

@@ -1,8 +1,15 @@
-import { Controller, Get, HttpCode, Inject, Param, Post, Req } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Inject, Param, Patch, Post, Req } from '@nestjs/common';
+import { z } from 'zod';
 import { Roles, type AuthedRequest } from '../auth/auth.guard';
-import { OrgResolver } from '../core/http';
+import { OrgResolver, parseBody } from '../core/http';
+import { BodySchema } from '../openapi/body-schema';
 import { MemberService } from '../core/member.service';
 import { ScheduleService } from './schedule.service';
+
+const Day = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+/** Exactement un champ : le début déplace la tâche (durée conservée), la fin l'étire, la durée est en jours ouvrés. */
+const TaskChangeBody = z.object({ start: Day.optional(), due: Day.optional(), duration: z.number().int().min(1).max(2000).optional() }).strict()
+  .refine((b) => [b.start, b.due, b.duration].filter((x) => x !== undefined).length === 1, 'indiquer exactement un de : start, due, duration');
 
 /** Planning d'un projet : lecture pour les membres, replanification pour l'administration et le chef du projet. */
 @Controller('v1/projects/:project')
@@ -28,5 +35,15 @@ export class PlanningController {
     const { organizationId, actor } = await this.orgs.resolve(request.principal!);
     await this.members.requireManager(organizationId, project, actor);
     return this.schedules.apply(organizationId, project, actor);
+  }
+
+  /** Modifie une tâche puis replanifie ses successeurs (un seul commit d'historique). */
+  @Roles('athena-admin', 'athena-pm')
+  @Patch('schedule/tasks/:key')
+  @BodySchema(TaskChangeBody)
+  async editTask(@Req() request: AuthedRequest, @Param('project') project: string, @Param('key') key: string, @Body() body: unknown) {
+    const { organizationId, actor } = await this.orgs.resolve(request.principal!);
+    await this.members.requireManager(organizationId, project, actor);
+    return this.schedules.edit(organizationId, project, key, parseBody(TaskChangeBody, body), actor);
   }
 }

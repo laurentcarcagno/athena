@@ -173,6 +173,11 @@ suite('API REST du noyau', () => {
     const applied = await call('POST', '/v1/projects/ARI/schedule/apply', await token(['athena-admin']));
     expect(applied.statusCode).toBe(200);
     expect(applied.json()).toEqual({ moved: 0, keys: [], batch: null });
+    const patch = (jwt: string, body: unknown) => call('PATCH', '/v1/projects/ARI/schedule/tasks/ARI-BUG-0001', jwt, body);
+    expect((await patch(await token(['athena-user']), { duration: 3 })).statusCode).toBe(403);
+    expect((await patch(await token(['athena-admin']), {})).statusCode).toBe(422); // aucun champ
+    expect((await patch(await token(['athena-admin']), { duration: 3, due: '2026-11-12' })).statusCode).toBe(422); // deux champs
+    expect((await patch(await token(['athena-admin']), { duration: 3 })).statusCode).toBe(404); // ARI n’a pas de tâche planifiée
   });
 
   it("isole les organisations : l'autre organisation ne voit rien", async () => {

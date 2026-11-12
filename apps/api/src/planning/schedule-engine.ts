@@ -23,7 +23,7 @@ export interface PlanTask {
   parent: string | null;
 }
 /** `from` précède `to` (fin → début), `lag` jours ouvrés entre la fin de l'une et le début de l'autre. */
-export interface PlanLink { from: string; to: string; lag: number }
+export interface PlanLink { from: string; to: string; lag: number; id?: string }
 
 export interface PlannedTask {
   key: string;

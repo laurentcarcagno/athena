@@ -115,3 +115,13 @@
 .ath-gantt-link { fill: none; stroke: var(--ath-text-secondary); stroke-width: 1.5; }
 .ath-gantt-arrowhead { fill: var(--ath-text-secondary); }
 .ath-gantt-today { stroke: var(--ath-state-danger-border); stroke-width: 2; }
+
+/* Gantt éditable (ADR-0006, T-0163) : barres focalisables, poignées de fin et de lien, aperçu de glisser. */
+.ath-gantt-table .ath-gantt-duration { width: 64px; min-height: 24px; padding: 0 var(--ath-space-xs); }
+.ath-gantt-editable { cursor: grab; outline: none; }
+.ath-gantt-editable:focus-visible .ath-gantt-bar { stroke: var(--ath-border-focus); stroke-width: var(--ath-border-width-strong); }
+.ath-gantt-editable:focus-visible polygon { stroke: var(--ath-border-focus); stroke-width: var(--ath-border-width-strong); }
+.ath-gantt-resize { fill: var(--ath-border-focus); opacity: 0.35; cursor: ew-resize; }
+.ath-gantt-resize:hover { opacity: 0.8; }
+.ath-gantt-handle { fill: var(--ath-surface-default); stroke: var(--ath-border-focus); stroke-width: 2; cursor: crosshair; }
+.ath-gantt-link--preview { stroke: var(--ath-border-focus); stroke-dasharray: 4 3; pointer-events: none; }

@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
-import { EmptyState, PageHeader, TabLinks } from '@athena/ui';
+import { EmptyState, PageHeader, TabLinks, useToast } from '@athena/ui';
 import { api, type Session } from '../api';
-import { ScheduleGantt } from '../components/ScheduleGantt';
+import { ScheduleGantt, type GanttEdit } from '../components/ScheduleGantt';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
 import type { CalendarData, ScheduleData } from '../lib/schedule';
@@ -29,28 +29,53 @@ export function PlanningPage({ session }: { session: Session }) {
     <>
       <PageHeader title={t.title} />
       {tabs}
-      {view === 'gantt' ? <GanttView project={project} /> : <RoadmapPage session={session} bare />}
+      {view === 'gantt' ? <GanttView project={project} canEdit={(session.user?.roles ?? []).some((r) => r === 'athena-admin' || r === 'athena-pm')} /> : <RoadmapPage session={session} bare />}
     </>
   );
 }
 
-function GanttView({ project }: { project: string }) {
+function GanttView({ project, canEdit }: { project: string; canEdit: boolean }) {
   const fail = useFailure();
+  const toast = useToast();
   const [data, setData] = useState<ScheduleData | null>(null);
   const [calendar, setCalendar] = useState<CalendarData | null>(null);
-  useEffect(() => {
-    let live = true;
-    Promise.all([api<ScheduleData>('GET', `/v1/projects/${project}/schedule`), api<CalendarData>('GET', '/v1/calendar').catch(() => null)])
-      .then(([schedule, cal]) => { if (live) { setData(schedule); setCalendar(cal); } })
-      .catch(fail);
-    return () => { live = false; };
-  }, [project, fail]);
+  const [announce, setAnnounce] = useState('');
+  const base = `/v1/projects/${project}`;
+  const load = useCallback(async () => {
+    const [schedule, cal] = await Promise.all([api<ScheduleData>('GET', `${base}/schedule`), api<CalendarData>('GET', '/v1/calendar').catch(() => null)]);
+    setData(schedule);
+    setCalendar(cal);
+  }, [base]);
+  useEffect(() => { load().catch(fail); }, [load, fail]);
+
+  /** Une action d'édition : l'API replanifie les successeurs ; on annonce le nombre de tickets déplacés et on recharge. */
+  const edit = useMemo<GanttEdit | undefined>(() => {
+    if (!canEdit) return undefined;
+    const run = async (action: () => Promise<string>) => {
+      try {
+        const message = await action();
+        setAnnounce(message);
+        toast('success', message);
+      } catch (error) { fail(error); }
+      await load().catch(fail);
+    };
+    return {
+      onChange: (key, change) => void run(async () => t.edit.moved((await api<{ moved: number }>('PATCH', `${base}/schedule/tasks/${key}`, change)).moved)),
+      onLink: (from, to, lag) => void run(async () => {
+        await api('POST', `${base}/artifacts/${from}/links`, { to, type: 'precedes', ...(lag !== 0 ? { lagDays: lag } : {}) });
+        const pushed = (await api<{ moved: number }>('POST', `${base}/schedule/apply`)).moved;
+        return `${t.edit.linked} ${t.edit.moved(pushed)}`;
+      }),
+      onUnlink: (id) => void run(async () => { await api('DELETE', `${base}/links/${id}`); return t.edit.unlinked; }),
+    };
+  }, [canEdit, base, load, fail, toast]);
   if (data === null) return <p role="status">{fr.loading}</p>;
   if (!data.tasks.some((x) => x.scheduled)) return <EmptyState eyebrow={t.title} title={t.empty} action={<span>{t.emptyHelp}</span>} />;
   return (
     <div className="ath-stack">
-      <p className="ath-pageheader__sub">{t.legend}</p>
-      <ScheduleGantt project={project} data={data} calendar={calendar} />
+      <p className="ath-pageheader__sub">{t.legend}{canEdit ? '' : ` ${t.edit.readOnly}`}</p>
+      <p role="status" className="ath-visually-hidden">{announce}</p>
+      <ScheduleGantt project={project} data={data} calendar={calendar} {...(edit ? { edit } : {})} />
     </div>
   );
 }
