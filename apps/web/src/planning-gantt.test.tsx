@@ -12,7 +12,7 @@ import { axisOf, dayNumber, nonWorkingRuns, visibleWindow, wbsOrder, workingPred
 
 const task = (key: string, over: Partial<ScheduleTask> = {}): ScheduleTask => ({
   key, title: `Tâche ${key}`, tracker: 'TSK', parent: null, summary: false, milestone: false, scheduled: true,
-  start: '2026-11-09', end: '2026-11-10', plannedStart: '2026-11-09', plannedEnd: '2026-11-10', duration: 2, moved: false, slack: 0, critical: false, progress: null, remaining: null, version: 1, ...over,
+  start: '2026-11-09', end: '2026-11-10', plannedStart: '2026-11-09', plannedEnd: '2026-11-10', duration: 2, moved: false, slack: 0, critical: false, progress: null, remaining: null, version: 1, status: { key: 'todo', name: 'À faire', category: 'todo', color: null }, assignee: null, ...over,
 });
 // Lundi 9 novembre 2026 ; le 11 est férié.
 const data: ScheduleData = {

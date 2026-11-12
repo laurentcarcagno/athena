@@ -4,6 +4,7 @@ import { Btn, Card, EmptyState, Field as FieldInput, Id, Select, StatusPill, Tab
 import { ApiError, api, upload, type Artifact, type AttachmentView, type Field, type Revision, type Session, type TrackerDefinition } from '../api';
 import { useBusy, useFailure } from '../hooks';
 import { fr } from '../i18n';
+import { PlanningSection, hasPlanning } from '../components/PlanningSection';
 import { ItemHeader, type ItemLink as LinkView, type ItemSprint } from '../components/ItemHeader';
 import { MentionInput, MentionText } from '../components/MentionInput';
 import { ApprovalPanel } from '../components/ApprovalPanel';
@@ -20,6 +21,9 @@ interface DocLink { source: string; docId: string | null; uid: string; title: st
 
 /** Valeurs de `?onglet=` ; `activity` porte le libellé « Commentaires ». */
 export const TABS = ['details', 'links', 'history', 'attachments', 'activity', 'dev', 'approval'] as const;
+
+/** Champs montrés par la section Planification : ils ne se répètent pas dans Détails. */
+const PLANNING_ROLES = new Set(['start_date', 'due_date', 'progress', 'remaining']);
 
 export const formatSize = (bytes: number): string => (bytes < 1024 ? `${bytes} o` : bytes < 1024 * 1024 ? `${(bytes / 1024).toFixed(1)} Ko` : `${(bytes / 1024 / 1024).toFixed(1)} Mo`);
 
@@ -245,12 +249,13 @@ export function ArtifactView({ session, project, itemKey: key, embedded = false,
         active={tab} onChange={setTab}
       />
       <div className="ath-stack" role="tabpanel">
+        {tab === 'details' && hasPlanning(def) && <PlanningSection project={project} def={def} artifact={artifact} links={links} roles={roles} me={me} onSave={(field, raw) => void save(field, raw)} onChanged={() => void reload()} />}
         {tab === 'details' && (
           <Card title={fr.artifact.details} meta={`v${artifact.version}`}>
             <div className="ath-stack">
               {/* Marquage export : modifiable par les responsables ; pour les autres, un badge dans l'en-tête suffit (T-0148). */}
               {roles.some((r) => r === 'athena-admin' || r === 'athena-pm') && <MarkingEditor project={project} itemKey={artifact.key} value={artifact.exportControl} canEdit onChanged={reload} />}
-              {resolveLayout(def.layout, def.fields, { general: fr.layout.general, details: fr.layout.details, others: fr.layout.others }).sections.map((section, i) => (
+              {resolveLayout(def.layout, hasPlanning(def) ? def.fields.filter((f) => !PLANNING_ROLES.has(f.semanticRole ?? '')) : def.fields, { general: fr.layout.general, details: fr.layout.details, others: fr.layout.others }).sections.map((section, i) => (
                 section.fields.length === 0 ? null : (
                   <section key={i} aria-label={section.title || undefined} className="ath-layout-view">
                     {section.title && <h3 className="ath-subsection-title">{section.title}</h3>}

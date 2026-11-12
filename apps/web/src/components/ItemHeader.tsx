@@ -17,7 +17,7 @@ export function availableTransitions(def: TrackerDefinition, artifact: Artifact,
 }
 
 /** Lien vu depuis la fiche (`GET .../links`). */
-export interface ItemLink { id: string; type: string; direction: string; label: string; other: string | null; restricted?: boolean; suspect: boolean; hierarchical?: boolean; propagatesSuspect?: boolean }
+export interface ItemLink { id: string; type: string; direction: string; label: string; other: string | null; restricted?: boolean; suspect: boolean; hierarchical?: boolean; propagatesSuspect?: boolean; ordered?: boolean; lagDays?: number }
 export interface ItemSprint { id: string; name: string; state: string }
 
 const None = () => <><span aria-hidden="true">{fr.facts.none}</span><span className="ath-visually-hidden">{fr.facts.noneLabel}</span></>;

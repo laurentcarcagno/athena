@@ -7,6 +7,8 @@ export interface ScheduleTask {
   duration: number; moved: boolean; slack: number | null; critical: boolean; progress: number | null; remaining: number | null; version: number;
   /** Dates figées par la baseline comparée et écart de la fin en jours ouvrés (positif : en retard). */
   baselineStart?: string | null; baselineEnd?: string | null; variance?: number | null;
+  status: { key: string; name: string; category: string; color: string | null };
+  assignee: string | null;
 }
 export interface ScheduleLink { id: string; from: string; to: string; lag: number }
 export interface ScheduleData { tasks: ScheduleTask[]; links: ScheduleLink[]; projectEnd: string | null; criticalPath: string[]; moved: number; baseline?: { name: string; createdAt: string } | null }
@@ -99,4 +101,33 @@ export function visibleWindow(total: number, scrollTop: number, viewport: number
   const from = Math.max(0, Math.floor(scrollTop / ROW_HEIGHT) - overscan);
   const to = Math.min(total, Math.ceil((scrollTop + viewport) / ROW_HEIGHT) + overscan);
   return { from, to };
+}
+
+export type PlanningFilter = 'all' | 'late' | 'critical' | 'milestones' | 'mine';
+export const PLANNING_FILTERS: readonly PlanningFilter[] = ['all', 'late', 'critical', 'milestones', 'mine'];
+
+/**
+ * Périmètre filtré du planning, commun au Gantt, au Board et à la Liste (filtres dans l'adresse) : texte (clé ou titre) et
+ * critère. Les parents des tâches retenues restent, pour garder la hiérarchie lisible ; les liens dont une extrémité manque tombent.
+ */
+export function filterSchedule(data: ScheduleData, filter: { q: string; f: PlanningFilter; me: string; today: string }): ScheduleData {
+  const q = filter.q.trim().toLowerCase();
+  if (!q && filter.f === 'all') return data;
+  const matches = (t: ScheduleTask): boolean => {
+    if (q && !t.key.toLowerCase().includes(q) && !t.title.toLowerCase().includes(q)) return false;
+    switch (filter.f) {
+      case 'late': return t.end !== null && t.end < filter.today && t.status.category !== 'done';
+      case 'critical': return t.critical;
+      case 'milestones': return t.milestone;
+      case 'mine': return filter.me !== '' && t.assignee === filter.me;
+      default: return true;
+    }
+  };
+  const byKey = new Map(data.tasks.map((t) => [t.key, t]));
+  const keep = new Set<string>();
+  for (const t of data.tasks) {
+    if (!matches(t)) continue;
+    for (let cur: ScheduleTask | undefined = t; cur && !keep.has(cur.key); cur = cur.parent ? byKey.get(cur.parent) : undefined) keep.add(cur.key);
+  }
+  return { ...data, tasks: data.tasks.filter((t) => keep.has(t.key)), links: data.links.filter((l) => keep.has(l.from) && keep.has(l.to)) };
 }

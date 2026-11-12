@@ -4,6 +4,8 @@ export interface CompileContext {
   currentUser: string;
   /** Champs à lecture restreinte que le lecteur ne peut pas voir : interdits dans filtres et tris (pas de déduction par la requête). */
   forbiddenFields?: ReadonlySet<string>;
+  /** Clés des tickets du chemin critique de leur projet, résolues par l'appelant ; sans elles, `critical()` est refusé. */
+  criticalKeys?: ReadonlySet<string>;
 }
 
 export interface Compiled {
@@ -28,6 +30,13 @@ const BUILTIN: Record<string, { column: string; type: 'text' | 'time' }> = {
   created: { column: 'a.created_at', type: 'time' },
   updated: { column: 'a.updated_at', type: 'time' },
 };
+/**
+ * Champs de planification : le champ porteur d'un rôle sémantique, quel que soit son nom dans le tracker (ADR-0006, T-0165).
+ * La valeur est une date `AAAA-MM-JJ` ; un ticket sans ce rôle ou sans valeur n'a pas de date (jamais une erreur).
+ */
+const DATE_ROLES: Record<string, string> = { startdate: 'start_date', duedate: 'due_date' };
+const roleDate = (role: string): string =>
+  `(select case when v ~ '^\\d{4}-\\d{2}-\\d{2}$' then v::date end from (select a."values" ->> f.key as v from field_definition f where f.tracker_id = a.tracker_id and f.semantic_role = '${role}') r)`;
 const CUSTOM_FIELD = /^[a-z][a-z0-9_]{0,39}$/;
 const SQL_OP: Record<Operator, string> = { '=': '=', '!=': '<>', '~': 'ILIKE', '<': '<', '>': '>', '<=': '<=', '>=': '>=' };
 
@@ -75,6 +84,13 @@ export function compile(input: string | Query, context: CompileContext, leading:
       if (context.forbiddenFields && context.forbiddenFields.size > 0) throw new AtqlError('Recherche plein texte indisponible : des champs sont à lecture restreinte pour votre rôle', 0);
       return `a.search_tsv @@ websearch_to_tsquery('simple', ${bind(String(scalar(value)))})`;
     }
+    const role = DATE_ROLES[field.toLowerCase()];
+    if (role) {
+      if (op === '~') throw new AtqlError(`L'opérateur ~ ne s'applique pas à ${field}`, 0);
+      const wanted = String(scalar(value));
+      if (!/^\d{4}-\d{2}-\d{2}/.test(wanted)) throw new AtqlError(`${field} attend une date AAAA-MM-JJ`, 0);
+      return `${roleDate(role)} ${SQL_OP[op]} ${bind(wanted.slice(0, 10))}::date`;
+    }
     const { builtin, name } = fieldRef(field);
     const v = scalar(value);
     if (builtin) {
@@ -108,6 +124,12 @@ export function compile(input: string | Query, context: CompileContext, leading:
       case 'or': return `(${expr(e.left)} or ${expr(e.right)})`;
       case 'not': return `(not ${expr(e.operand)})`;
       case 'cmp': return cmp(e.field, e.op, e.value);
+      case 'late':
+        return `coalesce(exists (select 1 from status st where st.id = a.status_id and st.category <> 'done') and ${roleDate('due_date')} < current_date, false)`;
+      case 'critical': {
+        if (!context.criticalKeys) throw new AtqlError('critical() est indisponible dans ce contexte', 0);
+        return `a.key = any(${bind([...context.criticalKeys])}::text[])`;
+      }
       case 'suspect':
         return 'exists (select 1 from artifact_link l where l.suspect and (l.from_artifact_id = a.id or l.to_artifact_id = a.id))';
       case 'linkedTo': {
@@ -130,6 +152,8 @@ export function compile(input: string | Query, context: CompileContext, leading:
         return e.negated ? `(not ${inner})` : inner;
       }
       case 'empty': {
+        const dateRole = DATE_ROLES[e.field.toLowerCase()];
+        if (dateRole) return e.negated ? `(${roleDate(dateRole)} is not null)` : `(${roleDate(dateRole)} is null)`;
         const { builtin, name } = fieldRef(e.field);
         const key = builtin ? '' : bindText(name);
         const sql = builtin
@@ -144,6 +168,8 @@ export function compile(input: string | Query, context: CompileContext, leading:
   const whereParamCount = params.length;
   const order: string[] = [];
   for (const o of query.orderBy) {
+    const sortRole = DATE_ROLES[o.field.toLowerCase()];
+    if (sortRole) { order.push(`${roleDate(sortRole)} ${o.descending ? 'desc' : 'asc'} nulls last`); continue; }
     const { builtin, name } = fieldRef(o.field);
     const direction = o.descending ? 'desc' : 'asc';
     if (builtin) {

@@ -86,6 +86,15 @@ const frDict = {
     chartLabel: (rows: number, from: string, to: string) => `Diagramme de Gantt : ${rows} ligne${rows > 1 ? 's' : ''}, du ${from} au ${to}`,
     empty: 'Aucune tâche planifiée dans ce projet.', emptyHelp: 'Donnez un début et une échéance aux tickets d’un tracker de tâches pour les voir ici.',
     legend: 'Losange : jalon. Trait vertical : aujourd’hui. Fond grisé : jours non ouvrés. Flèche : la tâche de départ précède l’autre.',
+    board: 'Board', list: 'Liste', listCaption: 'Tâches du planning avec leurs dates, leur marge et leur avancement', noMatch: 'Aucune tâche ne correspond aux filtres.',
+    listCols: { status: 'Statut', slack: 'Marge', remaining: 'Reste à faire' },
+    categories: { todo: 'À faire', in_progress: 'En cours', done: 'Terminé' } as Record<string, string>,
+    filters: { label: 'Filtres du planning', search: 'Rechercher une tâche', show: 'Afficher', all: 'Toutes les tâches', late: 'En retard', critical: 'Chemin critique', milestones: 'Jalons', mine: 'Mes tâches', reset: 'Effacer les filtres' } as Record<string, string>,
+    section: {
+      title: 'Planification', start: 'Début', end: 'Fin', duration: 'Durée', slack: 'Marge', progress: 'Avancement (%)', remaining: 'Reste à faire (jours)',
+      predecessors: 'Précédée par', successors: 'Suivie par', none: 'Aucune', parent: 'Les dates d’une tâche parente sont calculées depuis ses enfants.',
+      open: 'Ouvrir dans le planning', saved: 'Planification enregistrée.', onlyMine: 'Vous modifiez l’avancement et le reste à faire des tickets qui vous sont assignés.', lag: (n: number) => ` (${n > 0 ? '+' : ''}${n} j)`,
+    },
     critical: { label: 'Chemin critique', tag: 'Critique', help: 'Trait épais et mention « Critique » : une tâche sans marge, dont tout retard décale la fin du projet.' },
     baseline: { label: 'Comparer à une baseline', none: 'Aucune', gap: 'Écart', gapValue: (n: number) => (n === 0 ? '0 j' : `${n > 0 ? '+' : '−'}${Math.abs(n)} j`), gapLate: (n: number) => `${n} jour${n > 1 ? 's' : ''} ouvré${n > 1 ? 's' : ''} de retard`, gapEarly: (n: number) => `${n} jour${n > 1 ? 's' : ''} ouvré${n > 1 ? 's' : ''} d’avance`, onTime: 'dans les temps', frozen: (a: string, b: string) => `Baseline : ${a} → ${b}`, note: (name: string) => `Pointillés : dates figées par la baseline ${name}.`, none2: 'Aucune baseline n’a figé de planning.' },
     edit: {
@@ -560,6 +569,15 @@ const enDict: Dictionary = {
     chartLabel: (rows: number, from: string, to: string) => `Gantt chart: ${rows} row${rows > 1 ? 's' : ''}, ${from} to ${to}`,
     empty: 'No scheduled task in this project.', emptyHelp: 'Give tickets of a task tracker a start and a due date to see them here.',
     legend: 'Diamond: milestone. Vertical line: today. Shaded background: non-working days. Arrow: the starting task precedes the other.',
+    board: 'Board', list: 'List', listCaption: 'Planning tasks with their dates, slack and progress', noMatch: 'No task matches the filters.',
+    listCols: { status: 'Status', slack: 'Slack', remaining: 'Remaining' },
+    categories: { todo: 'To do', in_progress: 'In progress', done: 'Done' } as Record<string, string>,
+    filters: { label: 'Planning filters', search: 'Search a task', show: 'Show', all: 'All tasks', late: 'Late', critical: 'Critical path', milestones: 'Milestones', mine: 'My tasks', reset: 'Clear filters' } as Record<string, string>,
+    section: {
+      title: 'Planning', start: 'Start', end: 'End', duration: 'Duration', slack: 'Slack', progress: 'Progress (%)', remaining: 'Remaining (days)',
+      predecessors: 'Preceded by', successors: 'Followed by', none: 'None', parent: 'The dates of a parent task are computed from its children.',
+      open: 'Open in the planning', saved: 'Planning saved.', onlyMine: 'You edit progress and remaining work of tickets assigned to you.', lag: (n: number) => ` (${n > 0 ? '+' : ''}${n} d)`,
+    },
     critical: { label: 'Critical path', tag: 'Critical', help: 'Thick line and “Critical” label: a task with no slack, whose delay moves the project end.' },
     baseline: { label: 'Compare with a baseline', none: 'None', gap: 'Variance', gapValue: (n: number) => (n === 0 ? '0 d' : `${n > 0 ? '+' : '−'}${Math.abs(n)} d`), gapLate: (n: number) => `${n} working day${n > 1 ? 's' : ''} late`, gapEarly: (n: number) => `${n} working day${n > 1 ? 's' : ''} early`, onTime: 'on time', frozen: (a: string, b: string) => `Baseline: ${a} → ${b}`, note: (name: string) => `Dashes: dates frozen by baseline ${name}.`, none2: 'No baseline has frozen a schedule.' },
     edit: {

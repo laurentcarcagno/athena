@@ -212,6 +212,8 @@ suite('édition d’une tâche du planning (intégration)', () => {
     const s = await f.schedule.get(f.org, 'NOVA', ['athena-user']);
     expect(s.links.every((l) => typeof l.id === 'string' && l.id.length > 0)).toBe(true);
     expect(s.tasks.find((x) => x.key === t.a.key)!.version).toBeGreaterThan(1);
+    expect(s.tasks.find((x) => x.key === t.a.key)!.status).toEqual({ key: 'todo', name: 'À faire', category: 'todo', color: null });
+    expect(s.tasks.find((x) => x.key === t.a.key)!.assignee).toBeNull();
   });
 });
 

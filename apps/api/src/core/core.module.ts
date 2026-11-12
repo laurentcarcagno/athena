@@ -120,7 +120,7 @@ export { PG_POOL } from './core.tokens';
     },
     { provide: LinkService, useFactory: (db: Db) => new LinkService(db), inject: [Db] },
     { provide: SavedFilterService, useFactory: (db: Db) => new SavedFilterService(db), inject: [Db] },
-    { provide: SearchService, useFactory: (db: Db) => new SearchService(db), inject: [Db] },
+    { provide: SearchService, useFactory: (db: Db, schedule: ScheduleService) => new SearchService(db, async (org, project) => (await schedule.get(org, project, ['athena-admin'])).criticalPath), inject: [Db, ScheduleService] },
     { provide: PreferenceService, useFactory: (db: Db) => new PreferenceService(db), inject: [Db] },
     { provide: AppearanceService, useFactory: (db: Db) => new AppearanceService(db), inject: [Db] },
     { provide: CalendarService, useFactory: (db: Db) => new CalendarService(db), inject: [Db] },

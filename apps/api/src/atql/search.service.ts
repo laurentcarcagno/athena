@@ -37,8 +37,11 @@ export function groupBuckets(rows: Array<{ value: string; label: string; n: numb
   return { total, buckets, others: total - buckets.reduce((sum, r) => sum + r.count, 0) };
 }
 
+/** Clés des tickets du chemin critique d'un projet (moteur de dates), pour `critical()`. */
+export type CriticalResolver = (organizationId: string, projectKey: string) => Promise<string[]>;
+
 export class SearchService {
-  constructor(private readonly db: Db) {}
+  constructor(private readonly db: Db, private readonly critical?: CriticalResolver) {}
 
   /** Exécute une requête ATQL dans le périmètre (RLS) de l'organisation et du projet. */
   async search(
@@ -118,9 +121,15 @@ export class SearchService {
         restricted.set(scope, (restricted.get(scope) ?? new Set<string>()).add(r.key));
       }
     }
+    // `critical()` : le chemin critique vient du moteur de dates, pas du SQL ; on le résout pour les projets du périmètre.
+    let criticalKeys: Set<string> | undefined;
+    if (this.critical && /\bcritical\s*\(/i.test(query)) {
+      const scope = projects ?? (await this.db.tx(organizationId, async (c) => (await c.query('select key from project')).rows)).map((r) => r.key as string);
+      criticalKeys = new Set((await Promise.all(scope.map((p) => this.critical!(organizationId, p)))).flat());
+    }
     let compiled;
     try {
-      compiled = compile(query, { currentUser, forbiddenFields: forbidden }, [projects]);
+      compiled = compile(query, { currentUser, forbiddenFields: forbidden, ...(criticalKeys ? { criticalKeys } : {}) }, [projects]);
     } catch (error) {
       if (error instanceof AtqlError) throw validation([error.message]);
       throw error;

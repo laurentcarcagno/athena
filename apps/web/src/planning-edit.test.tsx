@@ -13,7 +13,7 @@ import { PlanningPage } from './pages/PlanningPage';
 
 const task = (key: string, over: Partial<ScheduleTask> = {}): ScheduleTask => ({
   key, title: `Tâche ${key}`, tracker: 'TSK', parent: null, summary: false, milestone: false, scheduled: true,
-  start: '2026-11-09', end: '2026-11-10', plannedStart: '2026-11-09', plannedEnd: '2026-11-10', duration: 2, moved: false, slack: 0, critical: false, progress: null, remaining: null, version: 1, ...over,
+  start: '2026-11-09', end: '2026-11-10', plannedStart: '2026-11-09', plannedEnd: '2026-11-10', duration: 2, moved: false, slack: 0, critical: false, progress: null, remaining: null, version: 1, status: { key: 'todo', name: 'À faire', category: 'todo', color: null }, assignee: null, ...over,
 });
 // Lundi 9 ; vendredi 13 ; lundi 16 novembre 2026. Le 11 est férié.
 const data: ScheduleData = {

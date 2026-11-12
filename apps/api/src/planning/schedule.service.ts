@@ -12,6 +12,9 @@ export interface ScheduleTask extends PlannedTask {
   tracker: string;
   /** Version du ticket (pour une modification concurrente sûre). */
   version: number;
+  /** Statut du ticket (Board et Liste du planning). */
+  status: { key: string; name: string; category: string; color: string | null };
+  assignee: string | null;
   /** Dates planifiées figées par la baseline comparée (nulles sans baseline, ou si le ticket n'y était pas). */
   baselineStart: string | null;
   baselineEnd: string | null;
@@ -32,7 +35,7 @@ export interface TaskChange { start?: string; due?: string; duration?: number }
 interface Loaded {
   tasks: PlanTask[];
   links: PlanLink[];
-  meta: Map<string, { tracker: string; version: number; startKey: string; dueKey: string; titleHidden: boolean }>;
+  meta: Map<string, { tracker: string; version: number; status: ScheduleTask['status']; assignee: string | null; startKey: string; dueKey: string; titleHidden: boolean }>;
 }
 
 /**
@@ -66,6 +69,7 @@ export class ScheduleService {
           const old = frozen.get(t.key);
           return {
             ...t, tracker: loaded.meta.get(t.key)!.tracker, version: loaded.meta.get(t.key)!.version,
+            status: loaded.meta.get(t.key)!.status, assignee: loaded.meta.get(t.key)!.assignee,
             baselineStart: old?.start ?? null, baselineEnd: old?.end ?? null,
             variance: old && t.plannedEnd ? workingDaysBetween(cal, old.end, t.plannedEnd) : null,
           };
@@ -167,7 +171,7 @@ export class ScheduleService {
     const fieldRows = (await c.query(
       `select f.tracker_id, t.key as tracker, f.semantic_role, f.key, f.read_roles
        from field_definition f join tracker t on t.id = f.tracker_id
-       where t.project_id = $1 and f.semantic_role in ('title','start_date','due_date','progress','remaining')`,
+       where t.project_id = $1 and f.semantic_role in ('title','assignee','start_date','due_date','progress','remaining')`,
       [project.id],
     )).rows;
     type Roles = Record<string, { key: string; readRoles: string[] | null }>;
@@ -181,7 +185,8 @@ export class ScheduleService {
     if (planning.length === 0) return { tasks: [], links: [], meta: new Map() };
 
     const rows = (await c.query(
-      'select id, key, version, tracker_id, "values" as values from artifact where tracker_id = any($1::uuid[]) order by number, key',
+      `select a.id, a.key, a.version, a.tracker_id, a."values" as values, s.key as status_key, s.name as status_name, s.category as status_category, s.color as status_color
+       from artifact a join status s on s.id = a.status_id where a.tracker_id = any($1::uuid[]) order by a.number, a.key`,
       [planning.map(([id]) => id)],
     )).rows;
     const idToKey = new Map<string, string>(rows.map((r) => [r.id as string, r.key as string]));
@@ -210,7 +215,10 @@ export class ScheduleService {
       const date = (x: unknown) => (typeof x === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(x) ? x : null);
       const num = (x: unknown) => (typeof x === 'number' && Number.isFinite(x) ? x : null);
       const title = field('title');
-      meta.set(r.key as string, { tracker: entry.tracker, version: r.version as number, startKey: entry.roles['start_date']!.key, dueKey: entry.roles['due_date']!.key, titleHidden: title === undefined });
+      const who = field('assignee');
+      meta.set(r.key as string, { tracker: entry.tracker, version: r.version as number,
+        status: { key: r.status_key as string, name: r.status_name as string, category: r.status_category as string, color: (r.status_color as string | null) ?? null },
+        assignee: typeof who === 'string' && who ? who : null, startKey: entry.roles['start_date']!.key, dueKey: entry.roles['due_date']!.key, titleHidden: title === undefined });
       return {
         key: r.key as string, title: typeof title === 'string' && title ? title : (r.key as string),
         start: date(field('start_date')), end: date(field('due_date')), progress: num(field('progress')), remaining: num(field('remaining')),

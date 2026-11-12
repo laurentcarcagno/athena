@@ -13,7 +13,7 @@ import { PlanningPage } from './pages/PlanningPage';
 
 const task = (key: string, over: Partial<ScheduleTask> = {}): ScheduleTask => ({
   key, title: `Tâche ${key}`, tracker: 'TSK', parent: null, summary: false, milestone: false, scheduled: true,
-  start: '2026-11-09', end: '2026-11-10', plannedStart: '2026-11-09', plannedEnd: '2026-11-10', duration: 2, moved: false, slack: 3, critical: false, progress: null, remaining: null, version: 1, ...over,
+  start: '2026-11-09', end: '2026-11-10', plannedStart: '2026-11-09', plannedEnd: '2026-11-10', duration: 2, moved: false, slack: 3, critical: false, progress: null, remaining: null, version: 1, status: { key: 'todo', name: 'À faire', category: 'todo', color: null }, assignee: null, ...over,
 });
 const data: ScheduleData = {
   tasks: [
