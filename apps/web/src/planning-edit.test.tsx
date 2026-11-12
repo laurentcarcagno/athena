@@ -9,6 +9,9 @@ import { ScheduleGantt, type GanttEdit } from './components/ScheduleGantt';
 import { DAY_WIDTH, ROW_HEIGHT, type CalendarData, type ScheduleData, type ScheduleTask } from './lib/schedule';
 import { PlanningPage } from './pages/PlanningPage';
 
+// jsdom n'a pas PointerEvent : une sous-classe de MouseEvent porte les coordonnées du glisser.
+if (typeof window.PointerEvent === 'undefined') (window as unknown as { PointerEvent: typeof MouseEvent }).PointerEvent = class PointerEvent extends MouseEvent {};
+
 // T-0163 : édition du planning par le chef de projet (durée, glisser, étirer, lier), équivalents clavier, lecture seule.
 
 const task = (key: string, over: Partial<ScheduleTask> = {}): ScheduleTask => ({
@@ -28,7 +31,7 @@ const data: ScheduleData = {
 const calendar: CalendarData = { workDays: [1, 2, 3, 4, 5], holidays: [{ day: '2026-11-11', label: 'Armistice' }] };
 
 function setup() {
-  const edit: GanttEdit = { onChange: vi.fn(), onLink: vi.fn(), onUnlink: vi.fn() };
+  const edit: GanttEdit = { onChange: vi.fn(), onLink: vi.fn(), onUnlink: vi.fn(), onLag: vi.fn() };
   const view = render(<MemoryRouter><ScheduleGantt project="NOVA" data={data} calendar={calendar} edit={edit} /></MemoryRouter>);
   const bar = (key: string) => view.container.querySelector(`g[aria-label^="${key} "]`) as SVGGElement;
   return { edit, bar, ...view };
@@ -80,33 +83,33 @@ describe('Gantt éditable', () => {
 
   it('glisser une barre déplace le début du nombre de jours glissé ; étirer sa poignée change la fin', () => {
     const { edit, bar, container } = setup();
-    fireEvent.mouseDown(bar('N-1'), { button: 0, clientX: 100, clientY: 10 });
-    fireEvent.mouseMove(window, { clientX: 100 + 2 * DAY_WIDTH + 5, clientY: 10 });
-    fireEvent.mouseUp(window, { clientX: 100 + 2 * DAY_WIDTH + 5, clientY: 10 });
+    fireEvent.pointerDown(bar('N-1'), { button: 0, clientX: 100, clientY: 10 });
+    fireEvent.pointerMove(window, { clientX: 100 + 2 * DAY_WIDTH + 5, clientY: 10 });
+    fireEvent.pointerUp(window, { clientX: 100 + 2 * DAY_WIDTH + 5, clientY: 10 });
     expect(edit.onChange).toHaveBeenLastCalledWith('N-1', { start: '2026-11-12' }); // 9 + 2 jours = 11 (férié) → jeudi 12
 
     const handle = container.querySelector('g[aria-label^="N-2 "] rect.ath-gantt-resize') as SVGRectElement;
-    fireEvent.mouseDown(handle, { button: 0, clientX: 300, clientY: 40 });
-    fireEvent.mouseMove(window, { clientX: 300 + 3 * DAY_WIDTH, clientY: 40 });
-    fireEvent.mouseUp(window, { clientX: 300 + 3 * DAY_WIDTH, clientY: 40 });
+    fireEvent.pointerDown(handle, { button: 0, clientX: 300, clientY: 40 });
+    fireEvent.pointerMove(window, { clientX: 300 + 3 * DAY_WIDTH, clientY: 40 });
+    fireEvent.pointerUp(window, { clientX: 300 + 3 * DAY_WIDTH, clientY: 40 });
     expect(edit.onChange).toHaveBeenLastCalledWith('N-2', { due: '2026-11-16' }); // 13 + 3 jours = 16 (lundi)
   });
 
   it('un glisser sans déplacement d’un jour n’envoie rien', () => {
     const { edit, bar } = setup();
-    fireEvent.mouseDown(bar('N-1'), { button: 0, clientX: 100, clientY: 10 });
-    fireEvent.mouseMove(window, { clientX: 105, clientY: 10 });
-    fireEvent.mouseUp(window, { clientX: 105, clientY: 10 });
+    fireEvent.pointerDown(bar('N-1'), { button: 0, clientX: 100, clientY: 10 });
+    fireEvent.pointerMove(window, { clientX: 105, clientY: 10 });
+    fireEvent.pointerUp(window, { clientX: 105, clientY: 10 });
     expect(edit.onChange).not.toHaveBeenCalled();
   });
 
   it('glisser la poignée de lien vers une autre ligne crée le lien « précède »', () => {
     const { edit, container } = setup();
     const handle = container.querySelector('g[aria-label^="N-1 "] circle.ath-gantt-handle') as SVGCircleElement;
-    fireEvent.mouseDown(handle, { button: 0, clientX: 200, clientY: 16 });
-    fireEvent.mouseMove(window, { clientX: 220, clientY: 2 * ROW_HEIGHT + 10 });
+    fireEvent.pointerDown(handle, { button: 0, clientX: 200, clientY: 16 });
+    fireEvent.pointerMove(window, { clientX: 220, clientY: 2 * ROW_HEIGHT + 10 });
     expect(container.querySelector('.ath-gantt-link--preview')).not.toBeNull();
-    fireEvent.mouseUp(window, { clientX: 220, clientY: 2 * ROW_HEIGHT + 10 }); // ligne 3 : N-3
+    fireEvent.pointerUp(window, { clientX: 220, clientY: 2 * ROW_HEIGHT + 10 }); // ligne 3 : N-3
     expect(edit.onLink).toHaveBeenCalledWith('N-1', 'N-3', 0);
   });
 
@@ -126,9 +129,22 @@ describe('Gantt éditable', () => {
     const { edit, bar } = setup();
     fireEvent.keyDown(bar('N-1'), { key: 'Enter' });
     const dialog = await screen.findByRole('dialog');
-    expect(within(dialog).getByText(/Précède N-2 \(\+1 j\)/)).toBeInTheDocument();
+    expect(within(dialog).getByText('Précède N-2')).toBeInTheDocument();
+    expect(within(dialog).getByLabelText('Décalage du lien en jours ouvrés : Précède N-2')).toHaveValue(1);
     await userEvent.click(within(dialog).getByRole('button', { name: /Retirer le lien : Précède N-2/ }));
     expect(edit.onUnlink).toHaveBeenCalledWith('l1');
+  });
+
+  it('le décalage d’un lien se change sur place (négatif permis), sans rien envoyer s’il est inchangé ou invalide', async () => {
+    const { edit, bar } = setup();
+    fireEvent.keyDown(bar('N-1'), { key: 'Enter' });
+    const input = await screen.findByLabelText('Décalage du lien en jours ouvrés : Précède N-2');
+    await userEvent.clear(input);
+    await userEvent.type(input, '1{Enter}');
+    expect(edit.onLag).not.toHaveBeenCalled(); // inchangé
+    await userEvent.clear(input);
+    await userEvent.type(input, '-2{Enter}');
+    expect(edit.onLag).toHaveBeenCalledWith('l1', -2);
   });
 
   it('sans droit d’édition : ni champ, ni bouton, ni poignée, ni barre focalisable', () => {
@@ -190,6 +206,16 @@ describe('PlanningPage : édition', () => {
     expect(calls[0]).toMatchObject({ method: 'POST', url: '/v1/projects/NOVA/artifacts/N-2/links', body: { to: 'N-3', type: 'precedes' } });
     expect(calls[1]).toMatchObject({ method: 'POST', url: '/v1/projects/NOVA/schedule/apply' });
     expect((await screen.findAllByText('Lien créé. 1 ticket déplacé.')).length).toBeGreaterThan(0);
+  });
+
+  it('changer le décalage d’un lien appelle la route de décalage puis annonce la replanification', async () => {
+    open(manager);
+    await userEvent.click(await screen.findByRole('button', { name: 'Lier N-1 à…' }));
+    const input = within(screen.getByRole('dialog')).getByLabelText(/Décalage du lien en jours ouvrés/);
+    await userEvent.clear(input);
+    await userEvent.type(input, '4{Enter}');
+    await waitFor(() => expect(calls).toEqual([{ method: 'PATCH', url: '/v1/projects/NOVA/schedule/links/l1', body: { lagDays: 4 } }]));
+    expect((await screen.findAllByText('3 tickets déplacés.')).length).toBeGreaterThan(0);
   });
 
   it('retirer un lien appelle la suppression du lien', async () => {

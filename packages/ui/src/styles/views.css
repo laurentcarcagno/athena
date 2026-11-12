@@ -131,3 +131,6 @@
 .ath-gantt-critical polygon { stroke: var(--ath-state-danger-fg-aa); stroke-width: 3; }
 .ath-gantt-link--critical { stroke: var(--ath-state-danger-fg-aa); stroke-width: 3; }
 .ath-gantt-baseline { fill: none; stroke: var(--ath-text-secondary); stroke-width: 1.5; stroke-dasharray: 4 3; }
+
+/* Glisser au doigt ou au stylet : la barre et ses poignées capturent le geste (sinon la page défile). */
+.ath-gantt-editable, .ath-gantt-resize, .ath-gantt-handle { touch-action: none; }

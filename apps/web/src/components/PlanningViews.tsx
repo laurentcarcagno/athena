@@ -75,7 +75,7 @@ export function PlanningList({ project, data }: { project: string; data: Schedul
               <td className="ath-td"><StatusPill kind={kind(task.status.category)}>{task.status.name}</StatusPill></td>
               <td className="ath-td">{task.milestone ? '' : day(task.plannedStart)}</td>
               <td className="ath-td">{day(task.plannedEnd)}</td>
-              <td className="ath-td">{task.scheduled ? (task.milestone ? t.milestone : t.days(task.duration)) : t.none}</td>
+              <td className="ath-td">{task.scheduled && !task.summary ? (task.milestone ? t.milestone : t.days(task.duration)) : t.none}</td>
               <td className="ath-td">{task.slack === null ? t.none : <>{t.days(task.slack)}{task.critical && <> <StatusPill kind="danger">{t.critical.tag}</StatusPill></>}</>}</td>
               <td className="ath-td">{task.progress !== null ? <Id>{`${task.progress} %`}</Id> : t.none}</td>
               <td className="ath-td">{task.remaining !== null ? t.days(task.remaining) : t.none}</td>

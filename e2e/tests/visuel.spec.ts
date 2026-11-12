@@ -1,7 +1,8 @@
 import { expect, test, type Page } from '@playwright/test';
+import { seedPlanning } from './planning-seed';
 
 /**
- * Non-régression visuelle du lot 10 (ADR-0004) : 12 écrans × clair et sombre × 4 largeurs.
+ * Non-régression visuelle du lot 10 (ADR-0004) : 13 écrans × clair et sombre × 4 largeurs.
  * Lancé seulement à la demande (la suite e2e ordinaire l'ignore), depuis `e2e/` :
  *   référence : `pnpm visuel:reference` ; comparaison : `pnpm visuel`.
  * Les deux scripts réinitialisent d'abord la base e2e et le compte admin.dev (global-setup.mjs) :
@@ -20,7 +21,9 @@ const PAGES: Array<[string, string]> = [
   ['fiche', '/p/ARI/a/ARI-BUG-0001'],
   ['board', '/p/ARI/board'],
   ['backlog', '/p/ARI/backlog'],
-  ['planning', '/p/ARI/planning'],
+  // Planning : un projet daté à clé fixe, créé avant les captures (VPL), car ARI n'a aucune tâche planifiée.
+  ['planning', '/p/VPL/planning'],
+  ['planning-liste', '/p/VPL/planning?vue=list'],
   ['rapports', '/p/ARI/rapports/avancement'],
   ['parametres', '/p/ARI/parametres/membres'],
 ];
@@ -40,8 +43,9 @@ async function login(page: Page) {
 }
 
 for (const mode of MODES) {
-  test(`captures de référence : ${mode}`, async ({ page }) => {
+  test(`captures de référence : ${mode}`, async ({ page, request }) => {
     test.setTimeout(10 * 60_000);
+    await seedPlanning(request, 'VPL'); // idempotent : déjà créé par le premier mode
     await page.emulateMedia({ colorScheme: mode, reducedMotion: 'reduce' });
     await page.addInitScript((m) => window.localStorage.setItem('athena.theme', m), mode);
     await login(page);
@@ -57,7 +61,7 @@ for (const mode of MODES) {
           fullPage: true,
           animations: 'disabled',
           caret: 'hide',
-          mask: [page.locator('time')],
+          mask: [page.locator('time'), page.locator('.ath-gantt-today')],
           maxDiffPixelRatio: 0.001,
         });
       }

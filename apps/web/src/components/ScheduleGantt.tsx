@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Btn, Id, Modal, Select, Tag } from '@athena/ui';
 import { fr, getLocale } from '../i18n';
@@ -17,6 +17,7 @@ export interface GanttEdit {
   onChange: (key: string, change: { start?: string; due?: string; duration?: number }) => void;
   onLink: (from: string, to: string, lag: number) => void;
   onUnlink: (id: string) => void;
+  onLag: (id: string, lag: number) => void;
 }
 interface Drag { key: string; mode: 'move' | 'resize' | 'link'; x0: number; y0: number; dx: number; dy: number }
 
@@ -61,12 +62,12 @@ export function ScheduleGantt({ project, data, calendar, today = new Date(), edi
   /** Glisser une barre (déplacer), sa poignée de fin (étirer) ou sa poignée de lien (relier à une autre ligne). */
   useEffect(() => {
     if (!dragging) return;
-    const move = (e: MouseEvent) => {
+    const move = (e: PointerEvent) => {
       if (!dragRef.current) return;
       dragRef.current = { ...dragRef.current, dx: e.clientX - dragRef.current.x0, dy: e.clientY - dragRef.current.y0 };
       setDrag(dragRef.current);
     };
-    const up = (e: MouseEvent) => {
+    const up = (e: PointerEvent) => {
       const d = dragRef.current;
       dragRef.current = null;
       setDrag(null);
@@ -85,12 +86,12 @@ export function ScheduleGantt({ project, data, calendar, today = new Date(), edi
         if (target && target.key !== task.key) cur.edit.onLink(task.key, target.key, 0);
       }
     };
-    window.addEventListener('mousemove', move);
-    window.addEventListener('mouseup', up);
-    return () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up); };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+    return () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); };
   }, [dragging]);
 
-  const begin = (event: ReactMouseEvent, task: ScheduleTask, mode: Drag['mode']) => {
+  const begin = (event: ReactPointerEvent, task: ScheduleTask, mode: Drag['mode']) => {
     if (!edit || event.button !== 0) return;
     event.preventDefault();
     event.stopPropagation();
@@ -132,10 +133,10 @@ export function ScheduleGantt({ project, data, calendar, today = new Date(), edi
       const shift = drag?.key === task.key && drag.mode === 'move' ? Math.round(drag.dx / DAY_WIDTH) * DAY_WIDTH : 0;
       return (
         <g key={task.key} className={`ath-gantt-milestone${edit ? ' ath-gantt-editable' : ''}${critical && task.critical ? ' ath-gantt-critical' : ''}`} transform={shift ? `translate(${shift},0)` : undefined}
-          {...(edit ? { tabIndex: 0, role: 'button', 'aria-label': `${summarize(task)}. ${t.edit.hint}`, onKeyDown: (e: ReactKeyboardEvent) => onBarKey(e, task), onMouseDown: (e: ReactMouseEvent) => begin(e, task, 'move') } : {})}>
+          {...(edit ? { tabIndex: 0, role: 'button', 'aria-label': `${summarize(task)}. ${t.edit.hint}`, onKeyDown: (e: ReactKeyboardEvent) => onBarKey(e, task), onPointerDown: (e: ReactPointerEvent) => begin(e, task, 'move') } : {})}>
           <title>{summarize(task)}</title>
           <polygon points={`${cx},${cy - r} ${cx + r},${cy} ${cx},${cy + r} ${cx - r},${cy}`} />
-          {edit && <circle className="ath-gantt-handle" cx={cx + r + 8} cy={cy} r="4" onMouseDown={(e) => begin(e, task, 'link')}><title>{t.edit.linkHandle(task.key)}</title></circle>}
+          {edit && <circle className="ath-gantt-handle" cx={cx + r + 8} cy={cy} r="4" onPointerDown={(e) => begin(e, task, 'link')}><title>{t.edit.linkHandle(task.key)}</title></circle>}
         </g>
       );
     }
@@ -152,12 +153,12 @@ export function ScheduleGantt({ project, data, calendar, today = new Date(), edi
     const className = `${task.summary ? 'ath-gantt-summary' : 'ath-gantt-task'}${editable ? ' ath-gantt-editable' : ''}${critical && task.critical ? ' ath-gantt-critical' : ''}`;
     return (
       <g key={task.key} className={className} transform={moving ? `translate(${moving},0)` : undefined}
-        {...(editable ? { tabIndex: 0, role: 'button', 'aria-label': `${summarize(task)}. ${t.edit.hint}`, onKeyDown: (e: ReactKeyboardEvent) => onBarKey(e, task), onMouseDown: (e: ReactMouseEvent) => begin(e, task, 'move') } : {})}>
+        {...(editable ? { tabIndex: 0, role: 'button', 'aria-label': `${summarize(task)}. ${t.edit.hint}`, onKeyDown: (e: ReactKeyboardEvent) => onBarKey(e, task), onPointerDown: (e: ReactPointerEvent) => begin(e, task, 'move') } : {})}>
         <title>{summarize(task)}</title>
         <rect className="ath-gantt-bar" x={x1} y={top} width={w} height={height} />
         {done > 0 && <rect className="ath-gantt-done" x={x1} y={top} width={(w * done) / 100} height={height} />}
-        {editable && <rect className="ath-gantt-resize" x={x1 + w - 4} y={top} width="8" height={height} onMouseDown={(e) => begin(e, task, 'resize')}><title>{t.edit.resizeHandle(task.key)}</title></rect>}
-        {editable && <circle className="ath-gantt-handle" cx={x1 + w + 12} cy={y + ROW_HEIGHT / 2} r="4" onMouseDown={(e) => begin(e, task, 'link')}><title>{t.edit.linkHandle(task.key)}</title></circle>}
+        {editable && <rect className="ath-gantt-resize" x={x1 + w - 4} y={top} width="8" height={height} onPointerDown={(e) => begin(e, task, 'resize')}><title>{t.edit.resizeHandle(task.key)}</title></rect>}
+        {editable && <circle className="ath-gantt-handle" cx={x1 + w + 12} cy={y + ROW_HEIGHT / 2} r="4" onPointerDown={(e) => begin(e, task, 'link')}><title>{t.edit.linkHandle(task.key)}</title></circle>}
       </g>
     );
   };
@@ -238,7 +239,7 @@ export function ScheduleGantt({ project, data, calendar, today = new Date(), edi
               <td>{task.plannedEnd ? <time dateTime={task.plannedEnd}>{formatDay(task.plannedEnd)}</time> : t.none}</td>
               <td>{edit && task.scheduled && !task.milestone && !task.summary
                 ? <DurationInput task={task} onCommit={(duration) => edit.onChange(task.key, { duration })} />
-                : task.scheduled ? (task.milestone ? t.milestone : t.days(task.duration)) : t.none}</td>
+                : task.scheduled && !task.summary ? (task.milestone ? t.milestone : t.days(task.duration)) : t.none}</td>
               <td>{task.progress !== null ? <Id>{`${task.progress} %`}</Id> : t.none}</td>
               {baseline && <td>{task.variance === null || task.variance === undefined ? t.none : <span title={task.variance === 0 ? t.baseline.onTime : task.variance > 0 ? t.baseline.gapLate(task.variance) : t.baseline.gapEarly(-task.variance)}>{t.baseline.gapValue(task.variance)}</span>}</td>}
               {edit && <td><Btn size="sm" variant="ghost" aria-label={t.edit.linkToNamed(task.key)} onClick={() => setLinking(task.key)}>{t.edit.linkTo}</Btn></td>}
@@ -320,12 +321,26 @@ function LinkDialog({ task, data, edit, onClose }: { task: ScheduleTask; data: S
           const label = l.from === task.key ? `${t.edit.predecessors} ${l.to}` : `${t.edit.successors} ${l.from}`;
           return (
             <li key={l.id} className="ath-row">
-              <span>{label}{l.lag !== 0 ? ` (${l.lag > 0 ? '+' : ''}${l.lag} j)` : ''}</span>
+              <span>{label}</span>
+              <LagInput link={l} label={label} onCommit={(lag) => { edit.onLag(l.id, lag); onClose(); }} />
               <Btn size="sm" variant="ghost" icon="trash" aria-label={t.edit.unlink(label)} onClick={() => { edit.onUnlink(l.id); onClose(); }}>{fr.confirm.delete}</Btn>
             </li>
           );
         })}
       </ul>
     </Modal>
+  );
+}
+
+/** Décalage d'un lien, en jours ouvrés (négatif : chevauchement) : modifié sur place, validé à la sortie du champ ou par Entrée. */
+function LagInput({ link, label, onCommit }: { link: { lag: number }; label: string; onCommit: (lag: number) => void }) {
+  const commit = (input: HTMLInputElement) => {
+    const value = Number(input.value);
+    if (input.value.trim() !== '' && Number.isInteger(value) && value >= -365 && value <= 365 && value !== link.lag) onCommit(value);
+    else input.value = String(link.lag);
+  };
+  return (
+    <input className="ath-input ath-mono ath-gantt-duration" type="number" min={-365} max={365} step={1} defaultValue={link.lag} aria-label={t.edit.lagOf(label)}
+      onBlur={(e) => commit(e.currentTarget)} onKeyDown={(e) => { if (e.key === 'Enter') commit(e.currentTarget); }} />
   );
 }

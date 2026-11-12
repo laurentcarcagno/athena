@@ -8,6 +8,8 @@ import { TrackerService, type TrackerSpec } from '../core/tracker.service';
 import { BaselineService } from '../history/baseline.service';
 import { GitLabClient } from '../history/gitlab-client';
 import { HistorySync } from '../history/history-sync';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { createTestDb, fromEnv, pgUp, probe, type TestDb } from '../testing/harness';
 import { ScheduleService } from './schedule.service';
 
@@ -214,6 +216,74 @@ suite('édition d’une tâche du planning (intégration)', () => {
     expect(s.tasks.find((x) => x.key === t.a.key)!.version).toBeGreaterThan(1);
     expect(s.tasks.find((x) => x.key === t.a.key)!.status).toEqual({ key: 'todo', name: 'À faire', category: 'todo', color: null });
     expect(s.tasks.find((x) => x.key === t.a.key)!.assignee).toBeNull();
+  });
+});
+
+suite('décalage d’un lien modifiable après création (intégration)', () => {
+  let f: Fixture;
+  let t: Awaited<ReturnType<typeof seedReference>>;
+  const vals = async (key: string) => (await f.artifacts.get(f.org, 'NOVA', key)).values;
+  const linkId = async (from: string) => (await f.schedule.get(f.org, 'NOVA', ['athena-user'])).links.find((l) => l.from === from)!.id;
+
+  beforeAll(async () => {
+    f = await fixture('athena_test_schedule_lag', 'sch4');
+    t = await seedReference(f);
+    await f.schedule.apply(f.org, 'NOVA', pm);
+  }, 60_000);
+  afterAll(async () => { await f?.testDb.drop(); });
+
+  it('allonger le décalage repousse les successeurs, sous un seul lot', async () => {
+    // B finit le 12 ; C (décalage 1) commence le 16. Passer le décalage à 3 repousse C au 18, puis le jalon.
+    const r = await f.schedule.setLag(f.org, 'NOVA', await linkId(t.b.key), 3, pm);
+    expect(r.keys.sort()).toEqual([t.c.key, t.m.key].sort());
+    expect(await vals(t.c.key)).toMatchObject({ start: '2026-11-18', due: '2026-11-23' });
+    const view = await f.schedule.get(f.org, 'NOVA', ['athena-user']);
+    expect(view.links.find((l) => l.from === t.b.key)!.lag).toBe(3);
+    const events = await f.db.tx(f.org, async (c) => (await c.query("select type from outbox_event where type in ('link.updated','schedule.changed') order by created_at desc limit 2")).rows.map((x) => x.type).sort());
+    expect(events).toEqual(['link.updated', 'schedule.changed']);
+  });
+
+  it('un décalage identique ne change rien ; refuse hors bornes et un lien inconnu ou non ordonné', async () => {
+    const id = await linkId(t.b.key);
+    expect(await f.schedule.setLag(f.org, 'NOVA', id, 3, pm)).toEqual({ moved: 0, keys: [], batch: null });
+    await expect(f.schedule.setLag(f.org, 'NOVA', id, 400, pm)).rejects.toMatchObject({ code: 'validation' });
+    await expect(f.schedule.setLag(f.org, 'NOVA', '00000000-0000-0000-0000-000000000000', 1, pm)).rejects.toMatchObject({ code: 'not_found' });
+    const x = await f.artifacts.create(f.org, 'NOVA', 'TSK', { title: 'X', start: '2026-12-01', due: '2026-12-01' }, admin);
+    const y = await f.artifacts.create(f.org, 'NOVA', 'TSK', { title: 'Y', start: '2026-12-01', due: '2026-12-01' }, admin);
+    const other = await f.links.link(f.org, 'NOVA', x.key, y.key, 'blocks', admin);
+    await expect(f.schedule.setLag(f.org, 'NOVA', other, 1, pm)).rejects.toMatchObject({ code: 'not_found' }); // « bloque » n’est pas une dépendance de planning
+  });
+});
+
+suite('baselines antérieures à la migration 061 (intégration)', () => {
+  let f: Fixture;
+  let t: Awaited<ReturnType<typeof seedReference>>;
+
+  beforeAll(async () => {
+    f = await fixture('athena_test_schedule_backfill', 'sch5');
+    t = await seedReference(f);
+  }, 60_000);
+  afterAll(async () => { await f?.testDb.drop(); });
+
+  it('reconstitue les dates figées depuis les révisions au moment de la baseline, sans toucher aux autres', async () => {
+    const project = await f.db.tx(f.org, async (c) => (await c.query("select id from project where key = 'NOVA'")).rows[0].id as string);
+    // Baseline d'avant la migration 060 : créée après les tickets, sans dates figées.
+    await f.testDb.exec("insert into baseline (organization_id, project_id, name, git_tag, git_sha, created_by, created_at) values ($1,$2,'ANCIENNE','baseline/ANCIENNE','abc','u', now() + interval '1 minute')", [f.org, project]);
+    // Modification postérieure : la baseline doit garder l'ancienne date.
+    const b = await f.artifacts.get(f.org, 'NOVA', t.b.key);
+    await f.artifacts.update(f.org, 'NOVA', t.b.key, { due: '2026-11-30' }, b.version, admin);
+    await f.testDb.exec("update artifact_revision set created_at = now() + interval '5 minutes' where artifact_id = $1 and version = 2", [b.id]);
+    await f.testDb.exec(readFileSync(join(__dirname, '../db/migrations/061_baseline_schedule_backfill.sql'), 'utf8'));
+    const rows = await f.db.tx(f.org, async (c) => (await c.query(
+      "select artifact_key, to_char(planned_start,'YYYY-MM-DD') s, to_char(planned_end,'YYYY-MM-DD') e from baseline_schedule order by artifact_key")).rows);
+    expect(rows).toHaveLength(5);
+    expect(rows.find((r) => r.artifact_key === t.b.key)).toEqual({ artifact_key: t.b.key, s: '2026-11-10', e: '2026-11-10' });
+    expect(rows.find((r) => r.artifact_key === t.m.key)).toEqual({ artifact_key: t.m.key, s: null, e: '2026-11-19' });
+    const view = await f.schedule.get(f.org, 'NOVA', ['athena-user'], 'ANCIENNE');
+    expect(view.tasks.find((x) => x.key === t.b.key)).toMatchObject({ baselineEnd: '2026-11-10' });
+    // Rejouée, la migration n'ajoute rien (une baseline qui a un planning est laissée telle quelle).
+    await f.testDb.exec(readFileSync(join(__dirname, '../db/migrations/061_baseline_schedule_backfill.sql'), 'utf8'));
+    expect(await f.db.tx(f.org, async (c) => Number((await c.query('select count(*) n from baseline_schedule')).rows[0].n))).toBe(5);
   });
 });
 

@@ -178,6 +178,11 @@ suite('API REST du noyau', () => {
     expect((await patch(await token(['athena-admin']), {})).statusCode).toBe(422); // aucun champ
     expect((await patch(await token(['athena-admin']), { duration: 3, due: '2026-11-12' })).statusCode).toBe(422); // deux champs
     expect((await patch(await token(['athena-admin']), { duration: 3 })).statusCode).toBe(404); // ARI n’a pas de tâche planifiée
+    const lag = (jwt: string, body: unknown) => call('PATCH', '/v1/projects/ARI/schedule/links/00000000-0000-0000-0000-000000000000', jwt, body);
+    expect((await lag(await token(['athena-user']), { lagDays: 1 })).statusCode).toBe(403);
+    expect((await lag(await token(['athena-admin']), { lagDays: 1.5 })).statusCode).toBe(422);
+    expect((await lag(await token(['athena-admin']), { lagDays: 1, extra: true })).statusCode).toBe(422);
+    expect((await lag(await token(['athena-admin']), { lagDays: 1 })).statusCode).toBe(404); // lien inconnu
   });
 
   it("isole les organisations : l'autre organisation ne voit rien", async () => {

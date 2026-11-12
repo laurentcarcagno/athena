@@ -162,6 +162,24 @@ export class ScheduleService {
     return { moved: keys.length, keys, batch: keys.length > 0 ? batch : null };
   }
 
+  /** Change le décalage d'un lien « précède » (jours ouvrés, négatif : chevauchement) puis replanifie les successeurs sous un même lot. */
+  async setLag(organizationId: string, projectKey: string, linkId: string, lagDays: number, actor: Actor): Promise<ApplyResult> {
+    if (!Number.isInteger(lagDays) || lagDays < -365 || lagDays > 365) throw validation(['le décalage est un nombre entier de jours ouvrés, de -365 à 365']);
+    await this.db.tx(organizationId, async (c) => {
+      const row = (await c.query(
+        `select l.id, l.lag_days, f.key as from_key, t.key as to_key from artifact_link l
+         join link_type ty on ty.id = l.link_type_id and ty.ordered
+         join artifact f on f.id = l.from_artifact_id join artifact t on t.id = l.to_artifact_id join project p on p.id = f.project_id
+         where l.id::text = $1 and p.key = $2 for update of l`, [linkId, projectKey])).rows[0];
+      if (!row) throw notFound('Lien de planification');
+      if (row.lag_days === lagDays) return;
+      await c.query('update artifact_link set lag_days = $2 where id = $1', [row.id, lagDays]);
+      await outbox(c, organizationId, 'artifact', row.id as string, 'link.updated', { from: row.from_key, to: row.to_key, type: 'precedes', lagDays, actor: actor.id });
+      await audit(c, organizationId, actor, 'link.lag', `artifact:${row.from_key}`, { to: row.to_key, from: row.lag_days, lagDays });
+    });
+    return this.apply(organizationId, projectKey, actor);
+  }
+
   private async load(c: PoolClient, projectKey: string, roles: string[]): Promise<Loaded> {
     const project = (await c.query('select id from project where key = $1', [projectKey])).rows[0];
     if (!project) throw notFound(`Projet ${projectKey}`);

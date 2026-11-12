@@ -6,6 +6,7 @@ import { BodySchema } from '../openapi/body-schema';
 import { MemberService } from '../core/member.service';
 import { ScheduleService } from './schedule.service';
 
+const LagBody = z.object({ lagDays: z.number().int().min(-365).max(365) }).strict();
 const Day = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 /** Exactement un champ : le début déplace la tâche (durée conservée), la fin l'étire, la durée est en jours ouvrés. */
 const TaskChangeBody = z.object({ start: Day.optional(), due: Day.optional(), duration: z.number().int().min(1).max(2000).optional() }).strict()
@@ -53,5 +54,15 @@ export class PlanningController {
     const { organizationId, actor } = await this.orgs.resolve(request.principal!);
     await this.members.requireManager(organizationId, project, actor);
     return this.schedules.edit(organizationId, project, key, parseBody(TaskChangeBody, body), actor);
+  }
+
+  /** Change le décalage d'un lien « précède », puis replanifie les successeurs. */
+  @Roles('athena-admin', 'athena-pm')
+  @Patch('schedule/links/:id')
+  @BodySchema(LagBody)
+  async setLag(@Req() request: AuthedRequest, @Param('project') project: string, @Param('id') id: string, @Body() body: unknown) {
+    const { organizationId, actor } = await this.orgs.resolve(request.principal!);
+    await this.members.requireManager(organizationId, project, actor);
+    return this.schedules.setLag(organizationId, project, id, parseBody(LagBody, body).lagDays, actor);
   }
 }

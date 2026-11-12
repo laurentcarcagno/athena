@@ -89,6 +89,7 @@ function ScheduleViews({ project, view, canEdit, me }: { project: string; view: 
         const pushed = (await api<{ moved: number }>('POST', `${base}/schedule/apply`)).moved;
         return `${t.edit.linked} ${t.edit.moved(pushed)}`;
       }),
+      onLag: (id, lag) => void run(async () => t.edit.moved((await api<{ moved: number }>('PATCH', `${base}/schedule/links/${id}`, { lagDays: lag })).moved)),
       onUnlink: (id) => void run(async () => { await api('DELETE', `${base}/links/${id}`); return t.edit.unlinked; }), // sans confirmation : un lien se recrée d'un geste (« Lier à… »)
     };
   }, [canEdit, base, load, fail, toast]);
