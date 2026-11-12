@@ -7,7 +7,7 @@
 - **Vues** : un widget de modèle `table` (`title`, `columns`, `rows`) est rendu comme vue tabulaire dans le tableau de bord.
 - **Connecteurs** (`connectors`) : `POST /v1/projects/:p/plugins/:id/connectors/:nom` {payload} ; le plugin transforme la charge externe en `[{ tracker, values }]` (50 au plus), Athena crée les artefacts sous l'identité de l'appelant avec la validation habituelle. Le plugin n'a aucun accès réseau.
 - **Désinstallation** : `DELETE /v1/plugins/:id` (administrateur). Refusée tant qu'un champ utilise un type du plugin ; le stockage du plugin est supprimé, sauf avec `?keepData=true`.
-- **Hooks** (`hooks`) : réagir à `artifact.created`, `artifact.updated`, `artifact.transitioned` (reçoit la clé, la version, l'acteur et les **noms** des champs modifiés, jamais leurs valeurs).
+- **Hooks** (`hooks`) : réagir à `artifact.created`, `artifact.updated`, `artifact.transitioned` (reçoit la clé, la version, l'acteur et les **noms** des champs modifiés, jamais leurs valeurs). Une replanification (`POST /v1/projects/:p/schedule/apply`) émet en plus `schedule.changed` (projet, nombre et clés des tickets déplacés).
 - Stockage clé/valeur (permission `storage`) et lecture d'artefacts (permission `artifacts:read`).
 
 Les vues, widgets, actions de workflow et connecteurs ne sont pas encore proposés.

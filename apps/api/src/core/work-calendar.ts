@@ -1,6 +1,7 @@
 /**
  * Jours ouvrés (ADR-0006 § 2.4) : bibliothèque partagée par le moteur de dates, les absences et la charge.
  * Les dates sont des chaînes `AAAA-MM-JJ` (jours civils, sans fuseau) ; les jours de semaine suivent l'ISO (1 = lundi … 7 = dimanche).
+ * En interne, un jour est un entier (jours depuis le 1970-01-01) : les boucles ne créent aucune date.
  */
 export interface WorkCalendar {
   /** Jours ISO travaillés (au moins un). */
@@ -15,32 +16,42 @@ export const defaultCalendar = (): WorkCalendar => ({ workDays: new Set(DEFAULT_
 const DAY_MS = 86_400_000;
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 
-const toMs = (d: string): number => {
+/** Jour entier d'une date `AAAA-MM-JJ`. */
+const toDay = (d: string): number => {
   if (!DATE.test(d)) throw new RangeError(`date invalide : ${d}`);
   const ms = Date.parse(`${d}T00:00:00Z`);
   if (Number.isNaN(ms) || new Date(ms).toISOString().slice(0, 10) !== d) throw new RangeError(`date inexistante : ${d}`);
-  return ms;
+  return ms / DAY_MS;
 };
-const fromMs = (ms: number): string => new Date(ms).toISOString().slice(0, 10);
-const isoWeekday = (ms: number): number => ((new Date(ms).getUTCDay() + 6) % 7) + 1;
-const ok = (c: WorkCalendar, ms: number): boolean => c.workDays.has(isoWeekday(ms)) && !c.holidays.has(fromMs(ms));
+const fromDay = (n: number): string => new Date(n * DAY_MS).toISOString().slice(0, 10);
+/** Le 1970-01-01 était un jeudi (ISO 4). */
+const isoWeekday = (n: number): number => ((((n + 3) % 7) + 7) % 7) + 1;
 
-function assertUsable(c: WorkCalendar): void {
-  if (c.workDays.size === 0) throw new RangeError('le calendrier ne compte aucun jour travaillé');
+interface Compiled { week: boolean[]; holidays: Set<number> }
+const compiled = new WeakMap<WorkCalendar, Compiled>();
+function compile(c: WorkCalendar): Compiled {
+  let k = compiled.get(c);
+  if (!k) {
+    if (c.workDays.size === 0) throw new RangeError('le calendrier ne compte aucun jour travaillé');
+    k = { week: Array.from({ length: 8 }, (_, i) => c.workDays.has(i)), holidays: new Set([...c.holidays].map(toDay)) };
+    compiled.set(c, k);
+  }
+  return k;
 }
+const worked = (k: Compiled, n: number): boolean => k.week[isoWeekday(n)]! && !k.holidays.has(n);
 
 /** Vrai si le jour est travaillé : dans la semaine ouvrée et pas férié. */
 export function isWorkingDay(c: WorkCalendar, day: string): boolean {
-  return ok(c, toMs(day));
+  return worked(compile(c), toDay(day));
 }
 
-/** Premier jour ouvré à partir de `day` inclus (ou en remontant, avec `direction` -1). Borne : un férié par jour sur un an au plus. */
+/** Premier jour ouvré à partir de `day` inclus (ou en remontant, avec `direction` -1). Borne : dix ans. */
 export function alignToWorkingDay(c: WorkCalendar, day: string, direction: 1 | -1 = 1): string {
-  assertUsable(c);
-  let ms = toMs(day);
-  for (let i = 0; i < 3660 && !ok(c, ms); i++) ms += direction * DAY_MS;
-  if (!ok(c, ms)) throw new RangeError('aucun jour ouvré trouvé dans les dix ans');
-  return fromMs(ms);
+  const k = compile(c);
+  let n = toDay(day);
+  for (let i = 0; i < 3660 && !worked(k, n); i++) n += direction;
+  if (!worked(k, n)) throw new RangeError('aucun jour ouvré trouvé dans les dix ans');
+  return fromDay(n);
 }
 
 /**
@@ -49,16 +60,16 @@ export function alignToWorkingDay(c: WorkCalendar, day: string, direction: 1 | -
  */
 export function addWorkingDays(c: WorkCalendar, day: string, count: number): string {
   if (!Number.isInteger(count)) throw new RangeError('nombre de jours entier attendu');
-  assertUsable(c);
-  let ms = toMs(day);
-  if (count === 0) return day;
-  const step = count > 0 ? DAY_MS : -DAY_MS;
+  const k = compile(c);
+  if (count === 0) { toDay(day); return day; }
+  let n = toDay(day);
+  const step = count > 0 ? 1 : -1;
   for (let left = Math.abs(count), guard = 0; left > 0; ) {
-    ms += step;
+    n += step;
     if (++guard > Math.abs(count) * 7 + 3660) throw new RangeError('aucun jour ouvré trouvé');
-    if (ok(c, ms)) left--;
+    if (worked(k, n)) left--;
   }
-  return fromMs(ms);
+  return fromDay(n);
 }
 
 /**
@@ -66,20 +77,21 @@ export function addWorkingDays(c: WorkCalendar, day: string, count: number): str
  * Cohérent avec `addWorkingDays` : `addWorkingDays(c, a, workingDaysBetween(c, a, b)) === b` quand b est un jour ouvré.
  */
 export function workingDaysBetween(c: WorkCalendar, a: string, b: string): number {
-  const from = toMs(a);
-  const to = toMs(b);
+  const k = compile(c);
+  const from = toDay(a);
+  const to = toDay(b);
   if (from === to) return 0;
-  const sign = to > from ? 1 : -1;
-  const [lo, hi] = sign === 1 ? [from, to] : [to, from];
-  let n = 0;
-  for (let ms = lo + DAY_MS; ms <= hi; ms += DAY_MS) if (ok(c, ms)) n++;
-  return sign * n;
+  const [lo, hi] = from < to ? [from, to] : [to, from];
+  let count = 0;
+  for (let n = lo + 1; n <= hi; n++) if (worked(k, n)) count++;
+  return from < to ? count : -count;
 }
 
 /** Liste des jours ouvrés de l'intervalle [from, to] (bornes incluses ; vide si `to` précède `from`). */
 export function listWorkingDays(c: WorkCalendar, from: string, to: string): string[] {
+  const k = compile(c);
   const out: string[] = [];
-  const end = toMs(to);
-  for (let ms = toMs(from); ms <= end; ms += DAY_MS) if (ok(c, ms)) out.push(fromMs(ms));
+  const end = toDay(to);
+  for (let n = toDay(from); n <= end; n++) if (worked(k, n)) out.push(fromDay(n));
   return out;
 }

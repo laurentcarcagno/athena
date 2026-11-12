@@ -90,42 +90,66 @@ export class ArtifactService {
   async update(
     organizationId: string, projectKey: string, key: string, patch: Values, expectedVersion: number, actor: Actor,
   ): Promise<Artifact> {
+    return this.db.tx(organizationId, (c) => this.updateIn(c, organizationId, projectKey, key, patch, expectedVersion, actor));
+  }
+
+  /**
+   * Modifie plusieurs tickets en une transaction (replanification, T-0161). Les révisions partagent un identifiant de lot :
+   * l'historique les écrit dans un seul commit. Un ticket sans changement est ignoré ; le résultat liste ceux qui ont changé.
+   */
+  async updateMany(
+    organizationId: string, projectKey: string, patches: Array<{ key: string; patch: Values }>, actor: Actor, batch: string,
+    finalize?: (c: PoolClient, changed: string[]) => Promise<void>,
+  ): Promise<string[]> {
     return this.db.tx(organizationId, async (c) => {
-      const row = await this.load(c, projectKey, key, true);
-      if (row.version !== expectedVersion) {
-        throw conflict(`Version attendue ${expectedVersion}, version courante ${row.version}.`);
+      const changed: string[] = [];
+      for (const p of patches) {
+        const before = await this.load(c, projectKey, p.key, false);
+        const after = await this.updateIn(c, organizationId, projectKey, p.key, p.patch, before.version, actor, batch);
+        if (after.version !== before.version) changed.push(after.key);
       }
-      const def = await this.trackers.getDefinition(c, projectKey, row.tracker_key);
-      assertWritable(def, Object.keys(patch), actor);
-      const next: Values = { ...row.values };
-      for (const [k, v] of Object.entries(patch)) {
-        if (v === null) delete next[k];
-        else next[k] = v;
-      }
-      await this.validateValues(def, next, true);
-      const diff = diffOf(row.values, next);
-      if (Object.keys(diff).length === 0) return this.toArtifact(row);
-      const version = row.version + 1;
-      await c.query(`update artifact set "values" = $1, version = $2, updated_at = now() where id = $3`, [
-        JSON.stringify(next), version, row.id,
-      ]);
-      // Les liens pointant vers cet artefact deviennent suspects tant qu'un humain ne les a pas revus, mais seulement si un champ
-      // de contenu a changé (pas la priorité ou le responsable) et si le type du lien propage la suspicion.
-      const contentChanged = Object.keys(diff).some((k) => def.fields.find((f) => f.key === k)?.isContent !== false);
-      if (contentChanged) {
-        const flagged = await c.query(
-          `update artifact_link l set suspect = true from link_type t
-           where t.id = l.link_type_id and t.propagates_suspect and l.to_artifact_id = $1 and not l.suspect returning l.from_artifact_id`,
-          [row.id],
-        );
-        for (const link of flagged.rows) await emit(c, organizationId, { event: 'suspect', artifactId: link.from_artifact_id as string, actor: actor.id, payload: { cause: row.key } });
-        // Le contenu a changé : les décisions d'approbation en cours ne portent plus sur ce qui existe.
-        await invalidateItemApprovals(c, organizationId, row.id, row.key, version, actor);
-      }
-      await this.record(c, organizationId, row.id, version, diff, actor, 'artifact.updated', row.key, { changes: diff },
-        { key: row.key, tracker: row.tracker_key, status: row.status_key, version, values: next });
-      return { ...this.toArtifact(row), values: next, version };
+      await finalize?.(c, changed);
+      return changed;
     });
+  }
+
+  private async updateIn(
+    c: PoolClient, organizationId: string, projectKey: string, key: string, patch: Values, expectedVersion: number, actor: Actor, batch?: string,
+  ): Promise<Artifact> {
+    const row = await this.load(c, projectKey, key, true);
+    if (row.version !== expectedVersion) {
+      throw conflict(`Version attendue ${expectedVersion}, version courante ${row.version}.`);
+    }
+    const def = await this.trackers.getDefinition(c, projectKey, row.tracker_key);
+    assertWritable(def, Object.keys(patch), actor);
+    const next: Values = { ...row.values };
+    for (const [k, v] of Object.entries(patch)) {
+      if (v === null) delete next[k];
+      else next[k] = v;
+    }
+    await this.validateValues(def, next, true);
+    const diff = diffOf(row.values, next);
+    if (Object.keys(diff).length === 0) return this.toArtifact(row);
+    const version = row.version + 1;
+    await c.query(`update artifact set "values" = $1, version = $2, updated_at = now() where id = $3`, [
+      JSON.stringify(next), version, row.id,
+    ]);
+    // Les liens pointant vers cet artefact deviennent suspects tant qu'un humain ne les a pas revus, mais seulement si un champ
+    // de contenu a changé (pas la priorité ou le responsable) et si le type du lien propage la suspicion.
+    const contentChanged = Object.keys(diff).some((k) => def.fields.find((f) => f.key === k)?.isContent !== false);
+    if (contentChanged) {
+      const flagged = await c.query(
+        `update artifact_link l set suspect = true from link_type t
+         where t.id = l.link_type_id and t.propagates_suspect and l.to_artifact_id = $1 and not l.suspect returning l.from_artifact_id`,
+        [row.id],
+      );
+      for (const link of flagged.rows) await emit(c, organizationId, { event: 'suspect', artifactId: link.from_artifact_id as string, actor: actor.id, payload: { cause: row.key } });
+      // Le contenu a changé : les décisions d'approbation en cours ne portent plus sur ce qui existe.
+      await invalidateItemApprovals(c, organizationId, row.id, row.key, version, actor);
+    }
+    await this.record(c, organizationId, row.id, version, diff, actor, 'artifact.updated', row.key, { changes: diff, ...(batch ? { batch } : {}) },
+      { key: row.key, tracker: row.tracker_key, status: row.status_key, version, values: next });
+    return { ...this.toArtifact(row), values: next, version };
   }
 
   /**

@@ -14,7 +14,7 @@ export interface SyncResult {
 interface PendingEvent {
   id: string;
   type: string;
-  payload: { eventId?: string; key?: string; version?: number; actor?: string };
+  payload: { eventId?: string; key?: string; version?: number; actor?: string; batch?: string; project?: string };
   snapshot: Snapshot | null;
   revision_id: string | null;
   project_key: string | null;
@@ -66,17 +66,18 @@ export class HistorySync {
     for (;;) {
       const events = await db.tx(organizationId, (c) => this.pending(c, batchSize));
       if (events.length === 0) return result;
-      for (const event of events) {
+      for (const unit of await this.units(db, organizationId, events)) {
         try {
-          const sha = await this.commitEvent(organizationId, orgKey, event);
+          const sha = unit.length > 1 ? await this.commitBatch(organizationId, orgKey, unit) : await this.commitEvent(organizationId, orgKey, unit[0]!);
           await db.tx(organizationId, async (c) => {
-            if (event.revision_id && sha) {
-              await c.query('update artifact_revision set git_sha = $1 where id = $2', [sha, event.revision_id]);
+            for (const event of unit) {
+              if (event.revision_id && sha) await c.query('update artifact_revision set git_sha = $1 where id = $2', [sha, event.revision_id]);
+              await c.query('update outbox_event set history_synced_at = now() where id = $1', [event.id]);
             }
-            await c.query('update outbox_event set history_synced_at = now() where id = $1', [event.id]);
           });
           if (sha) result.committed += 1;
         } catch (error) {
+          const event = unit[0]!;
           // L'ordre doit être préservé : on s'arrête à la première erreur et on réessaiera.
           result.failed += 1;
           console.error(`history-sync: échec événement ${event.id} : ${(error as Error).message.slice(0, 200)}`);
@@ -86,7 +87,25 @@ export class HistorySync {
     }
   }
 
-  private async pending(c: PoolClient, limit: number): Promise<PendingEvent[]> {
+  /**
+   * Regroupe en une unité les événements d'un même lot (`payload.batch`, ex. une replanification) : ils s'écrivent en un seul
+   * commit. Les événements du lot absents de la page courante sont lus à part, pour que le lot ne soit jamais coupé.
+   */
+  private async units(db: Db, organizationId: string, events: PendingEvent[]): Promise<PendingEvent[][]> {
+    const units: PendingEvent[][] = [];
+    const seen = new Set<string>();
+    for (const event of events) {
+      const batch = event.payload.batch;
+      if (!batch) { units.push([event]); continue; }
+      if (seen.has(batch)) continue;
+      seen.add(batch);
+      const all = await db.tx(organizationId, (c) => this.pending(c, 100_000, batch));
+      units.push(all.length > 0 ? all : events.filter((e) => e.payload.batch === batch));
+    }
+    return units;
+  }
+
+  private async pending(c: PoolClient, limit: number, batch?: string): Promise<PendingEvent[]> {
     const rows = await c.query(
       `select o.id, o.type, o.payload, r.id as revision_id, r.snapshot,
               coalesce(p.key, o.payload->>'project') as project_key, u.display_name, u.email,
@@ -102,10 +121,10 @@ export class HistorySync {
        left join project p on p.id = a.project_id
        left join user_account u on u.subject = coalesce(r.actor, o.payload->>'actor')
        left join tracker tk on tk.id = a.tracker_id
-       where o.history_synced_at is null
+       where o.history_synced_at is null ${batch ? "and o.payload->>'batch' = $2" : ''}
        order by o.created_at, o.id
        limit $1`,
-      [limit],
+      batch ? [limit, batch] : [limit],
     );
     return rows.rows as PendingEvent[];
   }
@@ -115,13 +134,7 @@ export class HistorySync {
     if ((event.type === 'tracker.created' || event.type === 'tracker.updated') && event.project_key) return this.commitTracker(organizationId, orgKey, event);
     if (!event.type.startsWith('artifact.') || !event.snapshot || !event.project_key) return null;
     const projectId = await this.repository(orgKey, event.project_key);
-    // Un événement antérieur à la migration des clés porte l'ancienne clé : le fichier suit toujours la clé courante.
-    const snapshot = { ...event.snapshot, key: event.current_key ?? event.snapshot.key };
-    const path = artifactPath(snapshot);
-    const stored = await valuesForGit(this.confidential, orgKey, event.snapshot.values, event.confidential_fields, event.export_control);
-    // Fichier généré par Athena : la mention de protection de l'instance en tête et en pied (commentaires YAML, sans effet sur la lecture).
-    const generated = serializeArtifact({ ...snapshot, values: stored.values }, event.aliases ?? [], { exportControl: event.export_control, masked: stored.masked });
-    const content = this.marker ? this.marker.yaml(generated) : generated;
+    const { snapshot, path, content } = await this.artifactFile(orgKey, event);
     const branch = await this.writeBranch(projectId, event);
     const exists = await this.gitlab.fileExists(projectId, path, branch);
     const summary = summarize(event);
@@ -137,6 +150,53 @@ export class HistorySync {
       actions: [{ action: exists ? 'update' : 'create', file_path: path, content }],
     });
     await this.ensureReview(projectId, event, branch);
+    return sha;
+  }
+
+  /** Chemin et contenu du fichier d'un ticket pour un événement (le fichier suit toujours la clé courante). */
+  private async artifactFile(orgKey: string, event: PendingEvent): Promise<{ snapshot: Snapshot; path: string; content: string }> {
+    const snapshot = { ...event.snapshot!, key: event.current_key ?? event.snapshot!.key };
+    const path = artifactPath(snapshot);
+    const stored = await valuesForGit(this.confidential, orgKey, event.snapshot!.values, event.confidential_fields, event.export_control);
+    // Fichier généré par Athena : la mention de protection de l'instance en tête et en pied (commentaires YAML, sans effet sur la lecture).
+    const generated = serializeArtifact({ ...snapshot, values: stored.values }, event.aliases ?? [], { exportControl: event.export_control, masked: stored.masked });
+    return { snapshot, path, content: this.marker ? this.marker.yaml(generated) : generated };
+  }
+
+  /**
+   * Un lot d'événements d'un même projet en un seul commit (un fichier par ticket, dernière version de chaque ticket du lot).
+   * Les événements sans fichier (ex. `schedule.changed`) n'ont pas de représentation Git : le lot ne les contient pas.
+   */
+  private async commitBatch(organizationId: string, orgKey: string, events: PendingEvent[]): Promise<string | null> {
+    const files = events.filter((e) => e.type.startsWith('artifact.') && e.snapshot && e.project_key);
+    if (files.length === 0) return null;
+    const first = files[0]!;
+    const projectId = await this.repository(orgKey, first.project_key!);
+    const branch = await this.writeBranch(projectId, first);
+    const latest = new Map<string, { path: string; content: string; version: number }>();
+    for (const event of files) {
+      const { snapshot, path, content } = await this.artifactFile(orgKey, event);
+      const known = latest.get(path);
+      if (!known || known.version < snapshot.version) latest.set(path, { path, content, version: snapshot.version });
+    }
+    const actions = [];
+    for (const f of latest.values()) actions.push({ action: ((await this.gitlab.fileExists(projectId, f.path, branch)) ? 'update' : 'create') as 'update' | 'create', file_path: f.path, content: f.content });
+    const sha = await this.gitlab.commit(projectId, {
+      branch,
+      message:
+        `replanification: ${latest.size} ticket${latest.size > 1 ? 's' : ''}
+
+` +
+        `Athena-Batch-Id: ${first.payload.batch}
+` +
+        `Athena-Actor: ${first.payload.actor ?? 'inconnu'}
+` +
+        `Athena-Keys: ${files.map((e) => e.current_key ?? e.snapshot!.key).join(', ')}`,
+      authorName: first.display_name ?? FALLBACK_AUTHOR.name,
+      authorEmail: first.email ?? FALLBACK_AUTHOR.email,
+      actions,
+    });
+    await this.ensureReview(projectId, first, branch);
     return sha;
   }
 

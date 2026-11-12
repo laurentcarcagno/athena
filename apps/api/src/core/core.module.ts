@@ -37,6 +37,8 @@ import { SearchService } from '../atql/search.service';
 import { DashboardController } from './dashboard.controller';
 import { AppearanceController } from './appearance.controller';
 import { CalendarController } from './calendar.controller';
+import { PlanningController } from '../planning/planning.controller';
+import { ScheduleService } from '../planning/schedule.service';
 import { CalendarService } from './calendar.service';
 import { BrandController } from './brand.controller';
 import { BrandService } from './brand.service';
@@ -91,7 +93,7 @@ import { TrackerService } from './tracker.service';
 export { PG_POOL } from './core.tokens';
 
 @Module({
-  controllers: [CoreController, AttachmentController, SavedFilterController, SearchController, IntegrationsController, AgileController, MemberController, TemplateController, ProjectTemplateController, TrackerTemplateController, TrackerTypeController, ProjectOverviewController, PinController, LinkTypeController, TreeController, MatrixController, CoverageController, NormativeController, AccessController, ApprovalController, ItemApprovalController, DocController, NotifyController, DashboardController, PreferenceController, AppearanceController, CalendarController, BrandController],
+  controllers: [CoreController, AttachmentController, SavedFilterController, SearchController, IntegrationsController, AgileController, MemberController, TemplateController, ProjectTemplateController, TrackerTemplateController, TrackerTypeController, ProjectOverviewController, PinController, LinkTypeController, TreeController, MatrixController, CoverageController, NormativeController, AccessController, ApprovalController, ItemApprovalController, DocController, NotifyController, DashboardController, PreferenceController, AppearanceController, CalendarController, PlanningController, BrandController],
   providers: [
     { provide: PG_POOL, useFactory: () => new Pool({ connectionString: loadConfig().DATABASE_URL, max: 10 }) },
     { provide: FieldTypeRegistry, useValue: new FieldTypeRegistry() },
@@ -122,6 +124,7 @@ export { PG_POOL } from './core.tokens';
     { provide: PreferenceService, useFactory: (db: Db) => new PreferenceService(db), inject: [Db] },
     { provide: AppearanceService, useFactory: (db: Db) => new AppearanceService(db), inject: [Db] },
     { provide: CalendarService, useFactory: (db: Db) => new CalendarService(db), inject: [Db] },
+    { provide: ScheduleService, useFactory: (db: Db, a: ArtifactService, cal: CalendarService) => new ScheduleService(db, a, cal), inject: [Db, ArtifactService, CalendarService] },
     {
       provide: BrandService,
       useFactory: (db: Db): BrandService => {

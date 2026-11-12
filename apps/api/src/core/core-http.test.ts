@@ -163,6 +163,18 @@ suite('API REST du noyau', () => {
     expect((await call('GET', '/v1/calendar', await token(['athena-user'], ['/org-autre']))).json()).toEqual({ workDays: [1, 2, 3, 4, 5], holidays: [] });
   });
 
+  it('planning : lecture pour les membres, replanification réservée à l’administration et au chef de projet', async () => {
+    expect((await call('GET', '/v1/projects/ARI/schedule')).statusCode).toBe(401);
+    const read = await call('GET', '/v1/projects/ARI/schedule', await token(['athena-user']));
+    expect(read.statusCode).toBe(200);
+    expect(read.json()).toMatchObject({ tasks: [], links: [], criticalPath: [], projectEnd: null, moved: 0 });
+    expect((await call('GET', '/v1/projects/NOPE/schedule', await token(['athena-user']))).statusCode).toBe(404);
+    expect((await call('POST', '/v1/projects/ARI/schedule/apply', await token(['athena-user']))).statusCode).toBe(403);
+    const applied = await call('POST', '/v1/projects/ARI/schedule/apply', await token(['athena-admin']));
+    expect(applied.statusCode).toBe(200);
+    expect(applied.json()).toEqual({ moved: 0, keys: [], batch: null });
+  });
+
   it("isole les organisations : l'autre organisation ne voit rien", async () => {
     const other = await token(['athena-user'], ['/org-autre']);
     expect((await call('GET', '/v1/projects/ARI/artifacts/ARI-BUG-0001', other)).statusCode).toBe(404);
