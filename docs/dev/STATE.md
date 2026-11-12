@@ -1,6 +1,6 @@
 # État du projet
 
-Dernière mise à jour : 2026-11-11
+Dernière mise à jour : 2026-11-12
 
 - **Phase** : toutes les phases du plan sont engagées ; voir le tableau « État d'implémentation » (§ 25) de `ATHENA_PLAN_DEVELOPPEMENT.md`.
 - **Fait** : T-0001 à T-0040 (e2e Playwright, accessibilité, interface et quotas des pièces jointes, actions/widgets de plugins, rétroportages, DORA, notes de version, CLI, job CI, permissions par champ, plein texte, pièces jointes, OpenAPI) (voir `docs/dev/tasks/`). Backend complet (noyau, historique GitLab, ATQL, agile, plugins, webhooks, automatisations, import, sécurité), application web FR/EN, images de conteneur, chart Helm, documentation (`docs/admin`, `docs/user`, `docs/plugins`, `docs/api`, `docs/security`, `docs/perf`).
@@ -51,11 +51,13 @@ Dernière mise à jour : 2026-11-11
   e2e : la préparation coupe l’étape OTP (navigateur et direct grant) quand admin.dev a un TOTP enregistré, et la rétablit à la fin. Ne pas modifier les sources pendant une suite e2e (Vite les sert en direct). gabarits.spec dépend des types de lien créés par les autres specs (vert seulement en suite complète verte).
   T-0148 faite (fiche : informations clés exactes, « M’assigner », « + Ajouter », enregistrement automatique annoncé, saisie gardée en cas de conflit). T-0149 faite (recherche en texte libre, ATQL en requête avancée). T-0150 faite (dernier board ouvert directement, index en cartes ; backlog et roadmap datés en clair, frise avec repère du jour). T-0151 faite (membres : ajout nommé, retrait confirmé, accès avancé replié ; projets de l’organisation en tableau). T-0152 faite (projets en cartes, étiquettes inutiles retirées, états traduits).
   T-0153 faite (modèle de carte commun DashCard, grille 12 colonnes S/M/L/XL, migration 057, « Rien d’urgent », « Me l’assigner »). T-0154 faite (Organiser : glisser-déposer, clavier, largeur, ajout de carte, retour au défaut). T-0155 faite (Avancement en cartes : variantes retenues, activité sans doublon). T-0156 faite (cartes graphiques sur une recherche : anneau, barres, indicateur ; GET /v1/search/facets). T-0157 faite (`docs/dev/tasks/LOT11-VERIFICATION.md` ; visuel 96/96 sur la nouvelle référence ; e2e 60/60 ; axe 9 thèmes × 2 modes × 12 écrans). **Lot 11 terminé, arrêt pour compte rendu** ; aucun écart ouvert. Migration réelle suivante : 058.
-- **Tâche en cours** : aucune (fin du lot 11). Écarts du lot 9 : 1 comblé (`GET /v1/me/approvals`), 2 accepté, 3 comblé (préférences sur le compte, migration 052), 4 reporté (accepté le 2026-11-10). **Le manuel utilisateur (Word, captures) est mis à jour à la toute fin du projet** (décision du 2026-11-10).
+- **Lot 12, planning (2026-11-12)** : ouvert par l'utilisateur après la revue du cahier des charges de gestion de projet (analyse d'impact et maquettes par rôle, six sections validées, décisions D1 à D9). Décisions : `docs/dev/DECISIONS/ADR-0006-gestion-de-projet.md` (Roadmap devient Planning, 8 sections gardées ; lots 13 à 15 esquissés). Plan : `docs/dev/tasks/LOT12-PLAN.md` (T-0158 à T-0166). Maquette : `docs/dev/maquettes/lot12-gestion-projet.html`.
+  T-0158 faite (ADR-0006, plan, maquette).
+- **Tâche en cours** : T-0159 (modèle de planification), lot 12. Avant : aucune (fin du lot 11). Écarts du lot 9 : 1 comblé (`GET /v1/me/approvals`), 2 accepté, 3 comblé (préférences sur le compte, migration 052), 4 reporté (accepté le 2026-11-10). **Le manuel utilisateur (Word, captures) est mis à jour à la toute fin du projet** (décision du 2026-11-10).
 - **Historique** : réécrit le 2026-11-10 à la demande de l'utilisateur (lot 8 en `@gmail.com`) ; sauvegarde `backup/avant-reecriture-email`, à supprimer quand l'utilisateur le décide.
 - **Reste à faire** (par priorité) :
   1. Test d'intrusion externe (à commander) ; déploiement de recette sur Kubernetes et mesures de charge concurrente.
-  5. Écarts mineurs : interface des rôles de champ, permissions par transition, suppression/renommage de champs, swimlanes, Gantt.
+  5. Écarts mineurs : interface des rôles de champ, permissions par transition, suppression/renommage de champs, swimlanes, Gantt (traité par le lot 12).
 - **Blocages** : accès SSH à gitlab.karka.lan:2222 vérifié (authentification OK, aucun push). relevés d'environnement (GitLab interne, OpenBao, LDAP, Kubernetes : plan § 23.2). Rien n'est poussé ; l'accès SSH à `gitlab.karka.lan:2222` n'a pas été testé.
 
 ## Reprise IHM (plan du 2026-11-06, ADR-0002)

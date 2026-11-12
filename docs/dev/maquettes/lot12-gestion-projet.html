@@ -1,0 +1,963 @@
+<title>Athena gestion de projet</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Mise en page : console Athena (thème Hemeria). Bandeau, onglets de lecture, puis des écrans maquettés
+   dans une coquille Athena (rail sombre + zone de travail). Angles droits, aucune ombre, aucun dégradé. */
+:root{
+  --app:#F0F7FC; --surface:#FCFDFE; --hover:#E6F3FA; --muted:#DBE7F0; --selected:#CEE5FC;
+  --inverse:#12293A; --on-inverse:#FCFDFE; --inv-nav:#B6BDC3; --inv-mute:#AAB3B9;
+  --text:#001423; --text2:#43474C; --mute:#505358; --link:#005E96; --heading:#12293A;
+  --border:#C2DDF0; --border-strong:#12293A; --control:#73777D; --focus:#006EB1;
+  --action:#006EB1; --on-action:#FCFDFE; --deep:#12293A; --on-deep:#FCFDFE;
+  --ok-bg:#EAF6EE; --ok-fg:#166337; --ok-b:#1F8A4C;
+  --warn-bg:#FBF3DC; --warn-fg:#6D4C00; --warn-b:#C68A00;
+  --dg-bg:#FBE9E9; --dg-fg:#9E1616; --dg-b:#BA1A1A;
+  --info-bg:#E6F3FA; --info-fg:#005E96; --info-b:#006EB1;
+  --high-bg:#C68A00; --high-fg:#001423; --crit-bg:#BA1A1A; --crit-fg:#FCFDFE;
+  --d1:#2563EB; --d2:#EA580C; --d3:#0D9488; --d4:#9333EA;
+  --brand-blue:#174082; --brand-red:#C80A26; --brand-white:#FCFDFE;
+  --bar-radius:0px;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"Cascadia Mono",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --app:#0A1B27; --surface:#0E2230; --hover:#1B3850; --muted:#264E6E; --selected:#264E6E;
+  --inverse:#06121C; --on-inverse:#F0F7FC; --inv-nav:#AAB2B9; --inv-mute:#9EA7AE;
+  --text:#F0F7FC; --text2:#C7DAE2; --mute:#A8C0CB; --link:#7EC4EC; --heading:#F0F7FC;
+  --border:#264E6E; --border-strong:#5C95BB; --control:#5C95BB; --focus:#7EC4EC;
+  --action:#B2DDF6; --on-action:#001423; --deep:#5C95BB; --on-deep:#001423;
+  --ok-bg:#0A3A1F; --ok-fg:#92D2AC; --ok-b:#92D2AC;
+  --warn-bg:#4A3000; --warn-fg:#F1D38A; --warn-b:#F1D38A;
+  --dg-bg:#600C0E; --dg-fg:#EE9C99; --dg-b:#EE9C99;
+  --info-bg:#003157; --info-fg:#7EC4EC; --info-b:#7EC4EC;
+  --high-bg:#F1D38A; --high-fg:#001423; --crit-bg:#EE9C99; --crit-fg:#001423;
+  --d1:#60A5FA; --d2:#FB923C; --d3:#2DD4BF; --d4:#C084FC;
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --app:#0A1B27; --surface:#0E2230; --hover:#1B3850; --muted:#264E6E; --selected:#264E6E;
+  --inverse:#06121C; --on-inverse:#F0F7FC; --inv-nav:#AAB2B9; --inv-mute:#9EA7AE;
+  --text:#F0F7FC; --text2:#C7DAE2; --mute:#A8C0CB; --link:#7EC4EC; --heading:#F0F7FC;
+  --border:#264E6E; --border-strong:#5C95BB; --control:#5C95BB; --focus:#7EC4EC;
+  --action:#B2DDF6; --on-action:#001423; --deep:#5C95BB; --on-deep:#001423;
+  --ok-bg:#0A3A1F; --ok-fg:#92D2AC; --ok-b:#92D2AC;
+  --warn-bg:#4A3000; --warn-fg:#F1D38A; --warn-b:#F1D38A;
+  --dg-bg:#600C0E; --dg-fg:#EE9C99; --dg-b:#EE9C99;
+  --info-bg:#003157; --info-fg:#7EC4EC; --info-b:#7EC4EC;
+  --high-bg:#F1D38A; --high-fg:#001423; --crit-bg:#EE9C99; --crit-fg:#001423;
+  --d1:#60A5FA; --d2:#FB923C; --d3:#2DD4BF; --d4:#C084FC;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--app);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.5;margin:0}
+body.round{--bar-radius:4px}
+.band{display:flex;height:4px}
+.band i{flex:1}.band i:nth-child(1){background:var(--brand-blue)}.band i:nth-child(2){background:var(--brand-white)}.band i:nth-child(3){background:var(--brand-red)}
+.wrap{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));max-width:1320px;margin:0 auto}
+header.top{background:var(--surface);border-bottom:1px solid var(--border)}
+header.top .wrap{padding-block:18px 0}
+.eyebrow{font-family:var(--mono);font-size:12px;color:var(--mute)}
+h1{font-size:24px;line-height:1.25;margin:4px 0 6px;color:var(--heading);font-weight:600;text-wrap:balance}
+h2{font-size:19px;margin:0 0 10px;color:var(--heading);font-weight:600;text-wrap:balance}
+h3{font-size:15px;margin:0 0 8px;color:var(--heading);font-weight:600}
+p{margin:0 0 10px}
+.lead{max-width:72ch;color:var(--text2)}
+.controls{display:flex;flex-wrap:wrap;gap:16px;align-items:center;margin:12px 0 0}
+.seg{display:inline-flex;border:1px solid var(--control)}
+.seg button{font:inherit;font-size:13px;background:var(--surface);color:var(--text);border:0;padding:5px 12px;cursor:pointer}
+.seg button+button{border-left:1px solid var(--control)}
+.seg button[aria-pressed="true"]{background:var(--deep);color:var(--on-deep)}
+.ctl-label{font-size:13px;color:var(--text2);margin-right:6px}
+nav.tabs{display:flex;gap:0;overflow-x:auto;margin-top:14px}
+nav.tabs a{padding:10px 14px;color:var(--text2);text-decoration:none;border-bottom:3px solid transparent;white-space:nowrap;font-weight:500}
+nav.tabs a[aria-current="page"]{color:var(--heading);border-bottom-color:var(--action)}
+nav.tabs a:hover{background:var(--hover)}
+a{color:var(--link)}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+main{padding-block:22px 48px}
+section.view{display:grid;gap:18px}
+.panel{background:var(--surface);border:1px solid var(--border);padding:16px;min-width:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:18px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:14px}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right}
+.pill{display:inline-block;font-size:12px;padding:1px 7px;border:1px solid;white-space:nowrap;line-height:18px}
+.p-ok{background:var(--ok-bg);color:var(--ok-fg);border-color:var(--ok-b)}
+.p-warn{background:var(--warn-bg);color:var(--warn-fg);border-color:var(--warn-b)}
+.p-dg{background:var(--dg-bg);color:var(--dg-fg);border-color:var(--dg-b)}
+.p-info{background:var(--info-bg);color:var(--info-fg);border-color:var(--info-b)}
+.p-neu{background:var(--surface);color:var(--text2);border-color:var(--control)}
+.tag-new{font-size:11px;font-family:var(--mono);padding:0 5px;border:1px solid var(--info-b);color:var(--info-fg);background:var(--info-bg)}
+.tbl-wrap{overflow-x:auto;border:1px solid var(--border)}
+table.t{border-collapse:collapse;width:100%;font-size:13px;background:var(--surface)}
+table.t th{background:var(--muted);color:var(--text);text-align:left;font-weight:600;padding:7px 10px;border-bottom:1px solid var(--border);white-space:nowrap}
+table.t td{padding:7px 10px;border-bottom:1px solid var(--border);vertical-align:top}
+table.t tr:last-child td{border-bottom:0}
+.btn{font:inherit;font-size:13px;font-weight:500;padding:6px 12px;border:1px solid var(--action);background:var(--action);color:var(--on-action);cursor:pointer}
+.btn.ghost{background:transparent;color:var(--text);border-color:var(--control)}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.note{border-left:3px solid var(--info-b);background:var(--info-bg);color:var(--text);padding:8px 12px;font-size:13px}
+.note.warn{border-left-color:var(--warn-b);background:var(--warn-bg)}
+.kpi{display:grid;gap:2px}
+.kpi b{font-size:22px;font-family:var(--mono);font-weight:500;color:var(--heading)}
+.kpi span{font-size:12px;color:var(--mute)}
+.muted{color:var(--mute)}
+small{font-size:12px}
+ul.clean{list-style:none;padding:0;margin:0}
+/* Coquille Athena maquettée */
+.shell{display:grid;grid-template-columns:200px 1fr;border:1px solid var(--border-strong);background:var(--app);min-height:520px}
+.rail{background:var(--inverse);color:var(--inv-nav);padding:12px 0;font-size:13px;display:flex;flex-direction:column;gap:2px}
+.rail .brand{color:var(--on-inverse);font-weight:600;padding:0 14px 10px;display:flex;align-items:center;gap:8px}
+.rail .brand i{width:8px;height:8px;background:var(--brand-red);display:inline-block}
+.rail .proj{color:var(--inv-mute);font-family:var(--mono);font-size:12px;padding:6px 14px 4px}
+.rail a{color:var(--inv-nav);text-decoration:none;padding:6px 14px;display:flex;justify-content:space-between;align-items:center;gap:6px;border-left:3px solid transparent}
+.rail a.on{color:var(--on-inverse);border-left-color:var(--action);background:rgba(0,110,177,.18)}
+.rail a .tag-new{border-color:var(--inv-mute);color:var(--on-inverse);background:transparent}
+.rail .foot{margin-top:auto;padding:10px 14px 0;border-top:1px solid rgba(255,255,255,.12);display:flex;gap:10px;color:var(--inv-mute);font-size:12px}
+.work{min-width:0;display:flex;flex-direction:column}
+.bar-top{display:flex;align-items:center;gap:12px;padding:8px 14px;background:var(--surface);border-bottom:1px solid var(--border);flex-wrap:wrap}
+.crumb{font-size:13px;color:var(--text2);flex:1;min-width:0}
+.crumb b{color:var(--heading)}
+.timer{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--control);padding:3px 8px;font-size:12px;background:var(--surface)}
+.timer button{font:inherit;border:0;background:transparent;color:var(--text);cursor:pointer;padding:0 2px}
+.workbody{padding:14px;display:grid;gap:14px;min-width:0}
+.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.vtabs{display:inline-flex;border-bottom:1px solid var(--border)}
+.vtabs button{font:inherit;font-size:13px;background:transparent;border:0;border-bottom:3px solid transparent;padding:6px 12px;color:var(--text2);cursor:pointer}
+.vtabs button[aria-selected="true"]{color:var(--heading);border-bottom-color:var(--action);font-weight:600}
+.switch{display:inline-flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;user-select:none}
+.switch input{appearance:none;width:30px;height:16px;border:1px solid var(--control);background:var(--surface);position:relative;margin:0;cursor:pointer}
+.switch input::after{content:"";position:absolute;top:2px;left:2px;width:10px;height:10px;background:var(--control)}
+.switch input:checked{background:var(--action);border-color:var(--action)}
+.switch input:checked::after{left:16px;background:var(--on-action)}
+/* Gantt */
+.gantt{display:grid;grid-template-columns:minmax(0,440px) minmax(0,1fr);border:1px solid var(--border);background:var(--surface)}
+.wbs{border-right:1px solid var(--border-strong);min-width:0;overflow-x:auto}
+.wbs table{border-collapse:collapse;width:100%;font-size:12.5px;min-width:420px}
+.wbs th{height:44px;background:var(--muted);text-align:left;padding:0 8px;font-weight:600;white-space:nowrap;border-bottom:1px solid var(--border)}
+.wbs td{height:34px;padding:0 8px;border-bottom:1px solid var(--border);white-space:nowrap}
+.wbs tr.row{cursor:pointer}
+.wbs tr.row:hover td{background:var(--hover)}
+.wbs tr.sum td{font-weight:600;background:var(--app)}
+.wbs input.dur{width:44px;font:inherit;font-family:var(--mono);padding:1px 4px;border:1px solid var(--control);background:var(--surface);color:var(--text);text-align:right}
+.wbs input.dur:disabled{border-color:transparent;background:transparent}
+.av{display:inline-grid;place-items:center;width:22px;height:22px;font-size:10.5px;font-weight:600;background:var(--muted);color:var(--text);font-family:var(--mono)}
+.chart{overflow-x:auto;position:relative;min-width:0}
+.chart-inner{position:relative}
+.ghead{height:44px;position:relative;background:var(--muted);border-bottom:1px solid var(--border)}
+.ghead .wk{position:absolute;top:2px;font-size:11px;color:var(--text2);font-family:var(--mono);white-space:nowrap;padding-left:3px;border-left:1px solid var(--border)}
+.ghead .dn{position:absolute;bottom:3px;font-size:10px;color:var(--mute);font-family:var(--mono);text-align:center}
+.gcol{position:absolute;top:44px;bottom:0;background:var(--muted);opacity:.55}
+.gcol.hol{opacity:.9}
+.gcol .hl{position:absolute;top:4px;left:0;right:0;font-size:9px;writing-mode:vertical-rl;color:var(--text2);text-align:center;font-family:var(--mono);opacity:1}
+.today{position:absolute;top:30px;bottom:0;width:0;border-left:2px solid var(--action);z-index:3}
+.today span{position:absolute;top:-2px;left:3px;font-size:10px;background:var(--action);color:var(--on-action);padding:0 4px;font-family:var(--mono);white-space:nowrap}
+.grow{position:absolute;left:0;right:0;height:34px;border-bottom:1px solid var(--border)}
+.gbar{position:absolute;height:16px;top:9px;border:1px solid var(--d1);background:var(--info-bg);border-radius:var(--bar-radius);cursor:pointer;z-index:2;padding:0}
+.gbar .prog{position:absolute;inset:0 auto 0 0;background:var(--d1);border-radius:var(--bar-radius)}
+.gbar.crit{border-color:var(--dg-b);background:var(--dg-bg);outline:1px solid var(--dg-b)}
+.gbar.crit .prog{background:var(--dg-b)}
+.gbar .h{position:absolute;right:-7px;top:3px;width:8px;height:8px;background:var(--surface);border:1.5px solid var(--deep);cursor:crosshair;display:none}
+body:not(.user) .gbar:hover .h,body:not(.user) .gbar:focus-visible .h{display:block}
+.gbar .lbl{position:absolute;left:calc(100% + 10px);top:-2px;font-size:11px;white-space:nowrap;color:var(--text2);pointer-events:none}
+.gsum{position:absolute;height:6px;top:14px;background:var(--deep);z-index:2}
+.gsum::before,.gsum::after{content:"";position:absolute;bottom:-5px;width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid var(--deep)}
+.gsum::before{left:0}.gsum::after{right:0}
+.gms{position:absolute;top:10px;width:14px;height:14px;transform:rotate(45deg);background:var(--deep);border:0;cursor:pointer;z-index:2;padding:0}
+.gms.crit{background:var(--dg-b)}
+.gbase{position:absolute;height:5px;top:26px;border:1px dashed var(--text2);background:transparent;z-index:1}
+.gbase.ms{width:8px;height:8px;top:24px;transform:rotate(45deg);border-style:solid}
+svg.links{position:absolute;inset:0;pointer-events:none;z-index:1;overflow:visible}
+svg.links path{fill:none;stroke:var(--text2);stroke-width:1.2}
+svg.links path.crit{stroke:var(--dg-b);stroke-width:2}
+svg.links path.tmp{stroke:var(--action);stroke-dasharray:4 3;stroke-width:1.5}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--text2);align-items:center}
+.legend i{display:inline-block;width:18px;height:10px;vertical-align:-1px;margin-right:6px;border:1px solid var(--d1);background:var(--info-bg)}
+.legend i.c{border-color:var(--dg-b);background:var(--dg-b)}
+.legend i.b{border:1px dashed var(--text2);background:transparent;height:6px}
+.legend i.m{width:10px;height:10px;transform:rotate(45deg);background:var(--deep);border:0}
+.kan{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+.kan .col{background:var(--app);border:1px solid var(--border);padding:8px;display:grid;gap:8px;align-content:start}
+.kan .col h4{margin:0;font-size:12.5px;display:flex;justify-content:space-between}
+.card{background:var(--surface);border:1px solid var(--border);padding:8px;font-size:12.5px;display:grid;gap:4px;cursor:pointer}
+/* Tiroir */
+.scrim{position:fixed;inset:0;background:rgba(0,20,35,.45);z-index:40}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(460px,100%);background:var(--surface);border-left:1px solid var(--border-strong);z-index:41;display:flex;flex-direction:column;transform:translateX(0);transition:transform .2s ease;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);padding-right:env(safe-area-inset-right,0px)}
+.drawer[hidden]{display:none!important}
+.drawer .dh{padding:14px 16px;border-bottom:1px solid var(--border);display:grid;gap:6px}
+.drawer .db{padding:14px 16px;overflow-y:auto;display:grid;gap:12px;align-content:start}
+.drawer .x{position:absolute;top:calc(10px + env(safe-area-inset-top,0px));right:calc(10px + env(safe-area-inset-right,0px));font:inherit;font-size:18px;background:transparent;border:1px solid var(--control);color:var(--text);width:30px;height:30px;cursor:pointer}
+.kv{display:grid;grid-template-columns:120px 1fr;gap:4px 10px;font-size:13px}
+.kv dt{color:var(--mute)}.kv dd{margin:0}
+.md{border:1px solid var(--border);padding:10px;font-size:13px}
+.md h5{margin:0 0 6px;font-size:13px}
+.md ul{margin:4px 0 0;padding-left:18px}
+.cmt{display:grid;gap:2px;border-left:2px solid var(--border);padding-left:10px;font-size:13px}
+/* Risques */
+.heat{display:grid;grid-template-columns:28px repeat(5,minmax(0,1fr));gap:3px;max-width:560px}
+.heat .ax{font-size:11px;color:var(--mute);display:grid;place-items:center;font-family:var(--mono)}
+.cell{aspect-ratio:1.25;border:1px solid;position:relative;padding:4px;display:flex;flex-wrap:wrap;gap:4px;align-content:flex-start;justify-content:center;padding-top:18px;min-width:0}
+.cell .sc{position:absolute;top:2px;left:4px;font-size:10px;font-family:var(--mono)}
+.lv1{background:var(--ok-bg);border-color:var(--ok-b);color:var(--ok-fg)}
+.lv2{background:var(--warn-bg);border-color:var(--warn-b);color:var(--warn-fg)}
+.lv3{background:var(--high-bg);border-color:var(--warn-b);color:var(--high-fg)}
+.lv4{background:var(--crit-bg);border-color:var(--dg-b);color:var(--crit-fg)}
+.bub{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border-strong);background:var(--surface);color:var(--text);font-family:var(--mono);font-size:11px;font-weight:600;cursor:pointer;padding:0;position:relative}
+.bub[aria-pressed="true"]{background:var(--deep);color:var(--on-deep)}
+.tip{position:absolute;z-index:20;background:var(--surface);color:var(--text);border:1px solid var(--border-strong);padding:8px 10px;font-size:12px;width:220px;pointer-events:none;text-align:left;line-height:1.4}
+.trace{display:grid;gap:8px}
+.trace .node{border:1px solid var(--border);padding:8px 10px;display:grid;gap:3px;background:var(--surface)}
+.trace .arrow{font-size:12px;color:var(--mute);padding-left:12px;font-family:var(--mono)}
+/* Ressources */
+.cap td,.cap th{text-align:center}
+.cap td.c{font-family:var(--mono);font-size:12px;min-width:46px}
+.cap td.over{background:var(--dg-bg);color:var(--dg-fg);font-weight:600;outline:1px solid var(--dg-b);outline-offset:-1px}
+.cap td.mid{background:var(--ok-bg);color:var(--ok-fg)}
+.cap td.low{color:var(--mute)}
+.cap td.off{background:var(--muted);color:var(--text2);font-family:var(--sans);font-size:11px;border:1px dashed var(--control)}
+.cap th.hol,.cap td.hol{background:var(--muted);color:var(--text2)}
+.ts input{width:52px;font:inherit;font-family:var(--mono);text-align:right;padding:2px 4px;border:1px solid var(--control);background:var(--surface);color:var(--text)}
+/* Collaboration */
+.inbox{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);border:1px solid var(--border);background:var(--surface);min-height:340px}
+.inbox ul{list-style:none;margin:0;padding:0;border-right:1px solid var(--border)}
+.inbox li button{all:unset;box-sizing:border-box;display:grid;gap:2px;width:100%;padding:9px 12px;border-bottom:1px solid var(--border);cursor:pointer;font-size:13px}
+.inbox li button:hover{background:var(--hover)}
+.inbox li button:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
+.inbox li.unread button{border-left:3px solid var(--action);font-weight:600}
+.inbox li.sel button{background:var(--selected)}
+.reader{padding:14px;display:grid;gap:10px;align-content:start}
+.rule{display:grid;gap:8px}
+.blk{border:1px solid var(--border);background:var(--surface);padding:10px;display:grid;gap:6px}
+.blk>b{font-size:12px;font-family:var(--mono);color:var(--text2)}
+.blk select,.blk input{font:inherit;font-size:13px;padding:4px 6px;border:1px solid var(--control);background:var(--surface);color:var(--text);max-width:100%}
+.blk .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.conn{font-family:var(--mono);font-size:12px;color:var(--mute);padding-left:14px}
+/* Avis */
+.avis{border-top:1px solid var(--border);padding-top:14px;display:grid;gap:10px}
+.avis form{display:grid;gap:8px}
+.avis textarea{font:inherit;min-height:70px;padding:8px;border:1px solid var(--control);background:var(--surface);color:var(--text);resize:vertical;width:100%}
+.verdict{display:flex;gap:8px;flex-wrap:wrap}
+.verdict label{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--control);padding:4px 10px;font-size:13px;cursor:pointer}
+.verdict input{accent-color:var(--action)}
+.clist{display:grid;gap:8px}
+.citem{border:1px solid var(--border);background:var(--surface);padding:8px 10px;display:grid;gap:4px;font-size:13px}
+.citem .meta{display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:12px;color:var(--mute)}
+.citem p{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+.dec{display:grid;gap:8px;border:1px solid var(--border);background:var(--surface);padding:12px}
+.dec .opts{display:flex;gap:8px;flex-wrap:wrap}
+.dec .opts button{font:inherit;font-size:13px;text-align:left;border:1px solid var(--control);background:var(--surface);color:var(--text);padding:6px 10px;cursor:pointer;max-width:100%}
+.dec .opts button[aria-pressed="true"]{background:var(--deep);color:var(--on-deep);border-color:var(--deep)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));background:var(--inverse);color:var(--on-inverse);padding:10px 14px;font-size:13px;z-index:60;max-width:min(560px,calc(100% - 32px))}
+.rolebar{font-size:12.5px;padding:6px 10px;border:1px solid var(--border);background:var(--surface);color:var(--text2)}
+body.user .cp-only{display:none!important}
+body:not(.user) .user-only{display:none!important}
+.locked{font-size:12px;color:var(--mute);border:1px dashed var(--control);padding:8px 10px}
+@media (max-width:900px){
+  .shell{grid-template-columns:1fr}
+  .rail{flex-direction:row;overflow-x:auto;padding:6px 0}
+  .rail .brand,.rail .proj,.rail .foot{display:none}
+  .rail a{white-space:nowrap;border-left:0;border-bottom:3px solid transparent}
+  .rail a.on{border-bottom-color:var(--action)}
+  .gantt{grid-template-columns:1fr}
+  .wbs{border-right:0;border-bottom:1px solid var(--border-strong);max-height:none}
+  .inbox{grid-template-columns:1fr}
+  .pf-grid,.rk-grid,.collab-grid{grid-template-columns:1fr!important}
+  .inbox ul{border-right:0;border-bottom:1px solid var(--border)}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="band" aria-hidden="true"><i></i><i></i><i></i></div>
+<header class="top">
+  <div class="wrap">
+    <div class="eyebrow">Athena · proposition du 12 novembre 2026 · lot 12 et suivants</div>
+    <h1>Gestion de projet dans Athena</h1>
+    <p class="lead">Analyse d'impact du cahier des charges sur l'existant, proposition d'intégration par rôle, et maquettes cliquables des cinq espaces. Chaque écran se termine par une zone d'avis : vos remarques sont enregistrées et je les relirai pour préparer l'ADR et le plan du lot.</p>
+    <div class="controls">
+      <span><span class="ctl-label">Voir en tant que</span>
+        <span class="seg" role="group" aria-label="Rôle">
+          <button type="button" id="role-cp" aria-pressed="true">Chef de projet</button>
+          <button type="button" id="role-user" aria-pressed="false">Utilisateur</button>
+        </span></span>
+      <span><span class="ctl-label">Rayon des barres</span>
+        <span class="seg" role="group" aria-label="Rayon des barres">
+          <button type="button" id="rad-0" aria-pressed="true">Hemeria (0 px)</button>
+          <button type="button" id="rad-4" aria-pressed="false">Thème arrondi (4 px)</button>
+        </span></span>
+    </div>
+    <nav class="tabs" aria-label="Sections">
+      <a href="#analyse">Analyse d'impact</a>
+      <a href="#portefeuille">1. Centre de contrôle</a>
+      <a href="#planning">2. Planning</a>
+      <a href="#risques">3. Risques et exigences</a>
+      <a href="#ressources">4. Ressources et finances</a>
+      <a href="#collaboration">5. Collaboration</a>
+      <a href="#avis">Avis et décisions</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+<!-- ============ ANALYSE ============ -->
+<section class="view" id="v-analyse" data-view="analyse">
+  <div class="grid3">
+    <div class="panel kpi"><b>27</b><span>exigences du cahier des charges analysées</span></div>
+    <div class="panel kpi"><b>11 / 27</b><span>déjà couvertes en grande partie par l'existant (lots 1 à 11)</span></div>
+    <div class="panel kpi"><b>4 lots · ≈ 34 tâches</b><span>proposés, au format habituel (une tâche par session)</span></div>
+  </div>
+
+  <div class="panel">
+    <h2>En bref</h2>
+    <p class="lead">Le cahier des charges tombe bien : Athena a déjà le socle (tickets typés, liens, traçabilité avec suspicion, baselines Git, cartes organisables, panneau de détail latéral, automatisations, notifications). Il manque surtout ce qui repose sur le <b>temps</b> : dates de début et durées, dépendances ordonnées, calendrier, temps saisis, capacité et coûts. Le Gantt figure déjà dans les écarts mineurs de <span class="mono">STATE.md</span>.</p>
+    <p class="lead">Je propose de garder les 8 sections du projet (ADR-0003) : <b>Roadmap devient Planning</b> (Gantt et frise des versions), les risques sont un tracker avec sa matrice dans Rapports, la charge et les finances deviennent des rapports réservés au chef de projet, et le portefeuille est une vue de la page Projets. Trois points du cahier des charges heurtent la charte ou le plan ; je les signale plus bas avec une recommandation.</p>
+  </div>
+
+  <div class="panel">
+    <h2>Analyse d'impact, exigence par exigence</h2>
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th>#</th><th>Exigence</th><th>Ce qui existe dans Athena</th><th>Ce qu'il faut ajouter</th><th>Taille</th></tr></thead>
+      <tbody id="impact"></tbody>
+    </table></div>
+    <p class="muted" style="margin-top:8px"><small>Taille : S ≈ une tâche, M ≈ deux tâches, L ≈ trois tâches ou plus. « Couvert » : rien de neuf côté données.</small></p>
+  </div>
+
+  <div class="grid2">
+    <div class="panel">
+      <h2>Impacts transverses</h2>
+      <ul style="margin:0;padding-left:18px;display:grid;gap:6px">
+        <li><b>Données (migrations 058 et suivantes).</b> Rôles sémantiques <span class="mono">start_date</span>, <span class="mono">remaining</span>, <span class="mono">progress</span>, <span class="mono">probability</span>, <span class="mono">impact</span> ; type de lien d'organisation « précède » avec décalage ; type de champ « calculé » ; tables <span class="mono">calendar</span>, <span class="mono">absence</span>, <span class="mono">member_capacity</span>, <span class="mono">worklog</span>, <span class="mono">rate</span>, <span class="mono">project_budget</span>, <span class="mono">alert</span> ; dates planifiées dans <span class="mono">baseline</span> ; <span class="mono">archived_at</span> sur les notifications.</li>
+        <li><b>Historique GitLab.</b> Une replanification peut décaler 40 tickets : un seul commit groupé « replanification » au lieu de 40. Les temps saisis restent en base (volume), avec audit.</li>
+        <li><b>Sécurité (plan § 13).</b> Les taux journaliers sont des données personnelles et commerciales : permission dédiée, permissions par champ, jamais dans GitLab ni dans les webhooks, marquage export respecté sur l'instance Défense.</li>
+        <li><b>ATQL.</b> Fonctions <span class="mono">late()</span>, <span class="mono">critical()</span>, <span class="mono">atRisk()</span>, champ <span class="mono">criticality</span>, pour que cartes, alertes et automatisations s'appuient sur la même requête.</li>
+        <li><b>Webhooks et plugins.</b> Événements <span class="mono">schedule.changed</span>, <span class="mono">alert.raised</span>, <span class="mono">worklog.created</span> ; Gantt et matrice dans le noyau, pas en plugin (ils servent les gabarits Spatial et Défense).</li>
+        <li><b>Performance.</b> Calcul du chemin critique côté API, linéaire en tickets + liens ; Gantt fluide à 500 lignes (même critère que le board).</li>
+        <li><b>Tests.</b> Nouvelle référence visuelle, e2e par rôle, audits axe sur les 9 thèmes × 2 modes pour la matrice 5×5 et le Gantt.</li>
+      </ul>
+    </div>
+    <div class="panel">
+      <h2>Écarts avec la charte et le plan</h2>
+      <div style="display:grid;gap:10px">
+        <div class="note warn"><b>Police Inter ou Roboto.</b> Chaque thème porte sa police (IBM Plex Sans pour Hemeria) et les identifiants restent en IBM Plex Mono. Recommandation : garder la police du thème.</div>
+        <div class="note warn"><b>Barres à bords arrondis.</b> Le rayon est un jeton du thème : 0 px dans Hemeria et Contraste élevé, 2 à 8 px ailleurs. Le bouton « Rayon des barres » en haut le montre. Aucun code propre au Gantt.</div>
+        <div class="note warn"><b>Chemin critique « illuminé en rouge ».</b> Le rouge tricolore est réservé à la cérémonie. On utilise le jeton de danger, un trait plus épais et la mention « Critique » dans le tableau : la couleur ne porte jamais seule l'information.</div>
+        <div class="note warn"><b>Heatmap « du vert au rouge foncé ».</b> Pas de dégradé : 4 paliers nommés (faible, modéré, élevé, critique) avec le score écrit dans chaque case.</div>
+        <div class="note warn"><b>Éditeur de documents par blocs.</b> La gestion documentaire est hors périmètre (plan § 1.2) et StrictDoc reste la source (§ 16.2). Recommandation : plans de mitigation en Markdown dans le ticket Risque, spécifications dans StrictDoc citées depuis Athena.</div>
+        <div class="note"><b>Mode sombre natif, SPA, panneaux latéraux, cartes modulables.</b> Déjà livrés (lots 7, 10 et 11).</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Rôles : qui voit et fait quoi</h2>
+    <p class="lead">« Chef de projet » = rôle <span class="mono">athena-pm</span> et membre <span class="mono">manager</span> du projet. « Utilisateur » = membre <span class="mono">member</span>. L'AQ garde la lecture ; l'administrateur configure calendriers et taux de l'organisation.</p>
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th>Espace</th><th>Chef de projet</th><th>Utilisateur</th></tr></thead>
+      <tbody>
+        <tr><td>Centre de contrôle</td><td>Portefeuille des projets qu'il gère, jauges, jalons, burndown, alertes de tous ses projets</td><td>Mon travail : ses tickets, ses jalons, ses alertes ; aucune donnée financière</td></tr>
+        <tr><td>Planning</td><td>Dates, durées, dépendances, baselines, replanification, chemin critique</td><td>Lecture du Gantt ; met à jour avancement et reste à faire de ses tickets ; demande un décalage par commentaire</td></tr>
+        <tr><td>Risques et exigences</td><td>Crée, évalue, clôt ; crée les tâches de mitigation</td><td>Déclare un risque (score proposé), commente, réalise les mitigations qui lui sont assignées</td></tr>
+        <tr><td>Ressources</td><td>Matrice de charge de l'équipe, absences, capacité</td><td>Sa propre charge ; déclare ses absences</td></tr>
+        <tr><td>Temps</td><td>Valide les feuilles de temps (circuit d'approbation existant)</td><td>Chronomètre et feuille de temps hebdomadaire</td></tr>
+        <tr><td>Finances</td><td>Budget, coûts prévus et réels, projection (permission dédiée)</td><td>Aucun accès</td></tr>
+        <tr><td>Collaboration</td><td>Boîte de réception, automatisations du projet</td><td>Boîte de réception, abonnements</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <div class="panel">
+    <h2>Découpage proposé</h2>
+    <p class="lead">Quatre lots, chacun clos par une vérification critère par critère, comme les précédents. L'ordre suit la valeur et les dépendances : le planning porte les dates dont tout le reste a besoin.</p>
+    <div class="grid2" id="lots"></div>
+  </div>
+  <div class="avis" data-sec="analyse"></div>
+</section>
+
+<!-- ============ PORTEFEUILLE ============ -->
+<section class="view" id="v-portefeuille" data-view="portefeuille" hidden>
+  <div class="rolebar"><span class="cp-only">Chef de projet : page <b>Projets › Portefeuille</b>, sur les projets qu'il gère. Les cartes reprennent le moteur DashCard du lot 11 (organisables, S/M/L/XL).</span><span class="user-only">Utilisateur : pas de portefeuille. Sa page <b>Mon travail</b> reçoit les mêmes cartes, limitées à ses tickets et sans finances.</span></div>
+  <div class="shell">
+    <nav class="rail" aria-label="Navigation maquettée">
+      <div class="brand"><i></i>Athena</div>
+      <a href="#portefeuille" class="on cp-only">Projets <span class="tag-new">portefeuille</span></a>
+      <a href="#portefeuille" class="on user-only">Mon travail</a>
+      <a href="#collaboration">Notifications</a><a href="#analyse">Recherche</a>
+      <div class="foot"><span>Profil</span><span>Aide</span></div>
+    </nav>
+    <div class="work">
+      <div class="bar-top"><div class="crumb"><span class="cp-only"><b>Projets</b> › Portefeuille</span><span class="user-only"><b>Mon travail</b></span></div><span class="timer cp-only-not" data-timer></span></div>
+      <div class="workbody">
+        <div class="panel" style="padding:10px 14px">
+          <h3 style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap">Jalons majeurs <small class="muted">novembre 2026 → mars 2027</small></h3>
+          <div id="ms-strip" style="overflow-x:auto"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,300px);gap:14px" class="pf-grid">
+          <div style="display:grid;gap:14px;min-width:0">
+            <div class="grid3" id="gauges"></div>
+            <div class="panel">
+              <h3>Burndown <span class="cp-only">consolidé</span><span class="user-only">de mes tickets</span> <small class="muted">· points restants, versions en cours</small></h3>
+              <div id="burn" style="overflow-x:auto"></div>
+            </div>
+          </div>
+          <aside class="panel" aria-label="Alertes">
+            <h3>Alertes <small class="muted">· calculées chaque heure</small></h3>
+            <ul class="clean" id="alerts" style="display:grid;gap:8px"></ul>
+          </aside>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="avis" data-sec="portefeuille"></div>
+</section>
+
+<!-- ============ PLANNING ============ -->
+<section class="view" id="v-planning" data-view="planning" hidden>
+  <div class="rolebar"><span class="cp-only">Chef de projet : glissez la poignée au bout d'une barre vers une autre barre pour créer un lien « précède ». Modifiez une durée : le planning se recalcule. Cliquez une ligne ou une barre pour ouvrir le panneau de détail.</span><span class="user-only">Utilisateur : lecture du planning ; durées et liens verrouillés. Le panneau de détail reste ouvert à la saisie de son avancement et de son temps.</span></div>
+  <div class="shell">
+    <nav class="rail" aria-label="Navigation maquettée">
+      <div class="brand"><i></i>Athena</div>
+      <div class="proj">NOVA · Satellite d'observation</div>
+      <a href="#portefeuille">Vue d'ensemble</a><a href="#planning">Backlog</a><a href="#planning">Board</a><a href="#planning">Trackers</a>
+      <a href="#planning" class="on">Planning <span class="tag-new">ex-Roadmap</span></a>
+      <a href="#risques">Documents</a><a href="#risques">Rapports</a><a href="#collaboration" class="cp-only">Paramètres</a>
+      <div class="foot"><span>Notifications 3</span><span>Profil</span></div>
+    </nav>
+    <div class="work">
+      <div class="bar-top"><div class="crumb">NOVA › <b>Planning</b></div><span class="timer" data-timer></span></div>
+      <div class="workbody">
+        <div class="toolbar">
+          <div class="vtabs" role="tablist" aria-label="Vue">
+            <button role="tab" aria-selected="true" data-pv="gantt">Gantt</button>
+            <button role="tab" aria-selected="false" data-pv="kanban">Kanban</button>
+            <button role="tab" aria-selected="false" data-pv="liste">Liste</button>
+            <button role="tab" aria-selected="false" data-pv="versions">Versions</button>
+          </div>
+          <span style="flex:1"></span>
+          <label class="switch"><input type="checkbox" id="sw-crit"> Chemin critique</label>
+          <label class="switch"><input type="checkbox" id="sw-base"> Baseline <span class="mono">B2 · 02/11</span></label>
+          <button class="btn ghost cp-only" type="button" id="btn-baseline">Figer une baseline</button>
+        </div>
+        <div id="pv-gantt">
+          <div class="gantt">
+            <div class="wbs"><table><thead><tr><th>Ticket</th><th>Nom</th><th>Durée (j)</th><th>Resp.</th><th>Statut</th></tr></thead><tbody id="wbs-body"></tbody></table></div>
+            <div class="chart" id="chart"><div class="chart-inner" id="chart-inner"></div></div>
+          </div>
+          <div class="legend" style="margin-top:8px"><span><i></i>Tâche (partie pleine = avancement)</span><span><i class="c"></i>Critique</span><span><i class="b"></i>Baseline</span><span><i class="m"></i>Jalon</span><span>Colonnes grisées : week-ends et jours fériés du calendrier de l'organisation</span></div>
+        </div>
+        <div id="pv-kanban" hidden><p class="muted"><small>Le Board existant, filtré sur le même périmètre que le Gantt.</small></p><div class="kan" id="kan"></div></div>
+        <div id="pv-liste" hidden><p class="muted"><small>La Liste existante avec les colonnes Début, Fin, Marge.</small></p><div class="tbl-wrap"><table class="t" id="list-tbl"></table></div></div>
+        <div id="pv-versions" hidden><p class="muted"><small>La frise des versions de l'actuelle Roadmap (T-0150), gardée comme deuxième vue.</small></p><div class="panel"><div class="kv"><dt>v1.0 « PDR »</dt><dd>Publiée le 09/11/2026 · 12 tickets</dd><dt>v1.1 « Intégration »</dt><dd>Prévue le 07/12/2026 · 18 tickets · <span class="pill p-warn">2 en retard</span></dd><dt>v2.0 « QR »</dt><dd>Prévue le 18/12/2026 · 9 tickets</dd></div></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="avis" data-sec="planning"></div>
+</section>
+
+<!-- ============ RISQUES ============ -->
+<section class="view" id="v-risques" data-view="risques" hidden>
+  <div class="rolebar"><span class="cp-only">Chef de projet : <b>Rapports › Risques</b>. Les risques sont des tickets d'un tracker « Risque » (gabarit fourni) ; la criticité est un champ calculé P × I.</span><span class="user-only">Utilisateur : il voit la matrice et déclare un risque ; son score reste « proposé » jusqu'à validation du chef de projet.</span></div>
+  <div class="shell">
+    <nav class="rail" aria-label="Navigation maquettée">
+      <div class="brand"><i></i>Athena</div>
+      <div class="proj">NOVA · Satellite d'observation</div>
+      <a href="#portefeuille">Vue d'ensemble</a><a href="#planning">Backlog</a><a href="#planning">Board</a><a href="#risques">Trackers</a><a href="#planning">Planning</a><a href="#risques">Documents</a>
+      <a href="#risques" class="on">Rapports</a><a href="#collaboration" class="cp-only">Paramètres</a>
+      <div class="foot"><span>Notifications 3</span><span>Profil</span></div>
+    </nav>
+    <div class="work">
+      <div class="bar-top"><div class="crumb">NOVA › Rapports › <b>Risques</b></div><span class="timer" data-timer></span></div>
+      <div class="workbody">
+        <div class="vtabs" aria-label="Rapports"><button aria-selected="false">Avancement</button><button aria-selected="true">Risques <span class="tag-new">nouveau</span></button><button aria-selected="false">Traçabilité</button><button aria-selected="false" class="cp-only">Charge</button><button aria-selected="false" class="cp-only">Finances</button><button aria-selected="false">Conformité</button></div>
+        <div style="display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:14px" class="rk-grid">
+          <div class="panel" style="position:relative">
+            <h3>Matrice probabilité × impact</h3>
+            <div style="display:flex;gap:6px;min-width:0">
+              <div style="writing-mode:vertical-rl;transform:rotate(180deg);font-size:11px;color:var(--mute);text-align:center">Probabilité →</div>
+              <div style="flex:1;min-width:0"><div class="heat" id="heat"></div><div style="text-align:center;font-size:11px;color:var(--mute);margin-top:4px">Impact →</div></div>
+            </div>
+            <div class="legend" style="margin-top:10px"><span class="pill lv1">Faible 1–4</span><span class="pill lv2">Modéré 5–9</span><span class="pill lv3">Élevé 10–16</span><span class="pill lv4">Critique 20–25</span></div>
+            <div class="tip" id="tip" hidden></div>
+          </div>
+          <div class="panel" id="risk-detail"></div>
+        </div>
+        <div class="tbl-wrap"><table class="t"><thead><tr><th>Ticket</th><th>Risque</th><th class="num">P</th><th class="num">I</th><th class="num">Criticité</th><th>Exigences liées</th><th>Statut</th></tr></thead><tbody id="risk-list"></tbody></table></div>
+      </div>
+    </div>
+  </div>
+  <div class="avis" data-sec="risques"></div>
+</section>
+
+<!-- ============ RESSOURCES ============ -->
+<section class="view" id="v-ressources" data-view="ressources" hidden>
+  <div class="rolebar"><span class="cp-only">Chef de projet : <b>Rapports › Charge</b> et <b>Rapports › Finances</b>. La charge vient des estimations réparties sur les jours ouvrés de chaque ticket, moins les absences.</span><span class="user-only">Utilisateur : sa feuille de temps dans <b>Mon travail › Temps</b> et sa propre ligne de charge. Les finances ne lui sont pas visibles.</span></div>
+  <div class="shell">
+    <nav class="rail" aria-label="Navigation maquettée">
+      <div class="brand"><i></i>Athena</div>
+      <div class="proj">NOVA · Satellite d'observation</div>
+      <a href="#portefeuille">Vue d'ensemble</a><a href="#planning">Backlog</a><a href="#planning">Board</a><a href="#planning">Trackers</a><a href="#planning">Planning</a><a href="#risques">Documents</a>
+      <a href="#ressources" class="on">Rapports</a><a href="#collaboration" class="cp-only">Paramètres</a>
+      <div class="foot"><span>Notifications 3</span><span>Profil</span></div>
+    </nav>
+    <div class="work">
+      <div class="bar-top"><div class="crumb"><span class="cp-only">NOVA › Rapports › <b>Charge</b></span><span class="user-only"><b>Mon travail</b> › Temps</span></div><span class="timer" data-timer></span></div>
+      <div class="workbody">
+        <div class="panel">
+          <h3 style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px"><span>Charge par personne <small class="muted">· semaines 47 et 48</small></span><small class="muted">Au-delà de 100 % : case signalée ▲</small></h3>
+          <div class="tbl-wrap"><table class="t cap" id="cap"></table></div>
+        </div>
+        <div class="grid2">
+          <div class="panel">
+            <h3>Feuille de temps <small class="muted">· semaine 46, du 9 au 13 novembre</small></h3>
+            <div class="tbl-wrap"><table class="t ts" id="ts"></table></div>
+            <div class="toolbar" style="margin-top:10px"><button class="btn" type="button" id="ts-submit">Envoyer pour validation</button><small class="muted">Le chef de projet valide par le circuit d'approbation existant.</small></div>
+          </div>
+          <div class="panel cp-only">
+            <h3>Finances <small class="muted">· coûts prévus et réels, k€</small></h3>
+            <div class="grid3" style="grid-template-columns:repeat(auto-fit,minmax(110px,1fr));margin-bottom:10px" id="fin-kpi"></div>
+            <div id="fin" style="overflow-x:auto"></div>
+            <p class="muted" style="margin-top:6px"><small>Coût réel = temps validés × taux journalier du profil. Les taux ne quittent jamais la base (ni GitLab ni webhooks).</small></p>
+          </div>
+          <div class="panel user-only"><h3>Finances</h3><div class="locked">Accès réservé : les finances du projet sont visibles par le chef de projet et l'administration. Vous voyez votre temps saisi et votre charge.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="avis" data-sec="ressources"></div>
+</section>
+
+<!-- ============ COLLABORATION ============ -->
+<section class="view" id="v-collaboration" data-view="collaboration" hidden>
+  <div class="rolebar">Boîte de réception : la page <b>Notifications</b> actuelle gagne les filtres par type et l'archivage. Les fils de discussion restent les commentaires des tickets (risques et exigences sont des tickets). <span class="cp-only">Le constructeur de règles est l'éditeur d'automatisations existant, avec deux ajouts : agir sur les tickets liés et affecter à une équipe.</span></div>
+  <div class="grid2 collab-grid" style="grid-template-columns:minmax(0,1.3fr) minmax(0,1fr)">
+    <div class="panel" style="padding:0">
+      <div class="toolbar" style="padding:10px 12px;border-bottom:1px solid var(--border)">
+        <div class="vtabs" id="ib-tabs"><button aria-selected="true" data-f="all">Tout</button><button aria-selected="false" data-f="mention">Mentions</button><button aria-selected="false" data-f="valid">Validations</button><button aria-selected="false" data-f="alert">Alertes</button><button aria-selected="false" data-f="arch">Archivées</button></div>
+      </div>
+      <div class="inbox"><ul id="ib-list"></ul><div class="reader" id="ib-read"></div></div>
+    </div>
+    <div class="panel">
+      <h3>Règle d'automatisation <small class="muted">· Paramètres › Automatisations</small></h3>
+      <div class="cp-only rule">
+        <div class="blk"><b>Quand</b><div class="row"><select id="r-when"><option>un ticket change de statut</option><option>un ticket est créé</option><option>un risque devient critique</option><option>un ticket passe en retard</option></select></div></div>
+        <div class="conn">↓</div>
+        <div class="blk"><b>Si</b><div class="row"><input id="r-if" value='tracker = Tâche AND status = "Terminé" AND title ~ "revue de code"' style="width:100%;font-family:var(--mono);font-size:12px"></div></div>
+        <div class="conn">↓</div>
+        <div class="blk"><b>Alors</b>
+          <div class="row"><select><option>Sur les tickets liés « précède »</option><option>Sur ce ticket</option></select><span class="tag-new">nouveau</span></div>
+          <div class="row"><select><option>Assigner à l'équipe</option><option>Changer de statut</option><option>Commenter</option></select><select><option>Infra</option><option>Dev</option><option>Qualité</option></select><span class="tag-new">équipes</span></div>
+        </div>
+        <div class="toolbar"><button class="btn" type="button" id="r-save">Enregistrer la règle</button><button class="btn ghost" type="button" id="r-test">Tester sur NOVA-23</button></div>
+        <p class="muted" id="r-out" style="margin:0"><small>La condition est une requête ATQL : la même que dans la recherche et les cartes.</small></p>
+      </div>
+      <div class="user-only locked">Accès réservé : les automatisations sont configurées par le chef de projet du projet.</div>
+    </div>
+  </div>
+  <div class="avis" data-sec="collaboration"></div>
+</section>
+
+<!-- ============ AVIS ============ -->
+<section class="view" id="v-avis" data-view="avis" hidden>
+  <div class="panel">
+    <h2>Décisions à prendre</h2>
+    <p class="lead">Choisissez une option par décision ; la recommandation est notée. Vos choix sont enregistrés avec les commentaires et serviront à rédiger l'ADR-0006.</p>
+    <div style="display:grid;gap:10px" id="decisions"></div>
+  </div>
+  <div class="panel">
+    <h2>Tous les commentaires</h2>
+    <p class="muted" id="all-status"><small>Chargement des commentaires…</small></p>
+    <div class="clist" id="all-comments"></div>
+  </div>
+  <div class="avis" data-sec="general"></div>
+</section>
+</main>
+
+<div class="scrim" id="scrim" hidden></div>
+<aside class="drawer" id="drawer" hidden aria-label="Détail du ticket" role="dialog" aria-modal="true"></aside>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+(function(){
+'use strict';
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let toastT;function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,4200)}
+
+/* ---------- Rôle et rayon ---------- */
+let role='cp';
+function setRole(r){role=r;document.body.classList.toggle('user',r==='user');$('#role-cp').setAttribute('aria-pressed',r==='cp');$('#role-user').setAttribute('aria-pressed',r==='user');renderAll()}
+$('#role-cp').onclick=()=>setRole('cp');$('#role-user').onclick=()=>setRole('user');
+function setRad(on){document.body.classList.toggle('round',on);$('#rad-0').setAttribute('aria-pressed',!on);$('#rad-4').setAttribute('aria-pressed',on)}
+$('#rad-0').onclick=()=>setRad(false);$('#rad-4').onclick=()=>setRad(true);
+
+/* ---------- Routage ---------- */
+const VIEWS=['analyse','portefeuille','planning','risques','ressources','collaboration','avis'];
+function route(){const h=(location.hash||'#analyse').slice(1);const v=VIEWS.includes(h)?h:'analyse';
+  $$('section.view').forEach(s=>s.hidden=s.dataset.view!==v);
+  $$('nav.tabs a').forEach(a=>a.getAttribute('href')==='#'+v?a.setAttribute('aria-current','page'):a.removeAttribute('aria-current'));
+  if(v==='planning')renderGantt();}
+window.addEventListener('hashchange',route);
+
+/* ---------- Analyse ---------- */
+const IMPACT=[
+ ['1.1','Grille de cartes modulables','Cartes DashCard 12 colonnes, Organiser, cartes graphiques (T-0153 à T-0156)','Cartes Jauge, Jalons, Alertes, Burndown','S','ok'],
+ ['1.2','Jauges consommé / reste à faire','Rôle sémantique estimate','Rôles remaining et progress, agrégation par projet','M',''],
+ ['1.3','Frise des jalons (losanges)','Frise des versions de la Roadmap (T-0150)','Jalon = version ou ticket de durée nulle','S','ok'],
+ ['1.4','Agrégation portefeuille','Projets en cartes, recherche d’organisation sous droits','Service d’agrégation multi-projets, vue Portefeuille','M',''],
+ ['1.5','Flux d’alertes intelligent','Notifications, abonnements, résumé quotidien (lot 7)','Détection périodique (retard, surcharge, budget), type « alerte »','M',''],
+ ['1.6','Burndown global','Burndown par sprint, flux cumulé, vélocité','Burndown et burnup par version ou projet','S','ok'],
+ ['2.1','Tableau WBS + Gantt','Vue Arbre, Liste, rôle due_date ; Gantt noté en écart','Vue Gantt, rôle start_date, durée en jours ouvrés','L',''],
+ ['2.2','Barres arrondies','Rayon en jeton de thème (lot 10)','Rien','—','ok'],
+ ['2.3','Chemin critique','Rien','Calcul avant / arrière côté API, interrupteur','M',''],
+ ['2.4','Onglets Gantt / Kanban / Liste','Board, Liste, Arbre, séparés','Onglets communs sur un même périmètre filtré','S','ok'],
+ ['2.5','Panneau latéral du ticket','Panneau de détail (T-0059, T-0114), Markdown, commentaires, pièces jointes','Onglet Temps','S','ok'],
+ ['2.6','Replanification automatique','Rien','Moteur de dates, commit groupé dans GitLab','L',''],
+ ['2.7','Dépendances par glisser','Types de liens d’organisation (034)','Lien « précède » (fin → début, décalage), contrôle des cycles','M',''],
+ ['2.8','Baselines comparées','Baselines Git et StrictDoc (T-0085)','Dates planifiées dans la baseline, calque de comparaison','M','ok'],
+ ['3.1','Matrice 5 × 5','Trackers configurables, gabarits','Gabarit tracker Risque, vue matrice','M',''],
+ ['3.2','Éditeur de documents par blocs','Documents StrictDoc liés, texte riche Markdown','Hors périmètre recommandé','—','ok'],
+ ['3.3','Score automatique P × I','Champs number et select','Type de champ calculé (formule bornée)','M',''],
+ ['3.4','Traçabilité bidirectionnelle','Liens, suspicion, matrice, couverture (lot 2)','Propagation « à risque » depuis une tâche en retard','S','ok'],
+ ['3.5','Créer une tâche de mitigation','Création contextuelle (T-0111)','Action préremplie avec lien « atténue »','S','ok'],
+ ['4.1','Matrice de capacité','Rien','Capacité par membre, charge répartie, rapport Charge','L',''],
+ ['4.2','Tableau financier','Rien','Taux, budget, coûts prévus et réels, permission dédiée','L',''],
+ ['4.3','Chronomètre et feuille de temps','Rien','Table worklog, chronomètre, saisie hebdomadaire, validation','M',''],
+ ['4.4','Rentabilité en temps réel','Rien','Calcul budget restant (dépend de 4.2 et 4.3)','S',''],
+ ['4.5','Congés et jours fériés','Rien','Calendrier d’organisation, absences, effet sur le Gantt','M',''],
+ ['5.1','Boîte de réception unifiée','Page Notifications, centre dans le rail, mentions, approbations','Filtres par type, archivage','S','ok'],
+ ['5.2','Fils de discussion contextuels','Commentaires et mentions sur tous les tickets','Commentaires sur les nœuds StrictDoc (option)','S','ok'],
+ ['5.3','Constructeur de règles','Automatisations quand / si / alors, éditeur, 3 modèles (T-0145)','Actions sur tickets liés, affectation à une équipe','M','ok'],
+];
+$('#impact').innerHTML=IMPACT.map(r=>`<tr><td class="mono">${r[0]}</td><td>${esc(r[1])}</td><td>${r[5]?'<span class="pill p-ok">couvert en partie</span> ':''}${esc(r[2])}</td><td>${esc(r[3])}</td><td class="mono">${r[4]}</td></tr>`).join('');
+
+const LOTS=[
+ ['Lot 12 · Planning','9 tâches',['ADR-0006, rôles start_date, progress, remaining ; lien « précède »','Calendrier d’organisation et moteur de dates (API, passe avant / arrière)','Vue Gantt en lecture : tableau, barres, jalons, aujourd’hui','Édition : durée, glisser les dates, lier par glisser, clavier','Chemin critique et replanification en un commit groupé','Baselines de planning et calque de comparaison','Onglets Gantt / Board / Liste / Versions ; Roadmap devient Planning','ATQL late() et critical()','Vérification du lot']],
+ ['Lot 13 · Pilotage et risques','9 tâches',['Type de champ calculé','Gabarit tracker Risque (P, I, criticité, plan de mitigation)','Rapport Risques : matrice 5 × 5, infobulles, liste','Propagation « à risque » et atRisk() ; tâche de mitigation','Cartes Jauge, Jalons, Burndown global','Moteur d’alertes et type de notification','Portefeuille dans Projets','Mon travail : mêmes cartes, filtrées','Vérification du lot']],
+ ['Lot 14 · Temps et capacité','8 tâches',['Worklog : API, droits, audit','Chronomètre et onglet Temps du panneau','Feuille de temps hebdomadaire et validation','Absences et capacité par membre','Rapport Charge (matrice)','Absences et fériés repris par le moteur de dates','Alertes de surcharge','Vérification du lot']],
+ ['Lot 15 · Finances et collaboration','8 tâches',['Taux par profil et budget, permission dédiée','Rapport Finances : prévu / réel, projection','Carte budget pour le portefeuille','Boîte de réception : filtres et archivage','Équipes (groupes Keycloak) dans le projet','Automatisations : tickets liés et équipes','Webhooks schedule.changed, alert.raised, worklog.created','Vérification du lot']],
+];
+$('#lots').innerHTML=LOTS.map(l=>`<div class="panel" style="background:var(--app)"><h3 style="display:flex;justify-content:space-between;gap:8px">${esc(l[0])}<small class="muted mono">${l[1]}</small></h3><ol style="margin:0;padding-left:20px;font-size:13px;display:grid;gap:3px">${l[2].map(x=>`<li>${esc(x)}</li>`).join('')}</ol></div>`).join('');
+
+/* ---------- Calendrier ---------- */
+const HOL={'2026-11-11':'Armistice','2026-12-25':'Noël','2027-01-01':'Jour de l’an'};
+const D0=Date.UTC(2026,10,2); const DAY=864e5;
+const cal=i=>new Date(D0+i*DAY); const iso=d=>d.toISOString().slice(0,10);
+const isWork=i=>{const d=cal(i),w=d.getUTCDay();return w!==0&&w!==6&&!HOL[iso(d)]};
+const WD=[];for(let i=0;WD.length<90;i++)if(isWork(i))WD.push(i);
+const fmt=i=>{const d=cal(i);return String(d.getUTCDate()).padStart(2,'0')+'/'+String(d.getUTCMonth()+1).padStart(2,'0')};
+const TODAY=10; // 12/11/2026
+
+/* ---------- Données du planning ---------- */
+const PEOPLE={AM:'Alice Martin',BL:'Bruno Lefèvre',CR:'Chloé Roux',DT:'David Thomas',EG:'Emma Garnier'};
+const tasks=[
+ {id:'g1',key:'NOVA-10',name:'Conception',sum:true},
+ {id:'t1',key:'NOVA-12',name:'Spécification système',p:'g1',dur:5,who:'AM',st:'Terminé',prog:100,deps:[],base:[0,5]},
+ {id:'t2',key:'NOVA-14',name:'Revue de conception (PDR)',p:'g1',dur:0,ms:true,who:'AM',st:'Terminé',prog:100,deps:['t1'],base:[5,5]},
+ {id:'g2',key:'NOVA-20',name:'Réalisation',sum:true},
+ {id:'t3',key:'NOVA-21',name:'Logiciel de bord',p:'g2',dur:15,who:'BL',st:'En cours',prog:30,deps:['t2'],base:[5,18]},
+ {id:'t4',key:'NOVA-22',name:'Banc de test',p:'g2',dur:8,who:'CR',st:'En cours',prog:50,deps:['t2'],base:[5,13]},
+ {id:'t5',key:'NOVA-23',name:'Intégration',p:'g2',dur:6,who:'BL',st:'À faire',prog:0,deps:['t3','t4'],base:[18,24]},
+ {id:'g3',key:'NOVA-30',name:'Vérification',sum:true},
+ {id:'t6',key:'NOVA-31',name:'Essais fonctionnels',p:'g3',dur:7,who:'CR',st:'À faire',prog:0,deps:['t5'],base:[24,31]},
+ {id:'t7',key:'NOVA-32',name:'Manuel utilisateur',p:'g3',dur:6,who:'DT',st:'En cours',prog:20,deps:['t2'],base:[5,11]},
+ {id:'t8',key:'NOVA-35',name:'Revue de qualification (QR)',p:'g3',dur:0,ms:true,who:'AM',st:'À faire',prog:0,deps:['t6','t7'],base:[31,31]},
+];
+const byId=Object.fromEntries(tasks.map(t=>[t.id,t]));
+const leaves=()=>tasks.filter(t=>!t.sum);
+function schedule(){
+  const done=new Set(),order=[];
+  const visit=t=>{if(done.has(t.id))return;done.add(t.id);t.deps.forEach(d=>visit(byId[d]));order.push(t)};
+  leaves().forEach(visit);
+  order.forEach(t=>{t.es=t.deps.reduce((m,d)=>Math.max(m,byId[d].ef),0);t.ef=t.es+t.dur});
+  const end=Math.max(...leaves().map(t=>t.ef));
+  [...order].reverse().forEach(t=>{const succ=leaves().filter(s=>s.deps.includes(t.id));t.lf=succ.length?Math.min(...succ.map(s=>s.ls)):end;t.ls=t.lf-t.dur;t.slack=t.ls-t.es;t.crit=t.slack===0});
+  tasks.filter(t=>t.sum).forEach(s=>{const ch=tasks.filter(t=>t.p===s.id);s.es=Math.min(...ch.map(c=>c.es));s.ef=Math.max(...ch.map(c=>c.ef));s.dur=s.ef-s.es;s.crit=ch.some(c=>c.crit)});
+}
+schedule();
+const rows=()=>{const out=[];tasks.filter(t=>t.sum).forEach(s=>{out.push(s);tasks.filter(t=>t.p===s.id).forEach(c=>out.push(c))});return out};
+const reaches=(from,target)=>{const st=[from],seen=new Set();while(st.length){const x=st.pop();if(x===target)return true;if(seen.has(x))continue;seen.add(x);byId[x].deps.forEach(d=>st.push(d))}return false};
+
+const DW=19,RH=34,HEAD=44,NDAYS=63;
+const xStart=t=>WD[t.es]*DW;
+const xEnd=t=>t.dur===0?WD[t.es]*DW:(WD[t.ef-1]+1)*DW;
+const stPill=s=>s==='Terminé'?'p-ok':s==='En cours'?'p-info':'p-neu';
+let showCrit=false,showBase=false;
+
+function renderGantt(){
+  const R=rows(),edit=role==='cp';
+  $('#wbs-body').innerHTML=R.map(t=>t.sum
+    ?`<tr class="row sum" data-id="${t.id}"><td class="mono">${t.key}</td><td>${esc(t.name)}</td><td class="num">${t.dur}</td><td></td><td>${showCrit&&t.crit?'<span class="pill p-dg">Critique</span>':''}</td></tr>`
+    :`<tr class="row" data-id="${t.id}"><td class="mono">${t.key}</td><td style="padding-left:20px">${t.ms?'◆ ':''}${esc(t.name)}</td><td class="num"><input class="dur" type="number" min="0" max="60" value="${t.dur}" data-id="${t.id}" aria-label="Durée de ${t.key} en jours" ${edit&&!t.ms?'':'disabled'}></td><td><span class="av" title="${PEOPLE[t.who]}">${t.who}</span></td><td>${showCrit&&t.crit?'<span class="pill p-dg">Critique</span>':`<span class="pill ${stPill(t.st)}">${t.st}</span>`}</td></tr>`).join('');
+  const W=NDAYS*DW,H=HEAD+R.length*RH;
+  let h=`<div class="ghead" style="width:${W}px">`;
+  for(let i=0;i<NDAYS;i++){const d=cal(i);if(d.getUTCDay()===1){const wk=isoWeek(d);h+=`<span class="wk" style="left:${i*DW}px">S${wk} · ${fmt(i)}</span>`}
+    h+=`<span class="dn" style="left:${i*DW}px;width:${DW}px">${d.getUTCDate()}</span>`}
+  h+='</div>';
+  for(let i=0;i<NDAYS;i++)if(!isWork(i)){const hn=HOL[iso(cal(i))];h+=`<div class="gcol ${hn?'hol':''}" style="left:${i*DW}px;width:${DW}px">${hn?`<span class="hl">${hn}</span>`:''}</div>`}
+  R.forEach((t,r)=>{const y=HEAD+r*RH;h+=`<div class="grow" style="top:${y}px;width:${W}px">`;
+    if(t.sum)h+=`<div class="gsum" style="left:${xStart(t)}px;width:${xEnd(t)-xStart(t)}px" title="${esc(t.name)}"></div>`;
+    else{
+      if(showBase&&t.base){const bs=WD[t.base[0]]*DW,be=t.base[1]===t.base[0]?bs:(WD[t.base[1]-1]+1)*DW;h+=t.ms?`<div class="gbase ms" style="left:${bs-4}px"></div>`:`<div class="gbase" style="left:${bs}px;width:${be-bs}px"></div>`}
+      const c=showCrit&&t.crit?' crit':'';
+      if(t.ms)h+=`<button class="gms${c}" data-id="${t.id}" style="left:${xStart(t)-7}px" aria-label="${t.key} ${esc(t.name)}, jalon le ${fmt(WD[t.es])}"></button><span style="position:absolute;left:${xStart(t)+12}px;top:8px;font-size:11px;color:var(--text2);white-space:nowrap">${esc(t.name)} · ${fmt(WD[t.es])}</span>`;
+      else h+=`<button class="gbar${c}" data-id="${t.id}" style="left:${xStart(t)}px;width:${xEnd(t)-xStart(t)}px" aria-label="${t.key} ${esc(t.name)}, du ${fmt(WD[t.es])} au ${fmt(WD[t.ef-1])}"><span class="prog" style="width:${t.prog}%"></span><span class="h" data-handle="${t.id}" title="Glisser vers une autre tâche pour créer un lien"></span><span class="lbl">${PEOPLE[t.who].split(' ')[0]} · ${t.prog} %${showBase&&t.base&&t.ef>t.base[1]?` · <b style="color:var(--dg-fg)">+${t.ef-t.base[1]} j</b>`:''}</span></button>`;
+    }
+    h+='</div>'});
+  h+=`<div class="today" style="left:${TODAY*DW+DW/2}px;top:30px;height:${H-30}px"><span>12/11</span></div>`;
+  // liens
+  const yOf={};R.forEach((t,r)=>yOf[t.id]=HEAD+r*RH+17);
+  let p='';leaves().forEach(t=>t.deps.forEach(d=>{const a=byId[d];const x1=xEnd(a)+(a.ms?7:0),y1=yOf[d],x2=xStart(t)-(t.ms?8:0),y2=yOf[t.id];const cr=showCrit&&a.crit&&t.crit&&t.es===a.ef;
+    p+=`<path class="${cr?'crit':''}" marker-end="url(#ah${cr?'c':''})" d="M${x1} ${y1} H${x1+6} V${y2} H${Math.max(x2,x1+6)}"></path>`}));
+  h+=`<svg class="links" width="${W}" height="${H}" id="links"><defs><marker id="ah" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0 0 L7 3.5 L0 7z" style="fill:var(--text2);stroke:none"></path></marker><marker id="ahc" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0 0 L7 3.5 L0 7z" style="fill:var(--dg-b);stroke:none"></path></marker></defs>${p}<path class="tmp" id="tmp" d=""></path></svg>`;
+  const ci=$('#chart-inner');ci.style.width=W+'px';ci.style.height=H+'px';ci.innerHTML=h;
+  // vues secondaires
+  const cols=['À faire','En cours','Terminé'];
+  $('#kan').innerHTML=cols.map(c=>{const it=leaves().filter(t=>t.st===c);return `<div class="col"><h4>${c}<span class="mono muted">${it.length}</span></h4>${it.map(t=>`<div class="card" data-id="${t.id}" tabindex="0"><span class="mono muted">${t.key}</span>${esc(t.name)}<span><span class="av">${t.who}</span> <small class="muted">fin ${fmt(WD[Math.max(t.ef-1,t.es)])}</small></span></div>`).join('')}</div>`}).join('');
+  $('#list-tbl').innerHTML=`<thead><tr><th>Ticket</th><th>Nom</th><th>Début</th><th>Fin</th><th class="num">Marge (j)</th><th>Statut</th></tr></thead><tbody>${leaves().map(t=>`<tr data-id="${t.id}" style="cursor:pointer"><td class="mono">${t.key}</td><td>${esc(t.name)}</td><td class="mono">${fmt(WD[t.es])}</td><td class="mono">${fmt(WD[Math.max(t.ef-1,t.es)])}</td><td class="num">${t.slack}</td><td><span class="pill ${stPill(t.st)}">${t.st}</span></td></tr>`).join('')}</tbody>`;
+}
+function isoWeek(d){const t=new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate()));const n=t.getUTCDay()||7;t.setUTCDate(t.getUTCDate()+4-n);const y=new Date(Date.UTC(t.getUTCFullYear(),0,1));return Math.ceil(((t-y)/DAY+1)/7)}
+
+$('#sw-crit').onchange=e=>{showCrit=e.target.checked;renderGantt()};
+$('#sw-base').onchange=e=>{showBase=e.target.checked;renderGantt()};
+$('#btn-baseline').onclick=()=>toast('Baseline B3 figée : dates planifiées de 8 tickets enregistrées, tag Git nova/B3 posé.');
+$$('[data-pv]').forEach(b=>b.onclick=()=>{$$('[data-pv]').forEach(x=>x.setAttribute('aria-selected',x===b));['gantt','kanban','liste','versions'].forEach(v=>$('#pv-'+v).hidden=v!==b.dataset.pv)});
+
+$('#wbs-body').addEventListener('change',e=>{const i=e.target.closest('input.dur');if(!i)return;const t=byId[i.dataset.id];const v=Math.max(0,Math.min(60,parseInt(i.value,10)||0));
+  const before=Object.fromEntries(leaves().map(x=>[x.id,x.es+'-'+x.ef]));t.dur=v;schedule();const moved=leaves().filter(x=>before[x.id]!==x.es+'-'+x.ef).length;renderGantt();
+  const qr=byId.t8;toast(`Planning recalculé : ${moved} ticket${moved>1?'s':''} déplacé${moved>1?'s':''}, un seul commit « replanification ». Revue de qualification le ${fmt(WD[qr.es])}.`)});
+$('#wbs-body').addEventListener('click',e=>{if(e.target.closest('input'))return;const r=e.target.closest('tr[data-id]');if(r)openDrawer(r.dataset.id)});
+$('#kan').addEventListener('click',e=>{const c=e.target.closest('[data-id]');if(c)openDrawer(c.dataset.id)});
+$('#list-tbl').addEventListener('click',e=>{const c=e.target.closest('tr[data-id]');if(c)openDrawer(c.dataset.id)});
+
+// glisser pour lier
+let drag=null;
+$('#chart').addEventListener('pointerdown',e=>{const h=e.target.closest('[data-handle]');if(!h||role!=='cp')return;e.preventDefault();e.stopPropagation();
+  const box=$('#chart-inner').getBoundingClientRect(),hb=h.getBoundingClientRect();drag={from:h.dataset.handle,x:hb.left+hb.width/2-box.left,y:hb.top+hb.height/2-box.top};h.setPointerCapture?.(e.pointerId)});
+$('#chart').addEventListener('pointermove',e=>{if(!drag)return;const box=$('#chart-inner').getBoundingClientRect();$('#tmp').setAttribute('d',`M${drag.x} ${drag.y} L${e.clientX-box.left} ${e.clientY-box.top}`)});
+$('#chart').addEventListener('pointerup',e=>{if(!drag)return;const from=drag.from;drag=null;$('#tmp')?.setAttribute('d','');
+  const el=document.elementFromPoint(e.clientX,e.clientY)?.closest('.gbar,.gms');if(!el)return;const to=el.dataset.id;
+  if(to===from)return;const t=byId[to];
+  if(t.deps.includes(from)){toast('Ce lien existe déjà.');return}
+  if(reaches(from,to)){toast(`Lien refusé : ${byId[from].key} dépend déjà de ${t.key}, cela créerait une boucle.`);return}
+  t.deps.push(from);schedule();renderGantt();toast(`Lien créé : ${byId[from].key} précède ${t.key}. Dates recalculées.`)});
+$('#chart').addEventListener('click',e=>{if(e.target.closest('[data-handle]'))return;const b=e.target.closest('.gbar,.gms');if(b)openDrawer(b.dataset.id)});
+
+/* ---------- Tiroir ---------- */
+let lastFocus=null;
+function openDrawer(id){const t=byId[id];if(!t)return;lastFocus=document.activeElement;
+  const preds=t.deps?.map(d=>byId[d].key).join(', ')||'aucun';
+  const succ=leaves().filter(s=>s.deps.includes(id)).map(s=>s.key).join(', ')||'aucun';
+  const dr=$('#drawer');
+  dr.innerHTML=`<button class="x" type="button" aria-label="Fermer">×</button>
+  <div class="dh"><span class="mono muted">${t.key} · ${t.sum?'Lot de travaux':t.ms?'Jalon':'Tâche'}</span><h2 style="margin:0;padding-right:36px">${esc(t.name)}</h2>
+   <div style="display:flex;gap:6px;flex-wrap:wrap">${t.st?`<span class="pill ${stPill(t.st)}">${t.st}</span>`:''}${t.crit?'<span class="pill p-dg">Critique</span>':`<span class="pill p-neu">Marge ${t.slack??0} j</span>`}</div>
+   <div class="vtabs" role="tablist"><button aria-selected="true">Détails</button><button aria-selected="false">Commentaires 2</button><button aria-selected="false">Temps <span class="tag-new">nouveau</span></button><button aria-selected="false">Fichiers 1</button><button aria-selected="false">Liens</button></div></div>
+  <div class="db">
+   <dl class="kv"><dt>Responsable</dt><dd>${t.who?PEOPLE[t.who]:'—'}</dd><dt>Début</dt><dd class="mono">${fmt(WD[t.es])}/2026</dd><dt>Fin</dt><dd class="mono">${fmt(WD[Math.max(t.ef-1,t.es)])}/2026</dd><dt>Durée</dt><dd class="mono">${t.dur} j ouvrés</dd><dt>Précède</dt><dd class="mono">${succ}</dd><dt>Suit</dt><dd class="mono">${preds}</dd>
+   <dt>Avancement</dt><dd>${role==='cp'||t.who==='BL'?`<input type="range" min="0" max="100" step="10" value="${t.prog||0}" aria-label="Avancement" style="vertical-align:middle;accent-color:var(--action)"> <span class="mono">${t.prog||0} %</span>`:`<span class="mono">${t.prog||0} %</span>`}</dd></dl>
+   <div class="md"><h5>Description</h5>Développer le logiciel de vol conformément à <span class="mono">SRS-NOVA §4</span>.<ul><li>Gestion des modes (survie, nominal)</li><li>Télémesure à 1 Hz</li><li>Couverture de tests ≥ 80 %</li></ul></div>
+   <div class="panel" style="padding:10px"><h3 style="font-size:13px">Temps saisi</h3><dl class="kv"><dt>Cette semaine</dt><dd class="mono">14 h 30</dd><dt>Total</dt><dd class="mono">62 h · estimé 120 h</dd><dt>Reste à faire</dt><dd class="mono">58 h</dd></dl>
+     <div class="toolbar" style="margin-top:8px"><button class="btn" type="button" data-start="${t.key}">Démarrer le chronomètre</button></div></div>
+   <div class="cmt"><span class="muted"><b>Chloé Roux</b> · hier 17:40</span>Le banc sera prêt le 18, @bruno tu peux brancher la carte OBC dès lundi.</div>
+   <div class="cmt"><span class="muted"><b>Bruno Lefèvre</b> · aujourd'hui 09:12</span>Parfait. Je décale l'intégration d'un jour si le banc glisse.</div>
+  </div>`;
+  dr.hidden=false;$('#scrim').hidden=false;dr.querySelector('.x').focus();
+  dr.querySelector('.x').onclick=closeDrawer;
+  dr.querySelector('[data-start]').onclick=e=>{startTimer(e.target.dataset.start);toast(`Chronomètre démarré sur ${e.target.dataset.start}.`)};
+  const rg=dr.querySelector('input[type=range]');if(rg)rg.oninput=()=>{rg.nextElementSibling.textContent=rg.value+' %';if(!t.sum){t.prog=+rg.value;renderGantt()}};
+}
+function closeDrawer(){$('#drawer').hidden=true;$('#scrim').hidden=true;lastFocus?.focus?.()}
+$('#scrim').onclick=closeDrawer;document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#drawer').hidden)closeDrawer()});
+
+/* ---------- Chronomètre ---------- */
+let timer={key:'NOVA-21',sec:2530,run:true};
+function renderTimer(){const s=timer.sec,hh=String(Math.floor(s/3600)).padStart(2,'0'),mm=String(Math.floor(s%3600/60)).padStart(2,'0'),ss=String(s%60).padStart(2,'0');
+  $$('[data-timer]').forEach(el=>{el.innerHTML=`<button type="button" aria-label="${timer.run?'Mettre en pause':'Reprendre'}">${timer.run?'❚❚':'▶'}</button><span class="mono">${timer.key}</span><span class="mono">${hh}:${mm}:${ss}</span>`;el.querySelector('button').onclick=()=>{timer.run=!timer.run;renderTimer()}})}
+function startTimer(k){timer={key:k,sec:0,run:true};renderTimer()}
+setInterval(()=>{if(timer.run){timer.sec++;renderTimer()}},1000);
+
+/* ---------- Portefeuille ---------- */
+function renderPortfolio(){
+  const user=role==='user';
+  // jalons
+  const M=[['NOVA','PDR',7,'ok'],['ARI','Recette v3',18,'ok'],['NOVA','Intégration',38,'warn'],['KEP','CDR',47,'ok'],['NOVA','QR',53,'dg'],['ARI','Mise en service',84,'ok'],['KEP','Livraison lot 1',120,'ok']].filter(m=>!user||m[0]!=='KEP');
+  const W=760,sx=i=>20+i*(W-40)/130;
+  let s=`<svg width="${W}" height="78" viewBox="0 0 ${W} 78" role="img" aria-label="Jalons majeurs"><line x1="20" y1="40" x2="${W-20}" y2="40" style="stroke:var(--border-strong);stroke-width:1"></line>`;
+  [['nov.',0],['déc.',29],['janv.',60],['févr.',91],['mars',119]].forEach(([l,i])=>s+=`<text x="${sx(i)}" y="72" style="fill:var(--mute);font-size:11px;font-family:var(--mono)">${l}</text><line x1="${sx(i)}" y1="36" x2="${sx(i)}" y2="44" style="stroke:var(--border-strong)"></line>`);
+  s+=`<line x1="${sx(10)}" y1="18" x2="${sx(10)}" y2="60" style="stroke:var(--action);stroke-width:2"></line><text x="${sx(10)+4}" y="14" style="fill:var(--link);font-size:10px;font-family:var(--mono)">aujourd’hui</text>`;
+  M.forEach((m,k)=>{const x=sx(m[2]),col=m[3]==='dg'?'var(--dg-b)':m[3]==='warn'?'var(--warn-b)':'var(--deep)';const up=k%2===0;
+    s+=`<rect x="${x-6}" y="34" width="12" height="12" transform="rotate(45 ${x} 40)" style="fill:${m[2]<10?'var(--surface)':col};stroke:${col};stroke-width:1.5"></rect><text x="${x}" y="${up?24:62}" text-anchor="middle" style="fill:var(--text);font-size:11px"><tspan style="font-family:var(--mono);fill:var(--text2)">${m[0]}</tspan> ${m[1]}${m[3]==='dg'?' ▲':''}</text>`});
+  $('#ms-strip').innerHTML=s+'</svg>';
+  // jauges
+  const G=user?[['Mes tickets NOVA',62,'42 h consommées · 26 h restantes','p-info','En cours']]:[['NOVA · Satellite',58,'1 210 h consommées · 870 h restantes','p-warn','Retard 2 j'],['ARI · Ariane sol',81,'2 040 h · 480 h restantes','p-ok','Dans les temps'],['KEP · Kepler',22,'310 h · 1 100 h restantes','p-dg','Surcharge Dev']];
+  $('#gauges').innerHTML=G.map(g=>{const r=34,c=2*Math.PI*r,o=c*(1-g[1]/100);return `<div class="panel" style="display:flex;gap:12px;align-items:center"><svg width="86" height="86" viewBox="0 0 86 86" role="img" aria-label="${g[1]} % consommé"><circle cx="43" cy="43" r="${r}" style="fill:none;stroke:var(--muted);stroke-width:8"></circle><circle cx="43" cy="43" r="${r}" transform="rotate(-90 43 43)" style="fill:none;stroke:var(--d1);stroke-width:8;stroke-dasharray:${c};stroke-dashoffset:${o}"></circle><text x="43" y="48" text-anchor="middle" style="fill:var(--heading);font-size:16px;font-family:var(--mono)">${g[1]} %</text></svg><div style="display:grid;gap:4px;min-width:0"><b style="font-size:13px">${g[0]}</b><small class="muted">${g[2]}</small><span><span class="pill ${g[3]}">${g[4]}</span></span></div></div>`}).join('');
+  // burndown
+  const ideal=[320,290,260,230,200,170,140,110,80,50,20,0],act=user?null:[320,305,284,270,248,231];
+  const sc=user?0.2:1,BW=600,BH=200,px=i=>40+i*(BW-60)/11,py=v=>BH-26-(v*sc)/(320*sc)*(BH-46);
+  let b=`<svg width="${BW}" height="${BH}" viewBox="0 0 ${BW} ${BH}" role="img" aria-label="Burndown">`;
+  [0,80,160,240,320].forEach(v=>b+=`<line x1="40" x2="${BW-20}" y1="${py(v)}" y2="${py(v)}" style="stroke:var(--border)"></line><text x="34" y="${py(v)+4}" text-anchor="end" style="fill:var(--mute);font-size:10px;font-family:var(--mono)">${Math.round(v*sc)}</text>`);
+  ideal.forEach((_,i)=>{if(i%2===0)b+=`<text x="${px(i)}" y="${BH-8}" text-anchor="middle" style="fill:var(--mute);font-size:10px;font-family:var(--mono)">S${45+i}</text>`});
+  b+=`<polyline points="${ideal.map((v,i)=>px(i)+','+py(v)).join(' ')}" style="fill:none;stroke:var(--text2);stroke-width:1.5;stroke-dasharray:5 4"></polyline>`;
+  const a=act||[320,300,292,270,250,236];
+  b+=`<polyline points="${a.map((v,i)=>px(i)+','+py(v)).join(' ')}" style="fill:none;stroke:var(--d1);stroke-width:2.5"></polyline><circle cx="${px(a.length-1)}" cy="${py(a[a.length-1])}" r="4" style="fill:var(--d1)"></circle><text x="${px(a.length-1)+8}" y="${py(a[a.length-1])-6}" style="fill:var(--text);font-size:11px;font-family:var(--mono)">${Math.round(a[a.length-1]*sc)} restants</text>`;
+  b+=`<text x="${px(7)}" y="${py(110)-8}" style="fill:var(--text2);font-size:11px">idéal</text></svg>`;
+  $('#burn').innerHTML=b;
+  // alertes
+  const A=[['dg','Tâche critique retardée de 2 jours','NOVA-21 Logiciel de bord · décale la QR au 18/12','planning'],['dg','Dépassement capacitaire équipe Dev','Bruno Lefèvre à 125 % les 17 et 18/11','ressources',1],['warn','Exigence à risque','EXI-12 dépend de NOVA-21 en retard','risques'],['warn','Budget KEP consommé à 71 %','pour 22 % d’avancement','ressources',1],['info','Baseline B2 dépassée sur 3 tickets','comparaison disponible dans le Planning','planning',1]].filter(x=>!user||!x[4]);
+  $('#alerts').innerHTML=A.map(x=>`<li style="border-left:3px solid var(--${x[0]==='dg'?'dg-b':x[0]==='warn'?'warn-b':'info-b'});padding:4px 0 4px 10px;display:grid;gap:2px"><span class="pill p-${x[0]}" style="justify-self:start">${x[0]==='dg'?'Critique':x[0]==='warn'?'Attention':'Info'}</span><b style="font-size:13px">${x[1]}</b><small class="muted">${x[2]}</small><a href="#${x[3]}" style="font-size:12px">Ouvrir</a></li>`).join('');
+}
+
+/* ---------- Risques ---------- */
+const RISKS=[
+ {n:1,key:'RSK-1',t:'Retard de livraison de la carte OBC',p:4,i:5,req:['EXI-12'],task:'NOVA-21',st:'Ouvert',mit:'Second fournisseur qualifié ; stock tampon de 2 cartes.'},
+ {n:2,key:'RSK-2',t:'Dérive thermique du capteur',p:3,i:4,req:['EXI-07'],task:'NOVA-31',st:'Ouvert',mit:'Essai en vide thermique anticipé.'},
+ {n:3,key:'RSK-3',t:'Indisponibilité du banc de test',p:2,i:3,req:['EXI-15'],task:'NOVA-22',st:'Mitigé',mit:'Créneau de secours au labo ARI.'},
+ {n:4,key:'RSK-4',t:'Départ d’un expert logiciel',p:2,i:5,req:['EXI-12','EXI-13'],task:'NOVA-21',st:'Ouvert',mit:'Binômage et revue de code systématique.'},
+ {n:5,key:'RSK-5',t:'Évolution de la norme ECSS-E-40',p:1,i:3,req:['EXI-02'],task:'NOVA-12',st:'Surveillé',mit:'Veille normative trimestrielle.'},
+ {n:6,key:'RSK-6',t:'Licence de compilateur expirée',p:3,i:2,req:[],task:'NOVA-21',st:'Ouvert',mit:''},
+ {n:7,key:'RSK-7',t:'Retard de la revue client',p:5,i:4,req:['EXI-20'],task:'NOVA-35',st:'Ouvert',mit:'Pré-revue informelle à J-10.'},
+];
+const lvl=s=>s>=20?4:s>=10?3:s>=5?2:1, lvlName=['','Faible','Modéré','Élevé','Critique'];
+let selRisk=1;
+function renderRisks(){
+  let h='';
+  for(let p=5;p>=1;p--){h+=`<div class="ax">${p}</div>`;for(let i=1;i<=5;i++){const s=p*i;const here=RISKS.filter(r=>r.p===p&&r.i===i);
+    h+=`<div class="cell lv${lvl(s)}"><span class="sc">${s}</span>${here.map(r=>`<button class="bub" data-r="${r.n}" aria-pressed="${r.n===selRisk}" aria-label="${r.key} ${esc(r.t)}, criticité ${r.p*r.i}">${r.n}</button>`).join('')}</div>`}}
+  h+='<div></div>'+[1,2,3,4,5].map(i=>`<div class="ax">${i}</div>`).join('');
+  $('#heat').innerHTML=h;
+  $('#risk-list').innerHTML=[...RISKS].sort((a,b)=>b.p*b.i-a.p*a.i).map(r=>`<tr data-r="${r.n}" style="cursor:pointer"><td class="mono">${r.key}</td><td>${esc(r.t)}</td><td class="num">${r.p}</td><td class="num">${r.i}</td><td class="num"><span class="pill lv${lvl(r.p*r.i)}">${r.p*r.i} · ${lvlName[lvl(r.p*r.i)]}</span></td><td class="mono">${r.req.join(', ')||'<span class="muted">aucune</span>'}</td><td>${r.st}</td></tr>`).join('');
+  const r=RISKS.find(x=>x.n===selRisk);const late=r.task==='NOVA-21';
+  $('#risk-detail').innerHTML=`<h3>${r.key} · ${esc(r.t)}</h3>
+   <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px"><span class="pill lv${lvl(r.p*r.i)}">Criticité ${r.p*r.i} = ${r.p} × ${r.i}</span><span class="pill p-neu">${r.st}</span>${role==='user'?'<span class="pill p-info">Score validé par le chef de projet</span>':''}</div>
+   <h3 style="font-size:13px">Traçabilité</h3>
+   <div class="trace"><div class="node"><span class="mono muted">${r.key} · Risque</span>${esc(r.t)}</div><div class="arrow">↓ menace</div>
+   ${r.req.length?r.req.map(q=>`<div class="node"><span class="mono muted">${q} · Exigence (StrictDoc)</span>${q==='EXI-12'?'Le logiciel bord gère les modes survie et nominal':'Exigence liée'} ${late&&q==='EXI-12'?'<span class="pill p-warn" style="justify-self:start">À risque</span>':''}</div>`).join(''):'<div class="node muted">Aucune exigence liée</div>'}
+   <div class="arrow">↓ couverte par</div><div class="node"><span class="mono muted">${r.task} · Tâche du planning</span>${byId[Object.keys(byId).find(k=>byId[k].key===r.task)]?.name||''} ${late?'<span class="pill p-dg" style="justify-self:start">Retard 2 j</span>':''}</div></div>
+   ${late?'<p class="muted" style="margin-top:8px"><small>La tâche est en retard sur la baseline B2 : l’exigence passe « À risque » (même mécanisme que la suspicion du lot 2).</small></p>':''}
+   <h3 style="font-size:13px;margin-top:10px">Plan de mitigation</h3><div class="md">${esc(r.mit)||'<span class="muted">À rédiger</span>'}</div>
+   <div class="toolbar" style="margin-top:10px">${role==='cp'?`<button class="btn" type="button" id="mitig">Créer une tâche de mitigation</button>`:`<button class="btn ghost" type="button" id="declare">Déclarer un risque</button>`}<button class="btn ghost" type="button" onclick="location.hash='planning'">Voir dans le planning</button></div>`;
+  const m=$('#mitig');if(m)m.onclick=()=>toast(`NOVA-41 créé dans le backlog : « Mitiger ${r.key} », lié par « atténue », assigné à ${PEOPLE.BL}.`);
+  const d=$('#declare');if(d)d.onclick=()=>toast('RSK-8 créé avec un score proposé ; le chef de projet est notifié pour validation.');
+}
+$('#heat').addEventListener('click',e=>{const b=e.target.closest('.bub');if(b){selRisk=+b.dataset.r;renderRisks()}});
+$('#risk-list').addEventListener('click',e=>{const r=e.target.closest('tr[data-r]');if(r){selRisk=+r.dataset.r;renderRisks()}});
+function tipShow(e){const b=e.target.closest?.('.bub');const tip=$('#tip');if(!b){tip.hidden=true;return}const r=RISKS.find(x=>x.n===+b.dataset.r);const pb=b.closest('.panel').getBoundingClientRect(),bb=b.getBoundingClientRect();
+  tip.innerHTML=`<b class="mono">${r.key}</b> · ${esc(r.t)}<br>P ${r.p} × I ${r.i} = <b>${r.p*r.i}</b> (${lvlName[lvl(r.p*r.i)]})<br><span class="muted">${r.req.length} exigence(s) · ${r.task}</span>`;
+  tip.hidden=false;tip.style.left=Math.max(8,Math.min(bb.left-pb.left-90,pb.width-230))+'px';tip.style.top=(bb.bottom-pb.top+6)+'px'}
+$('#heat').addEventListener('mouseover',tipShow);$('#heat').addEventListener('focusin',tipShow);
+$('#heat').addEventListener('mouseleave',()=>$('#tip').hidden=true);$('#heat').addEventListener('focusout',()=>$('#tip').hidden=true);
+
+/* ---------- Ressources ---------- */
+function renderResources(){
+  const days=[];for(let i=14;days.length<10;i++)if(cal(i).getUTCDay()%6!==0)days.push(i);
+  const L={AM:[60,60,50,50,40,40,40,30,30,30],BL:[100,110,125,125,100,100,90,90,100,100],CR:[90,90,100,80,80,'off','off','off',60,60],DT:[50,50,60,60,60,50,50,50,50,40],EG:[30,30,0,0,20,20,40,40,40,40]};
+  const who=role==='user'?['BL']:Object.keys(L);
+  $('#cap').innerHTML=`<thead><tr><th style="text-align:left">Personne</th>${days.map(d=>{const dd=cal(d);return `<th class="mono" style="font-weight:500">${['di','lu','ma','me','je','ve','sa'][dd.getUTCDay()]} ${dd.getUTCDate()}</th>`}).join('')}<th class="num">Moy.</th></tr></thead><tbody>`+
+   who.map(k=>{const v=L[k];const nums=v.filter(x=>x!=='off');const avg=Math.round(nums.reduce((a,b)=>a+b,0)/nums.length);return `<tr><td style="text-align:left;white-space:nowrap"><span class="av">${k}</span> ${PEOPLE[k]}</td>${v.map(x=>x==='off'?'<td class="c off">Congé</td>':`<td class="c ${x>100?'over':x>=70?'mid':x<40?'low':''}">${x>100?'▲ ':''}${x} %</td>`).join('')}<td class="num">${avg} %</td></tr>`}).join('')+'</tbody>';
+  const T=[['NOVA-21','Logiciel de bord',[7.5,7,7.5,0,0]],['NOVA-23','Intégration (préparation)',[0,0.5,0,0,0]],['NOVA-40','Revue de code',[0,0,0,0,0]]];
+  const dl=['lu 9','ma 10','me 11','je 12','ve 13'];
+  const tot=j=>T.reduce((a,r)=>a+(+r[2][j]||0),0);
+  $('#ts').innerHTML=`<thead><tr><th>Ticket</th>${dl.map((d,j)=>`<th class="num" ${j===2?'title="Jour férié"':''}>${d}${j===2?' · férié':''}</th>`).join('')}<th class="num">Total</th></tr></thead><tbody>${T.map((r,ri)=>`<tr><td><span class="mono">${r[0]}</span> <small class="muted">${esc(r[1])}</small></td>${r[2].map((h,j)=>`<td class="num">${j===2?'<span class="muted">—</span>':`<input id="ts-${ri}-${j}" type="number" step="0.5" min="0" max="12" value="${h||''}" data-r="${ri}" data-j="${j}" aria-label="${r[0]} ${dl[j]}">`}</td>`).join('')}<td class="num" data-tot="${ri}">${r[2].reduce((a,b)=>a+b,0)} h</td></tr>`).join('')}</tbody><tfoot><tr><th>Total jour</th>${dl.map((_,j)=>`<th class="num" data-day="${j}">${j===2?'—':tot(j)+' h'}</th>`).join('')}<th class="num" id="ts-all">${[0,1,3,4].reduce((a,j)=>a+tot(j),0)} h</th></tr></tfoot>`;
+  $('#ts').oninput=e=>{const i=e.target;if(!i.dataset.r)return;T[+i.dataset.r][2][+i.dataset.j]=parseFloat(i.value)||0;
+    T.forEach((r,ri)=>$(`[data-tot="${ri}"]`).textContent=r[2].reduce((a,b)=>a+b,0)+' h');[0,1,3,4].forEach(j=>$(`[data-day="${j}"]`).textContent=tot(j)+' h');$('#ts-all').textContent=[0,1,3,4].reduce((a,j)=>a+tot(j),0)+' h'};
+  // finances
+  const K=[['Budget','420 k€'],['Consommé','251 k€'],['Reste','169 k€'],['Projection fin','438 k€ ▲']];
+  $('#fin-kpi').innerHTML=K.map((k,i)=>`<div class="kpi" style="border:1px solid var(--border);padding:8px"><span>${k[0]}</span><b style="font-size:17px;${i===3?'color:var(--dg-fg)':''}">${k[1]}</b></div>`).join('');
+  const mo=['sept.','oct.','nov.','déc.','janv.'],pl=[48,62,70,74,66],re=[45,68,82,null,null];
+  const FW=420,FH=190,bx=i=>50+i*(FW-70)/5,by=v=>FH-28-v/90*(FH-48);
+  let f=`<svg width="${FW}" height="${FH}" viewBox="0 0 ${FW} ${FH}" role="img" aria-label="Coûts prévus et réels par mois">`;
+  [0,30,60,90].forEach(v=>f+=`<line x1="44" x2="${FW-10}" y1="${by(v)}" y2="${by(v)}" style="stroke:var(--border)"></line><text x="38" y="${by(v)+4}" text-anchor="end" style="fill:var(--mute);font-size:10px;font-family:var(--mono)">${v}</text>`);
+  mo.forEach((m,i)=>{const w=40,x=bx(i)+8;f+=`<rect x="${x}" y="${by(pl[i])}" width="${w}" height="${by(0)-by(pl[i])}" style="fill:var(--surface);stroke:var(--d1);stroke-width:1.5"></rect>`;
+    if(re[i]!=null)f+=`<rect x="${x+8}" y="${by(re[i])}" width="${w-16}" height="${by(0)-by(re[i])}" style="fill:${re[i]>pl[i]?'var(--d2)':'var(--d1)'}"></rect><text x="${x+w/2}" y="${by(Math.max(re[i],pl[i]))-5}" text-anchor="middle" style="fill:var(--text);font-size:10px;font-family:var(--mono)">${re[i]}${re[i]>pl[i]?' ▲':''}</text>`;
+    f+=`<text x="${x+w/2}" y="${FH-10}" text-anchor="middle" style="fill:var(--mute);font-size:10px;font-family:var(--mono)">${m}</text>`});
+  f+='</svg>';
+  $('#fin').innerHTML=f+`<div class="legend" style="margin-top:4px"><span><i style="background:transparent;border:1.5px solid var(--d1)"></i>Prévu</span><span><i style="background:var(--d1);border-color:var(--d1)"></i>Réel</span><span><i style="background:var(--d2);border-color:var(--d2)"></i>Réel au-dessus du prévu (▲)</span></div>`;
+}
+$('#ts-submit').onclick=()=>toast('Feuille de la semaine 46 envoyée : Alice Martin (chef de projet) doit la valider.');
+
+/* ---------- Collaboration ---------- */
+const INBOX=[
+ {id:1,f:'mention',un:1,t:'Chloé Roux vous a mentionné',s:'NOVA-22 · Banc de test',b:'« Le banc sera prêt le 18, @bruno tu peux brancher la carte OBC dès lundi. »',w:'il y a 2 h'},
+ {id:2,f:'valid',un:1,t:'Validation requise : feuille de temps',s:'Bruno Lefèvre · semaine 46 · 22,5 h',b:'Trois tickets, aucun dépassement d’estimation.',w:'il y a 3 h',cp:1},
+ {id:3,f:'alert',un:1,t:'Tâche critique retardée de 2 jours',s:'NOVA-21 · Logiciel de bord',b:'La revue de qualification glisse du 16/12 au 18/12. Chemin critique : NOVA-21 → NOVA-23 → NOVA-31 → NOVA-35.',w:'il y a 5 h'},
+ {id:4,f:'valid',un:0,t:'Approbation : passage en « Validé »',s:'EXI-12 · circuit Qualité',b:'Vous êtes le deuxième approbateur sur trois.',w:'hier'},
+ {id:5,f:'alert',un:0,t:'Dépassement capacitaire équipe Dev',s:'Bruno Lefèvre · 17 et 18/11 à 125 %',b:'Deux tickets se chevauchent : NOVA-21 et NOVA-40.',w:'hier',cp:1},
+ {id:6,f:'mention',un:0,t:'David Thomas vous a mentionné',s:'NOVA-32 · Manuel utilisateur',b:'« Peux-tu relire le chapitre installation ? »',w:'lun.',arch:1},
+];
+let ibF='all',ibSel=1;
+function renderInbox(){
+  const L=INBOX.filter(x=>(role==='cp'||!x.cp)&&(ibF==='arch'?x.arch:!x.arch&&(ibF==='all'||x.f===ibF)));
+  $('#ib-list').innerHTML=L.length?L.map(x=>`<li class="${x.un?'unread':''} ${x.id===ibSel?'sel':''}"><button type="button" data-id="${x.id}"><span style="display:flex;justify-content:space-between;gap:8px"><span>${esc(x.t)}</span><small class="muted" style="font-weight:400;white-space:nowrap">${x.w}</small></span><small class="muted" style="font-weight:400">${esc(x.s)}</small></button></li>`).join(''):'<li style="padding:14px" class="muted">Rien ici.</li>';
+  const x=INBOX.find(i=>i.id===ibSel&&L.includes(i))||L[0];
+  $('#ib-read').innerHTML=x?`<span class="pill ${x.f==='alert'?'p-dg':x.f==='valid'?'p-warn':'p-info'}" style="justify-self:start">${x.f==='alert'?'Alerte':x.f==='valid'?'Validation':'Mention'}</span><h3 style="margin:0">${esc(x.t)}</h3><span class="mono muted" style="font-size:12px">${esc(x.s)}</span><p>${esc(x.b)}</p><div class="toolbar">${x.f==='valid'?'<button class="btn" type="button" data-act="ok">Valider</button>':'<button class="btn" type="button" data-act="open">Ouvrir le ticket</button>'}<button class="btn ghost" type="button" data-act="read">${x.un?'Marquer comme lu':'Marquer non lu'}</button><button class="btn ghost" type="button" data-act="arch">${x.arch?'Désarchiver':'Archiver'}</button></div>`:'<p class="muted">Sélectionnez un message.</p>';
+  $$('#ib-read [data-act]').forEach(b=>b.onclick=()=>{const a=b.dataset.act;if(a==='read')x.un=x.un?0:1;if(a==='arch'){x.arch=x.arch?0:1;toast(x.arch?'Archivé.':'Remis dans la boîte de réception.')}if(a==='ok'){x.un=0;toast('Validé. L’auteur est notifié.')}if(a==='open'){x.un=0;location.hash='planning'}renderInbox()});
+}
+$('#ib-list').addEventListener('click',e=>{const b=e.target.closest('button[data-id]');if(!b)return;ibSel=+b.dataset.id;const x=INBOX.find(i=>i.id===ibSel);x.un=0;renderInbox()});
+$('#ib-tabs').addEventListener('click',e=>{const b=e.target.closest('button[data-f]');if(!b)return;ibF=b.dataset.f;$$('#ib-tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));renderInbox()});
+$('#r-save').onclick=()=>toast('Règle enregistrée et active sur NOVA.');
+$('#r-test').onclick=()=>{$('#r-out').innerHTML='<small>Essai à blanc : la condition est vraie pour <span class="mono">NOVA-40</span> ; l’action assignerait <span class="mono">NOVA-23</span> à l’équipe Infra. Rien n’a été modifié.</small>'};
+
+function renderAll(){renderGantt();renderPortfolio();renderRisks();renderResources();renderInbox();renderDecisions()}
+
+/* ---------- Décisions ---------- */
+const DEC=[
+ ['D1','Police des écrans de gestion de projet',['Police du thème (IBM Plex Sans pour Hemeria)','Inter partout, comme le cahier des charges'],0],
+ ['D2','Mise en évidence du chemin critique',['Jeton de danger + trait épais + mention « Critique »','Rouge tricolore'],0],
+ ['D3','Durée d’une tâche parente',['Calculée depuis ses enfants (modifier un enfant replanifie)','Saisie, et contraint ses enfants'],0],
+ ['D4','Stockage des temps saisis',['En base avec audit, hors GitLab','Historisés dans GitLab comme les tickets'],0],
+ ['D5','Granularité des taux journaliers',['Par profil (ingénieur, expert…)','Par personne'],0],
+ ['D6','Rédaction des spécifications',['StrictDoc reste la source, Athena cite','Éditeur par blocs intégré à Athena'],0],
+ ['D7','Place du chronomètre',['Barre haute, comme dans la maquette','Pied du rail, près des notifications'],0],
+ ['D8','Navigation du projet',['Roadmap devient Planning, 8 sections gardées','Nouvelles sections Planning, Risques, Ressources'],0],
+ ['D9','Ordre des lots',['Planning, Pilotage et risques, Temps, Finances','Pilotage et risques d’abord'],0],
+];
+let decState={};
+function renderDecisions(){
+  $('#decisions').innerHTML=DEC.map(d=>{const cur=decState[d[0]];return `<div class="dec"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><b><span class="mono">${d[0]}</span> · ${esc(d[1])}</b>${cur!=null?`<small class="muted">choix enregistré</small>`:''}</div><div class="opts">${d[2].map((o,k)=>`<button type="button" data-d="${d[0]}" data-k="${k}" aria-pressed="${cur===k}">${esc(o)}${k===d[3]?' <small>(recommandé)</small>':''}</button>`).join('')}</div></div>`}).join('');
+}
+$('#decisions').addEventListener('click',async e=>{const b=e.target.closest('button[data-d]');if(!b)return;const id=b.dataset.d,k=+b.dataset.k;decState[id]=k;renderDecisions();
+  if(!db){toast('Choix affiché, mais non enregistré : la base de l’artefact n’est pas disponible ici.');return}
+  try{await db.doc('decisions/'+id).set({choix:k,libelle:DEC.find(x=>x[0]===id)[2][k],par:myId||'',le:new Date().toISOString()});toast(`${id} enregistrée.`)}catch(err){toast('Enregistrement impossible : '+(err?.message||err?.code||'erreur'))}});
+
+/* ---------- Avis (base partagée) ---------- */
+const SECN={analyse:'Analyse d’impact',portefeuille:'Centre de contrôle',planning:'Planning',risques:'Risques et exigences',ressources:'Ressources et finances',collaboration:'Collaboration',general:'Général'};
+let db=null,usr=null,myId=null,comments=[],names={};
+$$('.avis').forEach(box=>{const s=box.dataset.sec;box.innerHTML=`<h3>Votre avis sur « ${SECN[s]} »</h3>
+  <form data-sec="${s}"><div class="verdict" role="radiogroup" aria-label="Verdict">
+   <label><input type="radio" name="v-${s}" value="valide" id="v-${s}-1"> Je valide</label>
+   <label><input type="radio" name="v-${s}" value="modifier" id="v-${s}-2"> À modifier</label>
+   <label><input type="radio" name="v-${s}" value="retirer" id="v-${s}-3"> À retirer</label></div>
+   <textarea id="t-${s}" placeholder="Ce qui vous plaît, ce qu’il faut changer, ce qui manque…" aria-label="Commentaire"></textarea>
+   <div class="toolbar"><button class="btn" type="submit">Enregistrer mon avis</button><small class="muted" data-state>Les avis sont visibles par les personnes qui ont accès à cette page.</small></div></form>
+  <div class="clist" data-list="${s}"></div>`});
+document.addEventListener('submit',async e=>{const f=e.target.closest('form[data-sec]');if(!f)return;e.preventDefault();const s=f.dataset.sec;
+  const txt=$('#t-'+s).value.trim(),v=(f.querySelector('input[type=radio]:checked')||{}).value||'';
+  if(!txt&&!v){toast('Écrivez un commentaire ou choisissez un verdict.');return}
+  if(!db){toast('Avis non enregistré : la base de l’artefact n’est pas disponible dans cette vue. Ouvrez la page sur claude.ai en étant connecté.');return}
+  const btn=f.querySelector('button[type=submit]');btn.disabled=true;
+  try{await db.collection('avis').add({section:s,verdict:v,texte:txt.slice(0,4000),auteur:myId||'',role:role,cree:new Date().toISOString()});$('#t-'+s).value='';f.reset();toast('Avis enregistré. Merci.')}
+  catch(err){toast('Enregistrement impossible : '+(err?.code==='not_granted'||err?.code==='permission_denied'?'vous n’avez pas le droit d’écrire sur cette page.':(err?.message||'erreur')))}
+  finally{btn.disabled=false}});
+const VL={valide:['p-ok','Je valide'],modifier:['p-warn','À modifier'],retirer:['p-dg','À retirer']};
+function cHTML(c,withSec){const v=VL[c.verdict];const d=c.cree?new Date(c.cree):null;
+  return `<div class="citem"><div class="meta"><b style="color:var(--text)">${esc(names[c.auteur]||'Quelqu’un')}</b>${withSec?`<span class="pill p-neu">${esc(SECN[c.section]||c.section)}</span>`:''}${v?`<span class="pill ${v[0]}">${v[1]}</span>`:''}<span class="mono">${d&&!isNaN(d)?d.toLocaleString('fr-FR',{dateStyle:'short',timeStyle:'short'}):''}</span>${c.role?`<span>vu en ${c.role==='cp'?'chef de projet':'utilisateur'}</span>`:''}</div>${c.texte?`<p>${esc(c.texte)}</p>`:''}</div>`}
+async function renderComments(){
+  if(usr){const ids=[...new Set(comments.map(c=>c.auteur).filter(Boolean))];if(ids.length){try{const ps=await usr.profiles(ids);ids.forEach(i=>names[i]=(ps&&ps[i]&&ps[i].name)||'')}catch(_){}}}
+  $$('[data-list]').forEach(l=>{const s=l.dataset.list;const L=comments.filter(c=>c.section===s);l.innerHTML=L.map(c=>cHTML(c,false)).join('')});
+  $('#all-comments').innerHTML=comments.map(c=>cHTML(c,true)).join('');
+  $('#all-status').innerHTML=`<small>${comments.length?comments.length+' commentaire'+(comments.length>1?'s':''):'Aucun commentaire pour l’instant. Chaque écran a sa zone d’avis en bas de page.'}</small>`;
+}
+(async()=>{
+  if(!window.claude||!window.claude.use){$('#all-status').innerHTML='<small>Les avis s’enregistrent quand la page est ouverte sur claude.ai.</small>';return}
+  try{[db,usr]=await Promise.all([window.claude.use('db'),window.claude.use('user')])}catch(_){}
+  if(usr){try{myId=await usr.id()}catch(_){}}
+  if(!db){$('#all-status').innerHTML='<small>La base de cette page n’est pas disponible ici : connectez-vous sur claude.ai pour lire et laisser des avis.</small>';return}
+  let tm=setTimeout(()=>$('#all-status').innerHTML='<small>Les commentaires ne répondent pas encore ; ils s’afficheront dès que la connexion revient.</small>',10000);
+  db.collection('avis').orderBy('cree','desc').onSnapshot(snap=>{if(!snap.metadata||!snap.metadata.fromCache)clearTimeout(tm);comments=snap.docs.map(d=>({id:d.id,...d.data()}));renderComments()},err=>{clearTimeout(tm);$('#all-status').innerHTML='<small>Lecture des commentaires impossible ('+esc(err.code||'erreur')+').</small>'});
+  db.collection('decisions').onSnapshot(snap=>{snap.docs.forEach(d=>{const v=d.data();if(typeof v.choix==='number')decState[d.id]=v.choix});renderDecisions()},()=>{});
+})();
+
+renderTimer();renderAll();route();
+})();
+</script>
