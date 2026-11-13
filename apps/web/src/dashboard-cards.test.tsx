@@ -92,3 +92,19 @@ it('sur téléphone, l’ordre du DOM suit les lignes puis les colonnes (T-0171)
   await screen.findByRole('group', { name: 'Récents' });
   expect([...document.querySelectorAll('.ath-dashcard')].map((c) => c.getAttribute('aria-label'))).toEqual(['Mes tickets', 'À approuver', 'Récents']);
 });
+
+it('mesure : 24 widgets (le plafond) se placent et s’affichent vite, sans chevauchement (T-0178)', async () => {
+  layout = { widgets: Array.from({ length: 24 }, (_, i) => ({ id: `f${i}`, kind: 'favorites', size: ['S', 'M', 'L', 'XL'][i % 4] })), isDefault: false };
+  const started = performance.now();
+  mount('SAT1');
+  await waitFor(() => expect(document.querySelectorAll('.ath-dashcard')).toHaveLength(24));
+  const elapsed = performance.now() - started;
+  console.info(`rendu de 24 widgets : ${Math.round(elapsed)} ms`);
+  expect(elapsed).toBeLessThan(3000);
+  const { withBoxes } = await import('./lib/grid');
+  const boxes = withBoxes((layout as { widgets: Array<{ id: string; size: 'S' | 'M' | 'L' | 'XL' }> }).widgets);
+  for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) {
+    const a = boxes[i]!; const b = boxes[j]!;
+    expect(a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h).toBe(false);
+  }
+});

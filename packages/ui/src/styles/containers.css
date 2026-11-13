@@ -404,7 +404,7 @@
 .ath-widget-empty__art * { fill: none; stroke: currentColor; stroke-width: 1.5; }
 .ath-widget-empty p { margin: 0; max-width: 28ch; }
 .ath-ticketrow { display: flex; align-items: baseline; gap: var(--ath-space-sm); min-width: 0; }
-.ath-ticketrow > .ath-clip { flex: 1; min-width: 0; }
+.ath-ticketrow > span { flex: 1; min-width: 0; }
 .ath-bignum { display: flex; align-items: baseline; gap: var(--ath-space-sm); flex-wrap: wrap; }
 .ath-bignum__value { font-size: var(--ath-font-size-display); font-weight: var(--ath-font-weight-semibold); color: var(--ath-text-heading); font-variant-numeric: tabular-nums; line-height: var(--ath-font-leading-title); }
 .ath-ring { width: calc(var(--ath-size-dashrow) * 1.4); height: calc(var(--ath-size-dashrow) * 1.4); flex: none; }
