@@ -152,3 +152,17 @@ describe('pipelines, qualité et badges', () => {
     expect(results.violations.map((v) => v.id)).toEqual([]);
   });
 });
+
+describe('galerie de test (T-0177)', () => {
+  it('montre chaque genre dans les quatre états du projet, sans requête, sans défaut d’accessibilité', async () => {
+    const { WidgetGalleryPage } = await import('./pages/WidgetGalleryPage');
+    const { container } = view(<WidgetGalleryPage />);
+    for (const label of ['Projet sain', 'Projet à surveiller', 'Projet critique', 'Projet vide']) expect(screen.getByRole('region', { name: label })).toBeInTheDocument();
+    expect(screen.getAllByRole('group')).toHaveLength(4 * 9);
+    expect(screen.getByText('Critique')).toBeInTheDocument();
+    expect(screen.getByText('À surveiller')).toBeInTheDocument();
+    expect((fetch as unknown as { mock: { calls: unknown[] } }).mock.calls).toHaveLength(0);
+    const results = await axe.run(container, { rules: { 'color-contrast': { enabled: false }, region: { enabled: false } } });
+    expect(results.violations.map((v) => v.id)).toEqual([]);
+  });
+});

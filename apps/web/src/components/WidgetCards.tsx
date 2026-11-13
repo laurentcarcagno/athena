@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { StatusPill, type PillKind } from '@athena/ui';
 import { api } from '../api';
@@ -11,13 +11,23 @@ import { fr } from '../i18n';
  */
 const t = fr.widgets;
 
+/** Données imposées (galerie de test des widgets) : le chemin se termine par une clé de la table, aucune requête n'est faite. */
+const Override = createContext<Record<string, unknown> | null>(null);
+export const WidgetData = Override.Provider;
+
 export function useData<T>(path: string | null): T | null | undefined {
   const [data, setData] = useState<T | null | undefined>(undefined);
+  const override = useContext(Override);
   useEffect(() => {
+    if (override) return;
     if (path === null) { setData(null); return; }
     setData(undefined);
     api<T>('GET', path).then(setData).catch(() => setData(null));
-  }, [path]);
+  }, [path, override]);
+  if (override) {
+    const key = path === null ? undefined : Object.keys(override).find((k) => path.endsWith(k));
+    return key === undefined ? null : (override[key] as T);
+  }
   return data;
 }
 

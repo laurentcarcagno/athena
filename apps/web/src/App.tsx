@@ -24,6 +24,7 @@ import { PlanningPage } from './pages/PlanningPage';
 import { GlobalSearchPage } from './pages/GlobalSearchPage';
 import { ListPage } from './pages/ListPage';
 import { HelpPage } from './pages/HelpPage';
+import { WidgetGalleryPage } from './pages/WidgetGalleryPage';
 import { OrgAdminPage } from './pages/OrgAdminPage';
 import { HomeRoute } from './pages/HomeRoute';
 import { NotificationsPage } from './pages/NotificationsPage';
@@ -197,6 +198,7 @@ export function AuthenticatedApp({ session }: { session: Session }) {
         <Route path="/me" element={<Navigate replace to="/" />} />
         <Route path="/org" element={<Navigate replace to="/admin" />} />
         <Route path="/help" element={<HelpPage />} />
+        <Route path="/widgets-test" element={<WidgetGalleryPage />} />
         <Route path="/recherche" element={<GlobalSearchPage session={session} />} />
         {/* Toutes les adresses d'un projet ont le même parent : la navigation du projet reste au rail (ADR-0003). */}
         <Route path="/p/:project" element={<ProjectLayout />}>

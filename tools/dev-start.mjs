@@ -57,6 +57,7 @@ async function prepare() {
     console.log('base athena_dev amorcée : organisation demo, projet ARI, tracker BUG');
   }
   await seedAgile(pool, db, trackers, artifacts);
+  await seedLumen(pool, db, trackers, artifacts);
   await pool.end();
 }
 
@@ -122,6 +123,54 @@ async function seedAgile(pool, db, trackers, artifacts) {
   // Backlog classé : la recherche passe en tête.
   await new BacklogService(db).rank(org, 'NOVA', keys[4], null, actor);
   console.log('démonstration agile amorcée : projet NOVA, tracker Tâches, backlog, sprints actif et planifié');
+}
+
+/**
+ * Démonstration du tableau de bord modulaire (ADR-0007, T-0177) : projet LUMEN « à surveiller » (retards, un ticket bloqué, un sprint
+ * actif, une version publiée, un dépôt relié dont les pipelines s'affichent si GitLab répond). Idempotent.
+ */
+async function seedLumen(pool, db, trackers, artifacts) {
+  const org = (await pool.query("select organization_id_by_key('demo') as id")).rows[0].id;
+  if (!org) return;
+  if (await db.tx(org, async (c) => (await c.query("select 1 from project where key = 'LUMEN'")).rowCount > 0)) return;
+  const { SprintService } = dist('agile/sprint.service.js');
+  const { ReportService } = dist('agile/report.service.js');
+  const { LinkService } = dist('core/link.service.js');
+  const actor = { id: 'seed', roles: ['athena-user', 'athena-admin'] };
+  const day = (n) => new Date(Date.now() + n * 86_400_000).toISOString().slice(0, 10);
+  await trackers.createProject(org, 'LUMEN', 'Lumen (démonstration du tableau de bord)', actor);
+  await trackers.createTracker(org, {
+    projectKey: 'LUMEN', key: 'TSK', name: 'Tâches', typeKey: 'task',
+    fields: [
+      { key: 'title', label: 'Titre', type: 'text', required: true, semanticRole: 'title' },
+      { key: 'assignee', label: 'Responsable', type: 'user', semanticRole: 'assignee', isContent: false },
+      { key: 'due', label: 'Échéance', type: 'date', semanticRole: 'due_date', isContent: false },
+      { key: 'points', label: 'Points', type: 'number', semanticRole: 'estimate', isContent: false },
+    ],
+    statuses: [{ key: 'todo', name: 'À faire', category: 'todo' }, { key: 'doing', name: 'En cours', category: 'in_progress' }, { key: 'done', name: 'Terminé', category: 'done' }],
+    transitions: [{ name: 'Démarrer', from: 'todo', to: 'doing' }, { name: 'Terminer', from: 'doing', to: 'done' }, { name: 'Rouvrir', from: null, to: 'todo' }],
+  }, actor);
+  const specs = [['Calibrer le capteur', -4, 5], ['Écran d’état', -1, 3], ['Journal des mesures', 3, 8], ['Alertes de seuil', 6, 5], ['Export des relevés', 12, 3], ['Documentation', 20, 2]];
+  const keys = [];
+  for (const [title, due, points] of specs) keys.push((await artifacts.create(org, 'LUMEN', 'TSK', { title, due: day(due), points }, actor)).key);
+  // Terminé : le premier ticket de la liste de départ, pour que l'avancement ne soit pas nul.
+  const first = await artifacts.create(org, 'LUMEN', 'TSK', { title: 'Mise en place du dépôt', due: day(-10), points: 2 }, actor);
+  const started = await artifacts.transition(org, 'LUMEN', first.key, 'Démarrer', first.version, actor);
+  await artifacts.transition(org, 'LUMEN', first.key, 'Terminer', started.version, actor);
+  await new LinkService(db).link(org, 'LUMEN', keys[2], keys[0], 'blocks', actor); // le calibrage est bloqué par le journal
+  const sprints = new SprintService(db);
+  const sprint = await sprints.create(org, 'LUMEN', { name: 'Sprint 1', goal: 'Premières mesures', startsOn: day(-6), endsOn: day(8) }, actor);
+  for (const key of keys.slice(0, 4)) await sprints.addItem(org, sprint, key, 'LUMEN', actor);
+  await sprints.start(org, sprint, actor);
+  const reports = new ReportService(db);
+  const release = await reports.createRelease(org, 'LUMEN', { name: 'v0.1', startsOn: day(-30), endsOn: day(-2) }, actor);
+  await reports.publish(org, release, actor, 'LUMEN');
+  // Dépôt de code relié : les pipelines s'affichent quand GitLab répond (sinon le widget montre « aucune exécution »).
+  await db.tx(org, async (c) => {
+    const id = (await c.query("select id from project where key = 'LUMEN'")).rows[0].id;
+    await c.query("insert into code_repo (organization_id, project_id, gitlab_path) values ($1,$2,'root/lumen') on conflict do nothing", [org, id]);
+  });
+  console.log('démonstration du tableau de bord amorcée : projet LUMEN (retards, bloquant, sprint actif, version publiée, dépôt relié)');
 }
 
 /** Garantit les rôles athena-pm et athena-qa et les comptes pm.dev et qa.dev sur un Keycloak déjà initialisé (l'import du royaume n'a lieu qu'une fois). */
