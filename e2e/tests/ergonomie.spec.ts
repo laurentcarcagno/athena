@@ -53,6 +53,16 @@ test('assurance produit : une section de Paramètres hors de son rôle est dite 
   await expect(page).toHaveURL(/\/parametres\/trackers\/BUG$/);
 });
 
+test('assurance produit : commente un ticket comme un utilisateur, sans voir les contrôles de gestion (décision du 2026-11-13)', async ({ page }) => {
+  await login(page, 'qa.dev', 'dev-only-qa');
+  await page.goto('/p/ARI/a/ARI-BUG-0001?onglet=activity');
+  await page.locator('#comment').fill('Revue assurance produit : conforme au plan qualité.');
+  await page.getByRole('button', { name: 'Ajouter', exact: true }).click();
+  await expect(page.getByText('Revue assurance produit : conforme au plan qualité.')).toBeVisible();
+  await page.goto('/p/ARI/planning');
+  await expect(page.getByRole('button', { name: 'Lier à…' })).toHaveCount(0); // ni planning ni configuration
+});
+
 test('automatisations : un administrateur crée une règle depuis un modèle, elle apparaît active (T-0145)', async ({ page }) => {
   await login(page);
   await page.goto('/p/ARI/parametres/automatisations');
