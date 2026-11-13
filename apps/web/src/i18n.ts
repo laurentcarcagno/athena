@@ -21,7 +21,7 @@ const frDict = {
     submitLong: 'Créer le ticket', more: (n: number, labels: string) => `Plus de champs (${n}) : ${labels}`, less: 'Moins de champs', keys: 'Entrée pour créer · Échap pour annuler',
     titleExample: 'Ex. : la télémétrie s’arrête après 2 h', me: 'Moi', you: (name: string) => `Vous (${name})`, change: 'Changer', assigneePlaceholder: 'Identifiant du compte' },
   artifact: {
-    readOnlyBy: (roles: string[]) => `Lecture seule : modifiable par ${roles.join(', ')}.`,
+    readOnlyBy: (roles: string[]) => `Lecture seule : modifiable par ${roles.join(', ')}.`, userFieldHint: 'Personne : se change avec « M’assigner » ou à la création.',
     details: 'Détails', links: 'Liens', history: 'Historique', activity: 'Commentaires', development: 'Développement',
     transitions: 'Transitions', save: 'Enregistrer', saved: 'Modification enregistrée.', conflict: (label: string) => `« ${label} » a été modifié par quelqu’un d’autre entre-temps. Votre saisie est gardée ci-dessous.`, keepMine: 'Enregistrer ma version', keepTheirs: 'Garder la version actuelle', comment: 'Commentaire', addComment: 'Ajouter',
     attachments: 'Pièces jointes', noAttachments: 'Aucune pièce jointe.', upload: 'Ajouter un fichier', download: 'Télécharger', removeAttachment: 'Supprimer', uploaded: 'Fichier ajouté.', removedAttachment: 'Pièce jointe supprimée.',
@@ -534,7 +534,7 @@ const enDict: Dictionary = {
     submitLong: 'Create the ticket', more: (n: number, labels: string) => `More fields (${n}): ${labels}`, less: 'Fewer fields', keys: 'Enter to create · Esc to cancel',
     titleExample: 'E.g.: telemetry stops after 2 h', me: 'Me', you: (name: string) => `You (${name})`, change: 'Change', assigneePlaceholder: 'Account identifier' },
   artifact: {
-    readOnlyBy: (roles: string[]) => `Read only: editable by ${roles.join(', ')}.`,
+    readOnlyBy: (roles: string[]) => `Read only: editable by ${roles.join(', ')}.`, userFieldHint: 'Person: change it with “Assign to me” or at creation.',
     details: 'Details', links: 'Links', history: 'History', activity: 'Comments', development: 'Development',
     transitions: 'Transitions', save: 'Save', saved: 'Change saved.', conflict: (label: string) => `“${label}” was changed by someone else in the meantime. Your input is kept below.`, keepMine: 'Save my version', keepTheirs: 'Keep the current version', comment: 'Comment', addComment: 'Add',
     attachments: 'Attachments', noAttachments: 'No attachment.', upload: 'Add a file', download: 'Download', removeAttachment: 'Delete', uploaded: 'File added.', removedAttachment: 'Attachment deleted.',

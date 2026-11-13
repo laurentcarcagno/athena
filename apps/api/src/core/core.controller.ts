@@ -140,8 +140,15 @@ export class CoreController {
       const def = await this.trackers.getDefinition(c, project, tracker);
       return new Set(def.fields.filter((f) => f.readRoles && !actor.roles.includes('athena-admin') && !f.readRoles.some((r) => actor.roles.includes(r))).map((f) => f.key));
     });
-    if (hidden.size === 0) return rows;
-    return rows.map((r) => ({ ...r, diff: Object.fromEntries(Object.entries(r.diff as Record<string, unknown>).filter(([k]) => !hidden.has(k))) }));
+    const visible = hidden.size === 0 ? rows : rows.map((r) => ({ ...r, diff: Object.fromEntries(Object.entries(r.diff as Record<string, unknown>).filter(([k]) => !hidden.has(k))) }));
+    // Les différences citent des identifiants de compte (champs de type utilisateur) : on joint les noms de ceux-là seulement.
+    const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const cited = new Set<string>();
+    for (const r of visible) for (const d of Object.values(r.diff as Record<string, { from: unknown; to: unknown }>)) for (const v of [d.from, d.to]) if (typeof v === 'string' && UUID.test(v)) cited.add(v);
+    if (cited.size === 0) return visible;
+    const people = (await this.db.tx(organizationId, (c) => c.query('select subject, display_name from user_account where subject = any($1::text[])', [[...cited]]))).rows;
+    const names = Object.fromEntries(people.map((p) => [p.subject as string, p.display_name as string]));
+    return visible.map((r) => ({ ...r, names }));
   }
 
   @Roles('athena-admin')

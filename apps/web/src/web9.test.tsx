@@ -190,7 +190,7 @@ describe('Vue d’ensemble', () => {
     app('/p/ARI');
     await screen.findByRole('heading', { level: 1, name: 'Vue d’ensemble' });
     const mine = await screen.findByRole('group', { name: 'Mes tickets' }); // T-0123 : la Vue d'ensemble est portée par le moteur de widgets
-    expect(await within(mine).findByText('Aucun ticket.')).toBeInTheDocument();
+    expect(await within(mine).findByText('Rien ici pour l’instant.')).toBeInTheDocument();
     expect(within(mine).getByRole('link', { name: 'Tout voir' })).toHaveAttribute('href', `/recherche?q=${encodeURIComponent('assignee = currentUser() AND category != done')}&p=ARI`);
     const card = screen.getByRole('group', { name: 'Trackers' });
     // T-0157 : même rendu que « Trackers par statut » (nom, ouverts sur total, barre par catégorie).

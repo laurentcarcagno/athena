@@ -41,10 +41,15 @@ export function parseValue(field: Field, raw: string): unknown {
 /** Même règle que le serveur (`canUse`, artifact.service.ts) : sans restriction, administrateur, ou rôle cité dans `writeRoles`. */
 export const canWrite = (field: Field, roles: readonly string[]) => !field.writeRoles || roles.includes('athena-admin') || field.writeRoles.some((r) => roles.includes(r));
 
-export function FieldEditor({ field, value, roles, onCommit }: { field: Field; value: unknown; roles: readonly string[]; onCommit: (raw: string) => void }) {
+/** Texte d'une valeur : le nom de la personne quand la valeur est un identifiant de compte connu. */
+const named = (value: unknown, names?: Record<string, string>) => (typeof value === 'string' && names?.[value] ? names[value]! : asText(value));
+
+export function FieldEditor({ field, value, roles, onCommit, userNames }: { field: Field; value: unknown; roles: readonly string[]; onCommit: (raw: string) => void; userNames?: Record<string, string> | undefined }) {
   const [draft, setDraft] = useState(asText(value));
   useEffect(() => setDraft(asText(value)), [value]);
   const label = field.required ? `${field.label} (${fr.artifact.required})` : field.label;
+  // Une personne se choisit par « M'assigner » ou à la création, jamais en saisissant un identifiant de compte : le champ montre son nom.
+  if (field.type === 'user') return <FieldInput label={label} value={named(value, userNames)} readOnly readOnlyReason={fr.artifact.userFieldHint} />;
   if (!canWrite(field, roles)) {
     return <FieldInput label={label} value={asText(value)} readOnly readOnlyReason={fr.artifact.readOnlyBy(field.writeRoles ?? [])} mono={field.type === 'number' || field.type === 'date'} />;
   }
@@ -273,7 +278,7 @@ export function ArtifactView({ session, project, itemKey: key, embedded = false,
                                 <div className="ath-row"><Btn size="sm" onClick={() => void save(f, pending)}>{fr.artifact.keepMine}</Btn><Btn size="sm" variant="ghost" onClick={() => setConflict(null)}>{fr.artifact.keepTheirs}</Btn></div>
                               </div>
                             )}
-                            <FieldEditor field={f} value={pending ?? artifact.values[f.key]} roles={roles} onCommit={(raw) => save(f, raw)} />
+                            <FieldEditor field={f} value={pending ?? artifact.values[f.key]} roles={roles} userNames={artifact.userNames} onCommit={(raw) => save(f, raw)} />
                           </div>
                         );
                       })}
@@ -302,7 +307,7 @@ export function ArtifactView({ session, project, itemKey: key, embedded = false,
                   <Td>{r.actor}</Td>
                   <Td mono mute><DateTime iso={r.at} /></Td>
                   <Td>{Object.entries(r.diff).map(([field, d]) => (
-                    <div key={field}><Id>{field}</Id> <span className="ath-diff__from">{asText(d.from) || '∅'}</span> → <span className="ath-diff__to">{asText(d.to) || '∅'}</span></div>
+                    <div key={field}><Id>{field}</Id> <span className="ath-diff__from">{named(d.from, r.names) || '∅'}</span> → <span className="ath-diff__to">{named(d.to, r.names) || '∅'}</span></div>
                   ))}</Td>
                   <Td mono>{r.gitSha ? r.gitSha.slice(0, 8) : '—'}</Td>
                   <Td>{r.version < artifact.version && <Btn size="sm" variant="ghost" onClick={() => restore(r.version)}>{fr.artifact.restore}</Btn>}</Td>
