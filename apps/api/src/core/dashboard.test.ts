@@ -120,7 +120,7 @@ describe('disposition 2D (T-0169)', () => {
   it('convertit les tailles en colonnes sans perte, dans l’ordre, à la première place libre', () => {
     const grid = toGrid([w('a', { size: 'S' }), w('b', { size: 'S' }), w('c', { size: 'S' }), w('d', { size: 'M' }), w('e', { size: 'XL' }), w('f')]);
     expect(grid.map((g) => [g.id, g.x, g.y, g.w, g.size])).toEqual([
-      ['a', 0, 0, 4, 'S'], ['b', 4, 0, 4, 'S'], ['c', 8, 0, 4, 'S'], ['d', 0, 3, 6, 'M'], ['e', 0, 6, 12, 'XL'], ['f', 6, 3, 6, 'M'],
+      ['a', 0, 0, 4, 'S'], ['b', 4, 0, 4, 'S'], ['c', 8, 0, 4, 'S'], ['d', 0, 3, 6, 'M'], ['e', 0, 6, 12, 'XL'], ['f', 6, 3, 4, 'S'],
     ]);
     expect(grid.every((g) => g.h === 3)).toBe(true);
     expect(toGrid(grid)).toEqual(grid); // idempotente : relire une disposition convertie ne la change pas

@@ -35,6 +35,7 @@ beforeEach(() => {
     if (url.startsWith('/v1/search?')) return json({ total: 1, hits: [{ key: 'ARI-BUG-0001', project: 'ARI', tracker: 'BUG', status: 'open', statusName: 'Ouvert', category: 'todo', values: { title: 'Fuite mémoire' }, version: 1, updatedAt: '' }] });
     if (url.startsWith('/v1/me/notifications')) return json({ items: [], unread: 0 });
     if (url === '/v1/me/approvals') return json({ items: [{ project: 'ARI', key: 'ARI-REQ-0001', tracker: 'REQ', step: 'Relecture technique' }] });
+    if (url === '/v1/me/dashboard/catalog') return json({ kinds: ['search', 'mentions', 'approvals', 'favorites', 'recents', 'health', 'pipelines'].map((kind) => ({ kind, project: kind === 'health' || kind === 'pipelines' })) });
     if (url === '/v1/projects') return json([]);
     if (url === '/v1/searches') return json([{ id: '11111111-aaaa-bbbb-cccc-222222222222', name: 'Bloquants NOVA', query: 'priority = high', projects: ['NOVA'] }]);
     return json({}, 404);
@@ -59,7 +60,7 @@ describe('tableau de bord personnel', () => {
     expect(calls.some((c) => c.method === 'PUT')).toBe(false);
   });
 
-  it('Organiser (T-0154) : déplacer au clavier par la poignée, changer la largeur, masquer et dupliquer, chaque changement étant enregistré', async () => {
+  it('Organiser (T-0172) : déplacer au clavier, régler la taille, retirer, dupliquer ; rien n’est enregistré avant « Enregistrer »', async () => {
     page();
     await waitFor(() => expect(groups()).toEqual(DEFAULT_TITLES));
     await userEvent.click(screen.getByRole('button', { name: 'Organiser' }));
@@ -68,41 +69,60 @@ describe('tableau de bord personnel', () => {
     await userEvent.keyboard('{Enter}');
     expect(handle).toHaveAttribute('aria-pressed', 'true');
     await userEvent.keyboard('{ArrowRight}');
-    await waitFor(() => expect(stored?.map((w) => w.id).slice(0, 2)).toEqual(['approvals', 'assigned']));
-    expect(screen.getByText('Mes tickets : position 2 sur 6.')).toBeInTheDocument();
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Déplacer la carte Mes tickets' })).toHaveFocus());
+    expect(screen.getByText('Mes tickets : colonne 2, ligne 1.')).toBeInTheDocument();
+    await userEvent.keyboard('{ArrowDown}');
+    expect(screen.getByText('Mes tickets : colonne 2, ligne 2.')).toBeInTheDocument();
     await userEvent.keyboard('{Enter}');
     expect(screen.getByRole('button', { name: 'Déplacer la carte Mes tickets' })).toHaveAttribute('aria-pressed', 'false');
-    await userEvent.click(screen.getByRole('button', { name: 'Largeur L : Mes tickets' }));
-    await waitFor(() => expect(stored!.find((w) => w.id === 'assigned')?.size).toBe('L'));
-    expect(screen.getByRole('group', { name: 'Mes tickets' })).toHaveClass('ath-dashcard--L');
+    expect(screen.getByRole('group', { name: 'Mes tickets' })).toHaveClass('ath-gx-2', 'ath-gy-2');
+    await userEvent.click(screen.getByRole('button', { name: 'Réglages de Mes tickets' }));
+    await userEvent.selectOptions(screen.getByLabelText('Largeur'), 'XL (12 colonnes)');
+    expect(screen.getByRole('group', { name: 'Mes tickets' })).toHaveClass('ath-dashcard--XL', 'ath-gx-1', 'ath-gw-12');
+    await userEvent.type(screen.getByLabelText('Titre'), 'perso');
+    await userEvent.click(screen.getByRole('button', { name: 'Dupliquer perso' }));
     await userEvent.click(screen.getByRole('button', { name: 'Masquer Récents' }));
-    await waitFor(() => expect(groups()).not.toContain('Récents'));
-    await userEvent.click(screen.getByRole('button', { name: 'Dupliquer Mes tickets' }));
-    await waitFor(() => expect(groups()).toContain('Mes tickets (copie)'));
+    expect(groups()).not.toContain('Récents');
+    expect(calls.some((c) => c.method === 'PUT')).toBe(false);
+    await userEvent.click(screen.getByRole('button', { name: 'Enregistrer' }));
+    await waitFor(() => expect(stored).not.toBeNull());
     const ids = stored!.map((w) => w.id);
     expect(new Set(ids).size).toBe(ids.length);
-    expect(stored!.find((w) => w.title === 'Mes tickets (copie)')?.query).toBe(DEFAULTS[0]!.query);
-    expect(screen.queryByRole('button', { name: 'Dupliquer Mentions' })).not.toBeInTheDocument(); // seules les recherches se dupliquent
+    expect(stored!.find((w) => w.id === 'assigned')).toMatchObject({ title: 'perso', w: 12, x: 0 });
+    expect(stored!.some((w) => w.title === 'perso (copie)')).toBe(true);
+    expect(stored!.some((w) => w.id === 'recents')).toBe(false);
+    expect(screen.queryByRole('button', { name: /^Déplacer la carte/ })).not.toBeInTheDocument();
   });
 
-  it('+ Ajouter une carte : une recherche enregistrée ou une carte masquée ; puis retour à la disposition par défaut après confirmation', async () => {
+  it('Annuler restaure la disposition ; Enregistrer est le seul geste qui écrit', async () => {
+    page();
+    await waitFor(() => expect(groups()).toEqual(DEFAULT_TITLES));
+    await userEvent.click(screen.getByRole('button', { name: 'Organiser' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Masquer Mentions' }));
+    expect(groups()).not.toContain('Mentions');
+    await userEvent.click(screen.getByRole('button', { name: 'Annuler' }));
+    await waitFor(() => expect([...document.querySelectorAll('.ath-dashcard')].map((c) => c.getAttribute('aria-label'))).toEqual(DEFAULT_TITLES));
+    expect(calls.some((c) => c.method === 'PUT')).toBe(false);
+  });
+
+  it('Catalogue : genres du rôle, recherche enregistrée ou carte retirée ; puis retour au défaut après confirmation', async () => {
     stored = DEFAULTS.filter((w) => w.id !== 'recents');
     page();
     await waitFor(() => expect(groups()).not.toContain('Récents'));
     await userEvent.click(screen.getByRole('button', { name: 'Organiser' }));
-    await userEvent.selectOptions(await screen.findByLabelText('+ Ajouter une carte'), 'Recherche enregistrée : Bloquants NOVA');
-    await userEvent.click(screen.getByRole('button', { name: 'Ajouter' }));
-    await waitFor(() => expect(groups()).toContain('Bloquants NOVA'));
+    await userEvent.click(await screen.findByRole('button', { name: 'Ajouter Bloquants NOVA' }));
+    expect(groups()).toContain('Bloquants NOVA');
+    await userEvent.click(screen.getByRole('button', { name: 'Ajouter Santé du projet' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Ajouter Santé du projet' })); // un même genre, deux exemplaires
+    expect(groups().filter((g) => g === 'Santé du projet')).toHaveLength(2);
+    expect(screen.queryByRole('button', { name: 'Ajouter Progression du sprint' })).toBeNull(); // hors du catalogue de ce rôle
+    await userEvent.click(screen.getByRole('button', { name: 'Ajouter Récents' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Enregistrer' }));
+    await waitFor(() => expect(stored!.map((w) => w.kind)).toContain('health'));
     const added = stored!.find((w) => w.title === 'Bloquants NOVA')!;
     expect([added.kind, added.query, added.projects]).toEqual(['search', 'priority = high', ['NOVA']]);
-    await userEvent.selectOptions(screen.getByLabelText('+ Ajouter une carte'), 'Récents');
-    await userEvent.click(screen.getByRole('button', { name: 'Ajouter' }));
-    await waitFor(() => expect(groups()).toContain('Récents'));
+    await userEvent.click(screen.getByRole('button', { name: 'Organiser' }));
     await userEvent.click(screen.getByRole('button', { name: 'Rétablir la disposition par défaut' }));
     await userEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Réinitialiser' }));
-    await userEvent.click(screen.getByRole('button', { name: 'Terminer' }));
-    // Toutes les cartes de la disposition, y compris celles que la ligne « Rien d’urgent » résume (T-0153).
     await waitFor(() => expect([...document.querySelectorAll('.ath-dashcard')].map((c) => c.getAttribute('aria-label'))).toEqual(DEFAULT_TITLES));
     expect(stored).toBeNull();
   });

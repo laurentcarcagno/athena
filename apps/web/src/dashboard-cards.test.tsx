@@ -1,9 +1,9 @@
 import userEvent from '@testing-library/user-event';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { createEvent, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { ToastProvider } from '@athena/ui';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
-import { Dashboard, reorder } from './components/Dashboard';
+import { Dashboard } from './components/Dashboard';
 import { PinsProvider } from './lib/pins';
 
 /** T-0153 (ADR-0005 § 2.3) : modèle de carte commun, grille 12 colonnes, cartes vides résumées dans Mon travail. */
@@ -45,28 +45,50 @@ it('Mon travail : les cartes vides se résument en une ligne « Rien d’urgent 
   expect(screen.getByRole('group', { name: 'Récents' })).toBeInTheDocument();
 });
 
-it('réordonner : une carte déplacée prend la place visée (T-0154)', () => {
-  expect(reorder(['a', 'b', 'c', 'd'], 0, 2)).toEqual(['b', 'c', 'a', 'd']);
-  expect(reorder(['a', 'b', 'c', 'd'], 3, 0)).toEqual(['d', 'a', 'b', 'c']);
-  expect(reorder(['a', 'b'], 1, 9)).toEqual(['a', 'b']);
-});
-
-it('Organiser : glisser une carte sur une autre la déplace, et l’enregistre (T-0154)', async () => {
+it('Organiser : glisser une carte sur la grille la place, repousse la voisine, et ne s’enregistre qu’avec « Enregistrer » (T-0172)', async () => {
   const puts: unknown[] = [];
   vi.stubGlobal('fetch', vi.fn(async (input: string, init?: RequestInit) => {
     const ok = (b: unknown) => new Response(JSON.stringify(b), { status: 200 });
+    if (/\/v1\/me\/dashboard\/catalog/.test(input)) return ok({ kinds: [] });
     if (/\/v1\/me\/dashboard/.test(input)) { if (init?.method === 'PUT') { const body = JSON.parse(String(init.body)); puts.push(body); return ok({ ...body, isDefault: false }); } return ok(layout); }
     if (/\/v1\/me\/pins/.test(input)) return ok({ favorites: [], recents: [] });
     if (/\/v1\/search/.test(input)) return ok({ total: 1, hits: [] });
     return ok({ items: [] });
   }));
+  const rect = vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({ left: 0, top: 0, width: 1200, height: 800, right: 1200, bottom: 800, x: 0, y: 0, toJSON: () => ({}) });
+  try {
+    mount('SAT1');
+    await userEvent.click(await screen.findByRole('button', { name: 'Organiser' }));
+    const recents = screen.getByRole('group', { name: 'Récents' });
+    const grid = recents.parentElement!;
+    // jsdom n’a pas de DragEvent : les coordonnées du pointeur sont posées à la main.
+    const drag = (type: 'dragStart' | 'dragOver' | 'drop', target: Element, x: number, y: number) => {
+      const event = createEvent[type](target, { dataTransfer: { effectAllowed: '' } });
+      Object.defineProperty(event, 'clientX', { value: x });
+      Object.defineProperty(event, 'clientY', { value: y });
+      fireEvent(target, event);
+    };
+    drag('dragStart', recents, 0, 0);
+    drag('dragOver', grid, 850, 100);
+    expect(grid.querySelector('.ath-dashdrop')).not.toBeNull(); // aperçu de la case visée
+    drag('drop', grid, 850, 100);
+    expect(grid.querySelector('.ath-dashdrop')).toBeNull();
+    expect(puts).toHaveLength(0);
+    await userEvent.click(screen.getByRole('button', { name: 'Enregistrer' }));
+    await waitFor(() => expect(puts).toHaveLength(1));
+    const saved = (puts[0] as { widgets: Array<{ id: string; x: number; y: number }> }).widgets;
+    expect(saved.find((w) => w.id === 'recents')).toMatchObject({ x: 4, y: 1 });
+    expect(saved.find((w) => w.id === 'approvals')!.y).toBeGreaterThanOrEqual(4); // repoussée sous la carte posée
+  } finally { rect.mockRestore(); }
+});
+
+it('sur téléphone, l’ordre du DOM suit les lignes puis les colonnes (T-0171)', async () => {
+  layout = { widgets: [
+    { id: 'recents', kind: 'recents', x: 0, y: 3, w: 12, h: 3 },
+    { id: 'approvals', kind: 'approvals', x: 6, y: 0, w: 6, h: 3 },
+    { id: 'assigned', kind: 'search', query: 'x', x: 0, y: 0, w: 6, h: 3 },
+  ], isDefault: false };
   mount('SAT1');
-  await userEvent.click(await screen.findByRole('button', { name: 'Organiser' }));
-  const recents = screen.getByRole('group', { name: 'Récents' });
-  const first = screen.getByRole('group', { name: 'Mes tickets' });
-  fireEvent.dragStart(recents, { dataTransfer: { effectAllowed: '' } });
-  fireEvent.dragOver(first);
-  fireEvent.drop(first);
-  await waitFor(() => expect(puts).toHaveLength(1));
-  expect((puts[0] as { widgets: Array<{ id: string }> }).widgets.map((w) => w.id)).toEqual(['recents', 'assigned', 'approvals']);
+  await screen.findByRole('group', { name: 'Récents' });
+  expect([...document.querySelectorAll('.ath-dashcard')].map((c) => c.getAttribute('aria-label'))).toEqual(['Mes tickets', 'À approuver', 'Récents']);
 });

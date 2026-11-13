@@ -175,18 +175,23 @@ export const Switch = forwardRef<HTMLInputElement, ToggleProps>(function Switch(
 const CardContext = createContext(false);
 export type DashSize = 'S' | 'M' | 'L' | 'XL';
 export const DASH_SIZES: readonly DashSize[] = ['S', 'M', 'L', 'XL'];
+/** Position et taille sur la grille 2D (colonnes 0 à 11, lignes de 88 px). */
+export interface DashBox { x: number; y: number; w: number; h: number }
+/** Classes de position d'une carte (CSP : pas d'attribut style) : colonne, ligne, largeur et hauteur, à partir de 1. */
+export const boxClasses = (b: DashBox): string[] => [`ath-gx-${b.x + 1}`, `ath-gy-${b.y + 1}`, `ath-gw-${b.w}`, `ath-gh-${b.h}`];
 
 /**
  * Carte de tableau de bord (ADR-0005 § 2.3, T-0153) : modèle commun à Mon travail, Vue d'ensemble, Avancement et widgets
  * d'extension. En-tête (titre, précision, actions), une visualisation, pied (lien vers le détail, fraîcheur). Largeur sur la
  * grille de 12 colonnes (S = 4, M = 6, L = 8, XL = 12) et hauteur commune ; le surplus défile dans le corps.
  */
-export function DashCard({ title, sub, actions, footer, size = 'M', handle, children, className, ...rest }: {
-  title: ReactNode; sub?: ReactNode; actions?: ReactNode; footer?: ReactNode; size?: DashSize; handle?: ReactNode; children: ReactNode;
+export function DashCard({ title, sub, actions, footer, size = 'M', box, handle, children, className, ...rest }: {
+  title: ReactNode; sub?: ReactNode; actions?: ReactNode; footer?: ReactNode; size?: DashSize; box?: DashBox; handle?: ReactNode; children: ReactNode;
 } & Omit<HTMLAttributes<HTMLElement>, 'title'>) {
   return (
     <CardContext.Provider value={true}>
-      <section className={cx('ath-dashcard', `ath-dashcard--${size}`, className)} {...rest}>
+      <section className={cx('ath-dashcard', `ath-dashcard--${size}`, box && 'ath-dashcard--placed', box && boxClasses(box).join(' '), className)}
+        {...rest}>
         <header className="ath-dashcard__head">
           {handle}
           <h3 className="ath-subsection-title ath-dashcard__title">{title}</h3>
@@ -201,9 +206,9 @@ export function DashCard({ title, sub, actions, footer, size = 'M', handle, chil
 }
 
 /** Grille des cartes de tableau de bord : 12 colonnes, une ligne par rangée de cartes. */
-export function DashGrid({ children, ...rest }: { children: ReactNode } & HTMLAttributes<HTMLDivElement>) {
-  return <div className="ath-dashgrid" {...rest}>{children}</div>;
-}
+export const DashGrid = forwardRef<HTMLDivElement, { children: ReactNode } & HTMLAttributes<HTMLDivElement>>(function DashGrid({ children, className, ...rest }, ref) {
+  return <div ref={ref} className={cx('ath-dashgrid', className)} {...rest}>{children}</div>;
+});
 
 /** Carte. Les cartes imbriquées sont interdites par la charte : elles lèvent une erreur. */
 /** Carte (fond et bordure) ou section (filet seul, `variant="section"`) ; jamais imbriquée. */

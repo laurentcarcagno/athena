@@ -127,16 +127,16 @@ const sizeOfWidth = (w: number): 'S' | 'M' | 'L' | 'XL' => (w <= 4 ? 'S' : w <= 
 
 /**
  * Conversion vers la grille 2D (T-0169), sans perte : les cartes sans position sont posées dans l'ordre, de gauche à droite puis
- * de haut en bas, à la première place libre ; la largeur vient de `size` (sinon M, ou XL pour un genre large). Les positions
+ * de haut en bas, à la première place libre ; la largeur vient de `size` (sinon S). Les positions
  * déjà présentes sont conservées. `size` est maintenu pour qu'un ancien client lise encore la disposition.
  */
 export function toGrid(widgets: readonly Widget[]): Widget[] {
-  const placed: Box[] = widgets.filter((w) => w.x !== undefined && w.y !== undefined).map((w) => ({ x: w.x!, y: w.y!, w: w.w ?? SIZE_COLUMNS[w.size ?? 'M'], h: w.h ?? DEFAULT_ROWS }));
+  const placed: Box[] = widgets.filter((w) => w.x !== undefined && w.y !== undefined).map((w) => ({ x: w.x!, y: w.y!, w: w.w ?? SIZE_COLUMNS[w.size ?? 'S'], h: w.h ?? DEFAULT_ROWS }));
   return widgets.map((widget) => {
     let box: Box;
-    if (widget.x !== undefined && widget.y !== undefined) box = { x: widget.x, y: widget.y, w: widget.w ?? SIZE_COLUMNS[widget.size ?? 'M'], h: widget.h ?? DEFAULT_ROWS };
+    if (widget.x !== undefined && widget.y !== undefined) box = { x: widget.x, y: widget.y, w: widget.w ?? SIZE_COLUMNS[widget.size ?? 'S'], h: widget.h ?? DEFAULT_ROWS };
     else {
-      const w = widget.w ?? SIZE_COLUMNS[widget.size ?? (widget.kind === 'indicators' ? 'XL' : 'M')];
+      const w = widget.w ?? SIZE_COLUMNS[widget.size ?? 'S'];
       const h = widget.h ?? DEFAULT_ROWS;
       box = { x: 0, y: 0, w, h };
       search: for (let y = 0; ; y++) for (let x = 0; x + w <= GRID_COLUMNS; x++) {

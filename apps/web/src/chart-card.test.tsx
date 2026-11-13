@@ -52,12 +52,13 @@ it('barres par valeur et indicateur chiffré', async () => {
 it('Organiser : « Graphique sur une recherche… » ajoute une carte anneau, barres ou indicateur dans la portée de la page', async () => {
   render(<ToastProvider><PinsProvider><MemoryRouter><Dashboard project="SAT1" /></MemoryRouter></PinsProvider></ToastProvider>);
   await userEvent.click(await screen.findByRole('button', { name: 'Organiser' }));
-  await userEvent.selectOptions(screen.getByLabelText('+ Ajouter une carte'), 'Graphique sur une recherche…');
+  await userEvent.click(screen.getByRole('button', { name: 'Ajouter Graphique sur une recherche…' }));
   await userEvent.type(screen.getByLabelText('Titre de la carte'), 'Bugs par sévérité');
   await userEvent.type(screen.getByLabelText('Recherche (ATQL, vide : tous les tickets)'), 'tracker = BUG');
   await userEvent.selectOptions(screen.getByLabelText('Forme'), 'Barres par valeur');
   await userEvent.selectOptions(screen.getByLabelText('Répartir par'), 'Sévérité');
   await userEvent.click(screen.getByRole('button', { name: 'Ajouter le graphique' }));
+  await userEvent.click(screen.getByRole('button', { name: 'Enregistrer' }));
   await waitFor(() => expect(puts).toHaveLength(1));
   const added = (puts[0] as { widgets: Array<Record<string, unknown>> }).widgets.at(-1)!;
   expect(added).toMatchObject({ kind: 'chart', title: 'Bugs par sévérité', query: 'tracker = BUG', field: 'severity', form: 'bars', size: 'S', projects: ['SAT1'] });

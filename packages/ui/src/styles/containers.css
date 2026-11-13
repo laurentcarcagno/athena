@@ -77,6 +77,249 @@
 .ath-dashcard__body { flex: 1; min-height: 0; overflow: auto; padding: var(--ath-space-sm) var(--ath-space-md); display: flex; flex-direction: column; gap: var(--ath-space-sm); }
 .ath-dashcard__foot { display: flex; justify-content: space-between; gap: var(--ath-space-sm); padding: var(--ath-space-xs) var(--ath-space-md); border-top: var(--ath-border-width-hairline) solid var(--ath-border-default); font-size: var(--ath-font-size-small); color: var(--ath-text-secondary); }
 .ath-dashcard[hidden] { display: none; }
+/* Position sur la grille 2D : colonne, ligne, largeur et hauteur (classes générées, sans attribut style). */
+.ath-gx-1 { grid-column-start: 1; }
+.ath-gx-2 { grid-column-start: 2; }
+.ath-gx-3 { grid-column-start: 3; }
+.ath-gx-4 { grid-column-start: 4; }
+.ath-gx-5 { grid-column-start: 5; }
+.ath-gx-6 { grid-column-start: 6; }
+.ath-gx-7 { grid-column-start: 7; }
+.ath-gx-8 { grid-column-start: 8; }
+.ath-gx-9 { grid-column-start: 9; }
+.ath-gx-10 { grid-column-start: 10; }
+.ath-gx-11 { grid-column-start: 11; }
+.ath-gx-12 { grid-column-start: 12; }
+.ath-gw-1 { grid-column-end: span 1; }
+.ath-gw-2 { grid-column-end: span 2; }
+.ath-gw-3 { grid-column-end: span 3; }
+.ath-gw-4 { grid-column-end: span 4; }
+.ath-gw-5 { grid-column-end: span 5; }
+.ath-gw-6 { grid-column-end: span 6; }
+.ath-gw-7 { grid-column-end: span 7; }
+.ath-gw-8 { grid-column-end: span 8; }
+.ath-gw-9 { grid-column-end: span 9; }
+.ath-gw-10 { grid-column-end: span 10; }
+.ath-gw-11 { grid-column-end: span 11; }
+.ath-gw-12 { grid-column-end: span 12; }
+.ath-gh-1 { grid-row-end: span 1; }
+.ath-gh-2 { grid-row-end: span 2; }
+.ath-gh-3 { grid-row-end: span 3; }
+.ath-gh-4 { grid-row-end: span 4; }
+.ath-gh-5 { grid-row-end: span 5; }
+.ath-gh-6 { grid-row-end: span 6; }
+.ath-gh-7 { grid-row-end: span 7; }
+.ath-gh-8 { grid-row-end: span 8; }
+.ath-gy-1 { grid-row-start: 1; }
+.ath-gy-2 { grid-row-start: 2; }
+.ath-gy-3 { grid-row-start: 3; }
+.ath-gy-4 { grid-row-start: 4; }
+.ath-gy-5 { grid-row-start: 5; }
+.ath-gy-6 { grid-row-start: 6; }
+.ath-gy-7 { grid-row-start: 7; }
+.ath-gy-8 { grid-row-start: 8; }
+.ath-gy-9 { grid-row-start: 9; }
+.ath-gy-10 { grid-row-start: 10; }
+.ath-gy-11 { grid-row-start: 11; }
+.ath-gy-12 { grid-row-start: 12; }
+.ath-gy-13 { grid-row-start: 13; }
+.ath-gy-14 { grid-row-start: 14; }
+.ath-gy-15 { grid-row-start: 15; }
+.ath-gy-16 { grid-row-start: 16; }
+.ath-gy-17 { grid-row-start: 17; }
+.ath-gy-18 { grid-row-start: 18; }
+.ath-gy-19 { grid-row-start: 19; }
+.ath-gy-20 { grid-row-start: 20; }
+.ath-gy-21 { grid-row-start: 21; }
+.ath-gy-22 { grid-row-start: 22; }
+.ath-gy-23 { grid-row-start: 23; }
+.ath-gy-24 { grid-row-start: 24; }
+.ath-gy-25 { grid-row-start: 25; }
+.ath-gy-26 { grid-row-start: 26; }
+.ath-gy-27 { grid-row-start: 27; }
+.ath-gy-28 { grid-row-start: 28; }
+.ath-gy-29 { grid-row-start: 29; }
+.ath-gy-30 { grid-row-start: 30; }
+.ath-gy-31 { grid-row-start: 31; }
+.ath-gy-32 { grid-row-start: 32; }
+.ath-gy-33 { grid-row-start: 33; }
+.ath-gy-34 { grid-row-start: 34; }
+.ath-gy-35 { grid-row-start: 35; }
+.ath-gy-36 { grid-row-start: 36; }
+.ath-gy-37 { grid-row-start: 37; }
+.ath-gy-38 { grid-row-start: 38; }
+.ath-gy-39 { grid-row-start: 39; }
+.ath-gy-40 { grid-row-start: 40; }
+.ath-gy-41 { grid-row-start: 41; }
+.ath-gy-42 { grid-row-start: 42; }
+.ath-gy-43 { grid-row-start: 43; }
+.ath-gy-44 { grid-row-start: 44; }
+.ath-gy-45 { grid-row-start: 45; }
+.ath-gy-46 { grid-row-start: 46; }
+.ath-gy-47 { grid-row-start: 47; }
+.ath-gy-48 { grid-row-start: 48; }
+.ath-gy-49 { grid-row-start: 49; }
+.ath-gy-50 { grid-row-start: 50; }
+.ath-gy-51 { grid-row-start: 51; }
+.ath-gy-52 { grid-row-start: 52; }
+.ath-gy-53 { grid-row-start: 53; }
+.ath-gy-54 { grid-row-start: 54; }
+.ath-gy-55 { grid-row-start: 55; }
+.ath-gy-56 { grid-row-start: 56; }
+.ath-gy-57 { grid-row-start: 57; }
+.ath-gy-58 { grid-row-start: 58; }
+.ath-gy-59 { grid-row-start: 59; }
+.ath-gy-60 { grid-row-start: 60; }
+.ath-gy-61 { grid-row-start: 61; }
+.ath-gy-62 { grid-row-start: 62; }
+.ath-gy-63 { grid-row-start: 63; }
+.ath-gy-64 { grid-row-start: 64; }
+.ath-gy-65 { grid-row-start: 65; }
+.ath-gy-66 { grid-row-start: 66; }
+.ath-gy-67 { grid-row-start: 67; }
+.ath-gy-68 { grid-row-start: 68; }
+.ath-gy-69 { grid-row-start: 69; }
+.ath-gy-70 { grid-row-start: 70; }
+.ath-gy-71 { grid-row-start: 71; }
+.ath-gy-72 { grid-row-start: 72; }
+.ath-gy-73 { grid-row-start: 73; }
+.ath-gy-74 { grid-row-start: 74; }
+.ath-gy-75 { grid-row-start: 75; }
+.ath-gy-76 { grid-row-start: 76; }
+.ath-gy-77 { grid-row-start: 77; }
+.ath-gy-78 { grid-row-start: 78; }
+.ath-gy-79 { grid-row-start: 79; }
+.ath-gy-80 { grid-row-start: 80; }
+.ath-gy-81 { grid-row-start: 81; }
+.ath-gy-82 { grid-row-start: 82; }
+.ath-gy-83 { grid-row-start: 83; }
+.ath-gy-84 { grid-row-start: 84; }
+.ath-gy-85 { grid-row-start: 85; }
+.ath-gy-86 { grid-row-start: 86; }
+.ath-gy-87 { grid-row-start: 87; }
+.ath-gy-88 { grid-row-start: 88; }
+.ath-gy-89 { grid-row-start: 89; }
+.ath-gy-90 { grid-row-start: 90; }
+.ath-gy-91 { grid-row-start: 91; }
+.ath-gy-92 { grid-row-start: 92; }
+.ath-gy-93 { grid-row-start: 93; }
+.ath-gy-94 { grid-row-start: 94; }
+.ath-gy-95 { grid-row-start: 95; }
+.ath-gy-96 { grid-row-start: 96; }
+.ath-gy-97 { grid-row-start: 97; }
+.ath-gy-98 { grid-row-start: 98; }
+.ath-gy-99 { grid-row-start: 99; }
+.ath-gy-100 { grid-row-start: 100; }
+.ath-gy-101 { grid-row-start: 101; }
+.ath-gy-102 { grid-row-start: 102; }
+.ath-gy-103 { grid-row-start: 103; }
+.ath-gy-104 { grid-row-start: 104; }
+.ath-gy-105 { grid-row-start: 105; }
+.ath-gy-106 { grid-row-start: 106; }
+.ath-gy-107 { grid-row-start: 107; }
+.ath-gy-108 { grid-row-start: 108; }
+.ath-gy-109 { grid-row-start: 109; }
+.ath-gy-110 { grid-row-start: 110; }
+.ath-gy-111 { grid-row-start: 111; }
+.ath-gy-112 { grid-row-start: 112; }
+.ath-gy-113 { grid-row-start: 113; }
+.ath-gy-114 { grid-row-start: 114; }
+.ath-gy-115 { grid-row-start: 115; }
+.ath-gy-116 { grid-row-start: 116; }
+.ath-gy-117 { grid-row-start: 117; }
+.ath-gy-118 { grid-row-start: 118; }
+.ath-gy-119 { grid-row-start: 119; }
+.ath-gy-120 { grid-row-start: 120; }
+.ath-gy-121 { grid-row-start: 121; }
+.ath-gy-122 { grid-row-start: 122; }
+.ath-gy-123 { grid-row-start: 123; }
+.ath-gy-124 { grid-row-start: 124; }
+.ath-gy-125 { grid-row-start: 125; }
+.ath-gy-126 { grid-row-start: 126; }
+.ath-gy-127 { grid-row-start: 127; }
+.ath-gy-128 { grid-row-start: 128; }
+.ath-gy-129 { grid-row-start: 129; }
+.ath-gy-130 { grid-row-start: 130; }
+.ath-gy-131 { grid-row-start: 131; }
+.ath-gy-132 { grid-row-start: 132; }
+.ath-gy-133 { grid-row-start: 133; }
+.ath-gy-134 { grid-row-start: 134; }
+.ath-gy-135 { grid-row-start: 135; }
+.ath-gy-136 { grid-row-start: 136; }
+.ath-gy-137 { grid-row-start: 137; }
+.ath-gy-138 { grid-row-start: 138; }
+.ath-gy-139 { grid-row-start: 139; }
+.ath-gy-140 { grid-row-start: 140; }
+.ath-gy-141 { grid-row-start: 141; }
+.ath-gy-142 { grid-row-start: 142; }
+.ath-gy-143 { grid-row-start: 143; }
+.ath-gy-144 { grid-row-start: 144; }
+.ath-gy-145 { grid-row-start: 145; }
+.ath-gy-146 { grid-row-start: 146; }
+.ath-gy-147 { grid-row-start: 147; }
+.ath-gy-148 { grid-row-start: 148; }
+.ath-gy-149 { grid-row-start: 149; }
+.ath-gy-150 { grid-row-start: 150; }
+.ath-gy-151 { grid-row-start: 151; }
+.ath-gy-152 { grid-row-start: 152; }
+.ath-gy-153 { grid-row-start: 153; }
+.ath-gy-154 { grid-row-start: 154; }
+.ath-gy-155 { grid-row-start: 155; }
+.ath-gy-156 { grid-row-start: 156; }
+.ath-gy-157 { grid-row-start: 157; }
+.ath-gy-158 { grid-row-start: 158; }
+.ath-gy-159 { grid-row-start: 159; }
+.ath-gy-160 { grid-row-start: 160; }
+.ath-gy-161 { grid-row-start: 161; }
+.ath-gy-162 { grid-row-start: 162; }
+.ath-gy-163 { grid-row-start: 163; }
+.ath-gy-164 { grid-row-start: 164; }
+.ath-gy-165 { grid-row-start: 165; }
+.ath-gy-166 { grid-row-start: 166; }
+.ath-gy-167 { grid-row-start: 167; }
+.ath-gy-168 { grid-row-start: 168; }
+.ath-gy-169 { grid-row-start: 169; }
+.ath-gy-170 { grid-row-start: 170; }
+.ath-gy-171 { grid-row-start: 171; }
+.ath-gy-172 { grid-row-start: 172; }
+.ath-gy-173 { grid-row-start: 173; }
+.ath-gy-174 { grid-row-start: 174; }
+.ath-gy-175 { grid-row-start: 175; }
+.ath-gy-176 { grid-row-start: 176; }
+.ath-gy-177 { grid-row-start: 177; }
+.ath-gy-178 { grid-row-start: 178; }
+.ath-gy-179 { grid-row-start: 179; }
+.ath-gy-180 { grid-row-start: 180; }
+.ath-gy-181 { grid-row-start: 181; }
+.ath-gy-182 { grid-row-start: 182; }
+.ath-gy-183 { grid-row-start: 183; }
+.ath-gy-184 { grid-row-start: 184; }
+.ath-gy-185 { grid-row-start: 185; }
+.ath-gy-186 { grid-row-start: 186; }
+.ath-gy-187 { grid-row-start: 187; }
+.ath-gy-188 { grid-row-start: 188; }
+.ath-gy-189 { grid-row-start: 189; }
+.ath-gy-190 { grid-row-start: 190; }
+.ath-gy-191 { grid-row-start: 191; }
+.ath-gy-192 { grid-row-start: 192; }
+.ath-gy-193 { grid-row-start: 193; }
+.ath-gy-194 { grid-row-start: 194; }
+.ath-gy-195 { grid-row-start: 195; }
+.ath-gy-196 { grid-row-start: 196; }
+.ath-gy-197 { grid-row-start: 197; }
+.ath-gy-198 { grid-row-start: 198; }
+.ath-gy-199 { grid-row-start: 199; }
+.ath-gy-200 { grid-row-start: 200; }
+/* Grille 2D (ADR-0007, T-0171) : position et taille par variables ; une colonne sous 720 px, dans l'ordre de lecture du DOM. */
+.ath-dashgrid { grid-auto-rows: var(--ath-size-dashrow); }
+.ath-dashcard.ath-dashcard--placed { height: auto; min-height: 0; }
+.ath-dashdrop { border: var(--ath-border-width-strong) dashed var(--ath-border-focus); background: var(--ath-surface-selected); pointer-events: none; }
+@media (max-width: 720px) {
+  .ath-dashcard.ath-dashcard--placed, .ath-dashdrop { grid-column: 1 / -1; grid-row: auto; }
+  .ath-dashgrid { grid-auto-rows: auto; }
+  .ath-dashcard.ath-dashcard--placed { min-height: calc(var(--ath-size-dashrow) * 2); }
+  .ath-dashdrop { display: none; }
+}
 @media (max-width: 1024px) {
   .ath-dashcard--S, .ath-dashcard--M { grid-column: span 6; }
   .ath-dashcard--L { grid-column: span 12; }
@@ -148,3 +391,9 @@
 .ath-chart-bar__label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ath-chart-bar__track { display: block; }
 .ath-chart-count { display: flex; flex-direction: column; justify-content: center; flex: 1; }
+
+/* Mode édition (T-0172) : grille et tiroir côte à côte. */
+.ath-dashedit { display: grid; grid-template-columns: minmax(0, 1fr) 18rem; gap: var(--ath-space-md); align-items: start; }
+.ath-dashdrawer { display: flex; flex-direction: column; gap: var(--ath-space-sm); padding: var(--ath-space-md); border: var(--ath-border-width-hairline) solid var(--ath-border-default); background: var(--ath-surface-default); }
+.ath-dashdrawer h3 { margin: 0; }
+@media (max-width: 720px) { .ath-dashedit { grid-template-columns: minmax(0, 1fr); } }

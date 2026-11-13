@@ -198,6 +198,11 @@
         "$value": "16px",
         "$type": "dimension"
       },
+      "dashrow": {
+        "$value": "88px",
+        "$type": "dimension",
+        "$description": "Hauteur d'une ligne de la grille 2D du tableau de bord (ADR-0007, T-0171)."
+      },
       "dashcard": {
         "$value": "300px",
         "$type": "dimension",
