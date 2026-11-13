@@ -11,7 +11,7 @@ import { pillKind } from '../pages/ListPage';
 import { useConfirm } from './ConfirmDialog';
 import { statusPill } from '../lib/status';
 import { BadgesCard, GeneralInfoCard, GlobalProgressCard, HealthCard, KeyIndicatorsCard, PipelinesCard, QualityCard, SprintProgressCard, TicketRow, WidgetEmpty } from './WidgetCards';
-import { GRID_COLUMNS, DEFAULT_ROWS, MAX_ROWS, SIZE_COLUMNS, flowOrder, nextRow, placeAt, resizeTo, withBoxes } from '../lib/grid';
+import { GRID_COLUMNS, DEFAULT_ROWS, MAX_ROWS, SIZE_COLUMNS, flowOrder, placeAt, resizeTo, withBoxes } from '../lib/grid';
 
 export type WidgetKind = 'search' | 'mentions' | 'approvals' | 'favorites' | 'recents' | 'trackers'
   | 'indicators' | 'flow' | 'velocity' | 'release' | 'tracker-status' | 'activity' | 'chart'
@@ -281,8 +281,8 @@ export function Dashboard({ project, page, qa = false }: { project?: string; pag
   const patch = (id: string, change: Partial<Widget>) => edit(shown.map((w) => (w.id === id ? { ...w, ...change } : w)));
   const remove = (id: string) => { edit(shown.filter((w) => w.id !== id)); if (settings === id) setSettings(null); };
   const addWidget = (widget: Widget) => {
-    const placed = withBoxes([{ ...widget, w: SIZE_COLUMNS[widget.size ?? 'S'], h: DEFAULT_ROWS, x: 0, y: nextRow(shown) }])[0] as Placed;
-    edit([...shown, placed]);
+    // Première place libre de la grille (les cartes sans position se posent dans les trous, comme à l'ouverture).
+    edit(withBoxes([...shown, { ...widget, w: SIZE_COLUMNS[widget.size ?? 'S'], h: DEFAULT_ROWS }]) as Placed[]);
     toast('success', fr.home.added);
   };
   const uid = (base: string) => `${base.replace(/[^a-z0-9-]/g, '').slice(0, 28)}-${Date.now().toString(36)}${Math.floor(Math.random() * 1296).toString(36)}`;

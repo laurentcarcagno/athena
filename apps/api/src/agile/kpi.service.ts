@@ -48,14 +48,15 @@ export class KpiService {
       this.reports.velocity(organizationId, projectKey, 10),
       this.db.tx(organizationId, async (c) => (await c.query(
         `select p.name, p.created_at, (select count(*)::int from project_member m where m.project_id = p.id) as members,
-                coalesce((select array_agg(m.subject order by m.subject) from project_member m where m.project_id = p.id and m.role = 'manager'), '{}') as managers
+                coalesce((select array_agg(coalesce(u.display_name, u.username, m.subject) order by coalesce(u.display_name, u.username, m.subject)) from project_member m left join user_account u on u.organization_id = m.organization_id and u.subject = m.subject where m.project_id = p.id and m.role = 'manager'), '{}') as managers
          from project p where p.key = $1`, [projectKey])).rows[0]),
       this.db.tx(organizationId, async (c) => (await c.query(
-        `select v as assignee, count(*)::int as n from (
+        `select coalesce(u.display_name, u.username, x.v) as assignee, count(*)::int as n from (
            select a."values" ->> f.key as v from artifact a join project p on p.id = a.project_id join status st on st.id = a.status_id
              join field_definition f on f.tracker_id = a.tracker_id and f.semantic_role = 'assignee'
            where p.key = $1 and st.category <> 'done') x
-         where coalesce(v, '') <> '' group by v order by n desc, v limit 5`, [projectKey])).rows as Array<{ assignee: string; n: number }>),
+         left join user_account u on u.subject = x.v
+         where coalesce(x.v, '') <> '' group by coalesce(u.display_name, u.username, x.v) order by n desc, 1 limit 5`, [projectKey])).rows as Array<{ assignee: string; n: number }>),
       this.sprints.list(organizationId, projectKey).then((list) => list.find((x) => x.state === 'active')).catch(() => undefined),
     ]);
     if (!meta) throw notFound(`Projet ${projectKey}`);
