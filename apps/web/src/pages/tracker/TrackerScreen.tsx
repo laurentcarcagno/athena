@@ -49,7 +49,7 @@ export function TrackerScreen({ session }: { session: Session }) {
   const offset = Number(params.get('o') ?? '0') || 0;
   const sort = params.get('sort');
   const cols = params.get('cols');
-  const admin = session.user?.roles.includes('athena-admin') ?? false;
+  const admin = (session.user?.roles ?? []).some((r) => r === 'athena-admin' || r === 'athena-pm');
 
   useEffect(() => {
     setDef(null);

@@ -88,6 +88,13 @@ export class AutomationService {
     });
   }
 
+  /** Clé du projet d'une règle (contrôle de droits des routes qui ne portent que l'identifiant de la règle). */
+  async projectOf(organizationId: string, ruleId: string): Promise<string> {
+    const row = (await this.db.tx(organizationId, (c) => c.query('select p.key from automation_rule r join project p on p.id = r.project_id where r.id::text = $1', [ruleId]))).rows[0];
+    if (!row) throw notFound('Règle');
+    return row.key as string;
+  }
+
   async list(organizationId: string, projectKey: string): Promise<RuleView[]> {
     return this.db.tx(organizationId, async (c) =>
       (

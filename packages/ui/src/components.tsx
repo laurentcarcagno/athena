@@ -488,6 +488,8 @@ export interface NavItem {
   mono?: boolean;
   /** Contrôles propres à la ligne (monter / descendre un favori…), rendus après le libellé. */
   extra?: ReactNode;
+  /** Ligne de groupe repliable : un bouton qui déplie ou replie les lignes qui suivent (il ne navigue pas). */
+  toggle?: { expanded: boolean; onToggle: () => void };
 }
 /** Rubrique du rail : un titre facultatif et ses entrées. */
 export interface NavSection {
@@ -549,8 +551,8 @@ export function Sidebar({ id, items, sections, current, onNavigate, user, userAc
             {group.title && <h2 className="ath-nav__title">{group.title}</h2>}
             {group.items.map((item) => (
               <div key={item.id} className="ath-nav__row">
-                <button type="button" className={cx('ath-nav-item', item.mono && 'ath-mono', item.icon !== undefined && 'ath-nav-item--icon')} data-depth={item.depth ?? 0} aria-current={item.id === current ? 'page' : undefined} title={item.label} onClick={() => onNavigate?.(item.id)}>
-                  {item.icon && <span className="ath-nav-item__icon" aria-hidden="true">{item.icon}</span>}<span className="ath-nav-item__label">{item.label}</span>
+                <button type="button" className={cx('ath-nav-item', item.mono && 'ath-mono', item.icon !== undefined && 'ath-nav-item--icon', item.toggle && 'ath-nav-item--group')} data-depth={item.depth ?? 0} aria-current={item.id === current ? 'page' : undefined} aria-expanded={item.toggle ? item.toggle.expanded : undefined} title={item.label} onClick={() => (item.toggle ? item.toggle.onToggle() : onNavigate?.(item.id))}>
+                  {item.icon && <span className="ath-nav-item__icon" aria-hidden="true">{item.icon}</span>}<span className="ath-nav-item__label">{item.label}</span>{item.toggle && <span className="ath-nav-item__chevron" aria-hidden="true">{item.toggle.expanded ? '▾' : '▸'}</span>}
                 </button>
                 {item.extra}
               </div>

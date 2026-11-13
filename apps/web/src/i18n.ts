@@ -121,7 +121,7 @@ const frDict = {
     key: 'Clé', label: 'Libellé', type: 'Type', required: 'Obligatoire', category: 'Catégorie', name: 'Nom', from: 'Depuis', to: 'Vers', anyState: 'Tout état', add: 'Ajouter',
     historyMode: 'Écriture de l’historique', historyDirect: 'Directe (branche principale)', historyMr: 'Par merge request (revue)', readRoles: 'Rôles en lecture (virgules)', writeRoles: 'Rôles en écriture (virgules)', roles: 'Rôles', everyone: 'Tous', allowedRoles: 'Rôles autorisés (virgules, vide : tous)', remove: 'Supprimer', confirmPurge: (n: string, count = 0) => `Le champ ${n} contient des valeurs${count ? ` (${count} ticket${count > 1 ? 's' : ''})` : ''}. Les supprimer définitivement des tickets ?`, removed: 'Champ supprimé.',
     workflow: 'Workflow', workflowHelp: 'Cliquez sur un statut de départ, puis sur un statut d’arrivée pour créer une transition. Les flèches en pointillés partent de « Tout état ».', anyStateNode: 'Tout état', pickTarget: (from: string) => `Départ : ${from}. Choisissez le statut d’arrivée.`, newTransition: (from: string, to: string) => `Nouvelle transition ${from} → ${to}`, cancel: 'Annuler',
-    added: 'Configuration enregistrée.', schemaNote: 'Chaque modification incrémente la version du schéma et est versionnée dans Git.', adminOnly: 'Réservé aux administrateurs.',
+    added: 'Configuration enregistrée.', schemaNote: 'Chaque modification incrémente la version du schéma et est versionnée dans Git.', adminOnly: 'Réservé aux administrateurs et aux chefs du projet.',
   },
   admin: {
     eyebrow: 'Administration', title: 'Administration', webhooks: 'Webhooks', automations: 'Automatisations', plugins: 'Plugins', baselines: 'Baselines',
@@ -239,6 +239,7 @@ const frDict = {
     traceability: 'Traçabilité', related: 'Relié à',
   },
   rail: {
+    projectSearch: 'Chercher dans le projet', approvals: 'Approbations', groups: { engineering: 'Exigences et conception', development: 'Développement', verification: 'Vérification et qualité', management: 'Gestion', other: 'Autres' } as Record<string, string>,
     favorites: 'Favoris', recents: 'Récents', project: 'Projet', trackers: 'Trackers', pin: 'Épingler', unpin: 'Désépingler', moveUp: 'Monter', moveDown: 'Descendre', noFavorites: 'Aucun favori. Utilisez l’étoile d’une page pour en ajouter.', noRecents: 'Aucun élément récent.',
     collapse: 'Replier le rail', expand: 'Déplier le rail',
   },
@@ -605,7 +606,7 @@ const enDict: Dictionary = {
     key: 'Key', label: 'Label', type: 'Type', required: 'Required', category: 'Category', name: 'Name', from: 'From', to: 'To', anyState: 'Any state', add: 'Add',
     historyMode: 'History writes', historyDirect: 'Direct (main branch)', historyMr: 'Through merge request (review)', readRoles: 'Read roles (comma separated)', writeRoles: 'Write roles (comma separated)', roles: 'Roles', everyone: 'Everyone', allowedRoles: 'Allowed roles (comma separated, empty: everyone)', remove: 'Delete', confirmPurge: (n: string, count = 0) => `Field ${n} holds values${count ? ` (${count} artifact${count > 1 ? 's' : ''})` : ''}. Permanently remove them from artifacts?`, removed: 'Field deleted.',
     workflow: 'Workflow', workflowHelp: 'Click a source status, then a target status to create a transition. Dashed arrows start from “Any state”.', anyStateNode: 'Any state', pickTarget: (from: string) => `From: ${from}. Choose the target status.`, newTransition: (from: string, to: string) => `New transition ${from} → ${to}`, cancel: 'Cancel',
-    added: 'Configuration saved.', schemaNote: 'Each change increments the schema version and is versioned in Git.', adminOnly: 'Administrators only.',
+    added: 'Configuration saved.', schemaNote: 'Each change increments the schema version and is versioned in Git.', adminOnly: 'Administrators and project managers only.',
   },
   admin: {
     eyebrow: 'Administration', title: 'Administration', webhooks: 'Webhooks', automations: 'Automations', plugins: 'Plugins', baselines: 'Baselines',
@@ -723,6 +724,7 @@ const enDict: Dictionary = {
     traceability: 'Traceability', related: 'Related to',
   },
   rail: {
+    projectSearch: 'Search in the project', approvals: 'Approvals', groups: { engineering: 'Requirements and design', development: 'Development', verification: 'Verification and quality', management: 'Management', other: 'Other' } as Record<string, string>,
     favorites: 'Favorites', recents: 'Recent', project: 'Project', trackers: 'Trackers', pin: 'Pin', unpin: 'Unpin', moveUp: 'Move up', moveDown: 'Move down', noFavorites: 'No favorites yet. Use the star on a page to add one.', noRecents: 'Nothing recent.',
     collapse: 'Collapse the rail', expand: 'Expand the rail',
   },

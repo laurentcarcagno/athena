@@ -16,7 +16,7 @@ describe('sections d’un projet', () => {
     expect(ids(ALL_MODULES, ['athena-qa'])).toContain('settings');
     expect(ids(ALL_MODULES, ['athena-pm'])).toContain('settings');
     // T-0120 : sections des Paramètres selon le rôle.
-    expect(visibleSettings(['athena-pm']).map((s) => s.id)).toEqual(['membres', 'boards', 'baselines', 'approbations']);
+    expect(visibleSettings(['athena-pm']).map((s) => s.id)).toEqual(['membres', 'trackers', 'boards', 'automatisations', 'baselines', 'approbations']);
     expect(visibleSettings(['athena-qa']).map((s) => s.id)).toEqual(['approbations']);
     expect(visibleSettings(['athena-user'])).toEqual([]);
   });

@@ -185,6 +185,23 @@ suite('API REST du noyau', () => {
     expect((await lag(await token(['athena-admin']), { lagDays: 1 })).statusCode).toBe(404); // lien inconnu
   });
 
+  it('configuration du projet : le chef de projet la fait seulement sur un projet dont il est responsable', async () => {
+    const pm = await token(['athena-pm']);
+    const admin = await token(['athena-admin']);
+    const field = { key: 'effort', label: 'Effort', type: 'number' };
+    const addField = (jwt: string, key: string) => call('POST', '/v1/projects/ARI/trackers/BUG/fields', jwt, { ...field, key });
+    expect((await addField(await token(['athena-user']), 'e0')).statusCode).toBe(403); // simple utilisateur
+    expect((await addField(pm, 'e1')).statusCode).toBe(403); // chef de projet, mais pas responsable d'ARI
+    expect((await call('POST', '/v1/projects/ARI/baselines', pm, { name: 'B1' })).statusCode).toBe(403);
+    expect((await call('PUT', '/v1/projects/ARI/members/u-test', admin, { role: 'manager' })).statusCode).toBe(200);
+    expect((await addField(pm, 'e2')).statusCode).toBeLessThan(300); // responsable : autorisé
+    expect((await call('POST', '/v1/projects/ARI/baselines', pm, { name: 'B1' })).statusCode).toBe(503); // autorisé ; GitLab non configuré dans ce test
+    expect((await call('POST', '/v1/projects/ARI/automations', pm, { name: 'r', trigger: 'artifact.created', condition: '', actions: [{ type: 'comment', body: 'x' }] })).statusCode).toBeLessThan(300);
+    expect((await call('POST', '/v1/projects/ARI/baselines', await token(['athena-user']), { name: 'B2' })).statusCode).toBe(403);
+    expect((await call('PUT', '/v1/projects/ARI/members/u-test', admin, { role: 'member' })).statusCode).toBe(200);
+    expect((await addField(pm, 'e3')).statusCode).toBe(403); // plus responsable : refusé de nouveau
+  });
+
   it("isole les organisations : l'autre organisation ne voit rien", async () => {
     const other = await token(['athena-user'], ['/org-autre']);
     expect((await call('GET', '/v1/projects/ARI/artifacts/ARI-BUG-0001', other)).statusCode).toBe(404);

@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { BodySchema } from '../openapi/body-schema';
 import { ArtifactService } from '../core/artifact.service';
 import { Public, Roles, type AuthedRequest } from '../auth/auth.guard';
+import { MemberService } from '../core/member.service';
 import { BASELINES, PLUGINS, CODE_ACTIONS, DOC_FETCHER, DOC_WRITEBACK, PG_POOL, REBUILD, REVERSE_SYNC, SECRET_STORE } from '../core/core.tokens';
 import type { RebuildService } from '../history/rebuild';
 import type { PushPayload, ReverseSync } from '../history/reverse-sync';
@@ -71,6 +72,7 @@ const CreateBaselineBody = z.object({ name: z.string().min(1).max(61) });
 export class IntegrationsController {
   constructor(
     private readonly orgs: OrgResolver,
+    private readonly members: MemberService,
     private readonly db: Db,
     private readonly webhooks: WebhookService,
     private readonly docs: DocLinkService,
@@ -214,10 +216,11 @@ export class IntegrationsController {
   }
 
   // --- Automatisations ---
-  @Roles('athena-admin')
+  @Roles('athena-admin', 'athena-pm')
   @Post('v1/projects/:project/automations')
   async createRule(@Req() request: AuthedRequest, @Param('project') project: string, @Body() body: unknown) {
     const { organizationId, actor } = await this.ctx(request);
+    await this.members.requireManager(organizationId, project, actor);
     return { id: await this.automation.createRule(organizationId, project, body, actor) };
   }
 
@@ -227,19 +230,22 @@ export class IntegrationsController {
     return this.automation.list((await this.ctx(request)).organizationId, project);
   }
 
-  @Roles('athena-admin')
+  @Roles('athena-admin', 'athena-pm')
   @HttpCode(204)
   @Post('v1/automations/:id/:state')
   async toggleRule(@Req() request: AuthedRequest, @Param('id') id: string, @Param('state') state: string) {
     const { organizationId, actor } = await this.ctx(request);
+    await this.members.requireManager(organizationId, await this.automation.projectOf(organizationId, id), actor);
     if (state !== 'enable' && state !== 'disable') throw forbidden('Action inconnue.');
     await this.automation.setEnabled(organizationId, id, state === 'enable', actor);
   }
 
-  @Roles('athena-admin')
+  @Roles('athena-admin', 'athena-pm')
   @Get('v1/automations/:id/runs')
   async ruleRuns(@Req() request: AuthedRequest, @Param('id') id: string) {
-    return this.automation.runs((await this.ctx(request)).organizationId, id);
+    const { organizationId, actor } = await this.ctx(request);
+    await this.members.requireManager(organizationId, await this.automation.projectOf(organizationId, id), actor);
+    return this.automation.runs(organizationId, id);
   }
 
   // --- Webhooks entrants génériques ---
@@ -468,11 +474,12 @@ export class IntegrationsController {
   }
 
   // --- Baselines ---
-  @Roles('athena-admin')
+  @Roles('athena-admin', 'athena-pm')
   @Post('v1/projects/:project/baselines')
   @BodySchema(CreateBaselineBody)
   async createBaseline(@Req() request: AuthedRequest, @Param('project') project: string, @Body() body: unknown) {
     const { organizationId, actor } = await this.ctx(request);
+    await this.members.requireManager(organizationId, project, actor);
     return this.baselineService().create(organizationId, project, parseBody(CreateBaselineBody, body).name, actor);
   }
 

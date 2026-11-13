@@ -57,9 +57,9 @@ const ADMIN: Access = { kind: 'roles', roles: ['athena-admin'] };
 /** Paramètres du projet (ADR-0003 § 2) : `/p/:p/parametres/:s`, dans cet ordre. Les objets globaux (webhooks, plugins) sont à l'Administration. */
 export const SETTINGS_SECTIONS: ReadonlyArray<{ id: SettingsId; access: Access }> = [
   { id: 'membres', access: MANAGERS },
-  { id: 'trackers', access: ADMIN },
+  { id: 'trackers', access: MANAGERS },
   { id: 'boards', access: MANAGERS },
-  { id: 'automatisations', access: ADMIN },
+  { id: 'automatisations', access: MANAGERS },
   { id: 'baselines', access: MANAGERS },
   { id: 'approbations', access: { kind: 'roles', roles: ['athena-admin', 'athena-pm', 'athena-qa'] } },
 ];

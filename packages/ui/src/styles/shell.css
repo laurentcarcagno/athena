@@ -106,3 +106,8 @@
 .ath-sidebar__brand:has(.ath-sidebar__logo) .ath-sidebar__mark { display: none; }
 .ath-sidebar--collapsed .ath-sidebar__logo { display: none; }
 .ath-sidebar--collapsed .ath-sidebar__brand .ath-sidebar__mark { display: block; }
+
+/* Groupe repliable du rail (trackers par catégorie) : libellé à gauche, flèche à droite, plus discret qu'une page. */
+.ath-nav-item--group { display: flex; justify-content: space-between; align-items: center; font-weight: var(--ath-font-weight-semibold); }
+.ath-nav-item__chevron { flex: none; margin-left: var(--ath-space-sm); }
+.ath-nav-item[data-depth="3"] { padding-left: 52px; }

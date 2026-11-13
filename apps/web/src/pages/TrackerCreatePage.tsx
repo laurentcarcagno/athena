@@ -16,7 +16,7 @@ export function TrackerCreatePage({ session }: { session: Session }) {
   const toast = useToast();
   const fail = useFailure();
   const { busy, guard } = useBusy();
-  const admin = session.user?.roles.includes('athena-admin') ?? false;
+  const admin = (session.user?.roles ?? []).some((r) => r === 'athena-admin' || r === 'athena-pm');
   const [templates, setTemplates] = useState<TrackerTemplateEntry[]>([]);
   const [draft, setDraft] = useState<DraftTracker>(emptyTracker());
   useEffect(() => { if (admin) api<TrackerTemplateEntry[]>('GET', '/v1/tracker-templates').then(setTemplates).catch(fail); }, [admin, fail]);

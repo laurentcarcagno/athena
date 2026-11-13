@@ -141,7 +141,7 @@ export class TrackerTemplateController {
     @Inject(OrgResolver) private readonly orgs: OrgResolver,
   ) {}
 
-  @Roles('athena-admin')
+  @Roles('athena-admin', 'athena-pm')
   @Get()
   async list(@Req() request: AuthedRequest) {
     return this.templates.listTrackerTemplates((await this.orgs.resolve(request.principal!)).organizationId);

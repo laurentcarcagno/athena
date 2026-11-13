@@ -18,7 +18,8 @@ export function TrackerConfigPage({ session }: { session: Session }) {
   const toast = useToast();
   const fail = useFailure();
   const confirm = useConfirm();
-  const admin = session.user?.roles.includes('athena-admin') ?? false;
+  // Configuration du tracker : administrateur ou chef de projet (le serveur vérifie qu'il est responsable de ce projet).
+  const admin = (session.user?.roles ?? []).some((r) => r === 'athena-admin' || r === 'athena-pm');
   const [def, setDef] = useState<TrackerDefinition | null>(null);
   const [types, setTypes] = useState<string[]>([]);
   const [layout, setLayout] = useState<Layout | null>(null);

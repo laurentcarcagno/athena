@@ -60,7 +60,7 @@ export function SettingsPage({ session }: { session: Session }) {
     trackers: () => <TrackersSettings project={project} />,
     boards: () => <BoardsTab project={project} />,
     automatisations: () => <AutomationsTab project={project} />,
-    baselines: () => <div className="ath-stack">{roles.includes('athena-admin') && <BaselineCreate project={project} />}<BaselineCompare project={project} /></div>,
+    baselines: () => <div className="ath-stack">{manager && <BaselineCreate project={project} />}<BaselineCompare project={project} /></div>,
     approbations: () => <>{!manager && <p className="ath-eyebrow">{fr.approvals.qaOnly}</p>}<ApprovalsPanel project={project} canRequire={manager} canDecide={roles.includes('athena-qa')} /></>,
   };
   return (

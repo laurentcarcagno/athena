@@ -1,5 +1,7 @@
 import { LayoutSchema } from './layout';
 import { SEMANTIC_ROLES } from './semantic-roles';
+import { MemberService } from './member.service';
+import { builtinTrackerTypes } from './tracker-types';
 import { HueSchema } from './hues';
 import { TemplateService } from './template.service';
 import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Query, Req } from '@nestjs/common';
@@ -82,6 +84,7 @@ export class CoreController {
     private readonly links: LinkService,
     private readonly searcher: SearchService,
     private readonly templates: TemplateService,
+    private readonly members: MemberService,
   ) {}
 
   @Roles('athena-user', 'athena-admin')
@@ -97,16 +100,20 @@ export class CoreController {
   @Get(':project/trackers')
   async listTrackers(@Req() request: AuthedRequest, @Param('project') project: string) {
     const { organizationId } = await this.orgs.resolve(principalOf(request));
-    return this.db.tx(organizationId, async (c) =>
-      (
+    return this.db.tx(organizationId, async (c) => {
+      const rows = (
         await c.query(
           `select t.key, t.name, t.description, t.type_key as "typeKey",
                   (select count(*)::int from artifact a where a.tracker_id = t.id) as artifacts
            from tracker t join project p on p.id = t.project_id where p.key = $1 order by t.key`,
           [project],
         )
-      ).rows,
-    );
+      ).rows as Array<{ key: string; typeKey: string | null }>;
+      // Catégorie du type (rail : trackers regroupés par métier) : types de l'organisation d'abord, puis types livrés.
+      const own = new Map((await c.query('select key, category from tracker_type')).rows.map((r) => [r.key as string, r.category as string]));
+      const builtin = new Map(builtinTrackerTypes().map((t) => [t.key, t.category as string]));
+      return rows.map((r) => ({ ...r, category: r.typeKey ? own.get(r.typeKey) ?? builtin.get(r.typeKey) ?? null : null }));
+    });
   }
 
   /** Historique d'un artefact : révisions, auteur, différences et SHA du commit GitLab. */
@@ -147,11 +154,12 @@ export class CoreController {
     return { key: input.key, name: input.name, trackers: created.trackers, templateVersion: created.templateVersion };
   }
 
-  @Roles('athena-admin')
+  @Roles('athena-admin', 'athena-pm')
   @Post(':project/trackers')
   @BodySchema(TrackerBody)
   async createTracker(@Req() request: AuthedRequest, @Param('project') project: string, @Body() body: unknown) {
     const { organizationId, actor } = await this.orgs.resolve(principalOf(request));
+    await this.members.requireManager(organizationId, project, actor);
     const input = parseBody(TrackerBody, body);
     const id = await this.trackers.createTracker(
       organizationId,
@@ -161,41 +169,45 @@ export class CoreController {
     return { id, key: input.key };
   }
 
-  @Roles('athena-admin')
+  @Roles('athena-admin', 'athena-pm')
   @HttpCode(204)
   @Patch(':project/trackers/:tracker/layout')
   @BodySchema(SetLayoutBody)
   async setLayout(@Req() request: AuthedRequest, @Param('project') project: string, @Param('tracker') tracker: string, @Body() body: unknown) {
     const { organizationId, actor } = await this.orgs.resolve(principalOf(request));
+    await this.members.requireManager(organizationId, project, actor);
     await this.trackers.setLayout(organizationId, project, tracker, parseBody(SetLayoutBody, body).layout, actor);
   }
 
   /** Rattache le tracker à un type d'organisation, ou le détache (`typeKey: null`). */
-  @Roles('athena-admin')
+  @Roles('athena-admin', 'athena-pm')
   @HttpCode(204)
   @Patch(':project/trackers/:tracker/type')
   @BodySchema(SetTypeBody)
   async setType(@Req() request: AuthedRequest, @Param('project') project: string, @Param('tracker') tracker: string, @Body() body: unknown) {
     const { organizationId, actor } = await this.orgs.resolve(principalOf(request));
+    await this.members.requireManager(organizationId, project, actor);
     await this.trackers.setType(organizationId, project, tracker, parseBody(SetTypeBody, body).typeKey, actor);
   }
 
-  @Roles('athena-admin')
+  @Roles('athena-admin', 'athena-pm')
   @HttpCode(204)
   @Patch(':project/trackers/:tracker/history-mode')
   @BodySchema(SetHistoryModeBody)
   async setHistoryMode(@Req() request: AuthedRequest, @Param('project') project: string, @Param('tracker') tracker: string, @Body() body: unknown) {
     const { organizationId, actor } = await this.orgs.resolve(principalOf(request));
+    await this.members.requireManager(organizationId, project, actor);
     const input = parseBody(SetHistoryModeBody, body);
     await this.trackers.setHistoryMode(organizationId, project, tracker, input.mode, actor);
   }
 
-  @Roles('athena-admin')
+  @Roles('athena-admin', 'athena-pm')
   @HttpCode(204)
   @Patch(':project/trackers/:tracker/fields/:field')
   @BodySchema(UpdateFieldBody)
   async updateField(@Req() request: AuthedRequest, @Param('project') project: string, @Param('tracker') tracker: string, @Param('field') field: string, @Body() body: unknown) {
     const { organizationId, actor } = await this.orgs.resolve(principalOf(request));
+    await this.members.requireManager(organizationId, project, actor);
     const input = parseBody(UpdateFieldBody, body);
     await this.trackers.updateField(organizationId, project, tracker, field, stripUndefined(input), actor);
   }
@@ -207,49 +219,54 @@ export class CoreController {
     return this.trackers.fieldImpact(organizationId, project, tracker, field);
   }
 
-  @Roles('athena-admin')
+  @Roles('athena-admin', 'athena-pm')
   @HttpCode(204)
   @Delete(':project/trackers/:tracker/fields/:field')
   async removeField(@Req() request: AuthedRequest, @Param('project') project: string, @Param('tracker') tracker: string, @Param('field') field: string, @Query('purge') purge?: string) {
     const { organizationId, actor } = await this.orgs.resolve(principalOf(request));
+    await this.members.requireManager(organizationId, project, actor);
     await this.trackers.removeField(organizationId, project, tracker, field, purge === 'true', actor);
   }
 
-  @Roles('athena-admin')
+  @Roles('athena-admin', 'athena-pm')
   @Post(':project/trackers/:tracker/fields')
   @BodySchema(AddFieldBody)
   async addField(@Req() request: AuthedRequest, @Param('project') project: string, @Param('tracker') tracker: string, @Body() body: unknown) {
     const { organizationId, actor } = await this.orgs.resolve(principalOf(request));
+    await this.members.requireManager(organizationId, project, actor);
     const input = parseBody(AddFieldBody, body);
     await this.trackers.addField(organizationId, project, tracker, stripUndefined(input), actor);
     return { added: input.key };
   }
 
-  @Roles('athena-admin')
+  @Roles('athena-admin', 'athena-pm')
   @Post(':project/trackers/:tracker/statuses')
   @BodySchema(AddStatusBody)
   async addStatus(@Req() request: AuthedRequest, @Param('project') project: string, @Param('tracker') tracker: string, @Body() body: unknown) {
     const { organizationId, actor } = await this.orgs.resolve(principalOf(request));
+    await this.members.requireManager(organizationId, project, actor);
     const input = parseBody(AddStatusBody, body);
     await this.trackers.addStatus(organizationId, project, tracker, input, actor);
     return { added: input.key };
   }
 
-  @Roles('athena-admin')
+  @Roles('athena-admin', 'athena-pm')
   @Patch(':project/trackers/:tracker/statuses/:status')
   @BodySchema(PatchStatusBody)
   async patchStatus(@Req() request: AuthedRequest, @Param('project') project: string, @Param('tracker') tracker: string, @Param('status') status: string, @Body() body: unknown) {
     const { organizationId, actor } = await this.orgs.resolve(principalOf(request));
+    await this.members.requireManager(organizationId, project, actor);
     const input = parseBody(PatchStatusBody, body);
     await this.trackers.updateStatus(organizationId, project, tracker, status, stripUndefined(input), actor);
     return { updated: status };
   }
 
-  @Roles('athena-admin')
+  @Roles('athena-admin', 'athena-pm')
   @Post(':project/trackers/:tracker/transitions')
   @BodySchema(AddTransitionBody)
   async addTransition(@Req() request: AuthedRequest, @Param('project') project: string, @Param('tracker') tracker: string, @Body() body: unknown) {
     const { organizationId, actor } = await this.orgs.resolve(principalOf(request));
+    await this.members.requireManager(organizationId, project, actor);
     const input = parseBody(AddTransitionBody, body);
     await this.trackers.addTransition(organizationId, project, tracker, stripUndefined(input), actor);
     return { added: input.name };
@@ -312,11 +329,12 @@ export class CoreController {
     return this.searcher.search(organizationId, project, q, actor.id, Number(limit), Number(offset), actor.roles);
   }
 
-  @Roles('athena-admin')
+  @Roles('athena-admin', 'athena-pm')
   @Post(':project/link-types')
   @BodySchema(LinkTypeBody)
   async createLinkType(@Req() request: AuthedRequest, @Param('project') project: string, @Body() body: unknown) {
     const { organizationId, actor } = await this.orgs.resolve(principalOf(request));
+    await this.members.requireManager(organizationId, project, actor);
     await this.links.createLinkType(organizationId, project, parseBody(LinkTypeBody, body), actor);
     return { created: true };
   }

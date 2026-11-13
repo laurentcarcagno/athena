@@ -6,7 +6,13 @@ import { PROJECT_SECTIONS, placeOf, sectionHref, visibleSections, type Place, ty
 import { entriesOf, pinHref, usePins, type Pin } from '../lib/pins';
 import { RAIL_ICONS, sectionIcon } from './RailIcons';
 
-interface TrackerRow { key: string; name: string }
+interface TrackerRow { key: string; name: string; category?: string | null }
+
+/** Nom du tracker au rail : sans le code entre parenthèses (« Conception (DDF) » → « Conception »). */
+export const plainName = (name: string): string => name.replace(/\s*\([^()]*\)\s*$/, '').trim() || name;
+const GROUPS = ['engineering', 'development', 'verification', 'management', 'other'] as const;
+/** Au-delà de ce nombre, les trackers se regroupent par catégorie (repliées, sauf celle du tracker ouvert). */
+const GROUP_FROM = 5;
 
 /** Note dans les récents le projet, le tracker ou l'item que l'adresse désigne (une fois par changement). */
 export function useRecordVisits(pathname: string): void {
@@ -25,7 +31,12 @@ export function useRecordVisits(pathname: string): void {
 }
 
 /** Libellé d'une section de projet dans le rail. */
-const sectionLabel = (id: ProjectSectionId): string => (id === 'search' ? fr.nav.search : fr.project.tabs[id]);
+const sectionLabel = (id: ProjectSectionId, roles: readonly string[] = []): string => {
+  if (id === 'search') return fr.rail.projectSearch;
+  // Assurance produit seule : les Paramètres ne lui montrent que les approbations, l'entrée le dit.
+  if (id === 'settings' && roles.includes('athena-qa') && !roles.includes('athena-admin') && !roles.includes('athena-pm')) return fr.rail.approvals;
+  return fr.project.tabs[id];
+};
 
 /**
  * Rubriques du rail : favoris et récents, entrées globales, puis le projet courant : ses sections (ADR-0003), avec sous
@@ -37,6 +48,7 @@ export function useRailSections({ pathname, project, roles }: { pathname: string
   const [trackers, setTrackers] = useState<TrackerRow[]>([]);
   const [views, setViews] = useState<SavedFilter[]>([]);
   const [modules, setModules] = useState<string[] | null>(null);
+  const [opened, setOpened] = useState<Record<string, boolean>>({});
   const place = placeOf(pathname);
   const tracker = /^\/p\/[^/]+\/t\/([^/]+)/.exec(pathname)?.[1];
   const admin = roles.includes('athena-admin');
@@ -79,23 +91,35 @@ export function useRailSections({ pathname, project, roles }: { pathname: string
   });
   let projectNav: ProjectNav | null = null;
   if (project) {
-    const entries = visibleSections(modules, roles).map((s) => ({ id: sectionHref(project, s), label: sectionLabel(s.id) }));
+    const entries = visibleSections(modules, roles).map((s) => ({ id: sectionHref(project, s), label: sectionLabel(s.id, roles) }));
     const here = PROJECT_SECTIONS.find((s) => s.id === place?.section);
     const currentHref = here ? sectionHref(project, here) : null;
     projectNav = { project, entries, current: entries.some((e) => e.id === currentHref) ? currentHref : null };
-    const trackerItems = trackers.flatMap((t): NavItem[] => [
-      { id: trackerHref(project, t.key), label: `${t.key} · ${t.name}`, depth: 1 },
-      ...(tracker === t.key ? views.map((v): NavItem => ({ id: `${trackerHref(project, t.key)}?v=${v.id}`, label: v.name, depth: 2 })) : []),
-    ]);
+    const trackerItem = (t: TrackerRow, depth: number): NavItem[] => [
+      { id: trackerHref(project, t.key), label: plainName(t.name ?? t.key), depth },
+      ...(tracker === t.key ? views.map((v): NavItem => ({ id: `${trackerHref(project, t.key)}?v=${v.id}`, label: v.name, depth: depth + 1 })) : []),
+    ];
+    const grouped = trackers.length > GROUP_FROM;
+    const trackerItems = grouped
+      ? GROUPS.flatMap((group): NavItem[] => {
+        const members = trackers.filter((t) => (GROUPS.includes((t.category ?? 'other') as (typeof GROUPS)[number]) ? t.category ?? 'other' : 'other') === group);
+        if (members.length === 0) return [];
+        const expanded = opened[group] ?? members.some((t) => t.key === tracker);
+        return [
+          { id: `group:${group}`, label: `${fr.rail.groups[group]} (${members.length})`, depth: 1, toggle: { expanded, onToggle: () => setOpened((o) => ({ ...o, [group]: !expanded })) } },
+          ...(expanded ? members.flatMap((t) => trackerItem(t, 2)) : []),
+        ];
+      })
+      : trackers.flatMap((t) => trackerItem(t, 1));
     sections.push({
       id: 'project', title: `${fr.rail.project} ${project}`,
       items: visibleSections(modules, roles).flatMap((s): NavItem[] => [
-        { id: sectionHref(project, s), label: sectionLabel(s.id), icon: sectionIcon(s.id) },
+        { id: sectionHref(project, s), label: sectionLabel(s.id, roles), icon: sectionIcon(s.id) },
         ...(s.id === 'trackers' ? trackerItems : []),
       ]),
     });
   }
-  const ids = sections.flatMap((s) => s.items.map((i) => i.id)).filter((id) => !id.includes('?'));
+  const ids = sections.flatMap((s) => s.items.map((i) => i.id)).filter((id) => !id.includes('?') && !id.startsWith('group:'));
   return { sections, current: currentEntry(pathname, place, ids), projectNav };
 }
 
