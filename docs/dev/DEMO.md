@@ -15,7 +15,7 @@ Chaque action est faite par la personne concernée (jeton de son compte) : auteu
 ## Comptes (mot de passe : `demo-<prénom>`)
 | Compte | Rôle dans l'équipe | Rôle Athena |
 | --- | --- | --- |
-| `claire.lefevre` | Cheffe de projet | `athena-pm`, chef du projet LUMEN |
+| `claire.lefevre` | Cheffe de projet | `athena-pm`, chef du projet LUMEN : configure ses trackers et automatisations, fige les baselines |
 | `marc.dubois` | Architecte système | utilisateur |
 | `sophie.martin` | Architecte satellite (mission) | utilisateur |
 | `thomas.bernard` | Ingénieur SCAO | utilisateur |
@@ -37,6 +37,12 @@ Le compte `admin.dev` (`dev-only-admin`) administre l'organisation : calendrier,
 - **Risques** : registre de 9 risques (probabilité, impact, criticité, mitigation, responsable), liés aux exigences, tâches et interfaces concernées.
 - **Collaboration** : commentaires avec mentions (notifications), circuit d'approbation des évolutions en trois étapes (revue technique, cheffe de projet, visa assurance produit), automatisation sur les anomalies critiques, recherches enregistrées (ATQL : `critical()`, `late()`, criticité des risques), favoris.
 - **Historique** : tout est écrit dans GitLab ; baseline `PDR` figée, planning compris.
+
+## Ce que chaque rôle voit (audit des rôles)
+- **Cheffe de projet** : Mon travail ouvre sur les tâches en retard, le chemin critique et les risques ouverts ; Planning éditable (sélection d'une tâche, « Lier à… », durée au clic, glisser) ; Paramètres complets du projet.
+- **Utilisateur** : ses tâches en retard ; Planning en lecture avec « Demander un décalage » sur sa tâche (commentaire qui mentionne la cheffe de projet) ; avancement et reste à faire de ses tickets dans la fiche.
+- **Assurance produit** : visas, mentions, non-conformités et RID ouverts ; lecture seule, l'entrée du projet s'appelle « Approbations ». Elle ne crée ni ticket ni commentaire (décision de rôle à confirmer).
+- Le rail regroupe les 13 trackers du gabarit par métier (groupes repliés) ; le rapport **Rapports › Risques** classe le registre par criticité.
 
 ## Parcours suggérés
 - `claire.lefevre` : Mon travail (à approuver, mentions), Planning (Gantt, chemin critique, comparaison à la baseline PDR), Backlog et sprints, Versions.

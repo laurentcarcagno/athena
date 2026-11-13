@@ -15,7 +15,7 @@ test('Projets, tracker, ticket : trois actions, puis retour au projet par le fil
   await page.goto('/projets'); // T-0123 : « / » est Mon travail
   await expect(page.getByText('Ariane')).toBeVisible();
   await page.getByRole('link', { name: 'Ouvrir Ariane' }).click(); // 1 : le projet, depuis sa carte (T-0152)
-  await page.getByRole('group', { name: 'Projet ARI' }).getByRole('button', { name: /^BUG · / }).click(); // 2 : le tracker, au rail (ADR-0003)
+  await page.getByRole('group', { name: 'Projet ARI' }).getByRole('button', { name: 'Bugs', exact: true }).click(); // 2 : le tracker, au rail (ADR-0003)
   await expect(page).toHaveURL(/\/p\/ARI\/t\/BUG\/tableau/);
   await page.getByRole('link', { name: 'ARI-BUG-0001' }).click(); // 3 : l'item s'ouvre à droite
   await expect(page.getByRole('complementary', { name: 'Détail du ticket' })).toBeVisible();

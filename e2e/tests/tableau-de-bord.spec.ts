@@ -22,7 +22,7 @@ async function login(page: Page, username: string, password: string) {
   await page.waitForURL(/localhost:3000/);
 }
 
-const TITLES = ['Mes tickets', 'À approuver', 'Mentions', 'Échéances de la semaine', 'Projets favoris', 'Récents'];
+const TITLES = ['Mes tickets', 'Mes tâches en retard', 'À approuver', 'Mentions', 'Échéances de la semaine', 'Projets favoris', 'Récents'];
 
 // T-0122 (ADR-0003 § 2.1) : tableau de bord personnel, disposition par défaut sans réglage, puis personnalisation durable.
 test('tableau de bord : disposition par défaut, masquer et réordonner survivent au rechargement, réinitialiser la rétablit', async ({ page }) => {
@@ -30,7 +30,7 @@ test('tableau de bord : disposition par défaut, masquer et réordonner surviven
   await page.goto('/me');
   // Toutes les cartes de la disposition (une carte vide est résumée dans « Rien d'urgent » mais reste dans la grille, T-0153).
   const groups = page.locator('section[aria-label="Tableau de bord"] .ath-dashcard');
-  await expect(groups).toHaveCount(6);
+  await expect(groups).toHaveCount(7);
   expect(await groups.evaluateAll((els) => els.map((e) => e.getAttribute('aria-label')))).toEqual(TITLES);
 
   await page.getByRole('button', { name: 'Organiser' }).click();
@@ -40,18 +40,18 @@ test('tableau de bord : disposition par défaut, masquer et réordonner surviven
   await page.keyboard.press('Enter');
   await page.keyboard.press('ArrowRight');
   await page.keyboard.press('Enter');
-  await expect(groups).toHaveCount(5);
+  await expect(groups).toHaveCount(6);
 
   await page.reload();
-  await expect(groups).toHaveCount(5);
-  expect(await groups.evaluateAll((els) => els.map((e) => e.getAttribute('aria-label')))).toEqual(['À approuver', 'Mes tickets', 'Mentions', 'Échéances de la semaine', 'Projets favoris']);
+  await expect(groups).toHaveCount(6);
+  expect(await groups.evaluateAll((els) => els.map((e) => e.getAttribute('aria-label')))).toEqual(['Mes tâches en retard', 'Mes tickets', 'À approuver', 'Mentions', 'Échéances de la semaine', 'Projets favoris']);
   expect(await axeViolations(page)).toEqual([]);
 
   await page.getByRole('button', { name: 'Organiser' }).click();
   await page.getByRole('button', { name: 'Rétablir la disposition par défaut' }).click();
   await page.getByRole('dialog').getByRole('button', { name: 'Réinitialiser' }).click();
-  await expect(groups).toHaveCount(6);
+  await expect(groups).toHaveCount(7);
   await page.reload();
-  await expect(groups).toHaveCount(6);
+  await expect(groups).toHaveCount(7);
   expect(await groups.evaluateAll((els) => els.map((e) => e.getAttribute('aria-label')))).toEqual(TITLES);
 });

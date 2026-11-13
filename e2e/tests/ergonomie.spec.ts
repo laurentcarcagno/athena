@@ -36,13 +36,20 @@ test('téléphone (390 px) : la fiche garde la largeur de l’écran, ses onglet
   expect(await tabs.evaluate((el) => el.scrollWidth > el.clientWidth)).toBe(true);
 });
 
-test('chef de projet : création de tracker et configuration d’un tracker disent qui peut agir, sans bascule silencieuse (T-0144)', async ({ page }) => {
-  await login(page, 'pm.dev', 'dev-only-pm');
+test('utilisateur : création de tracker et configuration d’un tracker disent qui peut agir, sans bascule silencieuse (T-0144)', async ({ page }) => {
+  await login(page, 'user.dev', 'dev-only-user');
   await page.goto('/p/ARI/trackers/new');
-  await expect(page.getByRole('heading', { name: 'Seul un administrateur peut ajouter un tracker.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Seuls un administrateur ou un chef de projet peuvent ajouter un tracker.' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Retour aux trackers' })).toBeVisible();
+  // Un simple utilisateur n'a aucune section de Paramètres : le message le dit et ramène au projet.
   await page.goto('/p/ARI/parametres/trackers/BUG');
-  await expect(page.getByRole('heading', { name: 'La section Trackers est réservée aux administrateurs.' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Retour au projet' })).toBeVisible();
+});
+
+test('assurance produit : une section de Paramètres hors de son rôle est dite réservée, sans bascule silencieuse (T-0144)', async ({ page }) => {
+  await login(page, 'qa.dev', 'dev-only-qa');
+  await page.goto('/p/ARI/parametres/trackers/BUG');
+  await expect(page.getByRole('heading', { name: 'La section Trackers est réservée aux administrateurs et aux chefs de projet.' })).toBeVisible();
   await expect(page).toHaveURL(/\/parametres\/trackers\/BUG$/);
 });
 
@@ -99,11 +106,12 @@ test('recherche simple : un mot trouve le ticket, une clé ouvre sa fiche (T-014
 });
 
 test('Organiser : glisser une carte et changer sa largeur, retrouvés au rechargement (T-0154)', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1500 }); // les sept cartes tiennent à l'écran : glisser exige source et cible visibles
   await login(page, 'user.dev', 'dev-only-user');
   await page.goto('/');
   const cards = page.locator('section[aria-label="Tableau de bord"] .ath-dashcard');
   const card = (name: string) => page.locator(`section[aria-label="Tableau de bord"] .ath-dashcard[aria-label="${name}"]`);
-  await expect(cards).toHaveCount(6);
+  await expect(cards).toHaveCount(7);
   await page.getByRole('button', { name: 'Organiser' }).click();
   await card('Récents').dragTo(card('Mes tickets'));
   await expect(cards.first()).toHaveAttribute('aria-label', 'Récents');
