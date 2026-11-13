@@ -420,3 +420,4 @@
 @keyframes ath-run-pulse { 50% { opacity: 0.45; } }
 @media (prefers-reduced-motion: reduce) { .ath-run--running { animation: none; } }
 .ath-badges { display: flex; flex-wrap: wrap; gap: var(--ath-space-xs); margin: 0; padding: 0; list-style: none; }
+.ath-dashcard__body ul { margin: 0; padding: 0; list-style: none; }

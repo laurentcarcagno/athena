@@ -98,7 +98,6 @@ export const homeWidgetsFor = (roles: readonly string[]): Widget[] => {
       { id: 'approvals', kind: 'approvals' }, { id: 'mentions', kind: 'mentions' },
       { id: 'ncr', kind: 'search', query: 'type = nonconformity AND category != done' },
       { id: 'rid', kind: 'search', query: 'type = action AND category != done' },
-      { id: 'quality', kind: 'quality' },
       { id: 'favorites', kind: 'favorites' }, { id: 'recents', kind: 'recents' },
     ];
   }
@@ -109,10 +108,8 @@ export const homeWidgetsFor = (roles: readonly string[]): Widget[] => {
       { id: 'late', kind: 'search', query: 'late() ORDER BY dueDate' },
       { id: 'critical', kind: 'search', query: 'critical() AND category != done ORDER BY startDate' },
       { id: 'risks', kind: 'search', query: 'type = risk AND category != done ORDER BY criticality DESC' },
-      { id: 'health', kind: 'health' },
-      { id: 'pipelines', kind: 'pipelines' },
     ]
-    : [{ id: 'mylate', kind: 'search', query: 'assignee = currentUser() AND late()' }, { id: 'pipelines', kind: 'pipelines' }];
+    : [{ id: 'mylate', kind: 'search', query: 'assignee = currentUser() AND late()' }];
   out.splice(after, 0, ...extra);
   return out;
 };

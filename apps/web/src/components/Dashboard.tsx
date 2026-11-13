@@ -261,8 +261,11 @@ export function Dashboard({ project, page, qa = false }: { project?: string; pag
 
   if (layout === null) return <p role="status">{fr.loading}</p>;
   const shown: Placed[] = draft ?? (withBoxes(layout.widgets) as Placed[]);
-  const widgets = flowOrder(shown);
-  const quiet = widgets.filter((w) => QUIET.includes(w.kind) && empty[w.id]);
+  const quiet = shown.filter((w) => QUIET.includes(w.kind) && empty[w.id]);
+  // Hors édition (Mon travail), les cartes vides masquées ne laissent pas de trou : les autres se replacent à leur suite.
+  const compact = !draft && !project && quiet.length > 0;
+  const packed = compact ? new Map(withBoxes(flowOrder(shown).filter((w) => !quiet.includes(w)).map(({ x: _x, y: _y, ...rest }) => rest)).map((w) => [w.id, w as Placed])) : null;
+  const widgets = flowOrder(shown.map((w) => packed?.get(w.id) ?? w));
   const edit = (next: Placed[]) => setDraft(next);
   const start = () => setDraft(withBoxes(layout.widgets) as Placed[]);
   const stop = () => { setDraft(null); setGrabbed(null); setSettings(null); setPreview(null); setChartOpen(false); };
