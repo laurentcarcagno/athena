@@ -6,6 +6,7 @@ import { OrgResolver, parseBody } from '../core/http';
 import { MemberService } from '../core/member.service';
 import { BacklogService } from './backlog.service';
 import { BoardService } from './board.service';
+import { KpiService } from './kpi.service';
 import { ReportService } from './report.service';
 import { SprintService } from './sprint.service';
 
@@ -27,7 +28,7 @@ const RankBody =z.object({ key: z.string().min(1).max(64), after: z.string().min
 const CreateReleaseBody = z.object({ name: z.string().min(1).max(100), startsOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), endsOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) });
 @Controller('v1/projects/:project')
 export class AgileController {
-  constructor(private readonly orgs: OrgResolver, private readonly boards: BoardService, private readonly sprints: SprintService, private readonly reports: ReportService, private readonly members: MemberService, private readonly backlogs: BacklogService) {}
+  constructor(private readonly orgs: OrgResolver, private readonly boards: BoardService, private readonly sprints: SprintService, private readonly reports: ReportService, private readonly members: MemberService, private readonly backlogs: BacklogService, private readonly kpi: KpiService) {}
 
   private ctx = (request: AuthedRequest) => this.orgs.resolve(request.principal!);
   /** Gestion de projet : administrateur, ou chef de ce projet. */
@@ -212,6 +213,14 @@ export class AgileController {
   async publishRelease(@Req() request: AuthedRequest, @Param('project') project: string, @Param('id') id: string) {
     const { organizationId, actor } = await this.manager(request, project);
     await this.reports.publish(organizationId, id, actor, project);
+  }
+
+  /** Agrégats de pilotage du projet (widgets Informations, Avancement, Indicateurs, Santé, Sprint ; ADR-0007). */
+  @Roles('athena-user', 'athena-admin', 'athena-pm')
+  @Get('kpis')
+  async kpis(@Req() request: AuthedRequest, @Param('project') project: string) {
+    const { organizationId, actor } = await this.ctx(request);
+    return this.kpi.kpis(organizationId, project, actor);
   }
 
   @Roles('athena-user', 'athena-admin')

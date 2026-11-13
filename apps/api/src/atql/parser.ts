@@ -27,7 +27,9 @@ export type Expr =
   | { type: 'linkCount'; link: string; min: number; direction: 'in' | 'out' | 'any' }
   /** Planning (ADR-0006) : `late()` = échéance dépassée et ticket non terminé ; `critical()` = sur le chemin critique de son projet. */
   | { type: 'late' }
-  | { type: 'critical' };
+  | { type: 'critical' }
+  /** Bloquants (T-0174) : ticket non terminé qui est la cible d'un lien « blocks » dont la source n'est pas terminée. */
+  | { type: 'blocked' };
 
 export interface OrderBy {
   field: string;
@@ -39,7 +41,7 @@ export interface Query {
   orderBy: OrderBy[];
 }
 
-const LINK_FUNCTIONS = new Set(['suspect', 'linkedto', 'notlinked', 'linkcount', 'late', 'critical']);
+const LINK_FUNCTIONS = new Set(['suspect', 'linkedto', 'notlinked', 'linkcount', 'late', 'critical', 'blocked']);
 const LINK_TYPE = /^[a-z][a-z0-9_]{0,39}$/;
 const ITEM_REF = /^[A-Za-z0-9_.-]{1,60}$/;
 export const LIMITS = { maxLength: 2000, maxDepth: 12, maxConditions: 50, maxInValues: 100 };
@@ -137,7 +139,7 @@ export function parse(input: string): Query {
       if (!LINK_TYPE.test(arg.value)) throw new AtqlError(`Type de lien invalide : ${arg.value}`, arg.pos);
       return arg.value;
     };
-    if (kind === 'late' || kind === 'critical') {
+    if (kind === 'late' || kind === 'critical' || kind === 'blocked') {
       if (args.length > 0) throw new AtqlError(`${kind}() ne prend pas d’argument`, name.pos);
       return { type: kind };
     }

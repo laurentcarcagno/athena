@@ -17,6 +17,8 @@ describe('ATQL : fonctions de planning (analyse et compilation)', () => {
     expect(parse('late()').where).toEqual({ type: 'late' });
     expect(parse('CRITICAL()').where).toEqual({ type: 'critical' });
     expect(parse('tracker = TSK AND NOT late()').where).toMatchObject({ type: 'and', right: { type: 'not', operand: { type: 'late' } } });
+    expect(parse('BLOCKED()').where).toEqual({ type: 'blocked' });
+    expect(() => parse('blocked(1)')).toThrow(AtqlError);
     expect(() => parse('late(1)')).toThrow(AtqlError);
     expect(() => parse('critical(NOVA)')).toThrow(AtqlError);
   });

@@ -14,6 +14,7 @@ import { InboundService } from '../inbound/inbound.service';
 import { AgileController } from '../agile/agile.controller';
 import { BoardService } from '../agile/board.service';
 import { ReportService } from '../agile/report.service';
+import { KpiService } from '../agile/kpi.service';
 import { SprintService } from '../agile/sprint.service';
 import { BacklogService } from '../agile/backlog.service';
 import { DocController } from '../docs/doc.controller';
@@ -157,6 +158,7 @@ export { PG_POOL } from './core.tokens';
     { provide: GitCodeService, useFactory: (db: Db, a: ArtifactService) => new GitCodeService(db, a), inject: [Db, ArtifactService] },
     { provide: BoardService, useFactory: (db: Db, t: TrackerService, a: ArtifactService) => new BoardService(db, t, a), inject: [Db, TrackerService, ArtifactService] },
     { provide: ReportService, useFactory: (db: Db) => new ReportService(db), inject: [Db] },
+    { provide: KpiService, useFactory: (db: Db, s: SearchService, r: ReportService, sp: SprintService) => new KpiService(db, s, r, sp), inject: [Db, SearchService, ReportService, SprintService] },
     { provide: ProjectOverviewService, useFactory: (db: Db) => new ProjectOverviewService(db), inject: [Db] },
     { provide: LinkTypeService, useFactory: (db: Db) => new LinkTypeService(db), inject: [Db] },
     { provide: TreeService, useFactory: (db: Db) => new TreeService(db), inject: [Db] },

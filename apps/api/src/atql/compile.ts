@@ -128,6 +128,10 @@ export function compile(input: string | Query, context: CompileContext, leading:
       case 'cmp': return cmp(e.field, e.op, e.value);
       case 'late':
         return `coalesce(exists (select 1 from status st where st.id = a.status_id and st.category <> 'done') and ${roleDate('due_date')} < current_date, false)`;
+      case 'blocked':
+        return `(exists (select 1 from status st where st.id = a.status_id and st.category <> 'done') and exists (
+          select 1 from artifact_link l join link_type t on t.id = l.link_type_id join artifact b on b.id = l.from_artifact_id join status bs on bs.id = b.status_id
+          where l.to_artifact_id = a.id and t.key = 'blocks' and bs.category <> 'done'))`;
       case 'critical': {
         if (!context.criticalKeys) throw new AtqlError('critical() est indisponible dans ce contexte', 0);
         return `a.key = any(${bind([...context.criticalKeys])}::text[])`;
