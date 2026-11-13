@@ -40,6 +40,7 @@ Champs natifs : `key`, `tracker`, `status`, `project`, `created_by`, `created`, 
 **Traçabilité dans la requête** : `suspect()` (tickets ayant un lien suspect, à l'une ou l'autre extrémité), `linkedTo(ARI-REQ-0001)` ou `linkedTo(ARI-REQ-0001, "verifies")` (tickets liés à celui-là, dans les deux sens, éventuellement par ce type de lien), `notLinked("verifies")` (tickets sans lien de ce type) et `notLinked()` (sans aucun lien). Elles se combinent avec le reste : `tracker = REQ AND notLinked("verifies")` donne les exigences sans vérification. La case « Liens suspects » de la barre de filtres du tracker écrit `suspect()`.
 
 ## Travailler sur un ticket
+- **Personnes** : le champ **Responsable** (et tout champ de type personne) affiche le nom de la personne, en lecture seule ; on le change par **M'assigner** ou à la création. L'historique affiche aussi les noms, pas les identifiants de compte.
 - **Détails** : modifier un champ puis quitter la zone enregistre. Si quelqu'un a modifié le ticket entre-temps, un message l'indique et la fiche se recharge.
 - **Transitions** : les boutons en haut appliquent le workflow. Un message précise ce qui manque (champ obligatoire, rôle requis).
 - **Liens** : liens vers d'autres tickets et exigences de documentation. Un lien **suspect** signale que l'élément lié a changé depuis la liaison : relisez-le puis acquittez.
