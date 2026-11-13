@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { Db, type Actor } from './db';
 import { DomainError } from './errors';
 import { createTestDb, pgUp, type TestDb } from '../testing/harness';
-import { DEFAULT_WIDGETS, DashboardService, ScopeSchema, WidgetSchema } from './dashboard.service';
+import { DEFAULT_WIDGETS, DashboardService, ScopeSchema, WidgetSchema, checkGrid, toGrid, type Widget } from './dashboard.service';
 
 // T-0122 : disposition personnelle du tableau de bord, défaut sans réglage, réinitialisation.
 
@@ -32,7 +32,7 @@ suite('tableau de bord personnel (intégration)', () => {
     const d = await dash.get(org, alice);
     expect(d.isDefault).toBe(true);
     expect(d.widgets.map((w) => w.id)).toEqual(['assigned', 'mylate', 'approvals', 'mentions', 'due', 'favorites', 'recents']);
-    expect(d.widgets.filter((w) => w.id !== 'mylate')).toEqual([...DEFAULT_WIDGETS]);
+    expect(d.widgets.filter((w) => w.id !== 'mylate')).toMatchObject([...DEFAULT_WIDGETS]);
     expect(d.widgets.find((w) => w.id === 'mylate')!.query).toBe('assignee = currentUser() AND late()');
   });
 
@@ -51,7 +51,9 @@ suite('tableau de bord personnel (intégration)', () => {
   it('enregistre, relit, réordonne, reste personnelle et propre à l’organisation, se réinitialise', async () => {
     const widgets = [{ id: 'mentions', kind: 'mentions' as const }, { id: 'v1', kind: 'search' as const, title: 'Ouverts NOVA', query: 'category != done', projects: ['NOVA'] }];
     expect((await dash.put(org, { widgets }, alice)).isDefault).toBe(false);
-    expect(await dash.get(org, alice)).toEqual({ widgets, isDefault: false });
+    const got = await dash.get(org, alice);
+    expect(got.isDefault).toBe(false);
+    expect(got.widgets).toMatchObject(widgets);
     expect((await dash.get(org, bob)).isDefault).toBe(true);
     expect((await dash.get(other, alice)).isDefault).toBe(true);
     await dash.put(org, { widgets: [widgets[1]!] }, alice); // remplace
@@ -84,7 +86,7 @@ suite('tableau de bord personnel (intégration)', () => {
     expect(progress.widgets.map((w) => [w.id, w.size])).toEqual([['indicators', 'L'], ['release', 'S'], ['flow', 'M'], ['tracker-status', 'M'], ['velocity', 'M'], ['activity', 'M']]);
     expect(progress.widgets.every((w) => w.projects?.[0] === 'NOVA')).toBe(true);
     await dash.put(org, { widgets: [{ id: 'flow', kind: 'flow', projects: ['NOVA'], size: 'XL' }] }, alice, 'NOVA:avancement');
-    expect((await dash.get(org, alice, 'NOVA:avancement')).widgets).toEqual([{ id: 'flow', kind: 'flow', projects: ['NOVA'], size: 'XL' }]);
+    expect((await dash.get(org, alice, 'NOVA:avancement')).widgets).toMatchObject([{ id: 'flow', kind: 'flow', projects: ['NOVA'], size: 'XL', x: 0, y: 0, w: 12 }]);
     await dash.reset(org, alice, 'NOVA:avancement');
     expect(ScopeSchema.safeParse('NOVA:avancement').success).toBe(true);
     expect(ScopeSchema.safeParse('NOVA:autre').success).toBe(false);
@@ -94,7 +96,7 @@ suite('tableau de bord personnel (intégration)', () => {
   it('carte graphique (T-0156) : recherche, champ et forme gardés ; forme ou champ manquants refusés', async () => {
     const chart = { id: 'c1', kind: 'chart' as const, title: 'Bugs par sévérité', query: 'tracker = BUG', projects: ['NOVA'], field: 'severity', form: 'donut' as const, size: 'S' as const };
     await dash.put(org, { widgets: [chart, { id: 'c2', kind: 'chart', query: 'category != done', form: 'count' }] }, alice, 'NOVA');
-    expect((await dash.get(org, alice, 'NOVA')).widgets[0]).toEqual(chart);
+    expect((await dash.get(org, alice, 'NOVA')).widgets[0]).toMatchObject(chart);
     const code = async (p: Promise<unknown>) => { const e = await p.then(() => null, (x: unknown) => x); return e instanceof DomainError ? `${e.code} ${e.details.join(' ')}` : 'autre'; };
     expect(await code(dash.put(org, { widgets: [{ id: 'c3', kind: 'chart', query: '', form: 'bars' }] }, alice, 'NOVA'))).toMatch(/validation.*exige/);
     expect(await code(dash.put(org, { widgets: [{ id: 'c4', kind: 'chart', query: 'status =', field: 'status', form: 'bars' }] }, alice, 'NOVA'))).toMatch(/validation/);
@@ -107,5 +109,40 @@ suite('tableau de bord personnel (intégration)', () => {
     expect(await code(dash.put(org, { widgets: [{ id: 'a', kind: 'search', query: 'status =' }] }, alice))).toMatch(/^validation/);
     expect(await code(dash.put(org, { widgets: [{ id: 'a', kind: 'mentions', query: 'x = 1' }] }, alice))).toMatch(/^validation/);
     expect((await dash.get(org, alice)).isDefault).toBe(true);
+  });
+});
+
+// T-0169 : grille 2D, conversion S/M/L/XL → colonnes, refus des chevauchements et des bornes.
+describe('disposition 2D (T-0169)', () => {
+  const w = (id: string, extra: Partial<Widget> = {}): Widget => ({ id, kind: 'mentions', ...extra });
+  const rejected = (f: () => void) => { try { f(); return null; } catch (e) { return e instanceof DomainError ? e.code : 'autre'; } };
+
+  it('convertit les tailles en colonnes sans perte, dans l’ordre, à la première place libre', () => {
+    const grid = toGrid([w('a', { size: 'S' }), w('b', { size: 'S' }), w('c', { size: 'S' }), w('d', { size: 'M' }), w('e', { size: 'XL' }), w('f')]);
+    expect(grid.map((g) => [g.id, g.x, g.y, g.w, g.size])).toEqual([
+      ['a', 0, 0, 4, 'S'], ['b', 4, 0, 4, 'S'], ['c', 8, 0, 4, 'S'], ['d', 0, 3, 6, 'M'], ['e', 0, 6, 12, 'XL'], ['f', 6, 3, 6, 'M'],
+    ]);
+    expect(grid.every((g) => g.h === 3)).toBe(true);
+    expect(toGrid(grid)).toEqual(grid); // idempotente : relire une disposition convertie ne la change pas
+  });
+
+  it('un ancien client lit encore `size` sur une disposition convertie', () => {
+    expect(toGrid([w('a', { size: 'L' })])[0]!.size).toBe('L');
+    expect(toGrid([w('a', { x: 0, y: 0, w: 5, h: 2 })])[0]!.size).toBe('M');
+  });
+
+  it('refuse chevauchement et dépassement de la grille (validation)', () => {
+    expect(rejected(() => checkGrid(toGrid([w('a', { x: 0, y: 0, w: 6, h: 3 }), w('b', { x: 5, y: 2, w: 4, h: 2 })])))).toBe('validation');
+    expect(rejected(() => checkGrid(toGrid([w('a', { x: 8, y: 0, w: 6, h: 3 })])))).toBe('validation');
+    expect(rejected(() => checkGrid(toGrid([w('a', { x: 0, y: 0, w: 6, h: 3 }), w('b', { x: 6, y: 0, w: 6, h: 3 }), w('c', { x: 0, y: 3, w: 12, h: 2 })])))).toBeNull();
+  });
+
+  it('borne les valeurs du schéma et accepte plusieurs exemplaires d’un genre', () => {
+    expect(WidgetSchema.safeParse(w('a', { x: 12 })).success).toBe(false);
+    expect(WidgetSchema.safeParse(w('a', { w: 13 })).success).toBe(false);
+    expect(WidgetSchema.safeParse(w('a', { h: 0 })).success).toBe(false);
+    expect(WidgetSchema.safeParse(w('a', { project: 'nova' })).success).toBe(false);
+    expect(WidgetSchema.safeParse(w('a', { project: 'NOVA', period: '30d' })).success).toBe(true);
+    expect(rejected(() => checkGrid(toGrid([w('a', { project: 'NOVA' }), w('b', { project: 'LUMEN' })])))).toBeNull();
   });
 });

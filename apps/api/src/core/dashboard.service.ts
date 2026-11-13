@@ -11,6 +11,13 @@ export const WIDGET_KINDS = ['search', 'mentions', 'approvals', 'favorites', 're
   'chart'] as const;
 const PROJECT_KINDS = new Set<string>(['chart', 'trackers', 'indicators', 'flow', 'velocity', 'release', 'tracker-status', 'activity']);
 
+export const GRID_COLUMNS = 12;
+export const MAX_ROWS = 8;
+export const MAX_WIDGETS = 24;
+/** Largeur en colonnes des tailles S, M, L, XL (ADR-0005) et hauteur par défaut en lignes. */
+export const SIZE_COLUMNS = { S: 4, M: 6, L: 8, XL: 12 } as const;
+export const DEFAULT_ROWS = 3;
+
 export const WidgetSchema = z.object({
   id: z.string().regex(/^[a-z0-9][a-z0-9-]{0,39}$/),
   kind: z.enum(WIDGET_KINDS),
@@ -24,8 +31,16 @@ export const WidgetSchema = z.object({
   /** `chart` seulement (T-0156) : champ de répartition et forme du graphique. */
   field: z.string().regex(/^[a-z][a-z0-9_]{0,39}$/).optional(),
   form: z.enum(['donut', 'bars', 'count']).optional(),
+  /** Position et taille sur la grille 2D (ADR-0007, T-0169) : colonnes 0 à 11, lignes de 88 px. Absentes : placées à la lecture. */
+  x: z.number().int().min(0).max(11).optional(),
+  y: z.number().int().min(0).max(200).optional(),
+  w: z.number().int().min(1).max(GRID_COLUMNS).optional(),
+  h: z.number().int().min(1).max(MAX_ROWS).optional(),
+  /** Projet unique d'un exemplaire (clé) et période d'analyse ; plusieurs exemplaires d'un même genre sont permis. */
+  project: z.string().regex(/^[A-Z][A-Z0-9]{1,9}$/).optional(),
+  period: z.enum(['7d', '30d', 'sprint']).optional(),
 });
-export const LayoutInput = z.object({ widgets: z.array(WidgetSchema).max(24) });
+export const LayoutInput = z.object({ widgets: z.array(WidgetSchema).max(MAX_WIDGETS) });
 export type Widget = z.infer<typeof WidgetSchema>;
 
 /** Disposition initiale : Mes tickets, À approuver, Mentions, Échéances de la semaine, Projets favoris, Récents. */
@@ -89,13 +104,50 @@ export const homeWidgetsFor = (roles: readonly string[]): Widget[] => {
 };
 const defaultsFor = (scope: string, roles: readonly string[] = []): Widget[] => (scope.endsWith(':avancement') ? defaultProgressWidgets(scope.split(':')[0]!) : scope ? defaultProjectWidgets(scope) : homeWidgetsFor(roles));
 
+const overlaps = (a: Required<Pick<Widget, 'x' | 'y' | 'w' | 'h'>>, b: Required<Pick<Widget, 'x' | 'y' | 'w' | 'h'>>) =>
+  a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+type Box = Required<Pick<Widget, 'x' | 'y' | 'w' | 'h'>>;
+
+/** Taille S/M/L/XL la plus proche d'une largeur, pour les clients qui ne lisent que `size`. */
+const sizeOfWidth = (w: number): 'S' | 'M' | 'L' | 'XL' => (w <= 4 ? 'S' : w <= 6 ? 'M' : w <= 8 ? 'L' : 'XL');
+
+/**
+ * Conversion vers la grille 2D (T-0169), sans perte : les cartes sans position sont posées dans l'ordre, de gauche à droite puis
+ * de haut en bas, à la première place libre ; la largeur vient de `size` (sinon M, ou XL pour un genre large). Les positions
+ * déjà présentes sont conservées. `size` est maintenu pour qu'un ancien client lise encore la disposition.
+ */
+export function toGrid(widgets: readonly Widget[]): Widget[] {
+  const placed: Box[] = widgets.filter((w) => w.x !== undefined && w.y !== undefined).map((w) => ({ x: w.x!, y: w.y!, w: w.w ?? SIZE_COLUMNS[w.size ?? 'M'], h: w.h ?? DEFAULT_ROWS }));
+  return widgets.map((widget) => {
+    let box: Box;
+    if (widget.x !== undefined && widget.y !== undefined) box = { x: widget.x, y: widget.y, w: widget.w ?? SIZE_COLUMNS[widget.size ?? 'M'], h: widget.h ?? DEFAULT_ROWS };
+    else {
+      const w = widget.w ?? SIZE_COLUMNS[widget.size ?? (widget.kind === 'indicators' ? 'XL' : 'M')];
+      const h = widget.h ?? DEFAULT_ROWS;
+      box = { x: 0, y: 0, w, h };
+      search: for (let y = 0; ; y++) for (let x = 0; x + w <= GRID_COLUMNS; x++) {
+        box = { x, y, w, h };
+        if (!placed.some((p) => overlaps(p, box))) { placed.push(box); break search; }
+      }
+    }
+    return { ...widget, ...box, size: sizeOfWidth(box.w) };
+  });
+}
+
+/** Refuse les cartes hors grille et les chevauchements (422). */
+export function checkGrid(widgets: readonly Widget[]): void {
+  const boxes = widgets.map((w) => ({ id: w.id, x: w.x ?? 0, y: w.y ?? 0, w: w.w ?? 1, h: w.h ?? 1 }));
+  for (const b of boxes) if (b.x + b.w > GRID_COLUMNS) throw validation([`${b.id} : la carte dépasse la grille de ${GRID_COLUMNS} colonnes`]);
+  for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) if (overlaps(boxes[i]!, boxes[j]!)) throw validation([`${boxes[i]!.id} et ${boxes[j]!.id} se chevauchent`]);
+}
+
 /** Tableau de bord personnel configurable (T-0122) : disposition par personne, défaut sans réglage, réinitialisation. */
 export class DashboardService {
   constructor(private readonly db: Db) {}
 
   async get(organizationId: string, actor: Actor, scope = ''): Promise<{ widgets: Widget[]; isDefault: boolean }> {
     const row = await this.db.tx(organizationId, async (c) => (await c.query('select widgets from dashboard_layout where owner = $1 and scope = $2', [actor.id, scope])).rows[0]);
-    return row ? { widgets: row.widgets as Widget[], isDefault: false } : { widgets: defaultsFor(scope, actor.roles), isDefault: true };
+    return row ? { widgets: toGrid(row.widgets as Widget[]), isDefault: false } : { widgets: toGrid(defaultsFor(scope, actor.roles)), isDefault: true };
   }
 
   async put(organizationId: string, input: z.infer<typeof LayoutInput>, actor: Actor, scope = ''): Promise<{ widgets: Widget[]; isDefault: boolean }> {
@@ -113,12 +165,14 @@ export class DashboardService {
       } else if (w.query !== undefined) throw validation([`${w.id} : query ne concerne que les widgets de recherche`]);
       else if (w.projects !== undefined && !PROJECT_KINDS.has(w.kind)) throw validation([`${w.id} : projects ne concerne que les widgets de recherche, de trackers et d'avancement`]);
     }
+    const stored = toGrid(input.widgets);
+    checkGrid(stored);
     await this.db.tx(organizationId, (c) => c.query(
       `insert into dashboard_layout (organization_id, owner, scope, widgets) values ($1,$2,$3,$4)
        on conflict (organization_id, owner, scope) do update set widgets = excluded.widgets, updated_at = now()`,
-      [organizationId, actor.id, scope, JSON.stringify(input.widgets)],
+      [organizationId, actor.id, scope, JSON.stringify(stored)],
     ));
-    return { widgets: input.widgets, isDefault: false };
+    return { widgets: stored, isDefault: false };
   }
 
   /** Revient à la disposition par défaut. */
