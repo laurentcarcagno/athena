@@ -40,6 +40,8 @@ function setup() {
 describe('Gantt éditable', () => {
   it('la durée du tableau se modifie à la validation et signale la nouvelle valeur', async () => {
     const { edit } = setup();
+    expect(screen.getByRole('button', { name: 'Modifier la durée de N-1 (2 j)' })).toHaveTextContent('2 j');
+    await userEvent.click(screen.getByRole('button', { name: 'Modifier la durée de N-1 (2 j)' }));
     const input = screen.getByLabelText('Durée de N-1 en jours ouvrés');
     expect(input).toHaveValue(2);
     await userEvent.clear(input);
@@ -50,11 +52,12 @@ describe('Gantt éditable', () => {
 
   it('refuse une durée invalide ou inchangée en rétablissant la valeur', async () => {
     const { edit } = setup();
+    await userEvent.click(screen.getByRole('button', { name: 'Modifier la durée de N-1 (2 j)' }));
     const input = screen.getByLabelText('Durée de N-1 en jours ouvrés');
     await userEvent.clear(input);
     await userEvent.type(input, '0{Enter}');
     expect(edit.onChange).not.toHaveBeenCalled();
-    expect(input).toHaveValue(2);
+    expect(screen.getByRole('button', { name: 'Modifier la durée de N-1 (2 j)' })).toHaveTextContent('2 j'); // champ refermé, valeur inchangée
   });
 
   it('flèches : décale le début d’un jour ouvré (week-end et férié sautés) ; Maj + flèches change la fin', () => {
@@ -115,7 +118,8 @@ describe('Gantt éditable', () => {
 
   it('« Lier à… » : choix de la tâche et du décalage, équivalent clavier du glisser de lien', async () => {
     const { edit } = setup();
-    await userEvent.click(screen.getByRole('button', { name: 'Lier N-2 à…' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Réalisation' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Lier à…' }));
     const dialog = screen.getByRole('dialog');
     await userEvent.selectOptions(within(dialog).getByRole('combobox'), 'N-3');
     const lag = within(dialog).getByLabelText('Décalage (jours ouvrés)');
@@ -188,6 +192,7 @@ describe('PlanningPage : édition', () => {
 
   it('le chef de projet change une durée : PATCH, replanification annoncée, planning rechargé', async () => {
     open(manager);
+    await userEvent.click(await screen.findByRole('button', { name: 'Modifier la durée de N-1 (2 j)' }));
     const input = await screen.findByLabelText('Durée de N-1 en jours ouvrés');
     await userEvent.clear(input);
     await userEvent.type(input, '4{Enter}');
@@ -199,7 +204,8 @@ describe('PlanningPage : édition', () => {
 
   it('lier crée le lien « précède » puis replanifie, et annonce les tickets déplacés', async () => {
     open(manager);
-    await userEvent.click(await screen.findByRole('button', { name: 'Lier N-2 à…' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Réalisation' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Lier à…' }));
     await userEvent.selectOptions(within(screen.getByRole('dialog')).getByRole('combobox'), 'N-3');
     await userEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Lier' }));
     await waitFor(() => expect(calls).toHaveLength(2));
@@ -210,7 +216,8 @@ describe('PlanningPage : édition', () => {
 
   it('changer le décalage d’un lien appelle la route de décalage puis annonce la replanification', async () => {
     open(manager);
-    await userEvent.click(await screen.findByRole('button', { name: 'Lier N-1 à…' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Conception' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Lier à…' }));
     const input = within(screen.getByRole('dialog')).getByLabelText(/Décalage du lien en jours ouvrés/);
     await userEvent.clear(input);
     await userEvent.type(input, '4{Enter}');
@@ -220,7 +227,8 @@ describe('PlanningPage : édition', () => {
 
   it('retirer un lien appelle la suppression du lien', async () => {
     open(manager);
-    await userEvent.click(await screen.findByRole('button', { name: 'Lier N-1 à…' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Conception' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Lier à…' }));
     await userEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: /Retirer le lien/ }));
     await waitFor(() => expect(calls).toEqual([{ method: 'DELETE', url: '/v1/projects/NOVA/links/l1', body: undefined }]));
   });

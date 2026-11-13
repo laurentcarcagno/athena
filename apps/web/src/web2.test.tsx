@@ -153,7 +153,7 @@ describe('éditeur de tracker', () => {
     wrap('/p/ARI/trackers/BUG/config', <TrackerConfigPage session={simple} />, '/p/:project/trackers/:tracker/config');
     await screen.findByRole('heading', { level: 1 });
     expect(screen.queryByRole('button', { name: 'Ajouter' })).not.toBeInTheDocument();
-    expect(screen.getByText('Réservé aux administrateurs.')).toBeInTheDocument();
+    expect(screen.getByText('Réservé aux administrateurs et aux chefs du projet.')).toBeInTheDocument();
   });
 });
 

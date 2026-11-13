@@ -27,12 +27,18 @@ interface Mention { id: string; project: string; key: string; actorName: string;
 interface ApprovalRow { project: string; type: string; ref: string }
 interface AwaitingItem { project: string; key: string; tracker: string; step: string }
 
-/** Widgets par défaut, dans l'ordre de la disposition initiale (miroir de l'API) : sert à les réajouter après un retrait. */
+/** Toutes les cartes de l'accueil que chaque rôle peut avoir (l'API en choisit selon le rôle) : sert à les réajouter après un retrait. */
 const HOME_WIDGETS: Widget[] = [
   { id: 'assigned', kind: 'search', query: 'assignee = currentUser() AND category != done' },
+  { id: 'mylate', kind: 'search', query: 'assignee = currentUser() AND late()' },
+  { id: 'late', kind: 'search', query: 'late() ORDER BY dueDate' },
+  { id: 'critical', kind: 'search', query: 'critical() AND category != done ORDER BY startDate' },
+  { id: 'risks', kind: 'search', query: 'type = risk AND category != done ORDER BY criticality DESC' },
   { id: 'approvals', kind: 'approvals' },
   { id: 'mentions', kind: 'mentions' },
   { id: 'due', kind: 'search', query: 'assignee = currentUser() AND category != done AND due <= daysFromNow(7)' },
+  { id: 'ncr', kind: 'search', query: 'type = nonconformity AND category != done' },
+  { id: 'rid', kind: 'search', query: 'type = action AND category != done' },
   { id: 'favorites', kind: 'favorites' },
   { id: 'recents', kind: 'recents' },
 ];

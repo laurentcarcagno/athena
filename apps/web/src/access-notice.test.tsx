@@ -22,10 +22,10 @@ const at = (path: string, element: JSX.Element, pattern: string) => render(
   <ToastProvider><MemoryRouter initialEntries={[path]}><Routes><Route path={pattern} element={element} /><Route path="*" element={<p>autre page</p>} /></Routes></MemoryRouter></ToastProvider>,
 );
 
-it('chef de projet sur la configuration d’un tracker : la section est dite réservée aux administrateurs, avec un retour', () => {
-  at('/p/SAT1/parametres/trackers/BUG', <SettingsPage session={as('athena-user', 'athena-pm')} />, '/p/:project/parametres/:section/:tracker');
-  expect(screen.getByRole('heading', { name: 'La section Trackers est réservée aux administrateurs.' })).toBeTruthy();
-  expect(screen.getByRole('link', { name: 'Retour aux paramètres' }).getAttribute('href')).toBe('/p/SAT1/parametres/membres');
+it('assurance produit sur la configuration d’un tracker : la section est dite réservée aux administrateurs et aux chefs de projet, avec un retour', () => {
+  at('/p/SAT1/parametres/trackers/BUG', <SettingsPage session={as('athena-qa')} />, '/p/:project/parametres/:section/:tracker');
+  expect(screen.getByRole('heading', { name: 'La section Trackers est réservée aux administrateurs et aux chefs de projet.' })).toBeTruthy();
+  expect(screen.getByRole('link', { name: 'Retour aux paramètres' }).getAttribute('href')).toBe('/p/SAT1/parametres/approbations'); // la première section ouverte à ce rôle
   expect(screen.queryByText('autre page')).toBeNull();
 });
 
@@ -41,9 +41,9 @@ it('rapport dont le module est inactif : message, et non l’Avancement à sa pl
   expect(screen.getByRole('link', { name: 'Retour aux rapports' }).getAttribute('href')).toBe('/p/SAT1/rapports/avancement');
 });
 
-it('ajout de tracker sans être administrateur : qui peut le faire et retour aux trackers', () => {
-  at('/p/SAT1/trackers/new', <TrackerCreatePage session={as('athena-user', 'athena-pm')} />, '/p/:project/trackers/new');
-  expect(screen.getByRole('heading', { name: 'Seul un administrateur peut ajouter un tracker.' })).toBeTruthy();
+it('ajout de tracker sans être administrateur ni chef de projet : qui peut le faire et retour aux trackers', () => {
+  at('/p/SAT1/trackers/new', <TrackerCreatePage session={as('athena-user')} />, '/p/:project/trackers/new');
+  expect(screen.getByRole('heading', { name: 'Seuls un administrateur ou un chef de projet peuvent ajouter un tracker.' })).toBeTruthy();
   expect(screen.getByText(/Décrivez votre besoin à un administrateur/)).toBeTruthy();
   expect(screen.getByRole('link', { name: 'Retour aux trackers' }).getAttribute('href')).toBe('/p/SAT1/trackers');
 });

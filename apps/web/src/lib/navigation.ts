@@ -38,7 +38,7 @@ export const PROJECT_SECTIONS: readonly ProjectSection[] = [
   { id: 'settings', path: 'parametres', gated: false, access: { kind: 'roles', roles: ['athena-admin', 'athena-pm', 'athena-qa'] } },
 ];
 
-export type ReportId = 'avancement' | 'tracabilite' | 'conformite' | 'livraison' | 'activite';
+export type ReportId = 'avancement' | 'tracabilite' | 'conformite' | 'livraison' | 'activite' | 'risques';
 
 /** Rapports du projet (ADR-0003 § 2) : `/p/:p/rapports/:r`, dans cet ordre. `module` : le rapport n'existe que si le serveur déclare ce module actif. */
 export const REPORTS: ReadonlyArray<{ id: ReportId; module: ModuleId | null }> = [
@@ -47,9 +47,12 @@ export const REPORTS: ReadonlyArray<{ id: ReportId; module: ModuleId | null }> =
   { id: 'conformite', module: 'conformity' },
   { id: 'livraison', module: 'code' },
   { id: 'activite', module: 'activity' },
+  // Risques : seulement si le projet a un tracker de type « risque » (voir `visibleReports`).
+  { id: 'risques', module: null },
 ];
 /** Rapports affichés ; `modules` vaut null tant que la liste n'est pas connue : tous restent alors visibles. */
-export const visibleReports = (modules: readonly string[] | null) => REPORTS.filter((r) => r.module === null || modules === null || modules.includes(r.module));
+export const visibleReports = (modules: readonly string[] | null, hasRisks = false) =>
+  REPORTS.filter((r) => (r.id === 'risques' ? hasRisks : r.module === null || modules === null || modules.includes(r.module)));
 
 export type SettingsId = 'membres' | 'trackers' | 'boards' | 'automatisations' | 'baselines' | 'approbations';
 const ADMIN: Access = { kind: 'roles', roles: ['athena-admin'] };

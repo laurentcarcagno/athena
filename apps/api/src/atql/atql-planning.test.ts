@@ -111,6 +111,14 @@ suite('ATQL du planning (intégration)', () => {
     expect(ordered).toEqual([keys['future'], keys['crit2'], keys['crit1'], keys['past'], keys['pastDone']]);
   });
 
+  it('type : le type du tracker, quel que soit son nom', async () => {
+    expect(await hits('type = task')).toEqual([keys['past'], keys['pastDone'], keys['future'], keys['nodate'], keys['crit1'], keys['crit2'], keys['bug']].sort()); // les deux trackers du test sont de type task
+    expect(await hits('type = bug')).toEqual([]);
+    const lateTasks = await hits('type = task AND late()');
+    expect(lateTasks).toContain(keys['past']);
+    expect(lateTasks).not.toContain(keys['future']); // l’échéance de 2999 n’est jamais en retard
+  });
+
   it('dueDate se comporte comme startDate', async () => {
     expect(await hits('dueDate = "2999-01-08"')).toEqual([keys['future']]);
     expect(await hits('dueDate <= "2020-12-31" AND category != done')).toEqual([keys['past']]);

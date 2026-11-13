@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Btn, Id, Modal, Select, Tag } from '@athena/ui';
+import { Btn, Id, Modal, Select, Tag, Textarea } from '@athena/ui';
 import { fr, getLocale } from '../i18n';
 import { formatDay } from '../lib/dates';
 import { fromHere } from '../lib/origin';
@@ -19,6 +19,8 @@ export interface GanttEdit {
   onUnlink: (id: string) => void;
   onLag: (id: string, lag: number) => void;
 }
+/** Demande de décalage d'un utilisateur : envoyée au chef de projet (commentaire du ticket qui le mentionne). */
+export interface ShiftRequest { onSubmit: (key: string, ask: { end: string | null; reason: string }) => void }
 interface Drag { key: string; mode: 'move' | 'resize' | 'link'; x0: number; y0: number; dx: number; dy: number }
 
 /** Retrait d'une ligne du tableau : une classe par niveau (aucune mise en forme en ligne, CSP). */
@@ -37,7 +39,7 @@ function summarize(task: ScheduleTask): string {
  * du jour, jours non ouvrés grisés et liens fin → début. Au-delà de 80 lignes, seules les lignes visibles sont dessinées.
  * Le rayon des barres est celui du thème (jeton) ; tout est en attributs SVG ou en classes : aucun style en ligne.
  */
-export function ScheduleGantt({ project, data, calendar, today = new Date(), edit, critical = false }: { project: string; data: ScheduleData; calendar: CalendarData | null; today?: Date; edit?: GanttEdit; critical?: boolean }) {
+export function ScheduleGantt({ project, data, calendar, today = new Date(), edit, request, critical = false }: { project: string; data: ScheduleData; calendar: CalendarData | null; today?: Date; edit?: GanttEdit; request?: ShiftRequest; critical?: boolean }) {
   const location = useLocation();
   const body = useRef<HTMLDivElement>(null);
   const [scroll, setScroll] = useState({ top: 0, height: 600 });
@@ -49,11 +51,13 @@ export function ScheduleGantt({ project, data, calendar, today = new Date(), edi
   const keys = rows.map((r) => r.task.key);
   const total = rows.length * ROW_HEIGHT;
   const baseline = data.baseline ?? null;
-  const cols = 6 + (edit ? 1 : 0) + (baseline ? 1 : 0);
+  const cols = 6 + (baseline ? 1 : 0);
   const svgRef = useRef<SVGSVGElement>(null);
   const [drag, setDrag] = useState<Drag | null>(null);
   const dragRef = useRef<Drag | null>(null);
   const [linking, setLinking] = useState<string | null>(null);
+  const [asking, setAsking] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string | null>(null);
   const isWorking = workingPredicate(calendar);
   const latest = useRef({ edit, data, rows, isWorking });
   latest.current = { edit, data, rows, isWorking };
@@ -95,6 +99,7 @@ export function ScheduleGantt({ project, data, calendar, today = new Date(), edi
     if (!edit || event.button !== 0) return;
     event.preventDefault();
     event.stopPropagation();
+    setSelected(task.key);
     dragRef.current = { key: task.key, mode, x0: event.clientX, y0: event.clientY, dx: 0, dy: 0 };
     setDrag(dragRef.current);
   };
@@ -133,7 +138,7 @@ export function ScheduleGantt({ project, data, calendar, today = new Date(), edi
       const shift = drag?.key === task.key && drag.mode === 'move' ? Math.round(drag.dx / DAY_WIDTH) * DAY_WIDTH : 0;
       return (
         <g key={task.key} className={`ath-gantt-milestone${edit ? ' ath-gantt-editable' : ''}${critical && task.critical ? ' ath-gantt-critical' : ''}`} transform={shift ? `translate(${shift},0)` : undefined}
-          {...(edit ? { tabIndex: 0, role: 'button', 'aria-label': `${summarize(task)}. ${t.edit.hint}`, onKeyDown: (e: ReactKeyboardEvent) => onBarKey(e, task), onPointerDown: (e: ReactPointerEvent) => begin(e, task, 'move') } : {})}>
+          {...(edit ? { tabIndex: 0, role: 'button', 'aria-label': `${summarize(task)}. ${t.edit.hint}`, onFocus: () => setSelected(task.key), onKeyDown: (e: ReactKeyboardEvent) => onBarKey(e, task), onPointerDown: (e: ReactPointerEvent) => begin(e, task, 'move') } : {})}>
           <title>{summarize(task)}</title>
           <polygon points={`${cx},${cy - r} ${cx + r},${cy} ${cx},${cy + r} ${cx - r},${cy}`} />
           {edit && <circle className="ath-gantt-handle" cx={cx + r + 8} cy={cy} r="4" onPointerDown={(e) => begin(e, task, 'link')}><title>{t.edit.linkHandle(task.key)}</title></circle>}
@@ -153,7 +158,7 @@ export function ScheduleGantt({ project, data, calendar, today = new Date(), edi
     const className = `${task.summary ? 'ath-gantt-summary' : 'ath-gantt-task'}${editable ? ' ath-gantt-editable' : ''}${critical && task.critical ? ' ath-gantt-critical' : ''}`;
     return (
       <g key={task.key} className={className} transform={moving ? `translate(${moving},0)` : undefined}
-        {...(editable ? { tabIndex: 0, role: 'button', 'aria-label': `${summarize(task)}. ${t.edit.hint}`, onKeyDown: (e: ReactKeyboardEvent) => onBarKey(e, task), onPointerDown: (e: ReactPointerEvent) => begin(e, task, 'move') } : {})}>
+        {...(editable ? { tabIndex: 0, role: 'button', 'aria-label': `${summarize(task)}. ${t.edit.hint}`, onFocus: () => setSelected(task.key), onKeyDown: (e: ReactKeyboardEvent) => onBarKey(e, task), onPointerDown: (e: ReactPointerEvent) => begin(e, task, 'move') } : {})}>
         <title>{summarize(task)}</title>
         <rect className="ath-gantt-bar" x={x1} y={top} width={w} height={height} />
         {done > 0 && <rect className="ath-gantt-done" x={x1} y={top} width={(w * done) / 100} height={height} />}
@@ -222,27 +227,41 @@ export function ScheduleGantt({ project, data, calendar, today = new Date(), edi
     return a !== undefined && b !== undefined && ((a >= from && a < to) || (b >= from && b < to));
   });
 
+  const pickable = Boolean(edit || request);
+  const picked = selected ? data.tasks.find((x) => x.key === selected) ?? null : null;
   return (
+    <div className="ath-stack">
+      {pickable && (
+        <div className="ath-toolbar" role="toolbar" aria-label={t.edit.selectedActions}>
+          {picked ? (
+            <>
+              <strong className="ath-mono">{picked.key}</strong>
+              <span>{picked.title === picked.key ? '' : picked.title}</span>
+              {edit && <Btn size="sm" variant="ghost" onClick={() => setLinking(picked.key)}>{t.edit.linkTo}</Btn>}
+              {request && !edit && !picked.summary && <Btn size="sm" variant="ghost" onClick={() => setAsking(picked.key)}>{t.edit.askShift}</Btn>}
+            </>
+          ) : <span>{t.edit.selectHint(Boolean(edit))}</span>}
+        </div>
+      )}
     <div className="ath-gantt-wrap" ref={body} onScroll={onScroll} data-rows={rows.length}>
       <table className="ath-gantt-table">
         <caption className="ath-visually-hidden">{t.tableCaption}</caption>
         <thead>
-          <tr><th scope="col">{t.key}</th><th scope="col">{t.titleCol}</th><th scope="col">{t.start}</th><th scope="col">{t.end}</th><th scope="col">{t.duration}</th><th scope="col">{t.progressCol}</th>{baseline && <th scope="col">{t.baseline.gap}</th>}{edit && <th scope="col">{t.edit.actions}</th>}</tr>
+          <tr><th scope="col">{t.key}</th><th scope="col">{t.titleCol}</th><th scope="col">{t.start}</th><th scope="col">{t.end}</th><th scope="col">{t.duration}</th><th scope="col">{t.progressCol}</th>{baseline && <th scope="col">{t.baseline.gap}</th>}</tr>
         </thead>
         <tbody>
           {from > 0 && <tr aria-hidden="true"><td colSpan={cols}><svg width="1" height={from * ROW_HEIGHT} /></td></tr>}
           {shown.map(({ task, depth }, k) => (
-            <tr key={task.key} aria-rowindex={from + k + 2} className={task.summary ? 'ath-gantt-row--summary' : undefined}>
+            <tr key={task.key} aria-rowindex={from + k + 2} aria-selected={pickable && selected === task.key ? true : undefined} className={`${task.summary ? 'ath-gantt-row--summary' : ''}${selected === task.key ? ' ath-row-active' : ''}`.trim() || undefined}>
               <td><Link className="ath-link ath-mono" to={`/p/${project}/a/${task.key}`} state={fromHere(location, t.title, keys)}>{task.key}</Link></td>
-              <td className={indent(depth)}>{task.title === task.key ? '' : task.title}{critical && task.critical && <> <Tag variant="solid">{t.critical.tag}</Tag></>}</td>
+              <td className={indent(depth)}>{pickable && !task.summary ? <button type="button" className="ath-gantt-pick" aria-pressed={selected === task.key} onClick={() => setSelected(task.key)}>{task.title === task.key ? t.none : task.title}</button> : (task.title === task.key ? '' : task.title)}{critical && task.critical && <> <Tag variant="solid">{t.critical.tag}</Tag></>}</td>
               <td>{task.milestone ? '' : task.plannedStart ? <time dateTime={task.plannedStart}>{formatDay(task.plannedStart)}</time> : t.none}</td>
               <td>{task.plannedEnd ? <time dateTime={task.plannedEnd}>{formatDay(task.plannedEnd)}</time> : t.none}</td>
               <td>{edit && task.scheduled && !task.milestone && !task.summary
-                ? <DurationInput task={task} onCommit={(duration) => edit.onChange(task.key, { duration })} />
+                ? <DurationCell task={task} onCommit={(duration) => edit.onChange(task.key, { duration })} />
                 : task.scheduled && !task.summary ? (task.milestone ? t.milestone : t.days(task.duration)) : t.none}</td>
               <td>{task.progress !== null ? <Id>{`${task.progress} %`}</Id> : t.none}</td>
               {baseline && <td>{task.variance === null || task.variance === undefined ? t.none : <span title={task.variance === 0 ? t.baseline.onTime : task.variance > 0 ? t.baseline.gapLate(task.variance) : t.baseline.gapEarly(-task.variance)}>{t.baseline.gapValue(task.variance)}</span>}</td>}
-              {edit && <td><Btn size="sm" variant="ghost" aria-label={t.edit.linkToNamed(task.key)} onClick={() => setLinking(task.key)}>{t.edit.linkTo}</Btn></td>}
             </tr>
           ))}
           {to < rows.length && <tr aria-hidden="true"><td colSpan={cols}><svg width="1" height={(rows.length - to) * ROW_HEIGHT} /></td></tr>}
@@ -270,21 +289,25 @@ export function ScheduleGantt({ project, data, calendar, today = new Date(), edi
           </svg>
         </div>
       )}
+    </div>
       {edit && linking && <LinkDialog task={data.tasks.find((x) => x.key === linking)!} data={data} edit={edit} onClose={() => setLinking(null)} />}
+      {request && asking && <ShiftDialog task={data.tasks.find((x) => x.key === asking)!} request={request} onClose={() => setAsking(null)} />}
     </div>
   );
 }
 
-/** Durée en jours ouvrés d'une tâche, modifiable dans le tableau : validée à la sortie du champ ou par Entrée. */
-function DurationInput({ task, onCommit }: { task: ScheduleTask; onCommit: (duration: number) => void }) {
+/** Durée en jours ouvrés d'une tâche : un bouton « 2 j » qui devient un champ au clic (Entrée ou sortie du champ valide, Échap annule). */
+function DurationCell({ task, onCommit }: { task: ScheduleTask; onCommit: (duration: number) => void }) {
+  const [editing, setEditing] = useState(false);
   const commit = (input: HTMLInputElement) => {
     const value = Number(input.value);
+    setEditing(false);
     if (Number.isInteger(value) && value >= 1 && value !== task.duration) onCommit(value);
-    else input.value = String(task.duration);
   };
+  if (!editing) return <button type="button" className="ath-gantt-pick" aria-label={t.edit.editDuration(task.key, task.duration)} onClick={() => setEditing(true)}>{t.days(task.duration)}</button>;
   return (
-    <input key={`${task.key}-${task.duration}`} className="ath-input ath-gantt-duration" type="number" min={1} max={2000} defaultValue={task.duration} aria-label={t.edit.durationOf(task.key)}
-      onBlur={(e) => commit(e.currentTarget)} onKeyDown={(e) => { if (e.key === 'Enter') commit(e.currentTarget); }} />
+    <input key={`${task.key}-${task.duration}`} className="ath-input ath-gantt-duration" type="number" min={1} max={2000} defaultValue={task.duration} aria-label={t.edit.durationOf(task.key)} autoFocus
+      onBlur={(e) => commit(e.currentTarget)} onKeyDown={(e) => { if (e.key === 'Enter') commit(e.currentTarget); if (e.key === 'Escape') setEditing(false); }} />
   );
 }
 
@@ -342,5 +365,33 @@ function LagInput({ link, label, onCommit }: { link: { lag: number }; label: str
   return (
     <input className="ath-input ath-mono ath-gantt-duration" type="number" min={-365} max={365} step={1} defaultValue={link.lag} aria-label={t.edit.lagOf(label)}
       onBlur={(e) => commit(e.currentTarget)} onKeyDown={(e) => { if (e.key === 'Enter') commit(e.currentTarget); }} />
+  );
+}
+
+/** « Demander un décalage » : fin souhaitée et motif ; la demande part en commentaire du ticket (mention du chef de projet). */
+function ShiftDialog({ task, request, onClose }: { task: ScheduleTask; request: ShiftRequest; onClose: () => void }) {
+  const [end, setEnd] = useState('');
+  const [reason, setReason] = useState('');
+  const submit = (event: FormEvent) => {
+    event.preventDefault();
+    if (!reason.trim()) return;
+    request.onSubmit(task.key, { end: end || null, reason: reason.trim() });
+    onClose();
+  };
+  return (
+    <Modal open title={t.edit.ask.title(task.key)} onClose={onClose} footer={<Btn variant="ghost" onClick={onClose}>{t.edit.cancel}</Btn>}>
+      <form className="ath-stack" onSubmit={submit} aria-label={t.edit.ask.title(task.key)}>
+        <p>{t.edit.ask.help}</p>
+        <label className="ath-field">
+          <span className="ath-field__label">{t.edit.ask.end}</span>
+          <input className="ath-input ath-mono" type="date" value={end} onChange={(e) => setEnd(e.target.value)} />
+        </label>
+        <label className="ath-field">
+          <span className="ath-field__label">{t.edit.ask.reason}</span>
+          <Textarea rows={3} value={reason} required maxLength={1500} onChange={(e) => setReason(e.target.value)} />
+        </label>
+        <div><Btn type="submit" disabled={!reason.trim()}>{t.edit.ask.send}</Btn></div>
+      </form>
+    </Modal>
   );
 }

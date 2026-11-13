@@ -10,6 +10,7 @@ import { CodeTab } from './project/CodeTab';
 import { ConformityTab } from './project/ConformityTab';
 import { TraceabilityTab } from './project/TraceabilityTab';
 import { DashboardPage } from './DashboardPage';
+import { RisksTab } from './project/RisksTab';
 
 /**
  * Rapports du projet `/p/:p/rapports/:r` (ADR-0003, T-0121) : Avancement, Traçabilité, Conformité, Livraison, Activité.
@@ -18,12 +19,15 @@ import { DashboardPage } from './DashboardPage';
 export function ReportsPage({ session }: { session: Session }) {
   const { project = '', report } = useParams();
   const [modules, setModules] = useState<string[] | null | undefined>(undefined);
+  const [hasRisks, setHasRisks] = useState<boolean | undefined>(undefined);
   useEffect(() => {
     setModules(undefined);
+    setHasRisks(undefined);
+    api<Array<{ typeKey?: string | null }>>('GET', `/v1/projects/${project}/trackers`).then((r) => setHasRisks(Array.isArray(r) && r.some((x) => x.typeKey === 'risk'))).catch(() => setHasRisks(false));
     api<{ modules: string[] }>('GET', `/v1/projects/${project}/modules`).then((r) => setModules(Array.isArray(r.modules) ? r.modules : null)).catch(() => setModules(null));
   }, [project]);
-  if (modules === undefined) return <p role="status">{fr.loading}</p>;
-  const reports = visibleReports(modules);
+  if (modules === undefined || hasRisks === undefined) return <p role="status">{fr.loading}</p>;
+  const reports = visibleReports(modules, hasRisks);
   const current = reports.find((r) => r.id === report);
   // Rapport connu mais dont le module est inactif : message, pas de bascule silencieuse vers un autre rapport (T-0144).
   if (!current && REPORTS.some((r) => r.id === report)) return <><PageHeader title={fr.reports.names[report!]!} /><AccessNotice title={fr.denied.reportOff(fr.reports.names[report!]!)} help={fr.denied.reportOffHelp} back={{ to: `/p/${project}/rapports/${reports[0]!.id}`, label: fr.denied.backReports }} /></>;
@@ -37,6 +41,7 @@ export function ReportsPage({ session }: { session: Session }) {
     conformite: () => <ConformityTab session={session} tabs={tabs} />,
     livraison: () => <CodeTab tabs={tabs} />,
     activite: () => <ActivityTab tabs={tabs} />,
+    risques: () => <RisksTab tabs={tabs} />,
   };
   return bodies[current.id]();
 }

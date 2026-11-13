@@ -59,7 +59,35 @@ export const defaultProgressWidgets = (project: string): Widget[] => [
   { id: 'velocity', kind: 'velocity', projects: [project], size: 'M' },
   { id: 'activity', kind: 'activity', projects: [project], size: 'M' },
 ];
-const defaultsFor = (scope: string): Widget[] => (scope.endsWith(':avancement') ? defaultProgressWidgets(scope.split(':')[0]!) : scope ? defaultProjectWidgets(scope) : [...DEFAULT_WIDGETS]);
+/**
+ * Disposition initiale de l'accueil selon le rôle (audit des rôles) : un chef de projet voit d'abord les retards, le chemin critique
+ * et les risques ouverts ; un utilisateur ses tâches en retard ; l'assurance produit (lecture et visa) ses visas, mentions et
+ * écarts à suivre. Chacun peut ensuite réorganiser, retirer ou ajouter ces cartes.
+ */
+export const homeWidgetsFor = (roles: readonly string[]): Widget[] => {
+  const manager = roles.includes('athena-admin') || roles.includes('athena-pm');
+  const qaOnly = roles.includes('athena-qa') && !manager && !roles.includes('athena-user');
+  if (qaOnly) {
+    return [
+      { id: 'approvals', kind: 'approvals' }, { id: 'mentions', kind: 'mentions' },
+      { id: 'ncr', kind: 'search', query: 'type = nonconformity AND category != done' },
+      { id: 'rid', kind: 'search', query: 'type = action AND category != done' },
+      { id: 'favorites', kind: 'favorites' }, { id: 'recents', kind: 'recents' },
+    ];
+  }
+  const out = [...DEFAULT_WIDGETS];
+  const after = out.findIndex((w) => w.id === 'assigned') + 1;
+  const extra: Widget[] = manager
+    ? [
+      { id: 'late', kind: 'search', query: 'late() ORDER BY dueDate' },
+      { id: 'critical', kind: 'search', query: 'critical() AND category != done ORDER BY startDate' },
+      { id: 'risks', kind: 'search', query: 'type = risk AND category != done ORDER BY criticality DESC' },
+    ]
+    : [{ id: 'mylate', kind: 'search', query: 'assignee = currentUser() AND late()' }];
+  out.splice(after, 0, ...extra);
+  return out;
+};
+const defaultsFor = (scope: string, roles: readonly string[] = []): Widget[] => (scope.endsWith(':avancement') ? defaultProgressWidgets(scope.split(':')[0]!) : scope ? defaultProjectWidgets(scope) : homeWidgetsFor(roles));
 
 /** Tableau de bord personnel configurable (T-0122) : disposition par personne, défaut sans réglage, réinitialisation. */
 export class DashboardService {
@@ -67,7 +95,7 @@ export class DashboardService {
 
   async get(organizationId: string, actor: Actor, scope = ''): Promise<{ widgets: Widget[]; isDefault: boolean }> {
     const row = await this.db.tx(organizationId, async (c) => (await c.query('select widgets from dashboard_layout where owner = $1 and scope = $2', [actor.id, scope])).rows[0]);
-    return row ? { widgets: row.widgets as Widget[], isDefault: false } : { widgets: defaultsFor(scope), isDefault: true };
+    return row ? { widgets: row.widgets as Widget[], isDefault: false } : { widgets: defaultsFor(scope, actor.roles), isDefault: true };
   }
 
   async put(organizationId: string, input: z.infer<typeof LayoutInput>, actor: Actor, scope = ''): Promise<{ widgets: Widget[]; isDefault: boolean }> {

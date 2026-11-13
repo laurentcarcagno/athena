@@ -51,10 +51,10 @@ describe('F-13 et T-0120 : Paramètres du projet, sections selon le rôle', () =
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it('un chef de projet n’a ni Trackers ni Automatisations ; un administrateur a les six sections ; aucun objet global', async () => {
+  it('un chef de projet a les six sections (Trackers et Automatisations pour ses projets) ; aucun objet global', async () => {
     fetchMock.mockImplementation(async () => reply([]));
     const pm = mount(as(['athena-user', 'athena-pm']), '/p/ARI/parametres/membres');
-    expect(sections()).toEqual(['Membres', 'Boards', 'Baselines', 'Approbations']);
+    expect(sections()).toEqual(['Membres', 'Trackers', 'Boards', 'Automatisations', 'Baselines', 'Approbations']);
     pm.unmount();
     mount(as(['athena-admin']));
     expect(sections()).toEqual(['Membres', 'Trackers', 'Boards', 'Automatisations', 'Baselines', 'Approbations']);

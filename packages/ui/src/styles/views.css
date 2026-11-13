@@ -119,6 +119,10 @@
 /* Gantt éditable (ADR-0006, T-0163) : barres focalisables, poignées de fin et de lien, aperçu de glisser. */
 .ath-gantt-table .ath-gantt-duration { width: 64px; min-height: 24px; padding: 0 var(--ath-space-xs); }
 .ath-gantt-editable { cursor: grab; outline: none; }
+.ath-gantt-pick { display: inline; padding: 0; margin: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; text-decoration: underline dotted; text-underline-offset: 3px; }
+.ath-gantt-pick:hover { text-decoration-style: solid; }
+.ath-gantt-pick:focus-visible { outline: var(--ath-focus-ring-width, 2px) solid var(--ath-border-focus); outline-offset: 1px; }
+.ath-gantt-pick[aria-pressed="true"] { font-weight: var(--ath-font-weight-semibold); text-decoration-style: solid; }
 .ath-gantt-editable:focus-visible .ath-gantt-bar { stroke: var(--ath-border-focus); stroke-width: var(--ath-border-width-strong); }
 .ath-gantt-editable:focus-visible polygon { stroke: var(--ath-border-focus); stroke-width: var(--ath-border-width-strong); }
 .ath-gantt-resize { fill: var(--ath-border-focus); opacity: 0.35; cursor: ew-resize; }

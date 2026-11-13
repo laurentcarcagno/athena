@@ -3,7 +3,8 @@ import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { Btn, EmptyState, PageHeader, Select, Switch, TabLinks, useToast } from '@athena/ui';
 import { api, type Session } from '../api';
 import { PlanningBoard, PlanningList } from '../components/PlanningViews';
-import { ScheduleGantt, type GanttEdit } from '../components/ScheduleGantt';
+import { ScheduleGantt, type GanttEdit, type ShiftRequest } from '../components/ScheduleGantt';
+import { formatDay } from '../lib/dates';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
 import { PLANNING_FILTERS, filterSchedule, type BaselineChoice, type CalendarData, type PlanningFilter, type ScheduleData } from '../lib/schedule';
@@ -38,12 +39,12 @@ export function PlanningPage({ session }: { session: Session }) {
     <>
       <PageHeader title={t.title} />
       {tabs}
-      {view === 'versions' ? <RoadmapPage session={session} bare /> : <ScheduleViews project={project} view={view} canEdit={roles.some((r) => r === 'athena-admin' || r === 'athena-pm')} me={session.user?.id ?? session.user?.username ?? ''} />}
+      {view === 'versions' ? <RoadmapPage session={session} bare /> : <ScheduleViews project={project} view={view} canEdit={roles.some((r) => r === 'athena-admin' || r === 'athena-pm')} canRequest={roles.includes('athena-user') && !roles.some((r) => r === 'athena-admin' || r === 'athena-pm')} qaOnly={roles.includes('athena-qa') && !roles.includes('athena-user') && !roles.some((r) => r === 'athena-admin' || r === 'athena-pm')} me={session.user?.id ?? session.user?.username ?? ''} />}
     </>
   );
 }
 
-function ScheduleViews({ project, view, canEdit, me }: { project: string; view: Exclude<View, 'versions'>; canEdit: boolean; me: string }) {
+function ScheduleViews({ project, view, canEdit, canRequest, qaOnly, me }: { project: string; view: Exclude<View, 'versions'>; canEdit: boolean; canRequest: boolean; qaOnly: boolean; me: string }) {
   const fail = useFailure();
   const toast = useToast();
   const [data, setData] = useState<ScheduleData | null>(null);
@@ -94,6 +95,25 @@ function ScheduleViews({ project, view, canEdit, me }: { project: string; view: 
     };
   }, [canEdit, base, load, fail, toast]);
 
+  /** Demande de décalage : un commentaire du ticket qui mentionne les chefs du projet (ils sont notifiés). */
+  const request = useMemo<ShiftRequest | undefined>(() => {
+    if (!canRequest) return undefined;
+    return {
+      onSubmit: (key, ask) => void (async () => {
+        try {
+          const members = await api<Array<{ username: string; displayName: string; role: string }>>('GET', `${base}/members`).catch(() => []);
+          const managers = (Array.isArray(members) ? members : []).filter((m) => m.role === 'manager');
+          const title = data?.tasks.find((x) => x.key === key)?.title ?? key;
+          const text = t.edit.ask.text(key, title, ask.end ? formatDay(ask.end, true) : null, ask.reason);
+          await api('POST', `${base}/artifacts/${key}/comments`, { body: `${managers.map((m) => `@${m.username}`).join(' ')} ${text}`.trim() });
+          const message = t.edit.ask.sent(managers.map((m) => m.displayName).join(', '));
+          setAnnounce(message);
+          toast('success', message);
+        } catch (error) { fail(error); }
+      })(),
+    };
+  }, [canRequest, base, data, fail, toast]);
+
   if (data === null) return <p role="status">{fr.loading}</p>;
   if (!data.tasks.some((x) => x.scheduled)) return <EmptyState eyebrow={t.title} title={t.empty} action={<span>{t.emptyHelp}</span>} />;
   const today = new Date().toISOString().split('T')[0]!;
@@ -101,7 +121,7 @@ function ScheduleViews({ project, view, canEdit, me }: { project: string; view: 
   const filtered = q !== '' || f !== 'all';
   return (
     <div className="ath-stack">
-      {view === 'gantt' && <p className="ath-pageheader__sub">{t.legend}{canEdit ? '' : ` ${t.edit.readOnly}`}</p>}
+      {view === 'gantt' && <p className="ath-pageheader__sub">{t.legend}{canEdit ? '' : ` ${qaOnly ? t.edit.readOnlyQa : t.edit.readOnly}`}</p>}
       <div className="ath-toolbar" role="search" aria-label={t.filters.label}>
         <label className="ath-row">
           <span className="ath-field__label">{t.filters.search}</span>
@@ -134,7 +154,7 @@ function ScheduleViews({ project, view, canEdit, me }: { project: string; view: 
       {view === 'gantt' && data.baseline && <p className="ath-pageheader__sub">{t.baseline.note(data.baseline.name)}</p>}
       <p role="status" className="ath-visually-hidden">{announce}</p>
       {shown.tasks.length === 0 ? <EmptyState eyebrow={t.title} title={t.noMatch} /> : (
-        view === 'gantt' ? <ScheduleGantt project={project} data={shown} calendar={calendar} critical={critical} {...(edit ? { edit } : {})} />
+        view === 'gantt' ? <ScheduleGantt project={project} data={shown} calendar={calendar} critical={critical} {...(edit ? { edit } : {})} {...(request ? { request } : {})} />
           : view === 'board' ? <PlanningBoard project={project} data={shown} />
             : <PlanningList project={project} data={shown} />
       )}

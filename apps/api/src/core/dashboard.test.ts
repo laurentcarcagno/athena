@@ -28,11 +28,23 @@ suite('tableau de bord personnel (intégration)', () => {
   }, 30_000);
   afterAll(async () => { await testDb?.drop(); });
 
-  it('donne la disposition par défaut sans réglage, six widgets', async () => {
+  it('donne la disposition par défaut sans réglage : l’utilisateur voit en plus ses tâches en retard', async () => {
     const d = await dash.get(org, alice);
     expect(d.isDefault).toBe(true);
-    expect(d.widgets.map((w) => w.id)).toEqual(['assigned', 'approvals', 'mentions', 'due', 'favorites', 'recents']);
-    expect(d.widgets).toEqual([...DEFAULT_WIDGETS]);
+    expect(d.widgets.map((w) => w.id)).toEqual(['assigned', 'mylate', 'approvals', 'mentions', 'due', 'favorites', 'recents']);
+    expect(d.widgets.filter((w) => w.id !== 'mylate')).toEqual([...DEFAULT_WIDGETS]);
+    expect(d.widgets.find((w) => w.id === 'mylate')!.query).toBe('assignee = currentUser() AND late()');
+  });
+
+  it('selon le rôle : le chef de projet ouvre sur retards, chemin critique et risques ; l’assurance produit sur ses visas et écarts', async () => {
+    const pm = (await dash.get(org, { id: 'pm', roles: ['athena-pm', 'athena-user'] })).widgets;
+    expect(pm.map((w) => w.id)).toEqual(['assigned', 'late', 'critical', 'risks', 'approvals', 'mentions', 'due', 'favorites', 'recents']);
+    expect(pm.find((w) => w.id === 'late')!.query).toBe('late() ORDER BY dueDate');
+    const qa = (await dash.get(org, { id: 'qa', roles: ['athena-qa'] })).widgets;
+    expect(qa.map((w) => w.id)).toEqual(['approvals', 'mentions', 'ncr', 'rid', 'favorites', 'recents']);
+    expect((await dash.get(org, { id: 'adm', roles: ['athena-admin', 'athena-user'] })).widgets.map((w) => w.id)).toContain('critical');
+    // toutes ces dispositions sont des requêtes ATQL valides, enregistrables telles quelles
+    for (const w of [...pm, ...qa]) expect(await code(dash.put(org, { widgets: [w] }, { id: 'probe', roles: ['athena-user'] }))).toBe('ok');
   });
 
   it('enregistre, relit, réordonne, reste personnelle et propre à l’organisation, se réinitialise', async () => {

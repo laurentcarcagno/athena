@@ -64,8 +64,14 @@ test('planning : lecture seule pour un utilisateur, aucun contrôle d’édition
   await page.goto(`/p/${key}/planning`);
   await expect(page.getByRole('table')).toBeVisible();
   await expect(page.locator('.ath-gantt-handle, .ath-gantt-resize, input.ath-gantt-duration')).toHaveCount(0);
-  await expect(page.getByRole('button', { name: /^Lier .* à…$|replanifier|enregistrer/i })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: /^Lier à…$|replanifier|enregistrer/i })).toHaveCount(0);
   await expect(page.getByText(/Planning en lecture/)).toBeVisible();
+  // Demander un décalage : la demande part en commentaire et mentionne les chefs du projet.
+  await page.getByRole('button', { name: 'Réalisation', exact: true }).click();
+  await page.getByRole('button', { name: 'Demander un décalage' }).click();
+  await page.getByLabel('Motif').fill('Banc indisponible cette semaine');
+  await page.getByRole('button', { name: 'Envoyer la demande' }).click();
+  await expect(page.getByText(/Demande envoyée|Demande ajoutée/).first()).toBeVisible();
 });
 
 test('planning : le chef de projet change une durée, les successeurs suivent et le déplacement est annoncé', async ({ page, request }) => {
@@ -73,6 +79,7 @@ test('planning : le chef de projet change une durée, les successeurs suivent et
   await login(page);
   await page.goto(`/p/${key}/planning`);
   // Conception dure 2 jours (9-10). À 4 jours elle finit le 12 : Réalisation passe du 11 au 13, le jalon reste au 17.
+  await page.getByRole('button', { name: `Modifier la durée de ${key}-TSK-0001 (2 j)` }).click();
   const duration = page.getByLabel('Durée de ' + key + '-TSK-0001 en jours ouvrés');
   await duration.fill('4');
   await duration.press('Enter');
@@ -108,13 +115,15 @@ test('planning : lier deux tâches, cycle refusé avec un message, retirer le li
   await login(page);
   await page.goto(`/p/${key}/planning`);
   // Livraison (jalon) suit déjà Réalisation. Lier Livraison → Conception ferme un cycle : refusé, message affiché.
-  await page.getByRole('button', { name: `Lier ${key}-TSK-0003 à…` }).click();
+  await page.getByRole('button', { name: 'Livraison', exact: true }).click();
+  await page.getByRole('button', { name: 'Lier à…', exact: true }).click();
   const dialog = page.getByRole('dialog');
   await dialog.getByRole('combobox').selectOption(`${key}-TSK-0001`);
   await dialog.getByRole('button', { name: 'Lier', exact: true }).click();
   await expect(page.getByText(/cycle/i).first()).toBeVisible();
   // Retirer le lien Conception → Réalisation depuis le dialogue de Conception.
-  await page.getByRole('button', { name: `Lier ${key}-TSK-0001 à…` }).click();
+  await page.getByRole('button', { name: 'Conception', exact: true }).click();
+  await page.getByRole('button', { name: 'Lier à…', exact: true }).click();
   await page.getByRole('dialog').getByRole('button', { name: /Retirer le lien/ }).click();
   await expect(page.getByText('Lien retiré.').first()).toBeVisible();
   await expect(chartOf(page).locator('path.ath-gantt-link')).toHaveCount(1);
@@ -125,7 +134,8 @@ test('planning : le décalage d’un lien se modifie sur place et repousse le su
   await login(page);
   await page.goto(`/p/${key}/planning`);
   await expect(rowOf(page, 'Réalisation').locator('time').first()).toHaveAttribute('datetime', '2026-11-11');
-  await page.getByRole('button', { name: `Lier ${key}-TSK-0001 à…` }).click();
+  await page.getByRole('button', { name: 'Conception', exact: true }).click();
+  await page.getByRole('button', { name: 'Lier à…', exact: true }).click();
   const lag = page.getByRole('dialog').getByLabel(/Décalage du lien en jours ouvrés/);
   await lag.fill('2');
   await lag.press('Enter');
