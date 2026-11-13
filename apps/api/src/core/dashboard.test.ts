@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { Db, type Actor } from './db';
 import { DomainError } from './errors';
 import { createTestDb, pgUp, type TestDb } from '../testing/harness';
-import { DEFAULT_WIDGETS, DashboardService, ScopeSchema, WidgetSchema, checkGrid, toGrid, type Widget } from './dashboard.service';
+import { DEFAULT_WIDGETS, DashboardService, ScopeSchema, WidgetSchema, allowedKinds, checkGrid, homeWidgetsFor, toGrid, type Widget } from './dashboard.service';
 
 // T-0122 : disposition personnelle du tableau de bord, défaut sans réglage, réinitialisation.
 
@@ -31,21 +31,21 @@ suite('tableau de bord personnel (intégration)', () => {
   it('donne la disposition par défaut sans réglage : l’utilisateur voit en plus ses tâches en retard', async () => {
     const d = await dash.get(org, alice);
     expect(d.isDefault).toBe(true);
-    expect(d.widgets.map((w) => w.id)).toEqual(['assigned', 'mylate', 'approvals', 'mentions', 'due', 'favorites', 'recents']);
-    expect(d.widgets.filter((w) => w.id !== 'mylate')).toMatchObject([...DEFAULT_WIDGETS]);
+    expect(d.widgets.map((w) => w.id)).toEqual(['assigned', 'mylate', 'pipelines', 'approvals', 'mentions', 'due', 'favorites', 'recents']);
+    expect(d.widgets.filter((w) => w.id !== 'mylate' && w.id !== 'pipelines')).toMatchObject([...DEFAULT_WIDGETS]);
     expect(d.widgets.find((w) => w.id === 'mylate')!.query).toBe('assignee = currentUser() AND late()');
   });
 
   it('selon le rôle : le chef de projet ouvre sur retards, chemin critique et risques ; l’assurance produit sur ses visas et écarts', async () => {
     const pm = (await dash.get(org, { id: 'pm', roles: ['athena-pm', 'athena-user'] })).widgets;
-    expect(pm.map((w) => w.id)).toEqual(['assigned', 'late', 'critical', 'risks', 'approvals', 'mentions', 'due', 'favorites', 'recents']);
+    expect(pm.map((w) => w.id)).toEqual(['assigned', 'late', 'critical', 'risks', 'health', 'pipelines', 'approvals', 'mentions', 'due', 'favorites', 'recents']);
     expect(pm.find((w) => w.id === 'late')!.query).toBe('late() ORDER BY dueDate');
     const qa = (await dash.get(org, { id: 'qa', roles: ['athena-qa'] })).widgets;
-    expect(qa.map((w) => w.id)).toEqual(['approvals', 'mentions', 'ncr', 'rid', 'favorites', 'recents']);
-    expect((await dash.get(org, { id: 'qa2', roles: ['athena-qa', 'athena-user'] })).widgets.map((w) => w.id)).toEqual(['approvals', 'mentions', 'ncr', 'rid', 'favorites', 'recents']); // rôle effectif
+    expect(qa.map((w) => w.id)).toEqual(['approvals', 'mentions', 'ncr', 'rid', 'quality', 'favorites', 'recents']);
+    expect((await dash.get(org, { id: 'qa2', roles: ['athena-qa', 'athena-user'] })).widgets.map((w) => w.id)).toEqual(['approvals', 'mentions', 'ncr', 'rid', 'quality', 'favorites', 'recents']); // rôle effectif
     expect((await dash.get(org, { id: 'adm', roles: ['athena-admin', 'athena-user'] })).widgets.map((w) => w.id)).toContain('critical');
     // toutes ces dispositions sont des requêtes ATQL valides, enregistrables telles quelles
-    for (const w of [...pm, ...qa]) expect(await code(dash.put(org, { widgets: [w] }, { id: 'probe', roles: ['athena-user'] }))).toBe('ok');
+    for (const w of [...pm, ...qa]) expect(await code(dash.put(org, { widgets: [w] }, { id: 'probe', roles: ['athena-pm'] }))).toBe('ok');
   });
 
   it('enregistre, relit, réordonne, reste personnelle et propre à l’organisation, se réinitialise', async () => {
@@ -145,4 +145,43 @@ describe('disposition 2D (T-0169)', () => {
     expect(WidgetSchema.safeParse(w('a', { project: 'NOVA', period: '30d' })).success).toBe(true);
     expect(rejected(() => checkGrid(toGrid([w('a', { project: 'NOVA' }), w('b', { project: 'LUMEN' })])))).toBeNull();
   });
+});
+
+// T-0170 : catalogue par rôle.
+describe('catalogue par rôle (T-0170)', () => {
+  const dev: Actor = { id: 'd', roles: ['athena-user'] };
+  const lead: Actor = { id: 'l', roles: ['athena-pm', 'athena-user'] };
+  const svc = new DashboardService(null as unknown as Db);
+  it('le développeur ne voit pas le pilotage ; le chef de projet et l’administrateur voient tout', () => {
+    const kinds = (a: Actor) => svc.catalog(a).map((k) => k.kind);
+    expect(kinds(dev)).not.toContain('sprint-progress');
+    expect(kinds(dev)).not.toContain('health');
+    expect(kinds(dev)).toEqual(expect.arrayContaining(['search', 'pipelines', 'quality', 'badges']));
+    expect(kinds(lead)).toContain('sprint-progress');
+    expect(kinds({ id: 'a', roles: ['athena-admin'] }).length).toBe(kinds(lead).length);
+    expect(svc.catalog(lead).find((k) => k.kind === 'health')!.project).toBe(true);
+  });
+  it('les dispositions par défaut de chaque rôle sont posables par ce rôle et sans chevauchement', () => {
+    for (const a of [dev, lead, { id: 'q', roles: ['athena-qa'] }, { id: 'a', roles: ['athena-admin'] }]) {
+      const allowed = new Set(allowedKinds(a.roles));
+      const grid = toGrid(homeWidgetsFor(a.roles));
+      expect(grid.every((w) => allowed.has(w.kind))).toBe(true);
+      expect(() => checkGrid(grid)).not.toThrow();
+    }
+  });
+});
+
+suite('refus d’un genre interdit (T-0170, intégration)', () => {
+  it('le développeur ne peut pas poser « Progression du sprint » (403) ; le chef de projet le peut', async () => {
+    const testDb = await createTestDb('athena_test_dashboard2');
+    try {
+      const db = new Db(testDb.pool);
+      const dash = new DashboardService(db);
+      const org = crypto.randomUUID();
+      await db.tx(org, (c) => c.query('insert into organization (id, key, name) values ($1,$2,$2)', [org, 'dash3']));
+      const widgets = [{ id: 'sp', kind: 'sprint-progress' as const, project: 'NOVA' }];
+      expect(await code(dash.put(org, { widgets }, { id: 'dev', roles: ['athena-user'] }))).toMatch(/^forbidden/);
+      expect(await code(dash.put(org, { widgets }, { id: 'pm', roles: ['athena-pm'] }))).toBe('ok');
+    } finally { await testDb.drop(); }
+  }, 30_000);
 });

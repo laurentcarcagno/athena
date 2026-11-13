@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { Db, type Actor } from './db';
-import { validation } from './errors';
+import { forbidden, validation } from './errors';
 import { AtqlError, parse } from '../atql/parser';
 
 /** Genres de widget (ADR-0003 § 2.1) : la grille est fixe, seuls le contenu, l'ordre et la présence se règlent. */
@@ -8,8 +8,19 @@ export const WIDGET_KINDS = ['search', 'mentions', 'approvals', 'favorites', 're
   // Cartes d'avancement d'un projet (ADR-0005, T-0155) : la clé du projet est dans `projects`.
   'indicators', 'flow', 'velocity', 'release', 'tracker-status', 'activity',
   // Carte graphique sur une recherche (T-0156) : anneau, barres ou indicateur chiffré.
-  'chart'] as const;
-const PROJECT_KINDS = new Set<string>(['chart', 'trackers', 'indicators', 'flow', 'velocity', 'release', 'tracker-status', 'activity']);
+  'chart',
+  // Pilotage, intégration continue et qualité (ADR-0007, T-0170 à T-0176).
+  'general-info', 'global-progress', 'key-indicators', 'health', 'sprint-progress', 'pipelines', 'quality', 'badges'] as const;
+const PROJECT_KINDS = new Set<string>(['chart', 'trackers', 'indicators', 'flow', 'velocity', 'release', 'tracker-status', 'activity',
+  'general-info', 'global-progress', 'key-indicators', 'health', 'sprint-progress', 'pipelines', 'quality', 'badges']);
+
+const COMMON_KINDS: readonly string[] = ['search', 'chart', 'mentions', 'approvals', 'favorites', 'recents', 'trackers', 'indicators', 'flow', 'velocity', 'release', 'tracker-status', 'activity', 'pipelines', 'quality', 'badges'];
+
+/** Genres de widget qu'un rôle peut poser (catalogue, T-0170) ; l'union vaut pour une personne à plusieurs rôles. */
+export function allowedKinds(roles: readonly string[]): string[] {
+  if (roles.includes('athena-admin') || roles.includes('athena-pm')) return [...WIDGET_KINDS];
+  return [...COMMON_KINDS];
+}
 
 export const GRID_COLUMNS = 12;
 export const MAX_ROWS = 8;
@@ -87,6 +98,7 @@ export const homeWidgetsFor = (roles: readonly string[]): Widget[] => {
       { id: 'approvals', kind: 'approvals' }, { id: 'mentions', kind: 'mentions' },
       { id: 'ncr', kind: 'search', query: 'type = nonconformity AND category != done' },
       { id: 'rid', kind: 'search', query: 'type = action AND category != done' },
+      { id: 'quality', kind: 'quality' },
       { id: 'favorites', kind: 'favorites' }, { id: 'recents', kind: 'recents' },
     ];
   }
@@ -97,8 +109,10 @@ export const homeWidgetsFor = (roles: readonly string[]): Widget[] => {
       { id: 'late', kind: 'search', query: 'late() ORDER BY dueDate' },
       { id: 'critical', kind: 'search', query: 'critical() AND category != done ORDER BY startDate' },
       { id: 'risks', kind: 'search', query: 'type = risk AND category != done ORDER BY criticality DESC' },
+      { id: 'health', kind: 'health' },
+      { id: 'pipelines', kind: 'pipelines' },
     ]
-    : [{ id: 'mylate', kind: 'search', query: 'assignee = currentUser() AND late()' }];
+    : [{ id: 'mylate', kind: 'search', query: 'assignee = currentUser() AND late()' }, { id: 'pipelines', kind: 'pipelines' }];
   out.splice(after, 0, ...extra);
   return out;
 };
@@ -150,7 +164,16 @@ export class DashboardService {
     return row ? { widgets: toGrid(row.widgets as Widget[]), isDefault: false } : { widgets: toGrid(defaultsFor(scope, actor.roles)), isDefault: true };
   }
 
+  /** Catalogue du rôle : genres posables et, pour chacun, s'il vise un projet. */
+  catalog(actor: Actor): { kind: string; project: boolean }[] {
+    return allowedKinds(actor.roles).map((kind) => ({ kind, project: PROJECT_KINDS.has(kind) }));
+  }
+
   async put(organizationId: string, input: z.infer<typeof LayoutInput>, actor: Actor, scope = ''): Promise<{ widgets: Widget[]; isDefault: boolean }> {
+    const allowed = new Set(allowedKinds(actor.roles));
+    const current = await this.db.tx(organizationId, async (c) => (await c.query('select widgets from dashboard_layout where owner = $1 and scope = $2', [actor.id, scope])).rows[0]);
+    const kept = new Set(((current?.widgets ?? []) as Widget[]).map((w) => `${w.id}:${w.kind}`));
+    for (const w of input.widgets) if (!allowed.has(w.kind) && !kept.has(`${w.id}:${w.kind}`)) throw forbidden(`Le genre « ${w.kind} » n'est pas disponible pour votre rôle`);
     const ids = new Set<string>();
     for (const w of input.widgets) {
       if (ids.has(w.id)) throw validation([`widgets : identifiant en double (${w.id})`]);

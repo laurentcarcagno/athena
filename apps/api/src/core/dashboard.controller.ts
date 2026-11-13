@@ -24,6 +24,14 @@ export class DashboardController {
     return this.dashboard.get(organizationId, actor, scopeOf(project, page));
   }
 
+  /** Genres de widget que mon rôle peut poser (T-0170). */
+  @Roles('athena-user', 'athena-admin', 'athena-pm', 'athena-qa')
+  @Get('dashboard/catalog')
+  async catalog(@Req() request: AuthedRequest) {
+    const { actor } = await this.orgs.resolve(request.principal!);
+    return { kinds: this.dashboard.catalog(actor) };
+  }
+
   /** Tickets qui attendent ma décision (widget « À approuver »). */
   @Roles('athena-user', 'athena-admin', 'athena-pm', 'athena-qa')
   @Get('approvals')
