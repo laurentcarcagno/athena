@@ -140,7 +140,7 @@ export function useRailSections({ pathname, project, roles }: { pathname: string
   sections.push({
     id: 'projects', title: fr.nav.projects, icon: RAIL_ICONS['projects'], flyout: true, emptyLabel: fr.projects.empty, count: projects.length,
     items: [
-      ...(admin ? [{ id: '/admin', label: fr.rail.newProject, emphasis: true }] : []),
+      ...(admin ? [{ id: '/admin?onglet=projets', label: fr.rail.newProject, emphasis: true }] : []),
       ...projects.map((p): NavItem => ({ id: `/p/${p.key}`, label: p.key, mono: true, ...(p.name && p.name !== p.key ? { detail: p.name } : {}) })),
       { id: '/projets', label: fr.rail.allProjects },
     ],

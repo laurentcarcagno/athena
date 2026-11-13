@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import { Btn, Card, Checkbox, EmptyState, Field, PageHeader, Select, Table, Tabs, Tag, Td, Textarea, Th, useToast } from '@athena/ui';
 import { api, type Session } from '../api';
 import { NormativeTemplateEditor, type NormativeDraft, type NormativeTemplateEntry } from '../components/NormativeTemplateEditor';
@@ -395,6 +396,11 @@ function PluginsTab() {
 export function OrgAdminPage({ session }: { session: Session }) {
   const fail = useFailure();
   const [tab, setTab] = useState('projects');
+  // `?onglet=projets` (menu Projets du rail, « Nouveau projet ») ouvre l'onglet Projets même si un autre était ouvert : chaque navigation
+  // vers cette adresse a sa propre clé, l'effet se rejoue donc aussi quand l'adresse ne change pas.
+  const location = useLocation();
+  const [params] = useSearchParams();
+  useEffect(() => { if (params.get('onglet') === 'projets') setTab('projects'); }, [location.key, params]);
   const [users, setUsers] = useState<UserEntry[]>([]);
   const [templates, setTemplates] = useState<TemplateEntry[]>([]);
   const [trackerTemplates, setTrackerTemplates] = useState<TrackerTemplateEntry[]>([]);

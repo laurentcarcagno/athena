@@ -38,7 +38,7 @@ export function ProjectsPage({ session }: { session?: Session } = {}) {
   return (
     <>
       <PageHeader title={fr.projects.title}
-        actions={admin ? <Btn size="sm" onClick={() => navigate('/admin')}>{fr.projects.newProject}</Btn> : undefined} />
+        actions={admin ? <Btn size="sm" onClick={() => navigate('/admin?onglet=projets')}>{fr.projects.newProject}</Btn> : undefined} />
       {projects === null ? <p role="status">{fr.loading}</p> : projects.length === 0 ? (
         <EmptyState eyebrow={fr.projects.emptyEyebrow} title={fr.projects.empty} />
       ) : (

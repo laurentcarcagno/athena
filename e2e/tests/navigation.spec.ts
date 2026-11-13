@@ -33,7 +33,13 @@ test('menu Projets : « Nouveau projet » en première option, puis les projets 
   await expect(list.getByRole('button').first()).toHaveText('Nouveau projet');
   await expect(list.getByRole('button', { name: /^ARI/ })).toContainText('Ariane'); // identifiant, puis titre
   await list.getByRole('button', { name: 'Nouveau projet' }).click();
-  await expect(page).toHaveURL(/\/admin$/);
+  await expect(page).toHaveURL(/\/admin\?onglet=projets$/);
+  await expect(page.getByRole('tab', { name: 'Projets' })).toHaveAttribute('aria-selected', 'true');
+  // Déjà dans l'Administration sur un autre onglet : « Nouveau projet » ramène sur Projets.
+  await page.getByRole('tab', { name: 'Gabarits' }).click();
+  await page.locator('#rail').getByRole('button', { name: /^Projets/ }).click();
+  await page.getByRole('group', { name: /Projets, liste/ }).getByRole('button', { name: 'Nouveau projet' }).click();
+  await expect(page.getByRole('tab', { name: 'Projets' })).toHaveAttribute('aria-selected', 'true');
 });
 
 test('J / K parcourent la liste, Échap ferme le panneau, l’ancienne adresse de recherche redirige', async ({ page }) => {
