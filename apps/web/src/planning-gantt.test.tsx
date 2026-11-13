@@ -155,3 +155,32 @@ describe('PlanningPage', () => {
 });
 
 declare global { var __schedule: ScheduleData | undefined }
+
+describe('Gantt : phases repliables et défilement du diagramme', () => {
+  it('replier une phase masque ses tâches du tableau et du diagramme ; déplier les rend ; Tout replier / Tout déplier', async () => {
+    const userEvent = (await import('@testing-library/user-event')).default;
+    const { container } = render(<MemoryRouter><ScheduleGantt project="NOVA" data={data} calendar={calendar} today={new Date('2026-11-10T12:00:00Z')} /></MemoryRouter>);
+    expect(screen.getByRole('link', { name: 'N-2' })).toBeInTheDocument();
+    const bars = () => container.querySelectorAll('.ath-gantt-task, .ath-gantt-summary, .ath-gantt-milestone').length;
+    const before = bars();
+    await userEvent.click(screen.getByRole('button', { name: 'Replier Phase' }));
+    expect(screen.queryByRole('link', { name: 'N-2' })).toBeNull();
+    expect(screen.queryByRole('link', { name: 'N-3' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Déplier Phase' })).toHaveAttribute('aria-expanded', 'false');
+    expect(bars()).toBe(before - 2);
+    await userEvent.click(screen.getByRole('button', { name: 'Déplier Phase' }));
+    expect(screen.getByRole('link', { name: 'N-2' })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Tout replier' }));
+    expect(screen.queryByRole('link', { name: 'N-3' })).toBeNull();
+    await userEvent.click(screen.getByRole('button', { name: 'Tout déplier' }));
+    expect(screen.getByRole('link', { name: 'N-3' })).toBeInTheDocument();
+  });
+
+  it('le défilement horizontal est porté par le diagramme seul, pas par le tableau', () => {
+    const { container } = render(<MemoryRouter><ScheduleGantt project="NOVA" data={data} calendar={calendar} /></MemoryRouter>);
+    const scroller = container.querySelector('.ath-gantt-scroll')!;
+    expect(scroller.querySelector('svg')).not.toBeNull();
+    expect(scroller.querySelector('table')).toBeNull();
+    expect(container.querySelector('.ath-gantt-left')!.querySelector('table')).not.toBeNull();
+  });
+});

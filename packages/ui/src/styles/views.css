@@ -84,8 +84,8 @@
 .ath-cards--wide { grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); }
 
 /* Gantt en lecture (ADR-0006, T-0162) : tableau WBS collé à gauche, diagramme SVG à droite, une seule zone de défilement. */
-.ath-gantt-wrap { display: flex; align-items: flex-start; max-height: 70vh; overflow: auto; background: var(--ath-surface-default); border: var(--ath-border-width-hairline) solid var(--ath-border-default); border-radius: var(--ath-radius-surface); }
-.ath-gantt-table { flex: none; width: 520px; position: sticky; left: 0; z-index: var(--ath-z-base); border-collapse: separate; border-spacing: 0; background: var(--ath-surface-default); font-size: var(--ath-font-size-small); border-right: var(--ath-border-width-hairline) solid var(--ath-border-default); }
+.ath-gantt-wrap { display: flex; align-items: flex-start; background: var(--ath-surface-default); border: var(--ath-border-width-hairline) solid var(--ath-border-default); border-radius: var(--ath-radius-surface); }
+.ath-gantt-table { flex: none; width: 520px; border-collapse: separate; border-spacing: 0; background: var(--ath-surface-default); font-size: var(--ath-font-size-small); border-right: var(--ath-border-width-hairline) solid var(--ath-border-default); }
 .ath-gantt-table thead th { position: sticky; top: 0; z-index: var(--ath-z-base); box-sizing: border-box; height: 48px; padding: 0 var(--ath-space-sm); text-align: left; font-weight: var(--ath-font-weight-semibold); color: var(--ath-text-heading); background: var(--ath-surface-muted); border-bottom: var(--ath-border-width-hairline) solid var(--ath-border-default); white-space: nowrap; }
 .ath-gantt-table tbody td { box-sizing: border-box; height: 32px; padding: 0 var(--ath-space-sm); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 220px; border-bottom: var(--ath-border-width-hairline) solid var(--ath-border-default); }
 .ath-gantt-table tbody tr[aria-hidden="true"] td { height: auto; padding: 0; border: 0; }
@@ -99,7 +99,11 @@
 .ath-gantt-table tbody td.ath-gantt-indent-4 { padding-left: calc(var(--ath-space-sm) + 64px); }
 .ath-gantt-table tbody td.ath-gantt-indent-5 { padding-left: calc(var(--ath-space-sm) + 80px); }
 .ath-gantt-table tbody td.ath-gantt-indent-6 { padding-left: calc(var(--ath-space-sm) + 96px); }
-.ath-gantt-chart { flex: none; }
+.ath-gantt-left { flex: none; max-height: 70vh; overflow: hidden; }
+.ath-gantt-scroll { flex: 1; min-width: 0; max-height: 70vh; overflow: auto; }
+.ath-gantt-chart { width: max-content; }
+.ath-gantt-toggle { background: none; border: 0; padding: 0 var(--ath-space-xs) 0 0; color: var(--ath-text-heading); font: inherit; cursor: pointer; }
+.ath-gantt-toggle:focus-visible { outline: var(--ath-focus-ring-width, 2px) solid var(--ath-border-focus); outline-offset: 1px; }
 .ath-gantt-svg { display: block; }
 .ath-gantt-svg--head { position: sticky; top: 0; z-index: var(--ath-z-base); background: var(--ath-surface-muted); border-bottom: var(--ath-border-width-hairline) solid var(--ath-border-default); }
 .ath-gantt-month { fill: var(--ath-text-heading); font-size: var(--ath-font-size-small); font-weight: var(--ath-font-weight-semibold); }

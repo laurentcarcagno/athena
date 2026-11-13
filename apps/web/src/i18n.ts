@@ -104,7 +104,7 @@ const frDict = {
     newVersion: 'Nouvelle version', name: 'Nom', starts: 'Début', ends: 'Fin', create: 'Créer la version', created: 'Version créée.',
   },
   planning: {
-    title: 'Planning', views: 'Vues du planning', gantt: 'Gantt', versions: 'Versions', tableCaption: 'Tâches du planning, dans l’ordre de la hiérarchie',
+    title: 'Planning', phases: 'Phases', collapseAll: 'Tout replier', expandAll: 'Tout déplier', collapse: (t: string) => `Replier ${t}`, expand: (t: string) => `Déplier ${t}`, views: 'Vues du planning', gantt: 'Gantt', versions: 'Versions', tableCaption: 'Tâches du planning, dans l’ordre de la hiérarchie',
     key: 'Clé', titleCol: 'Titre', start: 'Début', end: 'Fin', duration: 'Durée', progressCol: 'Avancement', none: '—',
     milestone: 'Jalon', summary: 'Tâche parente', task: 'Tâche', unscheduled: 'sans date', days: (n: number) => `${n} j`, progress: (p: number) => `avancement ${p} %`,
     chartLabel: (rows: number, from: string, to: string) => `Diagramme de Gantt : ${rows} ligne${rows > 1 ? 's' : ''}, du ${from} au ${to}`,
@@ -617,7 +617,7 @@ const enDict: Dictionary = {
     newVersion: 'New version', name: 'Name', starts: 'Start', ends: 'End', create: 'Create version', created: 'Version created.',
   },
   planning: {
-    title: 'Planning', views: 'Planning views', gantt: 'Gantt', versions: 'Versions', tableCaption: 'Planning tasks, in hierarchy order',
+    title: 'Planning', phases: 'Phases', collapseAll: 'Collapse all', expandAll: 'Expand all', collapse: (t: string) => `Collapse ${t}`, expand: (t: string) => `Expand ${t}`, views: 'Planning views', gantt: 'Gantt', versions: 'Versions', tableCaption: 'Planning tasks, in hierarchy order',
     key: 'Key', titleCol: 'Title', start: 'Start', end: 'End', duration: 'Duration', progressCol: 'Progress', none: '—',
     milestone: 'Milestone', summary: 'Parent task', task: 'Task', unscheduled: 'no date', days: (n: number) => `${n} d`, progress: (p: number) => `progress ${p}%`,
     chartLabel: (rows: number, from: string, to: string) => `Gantt chart: ${rows} row${rows > 1 ? 's' : ''}, ${from} to ${to}`,

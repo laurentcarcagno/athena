@@ -42,8 +42,21 @@ function summarize(task: ScheduleTask): string {
 export function ScheduleGantt({ project, data, calendar, today = new Date(), edit, request, critical = false }: { project: string; data: ScheduleData; calendar: CalendarData | null; today?: Date; edit?: GanttEdit; request?: ShiftRequest; critical?: boolean }) {
   const location = useLocation();
   const body = useRef<HTMLDivElement>(null);
+  const left = useRef<HTMLDivElement>(null);
+  const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(new Set());
   const [scroll, setScroll] = useState({ top: 0, height: 600 });
-  const rows = wbsOrder(data.tasks);
+  const all = wbsOrder(data.tasks);
+  // Phases repliées : leurs descendants (lignes suivantes plus profondes) ne sont ni listés ni dessinés.
+  const rows: typeof all = [];
+  for (let i = 0, hideBelow = -1; i < all.length; i++) {
+    const row = all[i]!;
+    if (hideBelow >= 0 && row.depth > hideBelow) continue;
+    hideBelow = -1;
+    rows.push(row);
+    if (row.task.summary && collapsed.has(row.task.key)) hideBelow = row.depth;
+  }
+  const phases = all.filter((r) => r.task.summary).map((r) => r.task.key);
+  const toggle = (key: string) => setCollapsed((c) => { const n = new Set(c); if (n.has(key)) n.delete(key); else n.add(key); return n; });
   const axis = axisOf(data.tasks);
   const { from, to } = visibleWindow(rows.length, scroll.top, scroll.height);
   const shown = rows.slice(from, to);
@@ -120,8 +133,12 @@ export function ScheduleGantt({ project, data, calendar, today = new Date(), edi
 
   const onScroll = () => {
     const el = body.current;
-    if (el) setScroll({ top: el.scrollTop, height: el.clientHeight || 600 });
+    if (el) {
+      setScroll({ top: el.scrollTop, height: el.clientHeight || 600 });
+      if (left.current) left.current.scrollTop = el.scrollTop; // le tableau suit le défilement vertical du diagramme
+    }
   };
+  const onWheelLeft = (event: { deltaY: number }) => { if (body.current) body.current.scrollTop += event.deltaY; };
 
   if (rows.length === 0) return null;
   const todayIso = today.toISOString().split('T')[0]!;
@@ -243,7 +260,14 @@ export function ScheduleGantt({ project, data, calendar, today = new Date(), edi
           ) : <span>{t.edit.selectHint(Boolean(edit))}</span>}
         </div>
       )}
-    <div className="ath-gantt-wrap" ref={body} onScroll={onScroll} data-rows={rows.length}>
+      {phases.length > 0 && (
+        <div className="ath-toolbar" role="toolbar" aria-label={t.phases}>
+          <Btn size="sm" variant="ghost" onClick={() => setCollapsed(new Set(phases))} disabled={collapsed.size === phases.length}>{t.collapseAll}</Btn>
+          <Btn size="sm" variant="ghost" onClick={() => setCollapsed(new Set())} disabled={collapsed.size === 0}>{t.expandAll}</Btn>
+        </div>
+      )}
+    <div className="ath-gantt-wrap" data-rows={rows.length}>
+      <div className="ath-gantt-left" ref={left} onWheel={onWheelLeft}>
       <table className="ath-gantt-table">
         <caption className="ath-visually-hidden">{t.tableCaption}</caption>
         <thead>
@@ -254,7 +278,7 @@ export function ScheduleGantt({ project, data, calendar, today = new Date(), edi
           {shown.map(({ task, depth }, k) => (
             <tr key={task.key} aria-rowindex={from + k + 2} aria-selected={pickable && selected === task.key ? true : undefined} className={`${task.summary ? 'ath-gantt-row--summary' : ''}${selected === task.key ? ' ath-row-active' : ''}`.trim() || undefined}>
               <td><Link className="ath-link ath-mono" to={`/p/${project}/a/${task.key}`} state={fromHere(location, t.title, keys)}>{task.key}</Link></td>
-              <td className={indent(depth)}>{pickable && !task.summary ? <button type="button" className="ath-gantt-pick" aria-pressed={selected === task.key} onClick={() => setSelected(task.key)}>{task.title === task.key ? t.none : task.title}</button> : (task.title === task.key ? '' : task.title)}{critical && task.critical && <> <Tag variant="solid">{t.critical.tag}</Tag></>}</td>
+              <td className={indent(depth)}>{task.summary && <button type="button" className="ath-gantt-toggle" aria-expanded={!collapsed.has(task.key)} aria-label={(collapsed.has(task.key) ? t.expand : t.collapse)(task.title === task.key ? task.key : task.title)} onClick={() => toggle(task.key)}>{collapsed.has(task.key) ? '▸' : '▾'}</button>}{pickable && !task.summary ? <button type="button" className="ath-gantt-pick" aria-pressed={selected === task.key} onClick={() => setSelected(task.key)}>{task.title === task.key ? t.none : task.title}</button> : (task.title === task.key ? '' : task.title)}{critical && task.critical && <> <Tag variant="solid">{t.critical.tag}</Tag></>}</td>
               <td>{task.milestone ? '' : task.plannedStart ? <time dateTime={task.plannedStart}>{formatDay(task.plannedStart)}</time> : t.none}</td>
               <td>{task.plannedEnd ? <time dateTime={task.plannedEnd}>{formatDay(task.plannedEnd)}</time> : t.none}</td>
               <td>{edit && task.scheduled && !task.milestone && !task.summary
@@ -267,7 +291,9 @@ export function ScheduleGantt({ project, data, calendar, today = new Date(), edi
           {to < rows.length && <tr aria-hidden="true"><td colSpan={cols}><svg width="1" height={(rows.length - to) * ROW_HEIGHT} /></td></tr>}
         </tbody>
       </table>
+      </div>
       {axis && (
+        <div className="ath-gantt-scroll" ref={body} onScroll={onScroll}>
         <div className="ath-gantt-chart">
           <svg className="ath-gantt-svg ath-gantt-svg--head" width={axis.width} height={HEAD_HEIGHT} aria-hidden="true">
             {months.map((m) => <text key={m.x} className="ath-gantt-month" x={m.x + 4} y="16">{m.label}</text>)}
@@ -287,6 +313,7 @@ export function ScheduleGantt({ project, data, calendar, today = new Date(), edi
             {shown.map(({ task }, k) => barOf(task, from + k))}
             {linkPreview}
           </svg>
+        </div>
         </div>
       )}
     </div>
