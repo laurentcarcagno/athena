@@ -1,0 +1,634 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tableau de bord personnalisable</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Deux thèmes proposés, qui ne surchargent que les tokens sémantiques :
+   « bento » (couleurs Hemeria, angles arrondis, clair) et « github-dark » (sombre, inspiré de GitHub). */
+:root, :root[data-theme="bento"] {
+  --surface-page: #F0F7FC;      /* cold-mist */
+  --surface-widget: #FCFDFE;    /* instrument-white */
+  --surface-sunken: #E6F3FA;    /* hover-mist */
+  --border-default: #C2DDF0;    /* console-border */
+  --text-primary: #001423;      /* ink */
+  --text-secondary: #43474C;    /* dim-ink */
+  --text-muted: #505358;        /* mute-ink-aa */
+  --action: #006EB1;            /* console-sky */
+  --action-text: #005E96;
+  --on-action: #FFFFFF;
+  --success: #1F8A4C; --success-text: #166337; --success-bg: #EAF6EE;
+  --warning: #C68A00; --warning-text: #6D4C00; --warning-bg: #FBF3DC;
+  --danger: #BA1A1A;  --danger-text: #9E1616;  --danger-bg: #FBE9E9;
+  --merged: #6E4BB8;  --merged-text: #5A3A9E;  --merged-bg: #EFEAF8;   /* nouveau : violet « fusionné » */
+  --draft: #73777D;   --draft-text: #505358;   --draft-bg: #E9EEF2;
+  --info: #006EB1;    --info-text: #005E96;    --info-bg: #E2F0FA;
+  --dropzone: rgba(0, 110, 177, .10);
+  --radius-widget: 8px; --radius-control: 6px;
+  color-scheme: light;
+}
+:root[data-theme="github-dark"] {
+  --surface-page: #0D1117; --surface-widget: #161B22; --surface-sunken: #21262D;
+  --border-default: #30363D;
+  --text-primary: #E6EDF3; --text-secondary: #C9D1D9; --text-muted: #8B949E;
+  --action: #2F81F6; --action-text: #58A6FF; --on-action: #FFFFFF;
+  --success: #3FB950; --success-text: #56D364; --success-bg: rgba(46, 160, 67, .15);
+  --warning: #D29922; --warning-text: #E3B341; --warning-bg: rgba(187, 128, 9, .18);
+  --danger: #F85149;  --danger-text: #FF7B72;  --danger-bg: rgba(248, 81, 73, .15);
+  --merged: #A371F7;  --merged-text: #BC8CFF;  --merged-bg: rgba(163, 113, 247, .18);
+  --draft: #8B949E;   --draft-text: #8B949E;   --draft-bg: rgba(110, 118, 129, .22);
+  --info: #58A6FF;    --info-text: #58A6FF;    --info-bg: rgba(56, 139, 253, .16);
+  --dropzone: rgba(47, 129, 246, .14);
+  --radius-widget: 8px; --radius-control: 6px;
+  color-scheme: dark;
+}
+:root {
+  --font-sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--surface-page); color: var(--text-primary); font: 14px/1.45 var(--font-sans); }
+button, select, input { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--action); outline-offset: 2px; }
+.mono { font-family: var(--font-mono); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* Barre */
+.bar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; padding: 14px 24px; border-bottom: 1px solid var(--border-default); background: var(--surface-widget); }
+.bar h1 { font-size: 18px; font-weight: 600; margin: 0 auto 0 0; }
+.bar h1 small { display: block; font-size: 12px; font-weight: 400; color: var(--text-muted); }
+.field { display: flex; align-items: center; gap: 8px; color: var(--text-secondary); font-size: 13px; }
+.field select { background: var(--surface-widget); border: 1px solid var(--border-default); border-radius: var(--radius-control); padding: 6px 10px; }
+.btn { border: 1px solid var(--border-default); background: var(--surface-widget); border-radius: var(--radius-control); padding: 6px 12px; cursor: pointer; font-weight: 500; }
+.btn:hover { background: var(--surface-sunken); }
+.btn.primary { background: var(--action); border-color: var(--action); color: var(--on-action); }
+.btn.primary:hover { filter: brightness(1.1); }
+.btn.danger { color: var(--danger-text); }
+.btn.small { padding: 3px 10px; font-size: 13px; }
+.tabs { display: inline-flex; border: 1px solid var(--border-default); border-radius: var(--radius-control); overflow: hidden; }
+.tabs button { border: 0; background: transparent; padding: 6px 14px; cursor: pointer; font-weight: 500; color: var(--text-secondary); }
+.tabs button + button { border-left: 1px solid var(--border-default); }
+.tabs button[aria-pressed="true"] { background: var(--action); color: var(--on-action); }
+
+/* Page */
+.layout { display: flex; align-items: flex-start; gap: 16px; padding: 20px 24px 40px; max-width: 1480px; margin: 0 auto; }
+.main { flex: 1; min-width: 0; }
+.editbanner { display: none; align-items: center; gap: 12px; margin-bottom: 12px; padding: 8px 12px; border: 1px dashed var(--action); border-radius: var(--radius-control); background: var(--dropzone); font-size: 13px; flex-wrap: wrap; }
+.editing .editbanner { display: flex; }
+.editbanner .sp { margin-left: auto; display: flex; gap: 8px; }
+
+/* Grille */
+.grid { position: relative; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); grid-auto-rows: 88px; gap: 12px; }
+.cell { display: none; border: 1px dashed var(--border-default); border-radius: 4px; grid-column: calc(var(--x) + 1) / span 1; grid-row: calc(var(--y) + 1) / span 1; pointer-events: none; }
+.editing .cell { display: block; }
+.preview { grid-column: calc(var(--x) + 1) / span var(--w); grid-row: calc(var(--y) + 1) / span var(--h); border: 2px dashed var(--action); border-radius: var(--radius-widget); background: var(--dropzone); pointer-events: none; z-index: 1; }
+
+/* Widget */
+.widget { grid-column: calc(var(--x) + 1) / span var(--w); grid-row: calc(var(--y) + 1) / span var(--h); position: relative; z-index: 2; display: flex; flex-direction: column; min-height: 0; background: var(--surface-widget); border: 1px solid var(--border-default); border-radius: var(--radius-widget); overflow: hidden; }
+.editing .widget { border-color: color-mix(in srgb, var(--action) 50%, var(--border-default)); }
+.widget.dragging { opacity: .55; }
+.wh { display: flex; align-items: center; gap: 6px; min-height: 40px; padding: 8px 8px 0 14px; }
+.wh h2 { margin: 0; font-size: 13px; font-weight: 600; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wh .proj { font: 500 11px var(--font-mono); color: var(--text-muted); padding: 1px 6px; border: 1px solid var(--border-default); border-radius: 4px; flex: none; }
+.wh .sp { margin-left: auto; }
+.tools { display: none; align-items: center; gap: 2px; }
+.editing .tools { display: flex; }
+.ib { display: grid; place-items: center; width: 28px; height: 28px; border: 0; border-radius: var(--radius-control); background: transparent; color: var(--text-muted); cursor: pointer; }
+.ib:hover { background: var(--surface-sunken); color: var(--text-primary); }
+.ib.grip { cursor: grab; touch-action: none; }
+.ib svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.wb { flex: 1; min-height: 0; padding: 4px 14px 12px; overflow: hidden; display: flex; flex-direction: column; }
+.editing .wb { pointer-events: none; }
+.foot { margin-top: auto; padding-top: 6px; font-size: 12px; color: var(--text-muted); }
+
+/* Pastilles */
+.pill { display: inline-flex; align-items: center; height: 18px; padding: 0 8px; border-radius: 9px; font-size: 11px; font-weight: 500; white-space: nowrap; flex: none; }
+.pill.success { background: var(--success-bg); color: var(--success-text); }
+.pill.merged { background: var(--merged-bg); color: var(--merged-text); }
+.pill.blocking { background: var(--danger-bg); color: var(--danger-text); }
+.pill.draft { background: var(--draft-bg); color: var(--draft-text); }
+.pill.warning { background: var(--warning-bg); color: var(--warning-text); }
+.pill.info { background: var(--info-bg); color: var(--info-text); }
+
+/* Listes compactes communes (tickets, retards, risques, validations, favoris, récents) */
+.rows { list-style: none; margin: 0; padding: 0; overflow: hidden; }
+.rows li { display: grid; grid-template-columns: 92px minmax(0, 1fr) auto; align-items: center; gap: 8px; height: 32px; border-top: 1px solid var(--border-default); }
+.rows li:first-child { border-top: 0; }
+.rows .id { font: 500 12px var(--font-mono); color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rows .t { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rows .end { display: flex; gap: 4px; align-items: center; font-size: 12px; color: var(--text-muted); }
+.rows.wide li { grid-template-columns: 120px minmax(0, 1fr) auto; }
+
+/* Donut */
+.sprint { display: flex; align-items: center; gap: 16px; flex: 1; min-height: 0; flex-wrap: wrap; justify-content: center; }
+.donut { position: relative; width: 128px; height: 128px; flex: none; }
+.donut svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.donut circle { fill: none; stroke-width: 13; }
+.donut .track { stroke: var(--surface-sunken); }
+.donut .center { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; }
+.donut .center b { font-size: 28px; font-weight: 600; line-height: 1; }
+.donut .center span { font-size: 11px; color: var(--text-muted); }
+.legend { list-style: none; margin: 0 0 8px; padding: 0; display: grid; gap: 6px; font-size: 13px; }
+.legend li { display: flex; align-items: center; gap: 8px; }
+.legend i { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+.legend b { margin-left: auto; padding-left: 14px; font: 500 12px var(--font-mono); }
+
+/* CI/CD */
+.ci { display: grid; gap: 10px; overflow: hidden; }
+.ci-row .top { display: flex; align-items: baseline; gap: 8px; font-size: 12px; margin-bottom: 4px; }
+.ci-row .top .mono { color: var(--text-secondary); }
+.ci-row .rate { margin-left: auto; font: 500 12px var(--font-mono); }
+.runs { display: grid; grid-template-columns: repeat(12, 1fr); gap: 2px; height: 8px; }
+.runs i { border-radius: 2px; background: var(--success); }
+.runs i.f { background: var(--danger); }
+.runs i.r { background: var(--action); animation: pulse 1.4s ease-in-out infinite; }
+.runs i.x { background: var(--draft); opacity: .5; }
+@keyframes pulse { 50% { opacity: .3; } }
+
+/* Santé */
+.health { display: flex; flex-direction: column; justify-content: center; flex: 1; gap: 6px; }
+.big { font-size: 60px; font-weight: 600; line-height: 1; color: var(--danger); font-variant-numeric: tabular-nums; }
+.big.zero { color: var(--success); }
+.big small { font-size: 14px; font-weight: 500; color: var(--text-secondary); margin-left: 10px; }
+.minis { display: flex; gap: 20px; font-size: 12px; color: var(--text-muted); flex-wrap: wrap; }
+.minis b { font: 500 16px var(--font-mono); color: var(--text-primary); margin-right: 4px; }
+.minis b.warn { color: var(--warning-text); } .minis b.bad { color: var(--danger-text); }
+
+/* Chemin critique */
+.crit { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.crit li { display: grid; grid-template-columns: 92px minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+.crit .bar2 { height: 6px; border-radius: 3px; background: var(--surface-sunken); position: relative; grid-column: 2 / 4; margin-top: -4px; }
+.crit .bar2 i { position: absolute; inset: 0 auto 0 0; border-radius: 3px; }
+
+/* Sonar */
+.gate { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 13px; }
+.gate .pill { height: 22px; font-size: 12px; padding: 0 10px; }
+.ratings { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
+.rating { display: grid; justify-items: center; gap: 4px; font-size: 11px; color: var(--text-muted); text-align: center; }
+.rating b { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; font: 600 16px var(--font-mono); }
+.rating b.A, .rating b.B { background: var(--success-bg); color: var(--success-text); }
+.rating b.C, .rating b.D { background: var(--warning-bg); color: var(--warning-text); }
+.rating b.E { background: var(--danger-bg); color: var(--danger-text); }
+.metrics { display: flex; gap: 18px; font-size: 12px; color: var(--text-muted); flex-wrap: wrap; }
+.metrics b { font: 500 14px var(--font-mono); color: var(--text-primary); display: block; }
+
+/* Badges */
+.badges { display: flex; flex-wrap: wrap; gap: 8px 6px; align-content: flex-start; }
+.badge { display: inline-flex; border: 1px solid var(--border-default); border-radius: 5px; overflow: hidden; font-size: 12px; line-height: 20px; }
+.badge span:first-child { padding: 0 7px; background: var(--surface-sunken); color: var(--text-secondary); }
+.badge span:last-child { padding: 0 8px; font-weight: 600; }
+.badge.success span:last-child { background: var(--success-bg); color: var(--success-text); }
+.badge.warning span:last-child { background: var(--warning-bg); color: var(--warning-text); }
+.badge.blocking span:last-child { background: var(--danger-bg); color: var(--danger-text); }
+.badge.info span:last-child { background: var(--info-bg); color: var(--info-text); }
+.badge.merged span:last-child { background: var(--merged-bg); color: var(--merged-text); }
+
+/* Pilotage : informations générales, avancement global, indicateurs clés */
+.info { display: grid; gap: 10px; }
+.inf-top { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
+.inf-top b.mono { font-size: 16px; display: block; margin-bottom: 4px; }
+.inf-date { font-size: 11px; color: var(--text-muted); text-align: right; }
+.inf-date b { display: block; font-size: 12px; color: var(--text-primary); }
+.inf-meta { display: flex; gap: 20px; font-size: 11px; color: var(--text-muted); }
+.inf-meta b { display: block; font-size: 13px; color: var(--text-primary); font-weight: 600; }
+.tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.tiles div { display: grid; justify-items: center; padding: 8px 4px; border: 1px solid var(--border-default); border-radius: var(--radius-control); background: var(--surface-sunken); font-size: 11px; color: var(--text-muted); }
+.tiles b { font: 600 20px var(--font-mono); color: var(--text-primary); line-height: 1.2; }
+.prog { display: flex; gap: 16px; align-items: center; flex: 1; min-height: 0; }
+.arc { position: relative; width: 112px; height: 112px; flex: none; }
+.arc svg { width: 100%; height: 100%; transform: rotate(135deg); }
+.arc circle { fill: none; stroke-width: 11; stroke-linecap: round; }
+.arc .track { stroke: var(--surface-sunken); }
+.arc .center { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; }
+.arc .center b { font-size: 24px; font-weight: 600; line-height: 1; }
+.arc .center span { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+.dist { flex: 1; min-width: 0; }
+.dist-t { font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; }
+.cols { display: flex; justify-content: space-between; align-items: flex-end; height: 92px; }
+.col { display: grid; justify-items: center; gap: 3px; font-size: 10px; color: var(--text-muted); }
+.col .n { font: 500 11px var(--font-mono); color: var(--text-primary); }
+.col i { width: 14px; border-radius: 4px; display: block; }
+.meter { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--text-secondary); }
+.meter div { flex: 1; height: 6px; border-radius: 3px; background: var(--surface-sunken); overflow: hidden; }
+.meter i { display: block; height: 100%; background: var(--action); }
+.meter b { font: 500 12px var(--font-mono); color: var(--action-text); }
+.kpis { list-style: none; margin: 0; padding: 0; display: grid; }
+.kpis li { display: grid; grid-template-columns: 26px 1fr auto; gap: 8px; align-items: center; height: 34px; border-top: 1px solid var(--border-default); font-size: 13px; }
+.kpis li:first-child { border-top: 0; }
+.kpis .ic { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 6px; font-size: 12px; }
+.kpis .ic.success { background: var(--success-bg); color: var(--success-text); }
+.kpis .ic.warning { background: var(--warning-bg); color: var(--warning-text); }
+.kpis .ic.blocking { background: var(--danger-bg); color: var(--danger-text); }
+.kpis .ic.info { background: var(--info-bg); color: var(--info-text); }
+.kpis .v { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+.kpis .v b { font: 600 14px var(--font-mono); color: var(--text-primary); margin-right: 4px; }
+
+/* États vides */
+.empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; text-align: center; color: var(--text-muted); }
+.empty svg { width: 64px; height: 48px; fill: none; stroke: var(--border-default); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.empty p { margin: 0; max-width: 30ch; font-size: 13px; }
+.empty .btn { pointer-events: auto; }
+
+/* Catalogue */
+.drawer { display: none; flex: none; width: 320px; position: sticky; top: 16px; max-height: calc(100vh - 32px); overflow: auto; background: var(--surface-widget); border: 1px solid var(--border-default); border-radius: var(--radius-widget); }
+.editing .drawer { display: block; }
+.drawer header { padding: 14px 16px 10px; border-bottom: 1px solid var(--border-default); }
+.drawer h2 { margin: 0; font-size: 14px; font-weight: 600; }
+.drawer header p { margin: 4px 0 0; font-size: 12px; color: var(--text-muted); }
+.cat { list-style: none; margin: 0; padding: 8px; display: grid; gap: 8px; }
+.cat li { display: grid; grid-template-columns: 1fr auto; gap: 4px 8px; padding: 10px 12px; border: 1px solid var(--border-default); border-radius: var(--radius-control); cursor: grab; touch-action: none; user-select: none; }
+.cat li:hover { border-color: var(--action); }
+.cat strong { font-weight: 600; }
+.cat p { grid-column: 1 / -1; margin: 0; font-size: 12px; color: var(--text-muted); }
+.cat .tags { grid-column: 1 / -1; display: flex; gap: 4px; flex-wrap: wrap; }
+.drawer footer { padding: 10px 16px 14px; border-top: 1px solid var(--border-default); }
+.ghost { position: fixed; z-index: 50; pointer-events: none; padding: 8px 12px; border: 1px solid var(--action); border-radius: var(--radius-control); background: var(--surface-widget); font-weight: 600; }
+
+/* Galerie */
+.gal { max-width: 1480px; margin: 0 auto; padding: 20px 24px 40px; display: grid; gap: 32px; }
+.gal section.group h2 { margin: 0; font-size: 16px; font-weight: 600; }
+.gal .gtags { display: flex; gap: 6px; flex-wrap: wrap; margin: 6px 0 12px; align-items: center; color: var(--text-muted); font-size: 13px; }
+.gal .states { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 16px; }
+.gal .cap { margin-bottom: 6px; font-size: 12px; color: var(--text-muted); display: flex; gap: 6px; align-items: center; }
+.gal .widget { grid-column: auto; grid-row: auto; height: calc(var(--h) * 88px + (var(--h) - 1) * 12px); }
+
+/* Dialogue */
+dialog { width: min(420px, calc(100vw - 32px)); padding: 0; border: 1px solid var(--border-default); border-radius: var(--radius-widget); background: var(--surface-widget); color: var(--text-primary); }
+dialog::backdrop { background: rgba(10, 13, 20, .55); }
+dialog form { display: grid; gap: 14px; padding: 18px; }
+dialog h3 { margin: 0; font-size: 16px; }
+dialog label { display: grid; gap: 4px; font-size: 13px; color: var(--text-secondary); }
+dialog input[type=text], dialog select { padding: 7px 10px; border: 1px solid var(--border-default); border-radius: var(--radius-control); background: var(--surface-widget); }
+dialog .row { display: flex; gap: 8px; justify-content: flex-end; }
+dialog .row .danger { margin-right: auto; }
+.note { font-size: 12px; color: var(--text-muted); margin: 0; }
+.toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); padding: 8px 14px; border-radius: var(--radius-control); background: var(--text-primary); color: var(--surface-page); font-size: 13px; opacity: 0; pointer-events: none; transition: opacity .15s; z-index: 60; }
+.toast.on { opacity: 1; }
+details.notes { max-width: 1480px; margin: 0 auto; padding: 0 24px 48px; color: var(--text-secondary); font-size: 13px; }
+details.notes summary { cursor: pointer; font-weight: 600; color: var(--text-primary); }
+details.notes ul { margin: 8px 0 0; padding-left: 20px; display: grid; gap: 4px; max-width: 90ch; }
+[hidden] { display: none !important; }
+
+@media (max-width: 900px) { .layout { flex-direction: column; padding: 16px; } .drawer { width: 100%; position: static; max-height: none; order: -1; } .bar { padding: 12px 16px; } .gal { padding: 16px; } }
+@media (max-width: 720px) {
+  .grid { grid-template-columns: 1fr; grid-auto-rows: minmax(88px, auto); }
+  .layout:not(.gal) .grid .widget { grid-column: 1; grid-row: auto; min-height: calc(var(--h) * 88px + (var(--h) - 1) * 12px); }
+  .cell, .preview { display: none !important; }
+}
+@media (prefers-reduced-motion: reduce) { .runs i.r { animation: none; } .toast { transition: none; } }
+</style>
+</head>
+<body>
+<header class="bar">
+  <h1>Tableau de bord<small id="sub"></small></h1>
+  <div class="tabs" role="group" aria-label="Vue">
+    <button type="button" id="vDash" aria-pressed="true">Mon tableau</button>
+    <button type="button" id="vGal" aria-pressed="false">Galerie des widgets</button>
+  </div>
+  <label class="field" id="roleF">Rôle
+    <select id="role">
+      <option value="DEVELOPER">Développeur</option><option value="PROJECT_MANAGER">Chef de projet</option>
+      <option value="QA_ENGINEER">Assurance qualité</option><option value="ADMIN">Administrateur</option>
+    </select>
+  </label>
+  <label class="field" id="stateF">État du projet
+    <select id="state">
+      <option value="ok">Sain</option><option value="risk">À risque</option><option value="crit">Critique</option><option value="empty">Démarrage (sans données)</option>
+    </select>
+  </label>
+  <label class="field">Thème
+    <select id="theme"><option value="bento">Hemeria clair (arrondi)</option><option value="github-dark">GitHub sombre</option></select>
+  </label>
+  <button class="btn primary" id="edit" type="button">Personnaliser</button>
+</header>
+
+<div class="layout" id="layout">
+  <main class="main">
+    <div class="editbanner" role="status">
+      <span>Mode édition : glissez un widget par sa poignée ou une carte du catalogue vers la grille. Flèches du clavier sur la poignée pour déplacer.</span>
+      <span class="sp"><button class="btn small" id="cancel" type="button">Annuler</button><button class="btn small primary" id="save" type="button">Enregistrer</button></span>
+    </div>
+    <div class="grid" id="grid" aria-label="Widgets du tableau de bord"></div>
+  </main>
+  <aside class="drawer" aria-label="Catalogue des widgets">
+    <header><h2>Catalogue</h2><p id="catnote"></p></header>
+    <ul class="cat" id="cat"></ul>
+    <footer><button class="btn small" id="reset" type="button">Rétablir la disposition par défaut</button></footer>
+  </aside>
+</div>
+
+<div class="gal" id="gal" hidden></div>
+
+<dialog id="cfg">
+  <form method="dialog" id="cfgform">
+    <h3 id="cfgtitle">Configurer le widget</h3>
+    <label>Titre<input type="text" id="cfgname" maxlength="40"></label>
+    <label>Projet<select id="cfgproject"><option>LUMEN</option><option>ARIANE</option><option>ORION</option></select></label>
+    <label>Taille<select id="cfgsize"><option value="S">Compacte</option><option value="M">Standard</option><option value="L">Étendue</option></select></label>
+    <label>Période<select id="cfgperiod"><option>7 derniers jours</option><option selected>14 derniers jours</option><option>30 derniers jours</option></select></label>
+    <p class="note">Simulation : la période et le projet seront branchés sur la requête du widget (ATQL) à l’implémentation.</p>
+    <div class="row">
+      <button class="btn danger" id="cfgremove" type="button">Retirer du tableau</button>
+      <button class="btn" id="cfgcancel" type="button">Annuler</button>
+      <button class="btn primary" type="submit">Appliquer</button>
+    </div>
+  </form>
+</dialog>
+
+<div class="toast" id="toast" role="status"></div>
+<div class="sr" id="live" aria-live="polite"></div>
+
+<details class="notes">
+  <summary>Notes de conception pour validation</summary>
+  <ul>
+    <li><b>Thèmes.</b> « Hemeria clair (arrondi) » reprend la palette Hemeria (Cold Mist, Instrument White, Console Sky, signaux succès/alerte/danger) avec un rayon de 8 px. « GitHub sombre » est un thème sombre indépendant. Les composants ne lisent que des tokens sémantiques ; un thème n’en surcharge que les valeurs. Seul ajout à la palette : un violet « fusionné », absent d’Hemeria.</li>
+    <li><b>Rôles.</b> DEVELOPER, PROJECT_MANAGER, QA_ENGINEER et ADMIN correspondent à athena-user, athena-pm, athena-qa et athena-admin. Le catalogue est filtré côté serveur, comme homeWidgetsFor.</li>
+    <li><b>Plusieurs exemplaires.</b> Chaque widget peut être ajouté plusieurs fois, chacun rattaché à un projet (pastille mono dans l’en-tête) et configurable par l’engrenage.</li>
+    <li><b>Widgets existants repensés.</b> Mes tickets, En retard, Chemin critique, Risques, À valider, Favoris et Récents partagent maintenant la même ligne compacte (identifiant mono, titre tronqué, pastille d’état), au lieu de cartes différentes.</li>
+    <li><b>SonarQube.</b> Qualité du code et Badges du projet sont alimentés par une future connexion SonarQube. Le prototype les montre avec des données simulées ; sans connexion, ils affichent l’état vide « Relier SonarQube ».</li>
+    <li><b>État du projet.</b> Le sélecteur simule un projet sain, à risque, critique ou à son démarrage. La galerie montre chaque widget dans ces quatre états côte à côte.</li>
+    <li><b>Accessibilité.</b> Chaque déplacement a un équivalent clavier et est annoncé ; l’état n’est jamais porté par la seule couleur (texte, lettre ou pastille nommée). Sous 720 px la grille passe en une colonne.</li>
+  </ul>
+</details>
+
+<script>
+(() => {
+  const COLS = 12, ROW = 88, GAP = 12;
+  const $ = (s) => document.querySelector(s);
+  const ICON = {
+    grip: '<svg viewBox="0 0 16 16"><circle cx="5.5" cy="4" r=".6"/><circle cx="10.5" cy="4" r=".6"/><circle cx="5.5" cy="8" r=".6"/><circle cx="10.5" cy="8" r=".6"/><circle cx="5.5" cy="12" r=".6"/><circle cx="10.5" cy="12" r=".6"/></svg>',
+    gear: '<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="2.2"/><path d="M8 1.5v1.6M8 12.9v1.6M1.5 8h1.6M12.9 8h1.6M3.4 3.4l1.1 1.1M11.5 11.5l1.1 1.1M12.6 3.4l-1.1 1.1M4.5 11.5l-1.1 1.1"/></svg>',
+    close: '<svg viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8"/></svg>',
+  };
+  const ROLES = { DEVELOPER: 'Développeur', PROJECT_MANAGER: 'Chef de projet', QA_ENGINEER: 'Assurance qualité', ADMIN: 'Administrateur' };
+  const STATES = { ok: ['Sain', 'success'], risk: ['À risque', 'warning'], crit: ['Critique', 'blocking'], empty: ['Démarrage', 'draft'] };
+  const ALL = ['DEVELOPER', 'PROJECT_MANAGER', 'QA_ENGINEER', 'ADMIN'];
+
+  /* Catalogue (S, M, L = [colonnes, lignes]) */
+  const CATALOG = {
+    inbox:     { name: 'Mes tickets', desc: 'Tickets qui vous sont assignés, les plus urgents d’abord.', roles: ALL, sizes: { S: [4, 3], M: [5, 4], L: [6, 5] } },
+    late:      { name: 'En retard', desc: 'Tâches dépassant leur échéance, avec le nombre de jours de retard.', roles: ALL, sizes: { S: [4, 3], M: [5, 3], L: [6, 4] } },
+    critical:  { name: 'Chemin critique', desc: 'Tâches sans marge qui décalent la fin du projet.', roles: ['PROJECT_MANAGER', 'ADMIN'], sizes: { S: [4, 2], M: [5, 3], L: [6, 3] } },
+    risks:     { name: 'Risques', desc: 'Risques ouverts classés par criticité.', roles: ['PROJECT_MANAGER', 'QA_ENGINEER', 'ADMIN'], sizes: { S: [4, 3], M: [5, 3], L: [6, 4] } },
+    approvals: { name: 'À valider', desc: 'Demandes en attente de votre validation qualité.', roles: ['QA_ENGINEER', 'ADMIN'], sizes: { S: [4, 3], M: [5, 3], L: [6, 4] } },
+    favorites: { name: 'Favoris', desc: 'Projets, trackers et tickets épinglés.', roles: ALL, sizes: { S: [3, 2], M: [4, 3], L: [5, 3] } },
+    recents:   { name: 'Récents', desc: 'Derniers éléments consultés.', roles: ALL, sizes: { S: [3, 2], M: [4, 3], L: [5, 3] } },
+    sprint:    { name: 'Progression du sprint', desc: 'Avancement du sprint en cours, en anneau.', roles: ['PROJECT_MANAGER', 'ADMIN'], sizes: { S: [3, 3], M: [4, 4], L: [5, 4] } },
+    ci:        { name: 'Pipelines CI/CD', desc: 'Résultat des douze dernières exécutions par dépôt.', roles: ['QA_ENGINEER', 'DEVELOPER', 'ADMIN'], sizes: { S: [4, 2], M: [4, 3], L: [6, 3] } },
+    health:    { name: 'Santé du projet', desc: 'Tickets bloquants, retards et risques critiques.', roles: ['PROJECT_MANAGER', 'QA_ENGINEER', 'ADMIN'], sizes: { S: [3, 2], M: [4, 2], L: [4, 3] } },
+    sonar:     { name: 'Qualité du code', desc: 'Quality gate et notes SonarQube.', roles: ['DEVELOPER', 'QA_ENGINEER', 'ADMIN'], soon: true, sizes: { S: [3, 3], M: [4, 3], L: [5, 3] } },
+    info:      { name: 'Informations générales', desc: 'Statut du projet, date de situation, période, durée, tâches, actives et membres.', roles: ALL, sizes: { S: [4, 3], M: [4, 3], L: [5, 3] } },
+    progress:  { name: 'Avancement global', desc: 'Jauge d’avancement et répartition des tâches par statut.', roles: ['PROJECT_MANAGER', 'QA_ENGINEER', 'ADMIN'], sizes: { S: [4, 3], M: [5, 3], L: [6, 3] } },
+    kpis:      { name: 'Indicateurs clés', desc: 'Retards, échéances proches, charge par membre, vélocité et tâches bloquées.', roles: ['PROJECT_MANAGER', 'QA_ENGINEER', 'ADMIN'], sizes: { S: [4, 3], M: [4, 3], L: [5, 3] } },
+    badges:    { name: 'Badges du projet', desc: 'Pipeline, qualité, couverture, version et sprint en un coup d’œil.', roles: ALL, soon: true, sizes: { S: [3, 2], M: [4, 2], L: [6, 2] } },
+  };
+  const DEFAULTS = {
+    DEVELOPER: [['inbox', 0, 0], ['ci', 5, 0], ['badges', 9, 0], ['favorites', 9, 2], ['late', 0, 4], ['sonar', 5, 3], ['recents', 9, 5]],
+    PROJECT_MANAGER: [['info', 0, 0], ['progress', 4, 0], ['kpis', 9, 0], ['sprint', 0, 3], ['health', 4, 3], ['badges', 8, 3], ['critical', 4, 5], ['late', 0, 7], ['risks', 4, 8]],
+    QA_ENGINEER: [['health', 0, 0], ['ci', 4, 0], ['sonar', 8, 0], ['approvals', 0, 2], ['risks', 4, 3], ['badges', 9, 3], ['kpis', 0, 5]],
+    ADMIN: [['info', 0, 0], ['progress', 4, 0], ['kpis', 9, 0], ['sprint', 0, 3], ['health', 4, 3], ['sonar', 8, 3], ['ci', 5, 5], ['badges', 9, 6], ['inbox', 0, 7], ['risks', 5, 8]],
+  };
+
+  /* ---------- Données simulées par état du projet ---------- */
+  const TK = [
+    ['TSK-0007', 'Modèle thermique 1D du satellite', [['Bloquant', 'blocking']]],
+    ['BUG-0012', 'Dérive du gyroscope après redémarrage du calculateur de bord', [['Anomalie', 'warning'], ['Revue', 'merged']]],
+    ['TSK-0019', 'Interface bus CAN entre OBC et SCAO', [['Prêt', 'success']]],
+    ['TSK-0023', 'Plan de test de la charge utile', [['Brouillon', 'draft']]],
+    ['TSK-0031', 'Budget de masse après changement de panneaux', [['Revue', 'merged']]],
+    ['BUG-0034', 'Horodatage incohérent dans les journaux de télémétrie', [['Anomalie', 'warning']]],
+  ];
+  const LATE = [['TSK-0007', 'Modèle thermique 1D du satellite', 3], ['TSK-0019', 'Interface bus CAN entre OBC et SCAO', 5], ['TSK-0042', 'Revue de conception du bilan de liaison', 1], ['TSK-0044', 'Campagne de vibrations du modèle d’ingénierie', 8], ['TSK-0051', 'Qualification des panneaux solaires', 2], ['TSK-0058', 'Dossier de justification du SCAO', 12], ['TSK-0060', 'Livraison du logiciel de vol 0.4', 4]];
+  const CRIT = [['TSK-0019', 'Interface bus CAN entre OBC et SCAO'], ['TSK-0036', 'Intégration du logiciel de vol'], ['TSK-0044', 'Campagne de vibrations']];
+  const RISK = [['RSK-004', 'Retard de livraison des cellules solaires'], ['RSK-007', 'Dérive thermique de la charge utile'], ['RSK-002', 'Indisponibilité du banc d’essai'], ['RSK-011', 'Perte de compétence SCAO'], ['RSK-013', 'Dépassement du budget de masse']];
+  const APPR = [['NCR-011', 'Écart sur le revêtement thermique', 'Emma · 2 j'], ['RID-007', 'Action de revue PDR : budget de masse', 'Thomas · 3 j'], ['TSK-0031', 'Budget de masse après panneaux', 'Léa · 5 j'], ['NCR-014', 'Connecteur du bus CAN non conforme', 'Hugo · 6 j'], ['RID-009', 'Plan d’essai thermique-vide', 'Inès · 8 j']];
+  const FAV = [['LUMEN', 'Nanosatellite d’observation de la Terre', 'Projet'], ['LUMEN · TSK', 'Tâches du projet', 'Tracker'], ['LUMEN-TSK-0007', 'Modèle thermique 1D', 'Ticket'], ['ARIANE', 'Lanceur de démonstration', 'Projet']];
+  const REC = [['LUMEN-TSK-0019', 'Interface bus CAN entre OBC et SCAO', '5 min'], ['LUMEN-BUG-0012', 'Dérive du gyroscope', '1 h'], ['LUMEN-RSK-004', 'Retard de livraison des cellules', 'hier'], ['LUMEN', 'Nanosatellite d’observation de la Terre', 'hier']];
+  const D = {
+    ok:   { tk: [2, 3, 4], late: [2], slack: [3, 4, 2], end: ['Fin projetée le 14 mars', 'success', 'dans les temps'], risk: [4, 6], appr: 1, sprint: [62, 14, 'Dans les temps', 'success'], block: 0, nLate: 1, nRisk: 0,
+            ci: [['main · lumen-obc', 'ssssssssssss', '100 %'], ['main · lumen-scao', 'ssssssssssss', '100 %'], ['develop · lumen-sol', 'sssssxssssss', '100 %'], ['mr-142 · lumen-obc', 'sssssssssssr', 'en cours']],
+            sonar: ['Réussi', 'success', ['A', 'A', 'A'], 84, 2.1, '3 h'], badges: [['pipeline', 'réussi', 'success'], ['quality gate', 'réussi', 'success'], ['couverture', '84 %', 'success'], ['bugs', '0', 'success'], ['vulnérabilités', '0', 'success'], ['version', 'v0.4.2', 'info'], ['sprint', '4', 'merged']] },
+    risk: { tk: [0, 1, 2, 3, 4, 5], late: [0, 2, 4, 6], slack: [1, 0, 2], end: ['Fin projetée le 14 mars', 'warning', 'marge nulle'], risk: [8, 12, 15], appr: 3, sprint: [48, 12, 'À surveiller', 'warning'], block: 2, nLate: 4, nRisk: 1,
+            ci: [['main · lumen-obc', 'ssssfsssssss', '92 %'], ['main · lumen-scao', 'ssssssssssss', '100 %'], ['develop · lumen-sol', 'sfffsssfssss', '67 %'], ['mr-142 · lumen-obc', 'sssssssssfsr', 'en cours']],
+            sonar: ['Réussi', 'success', ['B', 'A', 'C'], 71, 4.8, '2 j'], badges: [['pipeline', 'instable', 'warning'], ['quality gate', 'réussi', 'success'], ['couverture', '71 %', 'warning'], ['bugs', '3', 'warning'], ['vulnérabilités', '1', 'warning'], ['version', 'v0.4.2', 'info'], ['sprint', '4', 'merged']] },
+    crit: { tk: [0, 1, 2, 3, 4, 5], late: [0, 1, 2, 3, 4, 5, 6], slack: [0, 0, 0], end: ['Fin projetée le 20 mars', 'blocking', '+6 jours'], risk: [25, 20, 16, 12, 9], appr: 5, sprint: [31, 8, 'Sprint compromis', 'blocking'], block: 6, nLate: 9, nRisk: 2,
+            ci: [['main · lumen-obc', 'ssffffffffff', '17 %'], ['main · lumen-scao', 'sfsffsfffsff', '33 %'], ['develop · lumen-sol', 'ffffffffffff', '0 %'], ['mr-142 · lumen-obc', 'ffffffffffrr', 'en cours']],
+            sonar: ['Échec', 'blocking', ['D', 'E', 'E'], 38, 11.6, '9 j'], badges: [['pipeline', 'échec', 'blocking'], ['quality gate', 'échec', 'blocking'], ['couverture', '38 %', 'blocking'], ['bugs', '17', 'blocking'], ['vulnérabilités', '5', 'blocking'], ['version', 'v0.4.2', 'info'], ['sprint', '4', 'merged']] },
+  };
+  /* Indicateurs de pilotage (widgets « Informations générales », « Avancement global », « Indicateurs clés ») */
+  const K = {
+    ok:   { st: ['Suivi actif', 'success'], tiles: [48, 21, 9], dist: [6, 9, 3, 30], kpi: { late: [1, '2 %', 'success'], soon: [4, 'sous 7 jours', 'info'], load: ['5,3', 'tâches par membre', 'success'], vel: [21, 'points par sprint', 'success'], block: [0, 'aucune', 'success'] } },
+    risk: { st: ['À risque', 'warning'], tiles: [48, 24, 9], dist: [12, 10, 3, 23], kpi: { late: [4, '8 %', 'warning'], soon: [7, 'sous 7 jours', 'warning'], load: ['7,1', 'tâches par membre', 'warning'], vel: [18, 'points par sprint', 'warning'], block: [2, 'à lever', 'warning'] } },
+    crit: { st: ['Critique', 'blocking'], tiles: [48, 27, 9], dist: [20, 9, 4, 15], kpi: { late: [9, '19 %', 'blocking'], soon: [11, 'sous 7 jours', 'blocking'], load: ['9,4', 'tâches par membre', 'blocking'], vel: [12, 'points par sprint', 'blocking'], block: [6, 'à lever', 'blocking'] } },
+  };
+  const tickets = (s) => s === 'crit' ? TK.map((t, i) => [t[0], t[1], [0, 1, 5].includes(i) ? [['Bloquant', 'blocking']] : t[2]]) : D[s].tk.map((i) => TK[i]);
+
+  /* ---------- Rendus ---------- */
+  const pill = (t, k) => `<span class="pill ${k}">${t}</span>`;
+  const rows = (items, cls = '') => `<ul class="rows ${cls}">${items.map(([id, t, end]) => `<li><span class="id" title="${id}">${id}</span><span class="t" title="${t}">${t}</span><span class="end">${end}</span></li>`).join('')}</ul>`;
+  const empty = (path, text, cta) => `<div class="empty"><svg viewBox="0 0 64 48" aria-hidden="true">${path}</svg><p>${text}</p><button class="btn small" type="button" data-cta="${cta}">${cta}</button></div>`;
+  const E = {
+    inbox: ['<rect x="8" y="10" width="48" height="30" rx="4"/><path d="M8 28h14l3 5h14l3-5h14"/>', 'Aucun ticket ne vous est assigné pour le moment.', 'Parcourir les tickets ouverts'],
+    late: ['<circle cx="32" cy="24" r="16"/><path d="M32 14v10l7 4"/>', 'Rien n’est en retard. Les échéances apparaîtront ici.', 'Voir le planning'],
+    critical: ['<path d="M8 36l12-10 10 6 12-16 14 4"/>', 'Le chemin critique se calcule dès que des tâches sont liées.', 'Ouvrir le planning'],
+    risks: ['<path d="M32 8l22 38H10z"/><path d="M32 22v10M32 38v.5"/>', 'Aucun risque ouvert sur ce projet.', 'Déclarer un risque'],
+    approvals: ['<rect x="14" y="8" width="36" height="32" rx="4"/><path d="M22 24l6 6 14-14"/>', 'Aucune validation en attente.', 'Voir l’historique'],
+    favorites: ['<path d="M32 8l7 14 15 2-11 11 3 15-14-8-14 8 3-15L10 24l15-2z"/>', 'Épinglez un projet, un tracker ou un ticket pour le retrouver ici.', 'Parcourir les projets'],
+    recents: ['<circle cx="32" cy="24" r="16"/><path d="M32 14v10l7 4"/>', 'Les éléments que vous consultez apparaîtront ici.', 'Parcourir les projets'],
+    sprint: ['<circle cx="32" cy="24" r="16"/><path d="M32 8a16 16 0 0 1 16 16"/>', 'Aucun sprint n’est actif sur ce projet.', 'Planifier un sprint'],
+    ci: ['<path d="M10 34l12-14 10 8 14-16"/><path d="M10 40h44"/>', 'Aucun pipeline n’a tourné récemment.', 'Relier un dépôt'],
+    health: ['<path d="M32 8l18 6v12c0 10-8 16-18 20C22 42 14 36 14 26V14z"/><path d="M24 26l6 6 10-12"/>', 'Aucun seuil défini pour ce projet.', 'Définir les seuils'],
+    info: ['<rect x="10" y="8" width="44" height="32" rx="4"/><path d="M18 18h20M18 26h28M18 33h12"/>', 'Renseignez la période du projet pour afficher sa situation.', 'Définir la période'],
+    progress: ['<path d="M14 36a20 20 0 1 1 36 0"/><path d="M20 42h24"/>', 'L’avancement se calcule dès que des tâches existent.', 'Créer une tâche'],
+    kpis: ['<path d="M10 38V26M22 38V14M34 38V22M46 38V10"/>', 'Les indicateurs apparaissent avec les premières tâches planifiées.', 'Planifier des tâches'],
+    sonar: ['<rect x="12" y="10" width="40" height="28" rx="4"/><path d="M20 30l8-8 6 5 10-10"/>', 'SonarQube n’est pas relié à ce projet.', 'Relier SonarQube'],
+    badges: ['<rect x="8" y="14" width="22" height="9" rx="3"/><rect x="34" y="14" width="22" height="9" rx="3"/><rect x="8" y="28" width="30" height="9" rx="3"/>', 'Les badges apparaissent une fois les dépôts et SonarQube reliés.', 'Relier un dépôt'],
+  };
+  const sev = (n) => (n >= 4 ? 'blocking' : 'warning');
+  const BODY = {
+    inbox: (s) => rows(tickets(s).map(([id, t, ls]) => [id, t, ls.map(([n, c]) => pill(n, c)).join('')])) + `<div class="foot">${tickets(s).length} sur ${tickets(s).length + 8} tickets · Tout voir</div>`,
+    late: (s) => rows(D[s].late.map((i) => [LATE[i][0], LATE[i][1], pill(`+${LATE[i][2]} j`, sev(LATE[i][2]))])) + `<div class="foot">${D[s].late.length} tâche${D[s].late.length > 1 ? 's' : ''} en retard</div>`,
+    critical: (s) => `<ul class="crit">${CRIT.map(([id, t], i) => { const m = D[s].slack[i]; const k = m === 0 ? 'blocking' : m <= 2 ? 'warning' : 'success'; return `<li><span class="id mono" style="font-size:12px;color:var(--text-muted)">${id}</span><span class="t" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t}</span>${pill('marge ' + m + ' j', k)}</li>`; }).join('')}</ul><div class="foot">${pill(D[s].end[2], D[s].end[1])} ${D[s].end[0]}</div>`,
+    risks: (s) => rows(D[s].risk.map((sc, i) => [RISK[i][0], RISK[i][1], pill('criticité ' + sc, sc >= 15 ? 'blocking' : sc >= 8 ? 'warning' : 'success')])),
+    approvals: (s) => rows(APPR.slice(0, D[s].appr).map(([id, t, w]) => [id, t, w])) + `<div class="foot">${D[s].appr} en attente</div>`,
+    favorites: () => rows(FAV.map(([id, t, k]) => [id, t, pill(k, 'draft')]), 'wide'),
+    recents: () => rows(REC.map(([id, t, w]) => [id, t, w]), 'wide'),
+    sprint: (s) => {
+      const [done, review, label, kind] = D[s].sprint, n = (p) => Math.round(22 * p / 100);
+      return `<div class="sprint"><div class="donut" role="img" aria-label="Sprint 4 : ${done + review} % d’avancement"><svg viewBox="0 0 100 100"><circle class="track" cx="50" cy="50" r="40" pathLength="100"/><circle cx="50" cy="50" r="40" pathLength="100" stroke="var(--success)" stroke-dasharray="${done} ${100 - done}"/><circle cx="50" cy="50" r="40" pathLength="100" stroke="var(--merged)" stroke-dasharray="${review} ${100 - review}" stroke-dashoffset="-${done}"/></svg><div class="center"><b>${done + review} %</b><span>avancement</span></div></div>
+      <div><ul class="legend"><li><i style="background:var(--success)"></i>Terminé<b>${n(done)}</b></li><li><i style="background:var(--merged)"></i>En revue<b>${n(review)}</b></li><li><i style="background:var(--surface-sunken);outline:1px solid var(--border-default)"></i>Restant<b>${22 - n(done) - n(review)}</b></li></ul>${pill(label, kind)}<div class="foot">Sprint 4 · 9 jours ouvrés restants</div></div></div>`;
+    },
+    ci: (s) => `<div class="ci">${D[s].ci.map(([n, runs, rate]) => `<div class="ci-row"><div class="top"><span class="mono">${n}</span><span class="rate">${rate}</span></div><div class="runs" role="img" aria-label="${n} : ${rate}">${[...runs].map((c) => `<i class="${c === 's' ? '' : c}"></i>`).join('')}</div></div>`).join('')}</div>`,
+    health: (s) => { const d = D[s]; return `<div class="health"><div class="big ${d.block === 0 ? 'zero' : ''}">${d.block}<small>ticket${d.block > 1 ? 's' : ''} bloquant${d.block > 1 ? 's' : ''}</small></div><div class="minis"><span><b class="${d.nLate > 3 ? 'bad' : d.nLate ? 'warn' : ''}">${d.nLate}</b>en retard</span><span><b class="${d.nRisk ? 'bad' : ''}">${d.nRisk}</b>risque${d.nRisk > 1 ? 's' : ''} critique${d.nRisk > 1 ? 's' : ''}</span></div></div>`; },
+    sonar: (s) => { const [g, k, r, cov, dup, debt] = D[s].sonar; return `<div class="gate">Quality gate ${pill(g, k)}</div><div class="ratings">${['Fiabilité', 'Sécurité', 'Maintenabilité'].map((n, i) => `<div class="rating"><b class="${r[i]}" aria-label="${n} : ${r[i]}">${r[i]}</b>${n}</div>`).join('')}</div><div class="metrics"><span><b>${cov} %</b>couverture</span><span><b>${String(dup).replace('.', ',')} %</b>doublons</span><span><b>${debt}</b>dette</span></div>`; },
+    info: (s) => { const k = K[s]; return `<div class="info"><div class="inf-top"><div><b class="mono">LUMEN</b><div>${pill(k.st[0], k.st[1])}</div></div><div class="inf-date">Date de situation<b>19 avr. 2026</b></div></div>
+      <div class="inf-meta"><span>Période<b>1 avr. – 26 juil.</b></span><span>Durée<b>4 mois</b></span></div>
+      <div class="tiles">${[['Tâches', k.tiles[0]], ['Actives', k.tiles[1]], ['Membres', k.tiles[2]]].map(([l, v]) => `<div><b>${v}</b>${l}</div>`).join('')}</div></div>`; },
+    progress: (s) => {
+      const d = K[s].dist, tot = d.reduce((a, b) => a + b, 0), pct = Math.round(d[3] / tot * 100), max = Math.max(...d);
+      const cols = [['À faire', 'var(--draft)'], ['En cours', 'var(--action)'], ['En revue', 'var(--merged)'], ['Terminé', 'var(--success)']];
+      return `<div class="prog"><div class="arc" role="img" aria-label="Avancement global : ${pct} %"><svg viewBox="0 0 100 100"><circle class="track" cx="50" cy="50" r="40" pathLength="100" stroke-dasharray="75 25"/><circle cx="50" cy="50" r="40" pathLength="100" stroke="var(--action)" stroke-dasharray="${pct * .75} 100"/></svg><div class="center"><b>${pct} %</b><span>${d[3]}/${tot} terminées</span></div></div>
+      <div class="dist"><div class="dist-t">Répartition</div><div class="cols">${d.map((v, i) => `<div class="col"><span class="n">${v}</span><i style="height:${Math.max(4, v / max * 58)}px;background:${cols[i][1]}"></i><span class="l">${cols[i][0]}</span></div>`).join('')}</div></div></div>
+      <div class="meter"><span>Avancement global</span><div><i style="width:${pct}%"></i></div><b>${pct} %</b></div>`;
+    },
+    kpis: (s) => { const k = K[s].kpi, row = (ic, l, v, sub, kind) => `<li><span class="ic ${kind}" aria-hidden="true">${ic}</span><span class="l">${l}</span><span class="v"><b>${v}</b> ${sub}</span></li>`;
+      return `<ul class="kpis">${row('!', 'Tâches en retard', k.late[0], k.late[1], k.late[2])}${row('◷', 'Échéances proches', k.soon[0], k.soon[1], k.soon[2])}${row('⚖', 'Charge par membre', k.load[0], k.load[1], k.load[2])}${row('↗', 'Vélocité moyenne', k.vel[0], k.vel[1], k.vel[2])}${row('⛔', 'Tâches bloquées', k.block[0], k.block[1], k.block[2])}</ul>`; },
+    badges: (s) => `<div class="badges">${D[s].badges.map(([l, v, k]) => `<span class="badge ${k}"><span>${l}</span><span>${v}</span></span>`).join('')}</div><div class="foot">Données SonarQube et GitLab · aperçu simulé</div>`,
+  };
+  const body = (type, s) => (s === 'empty' ? empty(...E[type]) : BODY[type](s));
+
+  /* ---------- État ---------- */
+  let role = 'DEVELOPER', state = 'ok', view = 'dash', editing = false, widgets = [], snapshot = null, cfgId = null;
+  const mk = (type, x, y, size = 'M', project = 'LUMEN', name) => { const [w, h] = CATALOG[type].sizes[size]; return { id: type + '-' + Math.random().toString(36).slice(2, 7), type, x, y, size, w, h, project, name: name || CATALOG[type].name }; };
+  const overlap = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+  const resolve = (it, others) => { const c = { ...it, x: Math.max(0, Math.min(COLS - it.w, it.x)), y: Math.max(0, it.y) }; for (let i = 0; i < 200 && others.some((o) => o.id !== c.id && overlap(c, o)); i++) c.y++; return c; };
+  const defaults = (r) => { const out = []; DEFAULTS[r].forEach(([t, x, y]) => out.push(resolve(mk(t, x, y), out))); return out; };
+  const key = (r) => 'athena-proto-dashboard-v2-' + r;
+  const load = (r) => { try { const v = JSON.parse(localStorage.getItem(key(r)) || 'null'); if (Array.isArray(v)) return v.filter((w) => CATALOG[w.type]); } catch { /* sans stockage */ } return defaults(r); };
+  const persist = () => { try { localStorage.setItem(key(role), JSON.stringify(widgets)); } catch { /* sans stockage */ } };
+  const clone = (a) => JSON.parse(JSON.stringify(a));
+  const toast = (m) => { const t = $('#toast'); t.textContent = m; t.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('on'), 2400); };
+  const say = (m) => { $('#live').textContent = m; };
+  const firstFree = (it) => { for (let y = 0; y < 80; y++) for (let x = 0; x <= COLS - it.w; x++) { const c = { ...it, x, y }; if (!widgets.some((o) => overlap(c, o))) return c; } return { ...it, y: 99 }; };
+
+  function widgetHtml(w, s) {
+    return `<section class="widget" data-id="${w.id}" style="--x:${w.x};--y:${w.y};--w:${w.w};--h:${w.h}" aria-label="${w.name}">
+      <div class="wh"><h2>${w.name}</h2><span class="proj">${w.project}</span><div class="tools sp">
+        <button class="ib grip" data-act="grip" type="button" aria-label="Déplacer ${w.name} (flèches du clavier)" title="Déplacer">${ICON.grip}</button>
+        <button class="ib" data-act="gear" type="button" aria-label="Configurer ${w.name}" title="Configurer">${ICON.gear}</button>
+        <button class="ib" data-act="remove" type="button" aria-label="Retirer ${w.name}" title="Retirer">${ICON.close}</button></div></div>
+      <div class="wb">${body(w.type, s)}</div></section>`;
+  }
+
+  function render() {
+    const dash = view === 'dash';
+    $('#layout').hidden = !dash; $('#gal').hidden = dash;
+    $('#vDash').setAttribute('aria-pressed', dash); $('#vGal').setAttribute('aria-pressed', !dash);
+    $('#roleF').hidden = !dash; $('#edit').hidden = !dash || editing;
+    $('#layout').classList.toggle('editing', editing);
+    $('#sub').textContent = dash ? `${ROLES[role]} · état du projet : ${STATES[state][0].toLowerCase()}` : 'Tous les widgets, dans chaque état du projet';
+    if (dash) renderDash(); else renderGallery();
+  }
+  function renderDash() {
+    const used = widgets.reduce((m, w) => Math.max(m, w.y + w.h), 0), rows_ = editing ? Math.max(8, used + 2) : Math.max(used, 1);
+    let cells = '';
+    if (editing) for (let y = 0; y < rows_; y++) for (let x = 0; x < COLS; x++) cells += `<div class="cell" style="--x:${x};--y:${y}"></div>`;
+    $('#grid').style.gridTemplateRows = `repeat(${rows_}, ${ROW}px)`;
+    $('#grid').innerHTML = cells + widgets.map((w) => widgetHtml(w, state)).join('');
+    if (!widgets.length && !editing) $('#grid').innerHTML = '<div class="empty" style="grid-column:1/-1;grid-row:1/span 3"><svg viewBox="0 0 64 48" aria-hidden="true"><rect x="8" y="8" width="20" height="14" rx="3"/><rect x="34" y="8" width="22" height="14" rx="3"/><rect x="8" y="28" width="48" height="12" rx="3"/></svg><p>Votre tableau de bord est vide.</p><button class="btn small primary" type="button" data-cta="edit">Ajouter un widget</button></div>';
+    const avail = Object.entries(CATALOG).filter(([, c]) => c.roles.includes(role));
+    $('#catnote').textContent = `${avail.length} widgets pour le rôle « ${ROLES[role]} ». Chacun peut être ajouté plusieurs fois.`;
+    $('#cat').innerHTML = avail.map(([t, c]) => { const n = widgets.filter((w) => w.type === t).length; return `<li data-type="${t}"><strong>${c.name}</strong><button class="btn small" type="button" data-add="${t}">Ajouter</button><p>${c.desc}</p><span class="tags">${n ? pill(n + ' sur le tableau', 'info') : ''}${c.soon ? pill('Connexion SonarQube à venir', 'draft') : ''}</span></li>`; }).join('');
+  }
+  function renderGallery() {
+    $('#gal').innerHTML = Object.entries(CATALOG).map(([t, c]) => `<section class="group"><h2>${c.name}</h2><div class="gtags">${c.desc} ${c.roles.length === 4 ? pill('Tous les rôles', 'info') : c.roles.map((r) => pill(ROLES[r], 'info')).join('')}${c.soon ? pill('Connexion SonarQube à venir', 'draft') : ''}</div>
+      <div class="states">${Object.keys(STATES).map((s) => `<div><div class="cap">${pill(STATES[s][0], STATES[s][1])}</div><section class="widget" style="--h:${c.sizes.M[1]}" aria-label="${c.name}, projet ${STATES[s][0].toLowerCase()}"><div class="wh"><h2>${c.name}</h2><span class="proj">LUMEN</span></div><div class="wb">${body(t, s)}</div></section></div>`).join('')}</div></section>`).join('');
+  }
+
+  /* ---------- Glisser-déposer ---------- */
+  let drag = null;
+  const gbox = () => $('#grid').getBoundingClientRect();
+  const inside = (ev) => { const r = gbox(); return ev.clientX >= r.left - 20 && ev.clientX <= r.right + 20 && ev.clientY >= r.top - 20 && ev.clientY <= r.bottom + 60; };
+  function showPreview(c) {
+    $('#grid').querySelector('.preview')?.remove();
+    if (!c) return;
+    const p = document.createElement('div'); p.className = 'preview'; p.style.cssText = `--x:${c.x};--y:${c.y};--w:${c.w};--h:${c.h}`; $('#grid').appendChild(p);
+  }
+  function startDrag(ev, it, mode, label) {
+    if (ev.button > 0) return;
+    ev.preventDefault();
+    const r = gbox(), cw = (r.width + GAP) / COLS;
+    const grab = mode === 'move' ? { x: Math.floor((ev.clientX - r.left) / cw) - it.x, y: Math.floor((ev.clientY - r.top) / (ROW + GAP)) - it.y } : { x: Math.floor(it.w / 2), y: 0 };
+    drag = { it, mode, grab, target: null, ghost: null, el: mode === 'move' ? document.querySelector(`.widget[data-id="${it.id}"]`) : null };
+    if (mode === 'new') { const g = document.createElement('div'); g.className = 'ghost'; g.textContent = label; document.body.appendChild(g); drag.ghost = g; }
+    drag.el?.classList.add('dragging');
+    move(ev);
+    addEventListener('pointermove', move); addEventListener('pointerup', end, { once: true }); addEventListener('pointercancel', cancel, { once: true });
+  }
+  function move(ev) {
+    if (!drag) return;
+    if (drag.ghost) { drag.ghost.style.left = ev.clientX + 12 + 'px'; drag.ghost.style.top = ev.clientY + 12 + 'px'; }
+    if (!inside(ev)) { drag.target = null; showPreview(null); return; }
+    const r = gbox(), cw = (r.width + GAP) / COLS;
+    drag.target = resolve({ ...drag.it, x: Math.floor((ev.clientX - r.left) / cw) - drag.grab.x, y: Math.floor((ev.clientY - r.top) / (ROW + GAP)) - drag.grab.y }, widgets);
+    showPreview(drag.target);
+  }
+  function cleanup() { removeEventListener('pointermove', move); drag?.ghost?.remove(); drag?.el?.classList.remove('dragging'); showPreview(null); }
+  function cancel() { cleanup(); drag = null; }
+  function end() {
+    const d = drag, t = d?.target; cleanup(); drag = null;
+    if (!d || !t) return;
+    if (d.mode === 'move') { Object.assign(widgets.find((w) => w.id === d.it.id), { x: t.x, y: t.y }); say(`${d.it.name} déplacé en colonne ${t.x + 1}, ligne ${t.y + 1}.`); }
+    else { widgets.push(t); say(`${t.name} ajouté.`); }
+    render();
+  }
+
+  /* ---------- Événements ---------- */
+  $('#grid').addEventListener('pointerdown', (e) => {
+    const g = e.target.closest('[data-act="grip"]'); if (!g || !editing) return;
+    startDrag(e, widgets.find((x) => x.id === g.closest('.widget').dataset.id), 'move');
+  });
+  $('#grid').addEventListener('keydown', (e) => {
+    const g = e.target.closest('[data-act="grip"]'); if (!g) return;
+    const d = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key]; if (!d) return;
+    e.preventDefault();
+    const w = widgets.find((x) => x.id === g.closest('.widget').dataset.id), t = resolve({ ...w, x: w.x + d[0], y: w.y + d[1] }, widgets);
+    Object.assign(w, { x: t.x, y: t.y }); say(`${w.name} : colonne ${t.x + 1}, ligne ${t.y + 1}.`);
+    render(); document.querySelector(`.widget[data-id="${w.id}"] [data-act="grip"]`)?.focus();
+  });
+  const cta = (e) => { const b = e.target.closest('[data-cta]'); if (!b) return false; if (b.dataset.cta === 'edit') enterEdit(); else toast('Simulation : « ' + b.dataset.cta + ' » ouvrirait l’écran correspondant.'); return true; };
+  $('#gal').addEventListener('click', cta);
+  $('#grid').addEventListener('click', (e) => {
+    if (cta(e)) return;
+    const b = e.target.closest('button'); if (!b) return;
+    const w = widgets.find((x) => x.id === b.closest('.widget')?.dataset.id); if (!w) return;
+    if (b.dataset.act === 'remove') { widgets = widgets.filter((x) => x !== w); say(w.name + ' retiré.'); render(); }
+    if (b.dataset.act === 'gear') openConfig(w);
+  });
+  const nextProject = (t) => ['LUMEN', 'ARIANE', 'ORION'].find((p) => !widgets.some((w) => w.type === t && w.project === p)) || 'LUMEN';
+  $('#cat').addEventListener('pointerdown', (e) => {
+    const li = e.target.closest('li[data-type]'); if (!li || e.target.closest('button')) return;
+    const t = li.dataset.type; startDrag(e, mk(t, 0, 0, 'M', nextProject(t)), 'new', CATALOG[t].name);
+  });
+  $('#cat').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-add]'); if (!b) return;
+    const w = firstFree(mk(b.dataset.add, 0, 0, 'M', nextProject(b.dataset.add))); widgets.push(w); say(w.name + ' ajouté.'); render();
+  });
+  function enterEdit() { snapshot = clone(widgets); editing = true; render(); }
+  $('#edit').addEventListener('click', enterEdit);
+  $('#save').addEventListener('click', () => { editing = false; persist(); render(); toast('Disposition enregistrée.'); });
+  $('#cancel').addEventListener('click', () => { widgets = snapshot || widgets; editing = false; render(); toast('Modifications annulées.'); });
+  $('#reset').addEventListener('click', () => { widgets = defaults(role); render(); toast('Disposition par défaut rétablie. Enregistrez pour la conserver.'); });
+  addEventListener('keydown', (e) => { if (e.key === 'Escape' && drag) cancel(); });
+  $('#vDash').addEventListener('click', () => { view = 'dash'; render(); });
+  $('#vGal').addEventListener('click', () => { editing = false; view = 'gal'; render(); });
+  $('#role').addEventListener('change', (e) => { role = e.target.value; editing = false; widgets = load(role); render(); });
+  $('#state').addEventListener('change', (e) => { state = e.target.value; render(); });
+  $('#theme').addEventListener('change', (e) => { document.documentElement.dataset.theme = e.target.value; try { localStorage.setItem('athena-proto-theme', e.target.value); } catch { /* sans stockage */ } });
+
+  const cfg = $('#cfg');
+  function openConfig(w) {
+    cfgId = w.id; $('#cfgtitle').textContent = 'Configurer : ' + CATALOG[w.type].name;
+    $('#cfgname').value = w.name; $('#cfgproject').value = w.project; $('#cfgsize').value = w.size; cfg.showModal();
+  }
+  $('#cfgform').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const w = widgets.find((x) => x.id === cfgId); if (!w) return cfg.close();
+    const size = $('#cfgsize').value, [nw, nh] = CATALOG[w.type].sizes[size], t = resolve({ ...w, size, w: nw, h: nh }, widgets);
+    Object.assign(w, { name: $('#cfgname').value.trim() || CATALOG[w.type].name, project: $('#cfgproject').value, size, w: nw, h: nh, x: t.x, y: t.y });
+    cfg.close(); render();
+  });
+  $('#cfgcancel').addEventListener('click', () => cfg.close());
+  $('#cfgremove').addEventListener('click', () => { widgets = widgets.filter((x) => x.id !== cfgId); cfg.close(); render(); });
+
+  let th = 'bento'; try { th = localStorage.getItem('athena-proto-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'github-dark' : 'bento'); } catch { /* sans stockage */ }
+  document.documentElement.dataset.theme = th; $('#theme').value = th;
+  widgets = load(role); render();
+})();
+</script>
+</body>
+</html>
