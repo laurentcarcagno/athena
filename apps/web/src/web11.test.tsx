@@ -72,7 +72,7 @@ describe('rail contextuel', () => {
     app('/');
     await screen.findByRole('heading', { level: 1 });
     expect(groupTitles()).toEqual([]);
-    expect(within(rail()).getAllByRole('button').map((b) => b.textContent)).toEqual(['Favoris (0)›', 'Récents (0)›', 'Projets', 'Mon travail', 'Recherche']);
+    expect(within(rail()).getAllByRole('button').map((b) => b.textContent)).toEqual(['Favoris (0)›', 'Récents (0)›', 'Projets (0)›', 'Mon travail', 'Recherche']);
   });
 
   it('dans un projet : la rubrique du projet (sections, trackers imbriqués) et les vues partagées sous le tracker ouvert seulement', async () => {
@@ -81,7 +81,7 @@ describe('rail contextuel', () => {
     expect(groupTitles()).toEqual(['Projet ARI']);
     const labels = within(rail()).getAllByRole('button').map((b) => b.textContent);
     expect(labels).toEqual([
-      'Favoris (0)›', 'Récents (0)›', 'Projets', 'Mon travail', 'Recherche',
+      'Favoris (0)›', 'Récents (0)›', 'Projets (0)›', 'Mon travail', 'Recherche',
       // ADR-0003 : la navigation du projet est au rail ; Planification et Membres, réservés, n’apparaissent pas pour un simple membre
       'Vue d’ensemble', 'Backlog', 'Board', 'Trackers',
       'Anomalies', 'Bloquants', 'Exigences', // la vue partagée apparaît sous le tracker ouvert ; la vue personnelle n’y figure pas
@@ -103,7 +103,7 @@ describe('rail contextuel', () => {
     recents = [pin('r1', 'item', 'ARI-BUG-0001', 'ARI-BUG-0001'), pin('r2', 'project', 'ARI', 'ARI')];
     app('/');
     const favs = await openFlyout(/^Favoris \(2\)/);
-    expect(favs.getAllByRole('button', { name: (n) => !/^(Monter|Descendre)/.test(n) }).map((b) => b.textContent)).toEqual(['ARI', 'ARI · BUG']);
+    expect(favs.getAllByRole('button', { name: (n) => !/^(Monter|Descendre)/.test(n) }).map((b) => b.textContent)).toEqual(['ARI', 'ARI · BUG Anomalies']); // identifiant, puis titre en clair quand il est connu
     expect(favs.getByRole('button', { name: 'Monter ARI' })).toBeDisabled();
     expect(favs.getByRole('button', { name: 'Descendre ARI · BUG' })).toBeDisabled();
     await userEvent.keyboard('{Escape}');
@@ -203,8 +203,8 @@ describe('tiroir mobile du rail (constat F-09)', () => {
   it('naviguer depuis le tiroir le ferme', async () => {
     app('/');
     await userEvent.click(menu());
-    await userEvent.click(within(rail()).getByRole('button', { name: 'Projets' }));
-    await waitFor(() => expect(screen.getByTestId('where')).toHaveTextContent(/^\/projets$/));
+    await userEvent.click(within(rail()).getByRole('button', { name: 'Recherche' }));
+    await waitFor(() => expect(screen.getByTestId('where')).toHaveTextContent(/^\/recherche$/));
     expect(menu()).toHaveAttribute('aria-expanded', 'false');
   });
 

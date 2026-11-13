@@ -488,6 +488,10 @@ export interface NavItem {
   mono?: boolean;
   /** Contrôles propres à la ligne (monter / descendre un favori…), rendus après le libellé. */
   extra?: ReactNode;
+  /** Titre en clair affiché après l'identifiant (nom du projet, du tracker, du ticket) ; l'identifiant reste en mono. */
+  detail?: string;
+  /** Entrée d'action mise en avant (première ligne d'un menu : « Nouveau projet »). */
+  emphasis?: boolean;
   /** Ligne de groupe repliable : un bouton qui déplie ou replie les lignes qui suivent (il ne navigue pas). */
   toggle?: { expanded: boolean; onToggle: () => void };
 }
@@ -496,6 +500,8 @@ export interface NavSection {
   id: string; title?: string; items: NavItem[];
   /** Icône de la rubrique repliée en menu (Favoris, Récents). */
   icon?: ReactNode;
+  /** Nombre affiché dans le titre d'une rubrique repliée, si différent du nombre d'entrées (une entrée d'action ne compte pas). */
+  count?: number;
   /** Rubrique repliée : seul son titre (avec le nombre d'entrées) figure dans le rail, la liste s'ouvre dans un menu sur le côté. */
   flyout?: boolean;
   /** Texte du menu quand la rubrique est vide. */
@@ -514,7 +520,7 @@ function NavFlyout({ group, current, onNavigate }: { group: NavSection; current:
     document.addEventListener('mousedown', onDown);
     return () => { document.removeEventListener('keydown', onKey); document.removeEventListener('mousedown', onDown); };
   }, [open]);
-  const label = `${group.title ?? ''} (${group.items.length})`;
+  const label = `${group.title ?? ''} (${group.count ?? group.items.length})`;
   return (
     <div ref={root} className="ath-nav__section ath-flyout" role="group" aria-label={group.title}>
       <button type="button" className="ath-nav-item ath-flyout__toggle" aria-expanded={open} title={label}
@@ -526,7 +532,7 @@ function NavFlyout({ group, current, onNavigate }: { group: NavSection; current:
           {group.items.length === 0 && <p className="ath-flyout__empty">{group.emptyLabel}</p>}
           {group.items.map((item) => (
             <div key={item.id} className="ath-flyout__row">
-              <button type="button" className={cx('ath-flyout__item', item.mono && 'ath-mono')} aria-current={item.id === current ? 'page' : undefined} onClick={() => { setOpen(false); onNavigate?.(item.id); }}>{item.label}</button>
+              <button type="button" className={cx('ath-flyout__item', item.mono && !item.detail && 'ath-mono', item.emphasis && 'ath-flyout__action')} aria-current={item.id === current ? 'page' : undefined} title={item.detail ? `${item.label} · ${item.detail}` : item.label} onClick={() => { setOpen(false); onNavigate?.(item.id); }}>{item.detail ? <><span className={item.mono ? 'ath-mono' : undefined}>{item.label}</span> <span className="ath-flyout__detail">{item.detail}</span></> : item.label}</button>
               {item.extra}
             </div>
           ))}

@@ -68,8 +68,8 @@ describe('adresses globales', () => {
     app('/', ['athena-user', 'athena-admin']);
     await screen.findByRole('heading', { level: 1, name: 'Mon travail' });
     const entries = within(document.getElementById('rail')!).getAllByRole('button').filter((b) => b.getAttribute('data-depth') === null || b.getAttribute('data-depth') === '0');
-    const names = entries.map((b) => b.textContent).filter((t) => ['Favoris (0)›', 'Récents (0)›', 'Projets', 'Mon travail', 'Recherche', 'Administration'].includes(t ?? ''));
-    expect(names).toEqual(['Favoris (0)›', 'Récents (0)›', 'Projets', 'Mon travail', 'Recherche', 'Administration']);
+    const names = entries.map((b) => b.textContent).filter((t) => ['Favoris (0)›', 'Récents (0)›', 'Projets (0)›', 'Mon travail', 'Recherche', 'Administration'].includes(t ?? ''));
+    expect(names).toEqual(['Favoris (0)›', 'Récents (0)›', 'Projets (0)›', 'Mon travail', 'Recherche', 'Administration']);
     expect(screen.getByRole('link', { name: 'Profil' })).toHaveAttribute('href', '/profil');
     expect(screen.getByRole('link', { name: 'Aide' })).toHaveAttribute('href', '/help');
   });
@@ -154,7 +154,7 @@ describe('Profil et notifications', () => {
       const first = app('/projets');
       const rail = document.getElementById('rail')!;
       expect(rail).toHaveClass('ath-sidebar--collapsed');
-      expect(within(rail).getByRole('button', { name: 'Projets' }).querySelector('.ath-nav-item__icon svg')).not.toBeNull();
+      expect(within(rail).getByRole('button', { name: /^Projets/ }).querySelector('.ath-nav-item__icon svg')).not.toBeNull();
       await userEvent.click(within(rail).getByRole('button', { name: 'Déplier le rail' }));
       expect(rail).not.toHaveClass('ath-sidebar--collapsed');
       first.unmount();

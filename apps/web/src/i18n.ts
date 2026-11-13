@@ -249,7 +249,7 @@ const frDict = {
     traceability: 'Traçabilité', related: 'Relié à',
   },
   rail: {
-    projectSearch: 'Chercher dans le projet', approvals: 'Approbations', groups: { engineering: 'Exigences et conception', development: 'Développement', verification: 'Vérification et qualité', management: 'Gestion', other: 'Autres' } as Record<string, string>,
+    projectSearch: 'Chercher dans le projet', newProject: 'Nouveau projet', allProjects: 'Tous les projets', approvals: 'Approbations', groups: { engineering: 'Exigences et conception', development: 'Développement', verification: 'Vérification et qualité', management: 'Gestion', other: 'Autres' } as Record<string, string>,
     favorites: 'Favoris', recents: 'Récents', project: 'Projet', trackers: 'Trackers', pin: 'Épingler', unpin: 'Désépingler', moveUp: 'Monter', moveDown: 'Descendre', noFavorites: 'Aucun favori. Utilisez l’étoile d’une page pour en ajouter.', noRecents: 'Aucun élément récent.',
     collapse: 'Replier le rail', expand: 'Déplier le rail',
   },
@@ -744,7 +744,7 @@ const enDict: Dictionary = {
     traceability: 'Traceability', related: 'Related to',
   },
   rail: {
-    projectSearch: 'Search in the project', approvals: 'Approvals', groups: { engineering: 'Requirements and design', development: 'Development', verification: 'Verification and quality', management: 'Management', other: 'Other' } as Record<string, string>,
+    projectSearch: 'Search in the project', newProject: 'New project', allProjects: 'All projects', approvals: 'Approvals', groups: { engineering: 'Requirements and design', development: 'Development', verification: 'Verification and quality', management: 'Management', other: 'Other' } as Record<string, string>,
     favorites: 'Favorites', recents: 'Recent', project: 'Project', trackers: 'Trackers', pin: 'Pin', unpin: 'Unpin', moveUp: 'Move up', moveDown: 'Move down', noFavorites: 'No favorites yet. Use the star on a page to add one.', noRecents: 'Nothing recent.',
     collapse: 'Collapse the rail', expand: 'Expand the rail',
   },

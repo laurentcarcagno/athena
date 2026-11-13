@@ -25,6 +25,17 @@ test('Projets, tracker, ticket : trois actions, puis retour au projet par le fil
   await expect(page.getByRole('group', { name: 'Projet ARI' }).getByRole('button', { name: 'Vue d’ensemble' })).toHaveAttribute('aria-current', 'page');
 });
 
+test('menu Projets : « Nouveau projet » en première option, puis les projets avec leur nom', async ({ page }) => {
+  await login(page, 'admin.dev', 'dev-only-admin');
+  await page.goto('/');
+  await page.locator('#rail').getByRole('button', { name: /^Projets/ }).click();
+  const list = page.getByRole('group', { name: /Projets, liste/ });
+  await expect(list.getByRole('button').first()).toHaveText('Nouveau projet');
+  await expect(list.getByRole('button', { name: /^ARI/ })).toContainText('Ariane'); // identifiant, puis titre
+  await list.getByRole('button', { name: 'Nouveau projet' }).click();
+  await expect(page).toHaveURL(/\/admin$/);
+});
+
 test('J / K parcourent la liste, Échap ferme le panneau, l’ancienne adresse de recherche redirige', async ({ page }) => {
   await login(page, 'user.dev', 'dev-only-user');
   await page.goto('/p/ARI/t/BUG/tableau');
@@ -71,7 +82,8 @@ test.describe('téléphone (375 px) : tiroir du rail', () => {
     await page.keyboard.press('Escape');
     await expect(rail).toBeHidden();
     await page.getByRole('button', { name: 'Menu' }).click();
-    await rail.getByRole('button', { name: 'Projets' }).click();
+    await rail.getByRole('button', { name: 'Projets' }).click(); // Projets est un menu : la liste complète en est la dernière entrée
+    await rail.getByRole('button', { name: 'Tous les projets' }).click();
     await expect(page).toHaveURL(/\/projets$/);
     await expect(rail).toBeHidden();
     expect(await noOverflow()).toBe(true);

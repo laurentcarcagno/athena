@@ -14,6 +14,53 @@ const GROUPS = ['engineering', 'development', 'verification', 'management', 'oth
 /** Au-delà de ce nombre, les trackers se regroupent par catégorie (repliées, sauf celle du tracker ouvert). */
 const GROUP_FROM = 5;
 
+interface ProjectRow { key: string; name: string }
+const titleCache = new Map<string, string>();
+
+/**
+ * Titres en clair des favoris et récents (nom du projet, du tracker, du ticket), affichés après l'identifiant. Les noms de projets
+ * viennent de la liste déjà chargée ; trackers et tickets sont lus une fois par projet (un appel chacun) puis gardés en mémoire.
+ * Un échec laisse l'identifiant seul : le menu reste utilisable.
+ */
+function usePinTitles(pins: Pin[], projects: ProjectRow[]): (pin: Pin) => string | undefined {
+  const [, bump] = useState(0);
+  const signature = pins.map((p) => `${p.kind}:${p.project}:${p.ref}`).join('|');
+  useEffect(() => {
+    let live = true;
+    const jobs: Array<Promise<void>> = [];
+    const byProject = new Map<string, { trackers: boolean; items: string[] }>();
+    for (const p of pins) {
+      const entry = byProject.get(p.project) ?? { trackers: false, items: [] };
+      if ((p.kind === 'tracker' || p.kind === 'view') && !titleCache.has(`trackers:${p.project}`)) entry.trackers = true;
+      if (p.kind === 'item' && !titleCache.has(`item:${p.project}:${p.ref}`)) entry.items.push(p.ref);
+      byProject.set(p.project, entry);
+    }
+    for (const [project, need] of byProject) {
+      if (need.trackers) {
+        jobs.push(api<Array<{ key: string; name?: string }>>('GET', `/v1/projects/${project}/trackers`).then((rows) => {
+          for (const t of Array.isArray(rows) ? rows : []) titleCache.set(`tracker:${project}:${t.key}`, plainName(t.name ?? t.key));
+          titleCache.set(`trackers:${project}`, 'ok');
+        }).catch(() => undefined));
+      }
+      if (need.items.length > 0) {
+        const list = [...new Set(need.items)].slice(0, 50).map((k) => `"${k}"`).join(', ');
+        jobs.push(api<{ hits: Array<{ key: string; title?: string }> }>('GET', `/v1/projects/${project}/search?q=${encodeURIComponent(`key IN (${list})`)}&limit=50`).then((r) => {
+          for (const h of r.hits ?? []) if (h.title && h.title !== h.key) titleCache.set(`item:${project}:${h.key}`, h.title);
+        }).catch(() => undefined));
+      }
+    }
+    if (jobs.length > 0) void Promise.all(jobs).then(() => { if (live) bump((n) => n + 1); });
+    return () => { live = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [signature]);
+  return (pin) => {
+    if (pin.kind === 'project') return projects.find((p) => p.key === pin.project)?.name;
+    if (pin.kind === 'tracker') return titleCache.get(`tracker:${pin.project}:${pin.ref}`);
+    if (pin.kind === 'item') return titleCache.get(`item:${pin.project}:${pin.ref}`);
+    return undefined;
+  };
+}
+
 /** Note dans les récents le projet, le tracker ou l'item que l'adresse désigne (une fois par changement). */
 export function useRecordVisits(pathname: string): void {
   const pins = usePins();
@@ -49,6 +96,7 @@ export function useRailSections({ pathname, project, roles }: { pathname: string
   const [views, setViews] = useState<SavedFilter[]>([]);
   const [modules, setModules] = useState<string[] | null>(null);
   const [opened, setOpened] = useState<Record<string, boolean>>({});
+  const [projects, setProjects] = useState<ProjectRow[]>([]);
   const place = placeOf(pathname);
   const tracker = /^\/p\/[^/]+\/t\/([^/]+)/.exec(pathname)?.[1];
   const admin = roles.includes('athena-admin');
@@ -60,14 +108,21 @@ export function useRailSections({ pathname, project, roles }: { pathname: string
     api<TrackerRow[]>('GET', `/v1/projects/${project}/trackers`).then((r) => setTrackers(Array.isArray(r) ? r : [])).catch(() => setTrackers([]));
     api<{ modules: string[] }>('GET', `/v1/projects/${project}/modules`).then((r) => setModules(Array.isArray(r.modules) ? r.modules : null)).catch(() => setModules(null));
   }, [project]);
+  const reloadProjects = pathname.startsWith('/admin') || pathname.startsWith('/projets');
+  useEffect(() => {
+    api<ProjectRow[]>('GET', '/v1/projects').then((r) => setProjects(Array.isArray(r) ? r : [])).catch(() => setProjects([]));
+  }, [project, reloadProjects]);
+  const titleOf = usePinTitles([...pins.favorites, ...pins.recents], projects);
   useEffect(() => {
     setViews([]);
     if (!project || !tracker) return;
     api<SavedFilter[]>('GET', `/v1/projects/${project}/filters?tracker=${tracker}`).then((r) => setViews(Array.isArray(r) ? r.filter((v) => v.shared) : [])).catch(() => setViews([]));
   }, [project, tracker]);
 
+  /** Le titre n'est ajouté que s'il apporte quelque chose de plus que l'identifiant. */
+  const detailOf = (pin: Pin): { detail?: string } => { const t = titleOf(pin); return t && t !== pin.label ? { detail: t } : {}; };
   const pinItem = (pin: Pin, index: number, count: number): NavItem => ({
-    id: pinHref(pin), label: pin.label, mono: pin.kind === 'item',
+    id: pinHref(pin), label: pin.label, mono: pin.kind === 'item', ...detailOf(pin),
     extra: (
       <>
         <button type="button" className="ath-nav__move" aria-label={`${fr.rail.moveUp} ${pin.label}`} disabled={index === 0} onClick={() => void pins.move(pin.id, -1)}>↑</button>
@@ -75,17 +130,26 @@ export function useRailSections({ pathname, project, roles }: { pathname: string
       </>
     ),
   });
-  const recentItem = (pin: Pin): NavItem => ({ id: pinHref(pin), label: pin.label, mono: pin.kind === 'item' });
+  const recentItem = (pin: Pin): NavItem => ({ id: pinHref(pin), label: pin.label, mono: pin.kind === 'item', ...detailOf(pin) });
 
   const sections: NavSection[] = [];
   sections.push({ id: 'favorites', title: fr.rail.favorites, icon: RAIL_ICONS['favorites'], flyout: true, emptyLabel: fr.rail.noFavorites, items: pins.favorites.map((p, i) => pinItem(p, i, pins.favorites.length)) });
   const recents = pins.recents.filter((r) => !pins.favorites.some((f) => f.kind === r.kind && f.project === r.project && f.ref === r.ref));
   sections.push({ id: 'recents', title: fr.rail.recents, icon: RAIL_ICONS['recents'], flyout: true, emptyLabel: fr.rail.noRecents, items: recents.map(recentItem) });
+  // Projets : un menu comme Favoris et Récents. « Nouveau projet » en première option (administrateur), puis les projets, puis la liste complète.
+  sections.push({
+    id: 'projects', title: fr.nav.projects, icon: RAIL_ICONS['projects'], flyout: true, emptyLabel: fr.projects.empty, count: projects.length,
+    items: [
+      ...(admin ? [{ id: '/admin', label: fr.rail.newProject, emphasis: true }] : []),
+      ...projects.map((p): NavItem => ({ id: `/p/${p.key}`, label: p.key, mono: true, ...(p.name && p.name !== p.key ? { detail: p.name } : {}) })),
+      { id: '/projets', label: fr.rail.allProjects },
+    ],
+  });
   sections.push({
     id: 'main',
     items: [
-      // Rail global : 4 entrées + Favoris et Récents = 6 au plus (ADR-0003) ; Profil et Aide sont au bas du rail, avec l'utilisateur.
-      { id: '/projets', label: fr.nav.projects, icon: RAIL_ICONS['projects'] }, { id: '/', label: fr.nav.work, icon: RAIL_ICONS['work'] }, { id: '/recherche', label: fr.nav.search, icon: RAIL_ICONS['search'] },
+      // Rail global : Projets (menu), Mon travail, Recherche, Administration ; Favoris et Récents sont aussi des menus (ADR-0003) ; Profil et Aide sont au bas du rail.
+      { id: '/', label: fr.nav.work, icon: RAIL_ICONS['work'] }, { id: '/recherche', label: fr.nav.search, icon: RAIL_ICONS['search'] },
       ...(admin ? [{ id: '/admin', label: fr.nav.admin, icon: RAIL_ICONS['admin'] }] : []),
     ],
   });

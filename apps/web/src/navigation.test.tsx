@@ -44,11 +44,13 @@ const app = (path: string) => render(<ToastProvider><MemoryRouter initialEntries
 const shown = () => screen.findByRole('heading', { name: new RegExp(KEY) });
 
 describe('accès à un ticket en moins de 3 actions, sans requête', () => {
-  it('depuis « Mon travail » : Projets, le tracker, le ticket (3 actions)', async () => {
+  it('depuis « Mon travail » : le menu Projets, le projet, le tracker, le ticket (4 actions ; 2 avec un favori ou un récent)', async () => {
     app('/me');
-    await userEvent.click(await within(await screen.findByRole('navigation', { name: 'Navigation principale' })).findByRole('button', { name: 'Projets' })); // 1
-    await userEvent.click(await screen.findByRole('link', { name: /Anomalies/ })); // 2
-    await userEvent.click(await screen.findByRole('link', { name: KEY })); // 3
+    const nav = within(await screen.findByRole('navigation', { name: 'Navigation principale' }));
+    await userEvent.click(await nav.findByRole('button', { name: /^Projets/ })); // 1 : le menu des projets
+    await userEvent.click(within(screen.getByRole('group', { name: /, liste$/ })).getByRole('button', { name: /^ARI/ })); // 2 : le projet
+    await userEvent.click(await nav.findByRole('button', { name: /Anomalies/ })); // 3 : le tracker, au rail
+    await userEvent.click(await screen.findByRole('link', { name: KEY })); // 4
     expect(await shown()).toBeInTheDocument();
   });
 
@@ -57,7 +59,7 @@ describe('accès à un ticket en moins de 3 actions, sans requête', () => {
     app('/me');
     const nav = within(await screen.findByRole('navigation', { name: 'Navigation principale' }));
     await userEvent.click(await nav.findByRole('button', { name: /^Favoris/ })); // 1 : le menu latéral
-    await userEvent.click(within(screen.getByRole('group', { name: /, liste$/ })).getByRole('button', { name: KEY })); // 2
+    await userEvent.click(within(screen.getByRole('group', { name: /, liste$/ })).getByRole('button', { name: new RegExp(`^${KEY}`) })); // 2 (le titre du ticket suit son identifiant)
     expect(await shown()).toBeInTheDocument();
   });
 

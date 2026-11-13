@@ -43,7 +43,7 @@ test('recherche globale : palette sur tous les projets, puis page avec puces et 
   await page.getByRole('button', { name: 'Recherche', exact: true }).first().click();
   await expect(page).toHaveURL(/\/recherche$/);
   await page.getByRole('group', { name: 'Filtres rapides' }).getByRole('button', { name: 'Ouverts' }).click();
-  await page.getByRole('group', { name: 'Projets' }).getByRole('button', { name: 'AGL', exact: true }).click();
+  await page.getByRole('main').getByRole('group', { name: 'Projets' }).getByRole('button', { name: 'AGL', exact: true }).click();
   await expect(page).toHaveURL(/\/recherche\?q=category.*&p=AGL$/);
   await expect(page.getByRole('link', { name: key })).toBeVisible();
 });
