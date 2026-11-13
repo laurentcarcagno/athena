@@ -25,7 +25,7 @@ export interface TemplateEntry {
 }
 interface PluginEntry { id: string; name: string; version: string; enabled: boolean; permissions: string[] }
 
-function ProjectsTab({ users, templates }: { users: UserEntry[]; templates: TemplateEntry[] }) {
+function ProjectsTab({ users, templates, openForm = 0, onFormOpened }: { users: UserEntry[]; templates: TemplateEntry[]; /** Positive quand le rail demande « Nouveau projet » : le formulaire s'ouvre comme au clic sur le bouton. */ openForm?: number; onFormOpened?: () => void }) {
   const { busy, guard } = useBusy();
   const toast = useToast();
   const fail = useFailure();
@@ -34,6 +34,7 @@ function ProjectsTab({ users, templates }: { users: UserEntry[]; templates: Temp
   const [pick, setPick] = useState<Record<string, string>>({});
   const [creating, setCreating] = useState(false);
   const [naming, setNaming] = useState<string | null>(null);
+  useEffect(() => { if (openForm > 0) { setCreating(true); onFormOpened?.(); } }, [openForm, onFormOpened]);
   const load = useCallback(async () => {
     const list = await api<Array<{ key: string; name: string }>>('GET', '/v1/projects');
     setProjects(await Promise.all(list.map(async (p) => ({ ...p, managers: (await api<MemberEntry[]>('GET', `/v1/projects/${p.key}/members`)).filter((m) => m.role === 'manager') }))));
@@ -396,11 +397,12 @@ function PluginsTab() {
 export function OrgAdminPage({ session }: { session: Session }) {
   const fail = useFailure();
   const [tab, setTab] = useState('projects');
+  const [newProject, setNewProject] = useState(0); // demandes « Nouveau projet » du menu Projets : le formulaire de création s'ouvre
   // `?onglet=projets` (menu Projets du rail, « Nouveau projet ») ouvre l'onglet Projets même si un autre était ouvert : chaque navigation
   // vers cette adresse a sa propre clé, l'effet se rejoue donc aussi quand l'adresse ne change pas.
   const location = useLocation();
   const [params] = useSearchParams();
-  useEffect(() => { if (params.get('onglet') === 'projets') setTab('projects'); }, [location.key, params]);
+  useEffect(() => { if (params.get('onglet') === 'projets') { setTab('projects'); setNewProject(1); } }, [location.key, params]);
   const [users, setUsers] = useState<UserEntry[]>([]);
   const [templates, setTemplates] = useState<TemplateEntry[]>([]);
   const [trackerTemplates, setTrackerTemplates] = useState<TrackerTemplateEntry[]>([]);
@@ -414,7 +416,7 @@ export function OrgAdminPage({ session }: { session: Session }) {
       <PageHeader eyebrow={fr.org.eyebrow} title={fr.org.title} />
       <Tabs tabs={[{ id: 'projects', label: fr.org.projects }, { id: 'templates', label: fr.org.templates }, { id: 'types', label: fr.org.trackerTypes }, { id: 'linktypes', label: fr.org.linkTypes }, { id: 'users', label: fr.org.users }, { id: 'appearance', label: fr.appearance.tab }, { id: 'calendar', label: fr.calendar.tab }, { id: 'webhooks', label: fr.admin.webhooks }, { id: 'plugins', label: fr.org.plugins }]} active={tab} onChange={setTab} />
       <div role="tabpanel" className="ath-stack">
-        {tab === 'projects' && <ProjectsTab users={users} templates={templates} />}
+        {tab === 'projects' && <ProjectsTab users={users} templates={templates} openForm={newProject} onFormOpened={() => setNewProject(0)} />}
         {tab === 'templates' && <TemplatesTab templates={templates} trackerTemplates={trackerTemplates} reload={loadTemplates} reloadTrackerTemplates={loadTrackerTemplates} />}
         {tab === 'types' && <TrackerTypesTab />}
         {tab === 'linktypes' && <LinkTypesTab />}

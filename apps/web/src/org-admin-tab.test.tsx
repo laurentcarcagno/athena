@@ -22,15 +22,31 @@ const open = (path: string) => render(
   <ToastProvider><MemoryRouter initialEntries={[path]}><GoNewProject /><Routes><Route path="/admin" element={<OrgAdminPage session={admin} />} /></Routes></MemoryRouter></ToastProvider>,
 );
 
+const FORM = 'Clé du projet (2 à 10 majuscules)';
+
 describe('onglet Projets de l’Administration', () => {
-  it('s’ouvre sur Projets par défaut', async () => {
+  it('s’ouvre sur Projets par défaut, formulaire de création fermé (le bouton le propose)', async () => {
     open('/admin');
     expect(await screen.findByRole('tab', { name: 'Projets' })).toHaveAttribute('aria-selected', 'true');
+    expect(await screen.findByRole('button', { name: '+ Nouveau projet' })).toBeInTheDocument();
+    expect(screen.queryByLabelText(FORM)).toBeNull();
   });
 
-  it('?onglet=projets ouvre Projets à l’arrivée', async () => {
+  it('?onglet=projets ouvre Projets à l’arrivée, avec le formulaire de création déjà ouvert', async () => {
     open('/admin?onglet=projets');
     expect(await screen.findByRole('tab', { name: 'Projets' })).toHaveAttribute('aria-selected', 'true');
+    expect(await screen.findByLabelText(FORM)).toBeInTheDocument();
+    expect(screen.getByLabelText('Nom du projet')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '+ Nouveau projet' })).toBeNull(); // le bouton laisse place au formulaire
+  });
+
+  it('en revenant sur l’onglet Projets plus tard, le formulaire n’est pas rouvert de lui-même', async () => {
+    open('/admin?onglet=projets');
+    await screen.findByLabelText(FORM);
+    await userEvent.click(screen.getByRole('tab', { name: 'Gabarits' }));
+    await userEvent.click(screen.getByRole('tab', { name: 'Projets' }));
+    expect(await screen.findByRole('button', { name: '+ Nouveau projet' })).toBeInTheDocument();
+    expect(screen.queryByLabelText(FORM)).toBeNull();
   });
 
   it('depuis un autre onglet déjà ouvert, « Nouveau projet » revient sur Projets, chaque fois', async () => {
@@ -39,10 +55,19 @@ describe('onglet Projets de l’Administration', () => {
     expect(screen.getByRole('tab', { name: 'Gabarits' })).toHaveAttribute('aria-selected', 'true');
     await userEvent.click(screen.getByRole('button', { name: 'Nouveau projet (menu)' }));
     await waitFor(() => expect(screen.getByRole('tab', { name: 'Projets' })).toHaveAttribute('aria-selected', 'true'));
+    expect(await screen.findByLabelText(FORM)).toBeInTheDocument(); // formulaire ouvert aussi
     // une seconde fois, adresse inchangée : l'onglet quitté est de nouveau remplacé
     await userEvent.click(screen.getByRole('tab', { name: 'Utilisateurs' }));
     expect(screen.getByRole('tab', { name: 'Utilisateurs' })).toHaveAttribute('aria-selected', 'true');
     await userEvent.click(screen.getByRole('button', { name: 'Nouveau projet (menu)' }));
     await waitFor(() => expect(screen.getByRole('tab', { name: 'Projets' })).toHaveAttribute('aria-selected', 'true'));
+    expect(await screen.findByLabelText(FORM)).toBeInTheDocument();
+  });
+
+  it('déjà sur Projets avec le formulaire fermé, « Nouveau projet » du menu l’ouvre', async () => {
+    open('/admin');
+    await screen.findByRole('button', { name: '+ Nouveau projet' });
+    await userEvent.click(screen.getByRole('button', { name: 'Nouveau projet (menu)' }));
+    expect(await screen.findByLabelText(FORM)).toBeInTheDocument();
   });
 });

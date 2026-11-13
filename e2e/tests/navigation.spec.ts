@@ -35,11 +35,13 @@ test('menu Projets : « Nouveau projet » en première option, puis les projets 
   await list.getByRole('button', { name: 'Nouveau projet' }).click();
   await expect(page).toHaveURL(/\/admin\?onglet=projets$/);
   await expect(page.getByRole('tab', { name: 'Projets' })).toHaveAttribute('aria-selected', 'true');
+  await expect(page.getByLabel('Clé du projet (2 à 10 majuscules)')).toBeVisible(); // le formulaire est déjà ouvert, comme après un clic sur « + Nouveau projet »
   // Déjà dans l'Administration sur un autre onglet : « Nouveau projet » ramène sur Projets.
   await page.getByRole('tab', { name: 'Gabarits' }).click();
   await page.locator('#rail').getByRole('button', { name: /^Projets/ }).click();
   await page.getByRole('group', { name: /Projets, liste/ }).getByRole('button', { name: 'Nouveau projet' }).click();
   await expect(page.getByRole('tab', { name: 'Projets' })).toHaveAttribute('aria-selected', 'true');
+  await expect(page.getByLabel('Clé du projet (2 à 10 majuscules)')).toBeVisible();
 });
 
 test('J / K parcourent la liste, Échap ferme le panneau, l’ancienne adresse de recherche redirige', async ({ page }) => {
