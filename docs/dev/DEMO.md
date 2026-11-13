@@ -41,11 +41,11 @@ Le compte `admin.dev` (`dev-only-admin`) administre l'organisation : calendrier,
 ## Ce que chaque rôle voit (audit des rôles)
 - **Cheffe de projet** : Mon travail ouvre sur les tâches en retard, le chemin critique et les risques ouverts ; Planning éditable (sélection d'une tâche, « Lier à… », durée au clic, glisser) ; Paramètres complets du projet.
 - **Utilisateur** : ses tâches en retard ; Planning en lecture avec « Demander un décalage » sur sa tâche (commentaire qui mentionne la cheffe de projet) ; avancement et reste à faire de ses tickets dans la fiche.
-- **Assurance produit** : visas, mentions, non-conformités et RID ouverts ; lecture seule, l'entrée du projet s'appelle « Approbations ». Elle ne crée ni ticket ni commentaire (décision de rôle à confirmer).
+- **Assurance produit** : visas, mentions, non-conformités et RID ouverts ; elle déclare des tickets, commente et lie comme un utilisateur (décision du 2026-11-13), sans configuration, baseline ni planning ; l'entrée du projet s'appelle « Approbations ».
 - Le rail regroupe les 13 trackers du gabarit par métier (groupes repliés) ; le rapport **Rapports › Risques** classe le registre par criticité.
 
 ## Parcours suggérés
 - `claire.lefevre` : Mon travail (à approuver, mentions), Planning (Gantt, chemin critique, comparaison à la baseline PDR), Backlog et sprints, Versions.
 - `thomas.bernard` : ses tâches SCAO, l'anomalie critique du filtre de Kalman, la dérogation de pointage.
-- `emma.fournier` : lecture seule, visa de la dernière étape d'approbation.
+- `emma.fournier` : déclarer un RID, commenter, visa de la dernière étape d'approbation.
 - `hugo.roux` : traçabilité (arbre, matrice, couverture) et anomalies bloquantes.

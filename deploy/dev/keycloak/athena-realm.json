@@ -19,7 +19,7 @@
       },
       {
         "name": "athena-qa",
-        "description": "Assurance qualité étatique (lecture seule, approbation des jalons et baselines)"
+        "description": "Assurance qualité (droits d'un utilisateur, approbation des jalons et baselines)"
       },
       {
         "name": "athena-user",

@@ -132,7 +132,7 @@ async function ensureKeycloak() {
   if (!token) { console.log('Keycloak : jeton administrateur indisponible, rôles athena-pm et athena-qa non vérifiés'); return; }
   const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
   const api = (path, init = {}) => fetch(`${base}/admin/realms/athena${path}`, { headers, ...init });
-  for (const [name, description] of [['athena-pm', 'Chef de projet'], ['athena-qa', 'Assurance qualité étatique (lecture seule, approbation des jalons et baselines)']]) {
+  for (const [name, description] of [['athena-pm', 'Chef de projet'], ['athena-qa', 'Assurance qualité (droits d'un utilisateur, approbation des jalons et baselines)']]) {
     if ((await api(`/roles/${name}`)).status === 404) await api('/roles', { method: 'POST', body: JSON.stringify({ name, description }) });
   }
   const group = (await (await api('/groups?search=org-demo')).json())[0];

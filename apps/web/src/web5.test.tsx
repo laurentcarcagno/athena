@@ -111,7 +111,7 @@ describe('création d’un tracker dans un projet', () => {
 
   it('refuse l’accès à un non administrateur', () => {
     page({ authenticated: true, user: { username: 'u', name: 'U', email: null, roles: ['athena-user'], groups: [] } });
-    expect(screen.getByRole('heading', { name: 'Seul un administrateur peut ajouter un tracker.' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Seuls un administrateur ou un chef de projet peuvent ajouter un tracker.' })).toBeInTheDocument();
   });
 });
 

@@ -95,7 +95,7 @@ describe('demande de décalage (utilisateur)', () => {
 });
 
 const user = { authenticated: true, user: { id: 'u-pat', username: 'pat', name: 'Pat', roles: ['athena-user'] } } as unknown as Session;
-const qa = { authenticated: true, user: { id: 'u-emma', username: 'emma', name: 'Emma', roles: ['athena-qa'] } } as unknown as Session;
+const qa = { authenticated: true, user: { id: 'u-emma', username: 'emma', name: 'Emma', roles: ['athena-qa', 'athena-user'] } } as unknown as Session; // le serveur donne à l'assurance produit le rôle effectif d'utilisateur
 
 describe('PlanningPage selon le rôle', () => {
   let calls: Array<{ method: string; url: string; body: unknown }> = [];
@@ -139,10 +139,11 @@ describe('PlanningPage selon le rôle', () => {
     expect(await screen.findByText(/demandez un décalage à votre chef de projet depuis la tâche/)).toBeInTheDocument();
   });
 
-  it('assurance produit : lecture seule, aucune demande, et le message renvoie vers les approbations', async () => {
+  it('assurance produit : les droits d’un utilisateur, donc la demande de décalage, mais pas l’édition', async () => {
     open(qa);
-    expect(await screen.findByText(/votre visa se donne dans Paramètres › Approbations/)).toBeInTheDocument();
-    expect(screen.queryByRole('toolbar')).toBeNull();
-    expect(screen.queryByRole('button', { name: 'Demander un décalage' })).toBeNull();
+    await userEvent.click(await screen.findByRole('button', { name: 'Réalisation' }));
+    expect(screen.getByRole('button', { name: 'Demander un décalage' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Lier à…' })).toBeNull();
+    expect(screen.queryByLabelText(/Modifier la durée/)).toBeNull();
   });
 });

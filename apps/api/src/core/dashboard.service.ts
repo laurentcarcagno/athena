@@ -66,7 +66,7 @@ export const defaultProgressWidgets = (project: string): Widget[] => [
  */
 export const homeWidgetsFor = (roles: readonly string[]): Widget[] => {
   const manager = roles.includes('athena-admin') || roles.includes('athena-pm');
-  const qaOnly = roles.includes('athena-qa') && !manager && !roles.includes('athena-user');
+  const qaOnly = roles.includes('athena-qa') && !manager; // l'assurance produit a aussi les droits d'un utilisateur (rôle effectif), son accueil reste le sien
   if (qaOnly) {
     return [
       { id: 'approvals', kind: 'approvals' }, { id: 'mentions', kind: 'mentions' },

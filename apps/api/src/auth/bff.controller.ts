@@ -1,6 +1,6 @@
 import { createHash, randomBytes } from 'node:crypto';
 import { Body, Controller, Get, HttpCode, Inject, Post, Query, Req, Res } from '@nestjs/common';
-import { Public } from './auth.guard';
+import { Public, withUserRole } from './auth.guard';
 import { SESSION_COOKIE, SESSION_STORE, TOKEN_VERIFIER, WEB_CONFIG, type WebConfig } from './auth.tokens';
 import { cookie, csrfToken, parseCookies, safeEqual, sign, unsign, type SessionStore } from './session';
 import type { TokenVerifier } from './token-verifier';
@@ -118,7 +118,7 @@ export class BffController {
     if (!id || !principal || !this.config.sessionSecret) { reply.status(200).send({ authenticated: false, ...(this.config.protectionLevel ? { protectionLevel: this.config.protectionLevel } : {}) }); return; }
     reply.status(200).send({
       authenticated: true,
-      user: { id: principal.subject, username: principal.username, name: principal.name ?? principal.username, email: principal.email ?? null, roles: principal.roles, groups: principal.groups },
+      user: { id: principal.subject, username: principal.username, name: principal.name ?? principal.username, email: principal.email ?? null, roles: withUserRole(principal.roles), groups: principal.groups },
       csrf: csrfToken(this.config.sessionSecret, id),
       ...(this.config.protectionLevel ? { protectionLevel: this.config.protectionLevel } : {}),
     });

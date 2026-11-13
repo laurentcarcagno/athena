@@ -5,6 +5,7 @@ import { api, type Session } from '../api';
 import { PlanningBoard, PlanningList } from '../components/PlanningViews';
 import { ScheduleGantt, type GanttEdit, type ShiftRequest } from '../components/ScheduleGantt';
 import { formatDay } from '../lib/dates';
+import { useProjectManager } from '../lib/project-role';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
 import { PLANNING_FILTERS, filterSchedule, type BaselineChoice, type CalendarData, type PlanningFilter, type ScheduleData } from '../lib/schedule';
@@ -35,16 +36,17 @@ export function PlanningPage({ session }: { session: Session }) {
       }} />
   );
   const roles = session.user?.roles ?? [];
+  const responsible = useProjectManager(project, session); // le serveur n'accepte l'édition que du responsable du projet
   return (
     <>
       <PageHeader title={t.title} />
       {tabs}
-      {view === 'versions' ? <RoadmapPage session={session} bare /> : <ScheduleViews project={project} view={view} canEdit={roles.some((r) => r === 'athena-admin' || r === 'athena-pm')} canRequest={roles.includes('athena-user') && !roles.some((r) => r === 'athena-admin' || r === 'athena-pm')} qaOnly={roles.includes('athena-qa') && !roles.includes('athena-user') && !roles.some((r) => r === 'athena-admin' || r === 'athena-pm')} me={session.user?.id ?? session.user?.username ?? ''} />}
+      {view === 'versions' ? <RoadmapPage session={session} bare /> : <ScheduleViews project={project} view={view} canEdit={responsible} canRequest={roles.includes('athena-user') && !responsible} me={session.user?.id ?? session.user?.username ?? ''} />}
     </>
   );
 }
 
-function ScheduleViews({ project, view, canEdit, canRequest, qaOnly, me }: { project: string; view: Exclude<View, 'versions'>; canEdit: boolean; canRequest: boolean; qaOnly: boolean; me: string }) {
+function ScheduleViews({ project, view, canEdit, canRequest, me }: { project: string; view: Exclude<View, 'versions'>; canEdit: boolean; canRequest: boolean; me: string }) {
   const fail = useFailure();
   const toast = useToast();
   const [data, setData] = useState<ScheduleData | null>(null);
@@ -121,7 +123,7 @@ function ScheduleViews({ project, view, canEdit, canRequest, qaOnly, me }: { pro
   const filtered = q !== '' || f !== 'all';
   return (
     <div className="ath-stack">
-      {view === 'gantt' && <p className="ath-pageheader__sub">{t.legend}{canEdit ? '' : ` ${qaOnly ? t.edit.readOnlyQa : t.edit.readOnly}`}</p>}
+      {view === 'gantt' && <p className="ath-pageheader__sub">{t.legend}{canEdit ? '' : ` ${t.edit.readOnly}`}</p>}
       <div className="ath-toolbar" role="search" aria-label={t.filters.label}>
         <label className="ath-row">
           <span className="ath-field__label">{t.filters.search}</span>

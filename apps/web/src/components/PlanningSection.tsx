@@ -22,8 +22,8 @@ export const hasPlanning = (def: TrackerDefinition): boolean => Boolean(planning
  * successeurs, avancement et reste à faire. Le chef de projet change le début et la durée (replanification des successeurs) ;
  * chacun change l'avancement et le reste à faire des tickets qui lui sont assignés. Une tâche parente est en lecture (D3).
  */
-export function PlanningSection({ project, def, artifact, links, roles, me, onSave, onChanged }: {
-  project: string; def: TrackerDefinition; artifact: Artifact; links: ItemLink[]; roles: readonly string[]; me: string;
+export function PlanningSection({ project, def, artifact, links, roles, me, manager, onSave, onChanged }: {
+  project: string; def: TrackerDefinition; artifact: Artifact; links: ItemLink[]; roles: readonly string[]; me: string; manager: boolean;
   onSave: (field: Field, raw: string) => void; onChanged: () => void;
 }) {
   const fail = useFailure();
@@ -35,7 +35,6 @@ export function PlanningSection({ project, def, artifact, links, roles, me, onSa
     return () => { live = false; };
   }, [project, artifact.key, artifact.version]);
 
-  const manager = roles.some((r) => r === 'athena-admin' || r === 'athena-pm');
   const assigneeField = planningField(def, 'assignee');
   const mine = assigneeField ? artifact.values[assigneeField.key] === me && me !== '' : false;
   const progress = planningField(def, 'progress');

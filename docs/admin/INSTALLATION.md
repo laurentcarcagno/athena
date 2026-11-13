@@ -130,7 +130,7 @@ Initialiser et desceller OpenBao (`bao operator init`, clés de descellement ré
 
 Le niveau de protection de l'instance (bandeau et mention des exports) se règle par `protectionLevel` (variable `ATHENA_PROTECTION_LEVEL`).
 
-Rôles Keycloak de l'instance Défense : `athena-qa` (assurance qualité étatique : lecture seule, approbation des jalons et baselines) s'ajoute à `athena-admin`, `athena-pm` et `athena-user`. Le royaume de développement fournit le compte `qa.dev`. Les listes d'ayants droit et le contrôle export sont appliqués par la base (politiques RLS restrictives, migrations 039 et 040) : aucune configuration supplémentaire.
+Rôles Keycloak de l'instance Défense : `athena-qa` (assurance qualité : droits d'un utilisateur, plus l'approbation des jalons et des baselines ; ni configuration ni planning) s'ajoute à `athena-admin`, `athena-pm` et `athena-user`. Le royaume de développement fournit le compte `qa.dev`. Les listes d'ayants droit et le contrôle export sont appliqués par la base (politiques RLS restrictives, migrations 039 et 040) : aucune configuration supplémentaire.
 
 ## Recette Kubernetes locale (kind)
 

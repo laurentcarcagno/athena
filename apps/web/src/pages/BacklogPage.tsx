@@ -4,6 +4,7 @@ import { Btn, Card, EmptyState, Field, Id, PageHeader, Select, StatusPill, Table
 import { api, type Session } from '../api';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
+import { useProjectManager } from '../lib/project-role';
 import { fromHere } from '../lib/origin';
 import { DateTime, formatDate, formatDay, formatSpan, relativeSpan } from '../lib/dates';
 
@@ -80,7 +81,7 @@ export function BacklogPage({ session }: { session: Session }) {
   const toast = useToast();
   const fail = useFailure();
   const roles = session.user?.roles ?? [];
-  const canPlan = roles.includes('athena-admin') || roles.includes('athena-pm');
+  const canPlan = useProjectManager(project, session);
   const [items, setItems] = useState<BacklogItem[] | null>(null);
   const [sprints, setSprints] = useState<SprintDetail[]>([]);
   const [burndown, setBurndown] = useState<BurndownPoint[]>([]);

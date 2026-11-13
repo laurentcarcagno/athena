@@ -171,8 +171,8 @@ describe('section Planification de la fiche', () => {
   });
   afterEach(() => vi.unstubAllGlobals());
 
-  const show = (roles: string[], assignee = 'u-pat', onSave = vi.fn(), onChanged = vi.fn()) => {
-    render(<MemoryRouter><ToastProvider><PlanningSection project="NOVA" def={def(true)} artifact={art(assignee)} links={links} roles={roles} me="u-pat" onSave={onSave} onChanged={onChanged} /></ToastProvider></MemoryRouter>);
+  const show = (roles: string[], assignee = 'u-pat', onSave = vi.fn(), onChanged = vi.fn(), manager = roles.some((r) => r === 'athena-admin' || r === 'athena-pm')) => {
+    render(<MemoryRouter><ToastProvider><PlanningSection project="NOVA" def={def(true)} artifact={art(assignee)} links={links} roles={roles} me="u-pat" manager={manager} onSave={onSave} onChanged={onChanged} /></ToastProvider></MemoryRouter>);
     return { onSave, onChanged };
   };
 

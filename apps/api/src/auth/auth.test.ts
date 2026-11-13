@@ -4,6 +4,7 @@ import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fa
 import { createLocalJWKSet, exportJWK, generateKeyPair, SignJWT } from 'jose';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { AppModule } from '../app.module';
+import { withUserRole } from './auth.guard';
 import { loadConfig } from '../config';
 import { TOKEN_VERIFIER } from './auth.guard';
 import { TokenVerifier } from './token-verifier';
@@ -129,11 +130,21 @@ describe('garde HTTP', () => {
 
   const send = (url: string, token: string, method: 'POST' | 'PUT' | 'DELETE' = 'POST') => app.inject({ method, url, headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' }, payload: '{}' });
 
-  it('assurance qualité étatique : lit comme un utilisateur, n’écrit rien, et réserve la décision d’approbation à son rôle', async () => {
+  it('assurance qualité : les droits d’un utilisateur, jamais ceux d’un chef de projet ni d’un administrateur, et la décision d’approbation réservée à son rôle', async () => {
     const qa = await sign({ preferred_username: 'qa', realm_access: { roles: ['athena-qa'] } });
     expect((await get('/v1/me', qa)).statusCode).toBe(200); // lecture : vaut « utilisateur »
     expect((await get('/v1/admin/ping', qa)).statusCode).toBe(403); // jamais administrateur
-    for (const url of ['/v1/projects/ARI/trackers/BUG/artifacts', '/v1/projects/ARI/baselines', '/v1/projects/ARI/releases']) expect((await send(url, qa)).statusCode, url).toBe(403); // aucune écriture
+    // Déclarer un ticket (RID, anomalie) et commenter : traités exactement comme pour un utilisateur (la garde ne les distingue plus).
+    const plain = await sign({ preferred_username: 'u', realm_access: { roles: ['athena-user'] } });
+    for (const url of ['/v1/projects/ARI/trackers/BUG/artifacts', '/v1/projects/ARI/artifacts/ARI-BUG-0001/comments', '/v1/projects/ARI/artifacts/ARI-BUG-0001/links']) {
+      expect((await send(url, qa)).statusCode, url).toBe((await send(url, plain)).statusCode);
+    }
+    expect(withUserRole(['athena-qa'])).toEqual(['athena-qa', 'athena-user']);
+    expect(withUserRole(['athena-qa', 'athena-user'])).toEqual(['athena-qa', 'athena-user']);
+    expect(withUserRole(['athena-pm'])).toEqual(['athena-pm']);
+    expect((await send('/v1/projects/ARI/baselines', qa)).statusCode).toBe(403); // pas de baseline
+    expect((await send('/v1/projects/ARI/trackers/BUG/fields', qa)).statusCode).toBe(403); // pas de configuration
+    expect((await send('/v1/projects/ARI/schedule/apply', qa)).statusCode).toBe(403); // pas de replanification
     expect((await send('/v1/projects/ARI/approvals/release/R1/required', qa, 'PUT')).statusCode).toBe(403); // pas d’exigence d’approbation
     const user = await sign({ preferred_username: 'u', realm_access: { roles: ['athena-user'] } });
     expect((await send('/v1/projects/ARI/approvals/release/R1/decision', user)).statusCode).toBe(403); // la décision est réservée au rôle

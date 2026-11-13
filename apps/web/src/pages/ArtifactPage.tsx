@@ -5,6 +5,7 @@ import { ApiError, api, upload, type Artifact, type AttachmentView, type Field, 
 import { useBusy, useFailure } from '../hooks';
 import { fr } from '../i18n';
 import { PlanningSection, hasPlanning } from '../components/PlanningSection';
+import { useProjectManager } from '../lib/project-role';
 import { ItemHeader, type ItemLink as LinkView, type ItemSprint } from '../components/ItemHeader';
 import { MentionInput, MentionText } from '../components/MentionInput';
 import { ApprovalPanel } from '../components/ApprovalPanel';
@@ -101,6 +102,7 @@ export function ArtifactView({ session, project, itemKey: key, embedded = false,
   const search = useRef({ params, state: location.state as unknown });
   search.current = { params, state: location.state }; // lu par la redirection d'une ancienne clé et les onglets, sans relancer le chargement
   const [circuit, setCircuit] = useState(false);
+  const responsible = useProjectManager(project, session); // responsable de ce projet (planification de la fiche)
   const tab = wanted && (TABS as readonly string[]).includes(wanted) && (wanted !== 'approval' || circuit) ? wanted : 'details';
   const setTab = useCallback((id: string) => setParams((current) => {
     const next = new URLSearchParams(current);
@@ -249,7 +251,7 @@ export function ArtifactView({ session, project, itemKey: key, embedded = false,
         active={tab} onChange={setTab}
       />
       <div className="ath-stack" role="tabpanel">
-        {tab === 'details' && hasPlanning(def) && <PlanningSection project={project} def={def} artifact={artifact} links={links} roles={roles} me={me} onSave={(field, raw) => void save(field, raw)} onChanged={() => void reload()} />}
+        {tab === 'details' && hasPlanning(def) && <PlanningSection project={project} def={def} artifact={artifact} links={links} roles={roles} me={me} manager={responsible} onSave={(field, raw) => void save(field, raw)} onChanged={() => void reload()} />}
         {tab === 'details' && (
           <Card title={fr.artifact.details} meta={`v${artifact.version}`}>
             <div className="ath-stack">

@@ -10,6 +10,7 @@ import { statusPill } from '../lib/status';
 import { ApprovalFlowEditor } from '../components/ApprovalFlowEditor';
 import { LayoutEditor } from '../components/LayoutEditor';
 import { fr } from '../i18n';
+import { useProjectManager } from '../lib/project-role';
 import { forSave, type Layout } from '../lib/layout';
 
 /** Éditeur de tracker : ajout de champs, de statuts et de transitions (évolutions non destructrices). */
@@ -19,7 +20,7 @@ export function TrackerConfigPage({ session }: { session: Session }) {
   const fail = useFailure();
   const confirm = useConfirm();
   // Configuration du tracker : administrateur ou chef de projet (le serveur vérifie qu'il est responsable de ce projet).
-  const admin = (session.user?.roles ?? []).some((r) => r === 'athena-admin' || r === 'athena-pm');
+  const admin = useProjectManager(project, session);
   const [def, setDef] = useState<TrackerDefinition | null>(null);
   const [types, setTypes] = useState<string[]>([]);
   const [layout, setLayout] = useState<Layout | null>(null);

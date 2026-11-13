@@ -9,3 +9,8 @@ process.env.TZ = 'UTC';
 Object.defineProperty(window.navigator, 'language', { value: 'fr-FR', configurable: true });
 
 afterEach(() => cleanup());
+
+// Le responsable d'un projet est mis en cache par personne et par projet : chaque test repart sans mémoire.
+import { beforeEach } from 'vitest';
+import { forgetProjectRoles } from './lib/project-role';
+beforeEach(() => forgetProjectRoles());

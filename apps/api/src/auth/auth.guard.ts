@@ -19,6 +19,9 @@ export const ROLES_KEY = 'athena:roles';
 export const Public = () => SetMetadata(PUBLIC_KEY, true);
 export const Roles = (...roles: string[]) => SetMetadata(ROLES_KEY, roles);
 
+/** Rôles effectifs : l'assurance qualité (`athena-qa`) a aussi les droits de `athena-user`. */
+export const withUserRole = (roles: readonly string[]): string[] => (roles.includes('athena-qa') && !roles.includes('athena-user') ? [...roles, 'athena-user'] : [...roles]);
+
 export interface AuthedRequest {
   headers: Record<string, string | string[] | undefined>;
   method?: string;
@@ -54,11 +57,9 @@ export class AuthGuard implements CanActivate {
     } else {
       principal = await this.fromSession(request);
     }
-    // Assurance qualité étatique : lecture seule. En lecture, le rôle vaut « utilisateur » (les listes d'ayants droit filtrent ensuite) ;
-    // aucune écriture n'accepte `athena-qa`, hors la décision d'approbation qui l'exige explicitement.
-    if (['GET', 'HEAD'].includes((request.method ?? 'GET').toUpperCase()) && principal.roles.includes('athena-qa') && !principal.roles.includes('athena-user')) {
-      principal = { ...principal, roles: [...principal.roles, 'athena-user'] };
-    }
+    // Assurance qualité : les droits d'un utilisateur (déclarer, commenter, lier, suivre : la revue est son métier), plus la décision
+    // d'approbation que seul son rôle peut prendre. Jamais administrateur ni chef de projet : pas de configuration, de baseline ni de planning.
+    principal = { ...principal, roles: withUserRole(principal.roles) };
     request.principal = principal;
 
     const required = this.reflector.getAllAndOverride<string[]>(ROLES_KEY, targets);

@@ -42,6 +42,7 @@ beforeEach(() => {
     if (/\/velocity$/.test(input)) return ok({ sprints: [], average: 0, forecast: 0 });
     if (/\/flow/.test(input) || /\/roadmap$/.test(input)) return ok([]);
     if (/\/search\?/.test(input)) return ok({ total: 0, hits: [] });
+    if (/\/v1\/projects\/ARI\/members$/.test(input)) return ok([{ subject: 'sub-u', username: 'u', displayName: 'Ulysse', email: null, role: 'manager', addedBy: 'x' }]);
     if (/\/v1\/projects\/ARI\/(filters|boards)$/.test(input) || /\/v1\/projects$/.test(input)) return ok([]);
     if (/\/v1\/projects\/ARI\/trackers$/.test(input)) return ok([{ key: 'BUG', name: 'Anomalies' }, { key: 'REQ', name: 'Exigences' }]);
     return new Response(JSON.stringify({ error: 'not_found', message: 'Introuvable.', details: [] }), { status: 404 });

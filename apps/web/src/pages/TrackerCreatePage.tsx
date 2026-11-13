@@ -7,6 +7,7 @@ import { AccessNotice } from '../components/AccessNotice';
 import { TrackerBuilder, emptyTracker, trackerProblems, type DraftTracker } from '../components/TrackerBuilder';
 import { useBusy, useFailure } from '../hooks';
 import { fr } from '../i18n';
+import { useProjectManager } from '../lib/project-role';
 import { forSave } from '../lib/layout';
 
 /** Création d'un tracker dans un projet, à partir de zéro ou d'un template de tracker que l'on peut modifier avant création. */
@@ -16,7 +17,7 @@ export function TrackerCreatePage({ session }: { session: Session }) {
   const toast = useToast();
   const fail = useFailure();
   const { busy, guard } = useBusy();
-  const admin = (session.user?.roles ?? []).some((r) => r === 'athena-admin' || r === 'athena-pm');
+  const admin = useProjectManager(project, session);
   const [templates, setTemplates] = useState<TrackerTemplateEntry[]>([]);
   const [draft, setDraft] = useState<DraftTracker>(emptyTracker());
   useEffect(() => { if (admin) api<TrackerTemplateEntry[]>('GET', '/v1/tracker-templates').then(setTemplates).catch(fail); }, [admin, fail]);

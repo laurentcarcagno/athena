@@ -164,7 +164,7 @@ describe('Gantt éditable', () => {
   });
 });
 
-const manager = { authenticated: true, user: { name: 'Pat', roles: ['athena-pm'] } } as unknown as Session;
+const manager = { authenticated: true, user: { name: 'Pat', roles: ['athena-admin'] } } as unknown as Session;
 const member = { authenticated: true, user: { name: 'Uma', roles: ['athena-user'] } } as unknown as Session;
 
 describe('PlanningPage : édition', () => {

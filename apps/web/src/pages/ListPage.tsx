@@ -7,6 +7,7 @@ import { useConfirm } from '../components/ConfirmDialog';
 import { useCreate, useOnCreated } from '../components/CreateArtifact';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
+import { useProjectManager } from '../lib/project-role';
 
 export { pillKind } from '../components/ArtifactTable';
 const PAGE = 25;
@@ -42,6 +43,7 @@ export const joinOrder = (where: string, order: { field: string; dir: string } |
 
 export function ListPage({ session }: { session?: Session } = {}) {
   const { project } = useParams();
+  const configurable = useProjectManager(project, session);
   const navigate = useNavigate();
   const create = useCreate();
   const [refresh, setRefresh] = useState(0);
@@ -114,7 +116,7 @@ export function ListPage({ session }: { session?: Session } = {}) {
   return (
     <>
       <PageHeader eyebrow={fr.list.eyebrow} title={String(project)} sub={result ? `${fr.list.total(result.total)}${result.totalCapped ? '+' : ''}` : undefined}
-        actions={<><Btn icon="plus" onClick={() => create({ scope: 'project', project: String(project) })}>{fr.list.create}</Btn>{session?.user?.roles.some((r) => r === 'athena-admin' || r === 'athena-pm') && trackerKeys[0] && <Btn variant="ghost" onClick={() => navigate(`/p/${project}/parametres/trackers/${trackerKeys[0]}`)}>{fr.config.eyebrow}</Btn>}</>} />
+        actions={<><Btn icon="plus" onClick={() => create({ scope: 'project', project: String(project) })}>{fr.list.create}</Btn>{configurable && trackerKeys[0] && <Btn variant="ghost" onClick={() => navigate(`/p/${project}/parametres/trackers/${trackerKeys[0]}`)}>{fr.config.eyebrow}</Btn>}</>} />
       {confirm.dialog}
       <form className="ath-toolbar" onSubmit={submit} role="search">
         <div className="ath-suggest">

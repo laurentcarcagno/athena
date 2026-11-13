@@ -97,7 +97,7 @@ Une phase se termine par une revue : on ne passe à la phase suivante que si ses
 
 **Contrôle export.** Un responsable marque un ticket ITAR, EAR ou double usage depuis sa fiche. Le ticket n'est alors lisible que des ayants droit du contrôle export du projet (liste distincte, dans l'onglet *Membres*). Les tickets liés affichent seulement « lien vers un ticket sous contrôle export », sans titre ni contenu ; les webhooks sortants n'envoient ses événements qu'aux abonnements déclarés habilités.
 
-**Assurance qualité étatique.** Ce rôle lit ce que sa liste d'ayants droit autorise et n'écrit rien. Il approuve ou refuse, sous son nom et avec horodatage, les jalons et les baselines pour lesquels un responsable a exigé une approbation (page *Planification*, onglet *Approbations*). Un jalon qui requiert une approbation ne peut pas être publié sans elle.
+**Assurance qualité.** Ce rôle a les droits d'un utilisateur dans le périmètre de sa liste d'ayants droit : il déclare des tickets (RID, anomalies, non-conformités), commente, lie et suit. Il n'est ni chef de projet ni administrateur : pas de configuration, de baseline, de planning ni de version. Il approuve ou refuse, sous son nom et avec horodatage, les jalons et les baselines pour lesquels un responsable a exigé une approbation (page *Planification*, onglet *Approbations*). Un jalon qui requiert une approbation ne peut pas être publié sans elle.
 
 ## Documents StrictDoc
 

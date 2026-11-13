@@ -16,6 +16,7 @@ import { TreeView } from '../../components/TreeView';
 import { useFailure } from '../../hooks';
 import { BoardView, rememberBoard } from '../BoardPage';
 import { fr } from '../../i18n';
+import { useProjectManager } from '../../lib/project-role';
 import { columnOptions, columnsParam, selectedColumns } from '../../lib/columns';
 import { emptyModel, fromAtql, toAtql } from '../../lib/filter-query';
 import { fromHere } from '../../lib/origin';
@@ -49,7 +50,7 @@ export function TrackerScreen({ session }: { session: Session }) {
   const offset = Number(params.get('o') ?? '0') || 0;
   const sort = params.get('sort');
   const cols = params.get('cols');
-  const admin = (session.user?.roles ?? []).some((r) => r === 'athena-admin' || r === 'athena-pm');
+  const admin = useProjectManager(project, session);
 
   useEffect(() => {
     setDef(null);

@@ -6,6 +6,7 @@ import { ApprovalsPanel } from '../components/ApprovalsPanel';
 import { BaselineCompare } from '../components/BaselineCompare';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
+import { useProjectManagerState } from '../lib/project-role';
 import { SETTINGS_SECTIONS, visibleSettings, type SettingsId } from '../lib/navigation';
 import { AccessNotice, whoOf } from '../components/AccessNotice';
 import { MembersPanel } from './project/MembersTab';
@@ -45,7 +46,11 @@ function TrackersSettings({ project }: { project: string }) {
 export function SettingsPage({ session }: { session: Session }) {
   const { project = '', section, tracker } = useParams();
   const roles = session.user?.roles ?? [];
-  const sections = visibleSettings(roles);
+  const responsibleState = useProjectManagerState(project, session); // responsable de CE projet : configuration, membres, baselines
+  const responsible = responsibleState === true;
+  // Un chef de projet qui n'est pas responsable de ce projet n'y gère rien : seules les approbations lui restent (le serveur refuserait le reste).
+  if (responsibleState === undefined) return <p role="status">{fr.loading}</p>; // l'appartenance du chef de projet se charge : pas de message d'accès à tort
+  const sections = visibleSettings(roles).filter((s) => s.id === 'approbations' || responsible || !roles.includes('athena-pm'));
   const header = (sub?: string) => <PageHeader title={sub ? `${fr.settings.title} · ${sub}` : fr.settings.title} />;
   if (sections.length === 0) return <>{header()}<AccessNotice title={fr.denied.noSection} help={fr.denied.ask} back={{ to: `/p/${project}`, label: fr.denied.backProject }} /></>;
   const current = sections.find((s) => s.id === section);
@@ -54,13 +59,13 @@ export function SettingsPage({ session }: { session: Session }) {
   if (!current && known && known.access.kind === 'roles') return <>{header(fr.settings.sections[known.id])}<AccessNotice title={fr.denied.section(fr.settings.sections[known.id]!, whoOf(known.access.roles))} help={fr.denied.ask} back={{ to: `/p/${project}/parametres/${sections[0]!.id}`, label: fr.denied.backSettings }} /></>;
   if (!current) return <Navigate replace to={`/p/${project}/parametres/${sections[0]!.id}`} />;
   if (current.id === 'trackers' && tracker) return <TrackerConfigPage session={session} />;
-  const manager = roles.includes('athena-admin') || roles.includes('athena-pm');
+  const manager = roles.includes('athena-admin') || roles.includes('athena-pm'); // rôle d'organisation (approbations)
   const panels: Record<SettingsId, () => JSX.Element> = {
     membres: () => <MembersPanel project={project} me={session.user?.username} />,
     trackers: () => <TrackersSettings project={project} />,
     boards: () => <BoardsTab project={project} />,
     automatisations: () => <AutomationsTab project={project} />,
-    baselines: () => <div className="ath-stack">{manager && <BaselineCreate project={project} />}<BaselineCompare project={project} /></div>,
+    baselines: () => <div className="ath-stack">{responsible && <BaselineCreate project={project} />}<BaselineCompare project={project} /></div>,
     approbations: () => <>{!manager && <p className="ath-eyebrow">{fr.approvals.qaOnly}</p>}<ApprovalsPanel project={project} canRequire={manager} canDecide={roles.includes('athena-qa')} /></>,
   };
   return (

@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { ToastProvider } from '@athena/ui';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -52,9 +52,9 @@ describe('F-13 et T-0120 : Paramètres du projet, sections selon le rôle', () =
   });
 
   it('un chef de projet a les six sections (Trackers et Automatisations pour ses projets) ; aucun objet global', async () => {
-    fetchMock.mockImplementation(async () => reply([]));
+    fetchMock.mockImplementation(async (url: string) => reply(String(url).endsWith('/members') ? [{ subject: 's', username: 'u', displayName: 'U', email: null, role: 'manager', addedBy: 'x' }] : []));
     const pm = mount(as(['athena-user', 'athena-pm']), '/p/ARI/parametres/membres');
-    expect(sections()).toEqual(['Membres', 'Trackers', 'Boards', 'Automatisations', 'Baselines', 'Approbations']);
+    await waitFor(() => expect(sections()).toEqual(['Membres', 'Trackers', 'Boards', 'Automatisations', 'Baselines', 'Approbations'])); // l'appartenance du chef de projet se charge
     pm.unmount();
     mount(as(['athena-admin']));
     expect(sections()).toEqual(['Membres', 'Trackers', 'Boards', 'Automatisations', 'Baselines', 'Approbations']);

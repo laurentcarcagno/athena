@@ -7,6 +7,7 @@ import { Bar, Timeline } from '../components/ReleaseCharts';
 import { formatSpan } from '../lib/dates';
 import { useFailure } from '../hooks';
 import { fr, getLocale } from '../i18n';
+import { useProjectManager } from '../lib/project-role';
 import { fromHere } from '../lib/origin';
 
 interface Release { id: string; name: string; startsOn: string; endsOn: string; state: string; items: number; doneItems: number; totalPoints: number; donePoints: number; progress: number }
@@ -26,7 +27,7 @@ export function RoadmapPage({ session, bare = false }: { session: Session; bare?
   const fail = useFailure();
   const confirm = useConfirm();
   const roles = session.user?.roles ?? [];
-  const canPlan = roles.includes('athena-admin') || roles.includes('athena-pm');
+  const canPlan = useProjectManager(project, session);
   const [releases, setReleases] = useState<Release[] | null>(null);
   const [items, setItems] = useState<Record<string, ReleaseItem[]>>({});
   const [adding, setAdding] = useState<Record<string, string>>({});

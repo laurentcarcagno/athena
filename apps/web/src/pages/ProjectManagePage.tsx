@@ -8,6 +8,7 @@ import { Btn, Card, EmptyState, Field, PageHeader, Select, StatusPill, Table, Ta
 import { api, type Session } from '../api';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
+import { forgetProjectRoles } from '../lib/project-role';
 import { useConfirm } from '../components/ConfirmDialog';
 import type { MemberEntry, UserEntry } from './OrgAdminPage';
 
@@ -33,12 +34,12 @@ export function ActorsTab({ project }: { project: string }) {
   const load = useCallback(async () => setMembers(await api<MemberEntry[]>('GET', `/v1/projects/${project}/members`)), [project]);
   useEffect(() => { load().catch(fail); api<UserEntry[]>('GET', '/v1/users').then(setUsers).catch(fail); }, [load, fail]);
   const set = async (subject: string, role: string) => {
-    try { await api('PUT', `/v1/projects/${project}/members/${encodeURIComponent(subject)}`, { role }); toast('success', fr.manage.actorSet); await load(); } catch (e) { fail(e); }
+    try { await api('PUT', `/v1/projects/${project}/members/${encodeURIComponent(subject)}`, { role }); forgetProjectRoles(); toast('success', fr.manage.actorSet); await load(); } catch (e) { fail(e); }
   };
   // Retirer demande confirmation (T-0151) : l'accès au projet cesse aussitôt pour la personne.
   const remove = async (m: MemberEntry) => {
     if (!(await confirm.ask({ title: fr.manage.removeTitle(m.displayName), body: fr.manage.removeBody, confirm: fr.manage.removeActor }))) return;
-    try { await api('DELETE', `/v1/projects/${project}/members/${encodeURIComponent(m.subject)}`);
+    try { await api('DELETE', `/v1/projects/${project}/members/${encodeURIComponent(m.subject)}`); forgetProjectRoles();
       toast('success', fr.manage.actorRemoved); await load(); } catch (e) { fail(e); }
   };
   const candidates = users.filter((u) => !members.some((m) => m.subject === u.subject));
