@@ -16,6 +16,8 @@ export interface Artifact {
   version: number;
   /** Marquage de contrôle export (absent : aucun). */
   exportControl?: 'ITAR' | 'EAR' | 'dual_use';
+  /** Noms des personnes citées par les champs de type utilisateur de ce ticket (identifiant de compte vers nom affiché). */
+  userNames?: Record<string, string>;
 }
 
 type Values = Record<string, unknown>;
@@ -83,7 +85,11 @@ export class ArtifactService {
       const artifact = this.toArtifact(row);
       if (!viewer) return artifact;
       const def = await this.trackers.getDefinition(c, projectKey, row.tracker_key);
-      return { ...artifact, values: visibleValues(def, artifact.values, viewer.roles) };
+      const values = visibleValues(def, artifact.values, viewer.roles);
+      // Une fiche affiche le nom d'une personne, jamais son identifiant de compte : on ne résout que les comptes cités par ce ticket.
+      const subjects = [...new Set(def.fields.filter((f) => f.type === 'user').map((f) => values[f.key]).filter((v): v is string => typeof v === 'string' && v !== ''))];
+      const rows = subjects.length === 0 ? [] : (await c.query('select subject, display_name from user_account where subject = any($1::text[])', [subjects])).rows;
+      return { ...artifact, values, ...(rows.length ? { userNames: Object.fromEntries(rows.map((r) => [r.subject as string, r.display_name as string])) } : {}) };
     });
   }
 

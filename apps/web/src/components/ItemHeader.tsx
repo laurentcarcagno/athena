@@ -92,7 +92,8 @@ export function ItemFacts({ project, def, artifact, links, sprint, compact = fal
   const value = (role: string, term: string, mono = false) => {
     const field = byRole(role);
     const raw = field ? artifact.values[field.key] : undefined;
-    const text = raw === undefined || raw === null || raw === '' ? '' : Array.isArray(raw) ? raw.join(', ') : String(raw);
+    const shown = (v: unknown) => (field?.type === 'user' && typeof v === 'string' ? artifact.userNames?.[v] ?? v : String(v));
+    const text = raw === undefined || raw === null || raw === '' ? '' : Array.isArray(raw) ? raw.map(shown).join(', ') : shown(raw);
     if (text !== '') return <span className={mono ? 'ath-mono' : undefined}>{text}</span>;
     if (role === 'assignee' && field) return <span className="ath-row">{fr.facts.unassigned}{onAssignMe && <Btn size="sm" variant="ghost" onClick={onAssignMe}>{fr.facts.assignMe}</Btn>}</span>;
     return empty(term, field ? field.key : null);
