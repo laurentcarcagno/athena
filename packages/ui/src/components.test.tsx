@@ -303,3 +303,18 @@ describe('conformité Hemeria de la feuille de style', () => {
     expect(css.match(/#[0-9a-fA-F]{3,8}\b/g) ?? []).toEqual([]);
   });
 });
+
+describe('rail redimensionnable', () => {
+  it('la poignée est un séparateur au clavier ; elle disparaît quand le rail est replié', async () => {
+    const userEvent = (await import('@testing-library/user-event')).default;
+    const seen: number[] = [];
+    const { rerender } = render(<Sidebar current="a" items={[{ id: 'a', label: 'A' }]} width={232} onResize={(px) => seen.push(px)} />);
+    const handle = screen.getByRole('separator', { name: 'Redimensionner le rail' });
+    expect(handle).toHaveAttribute('aria-valuenow', '232');
+    handle.focus();
+    await userEvent.keyboard('{ArrowRight}{ArrowLeft}');
+    expect(seen).toEqual([248, 216]);
+    rerender(<Sidebar current="a" items={[{ id: 'a', label: 'A' }]} width={232} collapsed onResize={() => undefined} />);
+    expect(screen.queryByRole('separator')).toBeNull();
+  });
+});

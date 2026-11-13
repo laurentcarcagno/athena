@@ -111,3 +111,7 @@
 .ath-nav-item--group { display: flex; justify-content: space-between; align-items: center; font-weight: var(--ath-font-weight-semibold); }
 .ath-nav-item__chevron { flex: none; margin-left: var(--ath-space-sm); }
 .ath-nav-item[data-depth="3"] { padding-left: 52px; }
+/* Redimensionnement du rail : poignée sur le bord droit (la largeur est la variable --ath-size-sidebar, posée par l'application). */
+.ath-sidebar__resize { position: absolute; top: 0; right: 0; bottom: 0; width: var(--ath-space-xs); cursor: col-resize; z-index: var(--ath-z-base); touch-action: none; }
+.ath-sidebar__resize:hover, .ath-sidebar__resize:focus-visible { background: var(--ath-focus-ring); outline: none; }
+@media (max-width: 768px) { .ath-sidebar__resize { display: none; } }

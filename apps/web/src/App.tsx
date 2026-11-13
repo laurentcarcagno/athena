@@ -92,6 +92,14 @@ function Shell({ session, children }: { session: Session; children: ReactNode })
     return () => tablet.removeEventListener?.('change', onChange);
   }, [tablet]);
   const collapsed = choice ?? narrow;
+  // Largeur du rail déployé (200 à 420 px), mémorisée dans ce navigateur ; posée sur la variable de la feuille (sans style en ligne).
+  const [railWidth, setRailWidth] = useState(() => { try { const v = Number(localStorage.getItem('athena.rail.width')); return v >= 200 && v <= 420 ? v : 232; } catch { return 232; } });
+  useEffect(() => { if (railWidth === 232) document.documentElement.style.removeProperty('--ath-size-sidebar'); else document.documentElement.style.setProperty('--ath-size-sidebar', `${railWidth}px`); }, [railWidth]);
+  const resizeRail = (px: number) => {
+    const next = Math.round(Math.max(200, Math.min(420, px)));
+    setRailWidth(next);
+    try { if (next === 232) localStorage.removeItem('athena.rail.width'); else localStorage.setItem('athena.rail.width', String(next)); } catch { /* préférence facultative */ }
+  };
   const toggleRail = () => { const next = !collapsed; setChoice(next); try { localStorage.setItem('athena.rail.collapsed', next ? '1' : '0'); } catch { /* préférence facultative */ } };
   // Marque (T-0137) : icône du thème actif ou de l'organisation, dans le rail et en favicon.
   const family = useThemeFamily();
@@ -133,7 +141,7 @@ function Shell({ session, children }: { session: Session; children: ReactNode })
     <div className="ath-page">
       <a className="ath-skip" href="#contenu" onClick={(e) => { e.preventDefault(); document.getElementById('contenu')?.focus(); }}>{fr.nav.skip}</a>
       {menuOpen && <div className="ath-drawer-backdrop" data-testid="drawer-backdrop" onClick={closeMenu} />}
-      <Sidebar id="rail" open={menuOpen} collapsed={collapsed} brand={brand} sections={sections} current={current} onNavigate={(id) => { setMenuOpen(false); navigate(id); }} user={{ name: session.user!.name, role: admin ? 'Administrateur' : manager ? 'Chef de projet' : 'Utilisateur', roleKind: admin ? 'admin' : manager ? 'manager' : 'user' }}
+      <Sidebar id="rail" open={menuOpen} collapsed={collapsed} width={railWidth} onResize={resizeRail} resizeLabel={fr.rail.resize} brand={brand} sections={sections} current={current} onNavigate={(id) => { setMenuOpen(false); navigate(id); }} user={{ name: session.user!.name, role: admin ? 'Administrateur' : manager ? 'Chef de projet' : 'Utilisateur', roleKind: admin ? 'admin' : manager ? 'manager' : 'user' }}
         userStatus={<NotificationCenter />}
         userActions={<>
           <button type="button" className="ath-iconbtn ath-iconbtn--inverse ath-collapse-btn" onClick={toggleRail} aria-expanded={!collapsed} aria-label={collapsed ? fr.rail.expand : fr.rail.collapse} title={collapsed ? fr.rail.expand : fr.rail.collapse}>{collapsed ? '»' : '«'}</button>

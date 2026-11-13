@@ -546,13 +546,30 @@ function NavFlyout({ group, current, onNavigate }: { group: NavSection; current:
     </div>
   );
 }
-export function Sidebar({ id, items, sections, current, onNavigate, user, userActions, collapsed = false, open = false, brand, userStatus }: { id?: string; items?: NavItem[]; sections?: NavSection[]; current: string; onNavigate?: (id: string) => void; user?: { name: string; role: string; roleKind?: 'admin' | 'manager' | 'user' }; userActions?: ReactNode; collapsed?: boolean; open?: boolean; brand?: ReactNode;
+export function Sidebar({ id, items, sections, current, onNavigate, user, userActions, collapsed = false, open = false, brand, userStatus, width, onResize, resizeLabel = 'Redimensionner le rail' }: { id?: string; items?: NavItem[]; sections?: NavSection[]; current: string; onNavigate?: (id: string) => void; user?: { name: string; role: string; roleKind?: 'admin' | 'manager' | 'user' }; userActions?: ReactNode; collapsed?: boolean; open?: boolean; brand?: ReactNode;
   /** À côté de l'icône de rôle (indicateur de notifications d'Athena). */
-  userStatus?: ReactNode }) {
+  userStatus?: ReactNode;
+  /** Largeur courante en pixels et demande de nouvelle largeur : poignée de redimensionnement (glisser, ou flèches du clavier). */
+  width?: number; onResize?: (px: number) => void; resizeLabel?: string }) {
   const groups: NavSection[] = sections ?? [{ id: 'main', items: items ?? [] }];
   const initials = user?.name.split(/\s+/).map((p) => p[0]).slice(0, 2).join('').toUpperCase() ?? '';
   return (
     <aside id={id} className={cx('ath-sidebar', collapsed && 'ath-sidebar--collapsed', open && 'ath-sidebar--open')}>
+      {onResize && !collapsed && (
+        <div className="ath-sidebar__resize" role="separator" aria-orientation="vertical" aria-label={resizeLabel} aria-valuenow={width} tabIndex={0}
+          onPointerDown={(e) => {
+            e.preventDefault();
+            const move = (m: PointerEvent) => onResize(m.clientX);
+            const up = () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); };
+            window.addEventListener('pointermove', move);
+            window.addEventListener('pointerup', up);
+          }}
+          onKeyDown={(e) => {
+            if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+            e.preventDefault();
+            onResize((width ?? 232) + (e.key === 'ArrowRight' ? 16 : -16));
+          }} />
+      )}
       <div className="ath-sidebar__brand">
         {brand ?? 'ATHENA'}
       </div>

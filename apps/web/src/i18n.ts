@@ -268,7 +268,7 @@ const frDict = {
   },
   rail: {
     projectSearch: 'Chercher dans le projet', newProject: 'Nouveau projet', allProjects: 'Tous les projets', approvals: 'Approbations', groups: { engineering: 'Exigences et conception', development: 'Développement', verification: 'Vérification et qualité', management: 'Gestion', other: 'Autres' } as Record<string, string>,
-    favorites: 'Favoris', recents: 'Récents', project: 'Projet', trackers: 'Trackers', pin: 'Épingler', unpin: 'Désépingler', moveUp: 'Monter', moveDown: 'Descendre', noFavorites: 'Aucun favori. Utilisez l’étoile d’une page pour en ajouter.', noRecents: 'Aucun élément récent.',
+    resize: 'Redimensionner le rail (flèches gauche et droite)', favorites: 'Favoris', recents: 'Récents', project: 'Projet', trackers: 'Trackers', pin: 'Épingler', unpin: 'Désépingler', moveUp: 'Monter', moveDown: 'Descendre', noFavorites: 'Aucun favori. Utilisez l’étoile d’une page pour en ajouter.', noRecents: 'Aucun élément récent.',
     collapse: 'Replier le rail', expand: 'Déplier le rail',
   },
   mobileNav: { sections: (p: string) => `Sections du projet ${p}`, choose: 'Choisir une section', bar: 'Navigation rapide', find: 'Chercher' },
@@ -781,7 +781,7 @@ const enDict: Dictionary = {
   },
   rail: {
     projectSearch: 'Search in the project', newProject: 'New project', allProjects: 'All projects', approvals: 'Approvals', groups: { engineering: 'Requirements and design', development: 'Development', verification: 'Verification and quality', management: 'Management', other: 'Other' } as Record<string, string>,
-    favorites: 'Favorites', recents: 'Recent', project: 'Project', trackers: 'Trackers', pin: 'Pin', unpin: 'Unpin', moveUp: 'Move up', moveDown: 'Move down', noFavorites: 'No favorites yet. Use the star on a page to add one.', noRecents: 'Nothing recent.',
+    resize: 'Resize the rail (left and right arrows)', favorites: 'Favorites', recents: 'Recent', project: 'Project', trackers: 'Trackers', pin: 'Pin', unpin: 'Unpin', moveUp: 'Move up', moveDown: 'Move down', noFavorites: 'No favorites yet. Use the star on a page to add one.', noRecents: 'Nothing recent.',
     collapse: 'Collapse the rail', expand: 'Expand the rail',
   },
   mobileNav: { sections: (p: string) => `Project ${p} sections`, choose: 'Choose a section', bar: 'Quick navigation', find: 'Find' },
