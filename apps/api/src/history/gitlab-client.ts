@@ -149,6 +149,15 @@ export class GitLabClient {
     return (await this.json<{ id: number }>(response, 'lecture du dépôt')).id;
   }
 
+  /** Dernières exécutions de pipeline d'un dépôt (les plus récentes d'abord). */
+  async pipelines(projectId: number, limit = 12): Promise<Array<{ id: number; status: string; ref: string; webUrl: string; createdAt: string; updatedAt: string }>> {
+    const rows = await this.json<Array<{ id: number; status: string; ref: string; web_url: string; created_at: string; updated_at: string }>>(
+      await this.request('GET', `/projects/${projectId}/pipelines?per_page=${Math.min(Math.max(limit, 1), 50)}&order_by=id&sort=desc`),
+      'liste des pipelines',
+    );
+    return rows.map((r) => ({ id: r.id, status: r.status, ref: r.ref, webUrl: r.web_url, createdAt: r.created_at, updatedAt: r.updated_at }));
+  }
+
   async createBranch(projectId: number, branch: string, ref: string): Promise<{ webUrl: string }> {
     const query = new URLSearchParams({ branch, ref });
     const result = await this.json<{ web_url: string }>(await this.request('POST', `/projects/${projectId}/repository/branches?${query.toString()}`), 'création de la branche');

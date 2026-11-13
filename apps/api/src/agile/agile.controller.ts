@@ -7,6 +7,8 @@ import { MemberService } from '../core/member.service';
 import { BacklogService } from './backlog.service';
 import { BoardService } from './board.service';
 import { KpiService } from './kpi.service';
+import { PipelineService } from '../gitcode/pipelines';
+import { QualityService } from '../core/quality.service';
 import { ReportService } from './report.service';
 import { SprintService } from './sprint.service';
 
@@ -28,7 +30,7 @@ const RankBody =z.object({ key: z.string().min(1).max(64), after: z.string().min
 const CreateReleaseBody = z.object({ name: z.string().min(1).max(100), startsOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), endsOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) });
 @Controller('v1/projects/:project')
 export class AgileController {
-  constructor(private readonly orgs: OrgResolver, private readonly boards: BoardService, private readonly sprints: SprintService, private readonly reports: ReportService, private readonly members: MemberService, private readonly backlogs: BacklogService, private readonly kpi: KpiService) {}
+  constructor(private readonly orgs: OrgResolver, private readonly boards: BoardService, private readonly sprints: SprintService, private readonly reports: ReportService, private readonly members: MemberService, private readonly backlogs: BacklogService, private readonly kpi: KpiService, private readonly pipelines: PipelineService, private readonly quality: QualityService) {}
 
   private ctx = (request: AuthedRequest) => this.orgs.resolve(request.principal!);
   /** Gestion de projet : administrateur, ou chef de ce projet. */
@@ -221,6 +223,20 @@ export class AgileController {
   async kpis(@Req() request: AuthedRequest, @Param('project') project: string) {
     const { organizationId, actor } = await this.ctx(request);
     return this.kpi.kpis(organizationId, project, actor);
+  }
+
+  /** Dernières exécutions de pipeline des dépôts reliés au projet (widget Pipelines CI/CD). */
+  @Roles('athena-user', 'athena-admin', 'athena-pm')
+  @Get('pipelines')
+  async pipelineRuns(@Req() request: AuthedRequest, @Param('project') project: string) {
+    return this.pipelines.get((await this.ctx(request)).organizationId, project);
+  }
+
+  /** Mesures de qualité du code ; « non relié » sans fournisseur (widgets Qualité du code et Badges). */
+  @Roles('athena-user', 'athena-admin', 'athena-pm')
+  @Get('quality')
+  async codeQuality(@Req() request: AuthedRequest, @Param('project') project: string) {
+    return this.quality.get((await this.ctx(request)).organizationId, project);
   }
 
   @Roles('athena-user', 'athena-admin')
