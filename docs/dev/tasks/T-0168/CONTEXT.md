@@ -1,15 +1,10 @@
 # Journal de la tâche T-0168
 
 ## Fait
-Rien de codé. Plan, ADR-0007 et maquette commités (2e4adcd, 521b088). Configuration Git globale corrigée (`laurent.carcagno@gmail.com`).
+T-0168 terminée : états `merged` et `draft` au contrat (8 jetons, 2 paires) et dans `derive.mjs` (tous les thèmes dérivés regénérés, ajouts seulement) ; Hemeria complété à la main ; `hemeria-arrondi` (hérite de `hemeria`, rayons 8 px) ; `github` (palette Primer, dérivé, NOTICE) ; chargeurs CSS dans `apps/web/src/lib/theme.ts` ; test web ; e2e `themes.spec.ts` étendu (non rejoué). `pnpm test` themes : 11 thèmes, 84 paires ; ui lint et tests verts. Références visuelles non régénérées (aucun écran changé pour les thèmes existants).
 
 ## Reste à faire
-Toute la tâche (voir TASK.md). Pistes :
-1. Lire `packages/themes/README.md`, `contract.json` (jetons obligatoires, paires) et un thème dérivé (`dracula/palette.json` + `tools/derive.mjs`) pour reproduire le format.
-2. Étendre le contrat : jetons de statut « merged » et « draft » (et leurs variantes texte / fond), paires de contraste ; vérifier que les thèmes existants restent conformes (leur donner des valeurs).
-3. « GitHub » : dériver depuis une `palette.json` (valeurs de la maquette : sombre `#0D1117`, `#161B22`, `#30363D`, texte `#E6EDF3`, action `#2F81F6`, succès `#3FB950`, fusionné `#A371F7`, danger `#F85149` ; clair Primer : fond `#FFFFFF`, bordure `#D0D7DE`, texte `#1F2328`, action `#0969DA`, succès `#1A7F37`, fusionné `#8250DF`, danger `#CF222E`, avertissement `#9A6700`). Vérifier les contrastes AA par mode, corriger les teintes de texte au besoin.
-4. « Hemeria arrondi » : primitives Hemeria (`packages/ui/design/DESIGN.json`), rayon 8 px, mode sombre à dériver (non spécifié : proposer et vérifier AA).
-5. Brancher dans `build-themes.mjs` et le sélecteur de thème ; ajouter les tests.
+Rien pour T-0168. Suite : T-0169 (voir LOT13-PLAN.md). Rebâtir `@athena/ui` (`pnpm --filter @athena/ui build`) avant les tests web.
 
 ## Décisions et pièges
 - Les couleurs de la maquette sont des valeurs de départ, pas une validation AA : les contrastes se vérifient avec `pnpm test` du paquet.

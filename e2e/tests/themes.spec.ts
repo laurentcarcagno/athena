@@ -4,7 +4,7 @@ import { expect, test, type Page } from '@playwright/test';
 
 /** T-0136 (ADR-0004) : chaque thème, dans chaque mode, passe axe-core (contraste compris) sur six écrans ; palier tablette. */
 const axeSource = readFileSync(join(process.cwd(), 'node_modules/axe-core/axe.min.js'), 'utf8');
-const THEMES = ['hemeria', 'contrast', 'catppuccin', 'nord', 'gruvbox', 'solarized', 'dracula', 'tokyo-night', 'rose-pine'];
+const THEMES = ['hemeria', 'contrast', 'catppuccin', 'nord', 'gruvbox', 'solarized', 'dracula', 'tokyo-night', 'rose-pine', 'hemeria-arrondi', 'github'];
 /** Thèmes décochés par le test d'apparence : il ne reste que Hemeria et Nord. */
 const HIDDEN = ['Catppuccin', 'Contraste élevé', 'Gruvbox', 'Solarized', 'Dracula', 'Tokyo Night', 'Rosé Pine'];
 const PAGES = ['/projets', '/', '/p/ARI', '/p/ARI/t/BUG/tableau', '/p/ARI/a/ARI-BUG-0001', '/p/ARI/parametres/membres', '/p/ARI/rapports/avancement',

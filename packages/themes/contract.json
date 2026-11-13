@@ -60,6 +60,14 @@
     "state.info.fg",
     "state.info.fg-aa",
     "state.info.border",
+    "state.merged.bg",
+    "state.merged.fg",
+    "state.merged.fg-aa",
+    "state.merged.border",
+    "state.draft.bg",
+    "state.draft.fg",
+    "state.draft.fg-aa",
+    "state.draft.border",
     "state.neutral.bg",
     "state.neutral.fg",
     "state.neutral.fg-aa",
@@ -297,6 +305,18 @@
       "bg": "state.info.bg",
       "min": 4.5,
       "label": "état information"
+    },
+    {
+      "fg": "state.merged.fg",
+      "bg": "state.merged.bg",
+      "min": 4.5,
+      "label": "état fusionné"
+    },
+    {
+      "fg": "state.draft.fg",
+      "bg": "state.draft.bg",
+      "min": 4.5,
+      "label": "état brouillon"
     },
     {
       "fg": "state.neutral.fg",

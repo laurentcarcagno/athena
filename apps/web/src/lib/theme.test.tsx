@@ -81,3 +81,19 @@ describe('densité (T-0135)', () => {
     expect(window.localStorage.getItem(DENSITY_KEY)).toBeNull();
   });
 });
+
+describe('thèmes du lot 13', () => {
+  it('le catalogue propose « Hemeria arrondi » et « GitHub », chargeables et applicables', async () => {
+    const { THEME_CATALOG } = await import('@athena/ui');
+    const labels = THEME_CATALOG.map((t) => t.label);
+    expect(labels).toContain('Hemeria arrondi');
+    expect(labels).toContain('GitHub');
+    const { setThemeFamily, getThemeFamily } = await import('./theme');
+    for (const name of ['hemeria-arrondi', 'github']) {
+      await setThemeFamily(name, false);
+      expect(getThemeFamily()).toBe(name);
+      expect(document.documentElement.getAttribute('data-theme')).toBe(name);
+    }
+    await setThemeFamily('hemeria', false);
+  });
+});

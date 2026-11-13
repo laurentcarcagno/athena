@@ -1,0 +1,48 @@
+{
+  "name": "github",
+  "label": "GitHub",
+  "description": "Gris neutres et bleu d'action de GitHub Primer, clair et sombre ; fusionné en violet, brouillon en gris.",
+  "source": "https://github.com/primer/primitives",
+  "license": "MIT",
+  "palette": {
+    "canvas-light": "#FFFFFF",
+    "canvas-subtle-light": "#F6F8FA",
+    "border-light": "#D0D7DE",
+    "fg-light": "#1F2328",
+    "accent-light": "#0969DA",
+    "success-light": "#1A7F37",
+    "done-light": "#8250DF",
+    "danger-light": "#CF222E",
+    "attention-light": "#9A6700",
+    "canvas-dark": "#0D1117",
+    "canvas-subtle-dark": "#161B22",
+    "border-dark": "#30363D",
+    "fg-dark": "#E6EDF3",
+    "accent-dark": "#2F81F6",
+    "success-dark": "#3FB950",
+    "done-dark": "#A371F7",
+    "danger-dark": "#F85149",
+    "attention-dark": "#D29922"
+  },
+  "brand": { "primary": "#0969DA", "accent": "#8250DF" },
+  "radius": { "none": "0", "control": "6px", "surface": "6px" },
+  "elevation": { "overlay": "none" },
+  "modes": {
+    "light": {
+      "app": "#F6F8FA", "surface": "#FFFFFF", "hover": "#F3F4F6", "muted": "#EAEEF2", "selected": "#DDF4FF",
+      "inverse": "#24292F", "line": "#D0D7DE", "text": "#1F2328", "subtext": "#424A53", "mute": "#59636E", "control": "#818B98",
+      "accent": "#0969DA", "deep": "#24292F", "success": "#1A7F37", "warning": "#9A6700", "danger": "#CF222E",
+      "merged": "#8250DF", "draft": "#59636E",
+      "onInverse": "#FFFFFF", "onDark": "#FFFFFF", "onLight": "#1F2328",
+      "hues": { "blue": "#0969DA", "sky": "#0550AE", "teal": "#1B7C83", "green": "#1A7F37", "yellow": "#9A6700", "orange": "#BC4C00", "red": "#CF222E", "pink": "#BF3989", "purple": "#8250DF", "slate": "#59636E" }
+    },
+    "dark": {
+      "app": "#010409", "surface": "#0D1117", "hover": "#151B23", "muted": "#21262D", "selected": "#121D2F",
+      "inverse": "#010409", "line": "#30363D", "text": "#E6EDF3", "subtext": "#C9D1D9", "mute": "#8B949E", "control": "#6E7681",
+      "accent": "#2F81F6", "deep": "#388BFD", "success": "#3FB950", "warning": "#D29922", "danger": "#F85149",
+      "merged": "#A371F7", "draft": "#8B949E",
+      "onInverse": "#E6EDF3", "onDark": "#FFFFFF", "onLight": "#010409",
+      "hues": { "blue": "#58A6FF", "sky": "#79C0FF", "teal": "#39C5CF", "green": "#3FB950", "yellow": "#D29922", "orange": "#DB6D28", "red": "#F85149", "pink": "#DB61A2", "purple": "#A371F7", "slate": "#8B949E" }
+    }
+  }
+}

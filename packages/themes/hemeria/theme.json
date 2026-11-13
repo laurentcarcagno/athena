@@ -284,6 +284,34 @@
           "border": {
             "$value": "{palette.sovereign-deep-blue}"
           }
+        },
+        "merged": {
+          "bg": {
+            "$value": "#EFE9F8"
+          },
+          "fg": {
+            "$value": "#5B3A9E"
+          },
+          "fg-aa": {
+            "$value": "#5B3A9E"
+          },
+          "border": {
+            "$value": "#6E4BB8"
+          }
+        },
+        "draft": {
+          "bg": {
+            "$value": "#ECEFF1"
+          },
+          "fg": {
+            "$value": "#4A5560"
+          },
+          "fg-aa": {
+            "$value": "#4A5560"
+          },
+          "border": {
+            "$value": "#73777D"
+          }
         }
       },
       "focus": {
@@ -648,6 +676,34 @@
           },
           "border": {
             "$value": "#5C95BB"
+          }
+        },
+        "merged": {
+          "bg": {
+            "$value": "#2A1F4A"
+          },
+          "fg": {
+            "$value": "#C9B6F2"
+          },
+          "fg-aa": {
+            "$value": "#C9B6F2"
+          },
+          "border": {
+            "$value": "#A98BEA"
+          }
+        },
+        "draft": {
+          "bg": {
+            "$value": "#1B2B38"
+          },
+          "fg": {
+            "$value": "#B9C8D2"
+          },
+          "fg-aa": {
+            "$value": "#B9C8D2"
+          },
+          "border": {
+            "$value": "#8AA2B2"
           }
         }
       },

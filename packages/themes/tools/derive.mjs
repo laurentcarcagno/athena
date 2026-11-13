@@ -81,7 +81,7 @@ function mode(p) {
       ghost: { bg: 'transparent', fg: ensure(p.heading ?? p.text, s, T), border: ensure(p.heading ?? p.text, s, 3) },
       danger: { bg: 'transparent', fg: ensure(p.danger, s, T), border: ensure(p.danger, s, 3) },
     },
-    state: { success: state(p.success), warning: state(p.warning), danger: state(p.danger), info: state(p.accent), neutral: { bg: s, fg: secondary, 'fg-aa': secondary, border: control } },
+    state: { success: state(p.success), warning: state(p.warning), danger: state(p.danger), info: state(p.accent), merged: state(p.merged ?? p.hues?.purple ?? p.accent), draft: state(p.draft ?? p.mute), neutral: { bg: s, fg: secondary, 'fg-aa': secondary, border: control } },
     focus: { ring: focus, 'ring-on-inverse': ensure(p.onInverse, p.inverse, 3) },
     hue: hueSet,
     data: dataOf(hueSet),

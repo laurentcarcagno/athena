@@ -77,7 +77,9 @@ export const FAMILY_KEY = 'athena.themeFamily';
 const THEME_CSS: Record<string, () => Promise<unknown>> = {
   catppuccin: () => import('@athena/ui/themes/catppuccin.css'),
   contrast: () => import('@athena/ui/themes/contrast.css'),
+  github: () => import('@athena/ui/themes/github.css'),
   gruvbox: () => import('@athena/ui/themes/gruvbox.css'),
+  'hemeria-arrondi': () => import('@athena/ui/themes/hemeria-arrondi.css'),
   nord: () => import('@athena/ui/themes/nord.css'),
   dracula: () => import('@athena/ui/themes/dracula.css'),
   'rose-pine': () => import('@athena/ui/themes/rose-pine.css'),

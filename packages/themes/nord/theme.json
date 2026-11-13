@@ -256,6 +256,34 @@
             "$value": "#5E81AC"
           }
         },
+        "merged": {
+          "bg": {
+            "$value": "#F5EFF4"
+          },
+          "fg": {
+            "$value": "#7E6379"
+          },
+          "fg-aa": {
+            "$value": "#7E6379"
+          },
+          "border": {
+            "$value": "#AD88A6"
+          }
+        },
+        "draft": {
+          "bg": {
+            "$value": "#E6E7EA"
+          },
+          "fg": {
+            "$value": "#4C566A"
+          },
+          "fg-aa": {
+            "$value": "#4C566A"
+          },
+          "border": {
+            "$value": "#4C566A"
+          }
+        },
         "neutral": {
           "bg": {
             "$value": "#FFFFFF"
@@ -622,6 +650,34 @@
           },
           "border": {
             "$value": "#88C0D0"
+          }
+        },
+        "merged": {
+          "bg": {
+            "$value": "#4B4858"
+          },
+          "fg": {
+            "$value": "#CCB2C7"
+          },
+          "fg-aa": {
+            "$value": "#CCB2C7"
+          },
+          "border": {
+            "$value": "#B48EAD"
+          }
+        },
+        "draft": {
+          "bg": {
+            "$value": "#535965"
+          },
+          "fg": {
+            "$value": "#D8DEE9"
+          },
+          "fg-aa": {
+            "$value": "#D8DEE9"
+          },
+          "border": {
+            "$value": "#D8DEE9"
           }
         },
         "neutral": {
