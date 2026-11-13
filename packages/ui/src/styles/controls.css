@@ -21,6 +21,8 @@
 .ath-pill--success { background: var(--ath-state-success-bg); color: var(--ath-state-success-fg); border-color: var(--ath-state-success-border); }
 .ath-pill--warning { background: var(--ath-state-warning-bg); color: var(--ath-state-warning-fg); border-color: var(--ath-state-warning-border); }
 .ath-pill--danger { background: var(--ath-state-danger-bg); color: var(--ath-state-danger-fg); border-color: var(--ath-state-danger-border); }
+.ath-pill--merged { background: var(--ath-state-merged-bg); color: var(--ath-state-merged-fg); border-color: var(--ath-state-merged-border); }
+.ath-pill--draft { background: var(--ath-state-draft-bg); color: var(--ath-state-draft-fg); border-color: var(--ath-state-draft-border); }
 .ath-pill--info { background: var(--ath-state-info-bg); color: var(--ath-state-info-fg); border-color: var(--ath-border-focus); }
 .ath-tag { display: inline-flex; align-items: center; min-height: 20px; padding: 0 var(--ath-space-xs); border: var(--ath-border-width-hairline) solid var(--ath-border-control); font-weight: var(--ath-font-weight-medium); font-size: var(--ath-font-size-small); background: transparent; color: var(--ath-text-secondary); border-radius: var(--ath-radius-control); }
 .ath-tag--solid { background: var(--ath-action-deep-bg); color: var(--ath-action-deep-fg); border-color: var(--ath-action-deep-bg); }

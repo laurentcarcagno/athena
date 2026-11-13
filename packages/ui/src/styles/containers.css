@@ -397,3 +397,26 @@
 .ath-dashdrawer { display: flex; flex-direction: column; gap: var(--ath-space-sm); padding: var(--ath-space-md); border: var(--ath-border-width-hairline) solid var(--ath-border-default); background: var(--ath-surface-default); }
 .ath-dashdrawer h3 { margin: 0; }
 @media (max-width: 720px) { .ath-dashedit { grid-template-columns: minmax(0, 1fr); } }
+
+/* Widgets du tableau de bord (ADR-0007, T-0173 à T-0176) : état vide, grand chiffre, anneau, arc, pipelines, badges. */
+.ath-widget-empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--ath-space-xs); text-align: center; color: var(--ath-text-secondary); }
+.ath-widget-empty__art { width: calc(var(--ath-size-dashrow) * 0.64); height: calc(var(--ath-size-dashrow) * 0.46); color: var(--ath-text-mute); }
+.ath-widget-empty__art * { fill: none; stroke: currentColor; stroke-width: 1.5; }
+.ath-widget-empty p { margin: 0; max-width: 28ch; }
+.ath-ticketrow { display: flex; align-items: baseline; gap: var(--ath-space-sm); min-width: 0; }
+.ath-ticketrow > .ath-clip { flex: 1; min-width: 0; }
+.ath-bignum { display: flex; align-items: baseline; gap: var(--ath-space-sm); flex-wrap: wrap; }
+.ath-bignum__value { font-size: var(--ath-font-size-display); font-weight: var(--ath-font-weight-semibold); color: var(--ath-text-heading); font-variant-numeric: tabular-nums; line-height: var(--ath-font-leading-title); }
+.ath-ring { width: calc(var(--ath-size-dashrow) * 1.4); height: calc(var(--ath-size-dashrow) * 1.4); flex: none; }
+.ath-ring__track { fill: none; stroke: var(--ath-border-default); stroke-width: 5; }
+.ath-ring__arc { fill: none; stroke: var(--ath-data-1); stroke-width: 5; }
+.ath-ring__text { fill: var(--ath-text-heading); font-size: var(--ath-font-size-small); font-weight: var(--ath-font-weight-semibold); }
+.ath-kv { display: grid; grid-template-columns: max-content 1fr; gap: var(--ath-space-2xs) var(--ath-space-md); margin: 0; }
+.ath-kv dt { color: var(--ath-text-secondary); }
+.ath-kv dd { margin: 0; color: var(--ath-text-default); }
+.ath-runs { display: flex; gap: var(--ath-space-2xs); flex-wrap: wrap; margin: 0; padding: 0; list-style: none; }
+.ath-run { min-width: var(--ath-size-icon-button-compact); text-align: center; }
+.ath-run--running { animation: ath-run-pulse 1.2s ease-in-out infinite; }
+@keyframes ath-run-pulse { 50% { opacity: 0.45; } }
+@media (prefers-reduced-motion: reduce) { .ath-run--running { animation: none; } }
+.ath-badges { display: flex; flex-wrap: wrap; gap: var(--ath-space-xs); margin: 0; padding: 0; list-style: none; }

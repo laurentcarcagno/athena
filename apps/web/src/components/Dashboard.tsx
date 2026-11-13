@@ -10,6 +10,7 @@ import { ChartBody, ChartForm, type ChartForm as ChartFormKind } from './ChartCa
 import { pillKind } from '../pages/ListPage';
 import { useConfirm } from './ConfirmDialog';
 import { statusPill } from '../lib/status';
+import { BadgesCard, GeneralInfoCard, GlobalProgressCard, HealthCard, KeyIndicatorsCard, PipelinesCard, QualityCard, SprintProgressCard, TicketRow, WidgetEmpty } from './WidgetCards';
 import { GRID_COLUMNS, DEFAULT_ROWS, MAX_ROWS, SIZE_COLUMNS, flowOrder, nextRow, placeAt, resizeTo, withBoxes } from '../lib/grid';
 
 export type WidgetKind = 'search' | 'mentions' | 'approvals' | 'favorites' | 'recents' | 'trackers'
@@ -85,8 +86,9 @@ const widgetTitle = (w: Widget) => w.title ?? fr.home.titles[w.id] ?? fr.home.ki
 /** Lien « tout voir » d'un widget de recherche : la recherche globale pré-remplie. */
 const searchHref = (w: Widget) => `/recherche?q=${encodeURIComponent(w.query ?? '')}${w.projects?.length ? `&p=${w.projects.join(',')}` : ''}`;
 
-function Rows({ children, empty }: { children: JSX.Element[]; empty: string }) {
-  return children.length === 0 ? <p>{empty}</p> : <ul className="ath-stack">{children}</ul>;
+/** Liste de lignes, ou l'état vide du genre (illustration, phrase, bouton d'action) quand il n'y en a pas. */
+function Rows({ children, empty, action, to }: { children: JSX.Element[]; empty: string; action?: string; to?: string }) {
+  return children.length === 0 ? <WidgetEmpty text={empty} {...(action && to ? { action, to } : {})} /> : <ul className="ath-stack">{children}</ul>;
 }
 
 function SearchBody({ widget, onEmpty }: { widget: Widget; onEmpty?: OnEmpty }) {
@@ -100,13 +102,10 @@ function SearchBody({ widget, onEmpty }: { widget: Widget; onEmpty?: OnEmpty }) 
   if (res === null) return <p role="status">{fr.loading}</p>;
   return (
     <div className="ath-stack">
-      <Rows empty={fr.home.empty}>
+      <Rows empty={fr.widgets.empty['search']!} action={fr.widgets.openSearch} to={searchHref(widget)}>
         {res.hits.map((h) => (
-          <li key={`${h.project}-${h.key}`} className="ath-row">
-            <Link className="ath-link ath-mono" to={`/p/${h.project}/a/${h.key}`}>{h.key}</Link>
-            <span className="ath-clip" title={titleOf(h)}>{titleOf(h)}</span>
-            <StatusPill {...statusPill(h.category, h.statusColor)}>{h.statusName ?? h.status}</StatusPill>
-          </li>
+          <TicketRow key={`${h.project}-${h.key}`} project={h.project ?? ''} keyName={h.key} title={titleOf(h)}
+            pill={<StatusPill {...statusPill(h.category, h.statusColor)}>{h.statusName ?? h.status}</StatusPill>} />
         ))}
       </Rows>
     </div>
@@ -121,7 +120,7 @@ function MentionsBody({ onEmpty }: { onEmpty?: OnEmpty }) {
   }, []);
   if (items === null) return <p role="status">{fr.loading}</p>;
   return (
-    <Rows empty={fr.work.mentionsNone}>
+    <Rows empty={fr.widgets.empty['mentions']!} action={fr.widgets.openNotifications} to="/notifications">
       {items.map((m) => (
         <li key={m.id} className="ath-row">
           <Link className="ath-link ath-mono" to={`/p/${m.project}/a/${m.key}`} onClick={() => { if (!m.read) void api('POST', '/v1/me/notifications/read', { ids: [m.id], read: true }).catch(() => undefined); }}>{m.key}</Link>
@@ -151,7 +150,7 @@ function ApprovalsBody({ objects, onEmpty }: { objects: boolean; onEmpty?: OnEmp
   }, [objects]);
   if (items === null) return <p role="status">{fr.loading}</p>;
   return (
-    <Rows empty={fr.home.noApprovals}>
+    <Rows empty={fr.widgets.empty['approvals']!} action={fr.widgets.openSearch} to="/recherche">
       {[
         ...items.slice(0, 5).map((r) => (
           <li key={`${r.project}-${r.key}`} className="ath-row">
@@ -173,11 +172,11 @@ function ApprovalsBody({ objects, onEmpty }: { objects: boolean; onEmpty?: OnEmp
 function PinsBody({ kind }: { kind: 'favorites' | 'recents' }) {
   const pins = usePins();
   const list = (kind === 'favorites' ? pins.favorites : pins.recents).slice(0, 5);
-  return <Rows empty={kind === 'favorites' ? fr.rail.noFavorites : fr.rail.noRecents}>{list.map((p) => <li key={p.id}><Link className={`ath-link${p.kind === 'item' ? ' ath-mono' : ''}`} to={pinHref(p)}>{p.label}</Link></li>)}</Rows>;
+  return <Rows empty={fr.widgets.empty[kind]!} action={fr.widgets.browseProjects} to="/projets">{list.map((p) => <li key={p.id}><Link className={`ath-link${p.kind === 'item' ? ' ath-mono' : ''}`} to={pinHref(p)}>{p.label}</Link></li>)}</Rows>;
 }
 
 function Body({ widget, objects, onEmpty, project }: { widget: Widget; objects: boolean; project?: string | undefined; onEmpty?: OnEmpty | undefined }) {
-  const p = widget.projects?.[0] ?? project ?? '';
+  const p = widget.project ?? widget.projects?.[0] ?? project ?? '';
   switch (widget.kind) {
     case 'indicators': return <IndicatorsCard project={p} />;
     case 'flow': return <FlowCard project={p} />;
@@ -185,6 +184,14 @@ function Body({ widget, objects, onEmpty, project }: { widget: Widget; objects: 
     case 'release': return <ReleaseCard project={p} />;
     case 'tracker-status': return <TrackerStatusCard project={p} />;
     case 'activity': return <ActivityCard project={p} />;
+    case 'general-info': return <GeneralInfoCard project={p} />;
+    case 'global-progress': return <GlobalProgressCard project={p} />;
+    case 'key-indicators': return <KeyIndicatorsCard project={p} />;
+    case 'health': return <HealthCard project={p} />;
+    case 'sprint-progress': return <SprintProgressCard project={p} />;
+    case 'pipelines': return <PipelinesCard project={p} />;
+    case 'quality': return <QualityCard project={p} />;
+    case 'badges': return <BadgesCard project={p} />;
     case 'chart': return <ChartBody spec={{ query: widget.query, projects: widget.projects, field: widget.field, form: widget.form }} />;
     case 'search': return <SearchBody widget={widget} onEmpty={onEmpty} />;
     case 'mentions': return <MentionsBody onEmpty={onEmpty} />;

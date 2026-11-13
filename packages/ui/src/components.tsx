@@ -70,7 +70,7 @@ export function Btn({ variant = 'primary', size = 'md', className, loading = fal
   );
 }
 
-export type PillKind = 'success' | 'warning' | 'danger' | 'info' | 'default';
+export type PillKind = 'success' | 'warning' | 'danger' | 'info' | 'merged' | 'draft' | 'default';
 /** Teintes nommées des statuts (T-0138) : chaque thème en fournit le fond, le texte et la bordure. */
 export const HUES = ['gray', 'slate', 'blue', 'sky', 'teal', 'green', 'lime', 'yellow', 'orange', 'red', 'pink', 'purple'] as const;
 export type Hue = (typeof HUES)[number];
