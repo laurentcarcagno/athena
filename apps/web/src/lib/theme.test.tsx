@@ -9,9 +9,9 @@ beforeEach(() => { window.localStorage.clear(); initTheme(); });
 afterEach(() => { window.localStorage.clear(); initTheme(); });
 
 describe('réglage du thème', () => {
-  it('« système » par défaut : thème Hemeria, aucun attribut de mode sur html', () => {
+  it('« système » par défaut : thème Athena, aucun attribut de mode sur html', () => {
     expect(readTheme()).toBe('system');
-    expect(document.documentElement.getAttribute('data-theme')).toBe('hemeria');
+    expect(document.documentElement.getAttribute('data-theme')).toBe('athena');
     expect(document.documentElement.hasAttribute('data-mode')).toBe(false);
   });
 
@@ -83,17 +83,17 @@ describe('densité (T-0135)', () => {
 });
 
 describe('thèmes du lot 13', () => {
-  it('le catalogue propose « Hemeria arrondi » et « GitHub », chargeables et applicables', async () => {
+  it('le catalogue propose « Athena arrondi » et « GitHub », chargeables et applicables', async () => {
     const { THEME_CATALOG } = await import('@athena/ui');
     const labels = THEME_CATALOG.map((t) => t.label);
-    expect(labels).toContain('Hemeria arrondi');
+    expect(labels).toContain('Athena arrondi');
     expect(labels).toContain('GitHub');
     const { setThemeFamily, getThemeFamily } = await import('./theme');
-    for (const name of ['hemeria-arrondi', 'github']) {
+    for (const name of ['athena-arrondi', 'github']) {
       await setThemeFamily(name, false);
       expect(getThemeFamily()).toBe(name);
       expect(document.documentElement.getAttribute('data-theme')).toBe(name);
     }
-    await setThemeFamily('hemeria', false);
+    await setThemeFamily('athena', false);
   });
 });

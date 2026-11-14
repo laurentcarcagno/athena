@@ -8,7 +8,7 @@ Source : 17 commentaires Word de Laurent Carcagno sur `user-manual-work/Manuel u
 
 | # | Commentaire (résumé) | Tâche |
 |---|---|---|
-| 14 | Page de connexion : personnaliser avec le design HEMERIA | T-0108 |
+| 14 | Page de connexion : personnaliser avec le design ATHENA | T-0108 |
 | 16 | Le nom du produit est ATHENA (plus « ATHENA·BOARD / Suivi de projet ») | T-0103 |
 | 20 | Rail : supprimer le nom d'utilisateur, garder les initiales | T-0103 |
 | 19 | Rail : remplacer le texte du rôle par une icône | T-0103 |
@@ -32,7 +32,7 @@ Source : 17 commentaires Word de Laurent Carcagno sur `user-manual-work/Manuel u
 3. **T-0105 Page Projets.** Tableau des projets, dépliage des trackers, projet courant, bouton « Nouveau projet », suppression du tag de clé.
 4. **T-0106 Mon travail, recherche, board.** Correction du filtre « Assignés à moi » (identifiant du compte, pas son nom), regroupement par tracker, séparateur de compteur.
 5. **T-0107 Boutons à icônes et aide intégrée.** Icônes + info-bulles (`title` et `aria-label`), page Aide qui affiche le guide utilisateur.
-6. **T-0108 Page de connexion Keycloak (thème HEMERIA).** Thème Keycloak du dépôt `deploy/dev`.
+6. **T-0108 Page de connexion Keycloak (thème ATHENA).** Thème Keycloak du dépôt `deploy/dev`.
 
 Chaque tâche : tests ciblés (vitest), pas de régression des e2e existants, un commit conventionnel.
 

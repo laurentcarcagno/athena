@@ -4,8 +4,8 @@ import { expect, test, type Page } from '@playwright/test';
 
 /** T-0136 (ADR-0004) : chaque thème, dans chaque mode, passe axe-core (contraste compris) sur six écrans ; palier tablette. */
 const axeSource = readFileSync(join(process.cwd(), 'node_modules/axe-core/axe.min.js'), 'utf8');
-const THEMES = ['hemeria', 'contrast', 'catppuccin', 'nord', 'gruvbox', 'solarized', 'dracula', 'tokyo-night', 'rose-pine', 'hemeria-arrondi', 'github'];
-/** Thèmes décochés par le test d'apparence : il ne reste que Hemeria et Nord. */
+const THEMES = ['athena', 'contrast', 'catppuccin', 'nord', 'gruvbox', 'solarized', 'dracula', 'tokyo-night', 'rose-pine', 'athena-arrondi', 'github'];
+/** Thèmes décochés par le test d'apparence : il ne reste que Athena et Nord. */
 const HIDDEN = ['Catppuccin', 'Contraste élevé', 'Gruvbox', 'Solarized', 'Dracula', 'Tokyo Night', 'Rosé Pine'];
 const PAGES = ['/projets', '/', '/p/ARI', '/p/ARI/t/BUG/tableau', '/p/ARI/a/ARI-BUG-0001', '/p/ARI/parametres/membres', '/p/ARI/rapports/avancement',
   // Lot 11 (T-0157) : autres écrans modifiés.
@@ -98,11 +98,11 @@ test('apparence : l’administration restreint les thèmes et fixe le défaut ; 
   const group = page.getByRole('group', { name: 'Thème' });
   await expect(group.getByRole('radio')).toHaveCount(2);
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'nord');
-  // Remise à l'état initial : tous les thèmes, Hemeria par défaut.
+  // Remise à l'état initial : tous les thèmes, Athena par défaut.
   await page.goto('/admin');
   await page.getByRole('tab', { name: 'Apparence' }).click();
   for (const name of HIDDEN) await page.getByRole('checkbox', { name }).check();
-  await page.getByLabel('Thème par défaut').selectOption('hemeria');
+  await page.getByLabel('Thème par défaut').selectOption('athena');
   await page.getByRole('button', { name: 'Enregistrer l’apparence' }).click();
   await expect(page.getByText('Apparence enregistrée.')).toBeVisible();
 });
@@ -120,13 +120,13 @@ test('icône de marque : un SVG piégé est servi nettoyé, typé et isolé ; af
   await page.getByLabel('Téléverser l’icône : Tous les thèmes').setInputFiles({ name: 'marque.svg', mimeType: 'image/svg+xml', buffer: Buffer.from(clean) });
   await expect(page.getByText('Icône enregistrée.')).toBeVisible();
   const mark = page.locator('#rail .ath-sidebar__mark');
-  await expect(mark).toHaveAttribute('src', /\/v1\/brand\/hemeria\/mark\?v=/);
+  await expect(mark).toHaveAttribute('src', /\/v1\/brand\/athena\/mark\?v=/);
   const response = await page.request.get((await mark.getAttribute('src'))!);
   expect(response.headers()['content-type']).toBe('image/svg+xml');
   expect(response.headers()['content-security-policy']).toContain('sandbox');
   expect(response.headers()['x-content-type-options']).toBe('nosniff');
   expect(await response.text()).not.toMatch(/onload|script/i);
-  await expect(page.locator('link[rel="icon"]')).toHaveAttribute('href', /\/v1\/brand\/hemeria\/mark/);
+  await expect(page.locator('link[rel="icon"]')).toHaveAttribute('href', /\/v1\/brand\/athena\/mark/);
   // Retrait, après confirmation : l'icône par défaut du thème revient.
   await page.getByRole('button', { name: 'Retirer l’icône : Tous les thèmes' }).click();
   await page.getByRole('dialog').getByRole('button', { name: 'Supprimer' }).click();
@@ -135,7 +135,7 @@ test('icône de marque : un SVG piégé est servi nettoyé, typé et isolé ; af
   // Logo horizontal (PNG) : remplace icône et nom dans le rail déplié ; retiré ensuite.
   const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64');
   await page.getByLabel('Téléverser le logo : Tous les thèmes').setInputFiles({ name: 'logo.png', mimeType: 'image/png', buffer: png });
-  await expect(page.locator('#rail .ath-sidebar__logo')).toHaveAttribute('src', /\/v1\/brand\/hemeria\/logo\?v=/);
+  await expect(page.locator('#rail .ath-sidebar__logo')).toHaveAttribute('src', /\/v1\/brand\/athena\/logo\?v=/);
   await page.getByRole('button', { name: 'Retirer le logo : Tous les thèmes' }).click();
   await page.getByRole('dialog').getByRole('button', { name: 'Supprimer' }).click();
   await expect(page.locator('#rail .ath-sidebar__logo')).toHaveCount(0);

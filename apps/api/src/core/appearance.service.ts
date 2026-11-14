@@ -18,7 +18,7 @@ export class AppearanceService {
 
   async get(organizationId: string): Promise<Appearance> {
     const row = await this.db.tx(organizationId, async (c) => (await c.query('select default_theme, allowed_themes from organization_appearance')).rows[0]);
-    return { defaultTheme: row?.default_theme ?? 'hemeria', allowedThemes: row?.allowed_themes ?? [] };
+    return { defaultTheme: row?.default_theme ?? 'athena', allowedThemes: row?.allowed_themes ?? [] };
   }
 
   async put(organizationId: string, input: AppearanceInput): Promise<Appearance> {

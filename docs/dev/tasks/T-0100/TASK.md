@@ -17,6 +17,6 @@
   - Vitest/RTL : formulaire, suppression refusée, pré-remplissage
   - axe sur l'onglet et le constructeur
   - Playwright : créer un type puis un tracker de ce type
-- **Règles communes** : interface Hemeria (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
+- **Règles communes** : interface Athena (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
 - **Hors périmètre** : API (T-0097).
 - **Dépendances** : T-0097

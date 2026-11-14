@@ -1,5 +1,5 @@
 // Génère les CSS des thèmes depuis @nuance/themes avec le moteur @nuance/theming (ADR-0004, T-0129, T-0136).
-// - src/themes.generated.css : Hemeria, thème par défaut (appliqué aussi sans attribut data-theme) ;
+// - src/themes.generated.css : Athena, thème par défaut (appliqué aussi sans attribut data-theme) ;
 // - src/themes/<nom>.generated.css : un fichier par autre thème, chargé à la demande par l'application ;
 // - src/themes.catalog.generated.ts : nom, libellé, couleurs d'aperçu (vignettes du Profil) et icône de marque par défaut
 //   (mark.svg du thème ou hérité, `currentColor` remplacé par le texte sur surface inverse, en URI data: : CSP img-src data:).
@@ -21,7 +21,7 @@ if (issues.length) {
   console.error(formatIssues(issues));
   process.exit(1);
 }
-const DEFAULT = 'hemeria';
+const DEFAULT = 'athena';
 const concrete = themes.filter((t) => t.meta?.abstract !== true);
 const options = { prefix: 'ath-', defaultTheme: DEFAULT };
 writeFileSync(join(root, 'src', 'themes.generated.css'), emitCss(themes, contract, { ...options, only: [DEFAULT] }));

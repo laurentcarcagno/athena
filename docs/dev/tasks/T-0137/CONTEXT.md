@@ -1,7 +1,7 @@
 # Journal de la tâche T-0137
 
 ## Fait
-- Icônes par défaut : `base/mark.svg` (hérité par les thèmes communautaires) et `hemeria/mark.svg` (liseré tricolore) ; le générateur les met au catalogue en URI `data:` (CSP `img-src 'self' data:`), `currentColor` remplacé par le texte sur surface inverse du thème.
+- Icônes par défaut : `base/mark.svg` (hérité par les thèmes communautaires) et `athena/mark.svg` (liseré tricolore) ; le générateur les met au catalogue en URI `data:` (CSP `img-src 'self' data:`), `currentColor` remplacé par le texte sur surface inverse du thème.
 - API : migration 055 (`organization_brand` : thème ou `*`, `mark` | `logo`, type, taille ≤ 64 Ko) ; `checkBrandImage` (type reconnu par les octets : PNG, WebP, SVG) et `sanitizeSvg` (liste blanche d'éléments et d'attributs, refus de `script`, `foreignObject`, `style`, DOCTYPE et entités, retrait des gestionnaires d'événement, des liens hors document et des schémas `javascript:`/`data:`) ; stockage S3 ; `GET /v1/brand`, `GET /v1/brand/:theme/:kind` (type strict, `nosniff`, `sandbox`), `PUT` et `DELETE /v1/admin/brand/:theme/:kind` (administration).
 - **Défaut corrigé** : le crochet de durcissement écrasait la CSP propre à une route : la CSP `sandbox` des pièces jointes téléchargées était perdue. Elle est désormais gardée et complétée de `frame-ancestors 'none'` ; un `Cache-Control` explicite est respecté (test ajouté).
 - Web : `Sidebar` accepte une marque (icône + nom ; icône seule en rail replié) ; `lib/brand.ts` (icône du thème, téléversée ou par défaut ; favicon qui suit le thème) ; Administration > Apparence : téléversement et retrait (avec confirmation) pour tous les thèmes ou par thème.

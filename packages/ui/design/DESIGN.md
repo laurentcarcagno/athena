@@ -1,7 +1,7 @@
 ---
-name: Hemeria Design System
+name: Athena Design System
 version: "3.2.0"
-description: Sharp, sovereign mission-console UI for an internal engineering reference tool. Hemeria Charte Graphique 2025.
+description: Sharp, sovereign mission-console UI for an internal engineering reference tool. Athena Charte Graphique 2025.
 colors:
   sovereign-deep-blue: "#12293A"
   tricolor-blue: "#174082"
@@ -212,7 +212,7 @@ components:
     padding: "24px"
 ---
 
-# Design System : Hemeria
+# Design System : Athena
 
 Référence unique pour **auditer** une interface existante et la **re-designer** sans quitter le système. Deux fichiers font foi : ce document (lisible par une personne ou un agent) et `DESIGN.json` (lisible par du code). Ils sont synchronisés par `scripts/validate-design.mjs` (voir §9).
 
@@ -227,9 +227,9 @@ Référence unique pour **auditer** une interface existante et la **re-designer*
 
 ## 1. Principes de design
 
-> **Évolution en cours (D-019, ADR-0004, lot 10).** Hemeria devient **un thème** parmi d'autres (Contraste élevé, Catppuccin, Nord, Gruvbox, puis Solarized, Dracula, Tokyo Night, Rosé Pine). Au terme du lot :
-> - les principes 1 et 2 se lisent « la couleur d'action **du thème** » et « la couleur de cérémonie **du thème** » ; le bleu ciel et le rouge tricolore restent ceux du thème Hemeria ;
-> - le principe 3 (plat et angulaire) et les règles « aucun `border-radius` » et « aucune ombre » deviennent des choix du thème Hemeria et du thème Contraste élevé ; les autres thèmes peuvent avoir un rayon de 2 à 8 px et une ombre douce réservée aux couches flottantes (menus, modales, toasts) ;
+> **Évolution en cours (D-019, ADR-0004, lot 10).** Athena devient **un thème** parmi d'autres (Contraste élevé, Catppuccin, Nord, Gruvbox, puis Solarized, Dracula, Tokyo Night, Rosé Pine). Au terme du lot :
+> - les principes 1 et 2 se lisent « la couleur d'action **du thème** » et « la couleur de cérémonie **du thème** » ; le bleu ciel et le rouge tricolore restent ceux du thème Athena ;
+> - le principe 3 (plat et angulaire) et les règles « aucun `border-radius` » et « aucune ombre » deviennent des choix du thème Athena et du thème Contraste élevé ; les autres thèmes peuvent avoir un rayon de 2 à 8 px et une ombre douce réservée aux couches flottantes (menus, modales, toasts) ;
 > - les capitales espacées disparaissent : casse de phrase pour les boutons, onglets, chips, pastilles, en-têtes de tableau, rail et titres de modale ;
 > - les principes 4 à 7, l'interdiction du verre dépoli et des dégradés, et le plancher de 12 px de texte valent pour tous les thèmes.
 >
@@ -314,7 +314,7 @@ Les composants ne citent pas les primitives directement : ils passent par la cou
 #### 2.1.1 (suite) Thème sombre : sélection, réaffectation et zones
 
 - **Sélection.** L'attribut `data-theme` de l'élément `html` vaut `light` ou `dark` ; sans attribut, la préférence du système (`prefers-color-scheme`) s'applique. Athena propose trois réglages (**clair**, **sombre**, **système**, ce dernier par défaut), mémorisés par navigateur dans `localStorage` (`athena.theme`) ; une valeur illisible retombe sur « système ».
-- **Variables sémantiques.** Depuis le lot 10 (ADR-0004), le moteur `@nuance/theming` génère `themes.generated.css` depuis les thèmes de `@nuance/themes` (Hemeria : `packages/themes/hemeria/theme.json`), pour chaque thème et chaque mode : une variable par jeton (`--ath-surface-default`, `--ath-text-mute`, `--ath-border-control`, `--ath-action-primary-bg`, `--ath-state-danger-fg`, `--ath-focus-ring`, `--ath-inverse-*`, `--ath-font-*`, `--ath-size-*`, `--ath-z-*`…). La feuille de style ne lit que ces variables, jamais une primitive (`--ath-palette-*`).
+- **Variables sémantiques.** Depuis le lot 10 (ADR-0004), le moteur `@nuance/theming` génère `themes.generated.css` depuis les thèmes de `@nuance/themes` (Athena : `packages/themes/athena/theme.json`), pour chaque thème et chaque mode : une variable par jeton (`--ath-surface-default`, `--ath-text-mute`, `--ath-border-control`, `--ath-action-primary-bg`, `--ath-state-danger-fg`, `--ath-focus-ring`, `--ath-inverse-*`, `--ath-font-*`, `--ath-size-*`, `--ath-z-*`…). La feuille de style ne lit que ces variables, jamais une primitive (`--ath-palette-*`).
 - **Réaffectation des primitives** (`tokens.semantic.darkPrimitiveMap`). Les composants d'Athena citent encore des primitives (`--ath-color-instrument-white`…). En thème sombre, chaque primitive de surface, de texte, de bordure et de signal prend la valeur sémantique sombre de même rôle : Instrument White devient `{semantic.surface.default}`, Ink devient `{semantic.text.default}`, Console Sky devient `{semantic.border.focus}`, etc. Les primitives de marque (Tricolor Blue et Red) ne changent pas.
 - **Zones.** Une primitive peut jouer deux rôles (Instrument White est un fond de carte *et* le texte d'un bouton plein). Les éléments qui l'emploient comme texte sur aplat redéclarent localement leurs primitives : *surface inverse* (barre latérale, en-tête de tableau et de modale, tête de colonne, bandeau : `{semantic.surface.inverse}` et `{semantic.text.on-inverse}`), *bouton plein* (`{semantic.action.primary.bg}` et `.fg`) et *bouton neutre plein* (`{semantic.action.deep.bg}` et `.fg`). En thème clair ces redéclarations ne changent aucune couleur.
 - **Règles inchangées.** Angles droits, aucune ombre ni dégradé ni flou, rouge réservé à la cérémonie, Console Sky pour l'action : le thème sombre ne change que les valeurs.
@@ -837,7 +837,7 @@ Modèle de proposition :
 | D-007 | 2026-11-01 | Un token se cite `{colors.ink}` ; la section « Registre des tokens » est générée par le script et vérifiée à chaque exécution. | Rendre la synchronisation `.md` / `.json` contrôlable par machine. | Un contrôle manuel ; des identifiants libres en prose. |
 | D-008 | 2026-11-01 | Les valeurs observées dans Athena sans token (`9.5px`, `rgba(...)`, 28 px, etc.) sont intégrées au JSON : `proposed` si l'écart est à discuter, `deprecated` pour `fontSizes.micro`. | Faire du JSON le miroir du réel, sans le légitimer par défaut. | Les ignorer ; les déclarer `stable`. |
 | D-009 | 2026-11-01 | Le script de validation est du Node sans dépendance, avec un lecteur YAML minimal limité au front matter. | Utilisable sans installation, dans tout projet Node. | Dépendance `yaml`. |
-| D-010 | 2026-11-01 | Le vocabulaire propre au produit d’origine (nom du produit, termes métier liés à ses données, références de pièces) est retiré ; la charte s’appelle « Hemeria Design System » et ses exemples sont génériques (dossier, élément, REF-0001). | La charte doit servir à tout outil Hemeria, pas à un seul produit. | Garder le nom d’origine et y ajouter Athena. |
+| D-010 | 2026-11-01 | Le vocabulaire propre au produit d’origine (nom du produit, termes métier liés à ses données, références de pièces) est retiré ; la charte s’appelle « Athena Design System » et ses exemples sont génériques (dossier, élément, REF-0001). | La charte doit servir à tout outil Athena, pas à un seul produit. | Garder le nom d’origine et y ajouter Athena. |
 | D-011 | 2026-11-01 | Le script vérifie aussi les CSS consommateurs (--check-css) et la copie synchronisée (--same-as). | Supprimer le risque d’une dérive silencieuse entre la charte et le CSS consommateur, ou entre deux copies de la charte. | Se fier à la relecture. |
 | D-012 | 2026-11-01 | lint-design.mjs d’Athena tire sa palette des seules couleurs du front matter, plus de tous les « # » du .md. | Écrire une couleur dans un exemple ne doit pas l’autoriser. | Surveiller la prose à la main. |
 | D-013 | 2026-11-01 | Les variantes accessibles deviennent les valeurs sémantiques par défaut : `{semantic.text.mute}` (`{colors.mute-ink-aa}`), `{semantic.text.link}` (`{colors.console-sky-text}`), `{semantic.state.success.fg}` et équivalents. Les couleurs primitives ne changent pas. | Supprimer les écarts de contraste du thème clair sans toucher à la palette ; Athena applique déjà ces assombrissements. | Laisser les écarts en `known-issue`. |
@@ -846,7 +846,7 @@ Modèle de proposition :
 | D-016 | 2026-11-02 | Disposition de la vue détails d'un tracker : sections titrées, grille de 3 colonnes, largeur 1 à 3 par attribut, éditeur WYSIWYG avec glisser-déposer et boutons équivalents, disposition automatique par défaut. Nouveaux tokens de composant en proposed : layout-grid, layout-editor. | Demande produit : maîtriser la disposition des attributs à la création d'un tracker ; la disposition automatique évite d'imposer la configuration. | Configuration par liste d'ordre seule (pas de largeur) ; glisser-déposer sans alternative au clavier. |
 | D-017 | 2026-11-02 | Passent de proposed à stable les tokens que l'interface d'Athena utilise : primitive.zIndex.sticky, primitive.zIndex.toast, primitive.sizes.sidebar, states.loading, component.skip-link, component.confirm-dialog, component.help-entry, component.layout-grid, component.layout-editor. Les autres tokens proposed (thème sombre, densités, surcouches) restent en attente. | Ces tokens sont livrés, testés (unitaires et e2e) et audités ; les laisser proposed faussait l'état de la charte. | Tout passer en stable, y compris le thème sombre qu'aucune feuille de style ne consomme. |
 | D-018 | 2026-11-07 | Le thème sombre est livré : tous les tokens de `semantic.themes.dark` passent de proposed à stable. Athena propose les réglages clair, sombre et système (défaut : préférence du système), mémorisés par navigateur. Les primitives sont réaffectées aux valeurs sémantiques sombres de même rôle (`tokens.semantic.darkPrimitiveMap`) ; les surfaces inverses et les boutons pleins redéclarent localement leurs primitives. Les variables sémantiques sont générées dans `tokens.generated.css` pour les deux thèmes ; `lint-design.mjs` reste borné au front matter pour les couleurs écrites dans les sources. | Demande T-0095 : confort en environnement peu éclairé et préférence système ; les valeurs existaient et leurs contrastes étaient calculés. L'interface les consomme désormais et l'audit axe passe dans les deux thèmes. | Dupliquer les règles de la feuille de style sous un sélecteur sombre (dérive garantie) ; refaire tous les composants sur les variables sémantiques (refonte hors périmètre) ; sombre seul sans réglage système. |
-| D-019 | 2026-11-10 | Système de thèmes (ADR-0004) : Hemeria devient un thème parmi d'autres ; moteur générique `@nuance/theming` et thèmes en données `@nuance/themes` (format W3C Design Tokens) ; trois couches (primitives du thème, sémantique, composants), un composant ne lit jamais une primitive ; axes `data-theme`, `data-mode`, `data-density` ; casse de phrase au lieu des capitales espacées ; densités Normal et Compact ; 12 teintes nommées pour les statuts ; icône de marque par thème ; rayon et ombre des couches flottantes au choix du thème, Hemeria et Contraste élevé restant à angles droits et sans ombre. | Audit visuel du 2026-11-10 : le CSS consomme les primitives et le thème sombre les réaffecte, ce qui empêche tout troisième thème ; demande du demandeur de thèmes communautaires et d'un moteur réutilisable. | Garder Hemeria comme unique identité et ajouter des variantes de couleur seulement. |
+| D-019 | 2026-11-10 | Système de thèmes (ADR-0004) : Athena devient un thème parmi d'autres ; moteur générique `@nuance/theming` et thèmes en données `@nuance/themes` (format W3C Design Tokens) ; trois couches (primitives du thème, sémantique, composants), un composant ne lit jamais une primitive ; axes `data-theme`, `data-mode`, `data-density` ; casse de phrase au lieu des capitales espacées ; densités Normal et Compact ; 12 teintes nommées pour les statuts ; icône de marque par thème ; rayon et ombre des couches flottantes au choix du thème, Athena et Contraste élevé restant à angles droits et sans ombre. | Audit visuel du 2026-11-10 : le CSS consomme les primitives et le thème sombre les réaffecte, ce qui empêche tout troisième thème ; demande du demandeur de thèmes communautaires et d'un moteur réutilisable. | Garder Athena comme unique identité et ajouter des variantes de couleur seulement. |
 
 ### Décisions en attente (`proposed`)
 
@@ -892,7 +892,7 @@ Gabarit de rapport d'audit : contexte, grille notée, constats au format imposé
 
 ### 10.3 Consommateurs
 
-Les valeurs des thèmes vivent dans `packages/themes` (`@nuance/themes`) ; `packages/ui/scripts/build-themes.mjs` les contrôle (contrat : jetons obligatoires, contrastes) et génère `themes.generated.css`. Le front matter de `DESIGN.md` reste la référence documentaire de la palette Hemeria et `lint-design.mjs` en tire la liste des couleurs admises dans le code ; il n'alimente plus aucun CSS (l'ancien `build-tokens.mjs` a été retiré en T-0131). Après une modification : `pnpm --filter @nuance/themes test`, puis `pnpm --filter @athena/ui build` et `pnpm check`.
+Les valeurs des thèmes vivent dans `packages/themes` (`@nuance/themes`) ; `packages/ui/scripts/build-themes.mjs` les contrôle (contrat : jetons obligatoires, contrastes) et génère `themes.generated.css`. Le front matter de `DESIGN.md` reste la référence documentaire de la palette Athena et `lint-design.mjs` en tire la liste des couleurs admises dans le code ; il n'alimente plus aucun CSS (l'ancien `build-tokens.mjs` a été retiré en T-0131). Après une modification : `pnpm --filter @nuance/themes test`, puis `pnpm --filter @athena/ui build` et `pnpm check`.
 
 ### 10.4 Écarts connus d'Athena
 

@@ -14,7 +14,7 @@ export const palette = new Set(
     .concat(['#ffffff', '#000000']),
 );
 const RULES = [
-  // Forme et élévation (ADR-0004) : seulement par les jetons du thème (Hemeria : 0 et none).
+  // Forme et élévation (ADR-0004) : seulement par les jetons du thème (Athena : 0 et none).
   { re: /border-radius\s*:\s*(?=[^;}\s])(?!0(?:px|rem|em)?\s*(?:;|}|$))(?!var\(--ath-radius-[a-z]+\))[^;}]+/i, msg: 'border-radius en dur interdit (jeton --ath-radius-* attendu)' },
   { re: /box-shadow\s*:(?!\s*none\b)(?!\s*var\(--ath-elevation-[a-z]+\))[^;}]+/i, msg: 'box-shadow en dur interdit (jeton --ath-elevation-* attendu)' },
   { re: /(linear|radial|conic)-gradient\s*\(/i, msg: 'dégradé interdit' },

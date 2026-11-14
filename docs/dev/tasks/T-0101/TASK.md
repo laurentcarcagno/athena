@@ -16,6 +16,6 @@
 - **Tests à écrire** :
   - API : ordre, filtres, pagination, champs masqués, RLS
   - Vitest/RTL : filtres, état vide, lien vers la fiche ; axe
-- **Règles communes** : interface Hemeria (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
+- **Règles communes** : interface Athena (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
 - **Hors périmètre** : notifications (Lot 7).
 - **Dépendances** : T-0055

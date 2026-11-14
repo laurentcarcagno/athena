@@ -283,17 +283,17 @@ describe('structure de page', () => {
   });
 });
 
-describe('conformité Hemeria de la feuille de style', () => {
+describe('conformité Athena de la feuille de style', () => {
   const css = readStyles();
-  it('ni dégradé ni flou ; ombre et arrondi seulement par les jetons du thème, nuls pour Hemeria (ADR-0004)', () => {
+  it('ni dégradé ni flou ; ombre et arrondi seulement par les jetons du thème, nuls pour Athena (ADR-0004)', () => {
     expect(css).not.toMatch(/gradient\(/);
     expect(css).not.toMatch(/backdrop-filter/);
     expect(css.match(/box-shadow\s*:(?!\s*none\b)(?!\s*var\(--ath-elevation-)/g) ?? []).toEqual([]);
     expect(css.match(/border-radius\s*:(?!\s*0\b)(?!\s*var\(--ath-radius-)/g) ?? []).toEqual([]);
-    const hemeria = readFileSync(join(__dirname, 'themes.generated.css'), 'utf8');
-    expect(hemeria).toMatch(/--ath-radius-control: 0;/);
-    expect(hemeria).toMatch(/--ath-radius-surface: 0;/);
-    expect(hemeria).toMatch(/--ath-elevation-overlay: none;/);
+    const athena = readFileSync(join(__dirname, 'themes.generated.css'), 'utf8');
+    expect(athena).toMatch(/--ath-radius-control: 0;/);
+    expect(athena).toMatch(/--ath-radius-surface: 0;/);
+    expect(athena).toMatch(/--ath-elevation-overlay: none;/);
   });
   it('réserve le rouge cérémoniel (brand.accent) au bandeau', () => {
     const uses = css.split('\n').filter((l) => l.includes('--ath-brand-accent')).map((l) => l.trim().split(' ')[0]);

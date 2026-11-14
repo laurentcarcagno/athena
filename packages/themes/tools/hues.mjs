@@ -1,5 +1,5 @@
-// Ajoute à un thème écrit à la main (Hemeria) les teintes nommées des statuts, calculées sur sa surface (T-0138).
-// Usage : node tools/hues.mjs hemeria/theme.json
+// Ajoute à un thème écrit à la main (Athena) les teintes nommées des statuts, calculées sur sa surface (T-0138).
+// Usage : node tools/hues.mjs athena/theme.json
 import { readFileSync, readdirSync, writeFileSync, existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { registryOf, resolveTheme } from '@nuance/theming';

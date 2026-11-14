@@ -10,7 +10,7 @@ Moteur de thèmes générique, sans dépendance au produit qui l'emploie (ADR-00
 
 ```
 theming check --contract contrat.json themes/*.json
-theming build --contract contrat.json --out themes.css --prefix ath- --default hemeria themes/*.json
+theming build --contract contrat.json --out themes.css --prefix ath- --default athena themes/*.json
 ```
 
 La génération refuse d'émettre un thème non conforme.
@@ -20,8 +20,8 @@ La génération refuse d'émettre un thème non conforme.
 ```ts
 import { createThemeController, storagePersistence } from '@nuance/theming';
 const theme = createThemeController({
-  defaults: { theme: 'hemeria', mode: 'system', density: 'normal' },
-  themes: ['hemeria', 'nord'], modes: ['system', 'light', 'dark'], densities: ['normal', 'compact'],
+  defaults: { theme: 'athena', mode: 'system', density: 'normal' },
+  themes: ['athena', 'nord'], modes: ['system', 'light', 'dark'], densities: ['normal', 'compact'],
   persistence: storagePersistence({ key: 'app.theme' }),
 });
 theme.apply();                 // avant le premier rendu

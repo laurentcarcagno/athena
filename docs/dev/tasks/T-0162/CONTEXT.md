@@ -6,7 +6,7 @@
 - `ScheduleGantt` : tableau WBS (clé, titre indenté par niveau, début, fin, durée, avancement ; liens vers la fiche) et diagramme SVG en un seul défilement : barres, avancement, parentes en barre fine, jalon en losange, repère du jour, jours non ouvrés grisés (calendrier de l'organisation), liens fin → début en flèches. Dates planifiées (calcul du moteur), pas les dates saisies.
 - Fenêtrage au-delà de 80 lignes : lignes d'espacement faites d'un `<svg height>` (aucun style en ligne), hauteur du diagramme exacte.
 - `lib/schedule.ts` : types de l'API, jours ouvrés côté navigateur, ordre WBS, axe, plages non ouvrées, fenêtre visible.
-- Rayon des barres : `rx: var(--ath-radius-control)` (0 dans Hemeria et Contraste élevé). Aucun dégradé, aucune couleur seule (losange, motif des jours, texte du tableau).
+- Rayon des barres : `rx: var(--ath-radius-control)` (0 dans Athena et Contraste élevé). Aucun dégradé, aucune couleur seule (losange, motif des jours, texte du tableau).
 - Tests web : `planning-gantt.test.tsx` (13) ; tests existants adaptés au libellé « Planning ». Web : 492 tests, 1 aléatoire sous charge (`web15`, vert seul).
 - e2e écrits : `planning.spec.ts` (rail, barres à x = 48 / 96, redirection, lecture seule, axe 9 thèmes × 2 modes) ; `roadmap.spec.ts`, `themes.spec.ts`, `visuel.spec.ts` adaptés.
 

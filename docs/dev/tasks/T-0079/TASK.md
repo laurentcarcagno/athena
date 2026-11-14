@@ -17,6 +17,6 @@
   - API : matrice rôle × liste × lecture/recherche/compteurs (cas de fuite)
   - Vitest/RTL
   - axe
-- **Règles communes** : interface Hemeria (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
+- **Règles communes** : interface Athena (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
 - **Hors périmètre** : marquage de contrôle export (T-0099).
 - **Dépendances** : T-0078

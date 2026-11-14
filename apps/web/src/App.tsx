@@ -42,7 +42,7 @@ import { TrackerCreatePage } from './pages/TrackerCreatePage';
 /** Projet courant déduit de l'adresse (`/p/<clé>/…`). */
 export const projectOf = (pathname: string): string | undefined => (pathname.startsWith('/p/') ? pathname.split('/')[2] : undefined);
 
-/** Couleurs des drapeaux nationaux : hors palette Hemeria par nature. */
+/** Couleurs des drapeaux nationaux : hors palette Athena par nature. */
 const FLAG = {
   frBlue: '#0055A4', // design-lint-ignore : drapeau
   frRed: '#EF4135', // design-lint-ignore : drapeau

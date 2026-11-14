@@ -83,7 +83,7 @@ describe('Profil et notifications', () => {
     expect(screen.getByLabelText('Mode')).toBeInTheDocument();
     // Thème (T-0136) : vignettes en boutons radio, le thème courant est coché.
     const themes = screen.getByRole('group', { name: 'Thème' });
-    expect(within(themes).getByRole('radio', { name: 'Hemeria' })).toBeChecked();
+    expect(within(themes).getByRole('radio', { name: 'Athena' })).toBeChecked();
     expect(within(themes).getAllByRole('radio').length).toBeGreaterThanOrEqual(5);
     expect(screen.getByLabelText('Page d’accueil')).toHaveValue('work');
     expect(await screen.findByRole('group', { name: 'Événements à notifier' })).toBeInTheDocument();
@@ -93,8 +93,8 @@ describe('Profil et notifications', () => {
     await userEvent.click(await screen.findByRole('radio', { name: 'Nord' }));
     await waitFor(() => expect(document.documentElement.getAttribute('data-theme')).toBe('nord'));
     await waitFor(() => expect(puts).toContainEqual({ family: 'nord' }));
-    await userEvent.click(screen.getByRole('radio', { name: 'Hemeria' }));
-    await waitFor(() => expect(document.documentElement.getAttribute('data-theme')).toBe('hemeria'));
+    await userEvent.click(screen.getByRole('radio', { name: 'Athena' }));
+    await waitFor(() => expect(document.documentElement.getAttribute('data-theme')).toBe('athena'));
   });
   it('la page d’accueil choisie dans le Profil s’applique à /', async () => {
     const first = app('/profil');

@@ -1,7 +1,7 @@
 /* Généré par packages/ui/scripts/build-login.mjs depuis @nuance/themes et login.source.css. Ne pas modifier. */
 /* Généré par @nuance/theming. Ne pas modifier. */
 
-:root[data-theme="hemeria"],
+:root[data-theme="athena"],
 :root:not([data-theme]) {
   color-scheme: light;
   --ath-action-danger-bg: transparent;
@@ -129,6 +129,8 @@
   --ath-size-control-lg: 40px;
   --ath-size-control-md: 32px;
   --ath-size-control-sm: 26px;
+  --ath-size-dashcard: 300px;
+  --ath-size-dashrow: 88px;
   --ath-size-dialog-lg: 880px;
   --ath-size-dialog-md: 640px;
   --ath-size-dialog-sm: 480px;
@@ -153,10 +155,18 @@
   --ath-state-danger-border: #BA1A1A;
   --ath-state-danger-fg: #9E1616;
   --ath-state-danger-fg-aa: #9E1616;
+  --ath-state-draft-bg: #ECEFF1;
+  --ath-state-draft-border: #73777D;
+  --ath-state-draft-fg: #4A5560;
+  --ath-state-draft-fg-aa: #4A5560;
   --ath-state-info-bg: #E6F3FA;
   --ath-state-info-border: #006EB1;
   --ath-state-info-fg: #005E96;
   --ath-state-info-fg-aa: #005E96;
+  --ath-state-merged-bg: #EFE9F8;
+  --ath-state-merged-border: #6E4BB8;
+  --ath-state-merged-fg: #5B3A9E;
+  --ath-state-merged-fg-aa: #5B3A9E;
   --ath-state-neutral-bg: #FCFDFE;
   --ath-state-neutral-border: #12293A;
   --ath-state-neutral-fg: #43474C;
@@ -196,7 +206,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root[data-theme="hemeria"]:not([data-mode]),
+  :root[data-theme="athena"]:not([data-mode]),
   :root:not([data-theme]):not([data-mode]) {
     color-scheme: dark;
     --ath-action-danger-border: #EE9C99;
@@ -265,10 +275,18 @@
     --ath-state-danger-border: #EE9C99;
     --ath-state-danger-fg: #EE9C99;
     --ath-state-danger-fg-aa: #EE9C99;
+    --ath-state-draft-bg: #1B2B38;
+    --ath-state-draft-border: #8AA2B2;
+    --ath-state-draft-fg: #B9C8D2;
+    --ath-state-draft-fg-aa: #B9C8D2;
     --ath-state-info-bg: #003157;
     --ath-state-info-border: #7EC4EC;
     --ath-state-info-fg: #7EC4EC;
     --ath-state-info-fg-aa: #7EC4EC;
+    --ath-state-merged-bg: #2A1F4A;
+    --ath-state-merged-border: #A98BEA;
+    --ath-state-merged-fg: #C9B6F2;
+    --ath-state-merged-fg-aa: #C9B6F2;
     --ath-state-neutral-bg: #0E2230;
     --ath-state-neutral-border: #5C95BB;
     --ath-state-neutral-fg: #C7DAE2;
@@ -301,7 +319,7 @@
   }
 }
 
-:root[data-theme="hemeria"][data-mode="dark"],
+:root[data-theme="athena"][data-mode="dark"],
 :root:not([data-theme])[data-mode="dark"] {
   color-scheme: dark;
   --ath-action-danger-border: #EE9C99;
@@ -370,10 +388,18 @@
   --ath-state-danger-border: #EE9C99;
   --ath-state-danger-fg: #EE9C99;
   --ath-state-danger-fg-aa: #EE9C99;
+  --ath-state-draft-bg: #1B2B38;
+  --ath-state-draft-border: #8AA2B2;
+  --ath-state-draft-fg: #B9C8D2;
+  --ath-state-draft-fg-aa: #B9C8D2;
   --ath-state-info-bg: #003157;
   --ath-state-info-border: #7EC4EC;
   --ath-state-info-fg: #7EC4EC;
   --ath-state-info-fg-aa: #7EC4EC;
+  --ath-state-merged-bg: #2A1F4A;
+  --ath-state-merged-border: #A98BEA;
+  --ath-state-merged-fg: #C9B6F2;
+  --ath-state-merged-fg-aa: #C9B6F2;
   --ath-state-neutral-bg: #0E2230;
   --ath-state-neutral-border: #5C95BB;
   --ath-state-neutral-fg: #C7DAE2;

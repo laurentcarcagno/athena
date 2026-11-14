@@ -15,7 +15,7 @@ Athena : suivi de projet (trackers configurables, type JIRA + Tuleap), historiqu
 - Commits conventionnels, un changement logique par commit. Ne pas pousser sans demande.
 
 ## Conception
-- Interface : système de thèmes (ADR-0004, lot 10). Charte : `packages/ui/design/DESIGN.md` et `DESIGN.json`. Hemeria est un thème parmi d'autres (angles droits, aucune ombre, Console Sky = action, rouge = cérémonie). Pour tous les thèmes : aucun dégradé ni verre dépoli, identifiants en IBM Plex Mono, un composant ne lit que des tokens sémantiques ou de composant (jamais une primitive), contrastes WCAG 2.2 AA vérifiés par thème et par mode, casse de phrase (pas de capitales espacées). Moteur et thèmes découplés d'Athena : `@nuance/theming`, `@nuance/themes`.
+- Interface : système de thèmes (ADR-0004, lot 10). Charte : `packages/ui/design/DESIGN.md` et `DESIGN.json`. Athena est un thème parmi d'autres (angles droits, aucune ombre, Console Sky = action, rouge = cérémonie). Pour tous les thèmes : aucun dégradé ni verre dépoli, identifiants en IBM Plex Mono, un composant ne lit que des tokens sémantiques ou de composant (jamais une primitive), contrastes WCAG 2.2 AA vérifiés par thème et par mode, casse de phrase (pas de capitales espacées). Moteur et thèmes découplés d'Athena : `@nuance/theming`, `@nuance/themes`.
 - Stack : Node 22, TypeScript, NestJS, React, PostgreSQL, Redis, S3/MinIO, Keycloak (identité), OpenBao (secrets).
 - Sécurité dès la conception : voir plan § 13. Aucun secret dans le dépôt.
 

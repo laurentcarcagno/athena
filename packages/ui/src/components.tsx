@@ -101,7 +101,7 @@ export function FilterChip({ label, value, active = false, onClick, onClear }: {
   );
 }
 
-/** Champ de recherche : le raccourci ⌘K / Ctrl+K est toujours présent dans la chrome (Hemeria). */
+/** Champ de recherche : le raccourci ⌘K / Ctrl+K est toujours présent dans la chrome (Athena). */
 export function SearchInput({ placeholder = 'Rechercher…', onSearch, ...rest }: Omit<InputHTMLAttributes<HTMLInputElement>, 'onChange'> & { onSearch?: (value: string) => void }) {
   const ref = useRef<HTMLInputElement>(null);
   useEffect(() => {
@@ -213,7 +213,7 @@ export const DashGrid = forwardRef<HTMLDivElement, { children: ReactNode } & HTM
 /** Carte. Les cartes imbriquées sont interdites par la charte : elles lèvent une erreur. */
 /** Carte (fond et bordure) ou section (filet seul, `variant="section"`) ; jamais imbriquée. */
 export function Card({ title, meta, children, variant = 'card' }: { title?: string; meta?: ReactNode; children: ReactNode; variant?: 'card' | 'section' }) {
-  if (useContext(CardContext)) throw new Error('Card imbriquée : interdit par la charte Hemeria');
+  if (useContext(CardContext)) throw new Error('Card imbriquée : interdit par la charte Athena');
   return (
     <CardContext.Provider value={true}>
       <section className={cx('ath-card', variant === 'section' && 'ath-card--section')}>

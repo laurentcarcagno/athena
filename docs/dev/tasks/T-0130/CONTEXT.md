@@ -5,7 +5,7 @@
   - hors contexte, chaque primitive devient le jeton sémantique de même valeur dans les deux modes (table D-018 : `instrument-white` → `surface-default`, `sovereign-deep-blue` → `text-heading`…) ; `signal-*` → `state-*-border` ; tricolore → `brand-primary` / `brand-accent` ;
   - les contextes qui redéfinissaient les primitives (barre latérale et menus Favoris/Récents, en-tête de tableau, en-tête de modale, en-tête de colonne du Board, bandeau de protection ; boutons et étiquettes pleins) lisent directement `surface-inverse`, `text-on-inverse`, `action-primary-*`, `action-deep-*` ; leurs redéfinitions locales sont supprimées ;
   - `color-mix()` et `rgba()` de la surface inverse → jetons `inverse.*` (textes atténués aux mêmes valeurs, surcouches).
-- Hemeria : `color.*` renommé `palette.*` (primitives propres au thème) ; réaffectation sombre des primitives supprimée ; jetons `inverse.*` et `brand.*` ajoutés. Contrat : 105 jetons obligatoires, 31 paires (dont 4 sur la surface inverse).
+- Athena : `color.*` renommé `palette.*` (primitives propres au thème) ; réaffectation sombre des primitives supprimée ; jetons `inverse.*` et `brand.*` ajoutés. Contrat : 105 jetons obligatoires, 31 paires (dont 4 sur la surface inverse).
 - Moteur : une paire de contraste peut porter `over` (surface opaque sous un fond translucide) ; test.
 - Lint : dans les feuilles de style, primitive de thème, `rgba`/`hsla`/`color-mix` et hexadécimal interdits.
 - **Défaut corrigé** : le bouton « + » des en-têtes de colonne du Board (ghost sur surface inverse) prenait la couleur de la surface : invisible. Il a désormais texte et contour clairs.

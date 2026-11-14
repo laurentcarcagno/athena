@@ -17,6 +17,6 @@
   - API : un cas par service avec une ancienne clé
   - Vitest : compilation ATQL de `key` (paramètres liés, aucune concaténation)
   - Test de garde (analyse statique simple des sources)
-- **Règles communes** : interface Hemeria (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
+- **Règles communes** : interface Athena (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
 - **Hors périmètre** : analyse des clés dans les textes (T-0050).
 - **Dépendances** : T-0049

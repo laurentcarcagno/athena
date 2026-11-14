@@ -1,6 +1,6 @@
 # ADR-0004 : système de thèmes et refonte visuelle (Lot 10)
 
-Statut : accepté (2026-11-10). Fait évoluer `packages/ui/design/DESIGN.md` (Hemeria 3.0.0) : Hemeria devient un thème parmi d'autres. Plan d'exécution : `docs/dev/tasks/LOT10-PLAN.md`.
+Statut : accepté (2026-11-10). Fait évoluer `packages/ui/design/DESIGN.md` (Athena 3.0.0) : Athena devient un thème parmi d'autres. Plan d'exécution : `docs/dev/tasks/LOT10-PLAN.md`.
 
 ## 1. Contexte
 
@@ -14,12 +14,12 @@ L'audit visuel et technique du 2026-11-10 relève que l'interface est disciplin�
 
 ## 2. Décisions (réponses du demandeur, 2026-11-10)
 
-1. **La charte évolue.** Hemeria reste l'identité de couleurs d'**un** thème. Angles droits, absence d'ombre, liseré tricolore et rouge de cérémonie deviennent des choix du thème Hemeria, non plus des règles du système.
+1. **La charte évolue.** Athena reste l'identité de couleurs d'**un** thème. Angles droits, absence d'ombre, liseré tricolore et rouge de cérémonie deviennent des choix du thème Athena, non plus des règles du système.
 2. **Catalogue de thèmes** repris de palettes communautaires (licences MIT, mention dans `NOTICE`), **adaptées** pour tenir WCAG 2.2 AA (teintes conservées, luminosité des rôles de texte, d'action et d'état ajustée) :
-   - vague 1 : Hemeria, Contraste élevé (vise AAA), Catppuccin (Latte, Mocha), Nord, Gruvbox ;
+   - vague 1 : Athena, Contraste élevé (vise AAA), Catppuccin (Latte, Mocha), Nord, Gruvbox ;
    - vague 2 : Solarized, Dracula (avec Alucard), Tokyo Night (Night, Day), Rosé Pine (Main, Dawn).
    Chaque thème a un mode clair et un mode sombre.
-3. **Forme par thème** : les thèmes communautaires peuvent avoir un rayon de 2 à 8 px et une ombre douce **réservée aux couches flottantes** (menus, modales, toasts). Hemeria et Contraste élevé restent à angles droits et sans ombre.
+3. **Forme par thème** : les thèmes communautaires peuvent avoir un rayon de 2 à 8 px et une ombre douce **réservée aux couches flottantes** (menus, modales, toasts). Athena et Contraste élevé restent à angles droits et sans ombre.
 4. **Plus de capitales espacées** : casse de phrase partout (boutons, onglets, chips, pastilles, en-têtes de tableau, rail, titres de modale).
 5. **Densité** : deux niveaux, Normal (défaut) et Compact, réglage de l'utilisateur enregistré sur le compte. Sur écran tactile (`pointer: coarse`), cibles de 44 px automatiquement. Pas de niveau « confortable ».
 6. **Couleurs des statuts** : l'administrateur choisit pour chaque statut une **teinte nommée** parmi 12 (`gray`, `slate`, `blue`, `sky`, `teal`, `green`, `lime`, `yellow`, `orange`, `red`, `pink`, `purple`) ; chaque thème fournit le triplet fond / texte / bordure de chaque teinte, vérifié AA. Jamais de code hexadécimal saisi. Défaut : teinte de la catégorie du statut.

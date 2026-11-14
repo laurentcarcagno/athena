@@ -1,7 +1,7 @@
 # Journal de la tâche T-0132
 
 ## Fait
-- Hemeria : échelle par rôles `font.size` (small 12, body 14, subsection 14, section 16, title 22, display 28), interlignes par rôle, interlettrage réduit à `title` (0,01 em) et `mono` (0,02 em) ; rôles `type.*` de la charte 3 retirés (contrat : 121 jetons).
+- Athena : échelle par rôles `font.size` (small 12, body 14, subsection 14, section 16, title 22, display 28), interlignes par rôle, interlettrage réduit à `title` (0,01 em) et `mono` (0,02 em) ; rôles `type.*` de la charte 3 retirés (contrat : 121 jetons).
 - Feuille : casse de phrase partout (plus aucun `text-transform: uppercase` ni interlettrage de label) ; libellés en semi-gras 12 px ; corps, tableaux, champs, onglets, boutons et rail à 14 px ; titre de page 22 px ; valeur de statistique 28 px.
 - Titres : un traitement par niveau, `.ath-section-title` (h2), `.ath-subsection-title` (h3), `.ath-group-title` (h4) ; 53 titres convertis dans l'application et les composants partagés ; seul le titre de navigation du rail garde sa classe.
 - Prose (commentaires, documents, `.ath-prose`, `.ath-md`) limitée à 72 caractères.

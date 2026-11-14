@@ -18,6 +18,6 @@
   - Vitest : conversion puces ⇄ ATQL (table de cas, aller-retour)
   - API : droits personnel/partagé/défaut, migration d'un filtre ancien
   - axe + Playwright : enregistrer puis rouvrir une vue
-- **Règles communes** : interface Hemeria (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
+- **Règles communes** : interface Athena (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
 - **Hors périmètre** : tout ce qui relève d'une autre tâche de la liste « Reprise IHM » de `docs/dev/STATE.md`.
 - **Dépendances** : T-0056

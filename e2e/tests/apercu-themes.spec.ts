@@ -19,7 +19,7 @@ test('aperçus des thèmes', async ({ page }) => {
   await page.locator('#kc-login').click();
   await page.waitForURL(/localhost:3000/);
   // Chaque thème × mode aux quatre largeurs de visuel.spec.ts (T-0141) ; 1440 px garde le nom court.
-  for (const theme of ['hemeria', 'contrast', 'catppuccin', 'nord', 'gruvbox', 'solarized', 'dracula', 'tokyo-night', 'rose-pine']) {
+  for (const theme of ['athena', 'contrast', 'catppuccin', 'nord', 'gruvbox', 'solarized', 'dracula', 'tokyo-night', 'rose-pine']) {
     for (const mode of ['light', 'dark']) {
       await page.evaluate(([t, m]) => { localStorage.setItem('athena.themeFamily', t!); localStorage.setItem('athena.theme', m!); }, [theme, mode]);
       for (const width of [375, 768, 1024, 1440]) {

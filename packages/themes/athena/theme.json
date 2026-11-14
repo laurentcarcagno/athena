@@ -1,10 +1,10 @@
 {
   "$schema": "https://www.designtokens.org/schemas/2025.10/format.json",
-  "name": "hemeria",
-  "label": "Hemeria",
+  "name": "athena",
+  "label": "Athena",
   "extends": "base",
   "meta": {
-    "description": "Identité Hemeria : bleu souverain, Console Sky pour l’action, angles droits, aucune ombre (ADR-0004).",
+    "description": "Identité Athena : bleu souverain, Console Sky pour l’action, angles droits, aucune ombre (ADR-0004).",
     "source": "packages/ui/design/DESIGN.md 3.2.0 ; jetons inverse.* et brand.* ajoutés en T-0130"
   },
   "tokens": {

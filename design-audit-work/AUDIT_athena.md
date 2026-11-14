@@ -1,6 +1,6 @@
 # Rapport d'audit d'interface : Athena
 
-Audit selon `DESIGN.md` / `DESIGN.json` (Hemeria Design System 3.0.0, `packages/ui/design/`, validés en mode strict : 559 chemins de tokens, 64 paires de contraste, 0 écart). Les preuves sont dans `design-audit-work/evidence/` (captures, `results.json`) ; les scripts de mesure sont `collect.mjs` et `collect2.mjs`.
+Audit selon `DESIGN.md` / `DESIGN.json` (Athena Design System 3.0.0, `packages/ui/design/`, validés en mode strict : 559 chemins de tokens, 64 paires de contraste, 0 écart). Les preuves sont dans `design-audit-work/evidence/` (captures, `results.json`) ; les scripts de mesure sont `collect.mjs` et `collect2.mjs`.
 
 ## 1. Périmètre et contexte
 

@@ -6,7 +6,7 @@ import { seedPlanning } from './planning-seed';
 // T-0162 à T-0165 : Planning (Gantt, Board, Liste, Versions) ; barres aux bonnes dates, édition, filtres, accessibilité par thème.
 
 const axeSource = readFileSync(join(process.cwd(), 'node_modules/axe-core/axe.min.js'), 'utf8');
-const THEMES = ['hemeria', 'contrast', 'catppuccin', 'nord', 'gruvbox', 'solarized', 'dracula', 'tokyo-night', 'rose-pine'];
+const THEMES = ['athena', 'contrast', 'catppuccin', 'nord', 'gruvbox', 'solarized', 'dracula', 'tokyo-night', 'rose-pine'];
 
 async function login(page: Page, username = 'admin.dev', password = 'dev-only-admin') {
   await page.goto('/');

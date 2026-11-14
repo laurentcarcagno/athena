@@ -14,7 +14,7 @@ Revue sur la page de relecture (maquettes cliquables par rôle) : les six sectio
 
 | N° | Sujet | Décision |
 | --- | --- | --- |
-| D1 | Police | Celle du thème (IBM Plex Sans pour Hemeria) ; identifiants en IBM Plex Mono. Pas d'Inter. |
+| D1 | Police | Celle du thème (IBM Plex Sans pour Athena) ; identifiants en IBM Plex Mono. Pas d'Inter. |
 | D2 | Chemin critique | Jeton de danger (`state.danger.*`), trait plus épais et mention « Critique » dans le tableau. Jamais le rouge tricolore ; jamais la couleur seule. |
 | D3 | Tâche parente | Durée et dates **calculées** depuis les enfants ; on modifie un enfant, le planning se recalcule. |
 | D4 | Temps saisis | En base, avec audit ; **hors GitLab** (volume). |
@@ -53,7 +53,7 @@ L'AQ garde la lecture ; l'administrateur configure le calendrier et les taux de 
 - Jalon = ticket de durée nulle, ou version.
 - Calcul avant / arrière (marge, chemin critique) côté API, linéaire en tickets + liens.
 - Une replanification qui déplace plusieurs tickets produit **un seul commit** « replanification » dans GitLab.
-- Le rayon des barres est le jeton de rayon du thème (0 dans Hemeria et Contraste élevé).
+- Le rayon des barres est le jeton de rayon du thème (0 dans Athena et Contraste élevé).
 - Heatmap des risques : 4 paliers nommés (faible 1-4, modéré 5-9, élevé 10-16, critique 20-25), score écrit dans chaque case, aucun dégradé.
 
 ## 3. Conséquences

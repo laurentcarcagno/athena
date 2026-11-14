@@ -1,5 +1,5 @@
 /* Racine, police, libellés et rappel de la règle des couleurs. */
-/* Styles Athena, conformes à Hemeria : angles droits, aplats, aucune ombre, aucun dégradé.
+/* Styles Athena, conformes à Athena : angles droits, aplats, aucune ombre, aucun dégradé.
    Jetons générés par @nuance/theming (themes.generated.css). */
 .ath-root { font-family: var(--ath-font-family-sans); font-size: var(--ath-font-size-body); line-height: var(--ath-font-leading-body); color: var(--ath-text-default); background: var(--ath-surface-app); }
 .ath-root *, .ath-root *::before, .ath-root *::after { box-sizing: border-box; border-radius: 0; }

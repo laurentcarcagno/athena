@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { Btn, Card, EmptyState, FilterChip, StatCard, StatusPill, Tag } from '../src/components';
 
-const meta: Meta = { title: 'Hemeria/Composants' };
+const meta: Meta = { title: 'Athena/Composants' };
 export default meta;
 type Story = StoryObj;
 

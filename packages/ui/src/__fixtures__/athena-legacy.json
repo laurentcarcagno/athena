@@ -1,5 +1,5 @@
 {
-  "$description": "Valeurs calculées du CSS de l’ancien générateur (build-tokens.mjs, retiré en T-0131), hors primitives --ath-color-* : référence de non-régression du thème Hemeria.",
+  "$description": "Valeurs calculées du CSS de l’ancien générateur (build-tokens.mjs, retiré en T-0131), hors primitives --ath-color-* : référence de non-régression du thème Athena.",
   "light": {
     "--ath-action-danger-bg": "transparent",
     "--ath-action-danger-border": "#BA1A1A",

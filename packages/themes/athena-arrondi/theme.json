@@ -1,10 +1,10 @@
 {
   "$schema": "https://www.designtokens.org/schemas/2025.10/format.json",
-  "name": "hemeria-arrondi",
-  "label": "Hemeria arrondi",
-  "extends": "hemeria",
+  "name": "athena-arrondi",
+  "label": "Athena arrondi",
+  "extends": "athena",
   "meta": {
-    "description": "Palette Hemeria, angles arrondis (8 px), bordure de 1 px, aucune ombre (ADR-0007).",
+    "description": "Palette Athena, angles arrondis (8 px), bordure de 1 px, aucune ombre (ADR-0007).",
     "source": "packages/ui/design/DESIGN.md 3.2.0"
   },
   "tokens": {

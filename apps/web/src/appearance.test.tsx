@@ -16,7 +16,7 @@ beforeEach(() => {
       sent.push({ method, body });
       return new Response(JSON.stringify(body), { status: 200 });
     }
-    return new Response(JSON.stringify({ defaultTheme: 'hemeria', allowedThemes: [] }), { status: 200 });
+    return new Response(JSON.stringify({ defaultTheme: 'athena', allowedThemes: [] }), { status: 200 });
   }));
 });
 afterEach(() => { vi.unstubAllGlobals(); setAllowedThemes(null); });
@@ -26,14 +26,14 @@ describe('apparence de l’organisation', () => {
     render(<ToastProvider><AppearanceTab /></ToastProvider>);
     const nord = await screen.findByRole('checkbox', { name: 'Nord' });
     expect(nord).toBeChecked();
-    expect(screen.getByRole('checkbox', { name: 'Hemeria' })).toBeDisabled(); // le thème par défaut reste proposé
+    expect(screen.getByRole('checkbox', { name: 'Athena' })).toBeDisabled(); // le thème par défaut reste proposé
     await userEvent.click(nord);
     await userEvent.click(screen.getByRole('button', { name: 'Enregistrer l’apparence' }));
     await waitFor(() => expect(sent).toHaveLength(1));
     const body = sent[0]!.body as { defaultTheme: string; allowedThemes: string[] };
-    expect(body.defaultTheme).toBe('hemeria');
+    expect(body.defaultTheme).toBe('athena');
     expect(body.allowedThemes).not.toContain('nord');
-    expect(body.allowedThemes).toContain('hemeria');
+    expect(body.allowedThemes).toContain('athena');
     expect(allowedThemes().map((t) => t.name)).not.toContain('nord');
   });
 });

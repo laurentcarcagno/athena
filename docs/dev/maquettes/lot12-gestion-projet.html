@@ -3,7 +3,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
 <style>
-/* Mise en page : console Athena (thème Hemeria). Bandeau, onglets de lecture, puis des écrans maquettés
+/* Mise en page : console Athena (thème Athena). Bandeau, onglets de lecture, puis des écrans maquettés
    dans une coquille Athena (rail sombre + zone de travail). Angles droits, aucune ombre, aucun dégradé. */
 :root{
   --app:#F0F7FC; --surface:#FCFDFE; --hover:#E6F3FA; --muted:#DBE7F0; --selected:#CEE5FC;
@@ -283,7 +283,7 @@ body:not(.user) .user-only{display:none!important}
         </span></span>
       <span><span class="ctl-label">Rayon des barres</span>
         <span class="seg" role="group" aria-label="Rayon des barres">
-          <button type="button" id="rad-0" aria-pressed="true">Hemeria (0 px)</button>
+          <button type="button" id="rad-0" aria-pressed="true">Athena (0 px)</button>
           <button type="button" id="rad-4" aria-pressed="false">Thème arrondi (4 px)</button>
         </span></span>
     </div>
@@ -340,8 +340,8 @@ body:not(.user) .user-only{display:none!important}
     <div class="panel">
       <h2>Écarts avec la charte et le plan</h2>
       <div style="display:grid;gap:10px">
-        <div class="note warn"><b>Police Inter ou Roboto.</b> Chaque thème porte sa police (IBM Plex Sans pour Hemeria) et les identifiants restent en IBM Plex Mono. Recommandation : garder la police du thème.</div>
-        <div class="note warn"><b>Barres à bords arrondis.</b> Le rayon est un jeton du thème : 0 px dans Hemeria et Contraste élevé, 2 à 8 px ailleurs. Le bouton « Rayon des barres » en haut le montre. Aucun code propre au Gantt.</div>
+        <div class="note warn"><b>Police Inter ou Roboto.</b> Chaque thème porte sa police (IBM Plex Sans pour Athena) et les identifiants restent en IBM Plex Mono. Recommandation : garder la police du thème.</div>
+        <div class="note warn"><b>Barres à bords arrondis.</b> Le rayon est un jeton du thème : 0 px dans Athena et Contraste élevé, 2 à 8 px ailleurs. Le bouton « Rayon des barres » en haut le montre. Aucun code propre au Gantt.</div>
         <div class="note warn"><b>Chemin critique « illuminé en rouge ».</b> Le rouge tricolore est réservé à la cérémonie. On utilise le jeton de danger, un trait plus épais et la mention « Critique » dans le tableau : la couleur ne porte jamais seule l'information.</div>
         <div class="note warn"><b>Heatmap « du vert au rouge foncé ».</b> Pas de dégradé : 4 paliers nommés (faible, modéré, élevé, critique) avec le score écrit dans chaque case.</div>
         <div class="note warn"><b>Éditeur de documents par blocs.</b> La gestion documentaire est hors périmètre (plan § 1.2) et StrictDoc reste la source (§ 16.2). Recommandation : plans de mitigation en Markdown dans le ticket Risque, spécifications dans StrictDoc citées depuis Athena.</div>
@@ -902,7 +902,7 @@ function renderAll(){renderGantt();renderPortfolio();renderRisks();renderResourc
 
 /* ---------- Décisions ---------- */
 const DEC=[
- ['D1','Police des écrans de gestion de projet',['Police du thème (IBM Plex Sans pour Hemeria)','Inter partout, comme le cahier des charges'],0],
+ ['D1','Police des écrans de gestion de projet',['Police du thème (IBM Plex Sans pour Athena)','Inter partout, comme le cahier des charges'],0],
  ['D2','Mise en évidence du chemin critique',['Jeton de danger + trait épais + mention « Critique »','Rouge tricolore'],0],
  ['D3','Durée d’une tâche parente',['Calculée depuis ses enfants (modifier un enfant replanifie)','Saisie, et contraint ses enfants'],0],
  ['D4','Stockage des temps saisis',['En base avec audit, hors GitLab','Historisés dans GitLab comme les tickets'],0],

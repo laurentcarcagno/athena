@@ -4,7 +4,7 @@
 - 2026-11-10 : lot 10 ouvert par l'utilisateur (« J'accepte le report de l'écart 4, commence T-0126 »).
 - `docs/dev/DECISIONS/ADR-0004-themes.md` (décisions du demandeur, architecture en trois couches, axes thème / mode / densité, ce qu'un thème peut changer) et `docs/dev/tasks/LOT10-PLAN.md` (T-0126 à T-0141).
 - `DESIGN.md` : note d'évolution au § 1, décision D-019 au journal ; `DESIGN.json` : D-019, version 3.2.0. `validate-design --strict` et `lint-design` OK ; `@athena/ui` 52 tests sur 52.
-- `CLAUDE.md` : section Conception réécrite (Hemeria est un thème ; règles communes à tous les thèmes ; paquets `@nuance/*`).
+- `CLAUDE.md` : section Conception réécrite (Athena est un thème ; règles communes à tous les thèmes ; paquets `@nuance/*`).
 - Non-régression visuelle : `e2e/tests/visuel.spec.ts` (12 écrans × clair et sombre × 375, 768, 1024, 1440 px = 96 captures), scripts `pnpm visuel` et `pnpm visuel:reference` dans `e2e/package.json`, `snapshotPathTemplate` vers `e2e/visuel/reference/` (ignoré par Git). Références prises, puis seconde passe : **96 sur 96 identiques** (2,8 min).
 
 ## Reste à faire

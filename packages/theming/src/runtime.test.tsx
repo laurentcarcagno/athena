@@ -21,8 +21,8 @@ beforeEach(() => {
 afterEach(() => window.localStorage.clear());
 
 const options = (extra: Partial<ThemeControllerOptions> = {}): ThemeControllerOptions => ({
-  defaults: { theme: 'hemeria', mode: 'system', density: 'normal' },
-  themes: ['hemeria', 'nord'],
+  defaults: { theme: 'athena', mode: 'system', density: 'normal' },
+  themes: ['athena', 'nord'],
   modes: ['system', 'light', 'dark'],
   densities: ['normal', 'compact'],
   persistence: storagePersistence({ key: 'test.theme' }),
@@ -33,7 +33,7 @@ describe('contrôleur', () => {
   it('pose les attributs ; `system` retire l’attribut de mode', () => {
     const c = createThemeController(options());
     c.apply();
-    expect(html().getAttribute('data-theme')).toBe('hemeria');
+    expect(html().getAttribute('data-theme')).toBe('athena');
     expect(html().hasAttribute('data-mode')).toBe(false);
     expect(html().getAttribute('data-density')).toBe('normal');
     c.set({ mode: 'dark', theme: 'nord', density: 'compact' });
@@ -46,7 +46,7 @@ describe('contrôleur', () => {
     createThemeController(options()).set({ mode: 'dark', theme: 'nord' });
     expect(createThemeController(options()).get()).toEqual({ theme: 'nord', mode: 'dark', density: 'normal' });
     window.localStorage.setItem('test.theme', JSON.stringify({ theme: 'violet', mode: 'sepia' }));
-    expect(createThemeController(options()).get()).toEqual({ theme: 'hemeria', mode: 'system', density: 'normal' });
+    expect(createThemeController(options()).get()).toEqual({ theme: 'athena', mode: 'system', density: 'normal' });
     window.localStorage.setItem('test.theme', '{illisible');
     expect(createThemeController(options()).get().mode).toBe('system');
   });
@@ -73,7 +73,7 @@ describe('contrôleur', () => {
     c.set({ mode: 'dark' });
     expect(html().getAttribute('data-theme')).toBe('dark');
     expect(html().hasAttribute('data-density')).toBe(false);
-    expect(events).toEqual([{ theme: 'hemeria', mode: 'dark', density: 'normal' }]);
+    expect(events).toEqual([{ theme: 'athena', mode: 'dark', density: 'normal' }]);
   });
 
   it('format de mémoire libre : `encode` rendant null efface la clé ; une mémoire en panne ne bloque rien', () => {
@@ -98,9 +98,9 @@ describe('liaisons React', () => {
   it('rend l’état courant et se met à jour au changement', () => {
     const c = createThemeController(options());
     render(<ThemeProvider controller={c}><Probe /></ThemeProvider>);
-    expect(screen.getByRole('button')).toHaveProperty('textContent', 'hemeria system light');
+    expect(screen.getByRole('button')).toHaveProperty('textContent', 'athena system light');
     act(() => screen.getByRole('button').click());
-    expect(screen.getByRole('button')).toHaveProperty('textContent', 'hemeria dark dark');
+    expect(screen.getByRole('button')).toHaveProperty('textContent', 'athena dark dark');
   });
 
   it('refuse un usage hors fournisseur', () => {

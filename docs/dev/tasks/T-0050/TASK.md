@@ -20,6 +20,6 @@
   - Vitest : table de cas commune (2 segments, 3 segments, imbriqué, ponctuation, 50 clés max) pour `refs.ts` et la CLI
   - API : webhook entrant ; commit référençant un alias déclenche la transition
   - Parseur sdoc : `ATHENA_REFS` mixte
-- **Règles communes** : interface Hemeria (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
+- **Règles communes** : interface Athena (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
 - **Hors périmètre** : résolution des clés dans les requêtes SQL (T-0049, T-0098).
 - **Dépendances** : T-0049

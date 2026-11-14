@@ -22,7 +22,7 @@ export const notStarted = (startsOn: string | null): startsOn is string => !!sta
 
 /**
  * Burndown du sprint en cours : une série (« Reste à faire », trait plein et points) et une ligne de référence (« Idéal »,
- * pointillé). La charte Hemeria n'a pas de palette catégorielle : la distinction tient au trait et aux libellés, jamais à la
+ * pointillé). La charte Athena n'a pas de palette catégorielle : la distinction tient au trait et aux libellés, jamais à la
  * couleur seule. Info-bulle par jour, et tableau des données pour les lecteurs d'écran.
  */
 export function Burndown({ points }: { points: BurndownPoint[] }) {

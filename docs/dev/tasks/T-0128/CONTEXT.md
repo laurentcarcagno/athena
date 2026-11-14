@@ -8,10 +8,10 @@
 - Vérifications : web 420/420 ; `tsc` web ; e2e `theme.spec.ts` vert ; `pnpm visuel` 96 sur 96.
 
 ## Reste à faire
-- Rien pour T-0128. Suivante : T-0129 (thème Hemeria en DTCG dans `packages/themes`, contrat sémantique d'Athena, CSS équivalent à `tokens.generated.css`).
+- Rien pour T-0128. Suivante : T-0129 (thème Athena en DTCG dans `packages/themes`, contrat sémantique d'Athena, CSS équivalent à `tokens.generated.css`).
 
 ## Décisions et pièges
-- **Provisoire jusqu'à T-0129** : le CSS généré lit encore le mode dans `data-theme`. Athena configure donc le contrôleur avec `attributes: { theme: null, mode: 'data-theme', density: null }`. T-0129 passera à `data-theme="hemeria"` + `data-mode`, et devra adapter `theme.spec.ts` (il vérifie `data-theme` = `light` / `dark`) et `visuel.spec.ts` (même attribut).
+- **Provisoire jusqu'à T-0129** : le CSS généré lit encore le mode dans `data-theme`. Athena configure donc le contrôleur avec `attributes: { theme: null, mode: 'data-theme', density: null }`. T-0129 passera à `data-theme="athena"` + `data-mode`, et devra adapter `theme.spec.ts` (il vérifie `data-theme` = `light` / `dark`) et `visuel.spec.ts` (même attribut).
 - La mémoire garde le format historique (le seul mode sous `athena.theme`, clé effacée pour « système ») : aucun réglage existant n'est perdu. La préférence enregistrée sur le compte (migration 052) passe toujours par `setTheme`.
 - `initTheme` prévient maintenant les abonnés (avant : non) : sans effet, il est appelé avant le premier rendu.
 - Environnement e2e (vérifié le 2026-11-10) :
@@ -28,4 +28,4 @@ cd e2e && node global-setup.mjs && npx playwright test theme ; pnpm visuel
 ```
 
 ## Prompt de reprise
-Lot 10 (thèmes), ADR-0004. T-0126 à T-0128 faites (`@nuance/theming` : moteur, runtime, React ; Athena passe par le contrôleur). Reprendre par T-0129 : créer `packages/themes` (`@nuance/themes`) avec le thème Hemeria en DTCG (clair, sombre) et le contrat sémantique d'Athena ; générer avec `theming build` un CSS dont chaque variable sémantique a la même valeur calculée que dans `tokens.generated.css` (test d'égalité) ; passer Athena à `data-theme="hemeria"` + `data-mode` (contrôleur, `theme.spec.ts`, `visuel.spec.ts`). Aucun changement visible : `cd e2e && pnpm visuel` 96 sur 96.
+Lot 10 (thèmes), ADR-0004. T-0126 à T-0128 faites (`@nuance/theming` : moteur, runtime, React ; Athena passe par le contrôleur). Reprendre par T-0129 : créer `packages/themes` (`@nuance/themes`) avec le thème Athena en DTCG (clair, sombre) et le contrat sémantique d'Athena ; générer avec `theming build` un CSS dont chaque variable sémantique a la même valeur calculée que dans `tokens.generated.css` (test d'égalité) ; passer Athena à `data-theme="athena"` + `data-mode` (contrôleur, `theme.spec.ts`, `visuel.spec.ts`). Aucun changement visible : `cd e2e && pnpm visuel` 96 sur 96.

@@ -8,7 +8,7 @@ Consigne de l'utilisateur pour ce lot : tests ciblés seulement, **aucun test e2
 
 | Tâche | Critère | Preuve | État |
 | --- | --- | --- | --- |
-| T-0168 | Thèmes « Hemeria arrondi » et « GitHub », deux modes, toutes les paires AA ; jetons fusionné / brouillon | `pnpm test` de `packages/themes` : 11 thèmes, 84 paires (82 avant) ; test web du sélecteur (`theme.test.tsx`) | tenu |
+| T-0168 | Thèmes « Athena arrondi » et « GitHub », deux modes, toutes les paires AA ; jetons fusionné / brouillon | `pnpm test` de `packages/themes` : 11 thèmes, 84 paires (82 avant) ; test web du sélecteur (`theme.test.tsx`) | tenu |
 | T-0169 | Conversion S/M/L/XL → colonnes sans perte ; chevauchement ou hors grille → 422 ; plafond de 24 ; ancien client | `core/dashboard.test.ts` (disposition 2D) ; `toGrid` idempotente, `size` conservé | tenu (sans migration : voir écart 1) |
 | T-0170 | Catalogue par rôle ; 403 sur un genre interdit ; défauts sans chevauchement | `core/dashboard.test.ts` (catalogue, refus) | tenu |
 | T-0171 | Grille 2D en vue ; ordre mobile ; classes de position sans attribut `style` | `dashboard-cards.test.tsx`, `lib/grid.test.ts` ; CSS : 1 colonne sous 720 px | tenu côté jsdom ; e2e non rejoué |

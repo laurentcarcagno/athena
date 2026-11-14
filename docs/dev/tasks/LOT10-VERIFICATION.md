@@ -25,10 +25,10 @@ Résultats de la vérification (2026-11-11) : `@nuance/theming` 19/19 ; `@nuance
 | e2e `theme.spec.ts` vert | Suite complète. Le test a été adapté en T-0129 (le mode passe de `data-theme` à `data-mode`), comme prévu dans `T-0128/CONTEXT.md` ; le comportement vérifié est inchangé |
 | Tests du runtime (système, mémoire, événement) | Tests runtime et React de `@nuance/theming` (19/19) ; `apps/web/src/lib/theme.test.tsx` |
 
-## T-0129 Thèmes `@nuance/themes`, Hemeria en DTCG
+## T-0129 Thèmes `@nuance/themes`, Athena en DTCG
 | Critère | Preuve |
 |---|---|
-| Valeurs calculées égales à l'ancien CSS | `packages/ui/src/themes.test.ts` contre `__fixtures__/hemeria-legacy.json` (valeurs figées de l'ancien générateur, clair et sombre) |
+| Valeurs calculées égales à l'ancien CSS | `packages/ui/src/themes.test.ts` contre `__fixtures__/athena-legacy.json` (valeurs figées de l'ancien générateur, clair et sombre) |
 | Captures identiques | `pnpm visuel` 96/96 en T-0129 (`T-0129/CONTEXT.md`) |
 
 ## T-0130 Couleurs en jetons
@@ -74,7 +74,7 @@ Résultats de la vérification (2026-11-11) : `@nuance/theming` 19/19 ; `@nuance
 ## T-0136 et T-0140 Thèmes des vagues 1 et 2
 | Critère | Preuve |
 |---|---|
-| `theming check` vert pour chaque thème × mode | `@nuance/themes` : 9 thèmes (Hemeria, Contraste élevé (AAA), Catppuccin, Nord, Gruvbox, Solarized, Dracula, Tokyo Night, Rosé Pine), 2 modes, 78 paires |
+| `theming check` vert pour chaque thème × mode | `@nuance/themes` : 9 thèmes (Athena, Contraste élevé (AAA), Catppuccin, Nord, Gruvbox, Solarized, Dracula, Tokyo Night, Rosé Pine), 2 modes, 78 paires |
 | axe-core vert sur 6 écrans par thème × mode | e2e `themes.spec.ts` : 9 × 2 × 6 = 108 audits sans violation |
 | `NOTICE` des licences | `packages/themes/NOTICE` (MIT, Apache-2.0 pour Tokyo Night) |
 | Choix du thème, liste et défaut de l'organisation, palier 1024 px | e2e `themes.spec.ts` (apparence ; tablette : rail de 64 px, panneau fixe) |
@@ -103,7 +103,7 @@ Résultats de la vérification (2026-11-11) : `@nuance/theming` 19/19 ; `@nuance
 ## T-0141 Vérification du lot
 | Critère | Preuve |
 |---|---|
-| Captures thème × mode × 4 largeurs | `APERCU=1 npx playwright test apercu` : 9 thèmes × 2 modes × 375, 768, 1024, 1440 px (`e2e/visuel/apercu/`, hors dépôt) ; Hemeria est en plus comparé à sa référence sur 12 écrans (`pnpm visuel`) |
+| Captures thème × mode × 4 largeurs | `APERCU=1 npx playwright test apercu` : 9 thèmes × 2 modes × 375, 768, 1024, 1440 px (`e2e/visuel/apercu/`, hors dépôt) ; Athena est en plus comparé à sa référence sur 12 écrans (`pnpm visuel`) |
 | axe-core par thème | Voir T-0136 et T-0140 |
 | e2e | Suite complète : 51 sur 51 |
 

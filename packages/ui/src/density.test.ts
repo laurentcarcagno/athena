@@ -11,7 +11,7 @@ const block = (css: string, selector: string) => {
   return new Map([...css.slice(open + 1, css.indexOf('}', open)).matchAll(/(--[a-z0-9-]+)\s*:\s*([^;]+);/g)].map((m) => [m[1]!, m[2]!.trim()]));
 };
 const px = (v: string | undefined) => Number(/^(\d+)px$/.exec(v ?? '')?.[1] ?? NaN);
-const normal = block(theme, ':root[data-theme="hemeria"],');
+const normal = block(theme, ':root[data-theme="athena"],');
 const compact = new Map([...normal, ...block(density, ':root[data-density="compact"] {')]);
 const coarse = block(density, ':root[data-density], :root:not([data-density]) {');
 

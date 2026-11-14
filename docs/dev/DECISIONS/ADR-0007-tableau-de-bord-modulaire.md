@@ -28,8 +28,8 @@ Douze genres au catalogue, tous avec un **état vide** (illustration grise minim
 - **Qualité du code** et **Badges du projet** (SonarQube) : voir 2.5.
 
 ### 2.4 Apparence et thèmes
-1. Deux nouveaux thèmes dans `@nuance/themes` (ADR-0004), chacun avec les modes exigés par le contrat : **« Hemeria arrondi »** (palette Hemeria, rayon 8 px, bordure 1 px, aucune ombre) et **« GitHub »** (thème inspiré de GitHub Primer, avec ses deux modes : clair et sombre, dérivé d'une `palette.json`). Hemeria conserve ses angles droits ; seul le jeton de rayon diffère.
-2. **Jetons sémantiques ajoutés** : couleur « fusionné » (violet, absente d'Hemeria : valeur proposée `#6E4BB8` clair, `#A98BEA` sombre) et jeu « brouillon » (gris). Statuts : succès, fusionné, bloquant, brouillon, avertissement, information. Chaque paire texte/fond est ajoutée au contrat (WCAG 2.2 AA).
+1. Deux nouveaux thèmes dans `@nuance/themes` (ADR-0004), chacun avec les modes exigés par le contrat : **« Athena arrondi »** (palette Athena, rayon 8 px, bordure 1 px, aucune ombre) et **« GitHub »** (thème inspiré de GitHub Primer, avec ses deux modes : clair et sombre, dérivé d'une `palette.json`). Athena conserve ses angles droits ; seul le jeton de rayon diffère.
+2. **Jetons sémantiques ajoutés** : couleur « fusionné » (violet, absente d'Athena : valeur proposée `#6E4BB8` clair, `#A98BEA` sombre) et jeu « brouillon » (gris). Statuts : succès, fusionné, bloquant, brouillon, avertissement, information. Chaque paire texte/fond est ajoutée au contrat (WCAG 2.2 AA).
 3. Un widget ne lit que des jetons sémantiques ou de composant. **L'état n'est jamais porté par la couleur seule** (texte, lettre, pastille nommée). Aucun dégradé, aucun verre dépoli.
 
 ### 2.5 Données

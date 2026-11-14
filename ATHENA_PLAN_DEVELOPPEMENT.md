@@ -16,7 +16,7 @@ Révision 0.2 : Keycloak + OpenBao (§ 14), sécurité intégrée au cycle de d�
 3. **Historiser chaque artefact dans GitLab** : l'historique des trackers est un historique Git (commits, diffs, blame, restauration), pas seulement un journal en base.
 4. **Extensibilité par plugins** : champs, vues, workflows, actions, connecteurs, widgets de dashboard.
 5. **Interopérabilité par webhooks** : sortants (événements Athena vers l'extérieur) et entrants (applications tierces vers Athena).
-6. **Design Hemeria** (cf. `packages/ui/design/DESIGN.md` et `DESIGN.json`) appliqué strictement.
+6. **Design Athena** (cf. `packages/ui/design/DESIGN.md` et `DESIGN.json`) appliqué strictement.
 
 ### 1.2 Hors périmètre (v1)
 - Gestion documentaire complète (wiki, GED) type Confluence.
@@ -56,12 +56,12 @@ Révision 0.2 : Keycloak + OpenBao (§ 14), sécurité intégrée au cycle de d�
 
 ## 3. Architecture cible
 
-### 3.1 Stack proposée (cohérente avec l'écosystème Hemeria : React + TypeScript)
+### 3.1 Stack proposée (cohérente avec l'écosystème Athena : React + TypeScript)
 | Couche | Choix | Justification |
 |---|---|---|
 | Monorepo | pnpm workspaces + Turborepo | Partage de types, builds incrémentaux |
-| Frontend | React 18 + TypeScript + Vite, TanStack Query/Router/Table | Composants Hemeria (`packages/ui`), tables denses performantes |
-| Design system | Package `@athena/ui` (tokens Hemeria, CSS variables, composants) | Réutilisable par les plugins |
+| Frontend | React 18 + TypeScript + Vite, TanStack Query/Router/Table | Composants Athena (`packages/ui`), tables denses performantes |
+| Design system | Package `@athena/ui` (tokens Athena, CSS variables, composants) | Réutilisable par les plugins |
 | Backend | Node 22 + TypeScript, NestJS (modulaire) sur Fastify | Modularité naturelle pour un noyau + plugins |
 | API | REST (OpenAPI 3.1) + GraphQL en lecture + WebSocket/SSE temps réel | REST pour intégrateurs, GraphQL pour vues riches |
 | Base de données | PostgreSQL 16 (JSONB, FTS, RLS) | Index et cache de requêtage, source opérationnelle |
@@ -79,7 +79,7 @@ Révision 0.2 : Keycloak + OpenBao (§ 14), sécurité intégrée au cycle de d�
 ### 3.2 Vue d'ensemble
 ```
                     ┌──────────────────────────────────────────────┐
-  Navigateur  ───►  │  Web (React, @athena/ui, Hemeria)            │
+  Navigateur  ───►  │  Web (React, @athena/ui, Athena)            │
                     └───────────────┬──────────────────────────────┘
                                     │ REST / GraphQL / SSE
 ┌───────────────────────────────────▼───────────────────────────────────┐
@@ -144,7 +144,7 @@ C'est le choix structurant du produit. Il faut le cadrer précisément.
 4. En cas d'échec : retry avec backoff exponentiel, file de lettres mortes, alerte. Les mutations restent possibles (mode dégradé) ; la file se rejoue à l'ordre.
 
 ### 4.3 Fonctionnalités rendues possibles
-- Onglet **Historique** : liste des commits de l'artefact, diff champ par champ (rendu Hemeria), qui/quand/pourquoi.
+- Onglet **Historique** : liste des commits de l'artefact, diff champ par champ (rendu Athena), qui/quand/pourquoi.
 - **Restauration** d'une révision précédente (nouveau commit, jamais de réécriture).
 - **Comparaison** entre deux dates ou deux releases (tags Git sur les baselines).
 - **Baselines** : un tag Git = un instantané du tracker (exigences figées pour une release).
@@ -195,7 +195,7 @@ Entités principales (PostgreSQL) :
 Règles :
 - Les valeurs de champs sont en JSONB validé par le schéma du tracker (JSON Schema généré), avec index GIN et colonnes générées pour les champs fréquemment filtrés.
 - **Migration de schéma de tracker** : toute modification de champ crée une `schema_version`, une migration de données prévisualisée (dry run) et un commit `tracker.yaml`.
-- Identifiants affichés en **IBM Plex Mono** (règle « Identifier-Is-Mono » de Hemeria).
+- Identifiants affichés en **IBM Plex Mono** (règle « Identifier-Is-Mono » de Athena).
 
 ---
 
@@ -236,7 +236,7 @@ Règles :
 
 ### 6.3 Modèle d'exécution et sécurité
 - **Serveur** : plugins exécutés dans un **worker isolé** (processus séparé ou V8 isolate / `isolated-vm`), communication par RPC ; pas d'accès direct à la base. Quotas CPU/mémoire/temps, appels sortants filtrés par liste d'hôtes autorisés.
-- **Client** : composants chargés en **iframe sandboxée** ou Web Component avec API `@athena/plugin-sdk` ; thème Hemeria injecté via variables CSS ; interdiction de contourner les règles du design (contrôles de lint fournis).
+- **Client** : composants chargés en **iframe sandboxée** ou Web Component avec API `@athena/plugin-sdk` ; thème Athena injecté via variables CSS ; interdiction de contourner les règles du design (contrôles de lint fournis).
 - **Permissions déclaratives** : approuvées par l'administrateur à l'installation, appliquées à l'exécution.
 - **Signature** des paquets (sigstore/minisign), vérification à l'installation, liste d'éditeurs de confiance.
 - **Cycle de vie** : installer → configurer → activer → mettre à jour (migrations) → désactiver → désinstaller (avec politique de données).
@@ -290,7 +290,7 @@ Règles :
 
 ---
 
-## 9. Conception UX / UI (Hemeria · « The Tricolor Console »)
+## 9. Conception UX / UI (Athena · « The Tricolor Console »)
 
 ### 9.1 Règles à appliquer sans exception (extraites de `DESIGN.md`)
 - `border-radius: 0` partout ; **aucune ombre** ; **aucun dégradé** ; pas de glassmorphism.
@@ -307,13 +307,13 @@ Règles :
 Construit en phase 1 à partir de `DESIGN.json` :
 - **Tokens** : couleurs, typographie, espacements (4/8/12/20/24), mouvement, point de rupture 768 px, générés en CSS variables et module TypeScript depuis `DESIGN.json` (script `pnpm tokens:build`, test de non-régression sur les valeurs).
 - **Composants** : `Btn` (primary/deep/ghost/danger), `StatusPill`, `Tag`, `FilterChip`, `SearchInput` (⌘K), `Field/Input/Select/Textarea`, `Card`, `StatCard`, `Table` + `Th sort` + `Td mono`, `Tabs`, `Modal` (focus trap, Esc, clic backdrop, bouton X), `Toast` (haut-droite, 5 s, pause au survol), `EmptyState`, `Sidebar`, `PageHeader` (bandeau tricolore), `CornerFrame`, `Toolbar/Footrow` à bordures partagées.
-- **Ajouts nécessaires non couverts par Hemeria** (à documenter comme extensions et soumettre à validation design) : `Tree`, `Board/Card de ticket`, `Timeline/Gantt`, `DiffViewer`, `Editor Markdown`, `Menu contextuel`, `DatePicker`, `UserPicker`, `Skeleton`. Contraintes : mêmes règles (sharp, flat, tinted neutrals).
+- **Ajouts nécessaires non couverts par Athena** (à documenter comme extensions et soumettre à validation design) : `Tree`, `Board/Card de ticket`, `Timeline/Gantt`, `DiffViewer`, `Editor Markdown`, `Menu contextuel`, `DatePicker`, `UserPicker`, `Skeleton`. Contraintes : mêmes règles (sharp, flat, tinted neutrals).
 - **Accessibilité** : contrastes vérifiés (AA minimum), focus visibles (outline Console Sky), navigation clavier complète, `aria-*`, tests axe en CI.
 - **Documentation** : Storybook avec une page par composant et les règles Do/Don't.
 - **Lint design** : règle ESLint/stylelint interdisant `border-radius`, `box-shadow`, `linear-gradient`, `backdrop-filter`, couleurs hors tokens (et rouge hors liste autorisée).
 
 ### 9.3 Écrans principaux
-| Écran | Contenu clé (Hemeria) |
+| Écran | Contenu clé (Athena) |
 |---|---|
 | Tableau de bord | `PageHeader` (eyebrow « MISSION CONSOLE »), `StatCard` asymétriques, widgets plugins, un `CornerFrame` sur la zone principale |
 | Liste d'artefacts | Toolbar (recherche ⌘K, `FilterChip`, ATQL) + table dense (en-têtes Deep Blue, ID en mono, `StatusPill`) + footrow |
@@ -355,7 +355,7 @@ Construit en phase 1 à partir de `DESIGN.json` :
 - **Unitaires** (Vitest/Jest) : domaine, ATQL, moteur de workflow, sérialisation Git.
 - **Intégration** : PostgreSQL/Redis réels via Testcontainers, **GitLab réel** (instance éphémère en CI) pour la synchronisation.
 - **Contrat** : OpenAPI (Schemathesis), webhooks (schémas JSON versionnés), API de plugin (suite de conformité).
-- **E2E** : Playwright (parcours critiques, dont clavier), captures de comparaison visuelle sur les composants Hemeria.
+- **E2E** : Playwright (parcours critiques, dont clavier), captures de comparaison visuelle sur les composants Athena.
 - **Performance** : k6 (scénarios liste, création, recherche, rafale de webhooks) ; seuils bloquants en CI nocturne.
 - **Sécurité** : SAST, SCA, DAST (ZAP) en pipeline, tests SSRF/HMAC/sandbox plugin, revue de menace (STRIDE) par phase.
 - **Chaos** : coupure GitLab, Redis, lenteur réseau ; vérification du rejeu de l'outbox.
@@ -450,7 +450,7 @@ Rôle de « security champion » désigné dans l'équipe. Définition de « ter
 - **Rôles** : Keycloak porte l'identité, les groupes et les rôles « plateforme » (admin, utilisateur). Les droits **fins** (projet, tracker, champ, transition) restent dans Athena, mappés sur des groupes Keycloak.
 - **Provisioning** : synchronisation des utilisateurs/groupes à la connexion et par webhook d'événements Keycloak ; désactivation immédiate d'un compte = révocation des sessions.
 - **Jetons d'accès personnels (PAT)** et jetons de service pour l'API : émis par Athena, **stockés hachés**, portée limitée (scopes), expiration obligatoire, révocables, visibles une seule fois.
-- Thème Keycloak personnalisé aux couleurs Hemeria (mêmes tokens, angles droits, aucune ombre), texte sobre.
+- Thème Keycloak personnalisé aux couleurs Athena (mêmes tokens, angles droits, aucune ombre), texte sobre.
 
 ### 14.2 OpenBao (secrets et chiffrement)
 | Usage | Moteur / méthode OpenBao |
@@ -620,8 +620,8 @@ Configuration : écran « Dépôts liés » par projet (identifiant GitLab, bran
 ## 18. Interface moderne et intuitive
 
 ### 18.1 Cadre
-La modernité est obtenue par la **qualité d'interaction, la clarté et la rapidité**, dans le cadre de la charte Hemeria (angles droits, aplats, pas d'ombre ni de dégradé, bleu « action » seul). Les codes visuels courants des produits « modernes » (coins arrondis, ombres, flous, dégradés) sont **exclus par la charte** : à confirmer que ce compromis convient.
-Le thème sombre n'existe pas dans Hemeria ; il peut être dérivé des rampes tonales de `DESIGN.json` mais constitue une **extension à valider par le design** (décision § 23.1).
+La modernité est obtenue par la **qualité d'interaction, la clarté et la rapidité**, dans le cadre de la charte Athena (angles droits, aplats, pas d'ombre ni de dégradé, bleu « action » seul). Les codes visuels courants des produits « modernes » (coins arrondis, ombres, flous, dégradés) sont **exclus par la charte** : à confirmer que ce compromis convient.
+Le thème sombre n'existe pas dans Athena ; il peut être dérivé des rampes tonales de `DESIGN.json` mais constitue une **extension à valider par le design** (décision § 23.1).
 
 ### 18.2 Principes d'ergonomie
 1. **Rapidité perçue** : interactions < 100 ms, mises à jour optimistes, squelettes plutôt que roues d'attente, listes virtualisées.
@@ -629,7 +629,7 @@ Le thème sombre n'existe pas dans Hemeria ; il peut être dérivé des rampes t
 3. **Édition en place** : pas de page « modifier » ; enregistrement automatique avec « Annuler » (toute modification est un commit : annuler = restaurer la révision).
 4. **Divulgation progressive** : création minimale (type + titre), champs avancés repliés, mode simple par défaut, mode expert (ATQL) en option, **constructeur visuel de filtres** synchronisé avec l'ATQL.
 5. **Cohérence** : quatre gabarits d'écran seulement (liste, détail, board, configuration), mêmes verbes partout, mêmes emplacements pour les actions.
-6. **Découvrabilité** : états vides utiles (modèle Hemeria), aide contextuelle, parcours de première connexion avec projet de démonstration, liste de contrôle d'amorçage.
+6. **Découvrabilité** : états vides utiles (modèle Athena), aide contextuelle, parcours de première connexion avec projet de démonstration, liste de contrôle d'amorçage.
 7. **Prévention des erreurs** : confirmation seulement pour l'irréversible, aperçu d'impact avant migration de tracker, validation en ligne avec messages précis et sobres.
 8. **Retour d'état** : synchronisation Git, livraison des webhooks, import en cours, toujours visibles et non bloquants.
 9. **Navigation** : barre latérale par projet, fil d'Ariane, récents et favoris, **URL profondes partageables** pour chaque vue et chaque filtre.
@@ -763,7 +763,7 @@ Durées indicatives pour l'équipe ci-dessus ; à recaler après la phase 0.
 - **Sortie de phase** : revue d'architecture, go/no-go.
 
 ### Phase 1 — Socle plateforme et design system (6 semaines)
-- **Keycloak** : realm(s), clients, BFF avec session `HttpOnly`, validation JWT, mapping groupes/rôles, thème Hemeria, MFA administrateur (§ 14.1).
+- **Keycloak** : realm(s), clients, BFF avec session `HttpOnly`, validation JWT, mapping groupes/rôles, thème Athena, MFA administrateur (§ 14.1).
 - **OpenBao** : politiques par service, KV, identifiants PostgreSQL dynamiques, Transit, audit (§ 14.2) ; bibliothèque interne `@athena/secrets`.
 - Utilisateurs, groupes, rôles, organisations/projets, audit log chaîné par hachage, RLS PostgreSQL.
 - Pipeline de sécurité complet (§ 13.2) actif dès le premier jour ; premier **security gate**.
@@ -771,7 +771,7 @@ Durées indicatives pour l'équipe ci-dessus ; à recaler après la phase 0.
 - **`@athena/ui`** : génération des tokens depuis `DESIGN.json`, composants de base, Storybook, lint design, thème.
 - Shell applicatif : `Sidebar` (logo `ATHENA·` avec point rouge), `PageHeader`, navigation, i18n, `Toast`, `Modal`.
 - Outbox + bus d'événements interne.
-- **Critères d'acceptation** : connexion SSO, création de projet, 100 % des composants documentés et conformes aux règles Hemeria, tests axe verts.
+- **Critères d'acceptation** : connexion SSO, création de projet, 100 % des composants documentés et conformes aux règles Athena, tests axe verts.
 
 ### Phase 2 — Noyau trackers et artefacts (8 semaines)
 - Définition de tracker : types de champs de base (texte, riche, nombre, date, liste, multi-liste, utilisateur, case, lien, calculé simple, pièce jointe).
@@ -892,7 +892,7 @@ Chevauchements possibles (4 ∥ 5, 6 ∥ 7 partiel) : **≈ 50–54 semaines** j
 | R4 | Complexité du schéma configurable (migrations de trackers) | Moyenne | Élevé | Versionnage de schéma, dry-run, tests de migration |
 | R5 | Performance JSONB à grande échelle | Moyenne | Moyen | Colonnes générées, index ciblés, tests de charge précoces |
 | R6 | Boucles d'automatisation / tempêtes de webhooks | Moyenne | Moyen | Profondeur max, limites de débit, disjoncteurs |
-| R7 | Écart entre Hemeria (outil de référence) et besoins boards/Gantt | Moyenne | Moyen | Extensions documentées et validées par le design, mêmes règles |
+| R7 | Écart entre Athena (outil de référence) et besoins boards/Gantt | Moyenne | Moyen | Extensions documentées et validées par le design, mêmes règles |
 | R8 | Données sensibles dans Git | Moyenne | Élevé | Chiffrement des champs confidentiels, dépôts privés, revue RGPD |
 | R9 | Adoption / migration depuis JIRA/Tuleap | Moyenne | Élevé | Importeurs, pilotes, formation, mode coexistence |
 | R10 | Dépendance à une seule personne sur le sandbox/Git | Moyenne | Moyen | Pair programming, documentation, ADRs |
@@ -908,7 +908,7 @@ Chevauchements possibles (4 ∥ 5, 6 ∥ 7 partiel) : **≈ 50–54 semaines** j
 | 2 | Dépôts d'historique | **Un dépôt GitLab par projet Athena** | Droits et volumétrie isolés par projet |
 | 3 | Keycloak | **Un realm unique, groupes par organisation** | Pas de multi-realm en v1 ; isolation par groupes et RLS |
 | 4 | Signature des commits d'historique | **Signature unique par le service** + trailer `Athena-Actor` et audit chaîné | Auteur = utilisateur réel ; l'option par utilisateur via Transit est reportée (le spike de phase 0 est réduit à une étude de faisabilité) |
-| 5 | Thème | **Clair uniquement, strictement Hemeria** | Thème sombre hors v1 |
+| 5 | Thème | **Clair uniquement, strictement Athena** | Thème sombre hors v1 |
 | 6 | MVP interne | **Phases 0 à 3 + lot 1 du connecteur GitLab de code** | Lot 1 avancé de la phase 5 à la fin de la phase 3 (+2 à 3 semaines) : MVP vers la **semaine 27** |
 | 7 | Langues | **Français + anglais** | Clés de traduction dès la phase 1 |
 | 8 | Hébergement | (remplacé par la ligne 12) | `docker-compose` conservé pour le développement local |
@@ -926,7 +926,7 @@ Chevauchements possibles (4 ∥ 5, 6 ∥ 7 partiel) : **≈ 50–54 semaines** j
 ### 23.2 Points ouverts : réponses retenues par défaut
 Ces réponses sont des valeurs par défaut proposées par le rédacteur du plan. Elles sont révisables sans impact majeur sur le calendrier, sauf mention contraire.
 
-1. **Marque** : logo « ATHENA·BOARD » sur le modèle de la marque Hemeria (nom en capitales, séparateur central), avec le point séparateur en Tricolor Red (seul usage du rouge dans la barre latérale) et le sous-titre en capitales à 45 % d'opacité. Une validation visuelle par le design Hemeria reste requise avant la phase 1.
+1. **Marque** : logo « ATHENA·BOARD » sur le modèle de la marque Athena (nom en capitales, séparateur central), avec le point séparateur en Tricolor Red (seul usage du rouge dans la barre latérale) et le sous-titre en capitales à 45 % d'opacité. Une validation visuelle par le design Athena reste requise avant la phase 1.
 2. **Dépôts de code GitLab** : conventions par défaut, entièrement configurables par projet :
    - un dépôt de code au démarrage, extensible à N ;
    - branche principale `main`, branches de maintenance `release/<x.y>` ;
@@ -935,7 +935,7 @@ Ces réponses sont des valeurs par défaut proposées par le rédacteur du plan.
    - environnements : `dev`, `recette`, `production`.
    Le relevé des conventions réellement en usage dans vos dépôts se fait en phase 0 et remplace ces valeurs.
 3. **Agent IA** : développement avec Claude Code et le modèle Sonnet 5.5. La taille de fenêtre de contexte n'est pas connue du rédacteur : le protocole retient donc une hypothèse prudente (budget de travail inférieur à la fenêtre, clôture de session dès ~70 % consommés) et reste valable si la fenêtre est plus grande. Le protocole et les fichiers de continuité du § 19 sont adoptés tels quels.
-4. **Interface** : le compromis du § 18.1 est adopté : modernité par l'interaction (clavier, édition en place, rapidité, annulation, assistants), dans la charte Hemeria sans exception, thème clair seul.
+4. **Interface** : le compromis du § 18.1 est adopté : modernité par l'interaction (clavier, édition en place, rapidité, annulation, assistants), dans la charte Athena sans exception, thème clair seul.
 5. **StrictDoc** (vérifié dans `C:\projects\AI\STRICTDOC`) :
    - version **0.30.2** ;
    - export **JSON** disponible (`strictdoc export … --formats=json`), ainsi que ReqIF, RST, Excel, SPDX ; l'export JSON **n'inclut pas** les documents composés (`[LINK: UG_COMPOSABLE_DOCUMENTS]`) : l'indexeur lit donc aussi les `.sdoc` directement ou via l'API Python de StrictDoc ;
@@ -975,6 +975,6 @@ Légende : ● fait et testé · ◐ partiel · ○ non fait.
 | 6 bis Liaison StrictDoc (index, liens suspects, couverture, récupération GitLab) | ● | report des références dans le `.sdoc` par merge request : ● |
 | 7 Webhooks sortants et entrants, automatisations, connecteur GitLab de code (références, transitions, branche, MR) | ◐ | rétroportages, DORA, notes de version, CLI `athena`, job CI `athena-check` : ●; déclencheurs planifiés : ● |
 | 8 Import JIRA/Tuleap, performance, sécurité interne, conteneurs et Helm, documentation | ◐ | **test d'intrusion externe : à commander (cahier des charges prêt : docs/security/CAHIER_PENTEST.md)** ; charge concurrente mesurée en local (docs/perf/RESULTATS.md) ; déploiement réel du chart et politiques réseau vérifiées sur un cluster kind + Calico (INSTALLATION.md), recette sur le cluster cible à faire ; formation : supports prêts (docs/user/FORMATION.md), sessions à planifier |
-| Interface (liste, fiche, board, création, éditeur de tracker, administration, tableau de bord, palette, FR/EN) | ● | tests de bout en bout (Playwright, Keycloak réel) et accessibilité (axe-core, contraste inclus) : ● ; Storybook (catalogue des composants Hemeria) : ● |
+| Interface (liste, fiche, board, création, éditeur de tracker, administration, tableau de bord, palette, FR/EN) | ● | tests de bout en bout (Playwright, Keycloak réel) et accessibilité (axe-core, contraste inclus) : ● ; Storybook (catalogue des composants Athena) : ● |
 
 Chiffres au 2026-10-31 : 262 tests API, 30 UI, 27 web, 4 SDK (tous verts) ; aucune vulnérabilité de dépendance connue ; 100 000 artefacts, p95 de recherche sous 300 ms.

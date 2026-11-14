@@ -42,10 +42,10 @@ Realm avec : client confidentiel `athena-web` (PKCE S256, URI de redirection `ht
 Le thème Keycloak `athena` (`deploy/dev/keycloak/themes/athena`) applique les jetons du thème par défaut de l'organisation (Administration > Apparence), clair ou sombre selon le système. Keycloak sert une feuille statique : la générer au déploiement avec le thème retenu, puis la livrer avec le thème Keycloak :
 
 ```
-pnpm --filter @athena/ui login-theme -- --theme nord   # hemeria si l'option est omise
+pnpm --filter @athena/ui login-theme -- --theme nord   # athena si l'option est omise
 ```
 
-Thèmes disponibles : `hemeria`, `contrast`, `catppuccin`, `nord`, `gruvbox`, `solarized`, `dracula`, `tokyo-night`, `rose-pine` (voir `packages/themes`). Changer le thème par défaut dans l'interface ne régénère pas cette feuille.
+Thèmes disponibles : `athena`, `contrast`, `catppuccin`, `nord`, `gruvbox`, `solarized`, `dracula`, `tokyo-night`, `rose-pine` (voir `packages/themes`). Changer le thème par défaut dans l'interface ne régénère pas cette feuille.
 
 ## OpenBao
 - KV v2 : `secret/athena/<organisation>/…` (secrets de webhooks, intégrations), `secret/athena/platform/session` (secret de session, généré au premier démarrage).

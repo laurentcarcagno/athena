@@ -11,7 +11,7 @@ const alice: Actor = { id: 'alice', roles: ['athena-user'] };
 
 describe('validation de l’apparence', () => {
   it('exige des noms de thème valides et refuse les clés étrangères', () => {
-    expect(AppearanceInput.safeParse({ defaultTheme: 'nord', allowedThemes: ['nord', 'hemeria'] }).success).toBe(true);
+    expect(AppearanceInput.safeParse({ defaultTheme: 'nord', allowedThemes: ['nord', 'athena'] }).success).toBe(true);
     expect(AppearanceInput.safeParse({ defaultTheme: 'Nord!', allowedThemes: [] }).success).toBe(false);
     expect(AppearanceInput.safeParse({ defaultTheme: 'nord', allowedThemes: ['<script>'] }).success).toBe(false);
     expect(AppearanceInput.safeParse({ defaultTheme: 'nord', allowedThemes: [], logo: 'x' }).success).toBe(false);
@@ -34,11 +34,11 @@ suite('apparence de l’organisation (intégration)', () => {
   }, 30_000);
   afterAll(async () => { await testDb?.drop(); });
 
-  it('Hemeria et tous les thèmes sans réglage ; enregistre le défaut et la liste, sans doublon', async () => {
-    expect(await appearance.get(org)).toEqual({ defaultTheme: 'hemeria', allowedThemes: [] });
-    expect(await appearance.put(org, { defaultTheme: 'nord', allowedThemes: ['nord', 'hemeria', 'nord'] })).toEqual({ defaultTheme: 'nord', allowedThemes: ['nord', 'hemeria'] });
-    expect(await appearance.get(org)).toEqual({ defaultTheme: 'nord', allowedThemes: ['nord', 'hemeria'] });
-    expect(await appearance.get(other)).toEqual({ defaultTheme: 'hemeria', allowedThemes: [] });
+  it('Athena et tous les thèmes sans réglage ; enregistre le défaut et la liste, sans doublon', async () => {
+    expect(await appearance.get(org)).toEqual({ defaultTheme: 'athena', allowedThemes: [] });
+    expect(await appearance.put(org, { defaultTheme: 'nord', allowedThemes: ['nord', 'athena', 'nord'] })).toEqual({ defaultTheme: 'nord', allowedThemes: ['nord', 'athena'] });
+    expect(await appearance.get(org)).toEqual({ defaultTheme: 'nord', allowedThemes: ['nord', 'athena'] });
+    expect(await appearance.get(other)).toEqual({ defaultTheme: 'athena', allowedThemes: [] });
   });
 
   it('refuse un défaut absent de la liste proposée', async () => {

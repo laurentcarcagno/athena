@@ -5,15 +5,15 @@ import { describe, expect, it } from 'vitest';
 import { lintSource } from '../scripts/lint-design.mjs';
 
 /**
- * Thème Hemeria généré par @nuance/theming (`themes.generated.css`, ADR-0004).
+ * Thème Athena généré par @nuance/theming (`themes.generated.css`, ADR-0004).
  * T-0129 : chaque variable de l'ancien générateur garde sa valeur calculée, en clair et en sombre. Depuis T-0131 l'ancien
- * générateur n'existe plus : ses valeurs sont figées dans `__fixtures__/hemeria-legacy.json` (hors primitives --ath-color-*).
+ * générateur n'existe plus : ses valeurs sont figées dans `__fixtures__/athena-legacy.json` (hors primitives --ath-color-*).
  * T-0132 remplace volontairement les rôles typographiques --ath-type-* par l'échelle --ath-font-* : ils sortent de la comparaison.
  */
 const read = (file: string) => readFileSync(join(__dirname, file), 'utf8');
 /** Feuille de style complète : styles.css et ses imports, dans l'ordre. */
 const readStyles = (): string => read('styles.css').replace(/@import "\.\/(styles\/[a-z-]+\.css)";/g, (_, part: string) => read(part));
-const legacy = JSON.parse(read('__fixtures__/hemeria-legacy.json')) as { light: Record<string, string>; dark: Record<string, string> };
+const legacy = JSON.parse(read('__fixtures__/athena-legacy.json')) as { light: Record<string, string>; dark: Record<string, string> };
 
 /** Déclarations `--nom: valeur;` du premier bloc dont le sélecteur commence par `selector`. */
 function block(css: string, selector: string): Map<string, string> {
@@ -25,11 +25,11 @@ function block(css: string, selector: string): Map<string, string> {
 }
 
 const engine = read('themes.generated.css');
-const light = block(engine, ':root[data-theme="hemeria"],');
-const dark = new Map([...light, ...block(engine, ':root[data-theme="hemeria"][data-mode="dark"],')]);
+const light = block(engine, ':root[data-theme="athena"],');
+const dark = new Map([...light, ...block(engine, ':root[data-theme="athena"][data-mode="dark"],')]);
 const px = (value: string | undefined) => Number(/^(\d+(?:\.\d+)?)px$/.exec(value ?? '')?.[1] ?? NaN);
 
-describe('thème Hemeria généré par @nuance/theming', () => {
+describe('thème Athena généré par @nuance/theming', () => {
   for (const [mode, reference, actual] of [['clair', legacy.light, light], ['sombre', legacy.dark, dark]] as const) {
     it(`mode ${mode} : chaque variable de l’ancien générateur garde sa valeur calculée`, () => {
       const entries = Object.entries(reference).filter(([name]) => !name.startsWith('--ath-type-'));
@@ -38,10 +38,10 @@ describe('thème Hemeria généré par @nuance/theming', () => {
     });
   }
 
-  it('Hemeria s’applique sans attribut ; le sombre suit le système sauf mode imposé', () => {
-    expect(engine).toContain(':root[data-theme="hemeria"],\n:root:not([data-theme]) {');
-    expect(engine).toContain('@media (prefers-color-scheme: dark) {\n  :root[data-theme="hemeria"]:not([data-mode]),\n  :root:not([data-theme]):not([data-mode]) {');
-    expect(engine).toContain(':root[data-theme="hemeria"][data-mode="dark"],\n:root:not([data-theme])[data-mode="dark"] {');
+  it('Athena s’applique sans attribut ; le sombre suit le système sauf mode imposé', () => {
+    expect(engine).toContain(':root[data-theme="athena"],\n:root:not([data-theme]) {');
+    expect(engine).toContain('@media (prefers-color-scheme: dark) {\n  :root[data-theme="athena"]:not([data-mode]),\n  :root:not([data-theme]):not([data-mode]) {');
+    expect(engine).toContain(':root[data-theme="athena"][data-mode="dark"],\n:root:not([data-theme])[data-mode="dark"] {');
   });
 });
 

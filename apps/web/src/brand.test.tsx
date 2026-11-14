@@ -9,7 +9,7 @@ const entry = (theme: string, updatedAt = '2026-11-11T00:00:00.000Z') => ({ them
 describe('icône de marque', () => {
   it('par défaut : l’icône du thème, embarquée (URI data: autorisée par la CSP)', () => {
     expect(markUrl('nord')).toMatch(/^data:image\/svg\+xml,/);
-    expect(markUrl('hemeria')).not.toBe(markUrl('nord'));
+    expect(markUrl('athena')).not.toBe(markUrl('nord'));
     expect(decodeURIComponent(markUrl('nord')!)).not.toMatch(/<script|on\w+=/i);
   });
 

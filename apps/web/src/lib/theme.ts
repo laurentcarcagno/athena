@@ -13,7 +13,7 @@ export const DENSITIES: DensityChoice[] = ['normal', 'compact'];
 export const DENSITY_KEY = 'athena.density';
 
 /**
- * Contrôleur du moteur `@nuance/theming` (ADR-0004) : `data-theme` porte la famille (Hemeria, seul thème jusqu'à T-0136),
+ * Contrôleur du moteur `@nuance/theming` (ADR-0004) : `data-theme` porte la famille (Athena, seul thème jusqu'à T-0136),
  * `data-mode` le mode (absent pour « système »). La densité arrive en T-0135. La mémoire garde le format historique
  * (le seul mode, clé effacée pour « système ») pour ne rien perdre des réglages existants.
  */
@@ -69,7 +69,7 @@ export function useTheme(): ThemeChoice {
 }
 
 /**
- * Famille de thème (T-0136) : Hemeria est toujours chargé ; les autres thèmes sont des CSS chargés à la demande. L'attribut
+ * Famille de thème (T-0136) : Athena est toujours chargé ; les autres thèmes sont des CSS chargés à la demande. L'attribut
  * `data-theme` ne change qu'une fois le CSS arrivé : jamais de page sans jetons. Mémoire : `athena.themeFamily` (navigateur) ;
  * l'organisation peut restreindre la liste (`setAllowedThemes`), un thème hors liste cède la place au thème par défaut.
  */
@@ -79,7 +79,7 @@ const THEME_CSS: Record<string, () => Promise<unknown>> = {
   contrast: () => import('@athena/ui/themes/contrast.css'),
   github: () => import('@athena/ui/themes/github.css'),
   gruvbox: () => import('@athena/ui/themes/gruvbox.css'),
-  'hemeria-arrondi': () => import('@athena/ui/themes/hemeria-arrondi.css'),
+  'athena-arrondi': () => import('@athena/ui/themes/athena-arrondi.css'),
   nord: () => import('@athena/ui/themes/nord.css'),
   dracula: () => import('@athena/ui/themes/dracula.css'),
   'rose-pine': () => import('@athena/ui/themes/rose-pine.css'),
@@ -92,7 +92,9 @@ const permitted = (name: string): string => {
   if (!allowed || allowed.list.includes(known)) return known;
   return allowed.list.includes(allowed.fallback) ? allowed.fallback : DEFAULT_THEME;
 };
-const readFamily = (): string | null => { try { return window.localStorage.getItem(FAMILY_KEY); } catch { return null; } };
+/** Anciens noms de thème (renommés en 062) : le choix déjà enregistré dans le navigateur suit. */
+const RENAMED: Record<string, string> = { hemeria: 'athena', 'hemeria-arrondi': 'athena-arrondi' };
+const readFamily = (): string | null => { try { const v = window.localStorage.getItem(FAMILY_KEY); return v && RENAMED[v] ? RENAMED[v] : v; } catch { return null; } };
 
 export const getThemeFamily = (): string => controller.get().theme ?? DEFAULT_THEME;
 export function useThemeFamily(): string {

@@ -33,4 +33,4 @@ docker compose down -v      # arrêt et effacement des données
 
 ## Thème de connexion Keycloak
 
-Le dossier `keycloak/themes/athena` (monté dans le conteneur par `docker-compose.yml`) habille la page de connexion aux couleurs de la charte HEMERIA ; le realm l'active par `loginTheme`. Sur un Keycloak déjà importé, régler « Thème de connexion » sur `athena` dans la console d'administration (Realm settings > Themes).
+Le dossier `keycloak/themes/athena` (monté dans le conteneur par `docker-compose.yml`) habille la page de connexion aux couleurs de la charte ATHENA ; le realm l'active par `loginTheme`. Sur un Keycloak déjà importé, régler « Thème de connexion » sur `athena` dans la console d'administration (Realm settings > Themes).

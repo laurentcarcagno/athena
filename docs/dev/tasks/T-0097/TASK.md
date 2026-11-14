@@ -15,6 +15,6 @@
 - **Tests à écrire** :
   - API : CRUD, RLS entre organisations, suppression refusée, migration d'un jeu de trackers existants
   - Historique : aller-retour YAML ; axe
-- **Règles communes** : interface Hemeria (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
+- **Règles communes** : interface Athena (lint design vert), aucun texte en dur (FR/EN), identifiants en IBM Plex Mono, aucun appel réseau externe, `pnpm check` vert avant commit, un commit par changement logique.
 - **Hors périmètre** : interface d'administration et choix du type dans le constructeur (T-0100) ; héritage de socle de champs imposé aux projets (Lot 3).
 - **Dépendances** : T-0052
