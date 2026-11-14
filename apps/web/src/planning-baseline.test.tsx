@@ -75,7 +75,7 @@ describe('calque de baseline', () => {
   });
 });
 
-const member = { authenticated: true, user: { name: 'Uma', roles: ['athena-user'] } } as unknown as Session;
+const member = { authenticated: true, user: { name: 'Uma', roles: ['athena-team-member'] } } as unknown as Session;
 
 function Where() {
   const l = useLocation();

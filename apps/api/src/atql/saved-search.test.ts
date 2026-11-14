@@ -7,8 +7,8 @@ import { SavedSearchService } from './saved-search.service';
 // T-0118 : recherches enregistrées de la recherche globale, personnelles et isolées par organisation.
 
 const suite = pgUp ? describe : describe.skip;
-const alice: Actor = { id: 'alice', roles: ['athena-user'] };
-const bob: Actor = { id: 'bob', roles: ['athena-user'] };
+const alice: Actor = { id: 'alice', roles: ['athena-team-member'] };
+const bob: Actor = { id: 'bob', roles: ['athena-team-member'] };
 const code = async (p: Promise<unknown>) => {
   const e = await p.then(() => null, (x: unknown) => x);
   return e instanceof DomainError ? `${e.code}:${e.message} ${e.details.join(' ')}` : e ? `autre:${(e as Error).message}` : 'ok';

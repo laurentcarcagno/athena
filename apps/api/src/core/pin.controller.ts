@@ -16,14 +16,14 @@ export class PinController {
     @Inject(OrgResolver) private readonly orgs: OrgResolver,
   ) {}
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Get()
   async list(@Req() request: AuthedRequest) {
     const { organizationId, actor } = await this.orgs.resolve(request.principal!);
     return this.pins.list(organizationId, actor.id);
   }
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @HttpCode(204)
   @Post('visit')
   @BodySchema(PinEntry)
@@ -32,7 +32,7 @@ export class PinController {
     await this.pins.visit(organizationId, actor.id, parseBody(PinEntry, body));
   }
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @HttpCode(204)
   @Put('favorite')
   @BodySchema(FavoriteBody)
@@ -42,7 +42,7 @@ export class PinController {
     await this.pins.setFavorite(organizationId, actor.id, entry, favorite);
   }
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @HttpCode(204)
   @Put('order')
   @BodySchema(OrderBody)

@@ -7,7 +7,7 @@ import { createTestDb, pgUp, type TestDb } from '../testing/harness';
 // Apparence de l'organisation (ADR-0004, T-0136) : thème par défaut, thèmes proposés ; famille de thème sur le compte.
 
 const suite = pgUp ? describe : describe.skip;
-const alice: Actor = { id: 'alice', roles: ['athena-user'] };
+const alice: Actor = { id: 'alice', roles: ['athena-team-member'] };
 
 describe('validation de l’apparence', () => {
   it('exige des noms de thème valides et refuse les clés étrangères', () => {

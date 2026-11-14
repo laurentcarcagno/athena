@@ -40,7 +40,7 @@ beforeEach(() => {
 });
 afterEach(() => vi.unstubAllGlobals());
 
-const user: Session = { authenticated: true, user: { username: 'u', name: 'Ulysse', email: null, roles: ['athena-user'], groups: [] } };
+const user: Session = { authenticated: true, user: { username: 'u', name: 'Ulysse', email: null, roles: ['athena-team-member'], groups: [] } };
 const app = (path: string) => render(<ToastProvider><MemoryRouter initialEntries={[path]}><AuthenticatedApp session={user} /></MemoryRouter></ToastProvider>);
 
 describe('onglet Documents', () => {

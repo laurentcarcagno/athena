@@ -12,7 +12,7 @@ import { SprintService } from './sprint.service';
 // T-0115 : backlog côté API (ordre stable, réordonnancement, sprints exclus, droits par champ, RLS).
 
 const suite = pgUp ? describe : describe.skip;
-const admin: Actor = { id: 'admin', roles: ['athena-user', 'athena-admin'] };
+const admin: Actor = { id: 'admin', roles: ['athena-team-member', 'athena-admin'] };
 const code = (p: Promise<unknown>) => p.then(() => 'ok', (e: unknown) => (e instanceof DomainError ? `${e.code}: ${e.message}` : String(e)));
 
 suite('backlog (intégration)', () => {
@@ -22,7 +22,7 @@ suite('backlog (intégration)', () => {
   let artifacts: ArtifactService;
   const org = crypto.randomUUID();
   const other = crypto.randomUUID();
-  const keys = async (o = org) => (await backlog.list(o, 'NOV', ['athena-user'])).map((i) => i.key);
+  const keys = async (o = org) => (await backlog.list(o, 'NOV', ['athena-team-member'])).map((i) => i.key);
 
   beforeAll(async () => {
     testDb = await createTestDb('athena_test_backlog');
@@ -57,7 +57,7 @@ suite('backlog (intégration)', () => {
 
   it('ne garde que les tickets des trackers Tâche, dans l’ordre de création tant qu’aucun rang n’existe', async () => {
     expect(await keys()).toEqual(['NOV-TSK-0001', 'NOV-TSK-0002', 'NOV-TSK-0003', 'NOV-TSK-0004']);
-    expect((await backlog.list(org, 'NOV', ['athena-user']))[0]).toMatchObject({ title: 'A', points: 3, assignee: 'u1', category: 'todo' });
+    expect((await backlog.list(org, 'NOV', ['athena-team-member']))[0]).toMatchObject({ title: 'A', points: 3, assignee: 'u1', category: 'todo' });
   });
 
   it('réordonne : après un ticket, ou en tête ; l’ordre est stable d’une lecture à l’autre', async () => {
@@ -112,10 +112,10 @@ suite('backlog (intégration)', () => {
 
   it('masque titre et responsable à lecture restreinte ; isole les organisations (RLS)', async () => {
     await testDb.exec("update field_definition set read_roles = '{hr}' where key in ('title', 'assignee')");
-    expect((await backlog.list(org, 'NOV', ['athena-user']))[0]).toMatchObject({ title: 'NOV-TSK-0004', assignee: null });
+    expect((await backlog.list(org, 'NOV', ['athena-team-member']))[0]).toMatchObject({ title: 'NOV-TSK-0004', assignee: null });
     await testDb.exec("update field_definition set read_roles = null where key in ('title', 'assignee')");
     expect(await keys(other)).toEqual(['NOV-TSK-0001']);
-    expect((await backlog.list(other, 'NOV', ['athena-user']))[0]!.title).toBe('autre organisation');
+    expect((await backlog.list(other, 'NOV', ['athena-team-member']))[0]!.title).toBe('autre organisation');
   });
 
   it('respecte la liste d’ayants droit du projet : un non-membre ne voit ni ne classe rien', async () => {
@@ -126,8 +126,8 @@ suite('backlog (intégration)', () => {
       await c.query("insert into access_list_member (access_list_id, organization_id, subject, added_by) values ($1,$2,'membre','admin')", [list, org]);
     }, { system: true });
     expect(await runAs('membre', () => keys())).toContain('NOV-TSK-0004');
-    expect(await runAs('intrus', () => code(backlog.list(org, 'NOV', ['athena-user'])))).toMatch(/not_found|ok/);
-    expect(await runAs('intrus', () => backlog.list(org, 'NOV', ['athena-user']).catch(() => []))).toEqual([]);
+    expect(await runAs('intrus', () => code(backlog.list(org, 'NOV', ['athena-team-member'])))).toMatch(/not_found|ok/);
+    expect(await runAs('intrus', () => backlog.list(org, 'NOV', ['athena-team-member']).catch(() => []))).toEqual([]);
     expect(await runAs('intrus', () => code(backlog.rank(org, 'NOV', 'NOV-TSK-0004', null, admin)))).toMatch(/not_found/);
   });
 });

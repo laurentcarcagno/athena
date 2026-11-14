@@ -50,20 +50,20 @@ export class AgileController {
     return { key: input.key };
   }
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Get('boards')
   async boardList(@Req() request: AuthedRequest, @Param('project') project: string) {
     return this.boards.list((await this.ctx(request)).organizationId, project);
   }
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Get('boards/:board')
   async board(@Req() request: AuthedRequest, @Param('project') project: string, @Param('board') board: string) {
     const { organizationId, actor } = await this.ctx(request);
     return this.boards.view(organizationId, project, board, actor.roles);
   }
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @HttpCode(200)
   @Post('boards/:board/cards/:key/move')
   @BodySchema(MoveBody)
@@ -82,7 +82,7 @@ export class AgileController {
     return { id: await this.sprints.create(organizationId, project, { name: input.name, startsOn: input.startsOn, endsOn: input.endsOn, ...(input.goal ? { goal: input.goal } : {}) }, actor) };
   }
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @HttpCode(204)
   @Post('sprints/:id/items')  @BodySchema(ItemBody)
 
@@ -119,20 +119,20 @@ export class AgileController {
     return this.sprints.close(organizationId, id, actor, input.moveTo);
   }
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Get('sprints')
   async sprintList(@Req() request: AuthedRequest, @Param('project') project: string) {
     return this.sprints.list((await this.ctx(request)).organizationId, project);
   }
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Get('sprints/:id')
   async sprint(@Req() request: AuthedRequest, @Param('id') id: string) {
     return this.sprints.get((await this.ctx(request)).organizationId, id);
   }
 
   // --- Backlog (T-0115) : tickets des trackers Tâche hors sprint, dans l'ordre du rang ---
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Get('backlog')
   async backlog(@Req() request: AuthedRequest, @Param('project') project: string) {
     const { organizationId, actor } = await this.ctx(request);
@@ -151,26 +151,26 @@ export class AgileController {
   }
 
   /** Sprint en cours ou planifié du ticket (en-tête de la fiche) ; `null` s'il n'est dans aucun. */
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Get('artifacts/:key/sprint')
   async itemSprint(@Req() request: AuthedRequest, @Param('project') project: string, @Param('key') key: string) {
     return { sprint: await this.sprints.ofItem((await this.ctx(request)).organizationId, project, key) };
   }
 
   // --- Pilotage : vélocité, flux, roadmap, tableau de bord ---
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Get('velocity')
   async velocity(@Req() request: AuthedRequest, @Param('project') project: string, @Query('last') last = '10') {
     return this.reports.velocity((await this.ctx(request)).organizationId, project, Number(last) || 10);
   }
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Get('flow')
   async flow(@Req() request: AuthedRequest, @Param('project') project: string, @Query('days') days = '30') {
     return this.reports.cumulativeFlow((await this.ctx(request)).organizationId, project, Number(days));
   }
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Get('roadmap')
   async roadmap(@Req() request: AuthedRequest, @Param('project') project: string) {
     return this.reports.roadmap((await this.ctx(request)).organizationId, project);
@@ -185,7 +185,7 @@ export class AgileController {
     return { id: await this.reports.createRelease(organizationId, project, input, actor) };
   }
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @HttpCode(204)
   @Post('releases/:id/items')  @BodySchema(ItemBody)
 
@@ -194,7 +194,7 @@ export class AgileController {
     await this.reports.assign(organizationId, project, id, parseBody(ItemBody, body).artifact, actor);
   }
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Get('releases/:id/items')
   async releaseItems(@Req() request: AuthedRequest, @Param('project') project: string, @Param('id') id: string) {
     return this.reports.releaseItems((await this.ctx(request)).organizationId, project, id);
@@ -218,7 +218,7 @@ export class AgileController {
   }
 
   /** Agrégats de pilotage du projet (widgets Informations, Avancement, Indicateurs, Santé, Sprint ; ADR-0007). */
-  @Roles('athena-user', 'athena-admin', 'athena-pm')
+  @Roles('athena-team-member', 'athena-admin', 'athena-pm')
   @Get('kpis')
   async kpis(@Req() request: AuthedRequest, @Param('project') project: string) {
     const { organizationId, actor } = await this.ctx(request);
@@ -226,26 +226,26 @@ export class AgileController {
   }
 
   /** Dernières exécutions de pipeline des dépôts reliés au projet (widget Pipelines CI/CD). */
-  @Roles('athena-user', 'athena-admin', 'athena-pm')
+  @Roles('athena-team-member', 'athena-admin', 'athena-pm')
   @Get('pipelines')
   async pipelineRuns(@Req() request: AuthedRequest, @Param('project') project: string) {
     return this.pipelines.get((await this.ctx(request)).organizationId, project);
   }
 
   /** Mesures de qualité du code ; « non relié » sans fournisseur (widgets Qualité du code et Badges). */
-  @Roles('athena-user', 'athena-admin', 'athena-pm')
+  @Roles('athena-team-member', 'athena-admin', 'athena-pm')
   @Get('quality')
   async codeQuality(@Req() request: AuthedRequest, @Param('project') project: string) {
     return this.quality.get((await this.ctx(request)).organizationId, project);
   }
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Get('dashboard')
   async dashboard(@Req() request: AuthedRequest, @Param('project') project: string, @Query('by') by?: string) {
     return this.reports.dashboard((await this.ctx(request)).organizationId, project, by);
   }
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Get('sprints/:id/burndown')
   async burndown(@Req() request: AuthedRequest, @Param('id') id: string) {
     return this.sprints.burndown((await this.ctx(request)).organizationId, id);

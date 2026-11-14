@@ -37,14 +37,14 @@ describe('TokenVerifier', () => {
     const principal = await verifier.verify(
       await sign({
         preferred_username: 'alice',
-        realm_access: { roles: ['athena-user'] },
+        realm_access: { roles: ['athena-team-member'] },
         groups: ['/org-demo'],
       }),
     );
     expect(principal).toMatchObject({
       subject: 'u1',
       username: 'alice',
-      roles: ['athena-user'],
+      roles: ['athena-team-member'],
       groups: ['/org-demo'],
     });
   });
@@ -114,13 +114,13 @@ describe('garde HTTP', () => {
     expect((await get('/v1/me', 'abc.def.ghi')).statusCode).toBe(401);
   });
   it('accepte un jeton valide', async () => {
-    const token = await sign({ preferred_username: 'bob', realm_access: { roles: ['athena-user'] } });
+    const token = await sign({ preferred_username: 'bob', realm_access: { roles: ['athena-team-member'] } });
     const response = await get('/v1/me', token);
     expect(response.statusCode).toBe(200);
     expect(response.json().username).toBe('bob');
   });
   it('refuse un utilisateur simple sur une route admin', async () => {
-    const token = await sign({ realm_access: { roles: ['athena-user'] } });
+    const token = await sign({ realm_access: { roles: ['athena-team-member'] } });
     expect((await get('/v1/admin/ping', token)).statusCode).toBe(403);
   });
   it('accepte un administrateur sur une route admin', async () => {
@@ -135,18 +135,23 @@ describe('garde HTTP', () => {
     expect((await get('/v1/me', qa)).statusCode).toBe(200); // lecture : vaut « utilisateur »
     expect((await get('/v1/admin/ping', qa)).statusCode).toBe(403); // jamais administrateur
     // Déclarer un ticket (RID, anomalie) et commenter : traités exactement comme pour un utilisateur (la garde ne les distingue plus).
-    const plain = await sign({ preferred_username: 'u', realm_access: { roles: ['athena-user'] } });
+    const plain = await sign({ preferred_username: 'u', realm_access: { roles: ['athena-team-member'] } });
     for (const url of ['/v1/projects/ARI/trackers/BUG/artifacts', '/v1/projects/ARI/artifacts/ARI-BUG-0001/comments', '/v1/projects/ARI/artifacts/ARI-BUG-0001/links']) {
       expect((await send(url, qa)).statusCode, url).toBe((await send(url, plain)).statusCode);
     }
-    expect(withUserRole(['athena-qa'])).toEqual(['athena-qa', 'athena-user']);
-    expect(withUserRole(['athena-qa', 'athena-user'])).toEqual(['athena-qa', 'athena-user']);
+    expect(withUserRole(['athena-qa'])).toEqual(['athena-qa', 'athena-team-member']);
+    expect(withUserRole(['athena-qa', 'athena-team-member'])).toEqual(['athena-qa', 'athena-team-member']);
     expect(withUserRole(['athena-pm'])).toEqual(['athena-pm']);
+    // Anciens jetons : athena-user vaut athena-team-member. Le manager a les droits d'un membre ; le directeur seulement en lecture.
+    expect(withUserRole(['athena-user'])).toEqual(['athena-team-member']);
+    expect(withUserRole(['athena-manager'])).toEqual(['athena-manager', 'athena-team-member']);
+    expect(withUserRole(['athena-director'], 'GET')).toEqual(['athena-director', 'athena-team-member']);
+    expect(withUserRole(['athena-director'], 'POST')).toEqual(['athena-director']);
     expect((await send('/v1/projects/ARI/baselines', qa)).statusCode).toBe(403); // pas de baseline
     expect((await send('/v1/projects/ARI/trackers/BUG/fields', qa)).statusCode).toBe(403); // pas de configuration
     expect((await send('/v1/projects/ARI/schedule/apply', qa)).statusCode).toBe(403); // pas de replanification
     expect((await send('/v1/projects/ARI/approvals/release/R1/required', qa, 'PUT')).statusCode).toBe(403); // pas d’exigence d’approbation
-    const user = await sign({ preferred_username: 'u', realm_access: { roles: ['athena-user'] } });
+    const user = await sign({ preferred_username: 'u', realm_access: { roles: ['athena-team-member'] } });
     expect((await send('/v1/projects/ARI/approvals/release/R1/decision', user)).statusCode).toBe(403); // la décision est réservée au rôle
     const admin = await sign({ preferred_username: 'a', realm_access: { roles: ['athena-admin'] } });
     expect((await send('/v1/projects/ARI/approvals/release/R1/decision', admin)).statusCode).toBe(403); // un administrateur n’approuve pas à la place de l’assurance qualité

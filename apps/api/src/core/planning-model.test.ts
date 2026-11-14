@@ -10,7 +10,7 @@ import { builtinNormative } from './templates/index';
 import { roleTypeProblems } from './semantic-roles';
 import { TrackerService, type TrackerSpec } from './tracker.service';
 
-const actor: Actor = { id: 'u1', roles: ['athena-user', 'athena-admin'] };
+const actor: Actor = { id: 'u1', roles: ['athena-team-member', 'athena-admin'] };
 const code = async (p: Promise<unknown>) => {
   const e = await p.then(() => null, (x: unknown) => x);
   return e instanceof DomainError ? `${e.code}: ${e.message} ${e.details.join(' ')}` : `autre: ${(e as Error)?.message}`;

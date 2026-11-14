@@ -9,7 +9,7 @@ import { TemplateService } from './template.service';
 import { requirementTemplate } from './templates';
 import { TrackerService, type TrackerSpec } from './tracker.service';
 
-const actor: Actor = { id: 'u1', roles: ['athena-user', 'athena-admin'] };
+const actor: Actor = { id: 'u1', roles: ['athena-team-member', 'athena-admin'] };
 const suite = pgUp ? describe : describe.skip;
 
 /** Exigence dont `priority` et `assignee` ne sont pas des champs de contenu. */

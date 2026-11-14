@@ -11,7 +11,7 @@ export class TreeController {
   ) {}
 
   /** Racines du tracker, ou enfants directs de `parent` : un niveau par appel. */
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Get(':project/trackers/:tracker/tree')
   async children(@Req() request: AuthedRequest, @Param('project') project: string, @Param('tracker') tracker: string, @Query('parent') parent?: string) {
     const { organizationId, actor } = await this.orgs.resolve(request.principal!);

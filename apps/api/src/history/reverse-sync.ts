@@ -138,7 +138,7 @@ Athena-Actor: athena`,
       for (const k of Object.keys(state.artifact.values)) if (!(k in incoming)) patch[k] = null;
       if (JSON.stringify(sorted(state.artifact.values)) === JSON.stringify(sorted(incoming))) return result('ignored', 'aucune différence');
 
-      const actor: Actor = { id: state.actor, roles: ['athena-user'] };
+      const actor: Actor = { id: state.actor, roles: ['athena-team-member'] };
       await this.artifacts.update(organizationId, projectKey, key, patch, state.artifact.version as number, actor);
       // La révision créée correspond déjà à ce commit : on évite l'écho d'un second commit d'Athena.
       await db.tx(organizationId, async (c) => {

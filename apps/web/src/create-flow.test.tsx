@@ -34,7 +34,7 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals());
 
 function Where() { const l = useLocation(); return <span data-testid="where">{l.pathname}{l.search}</span>; }
-const session: Session = { authenticated: true, user: { username: 'u', name: 'Ulysse', email: null, roles: ['athena-user'], groups: [] } };
+const session: Session = { authenticated: true, user: { username: 'u', name: 'Ulysse', email: null, roles: ['athena-team-member'], groups: [] } };
 const app = (path: string) => render(<ToastProvider><MemoryRouter initialEntries={[path]}><Where /><AuthenticatedApp session={session} /></MemoryRouter></ToastProvider>);
 const dialog = () => screen.findByRole('dialog', { name: 'Nouveau ticket' });
 const where = () => screen.getByTestId('where').textContent;

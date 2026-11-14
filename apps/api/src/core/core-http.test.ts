@@ -97,7 +97,7 @@ suite('API REST du noyau', () => {
 
   it('refuse sans jeton et sans rôle suffisant', async () => {
     expect((await call('POST', '/v1/projects', undefined, { key: 'ARI', name: 'x' })).statusCode).toBe(401);
-    expect((await call('POST', '/v1/projects', await token(['athena-user']), { key: 'ARI', name: 'x' })).statusCode).toBe(403);
+    expect((await call('POST', '/v1/projects', await token(['athena-team-member']), { key: 'ARI', name: 'x' })).statusCode).toBe(403);
   });
 
   it("refuse un compte sans groupe d'organisation", async () => {
@@ -113,7 +113,7 @@ suite('API REST du noyau', () => {
   });
 
   it('parcours complet : projet, trackers multiples, artefact, mise à jour, transitions', async () => {
-    const admin = await token(['athena-admin', 'athena-user']);
+    const admin = await token(['athena-admin', 'athena-team-member']);
     expect((await call('POST', '/v1/projects', admin, { key: 'ARI', name: 'Ariane' })).statusCode).toBe(201);
     const { projectKey, ...spec } = bugTemplate('ARI');
     void projectKey;
@@ -121,7 +121,7 @@ suite('API REST du noyau', () => {
     expect((await call('POST', '/v1/projects/ARI/trackers', admin, { ...spec, key: 'INC', name: 'Incidents' })).statusCode).toBe(201);
     expect((await call('POST', '/v1/projects/ARI/trackers', admin, spec)).statusCode).toBe(409); // clé de tracker en double
 
-    const user = await token(['athena-user']);
+    const user = await token(['athena-team-member']);
     const created = await call('POST', '/v1/projects/ARI/trackers/BUG/artifacts', user, { values: { title: 'Crash au démarrage', severity: 'majeure' } });
     expect(created.statusCode).toBe(201);
     expect(created.json()).toMatchObject({ key: 'ARI-BUG-0001', status: 'open', version: 1 });
@@ -140,7 +140,7 @@ suite('API REST du noyau', () => {
   });
 
   it('recherche ATQL via REST, erreurs de syntaxe en 422', async () => {
-    const user = await token(['athena-user']);
+    const user = await token(['athena-team-member']);
     const ok = await call('GET', '/v1/projects/ARI/search?q=' + encodeURIComponent('status = in_progress AND tracker = BUG'), user);
     expect(ok.statusCode).toBe(200);
     expect(ok.json().hits.map((h: { key: string }) => h.key)).toEqual(['ARI-BUG-0001']);
@@ -153,33 +153,33 @@ suite('API REST du noyau', () => {
   it('calendrier : lu par toute personne connectée, modifié par l’administration seulement', async () => {
     const week = { workDays: [1, 2, 3, 4], holidays: [{ day: '2026-12-25', label: 'Noël' }] };
     expect((await call('GET', '/v1/calendar')).statusCode).toBe(401);
-    expect((await call('PUT', '/v1/admin/calendar', await token(['athena-user']), week)).statusCode).toBe(403);
+    expect((await call('PUT', '/v1/admin/calendar', await token(['athena-team-member']), week)).statusCode).toBe(403);
     expect((await call('PUT', '/v1/admin/calendar', await token(['athena-pm']), week)).statusCode).toBe(403);
     expect((await call('PUT', '/v1/admin/calendar', await token(['athena-admin']), { workDays: [], holidays: [] })).statusCode).toBe(422);
     const saved = await call('PUT', '/v1/admin/calendar', await token(['athena-admin']), week);
     expect(saved.statusCode).toBe(200);
     expect(saved.json()).toEqual(week);
-    for (const role of ['athena-user', 'athena-pm', 'athena-qa']) expect((await call('GET', '/v1/calendar', await token([role]))).json()).toEqual(week);
-    expect((await call('GET', '/v1/calendar', await token(['athena-user'], ['/org-autre']))).json()).toEqual({ workDays: [1, 2, 3, 4, 5], holidays: [] });
+    for (const role of ['athena-team-member', 'athena-pm', 'athena-qa']) expect((await call('GET', '/v1/calendar', await token([role]))).json()).toEqual(week);
+    expect((await call('GET', '/v1/calendar', await token(['athena-team-member'], ['/org-autre']))).json()).toEqual({ workDays: [1, 2, 3, 4, 5], holidays: [] });
   });
 
   it('planning : lecture pour les membres, replanification réservée à l’administration et au chef de projet', async () => {
     expect((await call('GET', '/v1/projects/ARI/schedule')).statusCode).toBe(401);
-    const read = await call('GET', '/v1/projects/ARI/schedule', await token(['athena-user']));
+    const read = await call('GET', '/v1/projects/ARI/schedule', await token(['athena-team-member']));
     expect(read.statusCode).toBe(200);
     expect(read.json()).toMatchObject({ tasks: [], links: [], criticalPath: [], projectEnd: null, moved: 0 });
-    expect((await call('GET', '/v1/projects/NOPE/schedule', await token(['athena-user']))).statusCode).toBe(404);
-    expect((await call('POST', '/v1/projects/ARI/schedule/apply', await token(['athena-user']))).statusCode).toBe(403);
+    expect((await call('GET', '/v1/projects/NOPE/schedule', await token(['athena-team-member']))).statusCode).toBe(404);
+    expect((await call('POST', '/v1/projects/ARI/schedule/apply', await token(['athena-team-member']))).statusCode).toBe(403);
     const applied = await call('POST', '/v1/projects/ARI/schedule/apply', await token(['athena-admin']));
     expect(applied.statusCode).toBe(200);
     expect(applied.json()).toEqual({ moved: 0, keys: [], batch: null });
     const patch = (jwt: string, body: unknown) => call('PATCH', '/v1/projects/ARI/schedule/tasks/ARI-BUG-0001', jwt, body);
-    expect((await patch(await token(['athena-user']), { duration: 3 })).statusCode).toBe(403);
+    expect((await patch(await token(['athena-team-member']), { duration: 3 })).statusCode).toBe(403);
     expect((await patch(await token(['athena-admin']), {})).statusCode).toBe(422); // aucun champ
     expect((await patch(await token(['athena-admin']), { duration: 3, due: '2026-11-12' })).statusCode).toBe(422); // deux champs
     expect((await patch(await token(['athena-admin']), { duration: 3 })).statusCode).toBe(404); // ARI n’a pas de tâche planifiée
     const lag = (jwt: string, body: unknown) => call('PATCH', '/v1/projects/ARI/schedule/links/00000000-0000-0000-0000-000000000000', jwt, body);
-    expect((await lag(await token(['athena-user']), { lagDays: 1 })).statusCode).toBe(403);
+    expect((await lag(await token(['athena-team-member']), { lagDays: 1 })).statusCode).toBe(403);
     expect((await lag(await token(['athena-admin']), { lagDays: 1.5 })).statusCode).toBe(422);
     expect((await lag(await token(['athena-admin']), { lagDays: 1, extra: true })).statusCode).toBe(422);
     expect((await lag(await token(['athena-admin']), { lagDays: 1 })).statusCode).toBe(404); // lien inconnu
@@ -190,20 +190,20 @@ suite('API REST du noyau', () => {
     const admin = await token(['athena-admin']);
     const field = { key: 'effort', label: 'Effort', type: 'number' };
     const addField = (jwt: string, key: string) => call('POST', '/v1/projects/ARI/trackers/BUG/fields', jwt, { ...field, key });
-    expect((await addField(await token(['athena-user']), 'e0')).statusCode).toBe(403); // simple utilisateur
+    expect((await addField(await token(['athena-team-member']), 'e0')).statusCode).toBe(403); // simple utilisateur
     expect((await addField(pm, 'e1')).statusCode).toBe(403); // chef de projet, mais pas responsable d'ARI
     expect((await call('POST', '/v1/projects/ARI/baselines', pm, { name: 'B1' })).statusCode).toBe(403);
     expect((await call('PUT', '/v1/projects/ARI/members/u-test', admin, { role: 'manager' })).statusCode).toBe(200);
     expect((await addField(pm, 'e2')).statusCode).toBeLessThan(300); // responsable : autorisé
     expect((await call('POST', '/v1/projects/ARI/baselines', pm, { name: 'B1' })).statusCode).toBe(503); // autorisé ; GitLab non configuré dans ce test
     expect((await call('POST', '/v1/projects/ARI/automations', pm, { name: 'r', trigger: 'artifact.created', condition: '', actions: [{ type: 'comment', body: 'x' }] })).statusCode).toBeLessThan(300);
-    expect((await call('POST', '/v1/projects/ARI/baselines', await token(['athena-user']), { name: 'B2' })).statusCode).toBe(403);
+    expect((await call('POST', '/v1/projects/ARI/baselines', await token(['athena-team-member']), { name: 'B2' })).statusCode).toBe(403);
     expect((await call('PUT', '/v1/projects/ARI/members/u-test', admin, { role: 'member' })).statusCode).toBe(200);
     expect((await addField(pm, 'e3')).statusCode).toBe(403); // plus responsable : refusé de nouveau
   });
 
   it("isole les organisations : l'autre organisation ne voit rien", async () => {
-    const other = await token(['athena-user'], ['/org-autre']);
+    const other = await token(['athena-team-member'], ['/org-autre']);
     expect((await call('GET', '/v1/projects/ARI/artifacts/ARI-BUG-0001', other)).statusCode).toBe(404);
   });
 });

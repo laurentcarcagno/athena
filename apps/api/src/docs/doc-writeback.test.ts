@@ -13,7 +13,7 @@ const GITLAB_URL = fromEnv('GITLAB_TEST_URL') ?? 'http://127.0.0.1:8929';
 const TOKEN = fromEnv('GITLAB_DEV_TOKEN');
 const gitlabUp = !!TOKEN && probe("fetch(process.env.U+'/users/sign_in',{signal:AbortSignal.timeout(3000)}).then(r=>process.exit(r.ok?0:1),()=>process.exit(1))", { U: GITLAB_URL });
 const suite = pgUp && gitlabUp ? describe : describe.skip;
-const alice: Actor = { id: 'sub-alice', roles: ['athena-user', 'athena-admin'] };
+const alice: Actor = { id: 'sub-alice', roles: ['athena-team-member', 'athena-admin'] };
 
 const SDOC = `[DOCUMENT]
 MID: abc

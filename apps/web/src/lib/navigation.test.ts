@@ -12,13 +12,13 @@ describe('sections d’un projet', () => {
     expect(ids(['members', 'overview', 'code'], ['athena-admin'])).toEqual(['overview', 'backlog', 'board', 'planning', 'reports', 'search', 'settings']);
   });
   it('n’affichent jamais une section réservée à un autre rôle', () => {
-    expect(ids(ALL_MODULES, ['athena-user'])).toEqual(['overview', 'backlog', 'board', 'trackers', 'planning', 'reports', 'documents', 'search']);
+    expect(ids(ALL_MODULES, ['athena-team-member'])).toEqual(['overview', 'backlog', 'board', 'trackers', 'planning', 'reports', 'documents', 'search']);
     expect(ids(ALL_MODULES, ['athena-qa'])).toContain('settings');
     expect(ids(ALL_MODULES, ['athena-pm'])).toContain('settings');
     // T-0120 : sections des Paramètres selon le rôle.
     expect(visibleSettings(['athena-pm']).map((s) => s.id)).toEqual(['membres', 'trackers', 'boards', 'automatisations', 'baselines', 'approbations']);
     expect(visibleSettings(['athena-qa']).map((s) => s.id)).toEqual(['approbations']);
-    expect(visibleSettings(['athena-user'])).toEqual([]);
+    expect(visibleSettings(['athena-team-member'])).toEqual([]);
   });
   it('ont des adresses inchangées', () => {
     expect(PROJECT_SECTIONS.map((s) => sectionHref('ARI', s))).toEqual(['/p/ARI', '/p/ARI/backlog', '/p/ARI/board', '/p/ARI/trackers', '/p/ARI/planning', '/p/ARI/rapports', '/p/ARI/documents', '/p/ARI/recherche', '/p/ARI/parametres']);

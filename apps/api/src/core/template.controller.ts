@@ -188,7 +188,7 @@ export class ProjectTemplateController {
     @Inject(OrgResolver) private readonly orgs: OrgResolver,
   ) {}
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Get(':project/template')
   async status(@Req() request: AuthedRequest, @Param('project') project: string) {
     return this.upgrades.status((await this.orgs.resolve(request.principal!)).organizationId, project);

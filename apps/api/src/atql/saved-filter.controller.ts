@@ -18,14 +18,14 @@ export class SavedFilterController {
     @Inject(OrgResolver) private readonly orgs: OrgResolver,
   ) {}
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Get()
   async list(@Req() request: AuthedRequest, @Param('project') project: string, @Query('tracker') tracker?: string) {
     const { organizationId, actor } = await this.orgs.resolve(request.principal!);
     return this.filters.list(organizationId, project, actor, tracker && /^[A-Z][A-Z0-9]{1,9}$/.test(tracker) ? tracker : undefined);
   }
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Post()
   @BodySchema(CreateBody)
   async create(@Req() request: AuthedRequest, @Param('project') project: string, @Body() body: unknown) {
@@ -34,7 +34,7 @@ export class SavedFilterController {
     return this.filters.create(organizationId, project, input, actor);
   }
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @HttpCode(204)
   @Patch(':id')
   @BodySchema(DefaultBody)
@@ -43,7 +43,7 @@ export class SavedFilterController {
     await this.filters.setDefault(organizationId, project, id, parseBody(DefaultBody, body).isDefault, actor);
   }
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @HttpCode(204)
   @Delete(':id')
   async remove(@Req() request: AuthedRequest, @Param('project') project: string, @Param('id') id: string) {

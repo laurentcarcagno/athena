@@ -45,7 +45,7 @@ describe('F-13 et T-0120 : Paramètres du projet, sections selon le rôle', () =
   const sections = () => screen.getAllByRole('link').map((l) => l.textContent);
 
   it('un simple utilisateur voit le message, sans section et sans aucun appel réseau', () => {
-    mount(as(['athena-user']));
+    mount(as(['athena-team-member']));
     expect(screen.getByRole('heading', { name: /réservés aux administrateurs, aux chefs de projet/ })).toBeInTheDocument();
     expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
     expect(fetchMock).not.toHaveBeenCalled();
@@ -53,7 +53,7 @@ describe('F-13 et T-0120 : Paramètres du projet, sections selon le rôle', () =
 
   it('un chef de projet a les six sections (Trackers et Automatisations pour ses projets) ; aucun objet global', async () => {
     fetchMock.mockImplementation(async (url: string) => reply(String(url).endsWith('/members') ? [{ subject: 's', username: 'u', displayName: 'U', email: null, role: 'manager', addedBy: 'x' }] : []));
-    const pm = mount(as(['athena-user', 'athena-pm']), '/p/ARI/parametres/membres');
+    const pm = mount(as(['athena-team-member', 'athena-pm']), '/p/ARI/parametres/membres');
     await waitFor(() => expect(sections()).toEqual(['Membres', 'Trackers', 'Boards', 'Automatisations', 'Baselines', 'Approbations'])); // l'appartenance du chef de projet se charge
     pm.unmount();
     mount(as(['athena-admin']));

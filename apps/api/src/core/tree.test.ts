@@ -9,7 +9,7 @@ import { requirementTemplate } from './templates';
 import { TrackerService } from './tracker.service';
 import { TreeService } from './tree.service';
 
-const actor: Actor = { id: 'u1', roles: ['athena-user', 'athena-admin'] };
+const actor: Actor = { id: 'u1', roles: ['athena-team-member', 'athena-admin'] };
 const suite = pgUp ? describe : describe.skip;
 
 suite('arbre hiérarchique d’un tracker', () => {
@@ -17,7 +17,7 @@ suite('arbre hiérarchique d’un tracker', () => {
   let tree: TreeService;
   let links: LinkService;
   const org = crypto.randomUUID();
-  const keysOf = async (parent: string | null, roles = ['athena-user'], tracker = 'REQ') =>
+  const keysOf = async (parent: string | null, roles = ['athena-team-member'], tracker = 'REQ') =>
     (await tree.children(org, 'ARI', tracker, parent, roles)).items.map((n) => n.key);
 
   beforeAll(async () => {
@@ -46,7 +46,7 @@ suite('arbre hiérarchique d’un tracker', () => {
 
   it('renvoie les racines : les items sans parent dans le tracker, dans l’ordre de création', async () => {
     expect(await keysOf(null)).toEqual(['ARI-REQ-0001', 'ARI-REQ-0005']);
-    const page = await tree.children(org, 'ARI', 'REQ', null, ['athena-user']);
+    const page = await tree.children(org, 'ARI', 'REQ', null, ['athena-team-member']);
     expect(page.total).toBe(2);
     expect(page.items[0]).toMatchObject({ key: 'ARI-REQ-0001', title: 'REQ-1', status: 'draft', statusName: 'Brouillon', category: 'todo', childCount: 2, suspect: false });
     expect(page.items[1]).toMatchObject({ childCount: 0 });
@@ -57,26 +57,26 @@ suite('arbre hiérarchique d’un tracker', () => {
     expect(await keysOf('ARI-REQ-0002')).toEqual(['ARI-REQ-0004']);
     expect(await keysOf('ARI-REQ-0003')).toEqual(['ARI-REQ-0004']);
     expect(await keysOf('ARI-REQ-0004')).toEqual([]);
-    expect((await tree.children(org, 'ARI', 'REQ', 'ARI-REQ-0001', ['athena-user'])).items.map((n) => n.childCount)).toEqual([1, 1]);
+    expect((await tree.children(org, 'ARI', 'REQ', 'ARI-REQ-0001', ['athena-team-member'])).items.map((n) => n.childCount)).toEqual([1, 1]);
   });
 
   it('ignore les liens d’un autre tracker et les types non hiérarchiques', async () => {
-    expect(await keysOf(null, ['athena-user'], 'DSG')).toEqual(['ARI-DSG-0001']); // il « satisfait » REQ-1 mais n'est pas son enfant
+    expect(await keysOf(null, ['athena-team-member'], 'DSG')).toEqual(['ARI-DSG-0001']); // il « satisfait » REQ-1 mais n'est pas son enfant
     expect(await keysOf('ARI-REQ-0001')).not.toContain('ARI-DSG-0001');
   });
 
   it('un lien suspect est signalé sur les deux items', async () => {
     await testDb.exec("update artifact_link set suspect = true where from_artifact_id = (select id from artifact where key = 'ARI-REQ-0004') and to_artifact_id = (select id from artifact where key = 'ARI-REQ-0002')");
-    const roots = await tree.children(org, 'ARI', 'REQ', 'ARI-REQ-0002', ['athena-user']);
+    const roots = await tree.children(org, 'ARI', 'REQ', 'ARI-REQ-0002', ['athena-team-member']);
     expect(roots.items[0]).toMatchObject({ key: 'ARI-REQ-0004', suspect: true });
-    expect((await tree.children(org, 'ARI', 'REQ', 'ARI-REQ-0001', ['athena-user'])).items.map((n) => n.suspect)).toEqual([true, false]);
+    expect((await tree.children(org, 'ARI', 'REQ', 'ARI-REQ-0001', ['athena-team-member'])).items.map((n) => n.suspect)).toEqual([true, false]);
     await testDb.exec('update artifact_link set suspect = false');
   });
 
   it('masque le titre à un lecteur sans le rôle du champ, et accepte une ancienne clé', async () => {
     await testDb.exec("update field_definition set read_roles = '{qualite}' where key = 'title' and tracker_id = (select id from tracker where key = 'REQ')");
-    expect((await tree.children(org, 'ARI', 'REQ', null, ['athena-user'])).items[0]!.title).toBe('ARI-REQ-0001');
-    expect((await tree.children(org, 'ARI', 'REQ', null, ['athena-user', 'qualite'])).items[0]!.title).toBe('REQ-1');
+    expect((await tree.children(org, 'ARI', 'REQ', null, ['athena-team-member'])).items[0]!.title).toBe('ARI-REQ-0001');
+    expect((await tree.children(org, 'ARI', 'REQ', null, ['athena-team-member', 'qualite'])).items[0]!.title).toBe('REQ-1');
     expect((await tree.children(org, 'ARI', 'REQ', null, ['athena-admin'])).items[0]!.title).toBe('REQ-1');
     await testDb.exec("update field_definition set read_roles = null where key = 'title'");
   });

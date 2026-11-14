@@ -19,7 +19,7 @@ import { normativeClauseTracker, requirementTemplate } from './templates';
 import { TrackerService } from './tracker.service';
 
 const suite = pgUp ? describe : describe.skip;
-const admin: Actor = { id: 'u-admin', roles: ['athena-user', 'athena-admin'] };
+const admin: Actor = { id: 'u-admin', roles: ['athena-team-member', 'athena-admin'] };
 const code = async (p: Promise<unknown>) => { const e = await p.then(() => null, (x: unknown) => x); return e instanceof DomainError ? `${e.code}:${e.details.join('|')}` : e ? `autre:${(e as Error).message}` : 'ok'; };
 class MemorySecrets implements SecretStore {
   readonly data = new Map<string, Record<string, string>>();
@@ -102,8 +102,8 @@ suite('marquage de contrôle export', () => {
     expect([await count('u-reader'), await count('u-lead')]).toEqual([2, 3]);
     const coverage = new CoverageService(db);
     await coverage.create(org, 'DEF', 'v', { name: 'V', fromTracker: 'REQ', linkType: 'verifies', direction: 'any', minCount: 1, statuses: [], threshold: { target: 100 } }, admin);
-    expect((await as('u-reader', () => coverage.evaluate(org, 'DEF', ['athena-user'])))[0]).toMatchObject({ total: 2 });
-    expect((await as('u-lead', () => coverage.evaluate(org, 'DEF', ['athena-user'])))[0]).toMatchObject({ total: 3 });
+    expect((await as('u-reader', () => coverage.evaluate(org, 'DEF', ['athena-team-member'])))[0]).toMatchObject({ total: 2 });
+    expect((await as('u-lead', () => coverage.evaluate(org, 'DEF', ['athena-team-member'])))[0]).toMatchObject({ total: 3 });
   });
 
   it('les items liés affichent « lien vers un item sous contrôle export » sans clé ni titre', async () => {
@@ -131,7 +131,7 @@ suite('marquage de contrôle export', () => {
     // la mention de l'instance est posée par le contrôleur sur cet export (même marqueur que les autres exports)
     expect(new ExportMarker('Diffusion Restreinte').csv(forReader).replace(/^﻿/, '').startsWith('"Diffusion Restreinte"\n')).toBe(true);
     const matrix = new MatrixService(db);
-    const rows = (s: string) => as(s, () => matrix.matrix(org, 'DEF', 'REQ', 'TST', 'verifies', ['athena-user'])).then((m) => JSON.stringify(m));
+    const rows = (s: string) => as(s, () => matrix.matrix(org, 'DEF', 'REQ', 'TST', 'verifies', ['athena-team-member'])).then((m) => JSON.stringify(m));
     expect(await rows('u-reader')).not.toContain('DEF-REQ-0002');
     expect(await rows('u-lead')).toContain('DEF-REQ-0002');
     const list = (s: string) => as(s, () => db.tx(org, async (c) => (await c.query("select a.key from artifact a where a.key like 'DEF-REQ-%' order by a.key")).rows.map((r) => r.key as string)));
@@ -147,7 +147,7 @@ suite('marquage de contrôle export', () => {
     await hooks.createEndpoint(org, { url: url('plain'), eventTypes: ['*'] }, admin);
     await hooks.createEndpoint(org, { url: url('cleared'), eventTypes: ['*'], exportControlOk: true }, admin);
     await db.tx(org, (c) => c.query('update outbox_event set published_at = now()'), { system: true }); // repart d’un lot propre
-    await as('u-lead', () => artifacts.update(org, 'DEF', 'DEF-REQ-0002', { title: 'Exigence 2 révisée' }, 2, { id: 'u-lead', roles: ['athena-user'] }));
+    await as('u-lead', () => artifacts.update(org, 'DEF', 'DEF-REQ-0002', { title: 'Exigence 2 révisée' }, 2, { id: 'u-lead', roles: ['athena-team-member'] }));
     await artifacts.update(org, 'DEF', 'DEF-REQ-0001', { title: 'Exigence 1 révisée' }, 1, admin);
     await links.link(org, 'DEF', 'DEF-TST-0001', 'DEF-REQ-0003', 'verifies', admin);
     await hooks.enqueue(org);

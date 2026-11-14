@@ -10,7 +10,7 @@ import { ScheduleService } from './schedule.service';
 // T-0166 : mesure à 500 lignes, de bout en bout côté API (lecture des tickets et des liens, calcul, sérialisation).
 
 const suite = pgUp ? describe : describe.skip;
-const admin: Actor = { id: 'sub-admin', roles: ['athena-user', 'athena-admin'] };
+const admin: Actor = { id: 'sub-admin', roles: ['athena-team-member', 'athena-admin'] };
 
 suite('planning de 500 tickets et 800 liens (intégration)', () => {
   let testDb: TestDb;
@@ -55,11 +55,11 @@ suite('planning de 500 tickets et 800 liens (intégration)', () => {
   it('lit, calcule et assemble le planning en moins de 500 ms', async () => {
     const count = await new Db(testDb.pool).tx(org, async (c) => Number((await c.query('select count(*) n from artifact_link')).rows[0].n));
     expect(count).toBe(800);
-    await schedule.get(org, 'PERF', ['athena-user']); // échauffement (plans de requête, calendrier)
+    await schedule.get(org, 'PERF', ['athena-team-member']); // échauffement (plans de requête, calendrier)
     const times: number[] = [];
     for (let i = 0; i < 3; i++) {
       const t0 = performance.now();
-      const view = await schedule.get(org, 'PERF', ['athena-user']);
+      const view = await schedule.get(org, 'PERF', ['athena-team-member']);
       times.push(performance.now() - t0);
       expect(view.tasks).toHaveLength(500);
       expect(view.links).toHaveLength(800);

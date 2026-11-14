@@ -35,8 +35,8 @@ beforeEach(() => {
 });
 afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 
-const user: Session = { authenticated: true, user: { username: 'u', name: 'Ulysse', email: null, roles: ['athena-user'], groups: [] } };
-const pm: Session = { authenticated: true, user: { username: 'p', name: 'Paul', email: null, roles: ['athena-user', 'athena-pm'], groups: [] } };
+const user: Session = { authenticated: true, user: { username: 'u', name: 'Ulysse', email: null, roles: ['athena-team-member'], groups: [] } };
+const pm: Session = { authenticated: true, user: { username: 'p', name: 'Paul', email: null, roles: ['athena-team-member', 'athena-pm'], groups: [] } };
 const app = (session: Session) => render(<ToastProvider><MemoryRouter initialEntries={['/p/SAT/conformite']}><AuthenticatedApp session={session} /></MemoryRouter></ToastProvider>);
 
 describe('onglet Conformité', () => {

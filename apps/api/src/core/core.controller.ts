@@ -87,7 +87,7 @@ export class CoreController {
     private readonly members: MemberService,
   ) {}
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Get()
   async listProjects(@Req() request: AuthedRequest) {
     const { organizationId } = await this.orgs.resolve(principalOf(request));
@@ -96,7 +96,7 @@ export class CoreController {
     );
   }
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Get(':project/trackers')
   async listTrackers(@Req() request: AuthedRequest, @Param('project') project: string) {
     const { organizationId } = await this.orgs.resolve(principalOf(request));
@@ -117,7 +117,7 @@ export class CoreController {
   }
 
   /** Historique d'un artefact : révisions, auteur, différences et SHA du commit GitLab. */
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Get(':project/artifacts/:key/history')
   async history(@Req() request: AuthedRequest, @Param('project') project: string, @Param('key') key: string) {
     const { organizationId, actor } = await this.orgs.resolve(principalOf(request));
@@ -279,14 +279,14 @@ export class CoreController {
     return { added: input.name };
   }
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Get(':project/trackers/:tracker')
   async getTracker(@Req() request: AuthedRequest, @Param('project') project: string, @Param('tracker') tracker: string) {
     const { organizationId } = await this.orgs.resolve(principalOf(request));
     return this.db.tx(organizationId, (c) => this.trackers.getDefinition(c, project, tracker));
   }
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Post(':project/trackers/:tracker/artifacts')
   @BodySchema(CreateArtifactBody)
   async createArtifact(
@@ -296,14 +296,14 @@ export class CoreController {
     return this.artifacts.create(organizationId, project, tracker, parseBody(CreateArtifactBody, body).values, actor);
   }
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Get(':project/artifacts/:key')
   async getArtifact(@Req() request: AuthedRequest, @Param('project') project: string, @Param('key') key: string) {
     const { organizationId, actor } = await this.orgs.resolve(principalOf(request));
     return this.artifacts.get(organizationId, project, key, actor);
   }
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Patch(':project/artifacts/:key')
   @BodySchema(UpdateArtifactBody)
   async updateArtifact(
@@ -314,7 +314,7 @@ export class CoreController {
     return this.artifacts.update(organizationId, project, key, input.values, input.version, actor);
   }
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @HttpCode(200)
   @Post(':project/artifacts/:key/transitions')
   @BodySchema(TransitionBody)
@@ -326,7 +326,7 @@ export class CoreController {
     return this.artifacts.transition(organizationId, project, key, input.name, input.version, actor);
   }
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Get(':project/search')
   async search(
     @Req() request: AuthedRequest, @Param('project') project: string,
@@ -346,7 +346,7 @@ export class CoreController {
     return { created: true };
   }
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Post(':project/artifacts/:key/links')
   @BodySchema(LinkBody)
   async link(@Req() request: AuthedRequest, @Param('project') project: string, @Param('key') key: string, @Body() body: unknown) {
@@ -355,7 +355,7 @@ export class CoreController {
     return { id: await this.links.link(organizationId, project, key, input.to, input.type, actor, input.lagDays ?? 0) };
   }
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @HttpCode(200)
   @Post(':project/artifacts/:key/restore')
   @BodySchema(RestoreBody)
@@ -365,14 +365,14 @@ export class CoreController {
     return this.artifacts.restore(organizationId, project, key, input.version, input.expectedVersion, actor);
   }
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Get(':project/link-types')
   async listLinkTypes(@Req() request: AuthedRequest, @Param('project') project: string) {
     const { organizationId } = await this.orgs.resolve(principalOf(request));
     return this.links.listTypes(organizationId, project);
   }
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @HttpCode(204)
   @Delete(':project/links/:id')
   async removeLink(@Req() request: AuthedRequest, @Param('project') project: string, @Param('id') id: string) {
@@ -380,14 +380,14 @@ export class CoreController {
     await this.links.remove(organizationId, project, id, actor);
   }
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Get(':project/artifacts/:key/links')
   async listLinks(@Req() request: AuthedRequest, @Param('project') project: string, @Param('key') key: string) {
     const { organizationId } = await this.orgs.resolve(principalOf(request));
     return this.links.list(organizationId, project, key);
   }
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @HttpCode(204)
   @Post(':project/links/:id/clear-suspect')
   async clearSuspect(@Req() request: AuthedRequest, @Param('id') id: string) {
@@ -395,7 +395,7 @@ export class CoreController {
     await this.links.clearSuspect(organizationId, id, actor);
   }
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Post(':project/artifacts/:key/comments')
   @BodySchema(CommentBody)
   async addComment(@Req() request: AuthedRequest, @Param('project') project: string, @Param('key') key: string, @Body() body: unknown) {
@@ -403,7 +403,7 @@ export class CoreController {
     return this.links.addComment(organizationId, project, key, parseBody(CommentBody, body).body, actor);
   }
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Get(':project/artifacts/:key/comments')
   async comments(@Req() request: AuthedRequest, @Param('project') project: string, @Param('key') key: string) {
     const { organizationId } = await this.orgs.resolve(principalOf(request));

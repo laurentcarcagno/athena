@@ -109,7 +109,7 @@ describe('analyseur .sdoc : arborescence', () => {
 });
 
 const suite = pgUp ? describe : describe.skip;
-const admin: Actor = { id: 'u-admin', roles: ['athena-user', 'athena-admin'] };
+const admin: Actor = { id: 'u-admin', roles: ['athena-team-member', 'athena-admin'] };
 const code = async (p: Promise<unknown>) => { const e = await p.then(() => null, (x: unknown) => x); return e instanceof DomainError ? e.code : e ? `autre:${(e as Error).message}` : 'ok'; };
 
 suite('consultation des documents (intégration)', () => {

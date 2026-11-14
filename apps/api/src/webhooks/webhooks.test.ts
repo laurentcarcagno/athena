@@ -56,7 +56,7 @@ describe('filtrage des types', () => {
 });
 
 const suite = pgUp ? describe : describe.skip;
-const actor: Actor = { id: 'u1', roles: ['athena-user', 'athena-admin'] };
+const actor: Actor = { id: 'u1', roles: ['athena-team-member', 'athena-admin'] };
 
 class MemorySecrets implements SecretStore {
   readonly data = new Map<string, Record<string, string>>();

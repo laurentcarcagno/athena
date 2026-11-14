@@ -42,7 +42,7 @@ describe('extraction des références', () => {
 });
 
 const suite = pgUp ? describe : describe.skip;
-const admin: Actor = { id: 'u-admin', roles: ['athena-user', 'athena-admin'] };
+const admin: Actor = { id: 'u-admin', roles: ['athena-team-member', 'athena-admin'] };
 
 suite('interaction avec GitLab (intégration)', () => {
   let testDb: TestDb;

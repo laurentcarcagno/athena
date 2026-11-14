@@ -19,16 +19,16 @@ const PROJECT = 'LUMEN';
 
 // ------------------------------------------------------------------ comptes
 const PEOPLE = [
-  { u: 'claire.lefevre', first: 'Claire', last: 'Lefèvre · Cheffe de projet', roles: ['athena-pm', 'athena-user'], pw: 'demo-claire' },
-  { u: 'marc.dubois', first: 'Marc', last: 'Dubois · Architecte système', roles: ['athena-user'], pw: 'demo-marc' },
-  { u: 'sophie.martin', first: 'Sophie', last: 'Martin · Architecte satellite', roles: ['athena-user'], pw: 'demo-sophie' },
-  { u: 'thomas.bernard', first: 'Thomas', last: 'Bernard · Ingénieur SCAO', roles: ['athena-user'], pw: 'demo-thomas' },
-  { u: 'lea.petit', first: 'Léa', last: 'Petit · Thermicienne', roles: ['athena-user'], pw: 'demo-lea' },
-  { u: 'hugo.roux', first: 'Hugo', last: 'Roux · Architecte logiciel', roles: ['athena-user'], pw: 'demo-hugo' },
-  { u: 'nina.garcia', first: 'Nina', last: 'Garcia · Développeuse logiciel de vol', roles: ['athena-user'], pw: 'demo-nina' },
-  { u: 'paul.moreau', first: 'Paul', last: 'Moreau · Ingénieur AIT', roles: ['athena-user'], pw: 'demo-paul' },
-  { u: 'ines.girard', first: 'Inès', last: 'Girard · Développeuse segment sol', roles: ['athena-user'], pw: 'demo-ines' },
-  { u: 'julien.simon', first: 'Julien', last: 'Simon · Ingénieur énergie', roles: ['athena-user'], pw: 'demo-julien' },
+  { u: 'claire.lefevre', first: 'Claire', last: 'Lefèvre · Cheffe de projet', roles: ['athena-pm', 'athena-team-member'], pw: 'demo-claire' },
+  { u: 'marc.dubois', first: 'Marc', last: 'Dubois · Architecte système', roles: ['athena-team-member'], pw: 'demo-marc' },
+  { u: 'sophie.martin', first: 'Sophie', last: 'Martin · Architecte satellite', roles: ['athena-team-member'], pw: 'demo-sophie' },
+  { u: 'thomas.bernard', first: 'Thomas', last: 'Bernard · Ingénieur SCAO', roles: ['athena-team-member'], pw: 'demo-thomas' },
+  { u: 'lea.petit', first: 'Léa', last: 'Petit · Thermicienne', roles: ['athena-team-member'], pw: 'demo-lea' },
+  { u: 'hugo.roux', first: 'Hugo', last: 'Roux · Architecte logiciel', roles: ['athena-team-member'], pw: 'demo-hugo' },
+  { u: 'nina.garcia', first: 'Nina', last: 'Garcia · Développeuse logiciel de vol', roles: ['athena-team-member'], pw: 'demo-nina' },
+  { u: 'paul.moreau', first: 'Paul', last: 'Moreau · Ingénieur AIT', roles: ['athena-team-member'], pw: 'demo-paul' },
+  { u: 'ines.girard', first: 'Inès', last: 'Girard · Développeuse segment sol', roles: ['athena-team-member'], pw: 'demo-ines' },
+  { u: 'julien.simon', first: 'Julien', last: 'Simon · Ingénieur énergie', roles: ['athena-team-member'], pw: 'demo-julien' },
   { u: 'emma.fournier', first: 'Emma', last: 'Fournier · Assurance produit', roles: ['athena-qa'], pw: 'demo-emma' },
 ];
 const ADMIN = { u: 'admin.dev', pw: 'dev-only-admin' };

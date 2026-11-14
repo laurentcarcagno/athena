@@ -10,8 +10,8 @@ import { BoardService } from './board.service';
 import { SprintService } from './sprint.service';
 
 const suite = pgUp ? describe : describe.skip;
-const admin: Actor = { id: 'u-admin', roles: ['athena-user', 'athena-admin'] };
-const user: Actor = { id: 'u1', roles: ['athena-user'] };
+const admin: Actor = { id: 'u-admin', roles: ['athena-team-member', 'athena-admin'] };
+const user: Actor = { id: 'u1', roles: ['athena-team-member'] };
 
 async function code(promise: Promise<unknown>): Promise<string> {
   const error = await promise.then(() => null, (e: unknown) => e);
@@ -90,13 +90,13 @@ suite('boards et sprints (intégration)', () => {
 
   it('masque titre et responsable à lecture restreinte aux lecteurs sans le rôle', async () => {
     await testDb.exec("update field_definition set read_roles = '{hr}' where key = 'assignee'");
-    const dev = await boards.view(org, 'ARI', 'kanban', ['athena-user']);
+    const dev = await boards.view(org, 'ARI', 'kanban', ['athena-team-member']);
     expect(dev.columns[0]!.cards[0]).toMatchObject({ title: 'A', assignee: null });
-    const hr = await boards.view(org, 'ARI', 'kanban', ['athena-user', 'hr']);
+    const hr = await boards.view(org, 'ARI', 'kanban', ['athena-team-member', 'hr']);
     expect(hr.columns[0]!.cards[0]).toMatchObject({ assignee: 'u1' });
     expect((await boards.view(org, 'ARI', 'kanban', ['athena-admin'])).columns[0]!.cards[0]).toMatchObject({ assignee: 'u1' });
     await testDb.exec("update field_definition set read_roles = '{hr}' where key = 'title'");
-    expect((await boards.view(org, 'ARI', 'kanban', ['athena-user'])).columns[0]!.cards[0]).toMatchObject({ title: 'ARI-STORY-0001' });
+    expect((await boards.view(org, 'ARI', 'kanban', ['athena-team-member'])).columns[0]!.cards[0]).toMatchObject({ title: 'ARI-STORY-0001' });
     await testDb.exec("update field_definition set read_roles = null where key in ('title', 'assignee')");
   });
 
@@ -105,7 +105,7 @@ suite('boards et sprints (intégration)', () => {
     const a3 = await artifacts.get(org, 'ARI', 'ARI-STORY-0003');
     await artifacts.update(org, 'ARI', 'ARI-STORY-0003', { prio: 'haute', due: '2026-12-01' }, a3.version, admin);
     await new LinkService(new Db(testDb.pool)).link(org, 'ARI', 'ARI-STORY-0004', 'ARI-STORY-0003', 'blocks', admin);
-    const cards = (await boards.view(org, 'ARI', 'kanban', ['athena-user'])).columns[0]!.cards;
+    const cards = (await boards.view(org, 'ARI', 'kanban', ['athena-team-member'])).columns[0]!.cards;
     expect(cards.find((c) => c.key === 'ARI-STORY-0003')).toMatchObject({
       trackerName: 'Stories', assigneeName: 'Ulysse Dev', priority: 'haute', priorityLabel: 'Urgence', due: '2026-12-01', blocked: true,
     });

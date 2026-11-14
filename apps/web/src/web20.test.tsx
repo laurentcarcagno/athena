@@ -30,7 +30,7 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals());
 
 const session = (roles: string[]): Session => ({ authenticated: true, user: { username: 'ada', name: 'Ada', email: null, roles, groups: [] } });
-const open = (s = session(['athena-user', 'athena-admin'])) => render(<ToastProvider><MemoryRouter initialEntries={['/p/SEC/parametres/membres']}><Routes><Route path="/p/:project/parametres/:section" element={<SettingsPage session={s} />} /></Routes></MemoryRouter></ToastProvider>);
+const open = (s = session(['athena-team-member', 'athena-admin'])) => render(<ToastProvider><MemoryRouter initialEntries={['/p/SEC/parametres/membres']}><Routes><Route path="/p/:project/parametres/:section" element={<SettingsPage session={s} />} /></Routes></MemoryRouter></ToastProvider>);
 
 describe('listes d’ayants droit', () => {
   it('montre la liste du projet, ses membres et la portée de la restriction', async () => {
@@ -81,7 +81,7 @@ describe('listes d’ayants droit', () => {
   });
 
   it('réservé aux responsables, et sans violation d’accessibilité', async () => {
-    const first = open(session(['athena-user']));
+    const first = open(session(['athena-team-member']));
     expect(await screen.findByRole('heading', { name: /réservé/ })).toBeInTheDocument();
     expect(screen.queryByText('Besoin d’en connaître')).toBeNull();
     first.unmount();

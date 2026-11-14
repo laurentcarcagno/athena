@@ -24,7 +24,7 @@ beforeEach(() => {
 });
 afterEach(() => { vi.unstubAllGlobals(); setLocale('fr'); });
 const session = (roles: string[]): Session => ({ authenticated: true, user: { username: 'u', name: 'Uma', email: null, roles, groups: [] } });
-const admin = session(['athena-user', 'athena-admin']);
+const admin = session(['athena-team-member', 'athena-admin']);
 
 describe('F-01 : confirmation avant suppression irréversible', () => {
   const templates = [
@@ -49,7 +49,7 @@ describe('F-01 : confirmation avant suppression irréversible', () => {
 
 describe('F-13 : Paramètres réservés', () => {
   it('affiche le refus sans aucun appel réseau pour un simple utilisateur', () => {
-    render(<ToastProvider><MemoryRouter initialEntries={['/p/ARI/parametres/automatisations']}><Routes><Route path="/p/:project/parametres/:section" element={<SettingsPage session={session(['athena-user'])} />} /></Routes></MemoryRouter></ToastProvider>);
+    render(<ToastProvider><MemoryRouter initialEntries={['/p/ARI/parametres/automatisations']}><Routes><Route path="/p/:project/parametres/:section" element={<SettingsPage session={session(['athena-team-member'])} />} /></Routes></MemoryRouter></ToastProvider>);
     expect(screen.getByRole('heading', { name: /réservés aux administrateurs, aux chefs de projet/ })).toBeInTheDocument();
     expect(screen.queryByRole('navigation')).toBeNull();
     expect(calls).toHaveLength(0);

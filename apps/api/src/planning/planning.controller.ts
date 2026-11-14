@@ -21,7 +21,7 @@ export class PlanningController {
     @Inject(MemberService) private readonly members: MemberService,
   ) {}
 
-  @Roles('athena-user', 'athena-admin', 'athena-pm', 'athena-qa')
+  @Roles('athena-team-member', 'athena-admin', 'athena-pm', 'athena-qa')
   @Get('schedule')
   async get(@Req() request: AuthedRequest, @Param('project') project: string, @Query('baseline') baseline?: string) {
     const { organizationId, actor } = await this.orgs.resolve(request.principal!);
@@ -29,7 +29,7 @@ export class PlanningController {
   }
 
   /** Baselines qui ont figé un planning (pour comparer le Gantt à l'une d'elles). */
-  @Roles('athena-user', 'athena-admin', 'athena-pm', 'athena-qa')
+  @Roles('athena-team-member', 'athena-admin', 'athena-pm', 'athena-qa')
   @Get('schedule/baselines')
   async baselines(@Req() request: AuthedRequest, @Param('project') project: string) {
     const { organizationId } = await this.orgs.resolve(request.principal!);

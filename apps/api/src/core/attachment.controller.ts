@@ -18,7 +18,7 @@ export class AttachmentController {
     @Inject(OrgResolver) private readonly orgs: OrgResolver,
   ) {}
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Post(':project/artifacts/:key/attachments')
   @RawBody()
   async upload(@Req() request: AuthedRequest & { body: unknown }, @Param('project') project: string, @Param('key') key: string, @Query('name') name: string | undefined) {
@@ -28,14 +28,14 @@ export class AttachmentController {
     return this.attachments.add(organizationId, project, key, name, String(request.headers['x-file-type'] ?? ''), request.body, actor);
   }
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Get(':project/artifacts/:key/attachments')
   async list(@Req() request: AuthedRequest, @Param('project') project: string, @Param('key') key: string) {
     const { organizationId } = await this.orgs.resolve(request.principal!);
     return this.attachments.list(organizationId, project, key);
   }
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Get(':project/artifacts/:key/attachments/:id')
   async download(@Req() request: AuthedRequest, @Res({ passthrough: true }) reply: FastifyReply, @Param('project') project: string, @Param('key') key: string, @Param('id') id: string) {
     const { organizationId } = await this.orgs.resolve(request.principal!);
@@ -49,7 +49,7 @@ export class AttachmentController {
     return new StreamableFile(data);
   }
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @HttpCode(204)
   @Delete(':project/artifacts/:key/attachments/:id')
   async remove(@Req() request: AuthedRequest, @Param('project') project: string, @Param('key') key: string, @Param('id') id: string) {

@@ -51,13 +51,13 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals());
 
 const session = (roles: string[]): Session => ({ authenticated: true, user: { username: 'u', name: 'Ulysse', email: null, roles, groups: [] } });
-const app = (path: string, roles = ['athena-user']) => render(
+const app = (path: string, roles = ['athena-team-member']) => render(
   <ToastProvider><MemoryRouter initialEntries={[path]}><AuthenticatedApp session={session(roles)} /></MemoryRouter></ToastProvider>,
 );
 const projectNav = () => within(screen.getByRole('group', { name: 'Projet ARI' }));
 /** Sections du projet au rail (les trackers, imbriqués sous « Trackers », sont au niveau 1). */
 const sectionNames = () => projectNav().getAllByRole('button').filter((b) => b.getAttribute('data-depth') === '0').map((b) => b.textContent);
-const ADMIN = ['athena-user', 'athena-admin'];
+const ADMIN = ['athena-team-member', 'athena-admin'];
 
 describe('navigation du projet au rail (ADR-0003)', () => {
   it('liste les sections dans l’ordre fixe, l’entrée courante signalée, sans barre d’onglets', async () => {
@@ -208,7 +208,7 @@ describe('Paramètres (Membres) et Code', () => {
     expect(screen.getByRole('heading', { name: /réservés aux administrateurs, aux chefs de projet/ })).toBeInTheDocument();
   });
   it('Membres : un chef de projet voit la liste des acteurs, et les sections qui lui sont ouvertes', async () => {
-    app('/p/ARI/parametres/membres', ['athena-user', 'athena-pm']);
+    app('/p/ARI/parametres/membres', ['athena-team-member', 'athena-pm']);
     await screen.findByRole('heading', { level: 1, name: 'Paramètres · Membres' });
     await waitFor(() => expect(calls.some((c) => c.endsWith('/v1/projects/ARI/members'))).toBe(true));
     expect(within(screen.getByRole('navigation', { name: 'Sections des paramètres' })).getAllByRole('link').map((l) => l.textContent)).toEqual(['Membres', 'Trackers', 'Boards', 'Automatisations', 'Baselines', 'Approbations']);

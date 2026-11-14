@@ -45,7 +45,7 @@ afterEach(() => vi.unstubAllGlobals());
 
 function Where() { const l = useLocation(); return <span data-testid="where">{l.pathname}</span>; }
 const session = (roles: string[]): Session => ({ authenticated: true, user: { username: 'u', name: 'Ulysse', email: null, roles, groups: [] } });
-const app = (path: string, roles = ['athena-user']) => render(<ToastProvider><MemoryRouter initialEntries={[path]}><Where /><AuthenticatedApp session={session(roles)} /></MemoryRouter></ToastProvider>);
+const app = (path: string, roles = ['athena-team-member']) => render(<ToastProvider><MemoryRouter initialEntries={[path]}><Where /><AuthenticatedApp session={session(roles)} /></MemoryRouter></ToastProvider>);
 const where = () => screen.getByTestId('where').textContent;
 const rail = () => screen.getByRole('navigation', { name: /Navigation principale|Menu/ });
 
@@ -60,12 +60,12 @@ describe('adresses globales', () => {
     await screen.findByRole('heading', { level: 1, name: 'Projets' });
   });
   it('/admin est l’administration de l’organisation ; /org y mène', async () => {
-    app('/org', ['athena-user', 'athena-admin']);
+    app('/org', ['athena-team-member', 'athena-admin']);
     await screen.findByRole('heading', { level: 1, name: /Administration de l’organisation/ });
     expect(where()).toBe('/admin');
   });
   it('le rail global d’un administrateur compte au plus 6 entrées, Profil et Aide étant au bas du rail', async () => {
-    app('/', ['athena-user', 'athena-admin']);
+    app('/', ['athena-team-member', 'athena-admin']);
     await screen.findByRole('heading', { level: 1, name: 'Mon travail' });
     const entries = within(document.getElementById('rail')!).getAllByRole('button').filter((b) => b.getAttribute('data-depth') === null || b.getAttribute('data-depth') === '0');
     const names = entries.map((b) => b.textContent).filter((t) => ['Favoris (0)›', 'Récents (0)›', 'Projets (0)›', 'Mon travail', 'Recherche', 'Administration'].includes(t ?? ''));

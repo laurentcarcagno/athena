@@ -22,7 +22,7 @@ let posted: unknown = null;
 beforeEach(async () => {
   posted = null;
   vi.stubGlobal('fetch', vi.fn(async (input: string, init?: RequestInit) => {
-    if (input === '/auth/session') return new Response(JSON.stringify({ authenticated: true, user: { id: 'sub-ud', username: 'user.dev', name: 'User Dev', email: null, roles: ['athena-user'], groups: [] } }), { status: 200 });
+    if (input === '/auth/session') return new Response(JSON.stringify({ authenticated: true, user: { id: 'sub-ud', username: 'user.dev', name: 'User Dev', email: null, roles: ['athena-team-member'], groups: [] } }), { status: 200 });
     if (init?.method === 'POST') { posted = JSON.parse(String(init.body)); return new Response(JSON.stringify({ key: 'SAT1-BUG-0007' }), { status: 201 }); }
     if (/\/trackers\/BUG$/.test(input)) return new Response(JSON.stringify(definition), { status: 200 });
     return new Response(JSON.stringify([{ key: 'BUG', name: 'Bugs' }]), { status: 200 });

@@ -29,7 +29,7 @@ describe('paliers de criticité', () => {
   });
 });
 
-const session = { authenticated: true, user: { username: 'u', name: 'U', email: null, roles: ['athena-user'], groups: [] } } as Session;
+const session = { authenticated: true, user: { username: 'u', name: 'U', email: null, roles: ['athena-team-member'], groups: [] } } as Session;
 
 describe('rapport Risques', () => {
   let trackers: Array<{ key: string; typeKey: string | null }> = [];

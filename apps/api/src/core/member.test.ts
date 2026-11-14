@@ -11,9 +11,9 @@ import { bugTemplate } from './templates';
 import { TrackerService } from './tracker.service';
 
 const suite = pgUp ? describe : describe.skip;
-const admin: Actor = { id: 'sub-admin', roles: ['athena-user', 'athena-admin'] };
-const pm: Actor = { id: 'sub-pm', roles: ['athena-user', 'athena-pm'] };
-const user: Actor = { id: 'sub-user', roles: ['athena-user'] };
+const admin: Actor = { id: 'sub-admin', roles: ['athena-team-member', 'athena-admin'] };
+const pm: Actor = { id: 'sub-pm', roles: ['athena-team-member', 'athena-pm'] };
+const user: Actor = { id: 'sub-user', roles: ['athena-team-member'] };
 
 async function code(promise: Promise<unknown>): Promise<string> {
   const error = await promise.then(() => null, (e: unknown) => e);
@@ -62,7 +62,7 @@ suite('acteurs de projet et rôles (intégration)', () => {
   });
 
   it('un rôle chef de projet sans désignation sur le projet n’autorise rien', async () => {
-    const other: Actor = { id: 'sub-other', roles: ['athena-user', 'athena-pm'] };
+    const other: Actor = { id: 'sub-other', roles: ['athena-team-member', 'athena-pm'] };
     expect(await code(members.requireManager(org, 'ARI', other))).toMatch(/^forbidden/);
   });
 

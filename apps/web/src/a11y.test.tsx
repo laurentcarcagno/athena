@@ -19,7 +19,7 @@ beforeEach(() => {
 });
 afterEach(() => vi.unstubAllGlobals());
 
-const admin: Session = { authenticated: true, user: { username: 'a', name: 'Alice', email: null, roles: ['athena-admin', 'athena-user'], groups: [] } };
+const admin: Session = { authenticated: true, user: { username: 'a', name: 'Alice', email: null, roles: ['athena-admin', 'athena-team-member'], groups: [] } };
 
 /** Audit axe-core (WCAG 2.1 A/AA). Le contraste est vérifié ailleurs : jsdom ne calcule pas les styles. */
 async function violations(container: HTMLElement): Promise<string[]> {

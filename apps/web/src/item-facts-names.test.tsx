@@ -23,7 +23,7 @@ describe('Responsable d’une fiche', () => {
 describe('champ personne dans les détails', () => {
   it('montre le nom, en lecture seule, jamais l’identifiant', async () => {
     const { FieldEditor } = await import('./pages/ArtifactPage');
-    render(<FieldEditor field={{ key: 'assignee', label: 'Responsable', type: 'user', config: {} } as never} value="d668eeb1-805d-453a-ad95-e0bb408aa7df" roles={['athena-user']} onCommit={() => undefined} userNames={{ 'd668eeb1-805d-453a-ad95-e0bb408aa7df': 'User Dev' }} />);
+    render(<FieldEditor field={{ key: 'assignee', label: 'Responsable', type: 'user', config: {} } as never} value="d668eeb1-805d-453a-ad95-e0bb408aa7df" roles={['athena-team-member']} onCommit={() => undefined} userNames={{ 'd668eeb1-805d-453a-ad95-e0bb408aa7df': 'User Dev' }} />);
     expect(screen.getByDisplayValue('User Dev')).toHaveAttribute('readonly');
   });
 });

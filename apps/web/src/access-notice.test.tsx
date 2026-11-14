@@ -30,7 +30,7 @@ it('assurance produit sur la configuration d’un tracker : la section est dite 
 });
 
 it('membre sans aucune section : message et retour au projet', () => {
-  at('/p/SAT1/parametres', <SettingsPage session={as('athena-user')} />, '/p/:project/parametres');
+  at('/p/SAT1/parametres', <SettingsPage session={as('athena-team-member')} />, '/p/:project/parametres');
   expect(screen.getByRole('heading', { name: /réservés aux administrateurs, aux chefs de projet et à l’assurance qualité/ })).toBeTruthy();
   expect(screen.getByRole('link', { name: 'Retour au projet' }).getAttribute('href')).toBe('/p/SAT1');
 });
@@ -42,7 +42,7 @@ it('rapport dont le module est inactif : message, et non l’Avancement à sa pl
 });
 
 it('ajout de tracker sans être administrateur ni chef de projet : qui peut le faire et retour aux trackers', () => {
-  at('/p/SAT1/trackers/new', <TrackerCreatePage session={as('athena-user')} />, '/p/:project/trackers/new');
+  at('/p/SAT1/trackers/new', <TrackerCreatePage session={as('athena-team-member')} />, '/p/:project/trackers/new');
   expect(screen.getByRole('heading', { name: 'Seuls un administrateur ou un chef de projet peuvent ajouter un tracker.' })).toBeTruthy();
   expect(screen.getByText(/Décrivez votre besoin à un administrateur/)).toBeTruthy();
   expect(screen.getByRole('link', { name: 'Retour aux trackers' }).getAttribute('href')).toBe('/p/SAT1/trackers');

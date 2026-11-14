@@ -21,15 +21,15 @@ describe('contrôles de formulaire (T-0133)', () => {
   });
 
   it('même règle d’écriture que le serveur : sans restriction, administrateur, ou rôle cité', () => {
-    expect(canWrite(field(null), ['athena-user'])).toBe(true);
+    expect(canWrite(field(null), ['athena-team-member'])).toBe(true);
     expect(canWrite(field(['athena-pm']), ['athena-pm'])).toBe(true);
     expect(canWrite(field(['athena-pm']), ['athena-admin'])).toBe(true);
-    expect(canWrite(field(['athena-pm']), ['athena-user'])).toBe(false);
+    expect(canWrite(field(['athena-pm']), ['athena-team-member'])).toBe(false);
   });
 
   it('un champ que l’utilisateur ne peut pas modifier est en lecture seule, avec la raison', () => {
     const commit = vi.fn();
-    render(<FieldEditor field={field(['athena-pm'])} value="bloquante" roles={['athena-user']} onCommit={commit} />);
+    render(<FieldEditor field={field(['athena-pm'])} value="bloquante" roles={['athena-team-member']} onCommit={commit} />);
     const input = screen.getByLabelText(/Sévérité/);
     expect(input).toHaveValue('bloquante');
     expect(input).toHaveAttribute('readonly');

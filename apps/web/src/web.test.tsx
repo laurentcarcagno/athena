@@ -119,7 +119,7 @@ function artifactHandlers(extra: Handler[] = []) {
     route('GET', /\/code-refs$/, { body: [{ kind: 'mr', ref: '7', title: 'Fixes BUG-1', state: 'opened', pipeline: 'failed' }] }),
   ];
 }
-const session = { authenticated: true, user: { username: 'alice', name: 'Alice', email: null, roles: ['athena-user'], groups: [] } };
+const session = { authenticated: true, user: { username: 'alice', name: 'Alice', email: null, roles: ['athena-team-member'], groups: [] } };
 
 describe('fiche d’ticket', () => {
   it('propose les transitions du workflow et les applique avec la version courante', async () => {

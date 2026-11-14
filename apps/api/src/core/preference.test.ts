@@ -6,8 +6,8 @@ import { createTestDb, pgUp, type TestDb } from '../testing/harness';
 // Préférences personnelles sur le compte : accueil, langue, thème.
 
 const suite = pgUp ? describe : describe.skip;
-const alice: Actor = { id: 'alice', roles: ['athena-user'] };
-const bob: Actor = { id: 'bob', roles: ['athena-user'] };
+const alice: Actor = { id: 'alice', roles: ['athena-team-member'] };
+const bob: Actor = { id: 'bob', roles: ['athena-team-member'] };
 
 describe('validation des préférences', () => {
   it('refuse une valeur inconnue ou une clé étrangère, accepte null pour effacer', () => {

@@ -16,7 +16,7 @@ export class TrackerTypeController {
     @Inject(OrgResolver) private readonly orgs: OrgResolver,
   ) {}
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Get()
   async list(@Req() request: AuthedRequest) {
     return this.types.list((await this.orgs.resolve(request.principal!)).organizationId);

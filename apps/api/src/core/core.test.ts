@@ -38,8 +38,8 @@ const withDb = (database: string, user?: string, password?: string) => {
   return url.toString();
 };
 
-const dev: Actor = { id: 'u-dev', roles: ['athena-user'] };
-const admin: Actor = { id: 'u-admin', roles: ['athena-user', 'athena-admin'] };
+const dev: Actor = { id: 'u-dev', roles: ['athena-team-member'] };
+const admin: Actor = { id: 'u-admin', roles: ['athena-team-member', 'athena-admin'] };
 
 async function expectDomain(promise: Promise<unknown>, code: DomainError['code'], text?: RegExp) {
   const error = await promise.then(() => null, (e: unknown) => e);

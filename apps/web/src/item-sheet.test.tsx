@@ -43,7 +43,7 @@ beforeEach(() => {
 });
 afterEach(() => vi.unstubAllGlobals());
 
-const session: Session = { authenticated: true, user: { username: 'u', name: 'Ulysse', email: null, roles: ['athena-user'], groups: [] } };
+const session: Session = { authenticated: true, user: { username: 'u', name: 'Ulysse', email: null, roles: ['athena-team-member'], groups: [] } };
 function Where() { const l = useLocation(); return <output data-testid="where">{l.pathname + l.search}</output>; }
 const sheet = (entry = '/p/ARI/a/ARI-BUG-0001') => {
   const router = createMemoryRouter([{ path: '/p/:project/a/:key', element: <><ArtifactPage session={session} /><Where /></> }], { initialEntries: [entry] });

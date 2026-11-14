@@ -28,7 +28,7 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals());
 
 const session = (roles: string[]): Session => ({ authenticated: true, user: { username: 'u', name: 'Ulysse', email: null, roles, groups: [] } });
-const app = (path: string, roles = ['athena-user']) => render(<ToastProvider><MemoryRouter initialEntries={[path]}><AuthenticatedApp session={session(roles)} /></MemoryRouter></ToastProvider>);
+const app = (path: string, roles = ['athena-team-member']) => render(<ToastProvider><MemoryRouter initialEntries={[path]}><AuthenticatedApp session={session(roles)} /></MemoryRouter></ToastProvider>);
 const picker = () => screen.findByRole('navigation', { name: 'Sections du projet ARI' });
 
 describe('sélecteur de section du projet', () => {

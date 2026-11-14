@@ -168,7 +168,7 @@ export class GitCodeService {
     for (const key of [...new Set(keys)]) {
       results.push({ key, outcome: 'linked', detail: `déployé : ${event.environment}` });
       if (event.environment === 'production' && this.rules.onDeploy) {
-        results.push(await this.tryTransition(org, project, key, this.rules.onDeploy, { id: 'gitlab:deployment', roles: ['athena-user'] }, 'done'));
+        results.push(await this.tryTransition(org, project, key, this.rules.onDeploy, { id: 'gitlab:deployment', roles: ['athena-team-member'] }, 'done'));
       }
     }
     return results;
@@ -227,6 +227,6 @@ export class GitCodeService {
   private async actorByEmail(org: string, email: string | undefined): Promise<Actor | null> {
     if (!email) return null;
     const row = await this.db.tx(org, async (c) => (await c.query('select subject from user_account where lower(email) = lower($1)', [email])).rows[0]);
-    return row ? { id: row.subject as string, roles: ['athena-user'] } : null;
+    return row ? { id: row.subject as string, roles: ['athena-team-member'] } : null;
   }
 }

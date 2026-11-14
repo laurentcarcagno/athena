@@ -10,7 +10,7 @@ import { NOTIFY_EVENTS, NotifyService, PrefInput, ReadInput, SubscribeInput, typ
  * Notifications, abonnements et réglages de la personne connectée. Ce sont des données personnelles, pas des données de projet :
  * l'assurance qualité étatique (lecture seule ailleurs) peut y marquer ses notifications lues et gérer ses abonnements.
  */
-const ME = ['athena-user', 'athena-admin', 'athena-qa'] as const;
+const ME = ['athena-team-member', 'athena-admin', 'athena-qa'] as const;
 
 @Controller('v1')
 export class NotifyController {
@@ -76,7 +76,7 @@ export class NotifyController {
   }
 
   /** Autocomplétion des mentions : seules les personnes qui peuvent lire l'item sont proposées. */
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Get('projects/:project/artifacts/:key/mentionable')
   async mentionable(@Req() request: AuthedRequest, @Param('project') project: string, @Param('key') key: string, @Query('q') q?: string) {
     const { organizationId, actor } = await this.orgs.resolve(request.principal!);

@@ -8,8 +8,8 @@ import { createTestDb, pgUp, type TestDb } from '../testing/harness';
 import { SavedFilterService } from './saved-filter.service';
 
 const suite = pgUp ? describe : describe.skip;
-const alice: Actor = { id: 'alice', roles: ['athena-user'] };
-const bob: Actor = { id: 'bob', roles: ['athena-user'] };
+const alice: Actor = { id: 'alice', roles: ['athena-team-member'] };
+const bob: Actor = { id: 'bob', roles: ['athena-team-member'] };
 const admin: Actor = { id: 'root', roles: ['athena-admin'] };
 const code = async (p: Promise<unknown>) => {
   const e = await p.then(() => null, (x: unknown) => x);
@@ -60,7 +60,7 @@ suite('filtres enregistrés (intégration)', () => {
   });
 
   it('une seule vue par défaut par tracker, choisie par un responsable, partagée et rattachée à un tracker', async () => {
-    const pm: Actor = { id: 'pm', roles: ['athena-user', 'athena-pm'] };
+    const pm: Actor = { id: 'pm', roles: ['athena-team-member', 'athena-pm'] };
     expect(await code(filters.create(org, 'ARI', { name: 'D1', query: 'status = open', trackerKey: 'BUG', shared: true, isDefault: true }, alice))).toMatch(/forbidden/);
     expect(await code(filters.create(org, 'ARI', { name: 'D2', query: 'status = open', trackerKey: 'BUG', isDefault: true }, pm))).toMatch(/validation.*partagée/);
     expect(await code(filters.create(org, 'ARI', { name: 'D3', query: 'status = open', shared: true, isDefault: true }, pm))).toMatch(/validation/);

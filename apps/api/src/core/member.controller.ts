@@ -21,7 +21,7 @@ export class MemberController {
     return this.members.users((await this.orgs.resolve(request.principal!)).organizationId);
   }
 
-  @Roles('athena-user', 'athena-admin', 'athena-pm')
+  @Roles('athena-team-member', 'athena-admin', 'athena-pm')
   @Get('projects/:project/members')
   async list(@Req() request: AuthedRequest, @Param('project') project: string) {
     return this.members.members((await this.orgs.resolve(request.principal!)).organizationId, project);

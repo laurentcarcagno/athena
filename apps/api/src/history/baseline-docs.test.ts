@@ -12,7 +12,7 @@ import { BaselineService } from './baseline.service';
 import type { GitLabClient } from './gitlab-client';
 
 const suite = pgUp ? describe : describe.skip;
-const admin: Actor = { id: 'u-admin', roles: ['athena-user', 'athena-admin'] };
+const admin: Actor = { id: 'u-admin', roles: ['athena-team-member', 'athena-admin'] };
 
 const urd = (variant: 'v1' | 'v2') => `[DOCUMENT]
 TITLE: Exigences utilisateur

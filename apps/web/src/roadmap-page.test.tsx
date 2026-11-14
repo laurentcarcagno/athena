@@ -35,8 +35,8 @@ beforeEach(() => {
 });
 afterEach(() => vi.unstubAllGlobals());
 
-const pm: Session = { authenticated: true, user: { username: 'pm', name: 'Paula', email: null, roles: ['athena-user', 'athena-admin'], groups: [] } }; // responsable du projet (l'administrateur l'est toujours)
-const member: Session = { authenticated: true, user: { username: 'u', name: 'Ulysse', email: null, roles: ['athena-user'], groups: [] } };
+const pm: Session = { authenticated: true, user: { username: 'pm', name: 'Paula', email: null, roles: ['athena-team-member', 'athena-admin'], groups: [] } }; // responsable du projet (l'administrateur l'est toujours)
+const member: Session = { authenticated: true, user: { username: 'u', name: 'Ulysse', email: null, roles: ['athena-team-member'], groups: [] } };
 const page = (session = pm) => render(<ToastProvider><MemoryRouter initialEntries={['/p/NOVA/roadmap']}><Routes><Route path="/p/:project/roadmap" element={<RoadmapPage session={session} />} /></Routes></MemoryRouter></ToastProvider>);
 const ready = () => screen.findByRole('list', { name: '1.1' });
 

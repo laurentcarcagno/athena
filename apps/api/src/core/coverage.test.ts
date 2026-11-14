@@ -9,7 +9,7 @@ import { LinkService } from './link.service';
 import { requirementTemplate } from './templates';
 import { TrackerService } from './tracker.service';
 
-const actor: Actor = { id: 'u1', roles: ['athena-user', 'athena-admin'] };
+const actor: Actor = { id: 'u1', roles: ['athena-team-member', 'athena-admin'] };
 const suite = pgUp ? describe : describe.skip;
 const code = async (p: Promise<unknown>) => ((await p.then(() => null, (e: unknown) => e)) as DomainError | null)?.code ?? 'ok';
 const rule = (extra: Record<string, unknown> = {}) => CoverageRuleInput.parse({ name: 'Exigences vérifiées', fromTracker: 'REQ', linkType: 'verifies', ...extra });
@@ -46,7 +46,7 @@ suite('règles de couverture', () => {
 
   it('« toute exigence est vérifiée par au moins un test » : taux, items en défaut et requêtes ATQL', async () => {
     await coverage.create(org, null, 'req-verifiee', rule({ threshold: { target: 100, warning: 50 } }), actor);
-    const [r] = await coverage.evaluate(org, 'ARI', ['athena-user']);
+    const [r] = await coverage.evaluate(org, 'ARI', ['athena-team-member']);
     expect(r).toMatchObject({ key: 'req-verifiee', scope: 'organization', total: 4, covered: 2, rate: 50, level: 'warning', suspect: 0 });
     expect(r!.gaps).toEqual([{ key: 'ARI-REQ-0003', title: 'Exigence 3' }, { key: 'ARI-REQ-0004', title: 'Exigence 4' }]);
     expect(r!.atql).toEqual({ total: 'tracker = REQ', gaps: 'tracker = REQ AND notLinked("verifies")', suspect: 'tracker = REQ AND suspect()' });
@@ -56,7 +56,7 @@ suite('règles de couverture', () => {
     await coverage.create(org, 'ARI', 'deux-tests', rule({ name: 'Deux tests', minCount: 2, direction: 'in', threshold: { target: 90, warning: 20 } }), actor);
     await coverage.create(org, 'ARI', 'sens-sortant', rule({ name: 'Sortant', direction: 'out', threshold: { target: 10 } }), actor);
     await coverage.create(org, 'ARI', 'brouillons', rule({ name: 'Brouillons', statuses: ['draft', 'validated'] }), actor);
-    const by = Object.fromEntries((await coverage.evaluate(org, 'ARI', ['athena-user'])).map((x) => [x.key, x]));
+    const by = Object.fromEntries((await coverage.evaluate(org, 'ARI', ['athena-team-member'])).map((x) => [x.key, x]));
     expect(by['deux-tests']).toMatchObject({ total: 4, covered: 1, rate: 25, level: 'warning' });
     expect(by['deux-tests']!.atql.gaps).toBe('tracker = REQ AND NOT linkCount("verifies", 2, "in")');
     expect(by['sens-sortant']!.atql.gaps).toBe('tracker = REQ AND NOT linkCount("verifies", 1, "out")');
@@ -79,7 +79,7 @@ suite('règles de couverture', () => {
     expect((await coverage.evaluate(org, 'ARI', [])).find((r) => r.key === 'brouillons')!.suspect).toBe(1);
     await testDb.exec('update artifact_link set suspect = false');
     await testDb.exec("update field_definition set read_roles = '{qualite}' where key = 'title' and tracker_id = (select id from tracker where key = 'REQ')");
-    expect((await coverage.evaluate(org, 'ARI', ['athena-user'])).find((r) => r.key === 'brouillons')!.gaps[0]!.title).toBe('ARI-REQ-0003');
+    expect((await coverage.evaluate(org, 'ARI', ['athena-team-member'])).find((r) => r.key === 'brouillons')!.gaps[0]!.title).toBe('ARI-REQ-0003');
     await testDb.exec("update field_definition set read_roles = null where key = 'title'");
     await coverage.create(org, 'ARI', 'sans-tracker', rule({ name: 'x', fromTracker: 'NOPE' }), actor);
     await coverage.create(org, 'ARI', 'sans-type', rule({ name: 'y', linkType: 'inconnu' }), actor);
@@ -116,7 +116,7 @@ suite('règles de couverture', () => {
       from artifact r where r.key like 'ARI-REQ-%' and r.number > 1000 and r.number % 2 = 0 and r.number <= 51000`);
     await testDb.exec('analyze artifact; analyze artifact_link');
     const started = performance.now();
-    const result = (await coverage.evaluate(org, 'ARI', ['athena-user'])).find((r) => r.key === 'brouillons')!;
+    const result = (await coverage.evaluate(org, 'ARI', ['athena-team-member'])).find((r) => r.key === 'brouillons')!;
     const elapsed = performance.now() - started;
     expect(result.total).toBeGreaterThanOrEqual(100000);
     expect(result.covered).toBeGreaterThan(20000);

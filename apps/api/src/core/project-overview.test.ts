@@ -9,7 +9,7 @@ import { bugTemplate, normativeClauseTracker, requirementTemplate } from './temp
 import { PROJECT_MODULES, ProjectOverviewService } from './project-overview.service';
 import { TrackerService } from './tracker.service';
 
-const actor: Actor = { id: 'u1', roles: ['athena-user', 'athena-admin'] };
+const actor: Actor = { id: 'u1', roles: ['athena-team-member', 'athena-admin'] };
 const suite = pgUp ? describe : describe.skip;
 
 suite('modules actifs d’un projet', () => {
@@ -89,8 +89,8 @@ suite('modules actifs d’un projet', () => {
     await trackerSvc.createProject(org, 'ACT', 'Activité', actor);
     await trackerSvc.createTracker(org, bugTemplate('ACT'), actor);
     await trackerSvc.createTracker(org, requirementTemplate('ACT'), actor);
-    const alice: Actor = { id: 'alice', roles: ['athena-user'] };
-    const bob: Actor = { id: 'bob', roles: ['athena-user'] };
+    const alice: Actor = { id: 'alice', roles: ['athena-team-member'] };
+    const bob: Actor = { id: 'bob', roles: ['athena-team-member'] };
     const bug = await artifacts.create(org, 'ACT', 'BUG', { title: 'Crash', severity: 'majeure' }, alice);
     const req = await artifacts.create(org, 'ACT', 'REQ', { title: 'Journal', statement: 'Le système journalise.' }, bob);
     await artifacts.update(org, 'ACT', bug.key, { severity: 'bloquante', affected_version: '1.2' }, 1, alice);
@@ -98,7 +98,7 @@ suite('modules actifs d’un projet', () => {
     await artifacts.transition(org, 'ACT', bug.key, 'Démarrer', 3, alice);
     await links.addComment(org, 'ACT', req.key, 'À relire', bob);
 
-    const all = await overview.activity(org, 'ACT', ['athena-user']);
+    const all = await overview.activity(org, 'ACT', ['athena-team-member']);
     expect(all.items.map((i) => i.kind)).toEqual(['comment', 'transition', 'updated', 'updated', 'created', 'created']);
     expect(all.next).toBeNull();
     expect(all.items[0]).toMatchObject({ key: req.key, tracker: 'REQ', actor: 'bob', actorName: 'Bob Durand', fields: [] });
@@ -121,9 +121,9 @@ suite('modules actifs d’un projet', () => {
 
     // champ à lecture restreinte : retiré du résumé pour un lecteur sans le rôle, visible pour l'administrateur
     await testDb.exec("update field_definition set read_roles = '{qualite}' where key = 'severity'");
-    const hidden = (await overview.activity(org, 'ACT', ['athena-user'])).items.filter((i) => i.kind === 'updated').map((i) => i.fields);
+    const hidden = (await overview.activity(org, 'ACT', ['athena-team-member'])).items.filter((i) => i.kind === 'updated').map((i) => i.fields);
     expect(hidden).toEqual([['assignee'], ['affected_version']]);
-    expect((await overview.activity(org, 'ACT', ['athena-user', 'qualite'])).items.find((i) => i.fields.includes('severity'))).toBeDefined();
+    expect((await overview.activity(org, 'ACT', ['athena-team-member', 'qualite'])).items.find((i) => i.fields.includes('severity'))).toBeDefined();
     expect((await overview.activity(org, 'ACT', ['athena-admin'])).items.find((i) => i.fields.includes('severity'))).toBeDefined();
     await testDb.exec("update field_definition set read_roles = null where key = 'severity'");
   });

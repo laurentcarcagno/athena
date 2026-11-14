@@ -13,7 +13,7 @@ import { createTestDb, pgUp, type TestDb } from '../testing/harness';
 import { NotifyService } from './notify.service';
 
 const suite = pgUp ? describe : describe.skip;
-const actor = (id: string): Actor => ({ id, roles: ['athena-user', 'athena-admin'] });
+const actor = (id: string): Actor => ({ id, roles: ['athena-team-member', 'athena-admin'] });
 const code = async (p: Promise<unknown>) => { const e = await p.then(() => null, (x: unknown) => x); return e instanceof DomainError ? `${e.code}:${e.message}` : e ? `autre:${(e as Error).message}` : 'ok'; };
 
 suite('notifications et abonnements (intégration)', () => {

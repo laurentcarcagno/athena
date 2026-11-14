@@ -38,8 +38,8 @@ const on = (method: string, path: RegExp | string, reply: Reply): Handler => (ur
 const wrap = (path: string, element: JSX.Element, pattern: string) => render(
   <ToastProvider><MemoryRouter initialEntries={[path]}><Routes><Route path={pattern} element={element} /></Routes></MemoryRouter></ToastProvider>,
 );
-const admin: Session = { authenticated: true, user: { username: 'a', name: 'Alice', email: null, roles: ['athena-admin', 'athena-user'], groups: [] } };
-const simple: Session = { authenticated: true, user: { username: 'b', name: 'Bob', email: null, roles: ['athena-user'], groups: [] } };
+const admin: Session = { authenticated: true, user: { username: 'a', name: 'Alice', email: null, roles: ['athena-admin', 'athena-team-member'], groups: [] } };
+const simple: Session = { authenticated: true, user: { username: 'b', name: 'Bob', email: null, roles: ['athena-team-member'], groups: [] } };
 
 describe('langue', () => {
   it('bascule entre français et anglais et mémorise le choix', () => {
@@ -322,7 +322,7 @@ describe('transitions réservées à des rôles', () => {
   });
   it('les affiche pour le rôle requis', async () => {
     handlers = routes();
-    const releaser: Session = { authenticated: true, user: { username: 'r', name: 'R', email: null, roles: ['athena-user', 'release'], groups: [] } };
+    const releaser: Session = { authenticated: true, user: { username: 'r', name: 'R', email: null, roles: ['athena-team-member', 'release'], groups: [] } };
     wrap('/p/ARI/a/BUG-1', <ArtifactPage session={releaser} />, '/p/:project/a/:key');
     expect(await screen.findByRole('button', { name: 'Valider' })).toBeInTheDocument();
   });

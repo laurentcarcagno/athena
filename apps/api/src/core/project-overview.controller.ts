@@ -11,14 +11,14 @@ export class ProjectOverviewController {
   ) {}
 
   /** Onglets actifs du projet, dans l'ordre fixe. */
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Get(':project/modules')
   async modules(@Req() request: AuthedRequest, @Param('project') project: string) {
     return this.overview.modules((await this.orgs.resolve(request.principal!)).organizationId, project);
   }
 
   /** Flux d'activité du projet (filtrable par tracker, personne et type d'événement), paginé par curseur. */
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Get(':project/activity')
   async activity(
     @Req() request: AuthedRequest, @Param('project') project: string, @Query('tracker') tracker?: string, @Query('actor') actor?: string,
@@ -32,7 +32,7 @@ export class ProjectOverviewController {
   }
 
   /** Carte des trackers : compteurs par statut, éléments à moi, dernière activité. */
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Get(':project/overview')
   async overviewOf(@Req() request: AuthedRequest, @Param('project') project: string) {
     const { organizationId } = await this.orgs.resolve(request.principal!);

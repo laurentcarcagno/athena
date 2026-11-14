@@ -4,7 +4,7 @@
 #       file: deploy/ci/athena-check.gitlab-ci.yml
 #
 # Variables du projet (Settings > CI/CD) : ATHENA_URL, ATHENA_PROJECT (clé du projet Athena), ATHENA_TOKEN (masquée,
-# jeton d'un compte de service Keycloak ayant le rôle athena-user et le groupe /org-<clé>).
+# jeton d'un compte de service Keycloak ayant le rôle athena-team-member et le groupe /org-<clé>).
 # Le job échoue si un commit de la merge request ne cite aucun artefact existant (préfixes chore/docs/ci/build/style exemptés).
 athena-check:
   stage: .pre

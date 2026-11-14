@@ -7,7 +7,7 @@ import { TemplateService, type TemplateTracker } from './template.service';
 import { TrackerService } from './tracker.service';
 
 const suite = pgUp ? describe : describe.skip;
-const admin: Actor = { id: 'sub-admin', roles: ['athena-user', 'athena-admin'] };
+const admin: Actor = { id: 'sub-admin', roles: ['athena-team-member', 'athena-admin'] };
 
 async function code(promise: Promise<unknown>): Promise<string> {
   const error = await promise.then(() => null, (e: unknown) => e);

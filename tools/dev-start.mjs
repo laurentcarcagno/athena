@@ -49,7 +49,7 @@ async function prepare() {
   const hasOrg = (await pool.query("select organization_id_by_key('demo') as id")).rows[0].id;
   if (!hasOrg) {
     const org = crypto.randomUUID();
-    const actor = { id: 'seed', roles: ['athena-user', 'athena-admin'] };
+    const actor = { id: 'seed', roles: ['athena-team-member', 'athena-admin'] };
     await db.tx(org, (c) => c.query("insert into organization (id, key, name) values ($1, 'demo', 'Démo')", [org]));
     await trackers.createProject(org, 'ARI', 'Ariane', actor);
     await trackers.createTracker(org, bugTemplate('ARI'), actor);
@@ -72,7 +72,7 @@ async function seedAgile(pool, db, trackers, artifacts) {
   if (exists) return;
   const { SprintService } = dist('agile/sprint.service.js');
   const { BacklogService } = dist('agile/backlog.service.js');
-  const actor = { id: 'seed', roles: ['athena-user', 'athena-admin'] };
+  const actor = { id: 'seed', roles: ['athena-team-member', 'athena-admin'] };
   await trackers.createProject(org, 'NOVA', 'Nova (démonstration agile)', actor);
   await trackers.createTracker(org, {
     projectKey: 'NOVA', key: 'TSK', name: 'Tâches', typeKey: 'task',
@@ -136,7 +136,7 @@ async function seedLumen(pool, db, trackers, artifacts) {
   const { SprintService } = dist('agile/sprint.service.js');
   const { ReportService } = dist('agile/report.service.js');
   const { LinkService } = dist('core/link.service.js');
-  const actor = { id: 'seed', roles: ['athena-user', 'athena-admin'] };
+  const actor = { id: 'seed', roles: ['athena-team-member', 'athena-admin'] };
   const day = (n) => new Date(Date.now() + n * 86_400_000).toISOString().slice(0, 10);
   await trackers.createProject(org, 'LUMEN', 'Lumen (démonstration du tableau de bord)', actor);
   await trackers.createTracker(org, {
@@ -181,13 +181,15 @@ async function ensureKeycloak() {
   if (!token) { console.log('Keycloak : jeton administrateur indisponible, rôles athena-pm et athena-qa non vérifiés'); return; }
   const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
   const api = (path, init = {}) => fetch(`${base}/admin/realms/athena${path}`, { headers, ...init });
-  for (const [name, description] of [['athena-pm', 'Chef de projet'], ['athena-qa', 'Assurance qualité (droits d’un utilisateur, approbation des jalons et baselines)']]) {
+  for (const [name, description] of [['athena-pm', 'Chef de projet'], ['athena-qa', 'Assurance qualité (droits d’un utilisateur, approbation des jalons et baselines)'], ['athena-manager', 'Manager : charge de ses équipes'], ['athena-director', 'Directeur : portefeuilles et tableaux de bord, en lecture seule']]) {
     if ((await api(`/roles/${name}`)).status === 404) await api('/roles', { method: 'POST', body: JSON.stringify({ name, description }) });
   }
   const group = (await (await api('/groups?search=org-demo')).json())[0];
   for (const { username, password, firstName, lastName, roles: wanted } of [
-    { username: 'pm.dev', password: 'dev-only-pm', firstName: 'Chef', lastName: 'Projet', roles: ['athena-pm', 'athena-user'] },
+    { username: 'pm.dev', password: 'dev-only-pm', firstName: 'Chef', lastName: 'Projet', roles: ['athena-pm', 'athena-team-member'] },
     { username: 'qa.dev', password: 'dev-only-qa', firstName: 'Assurance', lastName: 'Qualité', roles: ['athena-qa'] },
+    { username: 'manager.dev', password: 'dev-only-manager', firstName: 'Manager', lastName: 'Dev', roles: ['athena-manager'] },
+    { username: 'director.dev', password: 'dev-only-director', firstName: 'Directeur', lastName: 'Dev', roles: ['athena-director'] },
   ]) {
     let users = await (await api(`/users?username=${username}&exact=true`)).json();
     if (users.length === 0) {
@@ -231,7 +233,7 @@ const procs = [
   child.on('exit', (code) => console.log(`[${name}] arrêté (${code})`));
   return child;
 });
-console.log('Athena démarre : http://localhost:3000  (utilisateurs : user.dev / dev-only-user ; admin.dev / dev-only-admin ; pm.dev / dev-only-pm ; qa.dev / dev-only-qa, assurance qualité étatique)');
+console.log('Athena démarre : http://localhost:3000  (utilisateurs : user.dev / dev-only-user ; admin.dev / dev-only-admin ; pm.dev / dev-only-pm ; qa.dev / dev-only-qa, assurance qualité étatique ; manager.dev / dev-only-manager ; director.dev / dev-only-director)');
 const stop = () => { procs.forEach((p) => p.kill()); process.exit(0); };
 process.on('SIGINT', stop);
 process.on('SIGTERM', stop);

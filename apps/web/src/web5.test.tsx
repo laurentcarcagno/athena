@@ -24,7 +24,7 @@ beforeEach(() => {
 });
 afterEach(() => { vi.unstubAllGlobals(); setLocale('fr'); });
 
-const admin: Session = { authenticated: true, user: { username: 'a', name: 'Alice', email: null, roles: ['athena-admin', 'athena-user'], groups: [] } };
+const admin: Session = { authenticated: true, user: { username: 'a', name: 'Alice', email: null, roles: ['athena-admin', 'athena-team-member'], groups: [] } };
 const templates = [
   { key: 'bug', name: 'Bugs', description: '', builtin: true, tracker: {
     key: 'BUG', name: 'Bugs',
@@ -110,7 +110,7 @@ describe('création d’un tracker dans un projet', () => {
   });
 
   it('refuse l’accès à un non administrateur', () => {
-    page({ authenticated: true, user: { username: 'u', name: 'U', email: null, roles: ['athena-user'], groups: [] } });
+    page({ authenticated: true, user: { username: 'u', name: 'U', email: null, roles: ['athena-team-member'], groups: [] } });
     expect(screen.getByRole('heading', { name: 'Seuls un administrateur ou un chef de projet peuvent ajouter un tracker.' })).toBeInTheDocument();
   });
 });

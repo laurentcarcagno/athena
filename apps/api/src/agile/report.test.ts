@@ -9,7 +9,7 @@ import { ReportService } from './report.service';
 import { SprintService } from './sprint.service';
 
 const suite = pgUp ? describe : describe.skip;
-const admin: Actor = { id: 'u-admin', roles: ['athena-user', 'athena-admin'] };
+const admin: Actor = { id: 'u-admin', roles: ['athena-team-member', 'athena-admin'] };
 const iso = (offsetDays: number) => new Date(Date.now() + offsetDays * 86_400_000).toISOString().slice(0, 10);
 
 async function code(promise: Promise<unknown>): Promise<string> {

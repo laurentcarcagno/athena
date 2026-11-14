@@ -13,7 +13,7 @@ import { buildOpenApi } from './openapi';
 export class OpenApiController {
   private readonly document = buildOpenApi([HealthController, BffController, CoreController, AttachmentController, SavedFilterController, AgileController, IntegrationsController, OpenApiController]);
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Get('openapi.json')
   spec() {
     return this.document;

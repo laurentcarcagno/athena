@@ -14,7 +14,7 @@ import { NotifyService } from './notify.service';
 import type { Mail, Mailer } from './smtp';
 
 const suite = pgUp ? describe : describe.skip;
-const actor = (id: string): Actor => ({ id, roles: ['athena-user', 'athena-admin'] });
+const actor = (id: string): Actor => ({ id, roles: ['athena-team-member', 'athena-admin'] });
 const item = (over: Partial<DigestItem> = {}): DigestItem => ({ event: 'comment', project: 'DIG', key: 'DIG-REQ-0001', actorName: 'Bob', payload: {}, ...over });
 
 describe('composition du résumé', () => {

@@ -12,14 +12,14 @@ export class PreferenceController {
     @Inject(OrgResolver) private readonly orgs: OrgResolver,
   ) {}
 
-  @Roles('athena-user', 'athena-admin', 'athena-pm', 'athena-qa')
+  @Roles('athena-team-member', 'athena-admin', 'athena-pm', 'athena-qa')
   @Get('preferences')
   async get(@Req() request: AuthedRequest) {
     const { organizationId, actor } = await this.orgs.resolve(request.principal!);
     return this.preferences.get(organizationId, actor);
   }
 
-  @Roles('athena-user', 'athena-admin', 'athena-pm', 'athena-qa')
+  @Roles('athena-team-member', 'athena-admin', 'athena-pm', 'athena-qa')
   @Put('preferences')
   @BodySchema(PreferenceInput)
   async put(@Req() request: AuthedRequest, @Body() body: unknown) {

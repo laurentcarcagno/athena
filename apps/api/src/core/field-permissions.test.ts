@@ -8,9 +8,9 @@ import { FieldTypeRegistry } from './field-types';
 import { TrackerService } from './tracker.service';
 
 const suite = pgUp ? describe : describe.skip;
-const admin: Actor = { id: 'u-admin', roles: ['athena-user', 'athena-admin'] };
-const dev: Actor = { id: 'u-dev', roles: ['athena-user'] };
-const hr: Actor = { id: 'u-hr', roles: ['athena-user', 'hr'] };
+const admin: Actor = { id: 'u-admin', roles: ['athena-team-member', 'athena-admin'] };
+const dev: Actor = { id: 'u-dev', roles: ['athena-team-member'] };
+const hr: Actor = { id: 'u-hr', roles: ['athena-team-member', 'hr'] };
 
 async function code(promise: Promise<unknown>): Promise<string> {
   const error = await promise.then(() => null, (e: unknown) => e);
@@ -88,7 +88,7 @@ suite('permissions par champ (intégration)', () => {
     const def = await new Db(testDb.pool).tx(org, (c) => trackers.getDefinition(c, 'ARI', 'STAFF'));
     expect(def.fields.find((f) => f.key === 'review')).toMatchObject({ readRoles: ['manager'], writeRoles: null });
     expect(def.fields.find((f) => f.key === 'title')).toMatchObject({ readRoles: null });
-    expect(visibleValues(def, { title: 'x', review: 'secret', salary: 1 }, ['athena-user'])).toEqual({ title: 'x' });
+    expect(visibleValues(def, { title: 'x', review: 'secret', salary: 1 }, ['athena-team-member'])).toEqual({ title: 'x' });
     expect(visibleValues(def, { review: 'secret' }, ['manager'])).toEqual({ review: 'secret' });
   });
 });

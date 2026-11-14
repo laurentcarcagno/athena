@@ -77,12 +77,12 @@ describe('approbation des jalons et baselines', () => {
     expect(screen.getAllByRole('link').map((l) => l.textContent)).toEqual(['Approbations']);
     expect((await axe.run(qa.container, { rules: { 'color-contrast': { enabled: false } } })).violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.html.slice(0, 80)).join(' | ')}`)).toEqual([]);
     qa.unmount();
-    page(as(['athena-user']));
+    page(as(['athena-team-member']));
     expect(await screen.findByRole('heading', { name: /réservé/ })).toBeInTheDocument();
   });
 
   it('un responsable trouve Approbations dans les Paramètres', async () => {
-    const s: Session = { authenticated: true, user: { username: 'p', name: 'P', email: null, roles: ['athena-pm', 'athena-user'], groups: [] } };
+    const s: Session = { authenticated: true, user: { username: 'p', name: 'P', email: null, roles: ['athena-pm', 'athena-team-member'], groups: [] } };
     wrap(<Routes><Route path="/" element={<Navigate to="/p/ARI/parametres/approbations" />} /><Route path="/p/:project/parametres/:section" element={<SettingsPage session={s} />} /></Routes>);
     expect(await screen.findByRole('link', { name: 'Approbations' })).toHaveAttribute('aria-current', 'page');
     expect(await screen.findByRole('button', { name: 'Ne plus exiger CDR' })).toBeInTheDocument();

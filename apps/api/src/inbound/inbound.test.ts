@@ -38,7 +38,7 @@ describe('mappeur déclaratif', () => {
 });
 
 const suite = pgUp ? describe : describe.skip;
-const admin: Actor = { id: 'u-admin', roles: ['athena-user', 'athena-admin'] };
+const admin: Actor = { id: 'u-admin', roles: ['athena-team-member', 'athena-admin'] };
 class MemorySecrets implements SecretStore {
   readonly data = new Map<string, Record<string, string>>();
   async put(path: string, d: Record<string, string>) { this.data.set(path, d); }

@@ -8,7 +8,7 @@ describe('schéma OpenAPI', () => {
   it('liste les routes avec paramètres, rôles et codes de succès', () => {
     expect(doc.openapi).toBe('3.1.0');
     const create = doc.paths['/v1/projects/{project}/artifacts/{key}/attachments']!['post']!;
-    expect(create['x-athena-roles']).toEqual(['athena-user', 'athena-admin']);
+    expect(create['x-athena-roles']).toEqual(['athena-team-member', 'athena-admin']);
     expect(create.parameters.map((p) => p.name)).toEqual(['project', 'key']);
     expect(Object.keys(create.responses)).toContain('201');
     expect(Object.keys(doc.paths['/v1/projects/{project}/artifacts/{key}/attachments/{id}']!['delete']!.responses)).toContain('204');

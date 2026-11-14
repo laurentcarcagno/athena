@@ -9,7 +9,7 @@ import { TrackerService } from './tracker.service';
 import { TrackerTypeService, type TrackerTypeInput } from './tracker-type.service';
 import { CATEGORIES, builtinTrackerTypes } from './tracker-types';
 
-const actor: Actor = { id: 'u1', roles: ['athena-user', 'athena-admin'] };
+const actor: Actor = { id: 'u1', roles: ['athena-team-member', 'athena-admin'] };
 const input: TrackerTypeInput = { name: 'Interface matérielle', description: 'Connecteurs et bus', category: 'engineering', defaultViews: ['tableau', 'matrice'], baseFields: [{ key: 'title', label: 'Titre', type: 'text', required: true, semanticRole: 'title' }] };
 
 async function code(promise: Promise<unknown>): Promise<string> {

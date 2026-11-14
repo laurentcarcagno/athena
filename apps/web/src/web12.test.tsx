@@ -44,7 +44,7 @@ beforeEach(() => {
 });
 afterEach(() => vi.unstubAllGlobals());
 
-const session: Session = { authenticated: true, user: { username: 'u', name: 'Ulysse', email: null, roles: ['athena-user'], groups: [] } };
+const session: Session = { authenticated: true, user: { username: 'u', name: 'Ulysse', email: null, roles: ['athena-team-member'], groups: [] } };
 const page = () => render(<ToastProvider><MemoryRouter initialEntries={['/p/ARI/a/ARI-BUG-0001']}><Routes><Route path="/p/:project/a/:key" element={<ArtifactPage session={session} />} /></Routes></MemoryRouter></ToastProvider>);
 const openLinks = async () => { await userEvent.click(await screen.findByRole('tab', { name: 'Liens' })); };
 

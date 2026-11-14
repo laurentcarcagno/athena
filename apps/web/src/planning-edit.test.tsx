@@ -165,7 +165,7 @@ describe('Gantt éditable', () => {
 });
 
 const manager = { authenticated: true, user: { name: 'Pat', roles: ['athena-admin'] } } as unknown as Session;
-const member = { authenticated: true, user: { name: 'Uma', roles: ['athena-user'] } } as unknown as Session;
+const member = { authenticated: true, user: { name: 'Uma', roles: ['athena-team-member'] } } as unknown as Session;
 
 describe('PlanningPage : édition', () => {
   let calls: Array<{ method: string; url: string; body: unknown }> = [];

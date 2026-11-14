@@ -40,7 +40,7 @@ afterEach(() => vi.unstubAllGlobals());
 
 const Where = () => <span data-testid="where">{useLocation().pathname}</span>;
 const session = (roles: string[]): Session => ({ authenticated: true, user: { username: 'u', name: 'Ulysse', email: null, roles, groups: [] } });
-const app = (path: string, roles = ['athena-user']) => render(
+const app = (path: string, roles = ['athena-team-member']) => render(
   <ToastProvider><MemoryRouter initialEntries={[path]}><Where /><AuthenticatedApp session={session(roles)} /></MemoryRouter></ToastProvider>,
 );
 const rail = () => screen.getByRole('navigation', { name: 'Navigation principale' });
@@ -48,13 +48,13 @@ const menu = async (name: RegExp) => { await userEvent.click(await within(rail()
 
 describe('menu Projets', () => {
   it('administrateur : « Nouveau projet » en première option, puis les projets (clé et nom), puis la liste complète', async () => {
-    app('/', ['athena-user', 'athena-admin']);
+    app('/', ['athena-team-member', 'athena-admin']);
     const list = await menu(/^Projets \(2\)/);
     expect(list.getAllByRole('button').map((b) => b.textContent)).toEqual(['Nouveau projet', 'ARI Ariane', 'LUMEN LUMEN : nanosatellite d’observation de la Terre', 'Tous les projets']);
   });
 
   it('« Nouveau projet » mène à la création de projet (Administration)', async () => {
-    app('/', ['athena-user', 'athena-admin']);
+    app('/', ['athena-team-member', 'athena-admin']);
     await userEvent.click((await menu(/^Projets/)).getByRole('button', { name: 'Nouveau projet' }));
     await waitFor(() => expect(screen.getByTestId('where')).toHaveTextContent('/admin'));
   });

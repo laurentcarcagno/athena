@@ -27,19 +27,19 @@ afterEach(() => vi.unstubAllGlobals());
 describe('responsable du projet', () => {
   it('l’administrateur l’est toujours, sans appel réseau ; un simple utilisateur, jamais', () => {
     expect(renderHook(() => useProjectManager('LUM', session(['athena-admin']))).result.current).toBe(true);
-    expect(renderHook(() => useProjectManager('LUM', session(['athena-user']))).result.current).toBe(false);
-    expect(renderHook(() => useProjectManagerState('LUM', session(['athena-qa', 'athena-user']))).result.current).toBe(false);
+    expect(renderHook(() => useProjectManager('LUM', session(['athena-team-member']))).result.current).toBe(false);
+    expect(renderHook(() => useProjectManagerState('LUM', session(['athena-qa', 'athena-team-member']))).result.current).toBe(false);
     expect(membersCalls).toBe(0);
   });
 
   it('un chef de projet l’est s’il est « manager » du projet, pas s’il en est un simple membre', async () => {
     members = [{ subject: 'sub-claire', username: 'claire', role: 'manager' }];
-    const yes = renderHook(() => useProjectManagerState('LUM', session(['athena-pm', 'athena-user'])));
+    const yes = renderHook(() => useProjectManagerState('LUM', session(['athena-pm', 'athena-team-member'])));
     expect(yes.result.current).toBeUndefined(); // en cours de chargement
     await waitFor(() => expect(yes.result.current).toBe(true));
     forgetProjectRoles();
     members = [{ subject: 'sub-claire', username: 'claire', role: 'member' }, { subject: 'sub-marc', username: 'marc', role: 'manager' }];
-    const no = renderHook(() => useProjectManagerState('OTH', session(['athena-pm', 'athena-user'])));
+    const no = renderHook(() => useProjectManagerState('OTH', session(['athena-pm', 'athena-team-member'])));
     await waitFor(() => expect(no.result.current).toBe(false));
   });
 
@@ -66,30 +66,30 @@ const at = (path: string, route: string, ui: React.ReactElement) => render(
 describe('formulaires masqués pour un chef de projet non responsable', () => {
   it('création de tracker : formulaire pour le responsable, message sinon', async () => {
     members = [{ subject: 'sub-claire', username: 'claire', role: 'manager' }];
-    at('/p/LUM/trackers/new', '/p/:project/trackers/new', <TrackerCreatePage session={session(['athena-pm', 'athena-user'])} />);
+    at('/p/LUM/trackers/new', '/p/:project/trackers/new', <TrackerCreatePage session={session(['athena-pm', 'athena-team-member'])} />);
     await waitFor(() => expect(screen.queryByRole('heading', { name: /Seuls un administrateur ou un chef de projet/ })).toBeNull());
   });
 
   it('création de tracker pour un chef de projet d’un autre projet : message, aucun formulaire', async () => {
     members = [{ subject: 'sub-claire', username: 'claire', role: 'member' }];
-    at('/p/LUM/trackers/new', '/p/:project/trackers/new', <TrackerCreatePage session={session(['athena-pm', 'athena-user'])} />);
+    at('/p/LUM/trackers/new', '/p/:project/trackers/new', <TrackerCreatePage session={session(['athena-pm', 'athena-team-member'])} />);
     expect(await screen.findByRole('heading', { name: /Seuls un administrateur ou un chef de projet/ })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Créer le tracker|Ajouter/ })).toBeNull();
   });
 
   it('Paramètres : le chef de projet non responsable ne garde que les approbations ; le responsable a les six sections', async () => {
     members = [{ subject: 'sub-claire', username: 'claire', role: 'member' }];
-    const view = at('/p/LUM/parametres', '/p/:project/parametres', <SettingsPage session={session(['athena-pm', 'athena-user'])} />);
+    const view = at('/p/LUM/parametres', '/p/:project/parametres', <SettingsPage session={session(['athena-pm', 'athena-team-member'])} />);
     await waitFor(() => expect(screen.getAllByRole('link').map((l) => l.textContent)).toEqual(['Approbations']));
     view.unmount();
     forgetProjectRoles();
     members = [{ subject: 'sub-claire', username: 'claire', role: 'manager' }];
-    at('/p/LUM/parametres/membres', '/p/:project/parametres/:section', <SettingsPage session={session(['athena-pm', 'athena-user'])} />);
+    at('/p/LUM/parametres/membres', '/p/:project/parametres/:section', <SettingsPage session={session(['athena-pm', 'athena-team-member'])} />);
     await waitFor(() => expect(screen.getAllByRole('link').map((l) => l.textContent)).toEqual(['Membres', 'Trackers', 'Boards', 'Automatisations', 'Baselines', 'Approbations']));
   });
 
   it('Paramètres : pendant le chargement, ni message d’accès ni formulaire', () => {
-    at('/p/LUM/parametres/trackers', '/p/:project/parametres/:section', <SettingsPage session={session(['athena-pm', 'athena-user'])} />);
+    at('/p/LUM/parametres/trackers', '/p/:project/parametres/:section', <SettingsPage session={session(['athena-pm', 'athena-team-member'])} />);
     expect(screen.getByRole('status')).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: /réservée/ })).toBeNull();
   });

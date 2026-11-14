@@ -66,7 +66,7 @@ export class InboundService {
       );
       if (!fresh) return { duplicate: true, action: mapping.action };
     }
-    const actor: Actor = { id: `inbound:${name}`, roles: ['athena-user'] };
+    const actor: Actor = { id: `inbound:${name}`, roles: ['athena-team-member'] };
     return { duplicate: false, ...(await this.execute(organizationId, projectKey, mapping, payload, actor)) };
   }
 

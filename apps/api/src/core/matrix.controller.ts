@@ -15,7 +15,7 @@ export class MatrixController {
   ) {}
 
   /** Matrice de traçabilité `rows` × `cols` par un type de lien ; tuiles de 500 lignes (`rowOffset`) sur 200 colonnes (`offset`). */
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Get(':project/matrix')
   async get(
     @Req() request: AuthedRequest, @Param('project') project: string,

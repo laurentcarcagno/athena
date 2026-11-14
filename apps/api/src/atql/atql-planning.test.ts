@@ -41,7 +41,7 @@ describe('ATQL : fonctions de planning (analyse et compilation)', () => {
 });
 
 const suite = pgUp ? describe : describe.skip;
-const admin: Actor = { id: 'sub-admin', roles: ['athena-user', 'athena-admin'] };
+const admin: Actor = { id: 'sub-admin', roles: ['athena-team-member', 'athena-admin'] };
 
 const spec = (project: string, key: string, withDates: boolean): TrackerSpec => ({
   projectKey: project, key, name: key, typeKey: 'task',

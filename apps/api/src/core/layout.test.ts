@@ -8,7 +8,7 @@ import { TemplateService } from './template.service';
 import { bugTemplate } from './templates';
 import { TrackerService } from './tracker.service';
 
-const admin: Actor = { id: 'sub-admin', roles: ['athena-user', 'athena-admin'] };
+const admin: Actor = { id: 'sub-admin', roles: ['athena-team-member', 'athena-admin'] };
 
 describe('disposition : validation pure', () => {
   const layout: Layout = { sections: [{ title: 'Général', fields: [{ key: 'title', span: 3 }, { key: 'severity', span: 1 }] }, { title: '', fields: [{ key: 'description', span: 2 }] }] };

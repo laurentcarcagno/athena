@@ -6,7 +6,7 @@ import { BrandService } from './brand.service';
 import { validation } from './errors';
 import { OrgResolver } from './http';
 
-const EVERYONE = ['athena-user', 'athena-admin', 'athena-pm', 'athena-qa'] as const;
+const EVERYONE = ['athena-team-member', 'athena-admin', 'athena-pm', 'athena-qa'] as const;
 
 /** Icône et logo de marque par thème : lisibles par toute personne connectée, téléversés par l'administration (T-0137). */
 @Controller('v1')

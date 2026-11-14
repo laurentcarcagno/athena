@@ -28,7 +28,7 @@ export class NormativeController {
     return this.normative.importClauses(organizationId, project, { csv: input.csv, ...(input.standard ? { standard: input.standard } : {}), ...(input.tracker ? { tracker: input.tracker } : {}) }, actor);
   }
 
-  @Roles('athena-user', 'athena-admin', 'athena-pm')
+  @Roles('athena-team-member', 'athena-admin', 'athena-pm')
   @Get(':project/tailoring')
   async tailoring(@Req() request: AuthedRequest, @Param('project') project: string) {
     return this.normative.listTailoring((await this.orgs.resolve(request.principal!)).organizationId, project);
@@ -52,13 +52,13 @@ export class NormativeController {
     await this.normative.setTailoring(organizationId, project, { clause: decodeURIComponent(clause), category: category === '_all' ? '*' : category, applicability: 'applicable', justification: '' }, actor);
   }
 
-  @Roles('athena-user', 'athena-admin', 'athena-pm')
+  @Roles('athena-team-member', 'athena-admin', 'athena-pm')
   @Get(':project/conformity')
   async conformity(@Req() request: AuthedRequest, @Param('project') project: string, @Query('category') category?: string) {
     return this.normative.conformity((await this.orgs.resolve(request.principal!)).organizationId, project, Category.parse(category || undefined));
   }
 
-  @Roles('athena-user', 'athena-admin', 'athena-pm')
+  @Roles('athena-team-member', 'athena-admin', 'athena-pm')
   @Get(':project/conformity/export')
   async conformityExport(@Req() request: AuthedRequest, @Param('project') project: string, @Query('category') category?: string) {
     const out = await this.normative.conformityCsv((await this.orgs.resolve(request.principal!)).organizationId, project, Category.parse(category || undefined));

@@ -58,7 +58,7 @@ describe('boucle de worker', () => {
 });
 
 const suite = pgUp ? describe : describe.skip;
-const actor: Actor = { id: 'u1', roles: ['athena-user', 'athena-admin'] };
+const actor: Actor = { id: 'u1', roles: ['athena-team-member', 'athena-admin'] };
 class MemorySecrets implements SecretStore {
   readonly data = new Map<string, Record<string, string>>();
   async put(path: string, d: Record<string, string>) { this.data.set(path, d); }

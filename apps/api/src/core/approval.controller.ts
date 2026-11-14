@@ -18,7 +18,7 @@ export class ApprovalController {
     @Inject(OrgResolver) private readonly orgs: OrgResolver,
   ) {}
 
-  @Roles('athena-user', 'athena-admin', 'athena-pm', 'athena-qa')
+  @Roles('athena-team-member', 'athena-admin', 'athena-pm', 'athena-qa')
   @Get(':project/approvals')
   async list(@Req() request: AuthedRequest, @Param('project') project: string) {
     return this.approvals.list((await this.orgs.resolve(request.principal!)).organizationId, project);

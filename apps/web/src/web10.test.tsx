@@ -74,7 +74,7 @@ afterEach(() => vi.unstubAllGlobals());
 
 const session = (roles: string[]): Session => ({ authenticated: true, user: { username: 'u', name: 'Ulysse', email: null, roles, groups: [] } });
 const Where = () => <span data-testid="where">{useLocation().pathname}{useLocation().search}</span>;
-const app = (path: string, roles = ['athena-user']) => render(
+const app = (path: string, roles = ['athena-team-member']) => render(
   <ToastProvider><MemoryRouter initialEntries={[path]}><Where /><AuthenticatedApp session={session(roles)} /></MemoryRouter></ToastProvider>,
 );
 const lastSearch = () => decodeURIComponent([...calls].reverse().find((c) => c.includes('/search?'))!);
@@ -129,7 +129,7 @@ describe('écran Tracker', () => {
     await screen.findByRole('heading', { level: 1, name: 'Anomalies' });
     expect(screen.queryByRole('button', { name: 'Configurer' })).not.toBeInTheDocument();
     view.unmount();
-    app('/p/ARI/t/BUG/tableau', ['athena-user', 'athena-admin']);
+    app('/p/ARI/t/BUG/tableau', ['athena-team-member', 'athena-admin']);
     await userEvent.click(await screen.findByRole('button', { name: 'Configurer' }));
     expect(screen.getByTestId('where')).toHaveTextContent('/p/ARI/parametres/trackers/BUG');
   });
@@ -267,7 +267,7 @@ describe('vues enregistrées du tracker', () => {
     await waitFor(() => expect(screen.getByLabelText('Vues enregistrées')).toHaveValue('v1'));
     expect(screen.queryByRole('button', { name: 'Définir par défaut' })).not.toBeInTheDocument();
     user.unmount();
-    app('/p/ARI/t/BUG/tableau?f=status%20%3D%20open', ['athena-user', 'athena-pm']);
+    app('/p/ARI/t/BUG/tableau?f=status%20%3D%20open', ['athena-team-member', 'athena-pm']);
     await userEvent.click(await screen.findByRole('button', { name: 'Définir par défaut' }));
     await waitFor(() => expect(bodies.find((b) => b.method === 'PATCH')?.body).toEqual({ isDefault: true }));
   });

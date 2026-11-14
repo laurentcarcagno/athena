@@ -110,7 +110,7 @@ describe('ScheduleGantt', () => {
   });
 });
 
-const session = { authenticated: true, user: { name: 'Pat', roles: ['athena-user'] } } as unknown as Session;
+const session = { authenticated: true, user: { name: 'Pat', roles: ['athena-team-member'] } } as unknown as Session;
 
 describe('PlanningPage', () => {
   let paths: string[] = [];

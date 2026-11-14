@@ -19,8 +19,8 @@ const gitlabUp = !!TOKEN && probe("fetch(process.env.U+'/users/sign_in',{signal:
 const suite = pgUp ? describe : describe.skip;
 const gitSuite = pgUp && gitlabUp ? describe : describe.skip;
 
-const admin: Actor = { id: 'sub-admin', roles: ['athena-user', 'athena-admin'] };
-const pm: Actor = { id: 'sub-pm', roles: ['athena-user', 'athena-pm'] };
+const admin: Actor = { id: 'sub-admin', roles: ['athena-team-member', 'athena-admin'] };
+const pm: Actor = { id: 'sub-pm', roles: ['athena-team-member', 'athena-pm'] };
 
 const taskSpec = (project: string): TrackerSpec => ({
   projectKey: project, key: 'TSK', name: 'Tâches', typeKey: 'task',
@@ -88,7 +88,7 @@ suite('planning d’un projet (intégration)', () => {
   afterAll(async () => { await f?.testDb.drop(); });
 
   it('calcule le planning de référence à partir des tickets, des liens et du calendrier', async () => {
-    const s = await f.schedule.get(f.org, 'NOVA', ['athena-user']);
+    const s = await f.schedule.get(f.org, 'NOVA', ['athena-team-member']);
     const row = (k: string) => s.tasks.find((x) => x.key === k)!;
     expect([row(t.b.key).plannedStart, row(t.b.key).plannedEnd]).toEqual(['2026-11-12', '2026-11-12']);
     expect([row(t.c.key).plannedStart, row(t.c.key).plannedEnd]).toEqual(['2026-11-16', '2026-11-19']);
@@ -103,7 +103,7 @@ suite('planning d’un projet (intégration)', () => {
 
   it('suit le calendrier de l’organisation : un jour férié de plus décale la suite', async () => {
     await f.calendar.put(f.org, { workDays: [1, 2, 3, 4, 5], holidays: [{ day: '2026-11-11', label: 'Armistice' }, { day: '2026-11-12', label: 'Pont' }] }, admin);
-    const s = await f.schedule.get(f.org, 'NOVA', ['athena-user']);
+    const s = await f.schedule.get(f.org, 'NOVA', ['athena-team-member']);
     expect(s.tasks.find((x) => x.key === t.b.key)!.plannedStart).toBe('2026-11-13');
     await f.calendar.put(f.org, { workDays: [1, 2, 3, 4, 5], holidays: [{ day: '2026-11-11', label: 'Armistice' }] }, admin);
   });
@@ -111,8 +111,8 @@ suite('planning d’un projet (intégration)', () => {
   it('ignore les trackers sans début ni échéance et un projet sans planning', async () => {
     const trackers = new TrackerService(f.db, new FieldTypeRegistry());
     await trackers.createProject(f.org, 'EMPTY', 'Vide', admin);
-    expect((await f.schedule.get(f.org, 'EMPTY', ['athena-user'])).tasks).toEqual([]);
-    await expect(f.schedule.get(f.org, 'NOPE', ['athena-user'])).rejects.toMatchObject({ code: 'not_found' });
+    expect((await f.schedule.get(f.org, 'EMPTY', ['athena-team-member'])).tasks).toEqual([]);
+    await expect(f.schedule.get(f.org, 'NOPE', ['athena-team-member'])).rejects.toMatchObject({ code: 'not_found' });
   });
 
   it('applique le planning : seules les tickets qui bougent sont modifiées, en un lot, avec un événement', async () => {
@@ -144,7 +144,7 @@ suite('planning d’un projet (intégration)', () => {
     const y = await f.artifacts.create(f.org, 'NOVA', 'TSK', { title: 'Y', start: '2026-12-10', due: '2026-12-11' }, admin);
     await f.links.link(f.org, 'NOVA', x.key, p.key, 'parent', admin);
     await f.links.link(f.org, 'NOVA', y.key, p.key, 'parent', admin);
-    const s = await f.schedule.get(f.org, 'NOVA', ['athena-user']);
+    const s = await f.schedule.get(f.org, 'NOVA', ['athena-team-member']);
     expect(s.tasks.find((r) => r.key === p.key)).toMatchObject({ summary: true, plannedStart: '2026-12-07', plannedEnd: '2026-12-11', moved: true });
     expect((await f.schedule.apply(f.org, 'NOVA', pm)).keys).toEqual([p.key]);
     expect((await f.artifacts.get(f.org, 'NOVA', p.key)).values).toMatchObject({ start: '2026-12-07', due: '2026-12-11' });
@@ -211,7 +211,7 @@ suite('édition d’une tâche du planning (intégration)', () => {
   });
 
   it('expose les identifiants de lien et la version des tickets pour l’interface', async () => {
-    const s = await f.schedule.get(f.org, 'NOVA', ['athena-user']);
+    const s = await f.schedule.get(f.org, 'NOVA', ['athena-team-member']);
     expect(s.links.every((l) => typeof l.id === 'string' && l.id.length > 0)).toBe(true);
     expect(s.tasks.find((x) => x.key === t.a.key)!.version).toBeGreaterThan(1);
     expect(s.tasks.find((x) => x.key === t.a.key)!.status).toEqual({ key: 'todo', name: 'À faire', category: 'todo', color: null });
@@ -223,7 +223,7 @@ suite('décalage d’un lien modifiable après création (intégration)', () => 
   let f: Fixture;
   let t: Awaited<ReturnType<typeof seedReference>>;
   const vals = async (key: string) => (await f.artifacts.get(f.org, 'NOVA', key)).values;
-  const linkId = async (from: string) => (await f.schedule.get(f.org, 'NOVA', ['athena-user'])).links.find((l) => l.from === from)!.id;
+  const linkId = async (from: string) => (await f.schedule.get(f.org, 'NOVA', ['athena-team-member'])).links.find((l) => l.from === from)!.id;
 
   beforeAll(async () => {
     f = await fixture('athena_test_schedule_lag', 'sch4');
@@ -237,7 +237,7 @@ suite('décalage d’un lien modifiable après création (intégration)', () => 
     const r = await f.schedule.setLag(f.org, 'NOVA', await linkId(t.b.key), 3, pm);
     expect(r.keys.sort()).toEqual([t.c.key, t.m.key].sort());
     expect(await vals(t.c.key)).toMatchObject({ start: '2026-11-18', due: '2026-11-23' });
-    const view = await f.schedule.get(f.org, 'NOVA', ['athena-user']);
+    const view = await f.schedule.get(f.org, 'NOVA', ['athena-team-member']);
     expect(view.links.find((l) => l.from === t.b.key)!.lag).toBe(3);
     const events = await f.db.tx(f.org, async (c) => (await c.query("select type from outbox_event where type in ('link.updated','schedule.changed') order by created_at desc limit 2")).rows.map((x) => x.type).sort());
     expect(events).toEqual(['link.updated', 'schedule.changed']);
@@ -279,7 +279,7 @@ suite('baselines antérieures à la migration 061 (intégration)', () => {
     expect(rows).toHaveLength(5);
     expect(rows.find((r) => r.artifact_key === t.b.key)).toEqual({ artifact_key: t.b.key, s: '2026-11-10', e: '2026-11-10' });
     expect(rows.find((r) => r.artifact_key === t.m.key)).toEqual({ artifact_key: t.m.key, s: null, e: '2026-11-19' });
-    const view = await f.schedule.get(f.org, 'NOVA', ['athena-user'], 'ANCIENNE');
+    const view = await f.schedule.get(f.org, 'NOVA', ['athena-team-member'], 'ANCIENNE');
     expect(view.tasks.find((x) => x.key === t.b.key)).toMatchObject({ baselineEnd: '2026-11-10' });
     // Rejouée, la migration n'ajoute rien (une baseline qui a un planning est laissée telle quelle).
     await f.testDb.exec(readFileSync(join(__dirname, '../db/migrations/061_baseline_schedule_backfill.sql'), 'utf8'));
@@ -320,7 +320,7 @@ suite('planning figé par une baseline (intégration)', () => {
     await freeze('B1');
     expect((await f.schedule.baselines(f.org, 'NOVA')).map((b) => [b.name, b.tasks])).toEqual([['B1', 5]]);
     await f.schedule.edit(f.org, 'NOVA', t.a.key, { duration: 4 }, pm); // A finit le 13 (le 11 est férié : +2 jours ouvrés) ; B, C et le jalon glissent d’autant
-    const s = await f.schedule.get(f.org, 'NOVA', ['athena-user'], 'B1');
+    const s = await f.schedule.get(f.org, 'NOVA', ['athena-team-member'], 'B1');
     const row = (k: string) => s.tasks.find((x) => x.key === k)!;
     expect(s.baseline).toMatchObject({ name: 'B1' });
     expect(row(t.a.key)).toMatchObject({ baselineStart: '2026-11-09', baselineEnd: '2026-11-10', plannedEnd: '2026-11-13', variance: 2 });
@@ -330,16 +330,16 @@ suite('planning figé par une baseline (intégration)', () => {
 
   it('une baseline ne change pas quand le planning bouge ; un ticket créé depuis n’y figure pas', async () => {
     const late = await f.artifacts.create(f.org, 'NOVA', 'TSK', { title: 'Tardive', start: '2026-12-01', due: '2026-12-02' }, admin);
-    const s = await f.schedule.get(f.org, 'NOVA', ['athena-user'], 'B1');
+    const s = await f.schedule.get(f.org, 'NOVA', ['athena-team-member'], 'B1');
     expect(s.tasks.find((x) => x.key === late.key)).toMatchObject({ baselineEnd: null, variance: null });
     expect(s.tasks.find((x) => x.key === t.d.key)).toMatchObject({ baselineStart: '2026-11-09' });
   });
 
   it('sans baseline demandée, aucun écart ; une baseline inconnue est introuvable', async () => {
-    const s = await f.schedule.get(f.org, 'NOVA', ['athena-user']);
+    const s = await f.schedule.get(f.org, 'NOVA', ['athena-team-member']);
     expect(s.baseline).toBeNull();
     expect(s.tasks.every((x) => x.variance === null && x.baselineEnd === null)).toBe(true);
-    await expect(f.schedule.get(f.org, 'NOVA', ['athena-user'], 'NOPE')).rejects.toMatchObject({ code: 'not_found' });
+    await expect(f.schedule.get(f.org, 'NOVA', ['athena-team-member'], 'NOPE')).rejects.toMatchObject({ code: 'not_found' });
   });
 });
 
@@ -387,7 +387,7 @@ gitSuite('replanification dans l’historique (GitLab réel)', () => {
     const baselines = new BaselineService(f.testDb.pool, gitlab, 'root', 'main', (org, project) => f.schedule.snapshot(org, project));
     await baselines.create(f.org, 'NOVA', 'PLAN-1', pm);
     expect((await f.schedule.baselines(f.org, 'NOVA')).map((b) => [b.name, b.tasks])).toEqual([['PLAN-1', 5]]);
-    const view = await f.schedule.get(f.org, 'NOVA', ['athena-user'], 'PLAN-1');
+    const view = await f.schedule.get(f.org, 'NOVA', ['athena-team-member'], 'PLAN-1');
     expect(view.tasks.filter((x) => x.baselineEnd !== null)).toHaveLength(5);
     expect(view.tasks.every((x) => x.variance === 0)).toBe(true);
   }, 120_000);

@@ -33,7 +33,7 @@ beforeEach(() => {
 });
 afterEach(() => vi.unstubAllGlobals());
 
-const session: Session = { authenticated: true, user: { username: 'alice', name: 'Alice', email: null, roles: ['athena-user'], groups: [] } };
+const session: Session = { authenticated: true, user: { username: 'alice', name: 'Alice', email: null, roles: ['athena-team-member'], groups: [] } };
 function Where() { const l = useLocation(); return <span data-testid="where">{l.pathname + decodeURIComponent(l.search.replace(/\+/g, ' '))}</span>; }
 const page = (path = '/recherche') => render(
   <ToastProvider><MemoryRouter initialEntries={[path]}><Routes><Route path="/recherche" element={<><GlobalSearchPage session={session} /><Where /></>} /><Route path="/p/:p/a/:k" element={<Where />} /></Routes></MemoryRouter></ToastProvider>,

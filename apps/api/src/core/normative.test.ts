@@ -12,7 +12,7 @@ import { TemplateService, type TemplateTracker } from './template.service';
 import { normativeClauseTracker, requirementTemplate } from './templates';
 import { TrackerService } from './tracker.service';
 
-const actor: Actor = { id: 'u1', roles: ['athena-user', 'athena-admin'] };
+const actor: Actor = { id: 'u1', roles: ['athena-team-member', 'athena-admin'] };
 const suite = pgUp ? describe : describe.skip;
 const fail = async (p: Promise<unknown>) => { const e = await p.then(() => null, (x: unknown) => x); return e instanceof DomainError ? `${e.code}:${e.details.join('|') || e.message}` : `ok`; };
 

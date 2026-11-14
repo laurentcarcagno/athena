@@ -58,7 +58,7 @@ describe('BFF OIDC (fournisseur simulé)', () => {
     new SignJWT({ events: { 'http://schemas.openid.net/event/backchannel-logout': {} }, ...claims })
       .setProtectedHeader({ alg: 'RS256', kid: 'k1' }).setIssuer(issuer).setAudience(audience).setSubject('sub-1').setIssuedAt().sign(privateKey);
   const accessToken = () =>
-    new SignJWT({ preferred_username: 'alice', name: 'Alice Martin', email: 'alice@example.test', realm_access: { roles: ['athena-user'] }, groups: ['/org-demo'] })
+    new SignJWT({ preferred_username: 'alice', name: 'Alice Martin', email: 'alice@example.test', realm_access: { roles: ['athena-team-member'] }, groups: ['/org-demo'] })
       .setProtectedHeader({ alg: 'RS256', kid: 'k1' }).setIssuer(issuer).setAudience('athena-api').setSubject('sub-1').setIssuedAt().setExpirationTime('5m').sign(privateKey);
 
   beforeAll(async () => {
@@ -144,7 +144,7 @@ describe('BFF OIDC (fournisseur simulé)', () => {
 
     const jar = cookieHeader(callback.headers['set-cookie']);
     const state = (await inject('GET', '/auth/session', { cookie: jar })).json();
-    expect(state).toMatchObject({ authenticated: true, user: { username: 'alice', name: 'Alice Martin', roles: ['athena-user'] }, protectionLevel: 'Diffusion Restreinte' });
+    expect(state).toMatchObject({ authenticated: true, user: { username: 'alice', name: 'Alice Martin', roles: ['athena-team-member'] }, protectionLevel: 'Diffusion Restreinte' });
     expect((await inject('GET', '/auth/session')).json()).toEqual({ authenticated: false, protectionLevel: 'Diffusion Restreinte' }); // le bandeau s'affiche aussi avant connexion
     expect(JSON.stringify(state)).not.toMatch(/eyJ/); // aucun jeton
     const me = await inject('GET', '/v1/me', { cookie: jar });

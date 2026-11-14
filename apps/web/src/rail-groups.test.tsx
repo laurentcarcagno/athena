@@ -38,7 +38,7 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals());
 
 const session = (roles: string[]): Session => ({ authenticated: true, user: { username: 'u', name: 'Ulysse', email: null, roles, groups: [] } });
-const app = (path: string, roles = ['athena-user']) => render(
+const app = (path: string, roles = ['athena-team-member']) => render(
   <ToastProvider><MemoryRouter initialEntries={[path]}><AuthenticatedApp session={session(roles)} /></MemoryRouter></ToastProvider>,
 );
 const rail = () => screen.getByRole('navigation', { name: 'Navigation principale' });
@@ -101,7 +101,7 @@ describe('trackers regroupés par métier', () => {
   });
 
   it('un chef de projet garde Paramètres', async () => {
-    app('/p/LUM', ['athena-pm', 'athena-user']);
+    app('/p/LUM', ['athena-pm', 'athena-team-member']);
     await waitFor(() => expect(within(rail()).getByRole('button', { name: 'Paramètres' })).toBeInTheDocument());
   });
 });

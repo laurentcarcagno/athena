@@ -81,7 +81,7 @@ describe('Board et Liste du planning', () => {
   });
 });
 
-const user = { authenticated: true, user: { id: 'u-pat', username: 'pat', name: 'Pat', roles: ['athena-user'] } } as unknown as Session;
+const user = { authenticated: true, user: { id: 'u-pat', username: 'pat', name: 'Pat', roles: ['athena-team-member'] } } as unknown as Session;
 
 function Where() {
   const l = useLocation();
@@ -182,7 +182,7 @@ describe('section Planification de la fiche', () => {
   });
 
   it('affiche les dates, la durée, la marge et les liens « précède » (pas les autres types)', async () => {
-    show(['athena-user']);
+    show(['athena-team-member']);
     expect(await screen.findByText('2 j', { selector: 'dd' })).toBeInTheDocument();
     expect(screen.getByText('N-2')).toHaveAttribute('href', '/p/NOVA/a/N-2');
     expect(screen.getByText('N-4').closest('li')!.textContent).toContain('(+2 j)');
@@ -190,7 +190,7 @@ describe('section Planification de la fiche', () => {
   });
 
   it('un utilisateur modifie l’avancement et le reste à faire de son ticket, pas les dates', async () => {
-    const { onSave } = show(['athena-user'], 'u-pat');
+    const { onSave } = show(['athena-team-member'], 'u-pat');
     const progress = await screen.findByLabelText('Avancement');
     await userEvent.clear(progress);
     await userEvent.type(progress, '60');
@@ -202,7 +202,7 @@ describe('section Planification de la fiche', () => {
   });
 
   it('sur le ticket d’un autre, un utilisateur ne voit que des valeurs', async () => {
-    show(['athena-user'], 'u-uma');
+    show(['athena-team-member'], 'u-uma');
     await screen.findByText('2 j', { selector: 'dd' });
     expect(screen.queryByLabelText('Avancement')).toBeNull();
     expect(screen.queryByLabelText('Reste à faire (jours)')).toBeNull();

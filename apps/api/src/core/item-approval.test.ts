@@ -13,8 +13,8 @@ import { TrackerService } from './tracker.service';
 import { NotifyService } from '../notify/notify.service';
 
 const suite = pgUp ? describe : describe.skip;
-const admin: Actor = { id: 'admin', roles: ['athena-user', 'athena-admin'] };
-const user = (id: string): Actor => ({ id, roles: ['athena-user'] });
+const admin: Actor = { id: 'admin', roles: ['athena-team-member', 'athena-admin'] };
+const user = (id: string): Actor => ({ id, roles: ['athena-team-member'] });
 const qa: Actor = { id: 'qa', roles: ['athena-qa'] };
 const who = (a: Actor) => ({ subject: a.id, name: a.id.toUpperCase(), roles: a.roles });
 const code = async (p: Promise<unknown>) => { const e = await p.then(() => null, (x: unknown) => x); return e instanceof DomainError ? `${e.code}:${e.message}` : e ? `autre:${(e as Error).message}` : 'ok'; };
@@ -204,7 +204,7 @@ suite('circuits d’approbation des items (intégration)', () => {
     const a = await make('Confidentielle');
     await decide(a.key, user('rita'), 'approved');
     await access.set(org, 'APR', { tracker: 'REQ', members: ['admin', 'qa'] }, admin);
-    expect(await code(runAs('paul', () => flows.get(org, 'APR', a.key, { subject: 'paul', roles: ['athena-user'] })))).toMatch(/^not_found/);
+    expect(await code(runAs('paul', () => flows.get(org, 'APR', a.key, { subject: 'paul', roles: ['athena-team-member'] })))).toMatch(/^not_found/);
     const seen = await runAs('paul', () => db.tx(org, async (c) => (await c.query("select count(*)::int n from approval where object_type = 'item' and object_id = (select id from artifact where key = $1)", [a.key])).rows[0].n));
     expect(seen).toBe(0);
     await access.remove(org, 'APR', 'REQ', admin);

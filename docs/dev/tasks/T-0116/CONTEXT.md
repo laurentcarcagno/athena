@@ -20,7 +20,7 @@ Critère : un sprint se planifie sans quitter la page, au clavier compris.
 - Vérifications : Vitest web 390 sur 390, `tsc` OK, API agile et OpenAPI OK, e2e 41 sur 41 (backlog rejoué seul après correction de son adresse finale).
 
 ## Décisions et pièges
-- Planifier est réservé aux administrateurs et aux chefs de projet (`athena-admin`, `athena-pm`) ; le serveur l'impose aussi. Ajouter un ticket à un sprint reste ouvert à `athena-user` côté API, comme avant.
+- Planifier est réservé aux administrateurs et aux chefs de projet (`athena-admin`, `athena-pm`) ; le serveur l'impose aussi. Ajouter un ticket à un sprint reste ouvert à `athena-team-member` côté API, comme avant.
 - Retirer d'un sprint se fait sans confirmation (le ticket revient au backlog avec son rang), avec l'annotation exigée par `guards.test`.
 - Bash : un `perl -e` avec des backticks dans des guillemets doubles est substitué par le shell. Écrire les textes avec Edit.
 

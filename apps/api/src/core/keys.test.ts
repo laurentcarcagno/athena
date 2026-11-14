@@ -48,7 +48,7 @@ describe('clés d’item', () => {
 });
 
 const suite = pgUp ? describe : describe.skip;
-const actor: Actor = { id: 'u1', roles: ['athena-user', 'athena-admin'] };
+const actor: Actor = { id: 'u1', roles: ['athena-team-member', 'athena-admin'] };
 
 suite('migration 030 : anciennes clés conservées en alias', () => {
   const database = `athena_test_keys_${process.pid.toString(36)}`;

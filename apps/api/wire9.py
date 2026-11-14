@@ -102,10 +102,10 @@ ROUTES = """  @Roles('athena-admin')
     return { added: input.name };
   }
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Get(':project/trackers/:tracker')"""
 edit('src/core/core.controller.ts', [
-    ("  @Roles('athena-user', 'athena-admin')\n  @Get(':project/trackers/:tracker')", ROUTES),
+    ("  @Roles('athena-team-member', 'athena-admin')\n  @Get(':project/trackers/:tracker')", ROUTES),
 ])
 
 s = open('src/history/baselines.test.ts', encoding='utf-8').read().rstrip()

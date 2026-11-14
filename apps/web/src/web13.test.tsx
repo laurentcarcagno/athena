@@ -34,7 +34,7 @@ beforeEach(() => {
 });
 afterEach(() => vi.unstubAllGlobals());
 
-const admin: Session = { authenticated: true, user: { username: 'a', name: 'Alice', email: null, roles: ['athena-admin', 'athena-user'], groups: [] } };
+const admin: Session = { authenticated: true, user: { username: 'a', name: 'Alice', email: null, roles: ['athena-admin', 'athena-team-member'], groups: [] } };
 async function openTab() {
   render(<ToastProvider><MemoryRouter initialEntries={['/org']}><Routes><Route path="/org" element={<OrgAdminPage session={admin} />} /></Routes></MemoryRouter></ToastProvider>);
   await userEvent.click(await screen.findByRole('tab', { name: 'Liens' }));

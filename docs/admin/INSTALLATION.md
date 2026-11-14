@@ -36,7 +36,7 @@ Prérequis : deux secrets Kubernetes, alimentés par OpenBao (jamais dans le dé
 Le job de migration s'exécute avant chaque installation ou mise à jour (hook Helm).
 
 ## Keycloak
-Realm avec : client confidentiel `athena-web` (PKCE S256, URI de redirection `https://<hôte>/auth/callback`, URL de déconnexion back-channel `https://<hôte>/auth/backchannel-logout`), mappeurs d'audience `athena-api` et de groupes (`groups`, chemins complets), rôles `athena-user`, `athena-pm` (chef de projet) et `athena-admin`. Un chef de projet reçoit `athena-user` et `athena-pm`, puis est désigné chef de chaque projet par un administrateur (fenêtre **Organisation**). Chaque organisation est un groupe `/org-<clé>`. Activer la MFA (TOTP/WebAuthn) pour les administrateurs. Un exemple complet est dans `deploy/dev/keycloak/athena-realm.json` (**ne pas l'utiliser tel quel en production** : mots de passe de démonstration).
+Realm avec : client confidentiel `athena-web` (PKCE S256, URI de redirection `https://<hôte>/auth/callback`, URL de déconnexion back-channel `https://<hôte>/auth/backchannel-logout`), mappeurs d'audience `athena-api` et de groupes (`groups`, chemins complets), rôles `athena-team-member`, `athena-pm` (chef de projet) et `athena-admin`. Un chef de projet reçoit `athena-team-member` et `athena-pm`, puis est désigné chef de chaque projet par un administrateur (fenêtre **Organisation**). Chaque organisation est un groupe `/org-<clé>`. Activer la MFA (TOTP/WebAuthn) pour les administrateurs. Un exemple complet est dans `deploy/dev/keycloak/athena-realm.json` (**ne pas l'utiliser tel quel en production** : mots de passe de démonstration).
 
 ### Thème de la page de connexion
 Le thème Keycloak `athena` (`deploy/dev/keycloak/themes/athena`) applique les jetons du thème par défaut de l'organisation (Administration > Apparence), clair ou sombre selon le système. Keycloak sert une feuille statique : la générer au déploiement avec le thème retenu, puis la livrer avec le thème Keycloak :
@@ -130,7 +130,7 @@ Initialiser et desceller OpenBao (`bao operator init`, clés de descellement ré
 
 Le niveau de protection de l'instance (bandeau et mention des exports) se règle par `protectionLevel` (variable `ATHENA_PROTECTION_LEVEL`).
 
-Rôles Keycloak de l'instance Défense : `athena-qa` (assurance qualité : droits d'un utilisateur, plus l'approbation des jalons et des baselines ; ni configuration ni planning) s'ajoute à `athena-admin`, `athena-pm` et `athena-user`. Le royaume de développement fournit le compte `qa.dev`. Les listes d'ayants droit et le contrôle export sont appliqués par la base (politiques RLS restrictives, migrations 039 et 040) : aucune configuration supplémentaire.
+Rôles Keycloak de l'instance Défense : `athena-qa` (assurance qualité : droits d'un utilisateur, plus l'approbation des jalons et des baselines ; ni configuration ni planning) s'ajoute à `athena-admin`, `athena-pm` et `athena-team-member`. Le royaume de développement fournit le compte `qa.dev`. Les listes d'ayants droit et le contrôle export sont appliqués par la base (politiques RLS restrictives, migrations 039 et 040) : aucune configuration supplémentaire.
 
 ## Recette Kubernetes locale (kind)
 

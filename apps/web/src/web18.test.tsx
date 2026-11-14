@@ -37,8 +37,8 @@ beforeEach(() => {
 });
 afterEach(() => vi.unstubAllGlobals());
 
-const pm: Session = { authenticated: true, user: { username: 'p', name: 'Paul', email: null, roles: ['athena-user', 'athena-pm'], groups: [] } };
-const admin: Session = { authenticated: true, user: { username: 'a', name: 'Alice', email: null, roles: ['athena-admin', 'athena-user'], groups: [] } };
+const pm: Session = { authenticated: true, user: { username: 'p', name: 'Paul', email: null, roles: ['athena-team-member', 'athena-pm'], groups: [] } };
+const admin: Session = { authenticated: true, user: { username: 'a', name: 'Alice', email: null, roles: ['athena-admin', 'athena-team-member'], groups: [] } };
 void pm;
 
 describe('validation par étape de l’éditeur de gabarit', () => {

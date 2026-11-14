@@ -24,7 +24,7 @@ export class SearchController {
     @Inject(OrgResolver) private readonly orgs: OrgResolver,
   ) {}
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Get('search')
   async search(
     @Req() request: AuthedRequest, @Query('q') q = '', @Query('project') project = '', @Query('limit') limit = '50', @Query('offset') offset = '0',
@@ -35,7 +35,7 @@ export class SearchController {
   }
 
   /** Répartition d'une recherche par valeur d'un champ (cartes graphiques, T-0156) : mêmes droits que la recherche. */
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Get('search/facets')
   async facets(@Req() request: AuthedRequest, @Query('q') q = '', @Query('field') field = 'status', @Query('project') project = '') {
     const { organizationId, actor } = await this.orgs.resolve(request.principal!);
@@ -43,14 +43,14 @@ export class SearchController {
     return this.searcher.facets(organizationId, String(q), actor.id, String(field), { projects, roles: actor.roles });
   }
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Get('searches')
   async list(@Req() request: AuthedRequest) {
     const { organizationId, actor } = await this.orgs.resolve(request.principal!);
     return this.saved.list(organizationId, actor);
   }
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Post('searches')
   @BodySchema(SavedSearchBody)
   async create(@Req() request: AuthedRequest, @Body() body: unknown) {
@@ -58,7 +58,7 @@ export class SearchController {
     return this.saved.create(organizationId, parseBody(SavedSearchBody, body), actor);
   }
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @HttpCode(204)
   @Delete('searches/:id')
   async remove(@Req() request: AuthedRequest, @Param('id') id: string) {

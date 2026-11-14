@@ -41,7 +41,7 @@ export function PlanningPage({ session }: { session: Session }) {
     <>
       <PageHeader title={t.title} />
       {tabs}
-      {view === 'versions' ? <RoadmapPage session={session} bare /> : <ScheduleViews project={project} view={view} canEdit={responsible} canRequest={roles.includes('athena-user') && !responsible} me={session.user?.id ?? session.user?.username ?? ''} />}
+      {view === 'versions' ? <RoadmapPage session={session} bare /> : <ScheduleViews project={project} view={view} canEdit={responsible} canRequest={roles.includes('athena-team-member') && !responsible} me={session.user?.id ?? session.user?.username ?? ''} />}
     </>
   );
 }

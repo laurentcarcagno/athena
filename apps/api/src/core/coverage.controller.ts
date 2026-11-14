@@ -16,7 +16,7 @@ export class CoverageController {
     @Inject(OrgResolver) private readonly orgs: OrgResolver,
   ) {}
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Get('coverage-rules')
   async orgRules(@Req() request: AuthedRequest) {
     return this.coverage.list((await this.orgs.resolve(request.principal!)).organizationId, null);
@@ -50,7 +50,7 @@ export class CoverageController {
   }
 
   /** Résultat de chaque règle applicable au projet : taux, items en défaut, items à lien suspect. */
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Get('projects/:project/coverage')
   async evaluate(@Req() request: AuthedRequest, @Param('project') project: string) {
     const { organizationId, actor } = await this.orgs.resolve(request.principal!);

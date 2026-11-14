@@ -12,7 +12,7 @@ export class AppearanceController {
     @Inject(OrgResolver) private readonly orgs: OrgResolver,
   ) {}
 
-  @Roles('athena-user', 'athena-admin', 'athena-pm', 'athena-qa')
+  @Roles('athena-team-member', 'athena-admin', 'athena-pm', 'athena-qa')
   @Get('appearance')
   async get(@Req() request: AuthedRequest) {
     const { organizationId } = await this.orgs.resolve(request.principal!);

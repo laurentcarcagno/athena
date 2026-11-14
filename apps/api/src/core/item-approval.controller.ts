@@ -15,7 +15,7 @@ export class ItemApprovalController {
     @Inject(OrgResolver) private readonly orgs: OrgResolver,
   ) {}
 
-  @Roles('athena-user', 'athena-admin', 'athena-pm', 'athena-qa')
+  @Roles('athena-team-member', 'athena-admin', 'athena-pm', 'athena-qa')
   @Get(':project/trackers/:tracker/approval-flow')
   async flow(@Req() request: AuthedRequest, @Param('project') project: string, @Param('tracker') tracker: string) {
     return this.approvals.getFlow((await this.orgs.resolve(request.principal!)).organizationId, project, tracker);
@@ -30,14 +30,14 @@ export class ItemApprovalController {
     return this.approvals.getFlow(organizationId, project, tracker);
   }
 
-  @Roles('athena-user', 'athena-admin', 'athena-pm', 'athena-qa')
+  @Roles('athena-team-member', 'athena-admin', 'athena-pm', 'athena-qa')
   @Get(':project/artifacts/:key/approval')
   async state(@Req() request: AuthedRequest, @Param('project') project: string, @Param('key') key: string) {
     const { organizationId, actor } = await this.orgs.resolve(request.principal!);
     return this.approvals.get(organizationId, project, key, { subject: actor.id, roles: request.principal!.roles });
   }
 
-  @Roles('athena-user', 'athena-admin', 'athena-qa')
+  @Roles('athena-team-member', 'athena-admin', 'athena-qa')
   @Post(':project/artifacts/:key/approval/decision')
   @HttpCode(200)
   @BodySchema(ItemDecisionInput)

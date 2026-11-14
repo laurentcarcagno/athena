@@ -97,7 +97,7 @@ describe('fiche artefact : disposition enregistrée', () => {
   afterEach(() => vi.unstubAllGlobals());
 
   it('range les attributs en sections et en colonnes, et ajoute à la suite celui qui n’est pas placé', async () => {
-    const session: Session = { authenticated: true, user: { username: 'u', name: 'U', email: null, roles: ['athena-user'], groups: [] } };
+    const session: Session = { authenticated: true, user: { username: 'u', name: 'U', email: null, roles: ['athena-team-member'], groups: [] } };
     render(<ToastProvider><MemoryRouter initialEntries={['/p/ARI/a/BUG-1']}><Routes><Route path="/p/:project/a/:key" element={<ArtifactPage session={session} />} /></Routes></MemoryRouter></ToastProvider>);
     const resume = await screen.findByRole('region', { name: 'Résumé' });
     expect(within(resume).getByRole('heading', { name: 'Résumé' })).toBeInTheDocument();

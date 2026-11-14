@@ -12,7 +12,7 @@ import { BUILTIN_NORMATIVE } from './templates/index';
 import { builtinTrackerTypes } from './tracker-types';
 import { TrackerService } from './tracker.service';
 
-const admin: Actor = { id: 'sub-admin', roles: ['athena-user', 'athena-admin'] };
+const admin: Actor = { id: 'sub-admin', roles: ['athena-team-member', 'athena-admin'] };
 const suite = pgUp ? describe : describe.skip;
 const fail = async (p: Promise<unknown>) => { const e = await p.then(() => null, (x: unknown) => x); return e instanceof DomainError ? `${e.code}:${e.details.join(' | ') || e.message}` : 'ok'; };
 

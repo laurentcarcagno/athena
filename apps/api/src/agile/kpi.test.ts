@@ -24,7 +24,7 @@ describe('santé du projet', () => {
 });
 
 const suite = pgUp ? describe : describe.skip;
-const admin: Actor = { id: 'sub-admin', roles: ['athena-user', 'athena-admin'] };
+const admin: Actor = { id: 'sub-admin', roles: ['athena-team-member', 'athena-admin'] };
 const iso = (offset: number) => new Date(Date.now() + offset * 86_400_000).toISOString().slice(0, 10);
 
 suite('indicateurs de pilotage (intégration)', () => {

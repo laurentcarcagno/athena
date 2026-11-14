@@ -57,8 +57,8 @@ suite('historique GitLab (intégration)', () => {
   const APP_USER = `athena_app_history_${process.pid.toString(36)}`;
   const orgKey = `hist${Date.now().toString(36)}${process.pid.toString(36)}`;
   const org = crypto.randomUUID();
-  const alice: Actor = { id: 'sub-alice', roles: ['athena-user', 'athena-admin'] };
-  const bob: Actor = { id: 'sub-bob', roles: ['athena-user'] };
+  const alice: Actor = { id: 'sub-alice', roles: ['athena-team-member', 'athena-admin'] };
+  const bob: Actor = { id: 'sub-bob', roles: ['athena-team-member'] };
   let pool: Pool;
   let artifacts: ArtifactService;
   let sync: HistorySync;

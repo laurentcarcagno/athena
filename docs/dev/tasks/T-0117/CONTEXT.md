@@ -17,7 +17,7 @@ Critère : avancement d'une version en 1 clic depuis le rail.
 ## Décisions et pièges
 - Graphiques repris tels quels (couleurs `ath-bar`, `ath-gantt` existantes) : aucune nouvelle couleur.
 - Publier passe par la confirmation (irréversible) ; retirer non (réversible), avec l'annotation exigée par `guards.test`.
-- Ajouter reste ouvert à `athena-user` côté API (comme avant) ; l'interface le réserve aux responsables, comme le Backlog.
+- Ajouter reste ouvert à `athena-team-member` côté API (comme avant) ; l'interface le réserve aux responsables, comme le Backlog.
 - Pas de page de notes de version : hors critère.
 
 ## Prompt de reprise

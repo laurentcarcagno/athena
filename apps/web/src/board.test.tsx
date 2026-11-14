@@ -46,7 +46,7 @@ beforeEach(() => {
 });
 afterEach(() => vi.unstubAllGlobals());
 
-const session: Session = { authenticated: true, user: { id: 'sub-u', username: 'ulysse', name: 'Ulysse', email: null, roles: ['athena-user'], groups: [] } } as Session;
+const session: Session = { authenticated: true, user: { id: 'sub-u', username: 'ulysse', name: 'Ulysse', email: null, roles: ['athena-team-member'], groups: [] } } as Session;
 function Where() { const l = useLocation(); return <output data-testid="where">{l.pathname + l.search}</output>; }
 const mount = (entry = '/p/ARI/board/kanban') => {
   const router = createMemoryRouter([

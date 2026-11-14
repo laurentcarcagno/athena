@@ -53,7 +53,7 @@ suite('intégrations REST (webhooks, StrictDoc, GitLab)', () => {
     await app.init();
     await app.getHttpAdapter().getInstance().ready();
 
-    const admin = await token(['athena-admin', 'athena-user']);
+    const admin = await token(['athena-admin', 'athena-team-member']);
     await call('POST', '/v1/projects', admin, { key: 'ARI', name: 'Ariane' });
     const { projectKey, ...spec } = bugTemplate('ARI');
     void projectKey;
@@ -74,15 +74,15 @@ suite('intégrations REST (webhooks, StrictDoc, GitLab)', () => {
     expect(secret).toMatch(/^glhook_[0-9a-f]{64}$/);
 
     // L'utilisateur du jeton est mémorisé à son premier appel authentifié (mapping e-mail → utilisateur).
-    await call('GET', '/v1/projects/ARI/artifacts/ARI-BUG-0001', await token(['athena-user']));
+    await call('GET', '/v1/projects/ARI/artifacts/ARI-BUG-0001', await token(['athena-team-member']));
 
     const push = { object_kind: 'push', ref: 'refs/heads/bugfix/ARI-BUG-0001-crash', commits: [{ id: 'c'.repeat(40), message: 'Corrige\n\nRefs ARI-BUG-0001', author: { email: 'dev@example.test' } }] };
     const ok = await call('POST', path, undefined, push, { 'x-gitlab-token': secret });
     expect(ok.statusCode).toBe(202);
     expect(ok.json().results.some((r: { outcome: string }) => r.outcome === 'transitioned')).toBe(true);
-    const refs = await call('GET', '/v1/projects/ARI/artifacts/ARI-BUG-0001/code-refs', await token(['athena-user']));
+    const refs = await call('GET', '/v1/projects/ARI/artifacts/ARI-BUG-0001/code-refs', await token(['athena-team-member']));
     expect(refs.json().map((r: { kind: string }) => r.kind).sort()).toEqual(['branch', 'commit']);
-    expect((await call('GET', '/v1/projects/ARI/artifacts/ARI-BUG-0001', await token(['athena-user']))).json().status).toBe('in_progress');
+    expect((await call('GET', '/v1/projects/ARI/artifacts/ARI-BUG-0001', await token(['athena-team-member']))).json().status).toBe('in_progress');
 
     const ignored = await call('POST', path, undefined, { object_kind: 'tag_push' }, { 'x-gitlab-token': secret });
     expect(ignored.json()).toMatchObject({ accepted: false });
@@ -115,7 +115,7 @@ suite('intégrations REST (webhooks, StrictDoc, GitLab)', () => {
 
   it('administre les webhooks sortants', async () => {
     const admin = await token(['athena-admin']);
-    expect((await call('POST', '/v1/webhooks', await token(['athena-user']), { url: 'https://exemple.org/h', eventTypes: ['artifact.*'] })).statusCode).toBe(403);
+    expect((await call('POST', '/v1/webhooks', await token(['athena-team-member']), { url: 'https://exemple.org/h', eventTypes: ['artifact.*'] })).statusCode).toBe(403);
     expect((await call('POST', '/v1/webhooks', admin, { url: 'http://exemple.org/h', eventTypes: ['artifact.*'] })).statusCode).toBe(422);
     const created = await call('POST', '/v1/webhooks', admin, { url: 'https://exemple.org/h', eventTypes: ['artifact.*'], description: 'CI' });
     expect(created.statusCode).toBe(201);
@@ -127,19 +127,19 @@ suite('intégrations REST (webhooks, StrictDoc, GitLab)', () => {
   });
 
   it('indexe la documentation et expose liens et couverture', async () => {
-    const admin = await token(['athena-admin', 'athena-user']);
+    const admin = await token(['athena-admin', 'athena-team-member']);
     const sdoc = '[DOCUMENT]\nTITLE: Spec\n\n[REQUIREMENT]\nUID: SYS-1\nTITLE: Journal\nSTATEMENT: Le système journalise.\n';
     const indexed = await call('POST', '/v1/projects/ARI/docs/spec/index', admin, { files: [{ path: 'spec.sdoc', content: sdoc }], gitSha: 'abc1234' });
     expect(indexed.json()).toMatchObject({ nodes: 1 });
     expect((await call('POST', '/v1/projects/ARI/artifacts/ARI-BUG-0001/doc-links', admin, { source: 'spec', uid: 'SYS-1' })).statusCode).toBe(204);
     expect((await call('GET', '/v1/projects/ARI/artifacts/ARI-BUG-0001/doc-links', admin)).json()).toMatchObject([{ uid: 'SYS-1', suspect: false }]);
     expect((await call('GET', '/v1/projects/ARI/docs/spec/coverage?tracker=BUG', admin)).json()).toMatchObject({ covered: 1, total: 1 });
-    expect((await call('POST', '/v1/projects/ARI/docs/spec/index', await token(['athena-user']), { files: [{ path: 'x', content: '' }] })).statusCode).toBe(403);
+    expect((await call('POST', '/v1/projects/ARI/docs/spec/index', await token(['athena-team-member']), { files: [{ path: 'x', content: '' }] })).statusCode).toBe(403);
     expect((await call('POST', '/v1/projects/ARI/docs/spec/index', admin, { files: [] })).statusCode).toBe(422);
   });
 
   it('pilote un board et un sprint par REST', async () => {
-    const admin = await token(['athena-admin', 'athena-user']);
+    const admin = await token(['athena-admin', 'athena-team-member']);
     const board = await call('POST', '/v1/projects/ARI/boards', admin, {
       key: 'bugs', name: 'Bugs', trackerKeys: ['BUG'],
       columns: [{ name: 'Ouverts', statuses: ['open'] }, { name: 'En cours', statuses: ['in_progress'], wipLimit: 3 }],
@@ -156,11 +156,11 @@ suite('intégrations REST (webhooks, StrictDoc, GitLab)', () => {
     expect((await call('POST', `/v1/projects/ARI/sprints/${id}/start`, admin)).statusCode).toBe(204);
     expect((await call('GET', `/v1/projects/ARI/sprints/${id}`, admin)).json()).toMatchObject({ state: 'active', startsOn: '2026-01-01' });
     expect(Array.isArray((await call('GET', `/v1/projects/ARI/sprints/${id}/burndown`, admin)).json())).toBe(true);
-    expect((await call('POST', '/v1/projects/ARI/sprints', await token(['athena-user']), { name: 'x', startsOn: '2026-01-01', endsOn: '2026-01-02' })).statusCode).toBe(403);
+    expect((await call('POST', '/v1/projects/ARI/sprints', await token(['athena-team-member']), { name: 'x', startsOn: '2026-01-01', endsOn: '2026-01-02' })).statusCode).toBe(403);
   });
 
   it('liste projets et trackers, et expose l’historique d’un artefact', async () => {
-    const user = await token(['athena-user']);
+    const user = await token(['athena-team-member']);
     expect((await call('GET', '/v1/projects', user)).json().map((p: { key: string }) => p.key)).toEqual(['ARI', 'OTH']);
     const trackers = (await call('GET', '/v1/projects/ARI/trackers', user)).json();
     expect(trackers).toMatchObject([{ key: 'BUG', artifacts: 1 }]);
@@ -170,7 +170,7 @@ suite('intégrations REST (webhooks, StrictDoc, GitLab)', () => {
   });
 
   it('restaure une révision par REST et signale l’historique GitLab non configuré (503)', async () => {
-    const admin = await token(['athena-admin', 'athena-user']);
+    const admin = await token(['athena-admin', 'athena-team-member']);
     const current = (await call('GET', '/v1/projects/ARI/artifacts/ARI-BUG-0001', admin)).json();
     await call('PATCH', '/v1/projects/ARI/artifacts/ARI-BUG-0001', admin, { values: { severity: 'mineure' }, version: current.version });
     const back = await call('POST', '/v1/projects/ARI/artifacts/ARI-BUG-0001/restore', admin, { version: 1, expectedVersion: current.version + 1 });
@@ -178,7 +178,7 @@ suite('intégrations REST (webhooks, StrictDoc, GitLab)', () => {
     expect(back.json().version).toBe(current.version + 2);
     expect((await call('POST', '/v1/projects/ARI/artifacts/ARI-BUG-0001/restore', admin, { version: 1, expectedVersion: 1 })).statusCode).toBe(409);
     expect((await call('GET', '/v1/projects/ARI/baselines', admin)).statusCode).toBe(503);
-    expect((await call('POST', '/v1/projects/ARI/baselines', await token(['athena-user']), { name: 'v1' })).statusCode).toBe(403);
+    expect((await call('POST', '/v1/projects/ARI/baselines', await token(['athena-team-member']), { name: 'v1' })).statusCode).toBe(403);
   });
 
   it('protège le webhook de l’historique et signale la configuration manquante (503)', async () => {
@@ -188,12 +188,12 @@ suite('intégrations REST (webhooks, StrictDoc, GitLab)', () => {
     expect((await call('POST', hook.path, undefined, { object_kind: 'push' }, { 'x-gitlab-token': 'faux' })).statusCode).toBe(403);
     expect((await call('POST', hook.path, undefined, { object_kind: 'push' }, { 'x-gitlab-token': hook.secret })).statusCode).toBe(503);
     expect((await call('POST', '/v1/projects/ARI/rebuild', admin)).statusCode).toBe(503);
-    expect((await call('POST', '/v1/projects/ARI/rebuild', await token(['athena-user']))).statusCode).toBe(403);
+    expect((await call('POST', '/v1/projects/ARI/rebuild', await token(['athena-team-member']))).statusCode).toBe(403);
   });
 
   it('administre les automatisations et reçoit un webhook entrant signé sur le corps brut', async () => {
-    const admin = await token(['athena-admin', 'athena-user']);
-    expect((await call('POST', '/v1/projects/ARI/automations', await token(['athena-user']), { name: 'x' })).statusCode).toBe(403);
+    const admin = await token(['athena-admin', 'athena-team-member']);
+    expect((await call('POST', '/v1/projects/ARI/automations', await token(['athena-team-member']), { name: 'x' })).statusCode).toBe(403);
     expect((await call('POST', '/v1/projects/ARI/automations', admin, { name: 'x', trigger: 'artifact.created', condition: 'status =', actions: [{ type: 'comment', body: 'a' }] })).statusCode).toBe(422);
     const rule = await call('POST', '/v1/projects/ARI/automations', admin, { name: 'Commentaire auto', trigger: 'artifact.created', actions: [{ type: 'comment', body: 'Reçu.' }] });
     expect(rule.statusCode).toBe(201);
@@ -221,7 +221,7 @@ suite('intégrations REST (webhooks, StrictDoc, GitLab)', () => {
   });
 
   it('signale GitLab non configuré (503) pour les actions de branche, merge request et synchronisation de documentation', async () => {
-    const user = await token(['athena-user']);
+    const user = await token(['athena-team-member']);
     expect((await call('POST', '/v1/projects/ARI/artifacts/ARI-BUG-0001/branch', user, { type: 'bugfix' })).statusCode).toBe(503);
     expect((await call('POST', '/v1/projects/ARI/artifacts/ARI-BUG-0001/branch', user, { type: 'autre' })).statusCode).toBe(422);
     expect((await call('POST', '/v1/projects/ARI/code-repos', user, { path: 'a/b' })).statusCode).toBe(403);
@@ -230,7 +230,7 @@ suite('intégrations REST (webhooks, StrictDoc, GitLab)', () => {
 
   it('administre les plugins : seuls les éditeurs de confiance sont acceptés', async () => {
     const admin = await token(['athena-admin']);
-    expect((await call('GET', '/v1/plugins', await token(['athena-user']))).statusCode).toBe(403);
+    expect((await call('GET', '/v1/plugins', await token(['athena-team-member']))).statusCode).toBe(403);
     expect((await call('GET', '/v1/plugins', admin)).json()).toEqual([]);
     const pkg = { manifest: { id: 'com.acme.x', name: 'X', version: '1.0.0', athena: '>=1.0.0', publisher: 'acme', permissions: [], contributes: { fieldTypes: [], hooks: [] } }, code: 'plugin = {};', signature: 'AAAA' };
     const refused = await call('POST', '/v1/plugins', admin, { package: pkg, granted: [] });
@@ -241,14 +241,14 @@ suite('intégrations REST (webhooks, StrictDoc, GitLab)', () => {
   });
 
   it('importe depuis JIRA : simulation par défaut, puis application, réservé aux administrateurs', async () => {
-    const admin = await token(['athena-admin', 'athena-user']);
+    const admin = await token(['athena-admin', 'athena-team-member']);
     const csv = 'Issue key,Summary,Issue Type,Status,Priority\nPRJ-1,Bug importé,Bug,Open,High';
     const payload = (dryRun?: boolean) => ({
       source: 'jira', content: csv, statusMap: { Open: 'open' },
       config: { trackerByType: { Bug: 'BUG' }, statusMap: {}, fieldMap: { Summary: 'title', Priority: 'severity' }, valueMaps: { severity: { High: 'majeure' } } },
       ...(dryRun === undefined ? {} : { dryRun }),
     });
-    expect((await call('POST', '/v1/projects/ARI/import', await token(['athena-user']), payload())).statusCode).toBe(403);
+    expect((await call('POST', '/v1/projects/ARI/import', await token(['athena-team-member']), payload())).statusCode).toBe(403);
     const dry = await call('POST', '/v1/projects/ARI/import', admin, payload()); // simulation par défaut
     expect(dry.statusCode).toBe(201);
     expect(dry.json()).toMatchObject({ dryRun: true, created: 1, errors: [] });
@@ -261,7 +261,7 @@ suite('intégrations REST (webhooks, StrictDoc, GitLab)', () => {
   });
 
   it('expose rétroportages, indicateurs DORA et notes de version', async () => {
-    const admin = await token(['athena-admin', 'athena-user']);
+    const admin = await token(['athena-admin', 'athena-team-member']);
     expect((await call('POST', '/v1/projects/ARI/artifacts/ARI-BUG-0001/backports', admin, { branches: ['main'] })).statusCode).toBe(422);
     const planned = await call('POST', '/v1/projects/ARI/artifacts/ARI-BUG-0001/backports', admin, { branches: ['release/1.0'] });
     expect(planned.json()).toMatchObject([{ branch: 'release/1.0', state: 'pending' }]);

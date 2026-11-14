@@ -13,7 +13,7 @@ import { generateKeys, pack, verifyPackage as sdkVerify } from '../../../../pack
 import { verifyPackage } from './manifest';
 import { PluginService } from './plugin.service';
 
-const admin: Actor = { id: 'u-admin', roles: ['athena-user', 'athena-admin'] };
+const admin: Actor = { id: 'u-admin', roles: ['athena-team-member', 'athena-admin'] };
 const CLI = join(__dirname, '../../../../packages/plugin-sdk/bin/athena-plugin.mjs');
 
 describe('SDK de plugin et CLI', () => {

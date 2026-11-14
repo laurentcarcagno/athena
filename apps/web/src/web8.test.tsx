@@ -32,7 +32,7 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals());
 
 const on = (method: string, path: RegExp | string, reply: Reply): Handler => (url, m) => (m === method && (typeof path === 'string' ? url === path : path.test(url)) ? reply : undefined);
-const admin: Session = { authenticated: true, user: { username: 'a', name: 'Alice', email: null, roles: ['athena-admin', 'athena-user'], groups: [] } };
+const admin: Session = { authenticated: true, user: { username: 'a', name: 'Alice', email: null, roles: ['athena-admin', 'athena-team-member'], groups: [] } };
 const wrap = (path: string, element: JSX.Element, pattern: string) => render(
   <ToastProvider><MemoryRouter initialEntries={[path]}><Routes><Route path={pattern} element={element} /></Routes></MemoryRouter></ToastProvider>,
 );

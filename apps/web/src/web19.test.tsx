@@ -28,7 +28,7 @@ describe('bandeau dans l’application', () => {
   const stub = (session: unknown) => vi.stubGlobal('fetch', vi.fn(async (url: string) => new Response(JSON.stringify(/auth\/session/.test(url) ? session : []), { status: 200 })));
 
   it('apparaît en tête d’une page connectée, avant le contenu', async () => {
-    stub({ authenticated: true, user: { username: 'u', name: 'Ulysse', email: null, roles: ['athena-user'], groups: [] }, csrf: 'x', protectionLevel: 'Diffusion Restreinte' });
+    stub({ authenticated: true, user: { username: 'u', name: 'Ulysse', email: null, roles: ['athena-team-member'], groups: [] }, csrf: 'x', protectionLevel: 'Diffusion Restreinte' });
     const { container } = render(<App />);
     const note = await screen.findByRole('note', { name: 'Niveau de protection de l’instance' });
     expect(note).toHaveTextContent('Diffusion Restreinte');
@@ -37,7 +37,7 @@ describe('bandeau dans l’application', () => {
   });
 
   it('absent quand la session n’en porte pas', async () => {
-    stub({ authenticated: true, user: { username: 'u', name: 'Ulysse', email: null, roles: ['athena-user'], groups: [] }, csrf: 'x' });
+    stub({ authenticated: true, user: { username: 'u', name: 'Ulysse', email: null, roles: ['athena-team-member'], groups: [] }, csrf: 'x' });
     render(<App />);
     await screen.findByRole('img', { name: 'Ulysse' });
     expect(screen.queryByRole('note', { name: 'Niveau de protection de l’instance' })).toBeNull();

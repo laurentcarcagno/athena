@@ -17,7 +17,7 @@ export class DashboardController {
     @Inject(OrgResolver) private readonly orgs: OrgResolver,
   ) {}
 
-  @Roles('athena-user', 'athena-admin', 'athena-pm', 'athena-qa')
+  @Roles('athena-team-member', 'athena-admin', 'athena-pm', 'athena-qa')
   @Get('dashboard')
   async get(@Req() request: AuthedRequest, @Query('project') project?: string, @Query('page') page?: string) {
     const { organizationId, actor } = await this.orgs.resolve(request.principal!);
@@ -25,7 +25,7 @@ export class DashboardController {
   }
 
   /** Genres de widget que mon rôle peut poser (T-0170). */
-  @Roles('athena-user', 'athena-admin', 'athena-pm', 'athena-qa')
+  @Roles('athena-team-member', 'athena-admin', 'athena-pm', 'athena-qa')
   @Get('dashboard/catalog')
   async catalog(@Req() request: AuthedRequest) {
     const { actor } = await this.orgs.resolve(request.principal!);
@@ -33,14 +33,14 @@ export class DashboardController {
   }
 
   /** Tickets qui attendent ma décision (widget « À approuver »). */
-  @Roles('athena-user', 'athena-admin', 'athena-pm', 'athena-qa')
+  @Roles('athena-team-member', 'athena-admin', 'athena-pm', 'athena-qa')
   @Get('approvals')
   async awaiting(@Req() request: AuthedRequest) {
     const { organizationId, actor } = await this.orgs.resolve(request.principal!);
     return { items: await this.approvals.awaiting(organizationId, { subject: actor.id, roles: request.principal!.roles }) };
   }
 
-  @Roles('athena-user', 'athena-admin', 'athena-pm', 'athena-qa')
+  @Roles('athena-team-member', 'athena-admin', 'athena-pm', 'athena-qa')
   @Put('dashboard')
   @BodySchema(LayoutInput)
   async put(@Req() request: AuthedRequest, @Body() body: unknown, @Query('project') project?: string, @Query('page') page?: string) {
@@ -48,7 +48,7 @@ export class DashboardController {
     return this.dashboard.put(organizationId, parseBody(LayoutInput, body), actor, scopeOf(project, page));
   }
 
-  @Roles('athena-user', 'athena-admin', 'athena-pm', 'athena-qa')
+  @Roles('athena-team-member', 'athena-admin', 'athena-pm', 'athena-qa')
   @HttpCode(204)
   @Delete('dashboard')
   async reset(@Req() request: AuthedRequest, @Query('project') project?: string, @Query('page') page?: string) {

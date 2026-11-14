@@ -13,7 +13,7 @@ import { mentionTokens } from './mention';
 import { NotifyService } from './notify.service';
 
 const suite = pgUp ? describe : describe.skip;
-const actor = (id: string): Actor => ({ id, roles: ['athena-user', 'athena-admin'] });
+const actor = (id: string): Actor => ({ id, roles: ['athena-team-member', 'athena-admin'] });
 
 describe('extraction des mentions', () => {
   it('reconnaît @identifiant (points et tirets compris), pas les adresses ni les chemins', () => {

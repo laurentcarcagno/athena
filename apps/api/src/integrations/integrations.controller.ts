@@ -141,7 +141,7 @@ export class IntegrationsController {
     return this.docs.index(organizationId, project, source, input.files, input.gitSha ?? null, actor);
   }
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Post('v1/projects/:project/artifacts/:key/doc-links')
   @HttpCode(204)  @BodySchema(DocLinkBody)
 
@@ -151,13 +151,13 @@ export class IntegrationsController {
     await this.docs.link(organizationId, project, key, input.source, input.uid, actor);
   }
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Get('v1/projects/:project/artifacts/:key/doc-links')
   async docLinks(@Req() request: AuthedRequest, @Param('project') project: string, @Param('key') key: string) {
     return this.docs.links((await this.ctx(request)).organizationId, project, key);
   }
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Get('v1/projects/:project/docs/:source/coverage')
   async coverage(@Req() request: AuthedRequest, @Param('project') project: string, @Param('source') source: string, @Query('tracker') tracker = 'REQ') {
     return this.docs.coverage((await this.ctx(request)).organizationId, project, source, tracker);
@@ -224,7 +224,7 @@ export class IntegrationsController {
     return { id: await this.automation.createRule(organizationId, project, body, actor) };
   }
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Get('v1/projects/:project/automations')
   async listRules(@Req() request: AuthedRequest, @Param('project') project: string) {
     return this.automation.list((await this.ctx(request)).organizationId, project);
@@ -289,13 +289,13 @@ export class IntegrationsController {
     return this.codeActions().addRepo(organizationId, project, input.path, input.defaultBranch, actor);
   }
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Get('v1/projects/:project/code-repos')
   async codeRepos(@Req() request: AuthedRequest, @Param('project') project: string) {
     return this.codeActions().repos((await this.ctx(request)).organizationId, project);
   }
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Post('v1/projects/:project/artifacts/:key/branch')
   @BodySchema(CreateBranchBody)
   async createBranch(@Req() request: AuthedRequest, @Param('project') project: string, @Param('key') key: string, @Body() body: unknown) {
@@ -304,7 +304,7 @@ export class IntegrationsController {
     return this.codeActions().createBranch(organizationId, project, key, input.type, input.repo, actor);
   }
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Post('v1/projects/:project/artifacts/:key/merge-request')
   @BodySchema(CreateMergeRequestBody)
   async createMergeRequest(@Req() request: AuthedRequest, @Param('project') project: string, @Param('key') key: string, @Body() body: unknown) {
@@ -335,7 +335,7 @@ export class IntegrationsController {
   }
 
   /** Types de champ disponibles (natifs et fournis par des plugins) : alimente l'éditeur de tracker. */
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Get('v1/field-types')
   fieldTypeNames() {
     return this.fieldTypes.names();
@@ -377,7 +377,7 @@ export class IntegrationsController {
     await this.plugins.uninstall(organizationId, id, actor, keepData === 'true');
   }
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @HttpCode(200)
   @Post('v1/plugins/:id/actions/:name')
   @BodySchema(PluginActionBody)
@@ -388,7 +388,7 @@ export class IntegrationsController {
   }
 
   /** Exécute un connecteur sur une charge externe puis crée les artefacts renvoyés, sous l'identité de l'appelant (validation et droits habituels). */
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @HttpCode(200)
   @Post('v1/projects/:project/plugins/:id/connectors/:name')
   @BodySchema(PluginConnectorBody)
@@ -401,13 +401,13 @@ export class IntegrationsController {
     return { created };
   }
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Get('v1/widgets')
   async listWidgets(@Req() request: AuthedRequest) {
     return this.plugins.widgets((await this.ctx(request)).organizationId);
   }
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Get('v1/plugins/:id/widgets/:name')
   async pluginWidget(@Req() request: AuthedRequest, @Param('id') id: string, @Param('name') name: string, @Query('project') project = '') {
     const { organizationId } = await this.ctx(request);
@@ -437,7 +437,7 @@ export class IntegrationsController {
   }
 
   // --- Livraison : rétroportages, DORA, notes de version ---
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Post('v1/projects/:project/artifacts/:key/backports')
   @BodySchema(PlanBackportsBody)
   async planBackports(@Req() request: AuthedRequest, @Param('project') project: string, @Param('key') key: string, @Body() body: unknown) {
@@ -446,7 +446,7 @@ export class IntegrationsController {
     return this.delivery.planBackports(organizationId, project, key, input.branches, actor);
   }
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Get('v1/projects/:project/artifacts/:key/backports')
   async backports(@Req() request: AuthedRequest, @Param('project') project: string, @Param('key') key: string) {
     return this.delivery.backports((await this.ctx(request)).organizationId, project, key);
@@ -461,13 +461,13 @@ export class IntegrationsController {
     await this.delivery.cancelBackport(organizationId, project, key, parseBody(CancelBackportBody, body).branch, actor);
   }
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Get('v1/projects/:project/dora')
   async dora(@Req() request: AuthedRequest, @Param('project') project: string, @Query('days') days = '30', @Query('incident') incident?: string) {
     return this.delivery.dora((await this.ctx(request)).organizationId, project, Number(days), incident && /^[A-Z][A-Z0-9]{1,9}$/.test(incident) ? incident : undefined);
   }
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Get('v1/projects/:project/releases/:id/notes')
   async releaseNotes(@Req() request: AuthedRequest, @Param('project') project: string, @Param('id') id: string) {
     return this.marker.json({ markdown: this.marker.markdown(await this.delivery.releaseNotes((await this.ctx(request)).organizationId, project, id)) });
@@ -483,20 +483,20 @@ export class IntegrationsController {
     return this.baselineService().create(organizationId, project, parseBody(CreateBaselineBody, body).name, actor);
   }
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Get('v1/projects/:project/baselines')
   async listBaselines(@Req() request: AuthedRequest, @Param('project') project: string) {
     return this.baselineService().list((await this.ctx(request)).organizationId, project);
   }
 
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Get('v1/projects/:project/baselines-diff')
   async diffBaselines(@Req() request: AuthedRequest, @Param('project') project: string, @Query('from') from = '', @Query('to') to = '') {
     return this.baselineService().diff((await this.ctx(request)).organizationId, project, from, to);
   }
 
   /** Export CSV d'une comparaison de baselines, avec la mention de protection de l'instance. */
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Get('v1/projects/:project/baselines-diff/export')
   async exportBaselineDiff(@Req() request: AuthedRequest, @Param('project') project: string, @Query('from') from = '', @Query('to') to = '') {
     const out = await this.baselineService().diffCsv((await this.ctx(request)).organizationId, project, from, to);
@@ -504,7 +504,7 @@ export class IntegrationsController {
   }
 
   // --- Code GitLab ---
-  @Roles('athena-user', 'athena-admin')
+  @Roles('athena-team-member', 'athena-admin')
   @Get('v1/projects/:project/artifacts/:key/code-refs')
   async codeRefs(@Req() request: AuthedRequest, @Param('project') project: string, @Param('key') key: string) {
     return this.gitCode.refs((await this.ctx(request)).organizationId, project, key);

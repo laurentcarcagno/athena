@@ -346,7 +346,7 @@ details.notes ul { margin: 8px 0 0; padding-left: 20px; display: grid; gap: 4px;
   <summary>Notes de conception pour validation</summary>
   <ul>
     <li><b>Thèmes.</b> « Athena clair (arrondi) » reprend la palette Athena (Cold Mist, Instrument White, Console Sky, signaux succès/alerte/danger) avec un rayon de 8 px. « GitHub sombre » est un thème sombre indépendant. Les composants ne lisent que des tokens sémantiques ; un thème n’en surcharge que les valeurs. Seul ajout à la palette : un violet « fusionné », absent d’Athena.</li>
-    <li><b>Rôles.</b> DEVELOPER, PROJECT_MANAGER, QA_ENGINEER et ADMIN correspondent à athena-user, athena-pm, athena-qa et athena-admin. Le catalogue est filtré côté serveur, comme homeWidgetsFor.</li>
+    <li><b>Rôles.</b> DEVELOPER, PROJECT_MANAGER, QA_ENGINEER et ADMIN correspondent à athena-team-member, athena-pm, athena-qa et athena-admin. Le catalogue est filtré côté serveur, comme homeWidgetsFor.</li>
     <li><b>Plusieurs exemplaires.</b> Chaque widget peut être ajouté plusieurs fois, chacun rattaché à un projet (pastille mono dans l’en-tête) et configurable par l’engrenage.</li>
     <li><b>Widgets existants repensés.</b> Mes tickets, En retard, Chemin critique, Risques, À valider, Favoris et Récents partagent maintenant la même ligne compacte (identifiant mono, titre tronqué, pastille d’état), au lieu de cartes différentes.</li>
     <li><b>SonarQube.</b> Qualité du code et Badges du projet sont alimentés par une future connexion SonarQube. Le prototype les montre avec des données simulées ; sans connexion, ils affichent l’état vide « Relier SonarQube ».</li>

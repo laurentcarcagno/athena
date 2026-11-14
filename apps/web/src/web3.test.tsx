@@ -44,7 +44,7 @@ describe('saisie des colonnes d’un board', () => {
 describe('fenêtres par rôle', () => {
   it('l’utilisateur voit Mon travail mais ni Organisation ni Gestion de projet', async () => {
     routes.push(['GET', /\/v1\/projects$/, []]);
-    app('/p/ARI', ['athena-user']);
+    app('/p/ARI', ['athena-team-member']);
     expect(nav()).toEqual(expect.arrayContaining(['Mon travail', 'Recherche']));
     expect(nav()).not.toContain('Organisation');
     expect(nav()).not.toContain('Gestion de projet');
@@ -52,7 +52,7 @@ describe('fenêtres par rôle', () => {
 
   it('le chef de projet ne voit ni Organisation ni Administration', () => {
     routes.push(['GET', /\/v1\/projects$/, []]);
-    app('/p/ARI', ['athena-user', 'athena-pm']);
+    app('/p/ARI', ['athena-team-member', 'athena-pm']);
     expect(nav()).toContain('Mon travail');
     expect(nav()).not.toContain('Organisation');
     expect(nav()).not.toContain('Administration');
@@ -60,17 +60,17 @@ describe('fenêtres par rôle', () => {
 
   it('l’administrateur voit Organisation et les Paramètres du projet', () => {
     routes.push(['GET', /\/v1\/projects$/, []]);
-    app('/p/ARI', ['athena-user', 'athena-admin']);
+    app('/p/ARI', ['athena-team-member', 'athena-admin']);
     expect(nav()).toEqual(expect.arrayContaining(['Administration', 'Paramètres']));
   });
 
   it('refuse la gestion de projet à un simple utilisateur', () => {
-    app('/p/ARI/manage', ['athena-user']);
+    app('/p/ARI/manage', ['athena-team-member']);
     expect(screen.getByRole('heading', { name: /réservés aux administrateurs, aux chefs de projet/ })).toBeInTheDocument(); // T-0120 : /manage mène aux Paramètres
   });
 
   it('refuse l’administration de l’organisation à un chef de projet', () => {
-    app('/org', ['athena-user', 'athena-pm']);
+    app('/org', ['athena-team-member', 'athena-pm']);
     expect(screen.getByRole('heading', { name: 'L’administration de l’organisation est réservée aux administrateurs.' })).toBeInTheDocument();
   });
 
@@ -80,7 +80,7 @@ describe('fenêtres par rôle', () => {
     routes.push(['GET', /\/v1\/projects\/ARI\/members$/, []]);
     routes.push(['POST', /\/v1\/projects$/, {}]);
     routes.push(['PUT', /\/members\/s1$/, []]);
-    app('/org', ['athena-user', 'athena-admin']);
+    app('/org', ['athena-team-member', 'athena-admin']);
     const user = userEvent.setup();
     await user.click(await screen.findByRole('button', { name: '+ Nouveau projet' })); // T-0151 : création à la demande
     await user.type(await screen.findByLabelText('Clé du projet (2 à 10 majuscules)'), 'pay');

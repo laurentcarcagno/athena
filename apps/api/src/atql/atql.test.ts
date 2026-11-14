@@ -69,7 +69,7 @@ describe('compilation SQL', () => {
 });
 
 const suite = pgUp ? describe : describe.skip;
-const actor: Actor = { id: 'u1', roles: ['athena-user', 'athena-admin'] };
+const actor: Actor = { id: 'u1', roles: ['athena-team-member', 'athena-admin'] };
 
 suite('recherche ATQL (intégration)', () => {
   let testDb: TestDb;
@@ -175,7 +175,7 @@ suite('recherche ATQL (intégration)', () => {
     };
     expect(await code(run('text = "x"'))).toMatch(/validation.*n'accepte que l'opérateur ~/);
     expect(await code(run('text > 3'))).toMatch(/validation.*n'accepte que l'opérateur ~/);
-    const hidden = await search.search(org, 'ARI', 'text ~ "crash"', 'u1', 50, 0, ['athena-user']);
+    const hidden = await search.search(org, 'ARI', 'text ~ "crash"', 'u1', 50, 0, ['athena-team-member']);
     expect(hidden.total).toBe(1); // aucun champ restreint dans ce jeu de données : le plein texte reste disponible
   });
 

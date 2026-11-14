@@ -35,8 +35,8 @@ beforeEach(() => {
 });
 afterEach(() => vi.unstubAllGlobals());
 
-const user: Session = { authenticated: true, user: { username: 'u', name: 'Ulysse', email: null, roles: ['athena-user'], groups: [] } };
-const admin: Session = { authenticated: true, user: { username: 'a', name: 'Ada', email: null, roles: ['athena-user', 'athena-admin'], groups: [] } };
+const user: Session = { authenticated: true, user: { username: 'u', name: 'Ulysse', email: null, roles: ['athena-team-member'], groups: [] } };
+const admin: Session = { authenticated: true, user: { username: 'a', name: 'Ada', email: null, roles: ['athena-team-member', 'athena-admin'], groups: [] } };
 const Where = () => <span data-testid="where">{useLocation().pathname}{useLocation().search}</span>;
 const app = (session: Session) => render(<ToastProvider><MemoryRouter initialEntries={['/p/ARI/tracabilite']}><Where /><AuthenticatedApp session={session} /></MemoryRouter></ToastProvider>);
 

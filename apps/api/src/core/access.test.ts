@@ -17,8 +17,8 @@ import { TrackerService } from './tracker.service';
 import { TreeService } from './tree.service';
 
 const suite = pgUp ? describe : describe.skip;
-const admin: Actor = { id: 'u-admin', roles: ['athena-user', 'athena-admin'] };
-const user = (id: string): Actor => ({ id, roles: ['athena-user'] });
+const admin: Actor = { id: 'u-admin', roles: ['athena-team-member', 'athena-admin'] };
+const user = (id: string): Actor => ({ id, roles: ['athena-team-member'] });
 const code = async (p: Promise<unknown>) => { const e = await p.then(() => null, (x: unknown) => x); return e instanceof DomainError ? e.code : e ? `autre:${(e as Error).message}` : 'ok'; };
 
 suite('listes d’ayants droit : la base filtre toutes les lectures', () => {
@@ -106,7 +106,7 @@ suite('listes d’ayants droit : la base filtre toutes les lectures', () => {
 
   it('recherche globale (T-0118) : un ticket d’un projet non autorisé n’apparaît jamais, même nommé', async () => {
     const global = (subject: string, q: string, projects?: string[]) =>
-      as(subject, () => search.searchOrganization(org, q, subject, { projects, roles: ['athena-user'], limit: 200 }));
+      as(subject, () => search.searchOrganization(org, q, subject, { projects, roles: ['athena-team-member'], limit: 200 }));
     const keys = async (subject: string, q: string, projects?: string[]) => (await global(subject, q, projects)).hits.map((h) => h.key).sort();
     expect((await global('u-bob', '')).total).toBe(4);
     expect((await keys('u-bob', '')).every((k) => k.startsWith('PUB-'))).toBe(true);
@@ -139,8 +139,8 @@ suite('listes d’ayants droit : la base filtre toutes les lectures', () => {
   });
 
   it('couverture, favoris et écritures respectent la liste', async () => {
-    expect(await as('u-bob', () => code(coverage.evaluate(org, 'SEC', ['athena-user'])))).toBe('not_found');
-    expect((await as('u-alice', () => coverage.evaluate(org, 'SEC', ['athena-user'])))[0]).toMatchObject({ total: 3, covered: 1 });
+    expect(await as('u-bob', () => code(coverage.evaluate(org, 'SEC', ['athena-team-member'])))).toBe('not_found');
+    expect((await as('u-alice', () => coverage.evaluate(org, 'SEC', ['athena-team-member'])))[0]).toMatchObject({ total: 3, covered: 1 });
     expect((await as('u-bob', () => pins.list(org, 'u-bob'))).favorites.map((f) => f.ref)).toEqual(['PUB']); // le favori vers SEC ne trahit pas son existence
     expect(await as('u-bob', () => code(artifacts.create(org, 'SEC', 'REQ', { title: 'intrus', statement: 's' }, user('u-bob'))))).not.toBe('ok');
     expect(await as('u-alice', () => code(artifacts.create(org, 'SEC', 'REQ', { title: 'légitime', statement: 's' }, user('u-alice'))))).toBe('ok');
@@ -161,8 +161,8 @@ suite('listes d’ayants droit : la base filtre toutes les lectures', () => {
   it('plein texte, matrice et arbre ne renvoient rien des trackers refusés', async () => {
     const tree = new TreeService(db);
     const matrix = new MatrixService(db);
-    expect(await as('u-bob', () => code(tree.children(org, 'SEC', 'REQ', null, ['athena-user'])))).not.toBe('ok');
-    expect(await as('u-bob', () => code(matrix.matrix(org, 'SEC', 'REQ', 'TST', 'verifies', ['athena-user'])))).not.toBe('ok');
+    expect(await as('u-bob', () => code(tree.children(org, 'SEC', 'REQ', null, ['athena-team-member'])))).not.toBe('ok');
+    expect(await as('u-bob', () => code(matrix.matrix(org, 'SEC', 'REQ', 'TST', 'verifies', ['athena-team-member'])))).not.toBe('ok');
   });
 
   it('chaque modification de liste est consignée dans le journal d’audit chaîné, avec les membres ajoutés et retirés', async () => {

@@ -9,7 +9,7 @@ import { MATRIX_MAX_COLS, MatrixService } from './matrix.service';
 import { requirementTemplate } from './templates';
 import { TrackerService } from './tracker.service';
 
-const actor: Actor = { id: 'u1', roles: ['athena-user', 'athena-admin'] };
+const actor: Actor = { id: 'u1', roles: ['athena-team-member', 'athena-admin'] };
 const suite = pgUp ? describe : describe.skip;
 const code = async (p: Promise<unknown>) => ((await p.then(() => null, (e: unknown) => e)) as DomainError | null)?.code ?? 'ok';
 
@@ -19,7 +19,7 @@ suite('matrice de traçabilité', () => {
   let artifacts: ArtifactService;
   let links: LinkService;
   const org = crypto.randomUUID();
-  const roles = ['athena-user'];
+  const roles = ['athena-team-member'];
 
   beforeAll(async () => {
     testDb = await createTestDb('athena_test_matrix');

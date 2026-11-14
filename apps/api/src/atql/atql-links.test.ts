@@ -58,7 +58,7 @@ describe('ATQL : fonctions de traçabilité (analyse et compilation)', () => {
 });
 
 const suite = pgUp ? describe : describe.skip;
-const actor: Actor = { id: 'u1', roles: ['athena-user', 'athena-admin'] };
+const actor: Actor = { id: 'u1', roles: ['athena-team-member', 'athena-admin'] };
 
 suite('ATQL : fonctions de traçabilité (intégration)', () => {
   let testDb: TestDb;

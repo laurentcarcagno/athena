@@ -16,7 +16,7 @@ Le tableau de bord actuel (ADR-0003 § 2.1, ADR-0005 § 2.3) range des cartes à
 5. **Compatibilité** : les dispositions existantes (ordre + S/M/L/XL = 4/6/8/12 colonnes) sont converties à la lecture (migration de données) en positions `x`, `y` ; aucune disposition n'est perdue.
 
 ### 2.2 Catalogue, rôles, exemplaires
-1. Le catalogue est **filtré côté serveur** selon les rôles (`athena-user` = développeur, `athena-pm` = chef de projet, `athena-qa` = assurance produit, `athena-admin` = administrateur ; l'administrateur voit tout). Le client n'est qu'un affichage : un `PUT` contenant un widget interdit au rôle est refusé (403).
+1. Le catalogue est **filtré côté serveur** selon les rôles (`athena-team-member` = développeur, `athena-pm` = chef de projet, `athena-qa` = assurance produit, `athena-admin` = administrateur ; l'administrateur voit tout). Le client n'est qu'un affichage : un `PUT` contenant un widget interdit au rôle est refusé (403).
 2. **Plusieurs exemplaires** d'un même genre sont permis. Chaque exemplaire porte son projet, son titre et ses réglages (période : 7, 14 ou 30 jours). Le nombre total reste plafonné (24).
 3. La disposition par défaut dépend du rôle (reprend `homeWidgetsFor`, complétée par les nouveaux genres).
 

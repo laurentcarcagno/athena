@@ -13,7 +13,7 @@ beforeEach(() => {
 });
 afterEach(() => vi.unstubAllGlobals());
 
-const admin: Session = { authenticated: true, user: { username: 'a', name: 'Alice', email: null, roles: ['athena-admin', 'athena-user'], groups: [] } };
+const admin: Session = { authenticated: true, user: { username: 'a', name: 'Alice', email: null, roles: ['athena-admin', 'athena-team-member'], groups: [] } };
 function GoNewProject() {
   const navigate = useNavigate();
   return <button type="button" onClick={() => navigate('/admin?onglet=projets')}>Nouveau projet (menu)</button>;

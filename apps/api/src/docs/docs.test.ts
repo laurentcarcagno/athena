@@ -82,7 +82,7 @@ describe('analyseur .sdoc', () => {
 });
 
 const suite = pgUp ? describe : describe.skip;
-const actor: Actor = { id: 'u1', roles: ['athena-user', 'athena-admin'] };
+const actor: Actor = { id: 'u1', roles: ['athena-team-member', 'athena-admin'] };
 
 suite('liaison documentaire (intégration)', () => {
   let testDb: TestDb;

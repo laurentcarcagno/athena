@@ -151,7 +151,7 @@ export class AutomationService {
     );
     let done = 0;
     for (const rule of due) {
-      const actor: Actor = { id: `automation:${rule.id}:1`, roles: ['athena-user'] };
+      const actor: Actor = { id: `automation:${rule.id}:1`, roles: ['athena-team-member'] };
       const hits = await this.search.search(organizationId, rule.project_key, rule.condition, actor.id, AutomationService.SCHEDULE_BATCH, 0).catch(() => null);
       if (!hits) continue;
       for (const hit of hits.hits) {
@@ -208,7 +208,7 @@ export class AutomationService {
     );
     if (recent >= LIMITS.runsPerArtifactPerHour) return record('skipped', 'quota horaire atteint');
 
-    const actor: Actor = { id: `automation:${rule.id}:${depth + 1}`, roles: ['athena-user'] };
+    const actor: Actor = { id: `automation:${rule.id}:${depth + 1}`, roles: ['athena-team-member'] };
     try {
       if (rule.condition) {
         const hit = await this.search.search(org, event.project_key!, `key = "${key}" AND (${rule.condition})`, actor.id, 1, 0);

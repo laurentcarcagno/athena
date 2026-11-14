@@ -78,7 +78,7 @@ async function globalSetup() {
   const trackers = new TrackerService(db, registry);
   const artifacts = new ArtifactService(db, trackers, registry);
   const org = crypto.randomUUID();
-  const actor = { id: 'seed', roles: ['athena-user', 'athena-admin'] };
+  const actor = { id: 'seed', roles: ['athena-team-member', 'athena-admin'] };
   await db.tx(org, (c) => c.query("insert into organization (id, key, name) values ($1, 'demo', 'Démo')", [org]));
   await trackers.createProject(org, 'ARI', 'Ariane', actor);
   await trackers.createTracker(org, {

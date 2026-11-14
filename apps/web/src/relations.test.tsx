@@ -36,7 +36,7 @@ beforeEach(() => {
 });
 afterEach(() => vi.unstubAllGlobals());
 
-const session: Session = { authenticated: true, user: { username: 'u', name: 'Ulysse', email: null, roles: ['athena-user'], groups: [] } };
+const session: Session = { authenticated: true, user: { username: 'u', name: 'Ulysse', email: null, roles: ['athena-team-member'], groups: [] } };
 function Where() { const l = useLocation(); return <output data-testid="where">{l.pathname + l.search}</output>; }
 const fromSearch = { from: { href: '/p/ARI/recherche?q=bug', label: 'Recherche', keys: ['ARI-BUG-0001', 'ARI-BUG-0002', 'ARI-BUG-0003'] } };
 const mount = (entry: { pathname: string; search?: string; state?: unknown }) => {

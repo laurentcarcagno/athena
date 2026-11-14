@@ -13,7 +13,7 @@ Audit selon `DESIGN.md` / `DESIGN.json` (Athena Design System 3.0.0, `packages/u
 | Tâches principales | 1. retrouver un artefact ; 2. traiter un artefact (champ, transition) ; 3. suivre l'avancement (board, tableau de bord) ; 4. configurer un tracker ou un projet (administrateur) |
 | Fréquence d'usage | Quotidienne pour 1 à 3, occasionnelle pour 4 |
 | Environnement | 1440 × 900, clavier et souris, thème clair, français |
-| Contraintes | Onglet Développement (aucun dépôt GitLab lié), plugins (aucun installé), thème sombre (non implémenté), rôles `athena-user` et `athena-pm` (seul `admin.dev` a été utilisé pour les mesures) : NV |
+| Contraintes | Onglet Développement (aucun dépôt GitLab lié), plugins (aucun installé), thème sombre (non implémenté), rôles `athena-team-member` et `athena-pm` (seul `admin.dev` a été utilisé pour les mesures) : NV |
 | Version de DESIGN.md / DESIGN.json | 3.0.0 |
 
 ## 2. Grille d'évaluation
@@ -264,7 +264,7 @@ Gravité majeure et effort S : **F-02** (toasts), **F-07** (troncature et `nowra
 
 ### 4.5 Périmètre non vérifié
 
-- Rôles `athena-user` et `athena-pm` : audités après coup sur 14 pages (`collect3.mjs`) : navigation réduite et rôle affiché corrects, axe 0 violation, aucun bouton d'administration visible, API 403 sur templates, utilisateurs, création de projet, webhooks et plugins ; une seule anomalie (F-13). Non vérifié : masquage de champs par rôle (aucun champ restreint dans les données).
+- Rôles `athena-team-member` et `athena-pm` : audités après coup sur 14 pages (`collect3.mjs`) : navigation réduite et rôle affiché corrects, axe 0 violation, aucun bouton d'administration visible, API 403 sur templates, utilisateurs, création de projet, webhooks et plugins ; une seule anomalie (F-13). Non vérifié : masquage de champs par rôle (aucun champ restreint dans les données).
 - Onglet Développement avec données GitLab, plugins installés (widgets), pièces jointes en échec antivirus.
 - Thème sombre : absent de l'interface lors de l'audit initial ; livré depuis (T-0095, D-018) et mesuré dans la section 6.
 - Lecteur d'écran (NVDA, VoiceOver) : non testé ; les noms accessibles sont lus par axe, pas écoutés.

@@ -112,7 +112,7 @@ describe('affichage d’un commentaire', () => {
 });
 
 describe('Mon travail : mentions', () => {
-  const session: Session = { authenticated: true, user: { username: 'user.dev', name: 'User Dev', email: null, roles: ['athena-user'], groups: [] } };
+  const session: Session = { authenticated: true, user: { username: 'user.dev', name: 'User Dev', email: null, roles: ['athena-team-member'], groups: [] } };
 
   it('liste les mentions reçues, marque la lecture au clic', async () => {
     const calls: Array<{ method: string; url: string }> = [];

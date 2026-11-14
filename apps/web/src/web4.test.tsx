@@ -100,7 +100,7 @@ beforeEach(() => {
   }));
 });
 afterEach(() => { vi.unstubAllGlobals(); setLocale('fr'); });
-const admin: Session = { authenticated: true, user: { username: 'a', name: 'Alice', email: null, roles: ['athena-admin', 'athena-user'], groups: [] } };
+const admin: Session = { authenticated: true, user: { username: 'a', name: 'Alice', email: null, roles: ['athena-admin', 'athena-team-member'], groups: [] } };
 
 describe('vue projet', () => {
   it('chaque tracker : nom, nombre de tickets, attributs en info-bulle (T-0152)', async () => {
