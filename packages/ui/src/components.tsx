@@ -477,9 +477,11 @@ export function CornerFrame({ children }: { children: ReactNode }) {
 }
 
 /** Icône de rôle (administrateur : bouclier, chef de projet : boussole, utilisateur : personne). */
-export function RoleIcon({ kind }: { kind: 'admin' | 'manager' | 'user' }) {
+export function RoleIcon({ kind }: { kind: 'admin' | 'manager' | 'user' | 'director' | 'lead' }) {
   const path = kind === 'admin' ? 'M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5z'
     : kind === 'manager' ? 'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm3.5 6.5-2 5-5 2 2-5z'
+    : kind === 'director' ? 'M4 20V10m6 10V4m6 16v-7m6 7H2'
+    : kind === 'lead' ? 'M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm-6 9c0-3.5 2.7-5 6-5s6 1.5 6 5zm13-9a2.5 2.5 0 1 0 0-5m1 9c3 0 5 1.4 5 4'
     : 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm-8 9c0-4 3.6-6 8-6s8 2 8 6z';
   return <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" aria-hidden="true"><path d={path} /></svg>;
 }
@@ -546,7 +548,7 @@ function NavFlyout({ group, current, onNavigate }: { group: NavSection; current:
     </div>
   );
 }
-export function Sidebar({ id, items, sections, current, onNavigate, user, userActions, collapsed = false, open = false, brand, userStatus, width, onResize, resizeLabel = 'Redimensionner le rail' }: { id?: string; items?: NavItem[]; sections?: NavSection[]; current: string; onNavigate?: (id: string) => void; user?: { name: string; role: string; roleKind?: 'admin' | 'manager' | 'user' }; userActions?: ReactNode; collapsed?: boolean; open?: boolean; brand?: ReactNode;
+export function Sidebar({ id, items, sections, current, onNavigate, user, userActions, collapsed = false, open = false, brand, userStatus, width, onResize, resizeLabel = 'Redimensionner le rail' }: { id?: string; items?: NavItem[]; sections?: NavSection[]; current: string; onNavigate?: (id: string) => void; user?: { name: string; role: string; roleKind?: 'admin' | 'manager' | 'user' | 'director' | 'lead' }; userActions?: ReactNode; collapsed?: boolean; open?: boolean; brand?: ReactNode;
   /** À côté de l'icône de rôle (indicateur de notifications d'Athena). */
   userStatus?: ReactNode;
   /** Largeur courante en pixels et demande de nouvelle largeur : poignée de redimensionnement (glisser, ou flèches du clavier). */

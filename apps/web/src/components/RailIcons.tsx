@@ -13,6 +13,8 @@ export const RAIL_ICONS: Record<string, ReactNode> = {
   recents: icon(<><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>),
   projects: icon(<path d="M3 6h7l2 2h9v11H3z" />),
   work: icon(<><path d="M3 13h5l1 3h6l1-3h5" /><path d="M5 5h14l2 8v6H3v-6z" /></>),
+  teams: icon(<><circle cx="9" cy="8" r="3" /><path d="M3 20v-2a5 5 0 0 1 5-5h2a5 5 0 0 1 5 5v2" /><path d="M16 5a3 3 0 0 1 0 6M18 13a5 5 0 0 1 3 5v2" /></>),
+  portfolios: icon(<><rect x="3" y="7" width="18" height="13" /><path d="M9 7V4h6v3M3 13h18" /></>),
   search: icon(<><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></>),
   admin: icon(<><circle cx="12" cy="12" r="3" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1" /></>),
   overview: icon(<><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /></>),

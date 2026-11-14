@@ -159,10 +159,13 @@ describe('catalogue par rôle (T-0170)', () => {
     expect(kinds(dev)).toEqual(expect.arrayContaining(['search', 'pipelines', 'quality', 'badges']));
     expect(kinds(lead)).toContain('sprint-progress');
     expect(kinds({ id: 'a', roles: ['athena-admin'] }).length).toBe(kinds(lead).length);
+    // Le directeur accède aux tableaux de bord de pilotage ; le manager garde le catalogue d’un membre d’équipe.
+    expect(kinds({ id: 'r', roles: ['athena-director', 'athena-team-member'] })).toContain('health');
+    expect(kinds({ id: 'm', roles: ['athena-manager', 'athena-team-member'] })).not.toContain('health');
     expect(svc.catalog(lead).find((k) => k.kind === 'health')!.project).toBe(true);
   });
   it('les dispositions par défaut de chaque rôle sont posables par ce rôle et sans chevauchement', () => {
-    for (const a of [dev, lead, { id: 'q', roles: ['athena-qa'] }, { id: 'a', roles: ['athena-admin'] }]) {
+    for (const a of [dev, lead, { id: 'r', roles: ['athena-director', 'athena-team-member'] }, { id: 'm', roles: ['athena-manager', 'athena-team-member'] }, { id: 'q', roles: ['athena-qa'] }, { id: 'a', roles: ['athena-admin'] }]) {
       const allowed = new Set(allowedKinds(a.roles));
       const grid = toGrid(homeWidgetsFor(a.roles));
       expect(grid.every((w) => allowed.has(w.kind))).toBe(true);

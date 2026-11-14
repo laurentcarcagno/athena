@@ -12,8 +12,11 @@ import { BottomBar, ProjectNavContext } from './components/MobileNav';
 import { NotificationCenter } from './components/NotificationCenter';
 import { ThemeToggle } from './components/ThemeToggle';
 import { useRailSections, useRecordVisits } from './components/Rail';
+import { primaryRole } from './lib/roles';
 import { PinsProvider } from './lib/pins';
 import { PreferencesProvider, savePreference } from './lib/preferences';
+import { PortfoliosPage } from './pages/PortfoliosPage';
+import { TeamLoadPage } from './pages/TeamLoadPage';
 import { loadBrand, logoUrl, markUrl, useBrand, useFavicon } from './lib/brand';
 import { useThemeFamily } from './lib/theme';
 import { fr, getLocale, setLocale, useLocale } from './i18n';
@@ -141,7 +144,7 @@ function Shell({ session, children }: { session: Session; children: ReactNode })
     <div className="ath-page">
       <a className="ath-skip" href="#contenu" onClick={(e) => { e.preventDefault(); document.getElementById('contenu')?.focus(); }}>{fr.nav.skip}</a>
       {menuOpen && <div className="ath-drawer-backdrop" data-testid="drawer-backdrop" onClick={closeMenu} />}
-      <Sidebar id="rail" open={menuOpen} collapsed={collapsed} width={railWidth} onResize={resizeRail} resizeLabel={fr.rail.resize} brand={brand} sections={sections} current={current} onNavigate={(id) => { setMenuOpen(false); navigate(id); }} user={{ name: session.user!.name, role: admin ? 'Administrateur' : manager ? 'Chef de projet' : 'Utilisateur', roleKind: admin ? 'admin' : manager ? 'manager' : 'user' }}
+      <Sidebar id="rail" open={menuOpen} collapsed={collapsed} width={railWidth} onResize={resizeRail} resizeLabel={fr.rail.resize} brand={brand} sections={sections} current={current} onNavigate={(id) => { setMenuOpen(false); navigate(id); }} user={{ name: session.user!.name, role: primaryRole(session.user?.roles ?? []).label, roleKind: primaryRole(session.user?.roles ?? []).kind }}
         userStatus={<NotificationCenter />}
         userActions={<>
           <button type="button" className="ath-iconbtn ath-iconbtn--inverse ath-collapse-btn" onClick={toggleRail} aria-expanded={!collapsed} aria-label={collapsed ? fr.rail.expand : fr.rail.collapse} title={collapsed ? fr.rail.expand : fr.rail.collapse}>{collapsed ? '»' : '«'}</button>
@@ -200,6 +203,9 @@ export function AuthenticatedApp({ session }: { session: Session }) {
       <Routes>
         <Route path="/" element={<HomeRoute session={session} />} />
         <Route path="/projets" element={<ProjectsPage session={session} />} />
+        <Route path="/charge" element={<TeamLoadPage session={session} />} />
+        <Route path="/portefeuilles" element={<PortfoliosPage session={session} />} />
+        <Route path="/portefeuilles/:key" element={<PortfoliosPage session={session} />} />
         <Route path="/profil" element={<ProfilePage session={session} />} />
         <Route path="/notifications" element={<NotificationsPage />} />
         <Route path="/admin" element={<OrgAdminPage session={session} />} />

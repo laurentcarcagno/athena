@@ -18,7 +18,8 @@ const COMMON_KINDS: readonly string[] = ['search', 'chart', 'mentions', 'approva
 
 /** Genres de widget qu'un rôle peut poser (catalogue, T-0170) ; l'union vaut pour une personne à plusieurs rôles. */
 export function allowedKinds(roles: readonly string[]): string[] {
-  if (roles.includes('athena-admin') || roles.includes('athena-pm')) return [...WIDGET_KINDS];
+  // Le directeur a accès à tout le catalogue de pilotage (ses tableaux de bord) ; la disposition reste personnelle.
+  if (roles.includes('athena-admin') || roles.includes('athena-pm') || roles.includes('athena-director')) return [...WIDGET_KINDS];
   return [...COMMON_KINDS];
 }
 
@@ -91,7 +92,7 @@ export const defaultProgressWidgets = (project: string): Widget[] => [
  * écarts à suivre. Chacun peut ensuite réorganiser, retirer ou ajouter ces cartes.
  */
 export const homeWidgetsFor = (roles: readonly string[]): Widget[] => {
-  const manager = roles.includes('athena-admin') || roles.includes('athena-pm');
+  const manager = roles.includes('athena-admin') || roles.includes('athena-pm') || roles.includes('athena-director');
   const qaOnly = roles.includes('athena-qa') && !manager; // l'assurance produit a aussi les droits d'un utilisateur (rôle effectif), son accueil reste le sien
   if (qaOnly) {
     return [
