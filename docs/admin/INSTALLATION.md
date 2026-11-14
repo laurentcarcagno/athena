@@ -130,6 +130,10 @@ Initialiser et desceller OpenBao (`bao operator init`, clés de descellement ré
 
 Le niveau de protection de l'instance (bandeau et mention des exports) se règle par `protectionLevel` (variable `ATHENA_PROTECTION_LEVEL`).
 
+Rôles Keycloak d'Athena : `athena-admin`, `athena-pm` (chef de projet), `athena-manager` (voit la charge des équipes qu'il dirige ; droits d'un membre d'équipe), `athena-director` (portefeuilles, tableaux de bord et charge de toutes les équipes, lecture seule) et `athena-team-member` (membre d'équipe). **`athena-user` est renommé `athena-team-member`** : créez le nouveau rôle dans le royaume et attribuez-le, puis retirez l'ancien. Pendant la transition, un jeton portant encore `athena-user` est accepté comme `athena-team-member`. Les comptes de démonstration `manager.dev` et `director.dev` sont créés par `tools/dev-start.mjs`.
+
+Rôles Keycloak d'Athena : `athena-admin`, `athena-pm` (chef de projet), `athena-manager` (voit la charge des équipes qu'il dirige ; droits d'un membre d'équipe), `athena-director` (portefeuilles, tableaux de bord et charge de toutes les équipes, lecture seule) et `athena-team-member` (membre d'équipe). **`athena-user` est renommé `athena-team-member`** : créez le nouveau rôle dans le royaume et attribuez-le, puis retirez l'ancien. Pendant la transition, un jeton portant encore `athena-user` est accepté comme `athena-team-member`. Les comptes de démonstration `manager.dev` et `director.dev` sont créés par `tools/dev-start.mjs`.
+
 Rôles Keycloak de l'instance Défense : `athena-qa` (assurance qualité : droits d'un utilisateur, plus l'approbation des jalons et des baselines ; ni configuration ni planning) s'ajoute à `athena-admin`, `athena-pm` et `athena-team-member`. Le royaume de développement fournit le compte `qa.dev`. Les listes d'ayants droit et le contrôle export sont appliqués par la base (politiques RLS restrictives, migrations 039 et 040) : aucune configuration supplémentaire.
 
 ## Recette Kubernetes locale (kind)
