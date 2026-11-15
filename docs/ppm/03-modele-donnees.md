@@ -8,7 +8,7 @@
 4. **Capacité (V2)** : disponibilité par personne, absences, allocations nominatives ou par rôle, worklog. **Finances (V2)** : lignes de budget, engagements, réels, prévisions, lots d'import.
 5. **Visibilité** : toute table qui porte un `project_id` reçoit la politique restrictive `acl_allows(project_id, null)`, et tout agrégat se calcule sous l'identité du lecteur. C'est désormais une règle de revue de code.
 6. **Scénarios (V3)** : tables séparées de surcharges, jamais écrites dans les tables de référence.
-7. **Décisions prises le 2026-11-15** : durée de la journée en heures et minutes, réglable par l'organisation et par personne (§ 2.9) ; cycle de vie du projet configurable par l'organisation, avec onze états livrés par défaut (§ 2.1) ; rétention des instantanés réglable (§ 2.5) ; rôle PMO créé ; volumétrie du palier 2.
+7. **Décisions prises le 2026-11-15** : durée de la journée en heures et minutes, réglable par l'organisation et par personne (§ 2.9) ; cycle de vie du projet configurable par l'organisation, avec treize états livrés par défaut (§ 2.1) ; rétention des instantanés réglable (§ 2.5) ; rôle PMO créé ; volumétrie du palier 2.
 
 Légende : **E** = existant (fichier cité), **X** = existant étendu, **N** = nouveau. Version cible entre crochets.
 
