@@ -2,6 +2,8 @@
 
 Étude du 2026-11-15, sur `develop` au commit `0204ea5`. Aucun fichier de code n'est modifié ; seul `docs/ppm/` est écrit.
 
+**Mise à jour après la phase 1** : à votre demande (réponse 8), P2 (filtre des droits sur `portfolio_project` et `baseline_schedule`, comptage corrigé) et le volet critères de P6 (critères manuels à confirmer, critères d'entrée évalués) sont faits dans le commit `8b5d77c`, migration `064_gate_checks_acl.sql`. Les constats ci-dessous décrivent l'état d'avant ce commit.
+
 ## Résumé
 
 1. Le niveau projet est solide pour l'**ingénierie** : trackers configurables, workflows, traçabilité, gabarits normatifs versionnés, ACL fines appliquées dans PostgreSQL.

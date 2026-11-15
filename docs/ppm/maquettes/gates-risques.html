@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maquette : gates et risques</title>
+<style>
+  :root { --bg:#f6f7f9; --card:#fff; --line:#d5d9e0; --text:#1b2330; --mute:#5b6576; --ok:#1f7a3a; --warn:#8a5a00; --crit:#b3261e; --accent:#0b5cad; }
+  body { margin:0; font:14px/1.45 "IBM Plex Sans", system-ui, sans-serif; background:var(--bg); color:var(--text); }
+  main { max-width:1200px; margin:0 auto; padding:16px; display:grid; gap:24px; }
+  h1 { font-size:22px; margin:8px 0 2px; } h2 { font-size:17px; margin:0 0 8px; } .sub { color:var(--mute); margin:0 0 8px; }
+  .mono { font-family:"IBM Plex Mono", ui-monospace, monospace; }
+  table { border-collapse:collapse; background:var(--card); border:1px solid var(--line); }
+  th, td { padding:6px 8px; border:1px solid var(--line); text-align:left; }
+  th { background:#eef1f5; }
+  .ok { color:var(--ok); } .warn { color:var(--warn); } .crit { color:var(--crit); }
+  .matrix td { width:64px; height:48px; text-align:center; font-weight:600; }
+  .l { background:#e7f3ea; } .m { background:#fbf1d9; } .h { background:#f8dcc8; } .c { background:#f4cfcc; }
+  .two { display:grid; grid-template-columns:repeat(auto-fit,minmax(420px,1fr)); gap:24px; }
+</style>
+</head>
+<body>
+<main>
+  <header><p class="sub">Portefeuilles › Programmes spatiaux</p><h1>Gates et risques</h1></header>
+
+  <section>
+    <h2>Tableau de passage des gates</h2>
+    <p class="sub">Date prévue · date tenue · décision. Retard en jours ouvrés. Clic : frise des gates du projet.</p>
+    <table>
+      <thead><tr><th>Projet</th><th class="mono">SRR</th><th class="mono">PDR</th><th class="mono">CDR</th><th class="mono">QR</th><th class="mono">AR</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">LUMEN</td><td>12/03 · 14/03 · <span class="ok">Go</span></td><td class="crit">03/11 · non tenue · <b>+12 j</b><br><small>2 critères : 1 RID ouvert, 1 à confirmer</small></td><td>15/06/27</td><td>—</td><td>—</td></tr>
+        <tr><td class="mono">NOVA</td><td>✓ Go</td><td>✓ Go avec réserves</td><td>✓ Go</td><td>15/01/27<br><small>prêt : 0 critère restant</small></td><td>20/02/27</td></tr>
+        <tr><td class="mono">SAT1</td><td>✓ Go</td><td>✓ Go</td><td>20/03/27<br><small>3 RID ouverts</small></td><td>—</td><td>—</td></tr>
+        <tr><td class="mono">ARI</td><td>✓ Go</td><td>✓ Go</td><td>✓ Go</td><td>✓ Go</td><td>05/12/26</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <div class="two">
+    <section>
+      <h2>Frise des gates : LUMEN</h2>
+      <p class="sub">Passage = sortie de la phase en cours + entrée de la suivante. Un critère manuel se confirme (qui, quand, note).</p>
+      <ol>
+        <li>Exigences · <span class="ok">✓ SRR tenue le 14/03, Go</span></li>
+        <li><b>Conception préliminaire (en cours)</b>
+          <ul>
+            <li>Sortie : Tous les RID de la revue PDR sont clos · <span class="crit">1 restant</span> (<a href="#">voir</a>)</li>
+            <li>Entrée suivante : Baseline TS approuvée à la PDR · <span class="warn">à confirmer</span> <button>Confirmer</button></li>
+          </ul>
+        </li>
+        <li>Conception détaillée · CDR prévue 15/06/27</li>
+        <li>Qualification · QR non datée</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2>Matrice des risques (probabilité × impact)</h2>
+      <p class="sub">Risques ouverts des projets visibles. Nombre écrit dans chaque case ; clic : liste des risques. 2 risques non évalués, comptés à part.</p>
+      <table class="matrix" aria-label="Matrice des risques : impact en colonnes, probabilité en lignes">
+        <tr><th>P \ I</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th></tr>
+        <tr><th>5</th><td class="m">0</td><td class="h">1</td><td class="h">0</td><td class="c">2</td><td class="c">1</td></tr>
+        <tr><th>4</th><td class="l">0</td><td class="m">2</td><td class="h">3</td><td class="h">1</td><td class="c">0</td></tr>
+        <tr><th>3</th><td class="l">1</td><td class="m">4</td><td class="m">2</td><td class="h">1</td><td class="h">0</td></tr>
+        <tr><th>2</th><td class="l">3</td><td class="l">2</td><td class="m">1</td><td class="m">0</td><td class="h">0</td></tr>
+        <tr><th>1</th><td class="l">5</td><td class="l">1</td><td class="l">0</td><td class="m">0</td><td class="m">0</td></tr>
+      </table>
+      <p class="sub">Paliers libellés : faible (1-4), modéré (5-9), élevé (10-16), critique (20-25). Rendu final : ECharts <code>heatmap</code> avec valeur écrite et motifs.</p>
+    </section>
+  </div>
+</main>
+</body>
+</html>

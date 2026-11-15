@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maquette : roadmap du portefeuille</title>
+<style>
+  :root { --bg:#f6f7f9; --card:#fff; --line:#d5d9e0; --text:#1b2330; --mute:#5b6576; --accent:#0b5cad; --crit:#b3261e; }
+  body { margin:0; font:14px/1.45 "IBM Plex Sans", system-ui, sans-serif; background:var(--bg); color:var(--text); }
+  main { max-width:1200px; margin:0 auto; padding:16px; }
+  h1 { font-size:22px; margin:8px 0 2px; } .sub { color:var(--mute); margin:0 0 12px; }
+  .toolbar { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px; } .toolbar span { border:1px solid var(--line); background:var(--card); padding:4px 8px; }
+  .frame { background:var(--card); border:1px solid var(--line); overflow-x:auto; }
+  svg text { font:12px "IBM Plex Sans", system-ui, sans-serif; fill:var(--text); }
+  svg .mono { font-family:"IBM Plex Mono", ui-monospace, monospace; }
+  .legend { display:flex; gap:16px; flex-wrap:wrap; color:var(--mute); margin-top:8px; }
+</style>
+</head>
+<body>
+<main>
+  <p class="sub">Portefeuilles › <span>Programmes spatiaux</span> › Roadmap</p>
+  <h1>Roadmap</h1>
+  <div class="toolbar"><span>Zoom : <b>trimestre</b> · semestre · 3 ans</span><span>Baseline : la plus récente ▾</span><span>Regrouper par portefeuille</span><span>Vue jalons seule</span><span>Graphique | Tableau</span></div>
+  <div class="frame">
+    <svg width="1160" height="300" role="img" aria-label="Roadmap de 4 projets de 2026 à 2027 : phases, revues et écarts à la baseline">
+      <!-- axe -->
+      <g>
+        <text x="190" y="20">T4 2026</text><text x="430" y="20">T1 2027</text><text x="670" y="20">T2 2027</text><text x="910" y="20">T3 2027</text>
+        <line x1="180" y1="28" x2="1150" y2="28" stroke="#d5d9e0"/>
+        <line x1="300" y1="28" x2="300" y2="290" stroke="#0b5cad" stroke-dasharray="3 3"/><text x="304" y="290" fill="#0b5cad">aujourd'hui</text>
+      </g>
+      <!-- LUMEN -->
+      <g transform="translate(0,50)">
+        <text x="12" y="16" class="mono">LUMEN</text><text x="12" y="32" fill="#5b6576">Critique</text>
+        <rect x="200" y="30" width="700" height="6" fill="none" stroke="#5b6576" stroke-dasharray="4 3"/>
+        <text x="905" y="37" fill="#5b6576">baseline : 30/06/27</text>
+        <polygon points="200,4 380,4 392,16 380,28 200,28 212,16" fill="#dbe7f5" stroke="#0b5cad"/><text x="222" y="20">Conception préliminaire</text>
+        <polygon points="392,4 760,4 772,16 760,28 392,28 404,16" fill="#eef1f5" stroke="#5b6576"/><text x="414" y="20">Conception détaillée</text>
+        <polygon points="772,4 960,4 972,16 960,28 772,28 784,16" fill="#eef1f5" stroke="#5b6576"/><text x="790" y="20">Qualification</text>
+        <rect x="282" y="8" width="16" height="16" transform="rotate(45 290 16)" fill="#b3261e"/><text x="270" y="48" fill="#b3261e" class="mono">PDR +12 j</text>
+        <text x="980" y="20" fill="#b3261e">fin calculée 18/09/27 (+58 j)</text>
+      </g>
+      <!-- NOVA -->
+      <g transform="translate(0,120)">
+        <text x="12" y="16" class="mono">NOVA</text><text x="12" y="32" fill="#5b6576">À surveiller</text>
+        <rect x="190" y="30" width="420" height="6" fill="none" stroke="#5b6576" stroke-dasharray="4 3"/>
+        <polygon points="190,4 470,4 482,16 470,28 190,28 202,16" fill="#dbe7f5" stroke="#0b5cad"/><text x="210" y="20">Qualification</text>
+        <polygon points="482,4 620,4 632,16 620,28 482,28 494,16" fill="#eef1f5" stroke="#5b6576"/><text x="500" y="20">Recette</text>
+        <rect x="462" y="8" width="16" height="16" transform="rotate(45 470 16)" fill="#fff" stroke="#1b2330"/><text x="455" y="48" class="mono">QR</text>
+        <path d="M640 10 l8 6 l-8 6 z" fill="#1b2330"/><text x="652" y="20" class="mono">v1.0</text>
+      </g>
+      <!-- SAT1 -->
+      <g transform="translate(0,190)">
+        <text x="12" y="16" class="mono">SAT1</text><text x="12" y="32" fill="#5b6576">À surveiller</text>
+        <polygon points="190,4 560,4 572,16 560,28 190,28 202,16" fill="#dbe7f5" stroke="#0b5cad"/><text x="210" y="20">Conception détaillée</text>
+        <polygon points="572,4 1100,4 1112,16 1100,28 572,28 584,16" fill="#eef1f5" stroke="#5b6576"/><text x="590" y="20">Qualification et recette</text>
+        <rect x="552" y="8" width="16" height="16" transform="rotate(45 560 16)" fill="#fff" stroke="#1b2330"/><text x="545" y="48" class="mono">CDR</text>
+      </g>
+      <!-- ORB -->
+      <g transform="translate(0,250)">
+        <text x="12" y="16" class="mono">ORB</text><text x="12" y="32" fill="#5b6576">non planifié</text>
+        <text x="200" y="20" fill="#5b6576">Fin non renseignée : à compléter dans la fiche du projet</text>
+      </g>
+    </svg>
+  </div>
+  <div class="legend">
+    <span>Chevron : phase normative (bleu = en cours)</span><span>Losange : revue (plein rouge = dépassée)</span><span>Triangle : version</span><span>Pointillés : baseline</span><span>Tout élément mène à son objet source</span>
+  </div>
+  <p class="sub">Composant final : rendu de <code>ScheduleGantt.tsx</code> en lecture, multi-projets. La courbe de tendance des jalons (MTA) s'ouvre au clic sur une revue (ECharts <code>line</code>).</p>
+</main>
+</body>
+</html>

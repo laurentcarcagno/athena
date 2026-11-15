@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maquette : santé du portefeuille</title>
+<style>
+  :root { --bg:#f6f7f9; --card:#fff; --line:#d5d9e0; --text:#1b2330; --mute:#5b6576; --ok:#1f7a3a; --warn:#8a5a00; --crit:#b3261e; --accent:#0b5cad; }
+  body { margin:0; font:14px/1.45 "IBM Plex Sans", system-ui, sans-serif; background:var(--bg); color:var(--text); }
+  main { max-width:1200px; margin:0 auto; padding:16px; }
+  h1 { font-size:22px; margin:8px 0 2px; } .sub { color:var(--mute); margin:0 0 16px; }
+  .mono { font-family:"IBM Plex Mono", ui-monospace, monospace; }
+  .note { border:1px dashed var(--line); padding:6px 10px; color:var(--mute); margin-bottom:16px; }
+  .tiles { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; margin-bottom:16px; }
+  .tile { background:var(--card); border:1px solid var(--line); padding:12px; }
+  .tile b { display:block; font-size:26px; } .tile small { color:var(--mute); }
+  table { width:100%; border-collapse:collapse; background:var(--card); border:1px solid var(--line); }
+  th, td { text-align:left; padding:8px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { background:#eef1f5; font-weight:600; }
+  .pill { display:inline-block; padding:1px 8px; border:1px solid currentColor; font-size:12px; }
+  .ok { color:var(--ok); } .warn { color:var(--warn); } .crit { color:var(--crit); }
+  .forced { background:repeating-linear-gradient(45deg, transparent 0 4px, rgba(0,0,0,.08) 4px 6px); }
+  .bar { display:block; height:8px; background:#e3e7ee; } .bar i { display:block; height:8px; background:var(--accent); }
+  .toolbar { display:flex; gap:8px; flex-wrap:wrap; margin:0 0 8px; } .toolbar span { border:1px solid var(--line); background:var(--card); padding:4px 8px; }
+  a { color:var(--accent); }
+  @media print { .toolbar, .note { display:none; } }
+</style>
+</head>
+<body>
+<main>
+  <p class="sub">Portefeuilles › <span class="mono">spatial</span></p>
+  <h1>Programmes spatiaux</h1>
+  <p class="sub">Responsable : D. Martin · dernier instantané : revue du 03/11/2026 · <a href="#">Préparer la revue</a> · <a href="#">Imprimer</a> · <a href="#">Exporter en CSV</a></p>
+  <p class="note">Périmètre : projets que vous pouvez voir. (Mention permanente et neutre : elle ne dit jamais s'il en manque.)</p>
+
+  <section class="tiles" aria-label="Indicateurs du portefeuille">
+    <div class="tile"><small>Projets critiques</small><b class="crit">2</b><small>↑ +1 depuis la revue</small></div>
+    <div class="tile"><small>Revues en retard</small><b class="warn">1</b><small>PDR de LUMEN, 12 j</small></div>
+    <div class="tile"><small>Tickets en retard</small><b>37</b><small>↓ −9 depuis la revue</small></div>
+    <div class="tile"><small>Avancement moyen</small><b>54 %</b><small>→ stable</small></div>
+    <div class="tile"><small>Risques critiques</small><b class="crit">3</b><small>matrice ›</small></div>
+    <div class="tile"><small>Budget (V2)</small><b>—</b><small>données non saisies</small></div>
+  </section>
+
+  <div class="toolbar"><span>Statut : actifs ▾</span><span>Phase : toutes ▾</span><span>Santé : toutes ▾</span><span>Sponsor : tous ▾</span><span>Graphique | <b>Tableau</b></span></div>
+  <table>
+    <caption class="sub" style="caption-side:top;text-align:left">6 projets, les plus à risque d'abord</caption>
+    <thead><tr><th>Projet</th><th>Santé calculée</th><th>Météo du chef de projet</th><th>Tendance</th><th>Phase · prochaine revue</th><th>Fin prévue · calculée · écart baseline</th><th>Retards · bloqués</th><th>Avancement</th><th>Commentaire</th></tr></thead>
+    <tbody>
+      <tr><td><a class="mono" href="#">LUMEN</a><br>Satellite d'observation</td><td><span class="pill crit">Critique</span></td><td><span class="pill warn">À surveiller</span><br><small>Écart avec le calcul</small></td><td>↓ <small>dégradé</small></td><td>Conception préliminaire<br><span class="mono">PDR</span> prévue 03/11 · <span class="crit">dépassée de 12 j</span></td><td class="mono">30/06/27 · 18/09/27 · <span class="crit">+58 j</span></td><td class="mono">14 · 3</td><td><span class="bar"><i style="width:31%"></i></span>31 %</td><td>Fournisseur du radiomètre en retard ; replanification en cours.</td></tr>
+      <tr class="forced"><td><a class="mono" href="#">NOVA</a><br>Segment sol</td><td><span class="pill warn">À surveiller</span><br><small>forcée (calcul : critique) · note PMO</small></td><td><span class="pill warn">À surveiller</span></td><td>→</td><td>Qualification<br><span class="mono">QR</span> prévue 15/01</td><td class="mono">28/02/27 · 05/03/27 · +4 j</td><td class="mono">9 · 1</td><td><span class="bar"><i style="width:68%"></i></span>68 %</td><td>Bloquant levé le 10/11, à confirmer.</td></tr>
+      <tr><td><a class="mono" href="#">SAT1</a><br>Plateforme</td><td><span class="pill warn">À surveiller</span></td><td><span class="pill ok">Sain</span></td><td>↑ <small>amélioré</small></td><td>Conception détaillée<br><span class="mono">CDR</span> prévue 20/03</td><td class="mono">31/12/27 · 31/12/27 · 0 j</td><td class="mono">6 · 0</td><td><span class="bar"><i style="width:45%"></i></span>45 %</td><td>—</td></tr>
+      <tr><td><a class="mono" href="#">ARI</a><br>Logiciel de vol</td><td><span class="pill ok">Sain</span></td><td><span class="pill ok">Sain</span></td><td>→</td><td>Recette<br><span class="mono">AR</span> prévue 05/12</td><td class="mono">15/12/26 · 10/12/26 · −3 j</td><td class="mono">0 · 0</td><td><span class="bar"><i style="width:92%"></i></span>92 %</td><td>—</td></tr>
+      <tr><td><a class="mono" href="#">ORB</a><br>Étude de phase A</td><td><span class="pill ok">Sain</span></td><td><small>Aucune météo depuis 34 j</small></td><td>—</td><td><small>Pas de gabarit : aucune phase</small></td><td class="mono"><small>Fin non renseignée</small></td><td class="mono">0 · 0</td><td><span class="bar"><i style="width:12%"></i></span>12 %</td><td>—</td></tr>
+    </tbody>
+  </table>
+  <p class="sub">Clic sur une cellule : objet source (projet, phase, liste des tickets en retard). Les mini-courbes de tendance apparaissent après deux instantanés.</p>
+</main>
+</body>
+</html>

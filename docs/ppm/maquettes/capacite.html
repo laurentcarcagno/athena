@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maquette : capacité (V2)</title>
+<style>
+  :root { --bg:#f6f7f9; --card:#fff; --line:#d5d9e0; --text:#1b2330; --mute:#5b6576; }
+  body { margin:0; font:14px/1.45 "IBM Plex Sans", system-ui, sans-serif; background:var(--bg); color:var(--text); }
+  main { max-width:1200px; margin:0 auto; padding:16px; }
+  h1 { font-size:22px; margin:8px 0 2px; } .sub { color:var(--mute); margin:0 0 12px; }
+  .toolbar { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px; } .toolbar span { border:1px solid var(--line); background:var(--card); padding:4px 8px; }
+  table { border-collapse:collapse; background:var(--card); border:1px solid var(--line); }
+  th, td { padding:6px 10px; border:1px solid var(--line); text-align:center; }
+  th:first-child, td:first-child { text-align:left; }
+  .u { background:#eef1f5; } .n { background:#e7f3ea; } .t { background:#fbf1d9; } .s { background:#f4cfcc; font-weight:700; }
+  .abs { background:repeating-linear-gradient(45deg, #fff 0 4px, #d5d9e0 4px 6px); }
+  .legend { display:flex; gap:16px; flex-wrap:wrap; margin-top:8px; color:var(--mute); }
+  .legend i { display:inline-block; width:14px; height:14px; vertical-align:middle; border:1px solid var(--line); margin-right:4px; }
+</style>
+</head>
+<body>
+<main>
+  <p class="sub">Charge des équipes › Équipe Alpha</p>
+  <h1>Capacité et charge (V2)</h1>
+  <p class="sub">Granularité du portefeuille : <b>mois</b> (réglable par portefeuille et par projet). Unité : heures ; 1 jour = 7,8 h (réglage de l'organisation).</p>
+  <div class="toolbar"><span>Semaine | <b>Mois</b></span><span>Regrouper : <b>personne</b> · rôle · équipe</span><span>Planifié | Restant | Consommé</span><span>Graphique | Tableau</span></div>
+  <table aria-label="Taux de charge par personne et par mois">
+    <thead><tr><th>Personne (rôle)</th><th>Déc. 2026</th><th>Janv. 2027</th><th>Févr. 2027</th><th>Mars 2027</th><th>Avr. 2027</th></tr></thead>
+    <tbody>
+      <tr><td>Ana Martin (thermicienne, 100 %)</td><td class="t">96 %</td><td class="s">128 % ⚠</td><td class="s">115 % ⚠</td><td class="n">82 %</td><td class="u">40 %</td></tr>
+      <tr><td>Bob Durand (AIT, 80 %)</td><td class="abs">congés 50 %</td><td class="n">74 %</td><td class="t">98 %</td><td class="n">80 %</td><td class="n">71 %</td></tr>
+      <tr><td>Cy Petit (logiciel, 100 %)</td><td class="n">88 %</td><td class="n">90 %</td><td class="t">102 %</td><td class="s">131 % ⚠</td><td class="t">97 %</td></tr>
+      <tr><td><i>Besoin non nommé</i> : 0,5 ETP thermicien</td><td>—</td><td>78 h</td><td>78 h</td><td>—</td><td>—</td></tr>
+    </tbody>
+  </table>
+  <div class="legend">
+    <span><i class="u"></i>sous-charge (&lt; 60 %)</span><span><i class="n"></i>normal (60-95 %)</span><span><i class="t"></i>tendu (95-110 %)</span><span><i class="s"></i>surcharge (&gt; 110 %, ⚠)</span><span><i class="abs"></i>absence</span>
+  </div>
+  <p class="sub">Valeur toujours écrite dans la cellule ; clic : allocations de la cellule par projet. Rendu final : ECharts <code>heatmap</code> (paliers par <code>visualMap</code>, motifs). Au-delà de 100 personnes, agrégation par équipe avec navigation descendante.</p>
+</main>
+</body>
+</html>
