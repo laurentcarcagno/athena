@@ -22,6 +22,9 @@ const url = (db, user = 'athena', password = pw) => `postgres://${user}:${encode
 const DB = 'athena_dev';
 const APP = { user: 'athena_dev_app', password: 'dev-only-app' };
 
+/** Comptes de développement Keycloak (nom d'utilisateur vers { id, name }), remplis par ensureKeycloak. */
+const accounts = new Map();
+
 async function prepare() {
   const admin = new Client({ connectionString: url('postgres') });
   await admin.connect();
@@ -58,6 +61,7 @@ async function prepare() {
   }
   await seedAgile(pool, db, trackers, artifacts);
   await seedLumen(pool, db, trackers, artifacts);
+  await seedTeamsPortfolios(pool, db, artifacts);
   await pool.end();
 }
 
@@ -173,6 +177,51 @@ async function seedLumen(pool, db, trackers, artifacts) {
   console.log('démonstration du tableau de bord amorcée : projet LUMEN (retards, bloquant, sprint actif, version publiée, dépôt relié)');
 }
 
+/**
+ * Démonstration des équipes et des portefeuilles (ADR-0008) : deux équipes dont les membres reçoivent les tickets ouverts de NOVA et
+ * LUMEN (la page « Charge des équipes » n'est pas vide), et un portefeuille « spatial » regroupant les projets de démonstration, dont
+ * un avec santé forcée et note. Les sujets viennent de Keycloak (identifiant des comptes de développement), inscrits dans
+ * user_account comme le fait la première connexion ; sans Keycloak, rien n'est fait. Idempotent : ignoré si l'équipe `plateforme` existe.
+ */
+async function seedTeamsPortfolios(pool, db, artifacts) {
+  const org = (await pool.query("select organization_id_by_key('demo') as id")).rows[0].id;
+  if (!org || accounts.size === 0) return;
+  const { TeamService } = dist('core/team.service.js');
+  const { PortfolioService } = dist('core/portfolio.service.js');
+  const teams = new TeamService(db);
+  const portfolios = new PortfolioService(db, { kpis: async () => { throw new Error('indicateurs non utilisés par l’amorçage'); } });
+  const actor = { id: 'seed', roles: ['athena-team-member', 'athena-admin'] };
+  const names = ['user.dev', 'admin.dev', 'pm.dev', 'qa.dev', 'manager.dev', 'director.dev', 'pmo.dev'];
+  await db.tx(org, async (c) => {
+    for (const u of names) {
+      const a = accounts.get(u);
+      if (a) await c.query(
+        `insert into user_account (organization_id, subject, username, display_name, email) values ($1,$2,$3,$4,$5)
+         on conflict (organization_id, subject) do nothing`, [org, a.id, u, a.name, `${u}@example.test`]);
+    }
+  });
+  const sub = (u) => accounts.get(u)?.id;
+  if (await db.tx(org, async (c) => (await c.query("select 1 from team where key = 'plateforme'")).rowCount > 0)) return;
+  const plan = [
+    ['plateforme', 'Équipe Plateforme', 'Socle applicatif et tableau de bord', [['manager.dev', 'manager'], ['user.dev', 'member'], ['pm.dev', 'member'], ['qa.dev', 'member']]],
+    ['segment-sol', 'Équipe Segment sol', 'Stations, télémesure et exploitation', [['pm.dev', 'manager'], ['admin.dev', 'member'], ['user.dev', 'member']]],
+  ];
+  for (const [key, name, description, members] of plan) {
+    await teams.create(org, { key, name, description }, actor);
+    for (const [u, role] of members) if (sub(u)) await teams.setMember(org, key, sub(u), role, actor);
+  }
+  // Tickets ouverts répartis entre les membres (charge non nulle, retards compris).
+  const open = await db.tx(org, async (c) => (await c.query(
+    `select p.key as project, a.key, a.version from artifact a join project p on p.id = a.project_id join status s on s.id = a.status_id
+      where p.key in ('NOVA','LUMEN') and s.category <> 'done' order by p.key, a.number`)).rows);
+  const assignees = ['user.dev', 'pm.dev', 'qa.dev', 'admin.dev', 'user.dev', 'pm.dev'].map(sub).filter(Boolean);
+  for (const [i, t] of open.entries()) await artifacts.update(org, t.project, t.key, { assignee: assignees[i % assignees.length] }, t.version, actor);
+  await portfolios.create(org, { key: 'spatial', name: 'Programmes spatiaux', description: 'Projets de démonstration regroupés pour la direction', owner: sub('director.dev') ?? null }, actor);
+  const projects = (await pool.query("select key from project where key in ('LUMEN','NOVA','SAT1','ARI') order by key")).rows.map((r) => r.key);
+  for (const k of projects) await portfolios.setProject(org, 'spatial', k, k === 'LUMEN' ? { health: 'attention', note: 'Calibrage du capteur en retard, arbitrage attendu à la prochaine revue.' } : {}, actor);
+  console.log(`démonstration d'équipes et de portefeuilles amorcée : équipes plateforme et segment-sol, portefeuille spatial (${projects.join(', ')})`);
+}
+
 /** Garantit les rôles athena-pm et athena-qa et les comptes pm.dev et qa.dev sur un Keycloak déjà initialisé (l'import du royaume n'a lieu qu'une fois). */
 async function ensureKeycloak() {
   const base = 'http://localhost:8080';
@@ -185,6 +234,10 @@ async function ensureKeycloak() {
     if ((await api(`/roles/${name}`)).status === 404) await api('/roles', { method: 'POST', body: JSON.stringify({ name, description }) });
   }
   const group = (await (await api('/groups?search=org-demo')).json())[0];
+  for (const username of ['user.dev', 'admin.dev']) {
+    const u = (await (await api(`/users?username=${username}&exact=true`)).json())[0];
+    if (u) accounts.set(username, { id: u.id, name: [u.firstName, u.lastName].filter(Boolean).join(' ') || username });
+  }
   for (const { username, password, firstName, lastName, roles: wanted } of [
     { username: 'pm.dev', password: 'dev-only-pm', firstName: 'Chef', lastName: 'Projet', roles: ['athena-pm', 'athena-team-member'] },
     { username: 'qa.dev', password: 'dev-only-qa', firstName: 'Assurance', lastName: 'Qualité', roles: ['athena-qa'] },
@@ -198,6 +251,7 @@ async function ensureKeycloak() {
       users = await (await api(`/users?username=${username}&exact=true`)).json();
     }
     const id = users[0].id;
+    accounts.set(username, { id, name: `${firstName} ${lastName}` });
     const roles = await Promise.all(wanted.map(async (n) => (await api(`/roles/${n}`)).json()));
     await api(`/users/${id}/role-mappings/realm`, { method: 'POST', body: JSON.stringify(roles) });
     if (group) await api(`/users/${id}/groups/${group.id}`, { method: 'PUT' });
@@ -234,7 +288,7 @@ const procs = [
   child.on('exit', (code) => console.log(`[${name}] arrêté (${code})`));
   return child;
 });
-console.log('Athena démarre : http://localhost:3000  (utilisateurs : user.dev / dev-only-user ; admin.dev / dev-only-admin ; pm.dev / dev-only-pm ; qa.dev / dev-only-qa, assurance qualité étatique ; manager.dev / dev-only-manager ; pmo.dev / dev-only-pmo ; director.dev / dev-only-director)');
+console.log('Athena démarre : http://localhost:3000  (utilisateurs : user.dev / dev-only-user ; admin.dev / dev-only-admin ; pm.dev / dev-only-pm ; qa.dev / dev-only-qa, assurance qualité étatique ; manager.dev / dev-only-manager ; pmo.dev / dev-only-pmo ; director.dev / dev-only-director). Démonstration : équipes plateforme et segment-sol (/charge), portefeuille spatial (/portefeuilles)');
 const stop = () => { procs.forEach((p) => p.kill()); process.exit(0); };
 process.on('SIGINT', stop);
 process.on('SIGTERM', stop);

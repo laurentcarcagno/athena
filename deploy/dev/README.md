@@ -31,6 +31,10 @@ docker compose down -v      # arrêt et effacement des données
 - Premier démarrage : 3 à 5 minutes. Le mot de passe doit respecter la politique de GitLab (pas de mots courants).
 - Pour que GitLab appelle des webhooks locaux, activer « Autoriser les requêtes vers le réseau local » (Admin > Paramètres > Réseau) dans cette instance de test uniquement.
 
+## Données de démonstration (`node tools/dev-start.mjs`)
+- Projets ARI, NOVA (agile) et LUMEN (tableau de bord), puis, si Keycloak répond, deux équipes (`plateforme`, `segment-sol`) dont les membres portent les tickets ouverts de NOVA et LUMEN, et le portefeuille `spatial` (LUMEN en santé forcée « attention » avec note). Visibles dans « Charge des équipes » et « Portefeuilles ». Amorçage idempotent.
+- Comptes : `pm.dev`, `qa.dev`, `manager.dev`, `pmo.dev`, `director.dev` (mots de passe `dev-only-<rôle>`), créés par le script.
+
 ## Thème de connexion Keycloak
 
 Le dossier `keycloak/themes/athena` (monté dans le conteneur par `docker-compose.yml`) habille la page de connexion aux couleurs de la charte ATHENA ; le realm l'active par `loginTheme`. Sur un Keycloak déjà importé, régler « Thème de connexion » sur `athena` dans la console d'administration (Realm settings > Themes).
