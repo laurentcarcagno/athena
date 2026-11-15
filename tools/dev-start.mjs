@@ -210,10 +210,10 @@ async function seedTeamsPortfolios(pool, db, artifacts) {
     await teams.create(org, { key, name, description }, actor);
     for (const [u, role] of members) if (sub(u)) await teams.setMember(org, key, sub(u), role, actor);
   }
-  // Tickets ouverts répartis entre les membres (charge non nulle, retards compris).
+  // Tickets ouverts sans responsable répartis entre les membres (charge non nulle, retards compris) ; les affectations existantes sont gardées.
   const open = await db.tx(org, async (c) => (await c.query(
     `select p.key as project, a.key, a.version from artifact a join project p on p.id = a.project_id join status s on s.id = a.status_id
-      where p.key in ('NOVA','LUMEN') and s.category <> 'done' order by p.key, a.number`)).rows);
+      where p.key in ('NOVA','LUMEN') and s.category <> 'done' and coalesce(a."values" ->> 'assignee', '') = '' order by p.key, a.number`)).rows);
   const assignees = ['user.dev', 'pm.dev', 'qa.dev', 'admin.dev', 'user.dev', 'pm.dev'].map(sub).filter(Boolean);
   for (const [i, t] of open.entries()) await artifacts.update(org, t.project, t.key, { assignee: assignees[i % assignees.length] }, t.version, actor);
   await portfolios.create(org, { key: 'spatial', name: 'Programmes spatiaux', description: 'Projets de démonstration regroupés pour la direction', owner: sub('director.dev') ?? null }, actor);
