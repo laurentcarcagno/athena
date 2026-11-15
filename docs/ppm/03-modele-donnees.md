@@ -8,7 +8,7 @@
 4. **Capacité (V2)** : disponibilité par personne, absences, allocations nominatives ou par rôle, worklog. **Finances (V2)** : lignes de budget, engagements, réels, prévisions, lots d'import.
 5. **Visibilité** : toute table qui porte un `project_id` reçoit la politique restrictive `acl_allows(project_id, null)`, et tout agrégat se calcule sous l'identité du lecteur. C'est désormais une règle de revue de code.
 6. **Scénarios (V3)** : tables séparées de surcharges, jamais écrites dans les tables de référence.
-7. **Décisions attendues** : valider l'unité de référence (l'heure, avec un nombre d'heures par jour fixé par l'organisation) et la liste des statuts de cycle de vie d'un projet (§ 2.1).
+7. **Décisions prises le 2026-11-15** : durée de la journée en heures et minutes, réglable par l'organisation et par personne (§ 2.9) ; cycle de vie du projet configurable par l'organisation, avec onze états livrés par défaut (§ 2.1) ; rétention des instantanés réglable (§ 2.5) ; rôle PMO créé ; volumétrie du palier 2.
 
 Légende : **E** = existant (fichier cité), **X** = existant étendu, **N** = nouveau. Version cible entre crochets.
 
@@ -40,13 +40,40 @@ Légende : **E** = existant (fichier cité), **X** = existant étendu, **N** = n
 | Champ | Type | Règle |
 |---|---|---|
 | `planned_start`, `planned_end` | date, facultatives | Dates de référence macro, saisies par le chef de projet. Le planning détaillé reste maître de ses tickets. Un écart entre `planned_end` et la fin calculée (`computeSchedule`) se signale, sans correction automatique. |
-| `lifecycle_status` | `proposed`, `active`, `on_hold`, `closed`, `cancelled` | Défaut `active` pour l'existant (migration de données). Seuls l'administrateur et le PMO passent à `closed` ou `cancelled`. |
+| `lifecycle_state` | Clé d'un état de cycle de vie de l'organisation (§ 2.1 bis) | Défaut `in_progress` pour l'existant (migration de données). Les changements suivent les transitions permises. |
 | `sponsor_subject` | texte, compte connu | Facultatif |
 | `description` | texte ≤ 2 000 | — |
 | `capacity_granularity` | `week`, `month`, ou nul | Nul : hérite du réglage de l'organisation |
 
 - **Droits** : écriture par l'administrateur et le chef désigné du projet (`MemberService.requireManager`) ; lecture par tous ceux qui voient le projet.
 - **Source de vérité** : le projet. **Audit** : `project.update`.
+
+### 2.1 bis Cycle de vie du projet, configurable [V1, N]
+
+Pour couvrir tous les cas (de l'idée à l'archivage, suspension et annulation comprises), la liste des états n'est pas figée dans le code. C'est une donnée de l'organisation, sur le modèle des types de tracker (`tracker-types.ts`) : des états livrés, que l'organisation peut renommer, compléter ou masquer.
+
+`project_lifecycle_state(organization_id, key, name, category, position, color, hidden)` et `project_lifecycle_transition(from_key, to_key, roles)`.
+
+Les **catégories** sont fixes : c'est sur elles, jamais sur les clés, que le code s'appuie.
+
+| Catégorie | Comportement | États livrés (clé, nom) |
+|---|---|---|
+| `pipeline` | Hors charge et hors santé ; visible en pointillés sur la roadmap | `idea` Idée, `proposed` Proposé, `evaluation` En évaluation, `approved` Approuvé (non démarré) |
+| `active` | Compté partout (santé, roadmap, capacité, finances) | `starting` En démarrage, `in_progress` En cours, `closing` En clôture |
+| `suspended` | Compté, signalé ; allocations gelées ; alerte si l'état dure plus de N jours (réglable) | `on_hold` Suspendu, `awaiting_decision` En attente de décision |
+| `closed` | Masqué par défaut, filtrable ; plus d'alerte | `completed` Terminé |
+| `cancelled` | Masqué par défaut ; motif obligatoire | `cancelled` Annulé, `rejected` Refusé (pour une demande convertie, V3) |
+| `archived` | Lecture seule, hors de toutes les vues sauf la recherche | `archived` Archivé |
+
+- **Transitions livrées** :
+  - le pipeline avance dans l'ordre ;
+  - `approved` → `starting` → `in_progress` → `closing` → `completed` → `archived` ;
+  - tout état actif → `on_hold` ou `awaiting_decision`, et retour ;
+  - tout état non terminal → `cancelled`.
+  - L'organisation peut en ajouter.
+- **Droits par défaut** : le chef de projet conduit les transitions actives. Le PMO et l'administrateur décident de `approved`, `cancelled`, `completed` et `archived`. Une décision de portefeuille (V2) peut proposer une transition sans l'appliquer.
+- **Lien avec les phases normatives** : indépendant. Le cycle de vie dit si le projet vit ; la phase (`current_phase`) dit où il en est techniquement. Un projet `in_progress` peut être en phase B ou D.
+- **Historique** : `project_lifecycle_history(project_id, from, to, reason, by, at)`, en ajout seul. Il fournit la courbe des entrées et sorties et le délai passé dans chaque état.
 
 ### 2.2 Portefeuille [V1, X]
 
@@ -92,7 +119,7 @@ C'est l'auto-évaluation périodique du chef de projet, distincte de la santé c
 
 - **Ce qui est figé** : uniquement des valeurs par projet. Aucun total n'est stocké : les totaux d'un instantané se recalculent à la lecture, sur les lignes visibles.
 - **Quand** : chaque semaine (job), à la création d'une revue, ou à la demande du PMO.
-- **Durée** : hebdomadaires gardés 26 semaines ; instantanés de revue gardés sans limite (ce sont des pièces de gouvernance). **Hypothèse** : durées à valider par l'assurance qualité, impact nul sur le modèle.
+- **Durée, réglable** : réglages de l'organisation `snapshot_weekly_retention_weeks` (défaut 26) et `snapshot_review_retention_months` (défaut nul, c'est-à-dire sans limite : ce sont des pièces de gouvernance). Un portefeuille peut surcharger ces deux valeurs. La purge est faite par le job des instantanés et tracée dans l'audit. La fréquence (`snapshot_frequency` : hebdomadaire par défaut, ou mensuelle) est réglable de la même façon.
 - **Visibilité** : politique restrictive sur `portfolio_snapshot_line.project_id`.
 
 ### 2.6 Revue de portefeuille [V1 en lecture, V2 complète]
@@ -113,15 +140,15 @@ Le lien « précède » accepte une cible dans un autre projet de la même organ
 
 | Entité | Champs principaux | Règles |
 |---|---|---|
-| `organization_capacity` | `hours_per_day` (défaut 7,8), `default_granularity` | Unité de référence : **l'heure** ; le jour vaut `hours_per_day` ; l'ETP d'une période vaut jours ouvrés du calendrier × `hours_per_day` |
-| `person_availability` | `subject`, `from`, `to`, `ratio` (0 à 1) | Temps partiel ; sans ligne, `ratio` vaut 1 |
+| `organization_capacity` | `workday_minutes` (défaut 468, soit 7 h 48), `default_granularity` | Unité de stockage : **la minute** (entier, sans arrondi). Toute durée se saisit et s'affiche en heures et minutes (« 7 h 48 », « 7 h 00 », « 8 h 00 »), entre 1 min et 24 h. Le jour vaut `workday_minutes` ; l'ETP d'une période vaut jours ouvrés × `workday_minutes`. |
+| `person_availability` | `subject`, `from`, `to`, `ratio` (0 à 1), `workday_minutes` (facultatif) | Temps partiel ; durée de journée propre à la personne (contrat différent) si renseignée, sinon celle de l'organisation ; sans ligne, `ratio` vaut 1 |
 | `absence` | `subject`, `from`, `to`, `kind` (congé, formation, autre), `half_day` | Retirée de la capacité ; le motif n'est visible que de la personne, de son manager et de l'administrateur |
 | `allocation` | `project_id`, `subject` **ou** `team_id` + `role_label`, `from`, `to`, `fte` | Nominative (personne) ou générique (besoin d'un rôle dans une équipe), à temps partiel, sur plusieurs projets |
-| `worklog` | `artifact_id`, `subject`, `day`, `hours`, `comment` | Temps passé ; source du « consommé » ; RLS par ticket (`acl_artifact_ok`) |
+| `worklog` | `artifact_id`, `subject`, `day`, `minutes`, `comment` | Temps passé, saisi en heures et minutes ; source du « consommé » ; RLS par ticket (`acl_artifact_ok`) |
 
-- **Capacité d'une personne sur une période** = jours ouvrés (calendrier) × `hours_per_day` × `ratio` − absences.
+- **Capacité d'une personne sur une période** = jours ouvrés (calendrier) × `workday_minutes` (de la personne, sinon de l'organisation) × `ratio` − absences.
 - **Charge planifiée** = allocations (ETP × capacité de la période).
-- **Charge restante** = rôle `remaining` des tickets ouverts, **en heures** (l'unité est fixée par l'organisation : c'est la correction du risque 4 de la cartographie).
+- **Charge restante** = rôle `remaining` des tickets ouverts, **en minutes** (saisie en heures et minutes ; c'est la correction du risque 4 de la cartographie). Les valeurs existantes, sans unité, sont migrées après confirmation de leur unité par projet.
 - **Charge consommée** = `worklog`.
 - **Points de story** : tenus à part, jamais convertis en heures (la vélocité reste un indicateur d'équipe).
 - **Granularité** : une période est une semaine ISO ou un mois civil. Le passage d'une semaine à cheval sur deux mois se fait au prorata des jours ouvrés. Le projet saisit dans sa granularité, et chaque portefeuille agrège dans la sienne.
@@ -136,7 +163,7 @@ Le lien « précède » accepte une cible dans un autre projet de la même organ
 | `actual_cost` | `project_id`, `category`, `period` (mois), `amount`, `source` manual\|import, `import_batch_id` | Réel |
 | `forecast` | `project_id`, `category`, `period`, `amount` | Reste à dépenser prévu ; EAC = réel + prévisions futures |
 | `import_batch` | `file_name`, `sha256`, `rows`, `errors`, `imported_by`, `imported_at` | Réimport idempotent par empreinte ; rejet ligne à ligne avec rapport |
-| `resource_rate` | `subject` ou `role_label`, `hourly_rate`, `valid_from` | **Lecture réservée aux rôles finance et administrateur** ; le coût des ressources n'est exposé qu'agrégé par projet |
+| `resource_rate` | `subject` ou `role_label`, `hourly_rate`, `valid_from` | **Taux des ressources** : coût d'une heure de travail d'une personne ou d'un profil (salaire chargé et frais de structure, ou prix d'un prestataire). Il convertit le temps (allocations, worklog) en euros. Donnée sensible (elle révèle une rémunération) : **lecture réservée aux rôles finance et administrateur** ; les autres ne voient que le coût agrégé par projet |
 
 - **Montants** : `numeric(14,2)` dans la devise du portefeuille.
 - **Intégration** à un système financier : point d'extension. Le même format d'import est alimenté par un webhook entrant (`013_automation_inbound.sql`) ou un dépôt de fichier.

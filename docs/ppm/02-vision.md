@@ -8,7 +8,7 @@
 4. **Personas V1** : direction, PMO (gestionnaire de portefeuille), chef de projet, manager d'équipe ; administrateur et auditeur en appui. Tous les rôles existants sont concernés (votre réponse 3).
 5. **Principe structurant** : le portefeuille **référence et agrège**, il ne copie jamais une donnée de projet. Tout agrégat se calcule sous les droits du lecteur.
 6. **Prérequis** avant la V1 : P1 (dates, statut et sponsor du projet) et P6 (dates des revues de phase). P2 et le volet critères manuels de P6 sont faits (commit `8b5d77c`).
-7. **Décisions attendues** : valider le découpage V1/V2/V3 (§ 3) et l'hypothèse de volumétrie (§ 5).
+7. **Décisions** : découpage V1/V2/V3 et palier 2 de volumétrie validés le 2026-11-15 ; rôle PMO créé.
 
 ---
 
@@ -32,7 +32,7 @@ Athena gère bien un projet, mais rien au-dessus. Pour répondre à « quels pro
 | Persona | Rôle Athena (observé) | Besoin V1 | Remarque |
 |---|---|---|---|
 | Direction | `athena-director` | S1, S2, lecture seule | Cinq à sept indicateurs, puis navigation descendante |
-| PMO, gestionnaire de portefeuille | **à créer** : `athena-pmo`, ou `athena-admin` en attendant | S1 à S4, édition des portefeuilles et des revues | **Hypothèse** : le PMO n'est pas administrateur de l'instance. Si c'est faux, `athena-admin` suffit et aucun rôle n'est créé. |
+| PMO, gestionnaire de portefeuille | `athena-pmo` (**créé** le 2026-11-15, commit `be67c21`) | S1 à S4, édition des portefeuilles, des équipes et des revues | Distinct de l'administrateur de l'instance |
 | Chef de projet | `athena-pm` | Tenir les dates, la phase, le commentaire de santé de son projet | Déjà responsable des données de son projet |
 | Manager d'équipe | `athena-manager` | V1 : charge en tickets (lot 16) ; V2 : capacité | — |
 | Sponsor, demandeur | `athena-team-member` (lecture) | V3 | Regroupés : pas de besoin propre en V1 |
@@ -84,7 +84,7 @@ La volumétrie change trois choses : le mode de calcul des agrégats, la lisibil
 | 2 | 50 à 300 | ≤ 500 000 | ≤ 1 000 | Indicateurs par projet **matérialisés** dans une table rafraîchie par l'outbox et un job ; la RLS s'applique toujours par projet | Roadmap regroupée par portefeuille et repliée ; tableau paginé à 50 ; carte de chaleur agrégée par équipe | Hebdomadaires, une ligne par projet |
 | 3 | > 300 | > 500 000 | > 1 000 | Matérialisation, index dédiés, mesure de charge obligatoire | Vues par portefeuille uniquement, filtres obligatoires | Mensuels en plus des revues ; rétention à fixer |
 
-**Hypothèse retenue pour la conception** : palier 2 (jusqu'à 300 projets par instance, horizon de 36 mois). Le modèle et les API acceptent la matérialisation sans changement de contrat. Le premier incrément reste au palier 1 (calcul à la demande), et l'on bascule en mesurant (voir le plan de livraison). Si la cible réelle est au palier 1, la matérialisation et son job sortent du périmètre (environ un incrément de moins). Si elle est au palier 3, les mesures de charge que vous avez prévues pour la fin deviennent un prérequis de l'incrément 3.
+**Retenu (votre confirmation du 2026-11-15)** : palier 2 (jusqu'à 300 projets par instance, horizon de 36 mois). Le modèle et les API acceptent la matérialisation sans changement de contrat. Le premier incrément reste au palier 1 (calcul à la demande), et l'on bascule en mesurant (voir le plan de livraison). Si la cible réelle est au palier 1, la matérialisation et son job sortent du périmètre (environ un incrément de moins). Si elle est au palier 3, les mesures de charge que vous avez prévues pour la fin deviennent un prérequis de l'incrément 3.
 
 ## 6. Documents d'entrée pour le cycle de vie spatial (votre question 6)
 
@@ -97,4 +97,4 @@ Pour écrire un gabarit « cycle projet spatial » (phases 0, A à F et leurs re
 5. **Le plan de management de projet type** (ou plan assurance produit) de l'entreprise, pour les critères manuels propres (par exemple « dossier de justification approuvé par l'AQ »).
 6. Côté défense, l'équivalent : votre référentiel de cycle de vie (jalons étatiques, revues contractuelles) et l'AQAP applicable.
 
-Les éditions exactes et le tailoring sont à fournir par le responsable méthodes ou le responsable assurance produit. Sans eux, le gabarit reste un squelette à compléter.
+**Mise à jour du 2026-11-15** : à votre demande, j'ai téléchargé et lu ECSS-M-ST-10C Rev.1 et ECSS-M-ST-10-01C (nous les suivons), et rassemblé le jalonnement DGA. Le contenu des deux cycles de vie est dans `annexe-cycles-de-vie.md`. Votre tailoring et vos DRL restent nécessaires pour les ajustements fins, mais ils ne bloquent plus.

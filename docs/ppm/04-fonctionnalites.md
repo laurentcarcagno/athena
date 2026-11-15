@@ -211,7 +211,7 @@ Avec ECharts, la contrainte de rendu disparaît. Les visualisations ci-dessous s
 **Objectif** : savoir si les équipes peuvent tenir les engagements, avant de les prendre. **Utilisateurs** : manager, PMO, direction.
 
 **Description et règles** (modèle en `03-modele-donnees.md` § 2.9)
-- Unité de référence : l'heure ; le jour et l'ETP se déduisent du calendrier et de `hours_per_day`.
+- Unité de stockage : la minute ; toute durée se saisit en heures et minutes ; le jour et l'ETP se déduisent du calendrier et de `workday_minutes` (organisation ou personne).
 - Granularité semaine ou mois, réglée par projet (saisie des allocations) et par portefeuille (affichage). La conversion se fait au prorata des jours ouvrés.
 - Capacité = disponibilité × jours ouvrés − absences. Charge planifiée = allocations. Charge restante = `remaining` en heures. Consommé = `worklog`.
 - Besoin générique par rôle (« 0,5 ETP de thermicien ») tant que la personne n'est pas nommée ; une allocation nominative le remplace.
@@ -240,7 +240,7 @@ Avec ECharts, la contrainte de rendu disparaît. Les visualisations ci-dessous s
 2. La même allocation affichée en semaines puis en mois donne le même total sur le mois (test de conversion).
 3. Un manager ne voit aucune donnée d'une personne hors de ses équipes.
 
-**Dépendances** : P4 (unité, `hours_per_day`), calendrier (`059`). **Estimation** : XL (nouveau modèle, saisie, calcul différé, quatre vues). **Priorité** : Should. **Incréments** : I4 (capacité, allocations, carte de chaleur), I5 (worklog, planifié contre consommé).
+**Dépendances** : P4 (unité, `workday_minutes`), calendrier (`059`). **Estimation** : XL (nouveau modèle, saisie, calcul différé, quatre vues). **Priorité** : Should. **Incréments** : I4 (capacité, allocations, carte de chaleur), I5 (worklog, planifié contre consommé).
 
 ---
 
