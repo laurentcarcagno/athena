@@ -6,7 +6,7 @@ import { expect, test, type Page } from '@playwright/test';
 const axeSource = readFileSync(join(process.cwd(), 'node_modules/axe-core/axe.min.js'), 'utf8');
 const THEMES = ['athena', 'contrast', 'catppuccin', 'nord', 'gruvbox', 'solarized', 'dracula', 'tokyo-night', 'rose-pine', 'athena-arrondi', 'github'];
 /** Thèmes décochés par le test d'apparence : il ne reste que Athena et Nord. */
-const HIDDEN = ['Catppuccin', 'Contraste élevé', 'Gruvbox', 'Solarized', 'Dracula', 'Tokyo Night', 'Rosé Pine'];
+const HIDDEN = ['Catppuccin', 'Contraste élevé', 'Gruvbox', 'Solarized', 'Dracula', 'Tokyo Night', 'Rosé Pine', 'Athena arrondi', 'GitHub'];
 const PAGES = ['/projets', '/', '/p/ARI', '/p/ARI/t/BUG/tableau', '/p/ARI/a/ARI-BUG-0001', '/p/ARI/parametres/membres', '/p/ARI/rapports/avancement',
   // Lot 11 (T-0157) : autres écrans modifiés.
   '/recherche', '/p/ARI/backlog', '/p/ARI/planning?vue=versions', '/p/ARI/board?tous=1', '/p/ARI/parametres/automatisations'];
