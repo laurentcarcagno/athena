@@ -130,7 +130,7 @@ Les décisions de portefeuille (poursuivre, suspendre, arrêter) sont en **V2** 
 
 ### 2.7 Risques consolidés [V1, X] (P5)
 
-Ajouter `probability` et `impact` (entiers de 1 à 5) aux rôles sémantiques (`field_definition.semantic_role`). La criticité vaut probabilité × impact, calculée (paliers existants de `RisksTab.tsx:14`). Il n'y a **pas** de table de risques de portefeuille en V1. Un risque transverse est un ticket de type `risk` d'un projet de pilotage rattaché au portefeuille (V2) : même objet, même workflow.
+Ajouter `probability` et `impact` (entiers de 1 à 5) aux rôles sémantiques (`field_definition.semantic_role`). La criticité vaut probabilité × impact, calculée (paliers existants de `RisksTab.tsx:14`). Il n'y a **pas** de table de risques de portefeuille en V1. Un risque transverse est un ticket de type `risk` d'un **projet de pilotage** rattaché au portefeuille (V2) : même objet, même workflow. Un portefeuille peut avoir **plusieurs** projets de pilotage (décision D6 du 2026-11-15) : `portfolio_project` reçoit `kind` (`delivery` par défaut, ou `pilot`) et `purpose` (texte libre : risques transverses, demandes, programme…). Un projet de pilotage n'entre ni dans le tableau de santé ni dans la roadmap, mais ses risques, actions et décisions remontent dans les vues de gouvernance du portefeuille.
 
 ### 2.8 Dépendances entre projets [V2, X] (P3)
 

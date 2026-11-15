@@ -173,6 +173,18 @@ gantt
 | D6 | Projet de pilotage pour les risques transverses et les demandes | (a) un par portefeuille ; (b) un par organisation | (a) : les droits suivent le portefeuille |
 | D7 | Gabarits ECSS et DGA | (a) les livrer en I2 tels que proposés dans l'annexe, à ajuster ensuite ; (b) attendre votre tailoring et l'IM 1618 | (a) : l'héritage de gabarits permet d'ajuster sans migration |
 
+### Décisions de l'utilisateur (2026-11-15)
+
+| # | Décision |
+|---|---|
+| D1 | En attente : rappel des écarts demandé |
+| D2 | Un lot par incrément (lots 17 à 26) |
+| D3 | `PpmModule` séparé |
+| D4 | `planned_end` saisi ; l'écart avec la fin calculée est signalé |
+| D5 | L'unité de `remaining` est confirmée par chaque chef de projet avant la migration |
+| D6 | **Plusieurs projets de pilotage par portefeuille** (par exemple un pour les risques transverses, un pour les demandes, un par programme). Un projet est déclaré « de pilotage » par un rôle de rattachement (`portfolio_project.kind = pilot`, avec un objet libre) ; il reste un projet ordinaire et sort du tableau de santé et de la roadmap |
+| D7 | Gabarits ECSS et DGA livrés en I2 tels que proposés, ajustés ensuite par héritage |
+
 ## 4. KPI de succès
 
 | KPI | Cible | Méthode de mesure |
