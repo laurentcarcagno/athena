@@ -1,7 +1,7 @@
 import type { PoolClient } from 'pg';
 import { Db, type Actor } from './db';
 import { DomainError, notFound, validation } from './errors';
-import { compareVersions, type Normative } from './normative-template';
+import { compareVersions, type Criterion, type Normative } from './normative-template';
 import type { TemplateService, TemplateSnapshot, TemplateTracker } from './template.service';
 import { TrackerService, audit, type TrackerSpec } from './tracker.service';
 
@@ -30,10 +30,21 @@ export interface UpgradeReport {
   itemsConcerned: number;
 }
 export interface TrackerDrift { key: string; name: string; fieldsAdded: string[]; statusesAdded: string[]; transitionsAdded: string[] }
+export interface PhaseCriterion {
+  label: string;
+  /** `exit` : critère de sortie de la phase courante ; `entry` : critère d'entrée de la phase suivante. */
+  stage: 'exit' | 'entry'; phase: string;
+  manual: boolean; met: boolean; remaining: number;
+  /** Critère manuel confirmé : par qui, quand, avec quelle note. */
+  checkedBy?: string; checkedAt?: string; note?: string;
+}
 export interface PhaseCheck {
   key: string; name: string; review: string; next: string | null;
-  /** Critères de sortie : un critère « tracker_status » est contrôlé (`remaining` items à traiter), un critère manuel est informatif. */
-  criteria: Array<{ label: string; manual: boolean; met: boolean; remaining: number }>;
+  /**
+   * Critères du passage : sortie de la phase courante puis entrée de la suivante. Un critère « tracker_status » est contrôlé
+   * (`remaining` items à traiter) ; un critère manuel n'est rempli qu'une fois confirmé par une personne habilitée.
+   */
+  criteria: PhaseCriterion[];
   canAdvance: boolean;
 }
 export interface ProjectTemplateStatus {
@@ -91,25 +102,65 @@ export class TemplateUpgradeService {
     };
   }
 
-  /** Contrôle des critères de sortie de la phase courante (RID clos, etc.). */
+  /** Contrôle du passage : critères de sortie de la phase courante et critères d'entrée de la suivante (RID clos, confirmations…). */
   private async phaseCheck(organizationId: string, projectKey: string, snap: TemplateSnapshot, current: string | null): Promise<PhaseCheck | null> {
     const phases = snap.normative.phases;
     const i = phases.findIndex((x) => x.key === current);
     if (i < 0) return null;
     const phase = phases[i]!;
+    const next = phases[i + 1];
+    const wanted: Array<{ k: Criterion; stage: 'exit' | 'entry'; phase: string }> = [
+      ...phase.exitCriteria.map((k) => ({ k, stage: 'exit' as const, phase: phase.key })),
+      ...(next ? next.entryCriteria.map((k) => ({ k, stage: 'entry' as const, phase: next.key })) : []),
+    ];
     const criteria = await this.db.tx(organizationId, async (c) => {
-      const out: PhaseCheck['criteria'] = [];
-      for (const k of phase.exitCriteria) {
-        if (k.kind === 'manual') { out.push({ label: k.label, manual: true, met: true, remaining: 0 }); continue; }
+      const checks = (await c.query(
+        `select x.phase, x.stage, x.label, x.note, x.checked_at, coalesce(u.display_name, u.username, x.checked_by) as who
+           from phase_criterion_check x join project p on p.id = x.project_id
+           left join user_account u on u.organization_id = x.organization_id and u.subject = x.checked_by
+          where p.key = $1`, [projectKey])).rows as Array<{ phase: string; stage: string; label: string; note: string; checked_at: Date; who: string }>;
+      const out: PhaseCriterion[] = [];
+      for (const { k, stage, phase: of } of wanted) {
+        if (k.kind === 'manual') {
+          const done = checks.find((x) => x.phase === of && x.stage === stage && x.label === k.label);
+          out.push({ label: k.label, stage, phase: of, manual: true, met: done !== undefined, remaining: done ? 0 : 1,
+            ...(done ? { checkedBy: done.who, checkedAt: new Date(done.checked_at).toISOString(), note: done.note } : {}) });
+          continue;
+        }
         const remaining = Number((await c.query(
           `select count(*) n from artifact a join tracker t on t.id = a.tracker_id join project p on p.id = a.project_id join status s on s.id = a.status_id
            where p.key = $1 and t.key = $2 and s.key <> all($3::text[]) and ($4::text is null or a."values"->>$4 = $5)`,
           [projectKey, k.tracker, k.statuses, k.where?.field ?? null, k.where?.value ?? null])).rows[0].n);
-        out.push({ label: k.label ?? `${k.tracker} : ${k.statuses.join(', ')}`, manual: false, met: remaining === 0, remaining });
+        out.push({ label: k.label ?? `${k.tracker} : ${k.statuses.join(', ')}`, stage, phase: of, manual: false, met: remaining === 0, remaining });
       }
       return out;
     });
-    return { key: phase.key, name: phase.name, review: phase.review, next: phases[i + 1]?.key ?? null, criteria, canAdvance: i + 1 < phases.length && criteria.every((x) => x.met) };
+    return { key: phase.key, name: phase.name, review: phase.review, next: next?.key ?? null, criteria, canAdvance: next !== undefined && criteria.every((x) => x.met) };
+  }
+
+  /** Confirme (ou annule) un critère manuel du passage en cours ; refuse un critère inconnu ou contrôlé automatiquement. */
+  async checkCriterion(organizationId: string, projectKey: string, input: { stage: 'exit' | 'entry'; label: string; checked: boolean; note?: string }, actor: Actor): Promise<PhaseCheck> {
+    const status = await this.status(organizationId, projectKey);
+    const check = status.phaseCheck;
+    if (!check) throw validation(['ce projet n’a pas de phase courante']);
+    const target = check.criteria.find((x) => x.stage === input.stage && x.label === input.label);
+    if (!target) throw validation([`critère inconnu pour ce passage : ${input.label}`]);
+    if (!target.manual) throw validation(['ce critère est contrôlé automatiquement']);
+    await this.db.tx(organizationId, async (c) => {
+      const project = (await c.query('select id from project where key = $1', [projectKey])).rows[0];
+      if (!project) throw notFound(`Projet ${projectKey}`);
+      if (input.checked) {
+        await c.query(
+          `insert into phase_criterion_check (organization_id, project_id, phase, stage, label, note, checked_by) values ($1,$2,$3,$4,$5,$6,$7)
+           on conflict (project_id, phase, stage, label) do update set note = excluded.note, checked_by = excluded.checked_by, checked_at = now()`,
+          [organizationId, project.id, target.phase, input.stage, input.label, (input.note ?? '').trim(), actor.id]);
+      } else {
+        await c.query('delete from phase_criterion_check where project_id = $1 and phase = $2 and stage = $3 and label = $4', [project.id, target.phase, input.stage, input.label]);
+      }
+      await audit(c, organizationId, actor, input.checked ? 'project.phase_criterion.check' : 'project.phase_criterion.uncheck', `project:${projectKey}`,
+        { phase: target.phase, stage: input.stage, label: input.label, note: input.note ?? '' });
+    });
+    return (await this.status(organizationId, projectKey)).phaseCheck!;
   }
 
   /** Passe à la phase suivante, seulement si les critères de sortie de la phase courante sont remplis. */

@@ -1,5 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createTestDb, pgUp, type TestDb } from '../testing/harness';
+import { AccessService } from './access.service';
+import { runAs } from './request-context';
 import { ArtifactService } from './artifact.service';
 import { Db, type Actor } from './db';
 import { DomainError } from './errors';
@@ -25,6 +27,7 @@ suite('équipes, charge et portefeuilles (intégration)', () => {
   let testDb: TestDb;
   let teams: TeamService;
   let portfolios: PortfolioService;
+  let access: AccessService;
   const org = crypto.randomUUID();
   const kpis = {
     async kpis(_o: string, project: string) {
@@ -46,6 +49,7 @@ suite('équipes, charge et portefeuilles (intégration)', () => {
     const artifacts = new ArtifactService(db, trackers, registry);
     teams = new TeamService(db);
     portfolios = new PortfolioService(db, kpis);
+    access = new AccessService(db);
     await db.tx(org, async (c) => {
       await c.query('insert into organization (id, key, name) values ($1,$2,$2)', [org, 'tp']);
       for (const [subject, username, name] of [['sub-admin', 'admin.dev', 'Admin Dev'], ['sub-mgr', 'manager.dev', 'Manager Dev'], ['sub-mgr2', 'manager2.dev', 'Autre Manager'],
@@ -120,6 +124,18 @@ suite('équipes, charge et portefeuilles (intégration)', () => {
     await portfolios.setProject(org, 'spatial', 'BAD', { health: null }, admin);
     bad = (await portfolios.summary(org, 'spatial', director)).projects.find((p) => p.key === 'BAD')!;
     expect(bad).toMatchObject({ health: 'critical', overridden: false });
+  });
+
+  it('un projet masqué par une liste d’ayants droit n’apparaît ni dans la synthèse ni dans le nombre de projets', async () => {
+    await runAs('sub-admin', () => access.set(org, 'BAD', { members: ['sub-admin'] }, admin));
+    const asDirector = <T>(fn: () => Promise<T>) => runAs('sub-dir', fn);
+    expect((await asDirector(() => portfolios.list(org)))[0]).toMatchObject({ key: 'spatial', projects: 1 });
+    const s = await asDirector(() => portfolios.summary(org, 'spatial', director));
+    expect(s.projects.map((p) => p.key)).toEqual(['ARI']);
+    expect(s.totals).toMatchObject({ projects: 1, late: 0, blocked: 0 });
+    expect((await asDirector(() => portfolios.summaries(org, director)))[0]!.portfolio.projects).toBe(1);
+    expect((await runAs('sub-admin', () => portfolios.list(org)))[0]!.projects).toBe(2); // l’ayant droit voit tout
+    await runAs('sub-admin', () => access.set(org, 'BAD', { members: [] }, admin));
   });
 
   it('liste, retire un projet, met à jour et supprime le portefeuille ; refuse un projet inconnu', async () => {

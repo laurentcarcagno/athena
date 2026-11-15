@@ -23,6 +23,7 @@ const TemplateBody = z.object({
   parent: ParentSchema.nullable().optional(),
 });
 
+const CriterionCheckBody = z.object({ stage: z.enum(['exit', 'entry']), label: z.string().min(1).max(200), checked: z.boolean(), note: z.string().max(500).optional() });
 const PublishBody = z.object({ version: z.string().regex(/^[0-9]+(\.[0-9]+)?$/).optional() });
 const ImportBody = z.object({ yaml: z.string().min(1).max(2_000_000) });
 
@@ -195,6 +196,15 @@ export class ProjectTemplateController {
   }
 
   /** Rapport d'impact : ne modifie rien. */
+  /** Confirme ou annule un critère manuel du passage de phase en cours (date, auteur et note enregistrés, audit). */
+  @Roles('athena-admin', 'athena-pm')
+  @Put(':project/template/phase/criteria')
+  @BodySchema(CriterionCheckBody)
+  async checkCriterion(@Req() request: AuthedRequest, @Param('project') project: string, @Body() body: unknown) {
+    const { organizationId, actor } = await this.orgs.resolve(request.principal!);
+    return this.upgrades.checkCriterion(organizationId, project, parseBody(CriterionCheckBody, body), actor);
+  }
+
   /** Passe à la phase suivante si les critères de sortie de la phase courante sont remplis. */
   @Roles('athena-admin', 'athena-pm')
   @Post(':project/template/phase/advance')

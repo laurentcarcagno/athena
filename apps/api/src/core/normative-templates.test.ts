@@ -182,10 +182,22 @@ suite('projets créés depuis les gabarits livrés (intégration)', () => {
     await artifacts.create(org, 'PHA', 'RID', { title: 'Écart de la PDR', review: 'pdr' }, admin); // une autre revue ne bloque pas la SRR
     const before = (await upgrades.status(org, 'PHA')).phaseCheck!;
     expect(before).toMatchObject({ key: 'requirements', next: 'preliminary-design', canAdvance: false });
-    expect(before.criteria).toEqual([{ label: 'Tous les RID de la revue SRR sont clos', manual: false, met: false, remaining: 1 }]);
-    expect(await fail(upgrades.advancePhase(org, 'PHA', admin))).toBe('conflict:Tous les RID de la revue SRR sont clos (1 restant(s))');
+    // Le passage exige la sortie de la phase courante ET l'entrée de la suivante ; un critère manuel n'est rempli qu'une fois confirmé.
+    expect(before.criteria).toEqual([
+      { label: 'Tous les RID de la revue SRR sont clos', stage: 'exit', phase: 'requirements', manual: false, met: false, remaining: 1 },
+      { label: 'Baseline RB approuvée à la SRR', stage: 'entry', phase: 'preliminary-design', manual: true, met: false, remaining: 1 },
+    ]);
+    expect(await fail(upgrades.advancePhase(org, 'PHA', admin))).toBe('conflict:Tous les RID de la revue SRR sont clos (1 restant(s)) | Baseline RB approuvée à la SRR (1 restant(s))');
     let version = rid.version;
     for (const t of ['Répondre', 'Décider', 'Lancer l’action', 'Clore']) version = (await artifacts.transition(org, 'PHA', rid.key, t, version, admin)).version;
+    expect((await upgrades.status(org, 'PHA')).phaseCheck).toMatchObject({ canAdvance: false }); // la confirmation manque encore
+    expect(await fail(upgrades.checkCriterion(org, 'PHA', { stage: 'exit', label: 'Tous les RID de la revue SRR sont clos', checked: true }, admin))).toMatch(/^validation:/);
+    expect(await fail(upgrades.checkCriterion(org, 'PHA', { stage: 'entry', label: 'Inconnu', checked: true }, admin))).toMatch(/^validation:/);
+    let checked = await upgrades.checkCriterion(org, 'PHA', { stage: 'entry', label: 'Baseline RB approuvée à la SRR', checked: true, note: 'PV SRR du 12/11' }, admin);
+    expect(checked.criteria[1]).toMatchObject({ met: true, checkedBy: expect.any(String), note: 'PV SRR du 12/11' });
+    checked = await upgrades.checkCriterion(org, 'PHA', { stage: 'entry', label: 'Baseline RB approuvée à la SRR', checked: false }, admin);
+    expect(checked.canAdvance).toBe(false); // annulée : de nouveau bloquant
+    await upgrades.checkCriterion(org, 'PHA', { stage: 'entry', label: 'Baseline RB approuvée à la SRR', checked: true }, admin);
     expect((await upgrades.status(org, 'PHA')).phaseCheck).toMatchObject({ canAdvance: true });
     expect(await upgrades.advancePhase(org, 'PHA', admin)).toEqual({ from: 'requirements', to: 'preliminary-design' });
     expect((await project('PHA')).row.current_phase).toBe('preliminary-design');

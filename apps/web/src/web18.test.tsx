@@ -132,7 +132,7 @@ describe('création de projet depuis un gabarit', () => {
 });
 
 describe('carte Gabarit et phase du projet', () => {
-  const phase = (met: boolean) => ({ key: 'requirements', name: 'Exigences', review: 'srr', next: 'preliminary-design', canAdvance: met, criteria: [{ label: 'Tous les RID de la revue SRR sont clos', manual: false, met, remaining: met ? 0 : 2 }] });
+  const phase = (met: boolean) => ({ key: 'requirements', name: 'Exigences', review: 'srr', next: 'preliminary-design', canAdvance: met, criteria: [{ label: 'Tous les RID de la revue SRR sont clos', stage: 'exit', phase: 'requirements', manual: false, met, remaining: met ? 0 : 2 }] });
   const base = { templateKey: 'spatial', version: '1.0', latest: '1.1', upgradable: true, criticality: 'B', phase: 'requirements', drift: { trackersAdded: ['EXTRA'], trackers: [{ key: 'SRS', fieldsAdded: ['owner'], statusesAdded: ['frozen'], transitionsAdded: [] }], total: 3 } };
 
   it('montre la phase en cours, ses critères non remplis et l’écart au gabarit ; le passage est bloqué', async () => {
@@ -167,6 +167,22 @@ describe('carte Gabarit et phase du projet', () => {
     expect(screen.queryByRole('button', { name: /Passer à la phase|Aperçu de la montée/ })).toBeNull();
     const results = await axe.run(container, { rules: { 'color-contrast': { enabled: false } } });
     expect(results.violations.map((v) => v.id)).toEqual([]);
+  });
+
+  it('un critère manuel d’entrée de la phase suivante se confirme ; confirmé, il dit par qui et quand', async () => {
+    const manual = (met: boolean) => ({ label: 'Baseline RB approuvée à la SRR', stage: 'entry', phase: 'preliminary-design', manual: true, met, remaining: met ? 0 : 1, ...(met ? { checkedBy: 'Chef Projet', checkedAt: '2026-11-12T10:00:00.000Z', note: 'PV SRR' } : {}) });
+    status = { ...base, phaseCheck: { ...phase(true), canAdvance: false, criteria: [...phase(true).criteria, manual(false)] } };
+    const { unmount } = render(<ToastProvider><ProjectTemplateCard project="SAT" canManage /></ToastProvider>);
+    expect(await screen.findByText('Baseline RB approuvée à la SRR')).toBeInTheDocument();
+    expect(screen.getByText('Entrée de la phase suivante')).toBeInTheDocument();
+    expect(screen.getByText('À confirmer')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Confirmer' }));
+    await waitFor(() => expect(sent.find((s) => /phase\/criteria$/.test(s.url))?.body).toEqual({ stage: 'entry', label: 'Baseline RB approuvée à la SRR', checked: true }));
+    unmount();
+    status = { ...base, phaseCheck: { ...phase(true), criteria: [...phase(true).criteria, manual(true)] } };
+    render(<ToastProvider><ProjectTemplateCard project="SAT" canManage /></ToastProvider>);
+    expect(await screen.findByText(/confirmé par Chef Projet le .* · PV SRR/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Annuler la confirmation' })).toBeInTheDocument();
   });
 
   it('est absente pour un projet sans gabarit', async () => {

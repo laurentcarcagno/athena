@@ -479,7 +479,7 @@ const frDict = {
     projectVersion: 'Version du gabarit', projectCriticality: 'Catégorie de criticité', noCriticality: 'Non définie',
   },
   phaseCard: {
-    title: 'Gabarit et phase', template: 'Gabarit', criticality: 'Criticité', phase: 'Phase en cours', exitCriteria: 'Critères de sortie', remaining: (n: number) => `${n} restant${n > 1 ? 's' : ''}`, met: 'Rempli', unmet: 'Non rempli', manual: 'À vérifier',
+    title: 'Gabarit et phase', template: 'Gabarit', criticality: 'Criticité', phase: 'Phase en cours', exitCriteria: 'Critères de passage', entry: 'Entrée de la phase suivante', exit: 'Sortie', toConfirm: 'À confirmer', confirm: 'Confirmer', unconfirm: 'Annuler la confirmation', confirmedBy: (who: string, when: string) => `confirmé par ${who} le ${when}`, remaining: (n: number) => `${n} restant${n > 1 ? 's' : ''}`, met: 'Rempli', unmet: 'Non rempli', manual: 'À vérifier',
     advance: (next: string) => `Passer à la phase ${next}`, advanced: (to: string) => `Phase ${to} ouverte.`, last: 'Dernière phase.',
     drift: 'Écart au gabarit', driftNone: 'Aucun écart : le projet correspond à sa version du gabarit.', driftSummary: (n: number) => `${n} ajout${n > 1 ? 's' : ''} propre${n > 1 ? 's' : ''} au projet`,
     driftTracker: (t: string) => `Tracker ajouté : ${t}`, driftFields: (t: string, l: string) => `${t} · champs ajoutés : ${l}`, driftStatuses: (t: string, l: string) => `${t} · états ajoutés : ${l}`, driftTransitions: (t: string, l: string) => `${t} · transitions ajoutées : ${l}`,
@@ -1010,7 +1010,7 @@ const enDict: Dictionary = {
     projectVersion: 'Template version', projectCriticality: 'Criticality category', noCriticality: 'Not defined',
   },
   phaseCard: {
-    title: 'Template and phase', template: 'Template', criticality: 'Criticality', phase: 'Current phase', exitCriteria: 'Exit criteria', remaining: (n: number) => `${n} remaining`, met: 'Met', unmet: 'Not met', manual: 'To check',
+    title: 'Template and phase', template: 'Template', criticality: 'Criticality', phase: 'Current phase', exitCriteria: 'Gate criteria', entry: 'Entry of the next phase', exit: 'Exit', toConfirm: 'To confirm', confirm: 'Confirm', unconfirm: 'Cancel confirmation', confirmedBy: (who: string, when: string) => `confirmed by ${who} on ${when}`, remaining: (n: number) => `${n} remaining`, met: 'Met', unmet: 'Not met', manual: 'To check',
     advance: (next: string) => `Move to phase ${next}`, advanced: (to: string) => `Phase ${to} opened.`, last: 'Last phase.',
     drift: 'Gap to the template', driftNone: 'No gap: the project matches its template version.', driftSummary: (n: number) => `${n} addition${n > 1 ? 's' : ''} specific to the project`,
     driftTracker: (t: string) => `Tracker added: ${t}`, driftFields: (t: string, l: string) => `${t} · fields added: ${l}`, driftStatuses: (t: string, l: string) => `${t} · states added: ${l}`, driftTransitions: (t: string, l: string) => `${t} · transitions added: ${l}`,

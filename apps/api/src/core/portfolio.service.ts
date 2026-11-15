@@ -29,7 +29,7 @@ export class PortfolioService {
   async list(organizationId: string): Promise<PortfolioView[]> {
     return this.db.tx(organizationId, async (c) => (await c.query(
       `select f.key, f.name, f.description, coalesce(u.display_name, u.username, f.owner_subject) as owner,
-              (select count(*)::int from portfolio_project x where x.portfolio_id = f.id) as projects
+              (select count(*)::int from portfolio_project x join project p on p.id = x.project_id where x.portfolio_id = f.id) as projects
          from portfolio f left join user_account u on u.organization_id = f.organization_id and u.subject = f.owner_subject
         order by lower(f.name)`)).rows.map((r) => ({ key: r.key, name: r.name, description: r.description, owner: r.owner, projects: r.projects })));
   }
@@ -136,7 +136,7 @@ export class PortfolioService {
   private async viewIn(c: PoolClient, key: string): Promise<PortfolioView> {
     const r = (await c.query(
       `select f.key, f.name, f.description, coalesce(u.display_name, u.username, f.owner_subject) as owner,
-              (select count(*)::int from portfolio_project x where x.portfolio_id = f.id) as projects
+              (select count(*)::int from portfolio_project x join project p on p.id = x.project_id where x.portfolio_id = f.id) as projects
          from portfolio f left join user_account u on u.organization_id = f.organization_id and u.subject = f.owner_subject where f.key = $1`, [key])).rows[0];
     if (!r) throw notFound(`Portefeuille ${key}`);
     return { key: r.key, name: r.name, description: r.description, owner: r.owner, projects: r.projects };

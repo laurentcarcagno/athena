@@ -7,7 +7,7 @@ import { UpgradeReport, type UpgradeReportData } from './UpgradeReport';
 
 export interface TemplateStatus {
   templateKey: string | null; version: string | null; latest: string | null; upgradable: boolean; criticality: string | null; phase: string | null;
-  phaseCheck: { key: string; name: string; review: string; next: string | null; canAdvance: boolean; criteria: Array<{ label: string; manual: boolean; met: boolean; remaining: number }> } | null;
+  phaseCheck: { key: string; name: string; review: string; next: string | null; canAdvance: boolean; criteria: Array<{ label: string; stage: 'exit' | 'entry'; phase: string; manual: boolean; met: boolean; remaining: number; checkedBy?: string; checkedAt?: string; note?: string }> } | null;
   drift: { trackersAdded: string[]; trackers: Array<{ key: string; fieldsAdded: string[]; statusesAdded: string[]; transitionsAdded: string[] }>; total: number };
 }
 
@@ -30,6 +30,9 @@ export function ProjectTemplateCard({ project, canManage }: { project: string; c
   const advance = async () => {
     try { const out = await api<{ to: string }>('POST', `/v1/projects/${project}/template/phase/advance`); toast('success', t.advanced(out.to)); load(); } catch (error) { fail(error); }
   };
+  const confirmCriterion = async (stage: 'exit' | 'entry', label: string, checked: boolean) => {
+    try { await api('PUT', `/v1/projects/${project}/template/phase/criteria`, { stage, label, checked }); load(); } catch (error) { fail(error); }
+  };
   const preview = async () => {
     try { setReport(await api<UpgradeReportData>('POST', `/v1/projects/${project}/template/upgrade-preview`, {})); } catch (error) { fail(error); }
   };
@@ -50,7 +53,14 @@ export function ProjectTemplateCard({ project, canManage }: { project: string; c
               <h3 className="ath-subsection-title">{t.exitCriteria}</h3>
               <ul>
                 {check.criteria.map((c) => (
-                  <li key={c.label}>{c.label} <Tag variant={c.manual ? 'ghost' : c.met ? 'solid' : 'accent'}>{c.manual ? t.manual : c.met ? t.met : `${t.unmet} · ${t.remaining(c.remaining)}`}</Tag></li>
+                  <li key={`${c.stage}-${c.label}`}>
+                    <span className="ath-eyebrow">{c.stage === 'entry' ? t.entry : t.exit}</span> {c.label}{' '}
+                    <Tag variant={c.met ? 'solid' : 'accent'}>{c.met ? t.met : c.manual ? t.toConfirm : `${t.unmet} · ${t.remaining(c.remaining)}`}</Tag>
+                    {c.manual && c.met && c.checkedBy && <> <small>{t.confirmedBy(c.checkedBy, c.checkedAt ? new Date(c.checkedAt).toLocaleDateString() : '')}{c.note ? ` · ${c.note}` : ''}</small></>}
+                    {c.manual && canManage && (
+                      <> <Btn size="sm" variant="ghost" onClick={() => void confirmCriterion(c.stage, c.label, !c.met)}>{c.met ? t.unconfirm : t.confirm}</Btn></>
+                    )}
+                  </li>
                 ))}
               </ul>
               {check.next === null ? <p>{t.last}</p> : canManage && <div><Btn disabled={!check.canAdvance} onClick={() => void advance()}>{t.advance(check.next)}</Btn></div>}
