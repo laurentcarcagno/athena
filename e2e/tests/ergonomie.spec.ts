@@ -121,37 +121,63 @@ test('Organiser : glisser une carte et changer sa largeur, retrouvés au recharg
   await page.goto('/');
   const cards = page.locator('section[aria-label="Tableau de bord"] .ath-dashcard');
   const card = (name: string) => page.locator(`section[aria-label="Tableau de bord"] .ath-dashcard[aria-label="${name}"]`);
+  const layout = async () => {
+    const r = await (await page.request.get('/v1/me/dashboard')).json() as { isDefault: boolean; widgets: Array<{ id: string; x: number; y: number; w: number; h: number }> };
+    const pick = (id: string) => { const { x, y, w, h } = r.widgets.find((c) => c.id === id)!; return { x, y, w, h }; };
+    return { isDefault: r.isDefault, recents: pick('recents') };
+  };
   await expect(cards).toHaveCount(7);
+  const before = await layout();
+  expect(before.isDefault).toBe(true);
   await page.getByRole('button', { name: 'Organiser' }).click();
   await card('Récents').dragTo(card('Mes tickets'));
-  await expect(cards.first()).toHaveAttribute('aria-label', 'Récents');
-  await page.getByRole('button', { name: 'Largeur L : Récents' }).click();
+  await page.getByRole('button', { name: 'Réglages de Récents' }).click();
+  await page.getByRole('region', { name: 'Réglages de Récents' }).getByLabel('Largeur').selectOption('L');
   await expect(card('Récents')).toHaveClass(/ath-dashcard--L/);
-  await page.getByRole('button', { name: 'Terminer' }).click();
+  // Position et largeur dans le brouillon, lues sur les classes de la grille (colonne, ligne, largeur à partir de 1).
+  const drafted = await card('Récents').evaluate((el) => {
+    const n = (re: RegExp) => Number(re.exec(el.className)?.[1]);
+    return { x: n(/ath-gx-(\d+)/) - 1, y: n(/ath-gy-(\d+)/) - 1, w: n(/ath-gw-(\d+)/) };
+  });
+  expect(drafted.w).toBe(8); // taille L : 8 colonnes sur 12
+  expect([drafted.x, drafted.y]).not.toEqual([before.recents.x, before.recents.y]); // la carte a bougé
+  await page.getByRole('button', { name: 'Enregistrer' }).click(); // rien n'est enregistré avant « Enregistrer » (ADR-0007)
+  await expect(page.getByRole('button', { name: 'Organiser' })).toBeVisible();
+  const saved = await layout();
+  expect(saved.isDefault).toBe(false);
+  expect(saved.recents).toMatchObject(drafted); // la position et la largeur enregistrées sont celles du brouillon
   await page.reload();
-  await expect(cards.first()).toHaveAttribute('aria-label', 'Récents');
-  await expect(cards.first()).toHaveClass(/ath-dashcard--L/);
+  expect((await layout()).recents).toEqual(saved.recents);
+  await expect(card('Récents')).toHaveClass(/ath-dashcard--L/);
   // Remise à l'état initial.
   await page.getByRole('button', { name: 'Organiser' }).click();
   await page.getByRole('button', { name: 'Rétablir la disposition par défaut' }).click();
   await page.getByRole('dialog').getByRole('button', { name: 'Réinitialiser' }).click();
-  await expect(cards.first()).toHaveAttribute('aria-label', 'Mes tickets');
+  await expect(cards).toHaveCount(7);
+  const after = await layout();
+  expect(after.isDefault).toBe(true);
+  expect(after.recents).toEqual(before.recents);
 });
 
 test('carte graphique : ajouter un anneau des tickets par statut, puis le retirer (T-0156)', async ({ page }) => {
   await login(page, 'user.dev', 'dev-only-user');
   await page.goto('/p/ARI');
   await page.getByRole('button', { name: 'Organiser' }).click();
-  await page.getByLabel('+ Ajouter une carte').selectOption({ label: 'Graphique sur une recherche…' });
+  await page.getByRole('button', { name: 'Ajouter Graphique sur une recherche…' }).click(); // tiroir « Catalogue »
   await page.getByLabel('Titre de la carte').fill('Tickets par statut');
   await page.getByLabel('Répartir par').selectOption({ label: 'Statut' });
   await page.getByRole('button', { name: 'Ajouter le graphique' }).click();
   const chart = page.locator('.ath-dashcard[aria-label="Tickets par statut"]');
   await expect(chart.getByRole('img', { name: /tickets :/ })).toBeVisible();
-  await page.getByRole('button', { name: 'Terminer' }).click();
+  await page.getByRole('button', { name: 'Enregistrer' }).click();
   await page.reload();
   await expect(chart.getByRole('img', { name: /tickets :/ })).toBeVisible();
   await page.getByRole('button', { name: 'Organiser' }).click();
   await page.getByRole('button', { name: 'Masquer Tickets par statut' }).click();
+  await expect(chart).toHaveCount(0);
+  await page.getByRole('button', { name: 'Annuler' }).click(); // le brouillon n'est pas enregistré : la carte reste pour la suite des essais
+  await page.getByRole('button', { name: 'Organiser' }).click();
+  await page.getByRole('button', { name: 'Rétablir la disposition par défaut' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Réinitialiser' }).click();
   await expect(chart).toHaveCount(0);
 });
