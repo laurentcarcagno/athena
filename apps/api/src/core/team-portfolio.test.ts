@@ -17,6 +17,7 @@ const manager: Actor = { id: 'sub-mgr', roles: ['athena-team-member', 'athena-ma
 const otherManager: Actor = { id: 'sub-mgr2', roles: ['athena-team-member', 'athena-manager'] };
 const director: Actor = { id: 'sub-dir', roles: ['athena-director', 'athena-team-member'] };
 const member: Actor = { id: 'sub-ana', roles: ['athena-team-member'] };
+const pmo: Actor = { id: 'sub-pmo', roles: ['athena-pmo', 'athena-team-member'] };
 
 async function code(promise: Promise<unknown>): Promise<string> {
   const error = await promise.then(() => null, (e: unknown) => e);
@@ -97,6 +98,11 @@ suite('équipes, charge et portefeuilles (intégration)', () => {
     expect(await code(teams.load(org, 'alpha', otherManager))).toMatch(/^forbidden:/);
     expect(await code(teams.get(org, 'alpha', member))).toMatch(/^forbidden:/);
     await expect(teams.load(org, 'alpha', director)).resolves.toBeDefined();
+  });
+
+  it('le PMO lit toutes les équipes et leur charge, comme le directeur', async () => {
+    expect((await teams.list(org, pmo)).map((t) => t.key)).toEqual(['alpha', 'beta']);
+    await expect(teams.load(org, 'beta', pmo)).resolves.toBeDefined();
   });
 
   it('retire un membre, puis supprime l’équipe', async () => {

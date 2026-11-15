@@ -159,7 +159,7 @@ const frDict = {
   },
   steer: {
     nav: { teams: 'Charge des équipes', portfolios: 'Portefeuilles' },
-    roleNames: { 'athena-admin': 'Administrateur', 'athena-pm': 'Chef de projet', 'athena-manager': 'Manager', 'athena-director': 'Directeur', 'athena-qa': 'Assurance qualité', 'athena-team-member': 'Membre d’équipe' } as Record<string, string>,
+    roleNames: { 'athena-admin': 'Administrateur', 'athena-pm': 'Chef de projet', 'athena-manager': 'Manager', 'athena-pmo': 'PMO', 'athena-director': 'Directeur', 'athena-qa': 'Assurance qualité', 'athena-team-member': 'Membre d’équipe' } as Record<string, string>,
     teamsTitle: 'Charge des équipes', teamsSub: 'Tickets ouverts, en retard et reste à faire par personne, tous projets confondus.',
     team: 'Équipe', noTeam: 'Aucune équipe à afficher.', noTeamAdmin: 'Aucune équipe. Créez-en une pour suivre sa charge.', pick: 'Choisir une équipe',
     person: 'Personne', open: 'Ouverts', late: 'En retard', remaining: 'Reste à faire', projects: 'Projets', manager: 'Manager', member: 'Membre',
@@ -362,7 +362,7 @@ const frDict = {
     atql: 'Langage de recherche (ATQL)',
     atqlRows: [['status = in_progress', 'les suggestions affichent la clé technique d’un statut à côté de son nom'], ['severity IN (majeure, bloquante)', 'liste de valeurs'], ['title ~ "crash"', 'contient'], ['assignee IS EMPTY', 'champ vide'], ['updated > daysAgo(7)', 'relatif à aujourd’hui']],
     roles: 'Rôles',
-    roleRows: [['Membre d’équipe', 'traite ses tickets (Mon travail), recherche, commente'], ['Manager', 'voit la charge des équipes qu’il dirige (Charge des équipes), avec les droits d’un membre d’équipe'], ['Directeur', 'consulte les portefeuilles, les tableaux de bord et la charge de toutes les équipes, en lecture seule'], ['Chef de projet', 'gère les acteurs, sprints, versions et boards de ses projets'], ['Administrateur', 'crée les projets, gabarits et trackers, gère les plugins']],
+    roleRows: [['Membre d’équipe', 'traite ses tickets (Mon travail), recherche, commente'], ['Manager', 'voit la charge des équipes qu’il dirige (Charge des équipes), avec les droits d’un membre d’équipe'], ['PMO', 'crée et pilote les portefeuilles, compose les équipes, prépare les revues de portefeuille, force la santé d’un projet'], ['Directeur', 'consulte les portefeuilles, les tableaux de bord et la charge de toutes les équipes, en lecture seule'], ['Chef de projet', 'gère les acteurs, sprints, versions et boards de ses projets'], ['Administrateur', 'crée les projets, gabarits et trackers, gère les plugins']],
   },
   layout: {
     title: 'Disposition de la vue détails', help: 'Choisissez comment les attributs s’affichent sur la fiche d’un ticket.',
@@ -690,7 +690,7 @@ const enDict: Dictionary = {
   },
   steer: {
     nav: { teams: 'Team workload', portfolios: 'Portfolios' },
-    roleNames: { 'athena-admin': 'Administrator', 'athena-pm': 'Project manager', 'athena-manager': 'Manager', 'athena-director': 'Director', 'athena-qa': 'Quality assurance', 'athena-team-member': 'Team member' } as Record<string, string>,
+    roleNames: { 'athena-admin': 'Administrator', 'athena-pm': 'Project manager', 'athena-manager': 'Manager', 'athena-pmo': 'PMO', 'athena-director': 'Director', 'athena-qa': 'Quality assurance', 'athena-team-member': 'Team member' } as Record<string, string>,
     teamsTitle: 'Team workload', teamsSub: 'Open, late and remaining work per person, across all projects.',
     team: 'Team', noTeam: 'No team to show.', noTeamAdmin: 'No team yet. Create one to follow its workload.', pick: 'Choose a team',
     person: 'Person', open: 'Open', late: 'Late', remaining: 'Remaining', projects: 'Projects', manager: 'Manager', member: 'Member',
@@ -893,7 +893,7 @@ const enDict: Dictionary = {
     atql: 'Search language (ATQL)',
     atqlRows: [['status = in_progress', 'suggestions show a status technical key next to its name'], ['severity IN (major, blocker)', 'list of values'], ['title ~ "crash"', 'contains'], ['assignee IS EMPTY', 'empty field'], ['updated > daysAgo(7)', 'relative to today']],
     roles: 'Roles',
-    roleRows: [['Team member', 'processes their artifacts (My work), searches, comments'], ['Manager', 'sees the workload of the teams they lead (Team workload), with team member rights'], ['Director', 'reads portfolios, dashboards and the workload of all teams, read-only'], ['Project manager', 'manages actors, sprints, releases and boards of their projects'], ['Administrator', 'creates projects, templates and trackers, manages plugins']],
+    roleRows: [['Team member', 'processes their artifacts (My work), searches, comments'], ['Manager', 'sees the workload of the teams they lead (Team workload), with team member rights'], ['PMO', 'creates and steers portfolios, builds teams, prepares portfolio reviews, forces a project health'], ['Director', 'reads portfolios, dashboards and the workload of all teams, read-only'], ['Project manager', 'manages actors, sprints, releases and boards of their projects'], ['Administrator', 'creates projects, templates and trackers, manages plugins']],
   },
   layout: {
     title: 'Details view layout', help: 'Choose how attributes are laid out on an artifact sheet.',

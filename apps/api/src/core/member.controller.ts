@@ -15,7 +15,7 @@ export class MemberController {
   ) {}
 
   /** Comptes connus de l'organisation, pour choisir les acteurs d'un projet. */
-  @Roles('athena-admin', 'athena-pm')
+  @Roles('athena-admin', 'athena-pmo', 'athena-pm')
   @Get('users')
   async users(@Req() request: AuthedRequest) {
     return this.members.users((await this.orgs.resolve(request.principal!)).organizationId);

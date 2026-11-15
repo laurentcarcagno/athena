@@ -62,6 +62,7 @@ describe('rôle affiché et niveau de charge', () => {
     expect(primaryRole(['athena-director'])).toEqual({ label: 'Directeur', kind: 'director' });
     expect(primaryRole(['athena-pm', 'athena-manager']).kind).toBe('manager');
     expect(primaryRole(['athena-admin', 'athena-director']).kind).toBe('admin');
+    expect(primaryRole(['athena-pmo', 'athena-team-member'])).toEqual({ label: 'PMO', kind: 'director' });
   });
   it('une charge élevée dépasse 1,5 fois la moyenne et 3 tickets', () => {
     expect(loadLevel(0, 2)).toBe('none');
@@ -101,6 +102,14 @@ describe('portefeuilles (directeur)', () => {
     expect(screen.getByRole('link', { name: 'Ouvrir le portefeuille Programmes spatiaux' })).toHaveAttribute('href', '/portefeuilles/spatial');
     expect(screen.getByText('Projets à risque')).toBeInTheDocument();
     expect(screen.queryByText('Nouveau portefeuille')).not.toBeInTheDocument();
+  });
+  it('le PMO crée un portefeuille', async () => {
+    renderAt('/portefeuilles', ['athena-pmo', 'athena-team-member'], 'portfolios');
+    await screen.findByText('Programmes spatiaux');
+    await userEvent.type(screen.getByLabelText('Clé'), 'defense');
+    await userEvent.type(screen.getByLabelText('Nom'), 'Défense');
+    await userEvent.click(screen.getByRole('button', { name: 'Créer' }));
+    await waitFor(() => expect(calls.some((c) => c.startsWith('POST /v1/portfolios ') && c.includes('"key":"defense"'))).toBe(true));
   });
   it('le détail montre la santé forcée et sa note ; le directeur ne peut rien modifier', async () => {
     renderAt('/portefeuilles/spatial', ['athena-director'], 'portfolios');

@@ -17,6 +17,15 @@ Il faut deux rôles de plus : un **manager**, qui voit la charge de ses équipes
 7. **Tableaux de bord** : le directeur a tout le catalogue de cartes de pilotage et la disposition d'accueil d'un responsable ; le manager garde celui d'un membre d'équipe. Deux pages au rail global : **Charge des équipes** (`/charge`, administrateur, chef de projet, manager, directeur) et **Portefeuilles** (`/portefeuilles`, administrateur, chef de projet, directeur).
 8. **Rôle affiché** sous le nom : le plus étendu des rôles portés (`apps/web/src/lib/roles.ts`).
 
+## 2 bis. Rôle PMO (2026-11-15, étude PPM)
+
+Rôle `athena-pmo` ajouté à la demande de l'utilisateur. Il a les droits d'un membre d'équipe, et en plus :
+- il gère les portefeuilles (création, modification, suppression, rattachement, santé forcée, note) ;
+- il gère les équipes (composition) et lit la charge de toutes ;
+- il voit le catalogue complet des cartes de pilotage.
+
+Il ne devient pas administrateur de l'instance. Le rôle affiché sous son nom est « PMO », avec l'icône de pilotage du directeur.
+
 ## 3. Hors périmètre (à décider plus tard)
 
 Cartes de tableau de bord dédiées « santé de portefeuille » et « charge d'équipe » (les pages en tiennent lieu), budgets et coûts par portefeuille (lot 15), absences et capacité (lot 14 de l'ADR-0006), alimentation des équipes par les groupes Keycloak.

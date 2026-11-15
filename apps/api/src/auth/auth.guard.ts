@@ -20,13 +20,13 @@ export const Public = () => SetMetadata(PUBLIC_KEY, true);
 export const Roles = (...roles: string[]) => SetMetadata(ROLES_KEY, roles);
 
 /**
- * Rôles effectifs. Ancien nom `athena-user` accepté (renommé `athena-team-member`). L'assurance qualité et le manager ont aussi les droits
+ * Rôles effectifs. Ancien nom `athena-user` accepté (renommé `athena-team-member`). L'assurance qualité, le manager et le PMO ont aussi les droits
  * d'un membre d'équipe ; le directeur n'a ceux d'un membre qu'en lecture (GET, HEAD) : il consulte tout, ne modifie rien.
  */
 export const withUserRole = (roles: readonly string[], method = 'POST'): string[] => {
   const out = roles.map((r) => (r === 'athena-user' ? 'athena-team-member' : r));
   const readOnly = ['GET', 'HEAD', 'OPTIONS'].includes(method.toUpperCase());
-  const grants = out.includes('athena-qa') || out.includes('athena-manager') || (out.includes('athena-director') && readOnly);
+  const grants = out.includes('athena-qa') || out.includes('athena-manager') || out.includes('athena-pmo') || (out.includes('athena-director') && readOnly);
   if (grants && !out.includes('athena-team-member')) out.push('athena-team-member');
   return out;
 };

@@ -150,8 +150,8 @@ export function useRailSections({ pathname, project, roles }: { pathname: string
     items: [
       // Rail global : Projets (menu), Mon travail, Recherche, Administration ; Favoris et Récents sont aussi des menus (ADR-0003) ; Profil et Aide sont au bas du rail.
       { id: '/', label: fr.nav.work, icon: RAIL_ICONS['work'] }, { id: '/recherche', label: fr.nav.search, icon: RAIL_ICONS['search'] },
-      ...(roles.some((r) => ['athena-admin', 'athena-pm', 'athena-manager', 'athena-director'].includes(r)) ? [{ id: '/charge', label: fr.steer.nav.teams, icon: RAIL_ICONS['teams'] }] : []),
-      ...(roles.some((r) => ['athena-admin', 'athena-pm', 'athena-director'].includes(r)) ? [{ id: '/portefeuilles', label: fr.steer.nav.portfolios, icon: RAIL_ICONS['portfolios'] }] : []),
+      ...(roles.some((r) => ['athena-admin', 'athena-pmo', 'athena-pm', 'athena-manager', 'athena-director'].includes(r)) ? [{ id: '/charge', label: fr.steer.nav.teams, icon: RAIL_ICONS['teams'] }] : []),
+      ...(roles.some((r) => ['athena-admin', 'athena-pmo', 'athena-pm', 'athena-director'].includes(r)) ? [{ id: '/portefeuilles', label: fr.steer.nav.portfolios, icon: RAIL_ICONS['portfolios'] }] : []),
       ...(admin ? [{ id: '/admin', label: fr.nav.admin, icon: RAIL_ICONS['admin'] }] : []),
     ],
   });

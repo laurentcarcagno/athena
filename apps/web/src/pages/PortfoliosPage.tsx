@@ -37,7 +37,8 @@ export function PortfoliosPage({ session }: { session: Session }) {
   const { key } = useParams();
   const t = fr.steer;
   const roles = session.user?.roles ?? [];
-  const admin = roles.includes('athena-admin');
+  // Gestion des portefeuilles : administrateur et PMO ; rattachement, santé forcée et note : aussi le chef de projet.
+  const admin = roles.includes('athena-admin') || roles.includes('athena-pmo');
   const editor = admin || roles.includes('athena-pm');
   const [list, setList] = useState<Summary[] | null>(null);
   const [one, setOne] = useState<Summary | null>(null);

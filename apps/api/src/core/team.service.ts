@@ -19,7 +19,7 @@ export interface MemberLoad {
 export interface TeamLoad { team: { key: string; name: string }; members: MemberLoad[]; totals: { open: number; late: number; remaining: number }; average: number }
 
 const KEY = /^[a-z0-9][a-z0-9-]{1,29}$/;
-const oversees = (roles: readonly string[]) => roles.includes('athena-admin') || roles.includes('athena-director') || roles.includes('athena-pm');
+const oversees = (roles: readonly string[]) => ['athena-admin', 'athena-pmo', 'athena-director', 'athena-pm'].some((r) => roles.includes(r));
 
 /** Équipes et charge (ADR-0008). Un administrateur gère les équipes ; un manager voit la charge des siennes ; le directeur lit tout. */
 export class TeamService {

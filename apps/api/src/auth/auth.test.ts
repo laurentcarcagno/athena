@@ -147,6 +147,7 @@ describe('garde HTTP', () => {
     expect(withUserRole(['athena-manager'])).toEqual(['athena-manager', 'athena-team-member']);
     expect(withUserRole(['athena-director'], 'GET')).toEqual(['athena-director', 'athena-team-member']);
     expect(withUserRole(['athena-director'], 'POST')).toEqual(['athena-director']);
+    expect(withUserRole(['athena-pmo'], 'POST')).toEqual(['athena-pmo', 'athena-team-member']);
     expect((await send('/v1/projects/ARI/baselines', qa)).statusCode).toBe(403); // pas de baseline
     expect((await send('/v1/projects/ARI/trackers/BUG/fields', qa)).statusCode).toBe(403); // pas de configuration
     expect((await send('/v1/projects/ARI/schedule/apply', qa)).statusCode).toBe(403); // pas de replanification

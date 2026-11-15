@@ -20,7 +20,8 @@ export const loadLevel = (open: number, average: number): 'high' | 'normal' | 'n
  */
 export function TeamLoadPage({ session }: { session: Session }) {
   const t = fr.steer;
-  const admin = session.user?.roles.includes('athena-admin') ?? false;
+  // Composition des équipes : administrateur et PMO.
+  const admin = (session.user?.roles ?? []).some((r) => r === 'athena-admin' || r === 'athena-pmo');
   const [params, setParams] = useSearchParams();
   const [teams, setTeams] = useState<TeamRow[] | null>(null);
   const [load, setLoad] = useState<TeamLoad | null>(null);
