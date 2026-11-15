@@ -33,7 +33,7 @@ describe('pilotage', () => {
     view(<GeneralInfoCard project="NOVA" />);
     expect(await screen.findByText('pm.dev')).toBeInTheDocument();
     expect(screen.getByText('6')).toBeInTheDocument();
-    expect(screen.getByText('2026-01-05').tagName).toBe('TIME');
+    expect(screen.getByText('05/01/2026').tagName).toBe('TIME');
   });
 
   it('Avancement global : arc avec le pourcentage dit en toutes lettres ; vide sans ticket', async () => {

@@ -43,7 +43,7 @@ describe('actions sur la tâche sélectionnée', () => {
   it('focaliser une barre sélectionne sa tâche ; une tâche parente n’est pas sélectionnable au tableau', async () => {
     const { container } = wrap(<ScheduleGantt project="NOVA" data={data} calendar={calendar} edit={edit()} />);
     fireEvent.focus(container.querySelector('g[aria-label^="N-1 "]')!);
-    expect(within(screen.getByRole('toolbar')).getByText('N-1')).toBeInTheDocument();
+    expect(within(screen.getByRole('toolbar', { name: 'Actions de la tâche sélectionnée' })).getByText('N-1')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Phase' })).toBeNull(); // dates calculées : rien à lier ni à décaler
   });
 
@@ -63,14 +63,14 @@ describe('actions sur la tâche sélectionnée', () => {
 describe('demande de décalage (utilisateur)', () => {
   it('sans droit d’édition ni demande : ni sélection ni bouton', () => {
     wrap(<ScheduleGantt project="NOVA" data={data} calendar={calendar} />);
-    expect(screen.queryByRole('toolbar')).toBeNull();
+    expect(screen.queryByRole('toolbar', { name: 'Actions de la tâche sélectionnée' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Réalisation' })).toBeNull();
   });
 
   it('sélectionner sa tâche, motiver, envoyer : la fin souhaitée et le motif partent', async () => {
     const request: ShiftRequest = { onSubmit: vi.fn() };
     wrap(<ScheduleGantt project="NOVA" data={data} calendar={calendar} request={request} />);
-    expect(screen.getByRole('toolbar')).toHaveTextContent('Sélectionnez une de vos tâches (clic sur son titre) pour demander un décalage à votre chef de projet.');
+    expect(screen.getByRole('toolbar', { name: 'Actions de la tâche sélectionnée' })).toHaveTextContent('Sélectionnez une de vos tâches (clic sur son titre) pour demander un décalage à votre chef de projet.');
     await userEvent.click(screen.getByRole('button', { name: 'Réalisation' }));
     await userEvent.click(screen.getByRole('button', { name: 'Demander un décalage' }));
     const dialog = screen.getByRole('dialog');

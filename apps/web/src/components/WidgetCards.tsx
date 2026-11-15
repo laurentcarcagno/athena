@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { StatusPill, type PillKind } from '@athena/ui';
 import { api } from '../api';
 import { fr } from '../i18n';
+import { formatDate } from '../lib/dates';
 
 /**
  * Widgets de pilotage, d'intégration continue et de qualité (ADR-0007, T-0173 à T-0176) : ligne commune, état vide, grand chiffre,
@@ -103,7 +104,7 @@ export function GeneralInfoCard({ project }: { project: string }) {
       <dt>{t.name}</dt><dd>{k.project.name} <span className="ath-mono">({k.project.key})</span></dd>
       <dt>{t.managers}</dt><dd>{k.project.managers.length ? k.project.managers.join(', ') : t.none}</dd>
       <dt>{t.members}</dt><dd>{k.project.members}</dd>
-      <dt>{t.since}</dt><dd><time dateTime={k.project.createdAt}>{k.project.createdAt.slice(0, 10)}</time></dd>
+      <dt>{t.since}</dt><dd><time dateTime={k.project.createdAt}>{formatDate(k.project.createdAt)}</time></dd>
     </dl>
   );
 }
