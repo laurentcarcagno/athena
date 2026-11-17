@@ -30,6 +30,7 @@ export function parseHealthFilter(q: Record<string, string | undefined>): Health
     ...(q['sponsor'] ? { sponsor: q['sponsor'] } : {}), includeClosed: q['includeClosed'] === '1' || q['includeClosed'] === 'true',
   };
 }
+const RetentionBody = z.object({ weeks: z.number().int().min(1).max(520).nullable(), reviewMonths: z.number().int().min(1).max(600).nullable() });
 const SnapshotBody = z.object({ kind: z.enum(['manual', 'review']).default('manual'), label: z.string().trim().max(200).optional() });
 const PortfolioProjectBody = z.object({ health: z.enum(['ok', 'attention', 'critical']).nullable().optional(), note: z.string().max(500).optional() });
 
@@ -176,6 +177,15 @@ export class PortfolioController {
     const { organizationId, actor } = await this.orgs.resolve(request.principal!);
     const input = parseBody(SnapshotBody, body ?? {});
     return this.snapshots.take(organizationId, key, { kind: input.kind as SnapshotKind, label: input.label ?? '' }, actor);
+  }
+
+  /** Rétention des instantanés propre au portefeuille (nul : réglage de l'organisation). */
+  @Roles('athena-admin', 'athena-pmo')
+  @Put(':key/snapshot-retention')
+  @BodySchema(RetentionBody)
+  async retention(@Req() request: AuthedRequest, @Param('key') key: string, @Body() body: unknown) {
+    const { organizationId, actor } = await this.orgs.resolve(request.principal!);
+    return this.snapshots.setRetention(organizationId, key, parseBody(RetentionBody, body), actor);
   }
 
   @Roles('athena-admin', 'athena-pmo', 'athena-pm', 'athena-director')

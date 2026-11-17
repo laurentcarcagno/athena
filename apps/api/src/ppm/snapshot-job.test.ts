@@ -58,4 +58,17 @@ suite('jobs instantanes et retention (B32)', () => {
     expect((await snaps.list(org, 'un')).every((s) => s.takenAt >= '2027-02-15')).toBe(true);
     expect(await jobs.run(org, day('2027-03-01'))).toMatchObject({ purged: 0 }); // rejouée : rien de plus
   });
+
+  it('un portefeuille peut surcharger la rétention de l’organisation', async () => {
+    await settings.put(org, { snapshotWeeklyRetentionWeeks: 520 }, admin);
+    await snaps.take(org, 'un', { kind: 'manual', label: 'vieux un', at: day('2026-01-05') }, admin);
+    await snaps.take(org, 'deux', { kind: 'manual', label: 'vieux deux', at: day('2026-01-05') }, admin);
+    await snaps.setRetention(org, 'un', { weeks: 4, reviewMonths: null }, admin);
+    expect(await snaps.retentionOf(org, 'un')).toEqual({ weeks: 4, reviewMonths: null });
+    await jobs.run(org, day('2027-03-02'));
+    expect((await snaps.list(org, 'un')).map((x) => x.label)).not.toContain('vieux un'); // 4 semaines : purgé
+    expect((await snaps.list(org, 'deux')).map((x) => x.label)).toContain('vieux deux'); // réglage de l'organisation : 520 semaines
+    await snaps.setRetention(org, 'un', { weeks: null, reviewMonths: null }, admin);
+    expect(await snaps.retentionOf(org, 'un')).toEqual({ weeks: null, reviewMonths: null });
+  });
 });

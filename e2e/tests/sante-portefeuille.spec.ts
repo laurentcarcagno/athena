@@ -62,4 +62,23 @@ test('météo du projet, fiche d’une page, tableau de santé et tuiles du port
   await expect(page.getByRole('table', { name: /^Roadmap de \d+ projets?$/ }).getByRole('link', { name: 'ARI' })).toBeVisible();
   await page.getByRole('button', { name: 'Jalons' }).click();
   await expect(page.getByRole('button', { name: 'Imprimer les jalons' })).toBeVisible();
+
+  // Instantanés, revue et dossier (lot 20) : l'instantané manuel, la revue qui fige un instantané, le dossier imprimable.
+  await page.goto('/portefeuilles/sante-e2e');
+  await page.getByLabel('Libellé de l’instantané').fill('Point e2e');
+  await page.getByRole('button', { name: 'Prendre un instantané' }).click();
+  await expect(page.getByRole('table', { name: /^\d+ instantanés?$/ }).getByText('Point e2e')).toBeVisible();
+  await page.getByLabel('Date de la revue').fill('2026-12-10');
+  await page.getByLabel('Ordre du jour ou compte rendu').fill('Revue trimestrielle e2e');
+  await page.getByRole('button', { name: 'Créer la revue et figer l’instantané' }).click();
+  await page.getByRole('link', { name: 'Ouvrir le dossier' }).first().click();
+  const dossier = page.getByRole('article', { name: /^Dossier de revue/ });
+  await expect(dossier.getByText('Revue trimestrielle e2e')).toBeVisible();
+  await expect(page.getByText(/Instantané figé le .* : ces valeurs ne changent plus\./)).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Imprimer le dossier' })).toBeVisible();
+  // Gouvernance : matrice et suivi présents (états vides acceptés pour un projet sans gabarit ni risque).
+  await page.goto('/portefeuilles/sante-e2e');
+  await expect(page.getByRole('heading', { name: 'Passage des gates' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Matrice des risques' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Suivi des actions' })).toBeVisible();
 });

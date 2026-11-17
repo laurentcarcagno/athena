@@ -153,17 +153,36 @@ export class SnapshotService {
     return out;
   }
 
+  /** Rétention propre au portefeuille (nul : réglage de l'organisation). */
+  async setRetention(organizationId: string, portfolioKey: string, input: { weeks: number | null; reviewMonths: number | null }, actor: Actor): Promise<{ weeks: number | null; reviewMonths: number | null }> {
+    await this.db.tx(organizationId, async (c) => {
+      const p = await this.portfolio(c, portfolioKey);
+      await c.query('update portfolio set snapshot_weekly_retention_weeks = $2, snapshot_review_retention_months = $3 where id = $1', [p.id, input.weeks, input.reviewMonths]);
+      await audit(c, organizationId, actor, 'portfolio.snapshot.retention', `portfolio:${portfolioKey}`, input);
+    });
+    return input;
+  }
+
+  async retentionOf(organizationId: string, portfolioKey: string): Promise<{ weeks: number | null; reviewMonths: number | null }> {
+    return this.db.tx(organizationId, async (c) => {
+      const r = (await c.query('select snapshot_weekly_retention_weeks w, snapshot_review_retention_months m from portfolio where key = $1', [portfolioKey])).rows[0];
+      if (!r) throw notFound(`Portefeuille ${portfolioKey}`);
+      return { weeks: r.w, reviewMonths: r.m };
+    });
+  }
+
   /**
    * Purge : supprime les instantanés périodiques et manuels plus vieux que `snapshotWeeklyRetentionWeeks`, et les instantanés de revue plus vieux que
    * `snapshotReviewRetentionMonths` (nul : jamais). Un instantané qui porte une revue de portefeuille est conservé. Retourne le nombre supprimé.
    */
-  async purge(organizationId: string, retention: { weeks: number; reviewMonths: number | null }, actor: Actor, now = new Date()): Promise<number> {
+  async purge(organizationId: string, retention: { weeks: number; reviewMonths: number | null }, actor: Actor, now = new Date(), portfolioKey?: string): Promise<number> {
     return this.db.tx(organizationId, async (c) => {
       const weekly = new Date(now.getTime() - retention.weeks * 7 * 86_400_000).toISOString();
       const review = retention.reviewMonths === null ? null : new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - retention.reviewMonths, now.getUTCDate())).toISOString();
       const r = await c.query(
         `delete from portfolio_snapshot s where not exists (select 1 from portfolio_review v where v.snapshot_id = s.id)
-           and ((s.kind <> 'review' and s.taken_at < $1) or (s.kind = 'review' and $2::timestamptz is not null and s.taken_at < $2))`, [weekly, review]);
+           and ($3::text is null or s.portfolio_id = (select id from portfolio where key = $3))
+           and ((s.kind <> 'review' and s.taken_at < $1) or (s.kind = 'review' and $2::timestamptz is not null and s.taken_at < $2))`, [weekly, review, portfolioKey ?? null]);
       const n = r.rowCount ?? 0;
       if (n > 0) await audit(c, organizationId, actor, 'portfolio.snapshot.purge', 'portfolio:*', { deleted: n });
       return n;
