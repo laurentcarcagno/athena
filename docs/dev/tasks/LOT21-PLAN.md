@@ -5,8 +5,8 @@
 | Tâche | Backlog | Contenu | État |
 |---|---|---|---|
 | T-0225 | B35 | Calcul de capacité pur (`ppm/capacity.ts`) : périodes, capacité, charge, paliers, durées | faite |
-| T-0226 | B35 | Migration 077 : disponibilité, absences, allocations ; services et API de saisie, droits | |
-| T-0227 | B35 | API de capacité : carte de chaleur, besoin contre capacité par rôle, goulots, granularité | |
+| T-0226 | B35 | Migration 077 : disponibilité, absences, allocations ; services et API de saisie, droits | faite (077) |
+| T-0227 | B35 | API de capacité : carte de chaleur, besoin contre capacité par rôle, goulots, granularité | faite |
 | T-0228 | B35 | Interface : saisie (disponibilité, absences, allocations) et vues (carte de chaleur, histogramme, goulots) | |
 | T-0229 | — | `LOT21-VERIFICATION.md`, tests, `STATE.md` (e2e : rejouer la suite quand la mémoire le permet) | |
 

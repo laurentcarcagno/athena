@@ -267,6 +267,6 @@ export { PG_POOL } from './core.tokens';
     { provide: APP_FILTER, useClass: DomainErrorFilter },
   ],
   // Services du noyau que `PpmModule` réutilise (étude PPM, § 06-architecture 1).
-  exports: [FieldTypeRegistry, PG_POOL, Db, OrgResolver, KpiService, MemberService, ExportMarker, ScheduleService, TemplateUpgradeService],
+  exports: [FieldTypeRegistry, PG_POOL, Db, OrgResolver, KpiService, MemberService, ExportMarker, ScheduleService, TemplateUpgradeService, CalendarService],
 })
 export class CoreModule {}
