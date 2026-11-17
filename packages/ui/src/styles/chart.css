@@ -1,0 +1,11 @@
+/* Graphique ECharts (T-0189) : jetons sémantiques seulement, angles droits, aucune ombre. */
+.ath-chart { margin: 0; display: grid; gap: var(--ath-space-sm); }
+.ath-chart__head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--ath-space-sm); }
+.ath-chart__title { font-weight: var(--ath-font-weight-semibold); color: var(--ath-text-heading); }
+.ath-chart__switch { display: inline-flex; }
+.ath-chart__tab { min-height: 32px; padding: 0 var(--ath-space-md); background: var(--ath-surface-default); color: var(--ath-text-default); border: var(--ath-border-width-hairline) solid var(--ath-border-control); font: inherit; cursor: pointer; }
+.ath-chart__tab + .ath-chart__tab { margin-left: calc(-1 * var(--ath-border-width-hairline)); }
+.ath-chart__tab[aria-pressed="true"] { background: var(--ath-surface-selected); font-weight: var(--ath-font-weight-semibold); }
+.ath-chart__tab:focus-visible { outline: var(--ath-border-width-strong) solid var(--ath-border-focus); outline-offset: 2px; }
+.ath-chart__canvas { min-height: 260px; width: 100%; }
+@media (pointer: coarse) { .ath-chart__tab { min-height: 44px; } }

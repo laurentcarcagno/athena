@@ -3,6 +3,7 @@
    (themes.generated.css, ADR-0004) ; aucune valeur de thème n'est écrite ici. */
 @import "./styles/base.css";
 @import "./styles/controls.css";
+@import "./styles/chart.css";
 @import "./styles/containers.css";
 @import "./styles/shell.css";
 @import "./styles/views.css";

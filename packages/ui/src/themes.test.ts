@@ -49,7 +49,7 @@ describe('feuille de style : rien que des jetons (T-0130, T-0131)', () => {
   const styles = readStyles();
 
   it('styles.css importe chaque partie, dans l’ordre de la cascade', () => {
-    expect(read('styles.css').match(/@import/g)?.length).toBe(14);
+    expect(read('styles.css').match(/@import/g)?.length).toBe(15);
     expect(styles).not.toContain('@import');
   });
 

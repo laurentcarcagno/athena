@@ -10,7 +10,7 @@ Migrations réelles : la prochaine est la **065**.
 | T-0186 | B05 | Interrupteurs de fonctionnalité par organisation (`organization_feature`, migration 065), prise en compte par l'API (404) et le rail | faite |
 | T-0187 | B06 | Réglages PPM de l'organisation : durée de la journée en heures et minutes, rétention et fréquence des instantanés, seuils ; Administration › PPM (migration 066, `DurationField`, interrupteurs) | faite |
 | T-0188 | B07, B08 | Vérifications ECharts : rendu SVG sous la CSP de production, poids du chunk | faite (CSP confirmée en infobulle `richText` ; poids 220 Ko gzip / 179 Ko brotli : décision à prendre) |
-| T-0189 | B09 | Composant `<Chart>` : thème par jetons, `aria`, motifs, vue tableau | |
+| T-0189 | B09 | Composant `<Chart>` : thème par jetons, `aria`, motifs, vue tableau | faite (`packages/ui/src/chart.tsx`, gzip activé dans nginx ; poids ECharts accepté par l'utilisateur) |
 | T-0190 | B10 | Méta du projet (dates, sponsor, description, granularité) : migration, API, carte | |
 | T-0191 | B11 | Cycle de vie configurable : migration, états livrés, transitions, historique, API | |
 | T-0192 | B11 | Cycle de vie : Administration › Cycle de vie et action de transition dans le projet | |
