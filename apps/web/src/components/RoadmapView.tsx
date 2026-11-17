@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Btn, Card, Checkbox, EmptyState, Table, Td, Th } from '@athena/ui';
+import { Btn, Card, Checkbox, EmptyState, Select, Table, Td, Th } from '@athena/ui';
 import { api } from '../api';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
@@ -15,7 +15,7 @@ export interface RoadmapProjectData {
   baseline: { name: string; end: string; gapDays: number | null } | null; phases: RoadmapPhaseData[];
   releases: Array<{ name: string; startsOn: string; endsOn: string; state: string }>; unscheduled: boolean;
 }
-export interface RoadmapData { portfolio: { key: string; name: string }; projects: RoadmapProjectData[]; hiddenByState: number }
+export interface RoadmapData { portfolio: { key: string; name: string }; projects: RoadmapProjectData[]; baselines?: string[]; hiddenByState: number }
 
 const DAY_MS = 86_400_000;
 const num = (iso: string) => Math.floor(Date.parse(`${iso}T00:00:00Z`) / DAY_MS);
@@ -49,10 +49,12 @@ export function RoadmapView({ portfolio, today = new Date() }: { portfolio: stri
   const [zoom, setZoom] = useState<(typeof ZOOMS)[number]['id']>('quarter');
   const [closed, setClosed] = useState(false);
   const [error, setError] = useState(false);
+  const [baseline, setBaseline] = useState('');
   useEffect(() => {
     setError(false);
-    api<RoadmapData>('GET', `/v1/portfolios/${portfolio}/roadmap${closed ? '?includeClosed=1' : ''}`).then((d) => setData(d && Array.isArray(d.projects) ? d : null)).catch((e) => { setError(true); fail(e); });
-  }, [portfolio, closed, fail]);
+    const q = new URLSearchParams({ ...(closed ? { includeClosed: '1' } : {}), ...(baseline ? { baseline } : {}) });
+    api<RoadmapData>('GET', `/v1/portfolios/${portfolio}/roadmap${q.size ? `?${q}` : ''}`).then((d) => setData(d && Array.isArray(d.projects) ? d : null)).catch((e) => { setError(true); fail(e); });
+  }, [portfolio, closed, baseline, fail]);
 
   const range = useMemo(() => {
     const days: number[] = [];
@@ -85,6 +87,15 @@ export function RoadmapView({ portfolio, today = new Date() }: { portfolio: stri
         {(['timeline', 'table', 'milestones'] as const).map((v) => <Btn key={v} size="sm" variant={view === v ? 'primary' : 'ghost'} aria-pressed={view === v} onClick={() => setView(v)}>{t.views[v]}</Btn>)}
         {view === 'timeline' && ZOOMS.map((z) => <Btn key={z.id} size="sm" variant={zoom === z.id ? 'primary' : 'ghost'} aria-pressed={zoom === z.id} onClick={() => setZoom(z.id)}>{t.zooms[z.id]}</Btn>)}
         <label className="ath-notify__pref"><Checkbox checked={closed} onChange={(e) => setClosed(e.target.checked)} />{t.includeClosed}</label>
+        {(data.baselines?.length ?? 0) > 0 && (
+          <>
+            <label className="ath-field__label" htmlFor="rm-baseline">{t.baselineChoice}</label>
+            <Select id="rm-baseline" value={baseline} onChange={(e) => setBaseline(e.target.value)}>
+              <option value="">{t.latestBaseline}</option>
+              {data.baselines!.map((b) => <option key={b} value={b}>{b}</option>)}
+            </Select>
+          </>
+        )}
         {view === 'milestones' && <Btn size="sm" variant="ghost" onClick={() => window.print()}>{t.print}</Btn>}
       </div>
       <p>{t.scope}{data.hiddenByState > 0 && !closed ? ` · ${t.hidden(data.hiddenByState)}` : ''}</p>

@@ -137,9 +137,9 @@ export class PortfolioController {
   /** Roadmap consolidée : projets, phases, revues, versions et baseline (lecture seule). `includeClosed=1` ajoute les projets clos. */
   @Roles('athena-admin', 'athena-pmo', 'athena-pm', 'athena-director')
   @Get(':key/roadmap')
-  async roadmap(@Req() request: AuthedRequest, @Param('key') key: string, @Query('includeClosed') includeClosed?: string) {
+  async roadmap(@Req() request: AuthedRequest, @Param('key') key: string, @Query('includeClosed') includeClosed?: string, @Query('baseline') baseline?: string) {
     const { organizationId, actor } = await this.orgs.resolve(request.principal!);
-    return this.roadmaps.roadmap(organizationId, key, actor, { includeClosed: includeClosed === '1' || includeClosed === 'true' });
+    return this.roadmaps.roadmap(organizationId, key, actor, { includeClosed: includeClosed === '1' || includeClosed === 'true', ...(baseline ? { baseline } : {}) });
   }
 
   /** Journal d'usage agrégé (KPI 6) : compteurs quotidiens par rôle et route, sans identité ni contenu. */

@@ -94,6 +94,13 @@ suite('roadmap consolidée (intégration)', () => {
     expect(grp.baseline!.gapDays).toBe(latest.variance); // test de concordance
   });
 
+  it('choix de la baseline : le nom demandé est comparé là où il existe, les autres projets n’ont pas de calque', async () => {
+    const r = await roadmap.roadmap(org, 'rm', admin, { baseline: 'PLAN-1' });
+    expect(r.baselines).toEqual(['PLAN-1']);
+    expect(r.projects.find((p) => p.key === 'GRP')!.baseline).toMatchObject({ name: 'PLAN-1', gapDays: 5 });
+    expect((await roadmap.roadmap(org, 'rm', admin, { baseline: 'inconnue' })).projects.every((p) => p.baseline === null)).toBe(true);
+  });
+
   it('un projet masqué au lecteur n’apparaît pas dans la roadmap', async () => {
     await runAs('sub-admin', () => access.set(org, 'SAT', { members: ['sub-admin'] }, admin));
     const seen = await runAs('sub-dir', () => roadmap.roadmap(org, 'rm', director));

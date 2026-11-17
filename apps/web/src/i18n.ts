@@ -181,7 +181,7 @@ const frDict = {
     weather: 'Météo', noWeather: 'Aucune météo écrite.', phases: 'Phases et revues', noPhases: 'Ce projet n’a pas de gabarit normatif.', risks: 'Risques principaux', noRisks: 'Aucun risque ouvert noté.',
   },
   pfRoadmap: {
-    title: 'Roadmap', nav: 'Roadmap du portefeuille', scope: 'Périmètre : les projets que vous pouvez voir', hidden: (n: number) => `${n} terminé${n > 1 ? 's' : ''}, annulé${n > 1 ? 's' : ''} ou archivé${n > 1 ? 's' : ''} masqué${n > 1 ? 's' : ''}`,
+    title: 'Roadmap', baselineChoice: 'Baseline comparée', latestBaseline: 'La plus récente de chaque projet', nav: 'Roadmap du portefeuille', scope: 'Périmètre : les projets que vous pouvez voir', hidden: (n: number) => `${n} terminé${n > 1 ? 's' : ''}, annulé${n > 1 ? 's' : ''} ou archivé${n > 1 ? 's' : ''} masqué${n > 1 ? 's' : ''}`,
     viewLabel: 'Vue', views: { timeline: 'Frise', table: 'Tableau', milestones: 'Jalons' } as Record<string, string>, zooms: { year: 'Année', quarter: 'Trimestre', month: 'Mois' } as Record<string, string>,
     includeClosed: 'Inclure les projets clos', print: 'Imprimer les jalons', empty: 'Aucun projet à afficher.', degraded: 'La roadmap est indisponible pour le moment.',
     caption: (n: number) => `Roadmap de ${n} projet${n > 1 ? 's' : ''}`, milestonesCaption: (n: number) => `${n} jalon${n > 1 ? 's' : ''}`,
@@ -767,7 +767,7 @@ const enDict: Dictionary = {
     weather: 'Weather', noWeather: 'No weather written.', phases: 'Phases and reviews', noPhases: 'This project has no normative template.', risks: 'Main risks', noRisks: 'No open scored risk.',
   },
   pfRoadmap: {
-    title: 'Roadmap', nav: 'Portfolio roadmap', scope: 'Scope: the projects you can see', hidden: (n: number) => `${n} completed, cancelled or archived hidden`,
+    title: 'Roadmap', baselineChoice: 'Compared baseline', latestBaseline: 'Latest of each project', nav: 'Portfolio roadmap', scope: 'Scope: the projects you can see', hidden: (n: number) => `${n} completed, cancelled or archived hidden`,
     viewLabel: 'View', views: { timeline: 'Timeline', table: 'Table', milestones: 'Milestones' } as Record<string, string>, zooms: { year: 'Year', quarter: 'Quarter', month: 'Month' } as Record<string, string>,
     includeClosed: 'Include closed projects', print: 'Print the milestones', empty: 'No project to show.', degraded: 'The roadmap is unavailable for now.',
     caption: (n: number) => `Roadmap of ${n} project${n > 1 ? 's' : ''}`, milestonesCaption: (n: number) => `${n} milestone${n > 1 ? 's' : ''}`,

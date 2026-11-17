@@ -8,7 +8,7 @@ import { RoadmapView, milestonesOf, type RoadmapData } from './RoadmapView';
 
 const phase = (over: Record<string, unknown>) => ({ key: 'phase-a', name: 'Phase A', review: 'prr', offTemplate: false, current: false, plannedStart: null, plannedEnd: null, reviewPlannedOn: null, reviewHeldOn: null, decision: null, undated: true, heldLate: false, ...over });
 const data = {
-  portfolio: { key: 'rm', name: 'Roadmap' }, hiddenByState: 1,
+  portfolio: { key: 'rm', name: 'Roadmap' }, hiddenByState: 1, baselines: ['PLAN-1'],
   projects: [
     { key: 'SAT', name: 'Satellite', lifecycle: { key: 'in_progress', name: 'En cours', category: 'active' }, plannedStart: '2026-01-05', plannedEnd: '2026-12-18', calculatedEnd: '2027-01-15',
       baseline: { name: 'PLAN-1', end: '2026-12-18', gapDays: 20 },
@@ -60,6 +60,8 @@ describe('roadmap du portefeuille (B27, B28)', () => {
     const before = Number(svg.getAttribute('width'));
     await userEvent.click(screen.getByRole('button', { name: 'Mois' }));
     expect(Number(screen.getByRole('img').getAttribute('width'))).toBeGreaterThan(before);
+    await userEvent.selectOptions(screen.getByLabelText('Baseline comparée'), 'PLAN-1');
+    await waitFor(() => expect(urls.at(-1)).toContain('baseline=PLAN-1'));
     await userEvent.click(screen.getByLabelText('Inclure les projets clos'));
     await waitFor(() => expect(urls.at(-1)).toContain('includeClosed=1'));
     unmount();

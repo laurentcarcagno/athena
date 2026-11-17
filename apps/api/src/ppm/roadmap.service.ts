@@ -29,6 +29,8 @@ export interface RoadmapProject {
 export interface PortfolioRoadmap {
   portfolio: { key: string; name: string };
   projects: RoadmapProject[];
+  /** Noms de baseline proposés (union de ceux des projets visibles), pour comparer tous les projets à la même. */
+  baselines: string[];
   /** Projets clos, annulés ou archivés exclus (sauf `includeClosed`). */
   hiddenByState: number;
 }
@@ -45,7 +47,7 @@ export class RoadmapService {
     private readonly lifecycle: Pick<LifecycleService, 'config'>,
   ) {}
 
-  async roadmap(organizationId: string, portfolioKey: string, actor: Actor, options: { includeClosed?: boolean } = {}): Promise<PortfolioRoadmap> {
+  async roadmap(organizationId: string, portfolioKey: string, actor: Actor, options: { includeClosed?: boolean; baseline?: string } = {}): Promise<PortfolioRoadmap> {
     const base = await this.db.tx(organizationId, async (c) => {
       const portfolio = (await c.query('select id, key, name from portfolio where key = $1', [portfolioKey])).rows[0];
       if (!portfolio) throw notFound(`Portefeuille ${portfolioKey}`);
@@ -59,6 +61,7 @@ export class RoadmapService {
       return { portfolio, rows, releases };
     });
     const states = new Map((await this.lifecycle.config(organizationId)).states.map((s) => [s.key, s]));
+    const names = new Set<string>();
     const all = await Promise.all(base.rows.map(async (p): Promise<RoadmapProject> => {
       const st = states.get(p.lifecycle_state);
       const tpl = await this.templates.status(organizationId, p.key).catch(() => null);
@@ -69,7 +72,10 @@ export class RoadmapService {
         heldLate: ph.record.reviewHeldOn !== null && ph.record.reviewPlannedOn !== null && ph.record.reviewHeldOn > ph.record.reviewPlannedOn,
       }));
       const choices = await this.schedule.baselines(organizationId, p.key).catch(() => []);
-      const view = await this.schedule.get(organizationId, p.key, actor.roles, choices[0]?.name).catch(() => null);
+      for (const b of choices) names.add(b.name);
+      // Baseline demandée si le projet l'a (les autres n'ont alors pas de calque), sinon la plus récente.
+      const wanted = options.baseline === undefined ? choices[0]?.name : choices.find((b) => b.name === options.baseline)?.name;
+      const view = wanted === undefined ? null : await this.schedule.get(organizationId, p.key, actor.roles, wanted).catch(() => null);
       const ends = (view?.tasks ?? []).filter((t) => t.plannedEnd);
       const last = ends.reduce<(typeof ends)[number] | null>((a, t) => (a === null || t.plannedEnd! > a.plannedEnd! ? t : a), null);
       const baselineEnd = (view?.tasks ?? []).reduce<string | null>((a, t) => (t.baselineEnd && (a === null || t.baselineEnd > a) ? t.baselineEnd : a), null);
@@ -86,6 +92,6 @@ export class RoadmapService {
     }));
     const projects = (options.includeClosed ? all : all.filter((p) => !CLOSED.includes(p.lifecycle.category)))
       .sort((a, b) => Number(a.unscheduled) - Number(b.unscheduled));
-    return { portfolio: { key: base.portfolio.key, name: base.portfolio.name }, projects, hiddenByState: all.length - projects.length };
+    return { portfolio: { key: base.portfolio.key, name: base.portfolio.name }, projects, baselines: [...names].sort(), hiddenByState: all.length - projects.length };
   }
 }

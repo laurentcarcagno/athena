@@ -54,4 +54,12 @@ test('météo du projet, fiche d’une page, tableau de santé et tuiles du port
   const lines = (await csv.text()).replace(/^﻿/, '').trim().split('\n');
   expect(lines.length - 1).toBe(rows - 1);
   expect(lines[0]).toContain('projet,nom,etat,sante');
+
+  // Roadmap du portefeuille (lot 19) : frise, tableau, jalons ; les projets clos sont exclus par défaut.
+  await page.goto('/portefeuilles/sante-e2e/roadmap');
+  await expect(page.getByRole('img', { name: /^Roadmap de \d+ projets?$/ })).toBeVisible();
+  await page.getByRole('button', { name: 'Tableau' }).click();
+  await expect(page.getByRole('table', { name: /^Roadmap de \d+ projets?$/ }).getByRole('link', { name: 'ARI' })).toBeVisible();
+  await page.getByRole('button', { name: 'Jalons' }).click();
+  await expect(page.getByRole('button', { name: 'Imprimer les jalons' })).toBeVisible();
 });
