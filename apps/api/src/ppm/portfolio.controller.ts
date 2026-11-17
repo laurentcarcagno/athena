@@ -6,6 +6,7 @@ import { OrgResolver, parseBody } from '../core/http';
 import { ExportMarker } from '../core/export-marking';
 import { FeatureGuard, RequiresFeature } from './feature.service';
 import { RoadmapService } from './roadmap.service';
+import { SnapshotService, type SnapshotKind } from './snapshot.service';
 import { HealthService, healthCsv, type HealthFilter } from './health.service';
 import { LIFECYCLE_CATEGORIES, type LifecycleCategory } from './lifecycle';
 import { PortfolioService } from './portfolio.service';
@@ -27,6 +28,7 @@ export function parseHealthFilter(q: Record<string, string | undefined>): Health
     ...(q['sponsor'] ? { sponsor: q['sponsor'] } : {}), includeClosed: q['includeClosed'] === '1' || q['includeClosed'] === 'true',
   };
 }
+const SnapshotBody = z.object({ kind: z.enum(['manual', 'review']).default('manual'), label: z.string().trim().max(200).optional() });
 const PortfolioProjectBody = z.object({ health: z.enum(['ok', 'attention', 'critical']).nullable().optional(), note: z.string().max(500).optional() });
 
 /** Équipes et charge : l'administrateur et le PMO les gèrent ; le manager voit la charge des siennes ; le directeur et le chef de projet lisent. */
@@ -104,7 +106,7 @@ export class TeamController {
 @RequiresFeature('ppm.portfolios')
 export class PortfolioController {
   constructor(
-    @Inject(PortfolioService) private readonly portfolios: PortfolioService, @Inject(HealthService) private readonly healths: HealthService, @Inject(RoadmapService) private readonly roadmaps: RoadmapService,
+    @Inject(PortfolioService) private readonly portfolios: PortfolioService, @Inject(HealthService) private readonly healths: HealthService, @Inject(RoadmapService) private readonly roadmaps: RoadmapService, @Inject(SnapshotService) private readonly snapshots: SnapshotService,
     @Inject(OrgResolver) private readonly orgs: OrgResolver,
     @Inject(ExportMarker) private readonly marker: ExportMarker, @Inject(UsageService) private readonly usage: UsageService,
   ) {}
@@ -132,6 +134,46 @@ export class PortfolioController {
   async create(@Req() request: AuthedRequest, @Body() body: unknown) {
     const { organizationId, actor } = await this.orgs.resolve(request.principal!);
     return this.portfolios.create(organizationId, parseBody(PortfolioCreate, body), actor);
+  }
+
+  /** Instantanés du portefeuille (lignes visibles du lecteur), du plus récent au plus ancien. */
+  @Roles('athena-admin', 'athena-pmo', 'athena-pm', 'athena-director')
+  @Get(':key/snapshots')
+  async snapshotList(@Req() request: AuthedRequest, @Param('key') key: string) {
+    return this.snapshots.list((await this.orgs.resolve(request.principal!)).organizationId, key);
+  }
+
+  /** Comparaison de deux instantanés (`a` et `b`) : écarts par projet. */
+  @Roles('athena-admin', 'athena-pmo', 'athena-pm', 'athena-director')
+  @Get(':key/snapshots/compare')
+  async snapshotCompare(@Req() request: AuthedRequest, @Param('key') key: string, @Query('a') a = '', @Query('b') b = '') {
+    return this.snapshots.compare((await this.orgs.resolve(request.principal!)).organizationId, key, a, b);
+  }
+
+  /** Dernier instantané et séries des mini-courbes, pour la flèche de tendance du tableau de santé. */
+  @Roles('athena-admin', 'athena-pmo', 'athena-pm', 'athena-director')
+  @Get(':key/trend')
+  async trend(@Req() request: AuthedRequest, @Param('key') key: string) {
+    const { organizationId } = await this.orgs.resolve(request.principal!);
+    const previous = await this.snapshots.previous(organizationId, key);
+    return { previous: previous ? { id: previous.id, takenAt: previous.takenAt, kind: previous.kind, totals: previous.totals, lines: previous.lines } : null, series: await this.snapshots.series(organizationId, key) };
+  }
+
+  @Roles('athena-admin', 'athena-pmo', 'athena-pm', 'athena-director')
+  @Get(':key/snapshots/:id')
+  async snapshotGet(@Req() request: AuthedRequest, @Param('key') key: string, @Param('id') id: string) {
+    return this.snapshots.get((await this.orgs.resolve(request.principal!)).organizationId, key, id);
+  }
+
+  /** Instantané manuel : le PMO et l'administrateur. */
+  @Roles('athena-admin', 'athena-pmo')
+  @Post(':key/snapshots')
+  @HttpCode(201)
+  @BodySchema(SnapshotBody)
+  async snapshotTake(@Req() request: AuthedRequest, @Param('key') key: string, @Body() body: unknown) {
+    const { organizationId, actor } = await this.orgs.resolve(request.principal!);
+    const input = parseBody(SnapshotBody, body ?? {});
+    return this.snapshots.take(organizationId, key, { kind: input.kind as SnapshotKind, label: input.label ?? '' }, actor);
   }
 
   /** Roadmap consolidée : projets, phases, revues, versions et baseline (lecture seule). `includeClosed=1` ajoute les projets clos. */
