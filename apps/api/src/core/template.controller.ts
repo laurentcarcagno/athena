@@ -217,6 +217,7 @@ export class ProjectTemplateController {
   @BodySchema(AdvanceBody)
   async advance(@Req() request: AuthedRequest, @Param('project') project: string, @Body() body: unknown) {
     const { organizationId, actor } = await this.orgs.resolve(request.principal!);
+    await this.members.requireManager(organizationId, project, actor);
     return this.upgrades.advancePhase(organizationId, project, actor, parseBody(AdvanceBody, body ?? {}));
   }
 
