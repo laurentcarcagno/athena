@@ -4,6 +4,7 @@ import { CoreModule } from '../core/core.module';
 import { Db } from '../core/db';
 import { FeatureController } from './feature.controller';
 import { FeatureGuard, FeatureService } from './feature.service';
+import { HealthService } from './health.service';
 import { LifecycleController } from './lifecycle.controller';
 import { LifecycleService } from './lifecycle.service';
 import { PortfolioController, TeamController } from './portfolio.controller';
@@ -31,6 +32,7 @@ import { TeamService } from './team.service';
     { provide: ProjectMetaService, useFactory: (db: Db) => new ProjectMetaService(db), inject: [Db] },
     { provide: StatusNoteService, useFactory: (db: Db) => new StatusNoteService(db), inject: [Db] },
     { provide: LifecycleService, useFactory: (db: Db) => new LifecycleService(db), inject: [Db] },
+    { provide: HealthService, useFactory: (db: Db, p: PortfolioService, l: LifecycleService) => new HealthService(db, p, l), inject: [Db, PortfolioService, LifecycleService] },
     { provide: TeamService, useFactory: (db: Db) => new TeamService(db), inject: [Db] },
     { provide: PortfolioService, useFactory: (db: Db, k: KpiService) => new PortfolioService(db, k), inject: [Db, KpiService] },
   ],

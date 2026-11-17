@@ -1,9 +1,11 @@
-import { Body, Controller, Delete, Get, HttpCode, Inject, Param, Patch, Post, Put, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Inject, Param, Patch, Post, Put, Query, Req, UseGuards } from '@nestjs/common';
 import { z } from 'zod';
 import { Roles, type AuthedRequest } from '../auth/auth.guard';
 import { BodySchema } from '../openapi/body-schema';
 import { OrgResolver, parseBody } from '../core/http';
 import { FeatureGuard, RequiresFeature } from './feature.service';
+import { HealthService, type HealthFilter } from './health.service';
+import { LIFECYCLE_CATEGORIES, type LifecycleCategory } from './lifecycle';
 import { PortfolioService } from './portfolio.service';
 import { TeamService } from './team.service';
 
@@ -13,6 +15,15 @@ const TeamPatch = z.object({ name: z.string().trim().min(1).max(100).optional(),
 const TeamMemberBody = z.object({ role: z.enum(['manager', 'member']) });
 const PortfolioCreate = z.object({ key: Key, name: z.string().trim().min(1).max(100), description: z.string().max(500).optional(), owner: z.string().max(200).nullable().optional() });
 const PortfolioPatch = z.object({ name: z.string().trim().min(1).max(100).optional(), description: z.string().max(500).optional(), owner: z.string().max(200).nullable().optional() });
+/** Filtre du tableau de santé depuis la chaîne de requête ; une valeur inconnue est ignorée (jamais une erreur). */
+export function parseHealthFilter(q: Record<string, string | undefined>): HealthFilter {
+  const categories = (q['state'] ?? '').split(',').filter((c): c is LifecycleCategory => (LIFECYCLE_CATEGORIES as readonly string[]).includes(c));
+  const health = q['health'] === 'ok' || q['health'] === 'attention' || q['health'] === 'critical' ? q['health'] : undefined;
+  return {
+    ...(categories.length ? { categories } : {}), ...(q['phase'] ? { phase: q['phase'] } : {}), ...(health ? { health } : {}),
+    ...(q['sponsor'] ? { sponsor: q['sponsor'] } : {}), includeClosed: q['includeClosed'] === '1' || q['includeClosed'] === 'true',
+  };
+}
 const PortfolioProjectBody = z.object({ health: z.enum(['ok', 'attention', 'critical']).nullable().optional(), note: z.string().max(500).optional() });
 
 /** Équipes et charge : l'administrateur et le PMO les gèrent ; le manager voit la charge des siennes ; le directeur et le chef de projet lisent. */
@@ -89,7 +100,10 @@ export class TeamController {
 @UseGuards(FeatureGuard)
 @RequiresFeature('ppm.portfolios')
 export class PortfolioController {
-  constructor(@Inject(PortfolioService) private readonly portfolios: PortfolioService, @Inject(OrgResolver) private readonly orgs: OrgResolver) {}
+  constructor(
+    @Inject(PortfolioService) private readonly portfolios: PortfolioService, @Inject(HealthService) private readonly healths: HealthService,
+    @Inject(OrgResolver) private readonly orgs: OrgResolver,
+  ) {}
 
   @Roles('athena-admin', 'athena-pmo', 'athena-pm', 'athena-director')
   @Get()
@@ -111,6 +125,14 @@ export class PortfolioController {
   async create(@Req() request: AuthedRequest, @Body() body: unknown) {
     const { organizationId, actor } = await this.orgs.resolve(request.principal!);
     return this.portfolios.create(organizationId, parseBody(PortfolioCreate, body), actor);
+  }
+
+  /** Tableau de santé : calculée, déclarée et forcée, écart, dates, phase, prochaine revue, risque maximal. Filtres : `state` (catégories), `phase`, `health`, `sponsor`, `includeClosed`. */
+  @Roles('athena-admin', 'athena-pmo', 'athena-pm', 'athena-director')
+  @Get(':key/health')
+  async health(@Req() request: AuthedRequest, @Param('key') key: string, @Query() query: Record<string, string | undefined>) {
+    const { organizationId, actor } = await this.orgs.resolve(request.principal!);
+    return this.healths.health(organizationId, key, actor, parseHealthFilter(query));
   }
 
   @Roles('athena-admin', 'athena-pmo', 'athena-pm', 'athena-director')

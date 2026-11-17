@@ -5,7 +5,7 @@
 | Tâche | Backlog | Contenu | État |
 |---|---|---|---|
 | T-0200 | B17 | Météo du projet : migration 071 `project_status_note`, API, carte de saisie | faite (071) |
-| T-0201 | B18 | `GET /v1/portfolios/:k/health` : calculée, déclarée, forcée, écart, dates, phase, prochaine revue, risque maximal, filtres | |
+| T-0201 | B18 | `GET /v1/portfolios/:k/health` : calculée, déclarée, forcée, écart, dates, phase, prochaine revue, risque maximal, filtres | faite |
 | T-0202 | B19 | Tests de visibilité des agrégats (lecteur restreint contre complet) | |
 | T-0203 | B20 | Page santé du portefeuille (tableau, pastilles libellées, hachure si forcé, états) | |
 | T-0204 | B21 | Vue direction : six tuiles, concordance avec le tableau | |
