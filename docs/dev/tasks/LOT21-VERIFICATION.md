@@ -17,11 +17,12 @@ Date : 2026-11-18. Source : `docs/ppm/07-plan-livraison.md` § I4, `docs/ppm/08-
 |---|---|
 | Job `capacite` (calcul différé) | Inutile à cette volumétrie (mesure ci-dessus) ; calcul à la lecture |
 | `remaining` en minutes et migration des valeurs existantes | Reporté avec le temps passé (I5) : l'unité existante est le jour, hypothèse de `docs/ppm/verifications/B15-remaining.md` |
-| Saisie de la disponibilité et des allocations par l'interface | Non faite : API et services prêts ; à ajouter avec le planning d'affectation (I5) |
-| Planning d'affectation par personne, besoin contre capacité (courbes) | Non faits : les données sont dans l'API (`needs`, cellules) ; vues à ajouter |
-| Interface du minuteur en heures et minutes | `parseDuration` et `formatMinutes` prêts ; aucune saisie de durée n'existe encore dans l'interface (worklog en I5) |
+| Saisie de la disponibilité et des allocations par l'interface | **Levé** : formulaires de la page Capacité (disponibilité avec durée de la journée en heures et minutes, allocation nominative ou générique) |
+| Planning d'affectation par personne | **Levé en version tableau** : les projets de chaque personne et période figurent dans la carte de chaleur ; pas de diagramme de Gantt par personne |
+| Besoin contre capacité par rôle | **Levé** : courbes capacité et besoins par rôle de l'équipe |
+| Saisie de durées | `parseDuration` (heures et minutes) utilisé par la disponibilité ; le worklog arrive en I5 |
 
 ## Tests
 
-- API : 807 réussis (suite complète au passage T-0227) puis `capacity-view` ; web : 656 réussis. e2e : suite non rejouée depuis l'interruption du lot 20 (arrêt système pour manque de mémoire) ; la route `/capacite` est ajoutée à l'audit axe de `audit.spec.ts`. À rejouer en entier : `cd e2e && pnpm test`.
+- API : 807 réussis (suite complète au passage T-0227) puis `capacity-view` ; web : 658 réussis. e2e : suite non rejouée depuis l'interruption du lot 20 (arrêt système pour manque de mémoire) ; la route `/capacite` est ajoutée à l'audit axe de `audit.spec.ts`. À rejouer en entier : `cd e2e && pnpm test`.
 - Migration du lot : 077. Prochaine : 078.

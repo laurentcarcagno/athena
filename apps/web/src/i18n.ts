@@ -220,6 +220,9 @@ const frDict = {
     heatmapCaption: (n: number) => `Charge de ${n} personne${n > 1 ? 's' : ''} par période`, person: 'Personne', levels: { free: 'sous-charge', normal: 'normal', tight: 'tendu', overload: 'surcharge' } as Record<string, string>,
     teamChart: (n: string) => `Capacité et charge de l’équipe ${n}`, capacityLabel: 'Capacité', loadLabel: 'Charge', hoursUnit: 'heures', bottlenecks: 'Goulots', noBottleneck: 'Aucune équipe ne dépasse sa capacité sur cet horizon.',
     bottleneckCaption: (n: number) => `${n} goulot${n > 1 ? 's' : ''}`, period: 'Période', saturation: 'Saturation', projects: 'Projets qui chargent l’équipe',
+    needsTitle: (n: string) => `Besoin par rôle et capacité de l’équipe ${n}`,
+    inputs: 'Saisie : disponibilité et allocations', availabilityForm: 'Disponibilité d’une personne', allocationForm: 'Allocation à un projet', availFrom: 'Disponibilité à partir du', ratio: 'Temps de travail (%)', workday: 'Durée de la journée (h min, facultatif)', saveAvailability: 'Enregistrer la disponibilité', availabilitySaved: 'Disponibilité enregistrée.', badDuration: 'Durée invalide : saisissez des heures et des minutes (par exemple 7 h 48).',
+    allocProject: 'Projet (clé)', genericNeed: 'Besoin générique (équipe et rôle)', roleLabel: 'Rôle', allocFrom: 'Allocation du', allocTo: 'au (facultatif)', fte: 'Charge (% d’un ETP)', saveAllocation: 'Enregistrer l’allocation', allocationSaved: 'Allocation enregistrée.',
     myAbsences: 'Mes absences', absenceFrom: 'Du (absence)', absenceTo: 'Au (absence)', halfDay: 'Demi-journée', halfDayShort: 'demi-journée', addAbsence: 'Ajouter l’absence', absenceAdded: 'Absence enregistrée.', removeAbsence: 'Retirer', noAbsence: 'Aucune absence saisie.',
   },
   statusNote: {
@@ -839,6 +842,9 @@ const enDict: Dictionary = {
     heatmapCaption: (n: number) => `Load of ${n} ${n > 1 ? 'people' : 'person'} by period`, person: 'Person', levels: { free: 'under-used', normal: 'normal', tight: 'tight', overload: 'overloaded' } as Record<string, string>,
     teamChart: (n: string) => `Capacity and load of team ${n}`, capacityLabel: 'Capacity', loadLabel: 'Load', hoursUnit: 'hours', bottlenecks: 'Bottlenecks', noBottleneck: 'No team exceeds its capacity over this horizon.',
     bottleneckCaption: (n: number) => `${n} bottleneck${n > 1 ? 's' : ''}`, period: 'Period', saturation: 'Saturation', projects: 'Projects loading the team',
+    needsTitle: (n: string) => `Needs by role and capacity of team ${n}`,
+    inputs: 'Input: availability and allocations', availabilityForm: 'A person’s availability', allocationForm: 'Allocation to a project', availFrom: 'Availability from', ratio: 'Working time (%)', workday: 'Length of the day (h min, optional)', saveAvailability: 'Save the availability', availabilitySaved: 'Availability saved.', badDuration: 'Invalid duration: enter hours and minutes (for example 7 h 48).',
+    allocProject: 'Project (key)', genericNeed: 'Generic need (team and role)', roleLabel: 'Role', allocFrom: 'Allocation from', allocTo: 'to (optional)', fte: 'Load (% of one FTE)', saveAllocation: 'Save the allocation', allocationSaved: 'Allocation saved.',
     myAbsences: 'My absences', absenceFrom: 'From (absence)', absenceTo: 'To (absence)', halfDay: 'Half day', halfDayShort: 'half day', addAbsence: 'Add the absence', absenceAdded: 'Absence saved.', removeAbsence: 'Remove', noAbsence: 'No absence entered.',
   },
   statusNote: {

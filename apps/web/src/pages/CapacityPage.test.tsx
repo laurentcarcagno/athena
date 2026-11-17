@@ -5,7 +5,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ToastProvider } from '@athena/ui';
 import type { Session } from '../api';
-import { CapacityPage, hours } from './CapacityPage';
+import { CapacityPage, hours, parseDuration } from './CapacityPage';
 
 const session = { authenticated: true, user: { id: 'sub-ana', username: 'ana', name: 'Ana', email: null, roles: ['athena-team-member'], groups: [] } } as unknown as Session;
 const view = {
@@ -57,6 +57,30 @@ describe('page Capacité (B35)', () => {
     await userEvent.type(screen.getByLabelText('Au (absence)'), '2026-12-08');
     await userEvent.click(screen.getByRole('button', { name: 'Ajouter l’absence' }));
     await waitFor(() => expect(calls.find((c) => c.method === 'POST')?.body).toBe(JSON.stringify({ subject: 'sub-ana', from: '2026-12-07', to: '2026-12-08', kind: 'leave', halfDay: false })));
+  });
+
+  it('saisie : disponibilité à 80 % avec journée de 7 h 12, allocation nominative et besoin générique', async () => {
+    show();
+    await screen.findByRole('table', { name: /^Charge de/ });
+    const av = screen.getByRole('form', { name: 'Disponibilité d’une personne' });
+    await userEvent.selectOptions(within(av).getByLabelText('Personne'), 'sub-bob');
+    await userEvent.type(within(av).getByLabelText('Disponibilité à partir du'), '2026-11-01');
+    await userEvent.clear(within(av).getByLabelText('Temps de travail (%)'));
+    await userEvent.type(within(av).getByLabelText('Temps de travail (%)'), '80');
+    await userEvent.type(within(av).getByLabelText('Durée de la journée (h min, facultatif)'), '7 h 12');
+    await userEvent.click(within(av).getByRole('button', { name: 'Enregistrer la disponibilité' }));
+    await waitFor(() => expect(calls.find((c) => c.url.endsWith('/availability'))?.body).toBe(JSON.stringify({ subject: 'sub-bob', from: '2026-11-01', ratio: 0.8, workdayMinutes: 432 })));
+    const al = screen.getByRole('form', { name: 'Allocation à un projet' });
+    await userEvent.type(within(al).getByLabelText('Projet (clé)'), 'cap');
+    await userEvent.selectOptions(within(al).getByLabelText('Équipe'), 'thermique');
+    await userEvent.type(within(al).getByLabelText('Rôle'), 'thermicien');
+    await userEvent.type(within(al).getByLabelText('Allocation du'), '2026-11-01');
+    await userEvent.click(within(al).getByRole('button', { name: 'Enregistrer l’allocation' }));
+    await waitFor(() => expect(calls.find((c) => c.url.endsWith('/projects/CAP/allocations'))?.body).toBe(JSON.stringify({ from: '2026-11-01', to: null, fte: 0.5, team: 'thermique', roleLabel: 'thermicien' })));
+  });
+
+  it('parseDuration : heures et minutes, bornes de 1 minute à 24 heures', () => {
+    expect([parseDuration('7 h 48'), parseDuration('7h48'), parseDuration('7:48'), parseDuration('8 h'), parseDuration('0 h 00'), parseDuration('25 h'), parseDuration('7 h 75'), parseDuration('x')]).toEqual([468, 468, 468, 480, null, null, null, null]);
   });
 
   it('durées en heures et minutes', () => {
