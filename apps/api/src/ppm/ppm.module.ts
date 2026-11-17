@@ -15,6 +15,7 @@ import { StatusNoteService } from './status-note.service';
 import { PpmSettingsController } from './settings.controller';
 import { PpmSettingsService } from './settings.service';
 import { PortfolioService } from './portfolio.service';
+import { UsageService } from './usage.service';
 import { TeamService } from './team.service';
 
 /**
@@ -30,6 +31,7 @@ import { TeamService } from './team.service';
     FeatureGuard,
     { provide: PpmSettingsService, useFactory: (db: Db) => new PpmSettingsService(db), inject: [Db] },
     { provide: ProjectMetaService, useFactory: (db: Db) => new ProjectMetaService(db), inject: [Db] },
+    { provide: UsageService, useFactory: (db: Db) => new UsageService(db), inject: [Db] },
     { provide: StatusNoteService, useFactory: (db: Db) => new StatusNoteService(db), inject: [Db] },
     { provide: LifecycleService, useFactory: (db: Db) => new LifecycleService(db), inject: [Db] },
     { provide: HealthService, useFactory: (db: Db, p: PortfolioService, l: LifecycleService) => new HealthService(db, p, l), inject: [Db, PortfolioService, LifecycleService] },

@@ -8,6 +8,7 @@ import { FeatureGuard, RequiresFeature } from './feature.service';
 import { HealthService, healthCsv, type HealthFilter } from './health.service';
 import { LIFECYCLE_CATEGORIES, type LifecycleCategory } from './lifecycle';
 import { PortfolioService } from './portfolio.service';
+import { UsageService } from './usage.service';
 import { TeamService } from './team.service';
 
 const Key = z.string().regex(/^[a-z0-9][a-z0-9-]{1,29}$/);
@@ -104,13 +105,15 @@ export class PortfolioController {
   constructor(
     @Inject(PortfolioService) private readonly portfolios: PortfolioService, @Inject(HealthService) private readonly healths: HealthService,
     @Inject(OrgResolver) private readonly orgs: OrgResolver,
-    @Inject(ExportMarker) private readonly marker: ExportMarker,
+    @Inject(ExportMarker) private readonly marker: ExportMarker, @Inject(UsageService) private readonly usage: UsageService,
   ) {}
 
   @Roles('athena-admin', 'athena-pmo', 'athena-pm', 'athena-director')
   @Get()
   async list(@Req() request: AuthedRequest) {
-    return this.portfolios.list((await this.orgs.resolve(request.principal!)).organizationId);
+    const { organizationId } = await this.orgs.resolve(request.principal!);
+    void this.usage.hit(organizationId, request.principal!.roles, 'list');
+    return this.portfolios.list(organizationId);
   }
 
   /** Tous les portefeuilles consolidés : le tableau de bord du directeur. */
@@ -118,6 +121,7 @@ export class PortfolioController {
   @Get('summary')
   async summaries(@Req() request: AuthedRequest) {
     const { organizationId, actor } = await this.orgs.resolve(request.principal!);
+    void this.usage.hit(organizationId, actor.roles, 'summary');
     return this.portfolios.summaries(organizationId, actor);
   }
 
@@ -129,12 +133,20 @@ export class PortfolioController {
     return this.portfolios.create(organizationId, parseBody(PortfolioCreate, body), actor);
   }
 
+  /** Journal d'usage agrégé (KPI 6) : compteurs quotidiens par rôle et route, sans identité ni contenu. */
+  @Roles('athena-admin', 'athena-pmo')
+  @Get('usage')
+  async usageReport(@Req() request: AuthedRequest, @Query('days') days?: string) {
+    return { rows: await this.usage.report((await this.orgs.resolve(request.principal!)).organizationId, days ? Number(days) || 30 : 30) };
+  }
+
   /** Tableau de santé : calculée, déclarée et forcée, écart, dates, phase, prochaine revue, risque maximal. Filtres : `state` (catégories), `phase`, `health`, `sponsor`, `includeClosed`. */
   @Roles('athena-admin', 'athena-pmo', 'athena-pm', 'athena-director')
   @Get(':key/health')
   async health(@Req() request: AuthedRequest, @Param('key') key: string, @Query() query: Record<string, string | undefined>, @Res({ passthrough: true }) reply: { header: (n: string, v: string) => unknown }) {
     const { organizationId, actor } = await this.orgs.resolve(request.principal!);
     const h = await this.healths.health(organizationId, key, actor, parseHealthFilter(query));
+    void this.usage.hit(organizationId, actor.roles, query['format'] === 'csv' ? 'health_csv' : 'health');
     if (query['format'] !== 'csv') return h;
     reply.header('Content-Type', 'text/csv; charset=utf-8');
     reply.header('Content-Disposition', `attachment; filename="sante-${key}.csv"`);
@@ -145,6 +157,7 @@ export class PortfolioController {
   @Get(':key')
   async get(@Req() request: AuthedRequest, @Param('key') key: string) {
     const { organizationId, actor } = await this.orgs.resolve(request.principal!);
+    void this.usage.hit(organizationId, actor.roles, 'detail');
     return this.portfolios.summary(organizationId, key, actor);
   }
 
