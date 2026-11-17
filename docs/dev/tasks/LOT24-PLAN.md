@@ -7,5 +7,5 @@
 | T-0239 | B38 | Décisions de portefeuille (poursuivre, suspendre, arrêter, clôturer, changement chiffré) : migration 081, service, API, proposition de transition sans l'appliquer, application d'un changement chiffré en avenant de budget | faite (081) |
 | T-0240 | B38 | Projet de pilotage par portefeuille (`kind`, `purpose`) exclu de la santé et de la roadmap | faite |
 | T-0241 | B38 | Centre d'alertes calculé à la lecture : revue en retard, critique depuis deux instantanés, dépassement budgétaire, surcharge ; s'ouvre et se résout seul | faite |
-| T-0242 | B38 | Interface : journal des décisions, centre d'alertes, projets de pilotage | |
-| T-0243 | — | `LOT24-VERIFICATION.md`, tests, `STATE.md` | |
+| T-0242 | B38 | Interface : journal des décisions, centre d'alertes, projets de pilotage | faite |
+| T-0243 | — | `LOT24-VERIFICATION.md`, tests, `STATE.md` | faite |
