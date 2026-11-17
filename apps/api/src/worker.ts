@@ -17,6 +17,8 @@ import { WebhookService } from './webhooks/webhook.service';
 import { PluginService } from './plugins/plugin.service';
 import { parseTrust } from './plugins/trust';
 import { DigestService } from './notify/digest';
+import { PpmSettingsService } from './ppm/settings.service';
+import { WeatherReminderService } from './ppm/weather-reminder.service';
 import { mailerFrom } from './notify/mailer-config';
 import { buildWorkers, healthServer } from './workers/tasks';
 
@@ -77,7 +79,7 @@ const digest = mailer ? new DigestService(db, { mailer, baseUrl: env.PUBLIC_URL,
 if (!digest) log('Résumé quotidien désactivé : SMTP non configuré (ou DIGEST_ENABLED=false) ; aucune connexion de messagerie ne sera ouverte.');
 
 const loops = buildWorkers(
-  { pool, ...(digest ? { digest } : {}), ...(history ? { history } : {}), ...(webhooks ? { webhooks } : {}), automation, plugins, log },
+  { pool, weather: new WeatherReminderService(db, new PpmSettingsService(db)), ...(digest ? { digest } : {}), ...(history ? { history } : {}), ...(webhooks ? { webhooks } : {}), automation, plugins, log },
   { historyMs: env.HISTORY_INTERVAL_MS, webhooksMs: env.WEBHOOKS_INTERVAL_MS, sessionsMs: env.SESSIONS_INTERVAL_MS, digestMs: env.DIGEST_INTERVAL_MS },
 );
 const health = healthServer(loops, env.WORKER_HEALTH_PORT);

@@ -24,6 +24,7 @@ export function describe(n: NotificationEntry): string {
     case 'comment': return text.comment(n.actorName);
     case 'mention': return text.mention(n.actorName);
     case 'suspect': return text.suspect(n.actorName, String(p['cause'] ?? ''));
+    case 'weather': return text.weather(Number(p['days'] ?? 0));
     default: return text.approval(n.actorName, p);
   }
 }
@@ -81,7 +82,7 @@ export function NotificationCenter() {
               {inbox.items.map((n) => (
                 <li key={n.id} className={n.read ? 'ath-notify__item' : 'ath-notify__item ath-notify__item--unread'}>
                   <div className="ath-notify__body">
-                    <Link className="ath-link ath-mono" to={`/p/${n.project}/a/${n.key}`} onClick={() => { setOpen(false); if (!n.read) void mark({ ids: [n.id], read: true }); }}>{n.key}</Link>
+                    <Link className="ath-link ath-mono" to={n.key ? `/p/${n.project}/a/${n.key}` : `/p/${n.project}`} onClick={() => { setOpen(false); if (!n.read) void mark({ ids: [n.id], read: true }); }}>{n.key || n.project}</Link>
                     <span>{describe(n)}</span>
                     <time className="ath-notify__time" dateTime={n.createdAt}>{formatDateTime(n.createdAt)}</time>
                     {!n.read && <span className="ath-visually-hidden">{fr.notify.unreadMark}</span>}

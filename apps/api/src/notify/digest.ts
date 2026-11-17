@@ -31,6 +31,7 @@ const TEXT = {
       mention: (who: string) => `${who} vous a mentionné`,
       suspect: (who: string, p: Record<string, unknown>) => `lien suspect : ${who} a modifié ${String(p['cause'] ?? '')}`,
       approval: (who: string) => `${who} a rendu une décision d’approbation`,
+      weather: () => 'la météo du projet n’a pas été mise à jour depuis plusieurs jours',
     },
   },
   en: {
@@ -43,6 +44,7 @@ const TEXT = {
       mention: (who: string) => `${who} mentioned you`,
       suspect: (who: string, p: Record<string, unknown>) => `suspect link: ${who} changed ${String(p['cause'] ?? '')}`,
       approval: (who: string) => `${who} recorded an approval decision`,
+      weather: () => 'the project weather has not been updated for several days',
     },
   },
 } as const;
@@ -63,7 +65,7 @@ export function composeDigest(items: DigestItem[], options: { locale: 'fr' | 'en
     lines.push(`${project}`);
     for (const i of list) {
       const describe = t.event[i.event] as (who: string, p: Record<string, unknown>) => string;
-      lines.push(`  - ${i.key} : ${describe(i.actorName, i.payload)}`);
+      lines.push(`  - ${i.key ? `${i.key} : ` : ''}${describe(i.actorName, i.payload)}`);
       if (i.key) lines.push(`    ${base}/p/${encodeURIComponent(project)}/a/${encodeURIComponent(i.key)}`);
     }
     lines.push('');

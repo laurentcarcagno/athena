@@ -6,6 +6,7 @@ import type { PluginService } from '../plugins/plugin.service';
 import type { HistorySync } from '../history/history-sync';
 import type { WebhookService } from '../webhooks/webhook.service';
 import type { DigestService } from '../notify/digest';
+import type { WeatherReminderService } from '../ppm/weather-reminder.service';
 import { WorkerLoop, type LoopOptions } from './loop';
 
 export interface WorkerDeps {
@@ -15,6 +16,7 @@ export interface WorkerDeps {
   automation?: AutomationService;
   plugins?: PluginService;
   digest?: DigestService;
+  weather?: WeatherReminderService;
   log?: (message: string) => void;
 }
 
@@ -79,6 +81,16 @@ export function buildWorkers(deps: WorkerDeps, intervals: { historyMs: number; w
       for (const { id } of organizations) sent += await digest.runDue(id, new Date(), deps.log);
       if (sent) deps.log?.(`résumé: ${sent} courriel(s) envoyé(s)`);
     }, options(intervals.digestMs ?? 300_000)));
+  }
+  if (deps.weather) {
+    const weather = deps.weather;
+    // Rappel de météo (lot 18) : une vérification par heure suffit, le rappel n'est dû qu'au bout de plusieurs jours.
+    loops.push(new WorkerLoop('météo', async () => {
+      const organizations = (await deps.pool.query('select list_organization_ids() as id')).rows as Array<{ id: string }>;
+      let sent = 0;
+      for (const { id } of organizations) sent += await weather.run(id);
+      if (sent) deps.log?.(`météo: ${sent} rappel(s) émis`);
+    }, options(3_600_000)));
   }
   const sessions = new PgSessionStore(deps.pool);
   loops.push(new WorkerLoop('sessions', async () => {

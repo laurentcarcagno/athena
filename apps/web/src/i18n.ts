@@ -301,8 +301,9 @@ const frDict = {
     settings: 'Réglages', settingsLegend: 'Événements à notifier', follow: 'Suivre', unfollow: 'Ne plus suivre',
     digestLegend: 'Résumé quotidien par courriel', digestEnabled: 'Recevoir un résumé quotidien', digestHour: (tz: string) => `Heure d’envoi (${tz})`,
     digestUnavailable: 'Le résumé par courriel n’est pas disponible sur cette instance.',
-    eventNames: { transition: 'Changement de statut', mention: 'Mention', suspect: 'Lien suspect', comment: 'Commentaire', approval: 'Approbation' } as Record<string, string>,
+    eventNames: { transition: 'Changement de statut', mention: 'Mention', suspect: 'Lien suspect', comment: 'Commentaire', approval: 'Approbation', weather: 'Rappel de météo' } as Record<string, string>,
     events: {
+      weather: (days: number) => `La météo du projet n’a pas été mise à jour depuis ${days} jours : écrivez-la depuis la vue d’ensemble.`,
       transition: (who: string, from: string, to: string) => `${who} a fait passer le ticket de ${from} à ${to}.`,
       comment: (who: string) => `${who} a commenté le ticket.`,
       mention: (who: string) => `${who} vous a mentionné.`,
@@ -877,8 +878,9 @@ const enDict: Dictionary = {
     settings: 'Settings', settingsLegend: 'Events to notify', follow: 'Follow', unfollow: 'Unfollow',
     digestLegend: 'Daily email digest', digestEnabled: 'Receive a daily digest', digestHour: (tz: string) => `Send time (${tz})`,
     digestUnavailable: 'The email digest is not available on this instance.',
-    eventNames: { transition: 'Status change', mention: 'Mention', suspect: 'Suspect link', comment: 'Comment', approval: 'Approval' } as Record<string, string>,
+    eventNames: { transition: 'Status change', mention: 'Mention', suspect: 'Suspect link', comment: 'Comment', approval: 'Approval', weather: 'Weather reminder' } as Record<string, string>,
     events: {
+      weather: (days: number) => `The project weather has not been updated for ${days} days: write it from the overview.`,
       transition: (who: string, from: string, to: string) => `${who} moved the ticket from ${from} to ${to}.`,
       comment: (who: string) => `${who} commented on the ticket.`,
       mention: (who: string) => `${who} mentioned you.`,
