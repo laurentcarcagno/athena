@@ -153,10 +153,11 @@ test('Organiser : glisser une carte et changer sa largeur, retrouvés au recharg
   await page.getByRole('button', { name: 'Organiser' }).click();
   await page.getByRole('button', { name: 'Rétablir la disposition par défaut' }).click();
   await page.getByRole('dialog').getByRole('button', { name: 'Réinitialiser' }).click();
+  await expect(page.getByRole('dialog')).toBeHidden();
   await expect(cards).toHaveCount(7);
-  const after = await layout();
-  expect(after.isDefault).toBe(true);
-  expect(after.recents).toEqual(before.recents);
+  // La réinitialisation est faite côté serveur : on attend qu'elle soit lue, sans supposer son instant.
+  await expect.poll(async () => (await layout()).isDefault).toBe(true);
+  expect((await layout()).recents).toEqual(before.recents);
 });
 
 test('carte graphique : ajouter un anneau des tickets par statut, puis le retirer (T-0156)', async ({ page }) => {

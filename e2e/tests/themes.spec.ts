@@ -37,7 +37,7 @@ async function violations(page: Page): Promise<string[]> {
 }
 
 test('chaque thème × mode : axe-core sans violation, contraste compris, sur six écrans', async ({ page }) => {
-  test.setTimeout(15 * 60_000);
+  test.setTimeout(40 * 60_000); // 11 thèmes × 2 modes × 6 écrans : une quinzaine de minutes ne suffit plus
   await login(page);
   for (const theme of THEMES) {
     for (const mode of ['light', 'dark'] as const) {
@@ -109,6 +109,7 @@ test('apparence : l’administration restreint les thèmes et fixe le défaut ; 
 
 test('icône de marque : un SVG piégé est servi nettoyé, typé et isolé ; affiché par <img> dans le rail ; retiré après confirmation (T-0137)', async ({ page }) => {
   await login(page);
+  await savePreferences(page, { family: null, theme: null }); // indépendant d'un test précédent qui aurait laissé un thème choisi
   await page.goto('/admin');
   await page.getByRole('tab', { name: 'Apparence' }).click();
   const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" onload="alert(1)"><script>alert(2)</script><path d="M2 2h20v20H2z" fill="#E0B000"/></svg>';
