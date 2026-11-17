@@ -13,6 +13,8 @@ import { AllocationController, CapacityController } from './capacity.controller'
 import { CapacityDataService } from './capacity-data.service';
 import { WorklogController } from './worklog.controller';
 import { FinanceController } from './finance.controller';
+import { DecisionService } from './decision.service';
+import { AlertService } from './alert.service';
 import { FinanceService } from './finance.service';
 import { DependencyController } from './dependency.controller';
 import { DependencyService } from './dependency.service';
@@ -60,6 +62,8 @@ import { TeamService } from './team.service';
     { provide: WorklogService, useFactory: (db: Db, c: CalendarService, s: PpmSettingsService) => new WorklogService(db, c, s), inject: [Db, CalendarService, PpmSettingsService] },
     { provide: DependencyService, useFactory: (db: Db, s: ScheduleService, c: CalendarService) => new DependencyService(db, s, c), inject: [Db, ScheduleService, CalendarService] },
     { provide: FinanceService, useFactory: (db: Db) => new FinanceService(db), inject: [Db] },
+    { provide: DecisionService, useFactory: (db: Db, f: FinanceService) => new DecisionService(db, f), inject: [Db, FinanceService] },
+    { provide: AlertService, useFactory: (db: Db, g: GovernanceService, s: SnapshotService, f: FinanceService, c: CapacityService) => new AlertService(db, (o, k) => g.gates(o, k), s, f, c), inject: [Db, GovernanceService, SnapshotService, FinanceService, CapacityService] },
     { provide: TeamService, useFactory: (db: Db) => new TeamService(db), inject: [Db] },
     { provide: PortfolioService, useFactory: (db: Db, k: KpiService) => new PortfolioService(db, k), inject: [Db, KpiService] },
   ],

@@ -54,7 +54,7 @@ export class RoadmapService {
       const rows = (await c.query(
         `select p.id, p.key, p.name, p.lifecycle_state, to_char(m.planned_start, 'YYYY-MM-DD') planned_start, to_char(m.planned_end, 'YYYY-MM-DD') planned_end
            from portfolio_project x join project p on p.id = x.project_id left join project_meta m on m.project_id = p.id
-          where x.portfolio_id = $1 order by x.position, p.key`, [portfolio.id])).rows;
+          where x.portfolio_id = $1 and x.kind = 'delivery' order by x.position, p.key`, [portfolio.id])).rows;
       const releases = (await c.query(
         `select p.key project, r.name, to_char(r.starts_on, 'YYYY-MM-DD') starts_on, to_char(r.ends_on, 'YYYY-MM-DD') ends_on, r.state
            from release r join project p on p.id = r.project_id where p.id = any($1::uuid[]) order by r.starts_on, r.name`, [rows.map((r) => r.id)])).rows;

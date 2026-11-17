@@ -22,13 +22,14 @@ export interface MilestoneSeries { phase: string; field: 'planned_end' | 'review
 export class GovernanceService {
   constructor(private readonly db: Db, private readonly templates: Pick<TemplateUpgradeService, 'status'>) {}
 
-  private async projects(organizationId: string, portfolioKey: string): Promise<Array<{ id: string; key: string; name: string }>> {
+  /** Projets du portefeuille ; les projets de pilotage n'y entrent que pour les risques et les actions transverses (`includePilot`). */
+  private async projects(organizationId: string, portfolioKey: string, includePilot = false): Promise<Array<{ id: string; key: string; name: string }>> {
     return this.db.tx(organizationId, async (c) => {
       const f = (await c.query('select id from portfolio where key = $1', [portfolioKey])).rows[0];
       if (!f) throw notFound(`Portefeuille ${portfolioKey}`);
       return (await c.query(
         `select p.id, p.key, p.name from portfolio_project x join project p on p.id = x.project_id
-          where x.portfolio_id = $1 and p.lifecycle_state not in ('completed', 'cancelled', 'rejected', 'archived') order by p.key`, [f.id])).rows;
+          where x.portfolio_id = $1 and (x.kind = 'delivery' or $2::boolean) and p.lifecycle_state not in ('completed', 'cancelled', 'rejected', 'archived') order by p.key`, [f.id, includePilot])).rows;
     });
   }
 
@@ -51,7 +52,7 @@ export class GovernanceService {
 
   /** Matrice probabilité × impact des risques ouverts (rôles sémantiques ; champs à lecture restreinte exclus), et les dix plus critiques. */
   async riskMatrix(organizationId: string, portfolioKey: string, actor: Actor): Promise<RiskMatrix> {
-    const keys = (await this.projects(organizationId, portfolioKey)).map((p) => p.key);
+    const keys = (await this.projects(organizationId, portfolioKey, true)).map((p) => p.key);
     const risks = await this.db.tx(organizationId, async (c) => (await c.query(
       `select a.key, p.key project, prob.v::int probability, imp.v::int impact
          from artifact a join project p on p.id = a.project_id join status s on s.id = a.status_id
@@ -70,7 +71,7 @@ export class GovernanceService {
 
   /** Suivi des actions (tickets de type « action ») : ouvertes, en retard (échéance dépassée), closes par projet, et la liste des retards. */
   async actions(organizationId: string, portfolioKey: string, today = new Date()): Promise<ActionTracking> {
-    const keys = (await this.projects(organizationId, portfolioKey)).map((p) => p.key);
+    const keys = (await this.projects(organizationId, portfolioKey, true)).map((p) => p.key);
     const day = today.toISOString().slice(0, 10);
     return this.db.tx(organizationId, async (c) => {
       const rows = (await c.query(

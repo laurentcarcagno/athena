@@ -8,6 +8,8 @@ import { FeatureGuard, RequiresFeature } from './feature.service';
 import { RoadmapService } from './roadmap.service';
 import { SnapshotService, type SnapshotKind } from './snapshot.service';
 import { GovernanceService } from './governance.service';
+import { DecisionInput, DecisionService } from './decision.service';
+import { AlertService } from './alert.service';
 import { ReviewCreate, ReviewPatch, ReviewService } from './review.service';
 import { HealthService, healthCsv, type HealthFilter } from './health.service';
 import { LIFECYCLE_CATEGORIES, type LifecycleCategory } from './lifecycle';
@@ -32,7 +34,7 @@ export function parseHealthFilter(q: Record<string, string | undefined>): Health
 }
 const RetentionBody = z.object({ weeks: z.number().int().min(1).max(520).nullable(), reviewMonths: z.number().int().min(1).max(600).nullable() });
 const SnapshotBody = z.object({ kind: z.enum(['manual', 'review']).default('manual'), label: z.string().trim().max(200).optional() });
-const PortfolioProjectBody = z.object({ health: z.enum(['ok', 'attention', 'critical']).nullable().optional(), note: z.string().max(500).optional() });
+const PortfolioProjectBody = z.object({ health: z.enum(['ok', 'attention', 'critical']).nullable().optional(), note: z.string().max(500).optional(), kind: z.enum(['delivery', 'pilot']).optional(), purpose: z.string().max(200).optional() });
 
 /** Équipes et charge : l'administrateur et le PMO les gèrent ; le manager voit la charge des siennes ; le directeur et le chef de projet lisent. */
 @Controller('v1/teams')
@@ -109,7 +111,7 @@ export class TeamController {
 @RequiresFeature('ppm.portfolios')
 export class PortfolioController {
   constructor(
-    @Inject(PortfolioService) private readonly portfolios: PortfolioService, @Inject(HealthService) private readonly healths: HealthService, @Inject(RoadmapService) private readonly roadmaps: RoadmapService, @Inject(SnapshotService) private readonly snapshots: SnapshotService, @Inject(ReviewService) private readonly reviews: ReviewService, @Inject(GovernanceService) private readonly governance: GovernanceService,
+    @Inject(PortfolioService) private readonly portfolios: PortfolioService, @Inject(HealthService) private readonly healths: HealthService, @Inject(RoadmapService) private readonly roadmaps: RoadmapService, @Inject(SnapshotService) private readonly snapshots: SnapshotService, @Inject(ReviewService) private readonly reviews: ReviewService, @Inject(GovernanceService) private readonly governance: GovernanceService, @Inject(DecisionService) private readonly decisions: DecisionService, @Inject(AlertService) private readonly alertCenter: AlertService,
     @Inject(OrgResolver) private readonly orgs: OrgResolver,
     @Inject(ExportMarker) private readonly marker: ExportMarker, @Inject(UsageService) private readonly usage: UsageService,
   ) {}
@@ -217,6 +219,40 @@ export class PortfolioController {
   async reviewPatch(@Req() request: AuthedRequest, @Param('key') key: string, @Param('id') id: string, @Body() body: unknown) {
     const { organizationId, actor } = await this.orgs.resolve(request.principal!);
     return this.reviews.update(organizationId, key, id, parseBody(ReviewPatch, body), actor);
+  }
+
+  /** Journal des décisions de portefeuille. */
+  @Roles('athena-admin', 'athena-pmo', 'athena-pm', 'athena-director')
+  @Get(':key/decisions')
+  async decisionList(@Req() request: AuthedRequest, @Param('key') key: string, @Query('project') project?: string, @Query('kind') kind?: string) {
+    return this.decisions.list((await this.orgs.resolve(request.principal!)).organizationId, key, { ...(project ? { project } : {}), ...(kind ? { kind } : {}) });
+  }
+
+  /** Enregistre une décision (le PMO et l'administrateur) : suspendre, arrêter ou clôturer propose une transition, sans l'appliquer. */
+  @Roles('athena-admin', 'athena-pmo')
+  @Post(':key/decisions')
+  @HttpCode(201)
+  @BodySchema(DecisionInput)
+  async decisionCreate(@Req() request: AuthedRequest, @Param('key') key: string, @Body() body: unknown) {
+    const { organizationId, actor } = await this.orgs.resolve(request.principal!);
+    return this.decisions.create(organizationId, key, parseBody(DecisionInput, body), actor);
+  }
+
+  /** Applique un changement chiffré en avenant de budget (finance et administrateur). */
+  @Roles('athena-admin', 'athena-finance')
+  @Post(':key/decisions/:id/apply')
+  @HttpCode(200)
+  async decisionApply(@Req() request: AuthedRequest, @Param('key') key: string, @Param('id') id: string) {
+    const { organizationId, actor } = await this.orgs.resolve(request.principal!);
+    return this.decisions.apply(organizationId, key, id, actor);
+  }
+
+  /** Centre d'alertes du portefeuille, calculé à la lecture. */
+  @Roles('athena-admin', 'athena-pmo', 'athena-pm', 'athena-director')
+  @Get(':key/alerts')
+  async alerts(@Req() request: AuthedRequest, @Param('key') key: string) {
+    const { organizationId, actor } = await this.orgs.resolve(request.principal!);
+    return { alerts: await this.alertCenter.alerts(organizationId, key, actor) };
   }
 
   /** Tableau de passage des gates : gate en cours, revue prévue et état des critères de chaque projet à gabarit. */

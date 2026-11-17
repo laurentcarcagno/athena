@@ -66,18 +66,19 @@ export class PortfolioService {
   }
 
   /** Rattache un projet (ou met à jour sa note et sa santé forcée ; `health: null` rend la santé calculée). */
-  async setProject(organizationId: string, key: string, projectKey: string, patch: { health?: Health | null; note?: string }, actor: Actor): Promise<void> {
+  async setProject(organizationId: string, key: string, projectKey: string, patch: { health?: Health | null; note?: string; kind?: 'delivery' | 'pilot'; purpose?: string }, actor: Actor): Promise<void> {
     await this.db.tx(organizationId, async (c) => {
       const f = await this.require(c, key);
       const project = (await c.query('select id from project where key = $1', [projectKey])).rows[0];
       if (!project) throw notFound(`Projet ${projectKey}`);
       await c.query(
-        `insert into portfolio_project (organization_id, portfolio_id, project_id, position, health_override, note, added_by)
-         values ($1,$2,$3,(select coalesce(max(position), -1) + 1 from portfolio_project where portfolio_id = $2),$4,$5,$6)
+        `insert into portfolio_project (organization_id, portfolio_id, project_id, position, health_override, note, added_by, kind, purpose)
+         values ($1,$2,$3,(select coalesce(max(position), -1) + 1 from portfolio_project where portfolio_id = $2),$4,$5,$6,coalesce($9, 'delivery'),$11)
          on conflict (portfolio_id, project_id) do update set
            health_override = case when $7::boolean then excluded.health_override else portfolio_project.health_override end,
-           note = case when $8::boolean then excluded.note else portfolio_project.note end`,
-        [organizationId, f.id, project.id, patch.health ?? null, (patch.note ?? '').trim(), actor.id, patch.health !== undefined, patch.note !== undefined]);
+           note = case when $8::boolean then excluded.note else portfolio_project.note end,
+           kind = coalesce($9, portfolio_project.kind), purpose = case when $10::boolean then $11 else portfolio_project.purpose end`,
+        [organizationId, f.id, project.id, patch.health ?? null, (patch.note ?? '').trim(), actor.id, patch.health !== undefined, patch.note !== undefined, patch.kind ?? null, patch.purpose !== undefined, (patch.purpose ?? '').trim()]);
       await audit(c, organizationId, actor, 'portfolio.project.set', `portfolio:${key}`, { project: projectKey, ...patch });
     });
   }
@@ -97,7 +98,7 @@ export class PortfolioService {
       const f = await this.require(c, key);
       const rows = (await c.query(
         `select p.key, x.health_override, x.note from portfolio_project x join project p on p.id = x.project_id
-          where x.portfolio_id = $1 order by x.position, p.key`, [f.id])).rows as Array<{ key: string; health_override: Health | null; note: string }>;
+          where x.portfolio_id = $1 and x.kind = 'delivery' order by x.position, p.key`, [f.id])).rows as Array<{ key: string; health_override: Health | null; note: string }>;
       return { view: await this.viewIn(c, f.key), rows };
     });
     const projects = await Promise.all(rows.map(async (r): Promise<PortfolioProject> => {
