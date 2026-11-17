@@ -168,3 +168,12 @@
 .ath-roadmap-today { stroke: var(--ath-border-focus); stroke-width: 1.5; stroke-dasharray: 3 3; }
 @media print { .ath-roadmap-scroll { overflow: visible; } }
 @media print { .ath-sheet-page { break-before: page; } }
+
+/* Matrice probabilité par impact (lot 20, B34) : le palier est dit en toutes lettres, la couleur seule ne porte rien. */
+.ath-matrix { border-collapse: collapse; }
+.ath-matrix th, .ath-matrix td { border: var(--ath-border-width-hairline) solid var(--ath-border-default); padding: var(--ath-space-xs) var(--ath-space-sm); text-align: center; font-size: var(--ath-font-size-small); }
+.ath-matrix__cell { min-width: 56px; }
+.ath-matrix__cell--low { background: var(--ath-surface-default); }
+.ath-matrix__cell--moderate { background: var(--ath-surface-muted); }
+.ath-matrix__cell--high { background: var(--ath-surface-selected); }
+.ath-matrix__cell--critical { background: var(--ath-surface-selected); border: var(--ath-border-width-strong) solid var(--ath-border-focus); }

@@ -113,7 +113,7 @@ describe('portefeuilles (directeur)', () => {
   });
   it('le détail montre la santé forcée et sa note ; le directeur ne peut rien modifier', async () => {
     renderAt('/portefeuilles/spatial', ['athena-director'], 'portfolios');
-    const row = (await screen.findByText('BAD')).closest('tr')!;
+    const row = (await screen.findByRole('link', { name: 'BAD' })).closest('tr')!;
     expect(within(row).getByText('À surveiller')).toBeInTheDocument();
     expect(within(row).getByText('(forcée)')).toBeInTheDocument();
     expect(within(row).getByText('Fournisseur')).toBeInTheDocument();
@@ -122,7 +122,7 @@ describe('portefeuilles (directeur)', () => {
   });
   it('le chef de projet force la santé d’un projet et rattache un projet', async () => {
     renderAt('/portefeuilles/spatial', ['athena-pm', 'athena-team-member'], 'portfolios');
-    await screen.findByText('BAD');
+    await screen.findByRole('link', { name: 'BAD' });
     await userEvent.selectOptions(screen.getByLabelText('Santé de ARI'), 'critical');
     await userEvent.click(screen.getAllByRole('button', { name: 'Enregistrer' })[1]!);
     await waitFor(() => expect(calls.some((c) => c.startsWith('PUT /v1/portfolios/spatial/projects/ARI') && c.includes('"health":"critical"'))).toBe(true));

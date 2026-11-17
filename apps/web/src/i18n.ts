@@ -204,6 +204,16 @@ const frDict = {
     health: 'Tableau de santé', caption: (n: number) => `Santé de ${n} projet${n > 1 ? 's' : ''} à la date de la revue`, empty: 'Aucun projet visible dans cet instantané.', notSet: 'Non renseigné',
     criticalProject: (k: string) => `Projet critique ${k}`, phase: 'Phase', review: 'Prochaine revue',
   },
+  governance: {
+    gates: 'Passage des gates', noGates: 'Aucun projet à gabarit normatif dans ce portefeuille.', gatesCaption: (n: number) => `Gates de ${n} projet${n > 1 ? 's' : ''}`, gate: 'Gate en cours', review: 'Revue', criteria: 'Critères remplis', ready: 'Prête',
+    notDated: 'non datée', held: (d: string) => `tenue le ${d}`, manualPending: (n: number) => `${n} à confirmer`, remaining: (n: number) => `${n} ticket${n > 1 ? 's' : ''} restant${n > 1 ? 's' : ''}`, yes: 'Oui', no: 'Non',
+    riskMatrix: 'Matrice des risques', noRisks: 'Aucun risque ouvert noté (probabilité et impact).', matrixCaption: (n: number) => `Matrice probabilité par impact de ${n} risque${n > 1 ? 's' : ''} ouvert${n > 1 ? 's' : ''}`,
+    probabilityImpact: 'Probabilité / impact', probability: 'Probabilité', impact: 'Impact', criticality: 'criticité', unavailable: 'Indisponible pour le moment.',
+    bands: { low: 'faible', moderate: 'modérée', high: 'élevée', critical: 'critique' } as Record<string, string>, cellLabel: (p: number, i: number, n: number, b: string) => `Probabilité ${p}, impact ${i}, criticité ${b} : ${n} risque${n > 1 ? 's' : ''}`,
+    actions: 'Suivi des actions', noActions: 'Aucune action dans ce portefeuille.', actionsCaption: (n: number) => `Actions de ${n} projet${n > 1 ? 's' : ''}`, open: 'Ouvertes', closed: 'Closes', dueOn: (d: string) => `échéance le ${d}`,
+    trend: 'Tendance des jalons', trendProject: 'Projet', trendTitle: (p: string) => `Dates prévues des jalons de ${p}, relevé après relevé`, trendUnit: 'jours depuis la première date prévue', noTrend: 'Aucune modification de date prévue pour ce projet.',
+    fields: { planned_end: 'fin de phase', review_planned_on: 'revue' } as Record<string, string>,
+  },
   statusNote: {
     title: 'Météo du projet', write: 'Écrire la météo', save: 'Enregistrer', cancel: 'Annuler', saved: 'Météo enregistrée.', none: 'Aucune météo écrite.', comment: 'Commentaire',
     axes: { schedule: 'Délai', scope: 'Périmètre', risk: 'Risque', resources: 'Ressources', cost: 'Coût' } as Record<string, string>,
@@ -804,6 +814,16 @@ const enDict: Dictionary = {
     states: { draft: 'Draft', held: 'Held' } as Record<string, string>, createdBy: (w: string) => `prepared by ${w}`, noSummary: 'No minutes.', tiles: 'Management view', projects: (n: number) => `${n} project${n > 1 ? 's' : ''}`,
     health: 'Health table', caption: (n: number) => `Health of ${n} project${n > 1 ? 's' : ''} at the review date`, empty: 'No project visible in this snapshot.', notSet: 'Not set',
     criticalProject: (k: string) => `Critical project ${k}`, phase: 'Phase', review: 'Next review',
+  },
+  governance: {
+    gates: 'Gate progress', noGates: 'No project with a normative template in this portfolio.', gatesCaption: (n: number) => `Gates of ${n} project${n > 1 ? 's' : ''}`, gate: 'Current gate', review: 'Review', criteria: 'Criteria met',
+    ready: 'Ready', notDated: 'not dated', held: (d: string) => `held on ${d}`, manualPending: (n: number) => `${n} to confirm`, remaining: (n: number) => `${n} ticket${n > 1 ? 's' : ''} left`, yes: 'Yes', no: 'No',
+    riskMatrix: 'Risk matrix', noRisks: 'No scored open risk (probability and impact).', matrixCaption: (n: number) => `Probability by impact matrix of ${n} open risk${n > 1 ? 's' : ''}`,
+    probabilityImpact: 'Probability / impact', probability: 'Probability', impact: 'Impact', criticality: 'criticality', unavailable: 'Unavailable for now.',
+    bands: { low: 'low', moderate: 'moderate', high: 'high', critical: 'critical' } as Record<string, string>, cellLabel: (p: number, i: number, n: number, b: string) => `Probability ${p}, impact ${i}, ${b} criticality: ${n} risk${n > 1 ? 's' : ''}`,
+    actions: 'Action tracking', noActions: 'No action in this portfolio.', actionsCaption: (n: number) => `Actions of ${n} project${n > 1 ? 's' : ''}`, open: 'Open', closed: 'Closed', dueOn: (d: string) => `due ${d}`,
+    trend: 'Milestone trend', trendProject: 'Project', trendTitle: (p: string) => `Planned milestone dates of ${p}, survey after survey`, trendUnit: 'days since the first planned date', noTrend: 'No planned date change for this project.',
+    fields: { planned_end: 'phase end', review_planned_on: 'review' } as Record<string, string>,
   },
   statusNote: {
     title: 'Project weather', write: 'Write the weather', save: 'Save', cancel: 'Cancel', saved: 'Weather saved.', none: 'No weather written.', comment: 'Comment',
