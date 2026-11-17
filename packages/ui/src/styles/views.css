@@ -142,3 +142,11 @@
 
 /* Glisser au doigt ou au stylet : la barre et ses poignées capturent le geste (sinon la page défile). */
 .ath-gantt-editable, .ath-gantt-resize, .ath-gantt-handle { touch-action: none; }
+
+/* Fiche projet d'une page (lot 18, B23) : à l'impression, seule la fiche reste, sur une page A4. */
+@page { size: A4; margin: 12mm; }
+@media print {
+  body * { visibility: hidden; }
+  .ath-sheet, .ath-sheet * { visibility: visible; }
+  .ath-sheet { position: absolute; inset: 0 auto auto 0; width: 100%; break-inside: avoid; }
+}

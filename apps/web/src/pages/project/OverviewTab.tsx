@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { PageHeader } from '@athena/ui';
 import type { Session } from '../../api';
 import { Dashboard } from '../../components/Dashboard';
@@ -16,7 +16,7 @@ export function OverviewTab({ session }: { session: Session }) {
   const { project } = useParams();
   return (
     <>
-      <PageHeader title={fr.overview.title} />
+      <PageHeader title={fr.overview.title} actions={<Link className="ath-link" to={`/p/${project}/fiche`}>{fr.sheet.open}</Link>} />
       <Dashboard project={String(project)} />
       <ProjectInfoCard project={String(project)} canManage={(session.user?.roles ?? []).some((r) => r === 'athena-admin' || r === 'athena-pm')} />
       <ProjectStatusCard project={String(project)} canManage={(session.user?.roles ?? []).some((r) => r === 'athena-admin' || r === 'athena-pm')} />

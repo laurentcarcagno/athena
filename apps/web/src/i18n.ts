@@ -176,6 +176,10 @@ const frDict = {
     forced: 'forcée', computed: 'Calculée', gap: 'écart avec la santé calculée', noWeather: 'Pas de météo', notSet: 'Non renseigné',
     emptyPortfolio: 'Aucun projet dans ce portefeuille.', emptyFilter: 'Aucun projet ne correspond aux filtres.', degraded: 'Le tableau de santé est indisponible pour le moment.',
   },
+  sheet: {
+    open: 'Fiche projet d’une page', title: (p: string) => `Fiche projet ${p}`, print: 'Imprimer la fiche', health: 'Santé', state: 'État', dates: 'Dates', sponsor: 'Sponsor', manager: 'Chef de projet', notSet: 'Non renseigné',
+    weather: 'Météo', noWeather: 'Aucune météo écrite.', phases: 'Phases et revues', noPhases: 'Ce projet n’a pas de gabarit normatif.', risks: 'Risques principaux', noRisks: 'Aucun risque ouvert noté.',
+  },
   statusNote: {
     title: 'Météo du projet', write: 'Écrire la météo', save: 'Enregistrer', cancel: 'Annuler', saved: 'Météo enregistrée.', none: 'Aucune météo écrite.', comment: 'Commentaire',
     axes: { schedule: 'Délai', scope: 'Périmètre', risk: 'Risque', resources: 'Ressources', cost: 'Coût' } as Record<string, string>,
@@ -747,6 +751,10 @@ const enDict: Dictionary = {
     health: 'Health', declared: 'Declared', state: 'State', phase: 'Phase', nextReview: 'Next review', plannedEnd: 'Planned end', maxRisk: 'Max risk', sponsor: 'Sponsor',
     forced: 'forced', computed: 'Computed', gap: 'differs from computed health', noWeather: 'No weather', notSet: 'Not set',
     emptyPortfolio: 'No project in this portfolio.', emptyFilter: 'No project matches the filters.', degraded: 'The health table is unavailable for now.',
+  },
+  sheet: {
+    open: 'One-page project sheet', title: (p: string) => `Project sheet ${p}`, print: 'Print the sheet', health: 'Health', state: 'State', dates: 'Dates', sponsor: 'Sponsor', manager: 'Project manager', notSet: 'Not set',
+    weather: 'Weather', noWeather: 'No weather written.', phases: 'Phases and reviews', noPhases: 'This project has no normative template.', risks: 'Main risks', noRisks: 'No open scored risk.',
   },
   statusNote: {
     title: 'Project weather', write: 'Write the weather', save: 'Save', cancel: 'Cancel', saved: 'Weather saved.', none: 'No weather written.', comment: 'Comment',

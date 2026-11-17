@@ -1,3 +1,4 @@
+import { ProjectSheetPage } from './pages/project/ProjectSheetPage';
 import { ProtectionBanner } from './components/ProtectionBanner';
 import { setProtectionLevel } from './lib/protection';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
@@ -232,6 +233,7 @@ export function AuthenticatedApp({ session }: { session: Session }) {
           <Route path="t/:tracker/:vue" element={<TrackerScreen session={session} />} />
           <Route path="recherche" element={<ListPage session={session} />} />
           {/* T-0120 : anciennes adresses de réglage, redirigées pour toujours vers Paramètres. */}
+          <Route path="fiche" element={<ProjectSheetPage />} />
           <Route path="rapports" element={<ReportsPage session={session} />} />
           <Route path="rapports/:report" element={<ReportsPage session={session} />} />
           <Route path="tracabilite" element={<RedirectTo to="rapports/tracabilite" />} />
