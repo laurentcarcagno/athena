@@ -234,6 +234,17 @@ suite('projets créés depuis les gabarits livrés (intégration)', () => {
     expect(await rids()).toMatchObject({ met: true, remaining: 0 }); // le mineur et le RID d'une autre revue ne comptent pas
   });
 
+  it('gabarit IM 1618 : 4 phases, 9 revues typées ; la sortie de Réalisation exige prononcé, faits majeurs et remarques closes (B31)', async () => {
+    const n = builtinNormative('armement-1618')!.versions[0]!.normative;
+    expect(n.phases.map((p) => p.key)).toEqual(['preparation', 'realisation', 'utilisation', 'retrait']);
+    expect(n.reviews).toHaveLength(9);
+    expect(n.reviews.filter((r) => /étatique majeure/.test(r.name)).map((r) => r.key)).toEqual(['rev-qualification', 'rev-mso']);
+    const exit = n.phases.find((p) => p.key === 'realisation')!.exitCriteria;
+    expect(exit.map((c) => (c.kind === 'manual' ? c.label : `${c.tracker}:${c.where?.field}=${c.where?.value}`))).toEqual(['Prononcé de qualification obtenu', 'TF:severity=majeure', 'RRV:review=rev-qualification']);
+    await templates.createProject(org, 'ARM', 'Opération', 'armement-1618', admin);
+    expect((await upgrades.status(org, 'ARM')).phases.map((p) => p.key)).toEqual(['preparation', 'realisation', 'utilisation', 'retrait']);
+  });
+
   it('phases datées : historique des dates prévues, décision de gate, phase hors gabarit', async () => {
     await templates.createProject(org, 'PHB', 'Gates', 'spatial', admin, { criticality: 'C' });
     const lines = (await db.tx(org, (c) => c.query("select phase from project_phase x join project p on p.id = x.project_id where p.key = 'PHB' order by phase"))).rows.map((r) => r.phase as string);

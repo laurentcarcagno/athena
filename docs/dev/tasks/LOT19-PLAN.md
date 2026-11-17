@@ -6,7 +6,7 @@
 |---|---|---|---|
 | T-0211 | B29 | Critère de gate filtré sur deux champs (`CriterionSchema.where`), rétrocompatible | faite |
 | T-0212 | B30 | Gabarit « Projet spatial (ECSS-M-ST-10) » : 7 phases, 13 revues | faite |
-| T-0213 | B31 | Gabarit « Opération d'armement (IM 1618) » : 4 phases, 9 revues | |
+| T-0213 | B31 | Gabarit « Opération d'armement (IM 1618) » : 4 phases, 9 revues | faite |
 | T-0214 | B27 | API `/v1/roadmap` : phases, revues, versions, baseline par projet visible | |
 | T-0215 | B27 | Page roadmap : couloirs, chevrons, losanges, regroupement, zoom, vue tableau | |
 | T-0216 | B28 | Barres fantômes de baseline, écart chiffré, vue jalons imprimable | |
