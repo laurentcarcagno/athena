@@ -38,8 +38,22 @@ export interface PhaseCriterion {
   /** Critère manuel confirmé : par qui, quand, avec quelle note. */
   checkedBy?: string; checkedAt?: string; note?: string;
 }
+export const PHASE_DECISIONS = ['go', 'go_with_reserves', 'no_go'] as const;
+export type PhaseDecision = (typeof PHASE_DECISIONS)[number];
+/** Dates et décision d'une phase du projet (étude PPM § 2.3). Dates au format AAAA-MM-JJ. */
+export interface PhaseRecord {
+  plannedStart: string | null; plannedEnd: string | null; reviewPlannedOn: string | null; reviewHeldOn: string | null;
+  decision: PhaseDecision | null; decidedBy: string | null; decidedAt: string | null; note: string;
+}
+export interface PhaseDates { plannedStart?: string | null; plannedEnd?: string | null; reviewPlannedOn?: string | null }
+export interface PhaseHistoryEntry { phase: string; field: 'planned_end' | 'review_planned_on'; from: string | null; to: string | null; by: string; at: string }
+const EMPTY_RECORD: PhaseRecord = { plannedStart: null, plannedEnd: null, reviewPlannedOn: null, reviewHeldOn: null, decision: null, decidedBy: null, decidedAt: null, note: '' };
+const today = () => new Date().toISOString().slice(0, 10);
+
 export interface PhaseCheck {
   key: string; name: string; review: string; next: string | null;
+  /** Dates prévues, revue tenue et décision de la phase courante. */
+  record: PhaseRecord;
   /**
    * Critères du passage : sortie de la phase courante puis entrée de la suivante. Un critère « tracker_status » est contrôlé
    * (`remaining` items à traiter) ; un critère manuel n'est rempli qu'une fois confirmé par une personne habilitée.
@@ -50,7 +64,11 @@ export interface PhaseCheck {
 export interface ProjectTemplateStatus {
   phaseCheck: PhaseCheck | null;
   templateKey: string | null; version: string | null; latest: string | null; upgradable: boolean; versions: string[];
-  criticality: string | null; phase: string | null; phases: Array<{ key: string; name: string; review: string }>;
+  criticality: string | null; phase: string | null;
+  /** Phases du gabarit épinglé avec leurs dates et décisions, puis celles que le gabarit a retirées (`offTemplate`). */
+  phases: Array<{ key: string; name: string; review: string; offTemplate: boolean; record: PhaseRecord }>;
+  /** Historique des dates prévues (ajout seul), du plus ancien au plus récent. */
+  phaseHistory: PhaseHistoryEntry[];
   /** Écart du projet par rapport à la version du gabarit : ce qu'il a ajouté. */
   drift: { trackersAdded: string[]; trackers: TrackerDrift[]; total: number };
 }
@@ -89,21 +107,24 @@ export class TemplateUpgradeService {
   async status(organizationId: string, projectKey: string): Promise<ProjectTemplateStatus> {
     const p = await this.db.tx(organizationId, (c) => this.projectRow(c, projectKey));
     const empty = { trackersAdded: [], trackers: [], total: 0 };
-    if (!p.template_key) return { phaseCheck: null, templateKey: null, version: null, latest: null, upgradable: false, versions: [], criticality: p.criticality, phase: p.current_phase, phases: [], drift: empty };
+    if (!p.template_key) return { phaseCheck: null, templateKey: null, version: null, latest: null, upgradable: false, versions: [], criticality: p.criticality, phase: p.current_phase, phases: [], phaseHistory: [], drift: empty };
     const versions = (await this.templates.versions(organizationId, p.template_key)).map((v) => v.version);
     const latest = versions.length ? versions[versions.length - 1]! : null;
-    if (!p.template_version) return { phaseCheck: null, templateKey: p.template_key, version: null, latest, upgradable: false, versions, criticality: p.criticality, phase: p.current_phase, phases: [], drift: empty };
+    if (!p.template_version) return { phaseCheck: null, templateKey: p.template_key, version: null, latest, upgradable: false, versions, criticality: p.criticality, phase: p.current_phase, phases: [], phaseHistory: [], drift: empty };
     const snap = await this.templates.snapshot(organizationId, p.template_key, p.template_version);
+    const records = await this.records(organizationId, p.id);
+    const inTemplate = snap.normative.phases.map((x) => ({ key: x.key, name: x.name, review: x.review, offTemplate: false, record: records.get(x.key) ?? EMPTY_RECORD }));
+    const offTemplate = [...records].filter(([k]) => !snap.normative.phases.some((x) => x.key === k)).map(([k, record]) => ({ key: k, name: k, review: '', offTemplate: true, record }));
     return {
-      phaseCheck: await this.phaseCheck(organizationId, projectKey, snap, p.current_phase),
+      phaseCheck: await this.phaseCheck(organizationId, projectKey, snap, p.current_phase, records),
       templateKey: p.template_key, version: p.template_version, latest, upgradable: latest !== null && compareVersions(latest, p.template_version) > 0, versions,
-      criticality: p.criticality, phase: p.current_phase, phases: snap.normative.phases.map((x) => ({ key: x.key, name: x.name, review: x.review })),
+      criticality: p.criticality, phase: p.current_phase, phases: [...inTemplate, ...offTemplate], phaseHistory: await this.phaseHistory(organizationId, p.id),
       drift: await this.drift(organizationId, projectKey, snap),
     };
   }
 
   /** Contrôle du passage : critères de sortie de la phase courante et critères d'entrée de la suivante (RID clos, confirmations…). */
-  private async phaseCheck(organizationId: string, projectKey: string, snap: TemplateSnapshot, current: string | null): Promise<PhaseCheck | null> {
+  private async phaseCheck(organizationId: string, projectKey: string, snap: TemplateSnapshot, current: string | null, records: Map<string, PhaseRecord>): Promise<PhaseCheck | null> {
     const phases = snap.normative.phases;
     const i = phases.findIndex((x) => x.key === current);
     if (i < 0) return null;
@@ -135,7 +156,7 @@ export class TemplateUpgradeService {
       }
       return out;
     });
-    return { key: phase.key, name: phase.name, review: phase.review, next: next?.key ?? null, criteria, canAdvance: next !== undefined && criteria.every((x) => x.met) };
+    return { key: phase.key, name: phase.name, review: phase.review, next: next?.key ?? null, record: records.get(phase.key) ?? EMPTY_RECORD, criteria, canAdvance: next !== undefined && criteria.every((x) => x.met) };
   }
 
   /** Confirme (ou annule) un critère manuel du passage en cours ; refuse un critère inconnu ou contrôlé automatiquement. */
@@ -163,19 +184,93 @@ export class TemplateUpgradeService {
     return (await this.status(organizationId, projectKey)).phaseCheck!;
   }
 
-  /** Passe à la phase suivante, seulement si les critères de sortie de la phase courante sont remplis. */
-  async advancePhase(organizationId: string, projectKey: string, actor: Actor): Promise<{ from: string; to: string }> {
+  private async records(organizationId: string, projectId: string): Promise<Map<string, PhaseRecord>> {
+    return this.db.tx(organizationId, async (c) => {
+      const rows = (await c.query(
+        `select x.phase, to_char(x.planned_start, 'YYYY-MM-DD') ps, to_char(x.planned_end, 'YYYY-MM-DD') pe,
+                to_char(x.review_planned_on, 'YYYY-MM-DD') rp, to_char(x.review_held_on, 'YYYY-MM-DD') rh,
+                x.decision, x.decided_at, x.note, coalesce(u.display_name, u.username, x.decided_by) as who
+           from project_phase x left join user_account u on u.organization_id = x.organization_id and u.subject = x.decided_by
+          where x.project_id = $1`, [projectId])).rows;
+      return new Map(rows.map((r) => [r.phase as string, {
+        plannedStart: r.ps, plannedEnd: r.pe, reviewPlannedOn: r.rp, reviewHeldOn: r.rh, decision: r.decision, decidedBy: r.decision ? r.who : null,
+        decidedAt: r.decided_at ? new Date(r.decided_at).toISOString() : null, note: r.note,
+      } satisfies PhaseRecord]));
+    });
+  }
+
+  private async phaseHistory(organizationId: string, projectId: string): Promise<PhaseHistoryEntry[]> {
+    return this.db.tx(organizationId, async (c) => (await c.query(
+      `select h.phase, h.field, to_char(h.old_value, 'YYYY-MM-DD') o, to_char(h.new_value, 'YYYY-MM-DD') n, h.changed_at,
+              coalesce(u.display_name, u.username, h.changed_by) as who
+         from project_phase_history h left join user_account u on u.organization_id = h.organization_id and u.subject = h.changed_by
+        where h.project_id = $1 order by h.changed_at, h.id`, [projectId])).rows
+      .map((r) => ({ phase: r.phase, field: r.field, from: r.o, to: r.n, by: r.who, at: new Date(r.changed_at).toISOString() })));
+  }
+
+  /**
+   * Fixe les dates prévues d'une phase du gabarit épinglé (absent : inchangé ; null : effacé). Toute modification de `planned_end` ou de
+   * `review_planned_on` ajoute une ligne à l'historique, avec son auteur.
+   */
+  async setPhaseDates(organizationId: string, projectKey: string, phase: string, input: PhaseDates, actor: Actor): Promise<ProjectTemplateStatus> {
+    const p = await this.db.tx(organizationId, (c) => this.projectRow(c, projectKey));
+    if (!p.template_key || !p.template_version) throw validation(['ce projet n’est pas rattaché à une version de gabarit']);
+    const snap = await this.templates.snapshot(organizationId, p.template_key, p.template_version);
+    if (!snap.normative.phases.some((x) => x.key === phase)) throw validation([`phase inconnue dans la version ${p.template_version} du gabarit : ${phase}`]);
+    await this.db.tx(organizationId, async (c) => {
+      const old = (await c.query(
+        `select to_char(planned_start, 'YYYY-MM-DD') ps, to_char(planned_end, 'YYYY-MM-DD') pe, to_char(review_planned_on, 'YYYY-MM-DD') rp
+           from project_phase where project_id = $1 and phase = $2 for update`, [p.id, phase])).rows[0] ?? { ps: null, pe: null, rp: null };
+      const next = {
+        ps: input.plannedStart === undefined ? old.ps : input.plannedStart,
+        pe: input.plannedEnd === undefined ? old.pe : input.plannedEnd,
+        rp: input.reviewPlannedOn === undefined ? old.rp : input.reviewPlannedOn,
+      };
+      if (next.ps && next.pe && next.pe < next.ps) throw validation(['plannedEnd : la fin prévue précède le début prévu']);
+      await c.query(
+        `insert into project_phase (organization_id, project_id, phase, planned_start, planned_end, review_planned_on, updated_by) values ($1,$2,$3,$4,$5,$6,$7)
+         on conflict (project_id, phase) do update set planned_start = excluded.planned_start, planned_end = excluded.planned_end,
+           review_planned_on = excluded.review_planned_on, updated_by = excluded.updated_by, updated_at = now()`,
+        [organizationId, p.id, phase, next.ps, next.pe, next.rp, actor.id]);
+      for (const [field, from, to] of [['planned_end', old.pe, next.pe], ['review_planned_on', old.rp, next.rp]] as const) {
+        if (from === to) continue;
+        await c.query('insert into project_phase_history (organization_id, project_id, phase, field, old_value, new_value, changed_by) values ($1,$2,$3,$4,$5,$6,$7)',
+          [organizationId, p.id, phase, field, from, to, actor.id]);
+      }
+      await audit(c, organizationId, actor, 'project.phase_dates', `project:${projectKey}`, { phase, ...input });
+    });
+    return this.status(organizationId, projectKey);
+  }
+
+  /**
+   * Décision de gate sur la phase courante, puis passage à la phase suivante. `go` et `go_with_reserves` exigent les critères remplis ;
+   * `go_with_reserves` et `no_go` exigent une note. `no_go` enregistre la décision sans changer de phase (`to` vaut alors `from`).
+   * La décision et la date de revue tenue sont portées par la phase que l'on quitte.
+   */
+  async advancePhase(organizationId: string, projectKey: string, actor: Actor, input: { decision?: PhaseDecision; note?: string; heldOn?: string } = {}): Promise<{ from: string; to: string }> {
     const status = await this.status(organizationId, projectKey);
     const check = status.phaseCheck;
     if (!check) throw validation(['ce projet n’a pas de phase courante']);
-    if (!check.next) throw validation(['la phase courante est la dernière']);
-    const unmet = check.criteria.filter((x) => !x.met);
-    if (unmet.length) throw new DomainError('Phase non terminée.', 'conflict', unmet.map((x) => `${x.label} (${x.remaining} restant(s))`));
+    const decision = input.decision ?? 'go';
+    const note = (input.note ?? '').trim();
+    if (decision !== 'go' && note === '') throw validation([`note : une note est obligatoire pour la décision « ${decision} »`]);
+    const advances = decision !== 'no_go';
+    if (advances) {
+      if (!check.next) throw validation(['la phase courante est la dernière']);
+      const unmet = check.criteria.filter((x) => !x.met);
+      if (unmet.length) throw new DomainError('Phase non terminée.', 'conflict', unmet.map((x) => `${x.label} (${x.remaining} restant(s))`));
+    }
     await this.db.tx(organizationId, async (c) => {
-      await c.query('update project set current_phase = $2 where key = $1', [projectKey, check.next]);
-      await audit(c, organizationId, actor, 'project.phase_advance', `project:${projectKey}`, { from: check.key, to: check.next });
+      const p = await this.projectRow(c, projectKey);
+      await c.query(
+        `insert into project_phase (organization_id, project_id, phase, review_held_on, decision, decided_by, decided_at, note, updated_by) values ($1,$2,$3,$4,$5,$6,now(),$7,$6)
+         on conflict (project_id, phase) do update set review_held_on = excluded.review_held_on, decision = excluded.decision, decided_by = excluded.decided_by,
+           decided_at = excluded.decided_at, note = excluded.note, updated_by = excluded.updated_by, updated_at = now()`,
+        [organizationId, p.id, check.key, input.heldOn ?? today(), decision, actor.id, note]);
+      if (advances) await c.query('update project set current_phase = $2 where key = $1', [projectKey, check.next]);
+      await audit(c, organizationId, actor, advances ? 'project.phase_advance' : 'project.phase_no_go', `project:${projectKey}`, { from: check.key, to: advances ? check.next : check.key, decision, note });
     });
-    return { from: check.key, to: check.next };
+    return { from: check.key, to: advances ? check.next! : check.key };
   }
 
   /** Ce que le projet contient en plus de son gabarit : trackers, champs, états et transitions ajoutés. */

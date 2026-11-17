@@ -13,6 +13,7 @@ import { builtinTrackerTypes } from './tracker-types';
 import { TrackerService } from './tracker.service';
 
 const admin: Actor = { id: 'sub-admin', roles: ['athena-team-member', 'athena-admin'] };
+const pmActor: Actor = { id: 'sub-pm', roles: ['athena-team-member', 'athena-pm'] };
 const suite = pgUp ? describe : describe.skip;
 const fail = async (p: Promise<unknown>) => { const e = await p.then(() => null, (x: unknown) => x); return e instanceof DomainError ? `${e.code}:${e.details.join(' | ') || e.message}` : 'ok'; };
 
@@ -199,9 +200,39 @@ suite('projets créés depuis les gabarits livrés (intégration)', () => {
     expect(checked.canAdvance).toBe(false); // annulée : de nouveau bloquant
     await upgrades.checkCriterion(org, 'PHA', { stage: 'entry', label: 'Baseline RB approuvée à la SRR', checked: true }, admin);
     expect((await upgrades.status(org, 'PHA')).phaseCheck).toMatchObject({ canAdvance: true });
-    expect(await upgrades.advancePhase(org, 'PHA', admin)).toEqual({ from: 'requirements', to: 'preliminary-design' });
+    expect(await upgrades.advancePhase(org, 'PHA', admin)).toEqual({ from: 'requirements', to: 'preliminary-design' }); // décision « go » par défaut
     expect((await project('PHA')).row.current_phase).toBe('preliminary-design');
     expect((await upgrades.status(org, 'PHA')).phaseCheck).toMatchObject({ key: 'preliminary-design', canAdvance: false }); // le RID de la PDR bloque la suite
     expect(await fail(upgrades.advancePhase(org, 'PHA', admin))).toMatch(/^conflict:.*PDR/);
+  });
+
+  it('phases datées : historique des dates prévues, décision de gate, phase hors gabarit', async () => {
+    await templates.createProject(org, 'PHB', 'Gates', 'spatial', admin, { criticality: 'C' });
+    expect(await fail(upgrades.setPhaseDates(org, 'PHB', 'inconnue', { plannedEnd: '2026-03-01' }, admin))).toMatch(/^validation:.*phase inconnue/);
+    expect(await fail(upgrades.setPhaseDates(org, 'PHB', 'requirements', { plannedStart: '2026-03-10', plannedEnd: '2026-03-01' }, admin))).toMatch(/^validation:.*précède/);
+    await upgrades.setPhaseDates(org, 'PHB', 'requirements', { plannedStart: '2026-01-05', plannedEnd: '2026-03-01', reviewPlannedOn: '2026-03-05' }, admin);
+    await upgrades.setPhaseDates(org, 'PHB', 'requirements', { plannedEnd: '2026-04-01' }, pmActor);
+    await upgrades.setPhaseDates(org, 'PHB', 'requirements', { plannedStart: '2026-01-12' }, admin); // le début n'est pas historisé
+    const status = await upgrades.status(org, 'PHB');
+    expect(status.phaseHistory.map((h) => [h.phase, h.field, h.from, h.to])).toEqual([
+      ['requirements', 'planned_end', null, '2026-03-01'], ['requirements', 'review_planned_on', null, '2026-03-05'], ['requirements', 'planned_end', '2026-03-01', '2026-04-01'],
+    ]);
+    expect(status.phaseCheck!.record).toMatchObject({ plannedStart: '2026-01-12', plannedEnd: '2026-04-01', reviewPlannedOn: '2026-03-05', decision: null });
+
+    await upgrades.checkCriterion(org, 'PHB', { stage: 'entry', label: 'Baseline RB approuvée à la SRR', checked: true }, admin);
+    expect(await fail(upgrades.advancePhase(org, 'PHB', admin, { decision: 'go_with_reserves' }))).toMatch(/^validation:.*note/);
+    expect(await fail(upgrades.advancePhase(org, 'PHB', admin, { decision: 'no_go', note: '  ' }))).toMatch(/^validation:.*note/);
+    // no_go : la décision est enregistrée, la phase ne change pas
+    expect(await upgrades.advancePhase(org, 'PHB', admin, { decision: 'no_go', note: 'Exigences instables', heldOn: '2026-03-20' })).toEqual({ from: 'requirements', to: 'requirements' });
+    expect((await project('PHB')).row.current_phase).toBe('requirements');
+    expect((await upgrades.status(org, 'PHB')).phaseCheck!.record).toMatchObject({ decision: 'no_go', reviewHeldOn: '2026-03-20', note: 'Exigences instables' });
+    expect(await upgrades.advancePhase(org, 'PHB', pmActor, { decision: 'go_with_reserves', note: 'Deux RID ouverts à lever avant la PDR', heldOn: '2026-04-02' })).toEqual({ from: 'requirements', to: 'preliminary-design' });
+    const after = await upgrades.status(org, 'PHB');
+    expect(after.phases.find((x) => x.key === 'requirements')!.record).toMatchObject({ decision: 'go_with_reserves', reviewHeldOn: '2026-04-02', decidedAt: expect.any(String), decidedBy: expect.any(String) });
+    expect(after.phaseHistory).toHaveLength(3); // décider ne change aucune date prévue
+
+    // une phase absente du gabarit garde sa ligne, marquée « hors gabarit »
+    await db.tx(org, async (c) => { await c.query("insert into project_phase (organization_id, project_id, phase, planned_end, updated_by) select $1, id, 'ancienne', '2026-01-01', 'x' from project where key = 'PHB'", [org]); });
+    expect((await upgrades.status(org, 'PHB')).phases.filter((x) => x.offTemplate).map((x) => x.key)).toEqual(['ancienne']);
   });
 });

@@ -6,7 +6,8 @@ import { OrgResolver, parseBody } from './http';
 import { ExportMarker } from './export-marking';
 import { NormativeSchema } from './normative-template';
 import { TemplateService, TemplateTrackerSchema } from './template.service';
-import { TemplateUpgradeService } from './template-upgrade.service';
+import { MemberService } from './member.service';
+import { PHASE_DECISIONS, TemplateUpgradeService } from './template-upgrade.service';
 
 const ParentSchema = z.object({ key: z.string().regex(/^[a-z][a-z0-9-]{1,39}$/), version: z.string().regex(/^[0-9]+(\.[0-9]+)?$/).optional() });
 
@@ -23,6 +24,9 @@ const TemplateBody = z.object({
   parent: ParentSchema.nullable().optional(),
 });
 
+const Day = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine((d) => !Number.isNaN(Date.parse(`${d}T00:00:00Z`)) && new Date(`${d}T00:00:00Z`).toISOString().startsWith(d), 'date invalide');
+const AdvanceBody = z.object({ decision: z.enum(PHASE_DECISIONS).optional(), note: z.string().max(2000).optional(), heldOn: Day.optional() });
+const PhaseDatesBody = z.object({ plannedStart: Day.nullable().optional(), plannedEnd: Day.nullable().optional(), reviewPlannedOn: Day.nullable().optional() });
 const CriterionCheckBody = z.object({ stage: z.enum(['exit', 'entry']), label: z.string().min(1).max(200), checked: z.boolean(), note: z.string().max(500).optional() });
 const PublishBody = z.object({ version: z.string().regex(/^[0-9]+(\.[0-9]+)?$/).optional() });
 const ImportBody = z.object({ yaml: z.string().min(1).max(2_000_000) });
@@ -187,6 +191,7 @@ export class ProjectTemplateController {
   constructor(
     @Inject(TemplateUpgradeService) private readonly upgrades: TemplateUpgradeService,
     @Inject(OrgResolver) private readonly orgs: OrgResolver,
+    @Inject(MemberService) private readonly members: MemberService,
   ) {}
 
   @Roles('athena-team-member', 'athena-admin')
@@ -209,9 +214,20 @@ export class ProjectTemplateController {
   @Roles('athena-admin', 'athena-pm')
   @Post(':project/template/phase/advance')
   @HttpCode(200)
-  async advance(@Req() request: AuthedRequest, @Param('project') project: string) {
+  @BodySchema(AdvanceBody)
+  async advance(@Req() request: AuthedRequest, @Param('project') project: string, @Body() body: unknown) {
     const { organizationId, actor } = await this.orgs.resolve(request.principal!);
-    return this.upgrades.advancePhase(organizationId, project, actor);
+    return this.upgrades.advancePhase(organizationId, project, actor, parseBody(AdvanceBody, body ?? {}));
+  }
+
+  /** Dates prévues d'une phase (début, fin, revue) ; les changements de fin et de revue sont historisés. Chef du projet et administrateur. */
+  @Roles('athena-admin', 'athena-pm')
+  @Put(':project/template/phases/:phase')
+  @BodySchema(PhaseDatesBody)
+  async phaseDates(@Req() request: AuthedRequest, @Param('project') project: string, @Param('phase') phase: string, @Body() body: unknown) {
+    const { organizationId, actor } = await this.orgs.resolve(request.principal!);
+    await this.members.requireManager(organizationId, project, actor);
+    return this.upgrades.setPhaseDates(organizationId, project, phase, parseBody(PhaseDatesBody, body), actor);
   }
 
   @Roles('athena-admin')
