@@ -1,8 +1,8 @@
 import type { PoolClient } from 'pg';
 import { healthOf, type Health, type KpiService, type ProjectKpis } from '../agile/kpi.service';
-import { Db, type Actor } from './db';
-import { conflict, notFound, validation } from './errors';
-import { audit } from './tracker.service';
+import { Db, type Actor } from '../core/db';
+import { conflict, notFound, validation } from '../core/errors';
+import { audit } from '../core/tracker.service';
 
 export interface PortfolioView { key: string; name: string; description: string; owner: string | null; projects: number }
 export interface PortfolioProject {

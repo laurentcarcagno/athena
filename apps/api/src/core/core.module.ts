@@ -63,9 +63,6 @@ import { NotifyService } from '../notify/notify.service';
 import { DigestService } from '../notify/digest';
 import { mailerFrom } from '../notify/mailer-config';
 import { MemberController } from './member.controller';
-import { PortfolioController, TeamController } from './portfolio.controller';
-import { PortfolioService } from './portfolio.service';
-import { TeamService } from './team.service';
 import { AccessController } from './access.controller';
 import { ApprovalController } from './approval.controller';
 import { ApprovalService } from './approval.service';
@@ -99,7 +96,7 @@ import { TrackerService } from './tracker.service';
 export { PG_POOL } from './core.tokens';
 
 @Module({
-  controllers: [CoreController, AttachmentController, SavedFilterController, SearchController, IntegrationsController, AgileController, MemberController, TemplateController, ProjectTemplateController, TrackerTemplateController, TrackerTypeController, ProjectOverviewController, PinController, LinkTypeController, TreeController, MatrixController, CoverageController, NormativeController, AccessController, ApprovalController, ItemApprovalController, DocController, NotifyController, DashboardController, PreferenceController, AppearanceController, CalendarController, PlanningController, BrandController, TeamController, PortfolioController],
+  controllers: [CoreController, AttachmentController, SavedFilterController, SearchController, IntegrationsController, AgileController, MemberController, TemplateController, ProjectTemplateController, TrackerTemplateController, TrackerTypeController, ProjectOverviewController, PinController, LinkTypeController, TreeController, MatrixController, CoverageController, NormativeController, AccessController, ApprovalController, ItemApprovalController, DocController, NotifyController, DashboardController, PreferenceController, AppearanceController, CalendarController, PlanningController, BrandController],
   providers: [
     { provide: PG_POOL, useFactory: () => new Pool({ connectionString: loadConfig().DATABASE_URL, max: 10 }) },
     { provide: FieldTypeRegistry, useValue: new FieldTypeRegistry() },
@@ -189,8 +186,6 @@ export { PG_POOL } from './core.tokens';
     { provide: ItemApprovalService, useFactory: (db: Db) => new ItemApprovalService(db), inject: [Db] },
     { provide: AccessService, useFactory: (db: Db) => new AccessService(db), inject: [Db] },
     { provide: NormativeService, useFactory: (db: Db, a: ArtifactService) => new NormativeService(db, a), inject: [Db, ArtifactService] },
-    { provide: TeamService, useFactory: (db: Db) => new TeamService(db), inject: [Db] },
-    { provide: PortfolioService, useFactory: (db: Db, k: KpiService) => new PortfolioService(db, k), inject: [Db, KpiService] },
     { provide: MemberService, useFactory: (db: Db) => new MemberService(db), inject: [Db] },
     { provide: SprintService, useFactory: (db: Db) => new SprintService(db), inject: [Db] },
     { provide: BacklogService, useFactory: (db: Db) => new BacklogService(db), inject: [Db] },
@@ -271,6 +266,7 @@ export { PG_POOL } from './core.tokens';
     { provide: DeliveryService, useFactory: (db: Db) => new DeliveryService(db), inject: [Db] },
     { provide: APP_FILTER, useClass: DomainErrorFilter },
   ],
-  exports: [FieldTypeRegistry, PG_POOL],
+  // Services du noyau que `PpmModule` réutilise (étude PPM, § 06-architecture 1).
+  exports: [FieldTypeRegistry, PG_POOL, Db, OrgResolver, KpiService],
 })
 export class CoreModule {}

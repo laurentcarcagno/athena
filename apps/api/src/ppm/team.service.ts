@@ -1,7 +1,7 @@
 import type { PoolClient } from 'pg';
-import { Db, type Actor } from './db';
-import { conflict, forbidden, notFound, validation } from './errors';
-import { audit } from './tracker.service';
+import { Db, type Actor } from '../core/db';
+import { conflict, forbidden, notFound, validation } from '../core/errors';
+import { audit } from '../core/tracker.service';
 
 export type TeamRole = 'manager' | 'member';
 export interface TeamView { key: string; name: string; description: string; members: number; managers: string[] }

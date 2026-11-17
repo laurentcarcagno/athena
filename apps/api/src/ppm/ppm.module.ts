@@ -1,0 +1,22 @@
+import { Module } from '@nestjs/common';
+import { KpiService } from '../agile/kpi.service';
+import { CoreModule } from '../core/core.module';
+import { Db } from '../core/db';
+import { PortfolioController, TeamController } from './portfolio.controller';
+import { PortfolioService } from './portfolio.service';
+import { TeamService } from './team.service';
+
+/**
+ * Gestion de portefeuille de projets (étude `docs/ppm/`, ADR-0008) : équipes, portefeuilles et, aux lots suivants, cycle de vie,
+ * phases datées, instantanés, roadmap, capacité et finances. Les services du noyau (base, indicateurs de projet, résolution de
+ * l'organisation) viennent de `CoreModule` ; le PPM référence les objets du projet et ne les copie jamais.
+ */
+@Module({
+  imports: [CoreModule],
+  controllers: [TeamController, PortfolioController],
+  providers: [
+    { provide: TeamService, useFactory: (db: Db) => new TeamService(db), inject: [Db] },
+    { provide: PortfolioService, useFactory: (db: Db, k: KpiService) => new PortfolioService(db, k), inject: [Db, KpiService] },
+  ],
+})
+export class PpmModule {}

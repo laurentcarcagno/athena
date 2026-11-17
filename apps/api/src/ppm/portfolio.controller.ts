@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, HttpCode, Inject, Param, Patch, Post, Pu
 import { z } from 'zod';
 import { Roles, type AuthedRequest } from '../auth/auth.guard';
 import { BodySchema } from '../openapi/body-schema';
-import { OrgResolver, parseBody } from './http';
+import { OrgResolver, parseBody } from '../core/http';
 import { PortfolioService } from './portfolio.service';
 import { TeamService } from './team.service';
 

@@ -1,15 +1,15 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createTestDb, pgUp, type TestDb } from '../testing/harness';
-import { AccessService } from './access.service';
-import { runAs } from './request-context';
-import { ArtifactService } from './artifact.service';
-import { Db, type Actor } from './db';
-import { DomainError } from './errors';
-import { FieldTypeRegistry } from './field-types';
+import { AccessService } from '../core/access.service';
+import { runAs } from '../core/request-context';
+import { ArtifactService } from '../core/artifact.service';
+import { Db, type Actor } from '../core/db';
+import { DomainError } from '../core/errors';
+import { FieldTypeRegistry } from '../core/field-types';
 import { PortfolioService } from './portfolio.service';
 import { TeamService } from './team.service';
-import { bugTemplate } from './templates';
-import { TrackerService } from './tracker.service';
+import { bugTemplate } from '../core/templates';
+import { TrackerService } from '../core/tracker.service';
 
 const suite = pgUp ? describe : describe.skip;
 const admin: Actor = { id: 'sub-admin', roles: ['athena-team-member', 'athena-admin'] };

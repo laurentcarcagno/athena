@@ -1,0 +1,25 @@
+# Lot 17 : PPM, incrément I0, prérequis de niveau projet
+
+Étude : `docs/ppm/` (vision, modèle de données `03`, architecture `06`, plan `07`, backlog `08`). Ouvert par l'utilisateur le 2026-11-17, après la levée des écarts des lots 13 et 16. Décisions du plan de livraison (D1 à D7) prises ; un lot par incrément (D2). Travail fait par un seul agent, sans sous-agent (consigne du 2026-11-17).
+
+Migrations réelles : la prochaine est la **065**.
+
+| Tâche | Backlog | Contenu | État |
+|---|---|---|---|
+| T-0185 | B04 | `PpmModule` : portefeuilles et équipes déplacés dans `apps/api/src/ppm/`, exports de `CoreModule` | faite |
+| T-0186 | B05 | Interrupteurs de fonctionnalité par organisation (`organization_feature`), prise en compte par l'API et le rail | |
+| T-0187 | B06 | Réglages PPM de l'organisation : durée de la journée en heures et minutes, rétention et fréquence des instantanés, seuils ; Administration › PPM | |
+| T-0188 | B07, B08 | Vérifications ECharts : rendu SVG sous la CSP de production, poids du chunk | |
+| T-0189 | B09 | Composant `<Chart>` : thème par jetons, `aria`, motifs, vue tableau | |
+| T-0190 | B10 | Méta du projet (dates, sponsor, description, granularité) : migration, API, carte | |
+| T-0191 | B11 | Cycle de vie configurable : migration, états livrés, transitions, historique, API | |
+| T-0192 | B11 | Cycle de vie : Administration › Cycle de vie et action de transition dans le projet | |
+| T-0193 | B12 | Phases datées et décisions de gate : migration, API, historique des dates | |
+| T-0194 | B12 | Phases datées : frise des gates avec dates et décisions | |
+| T-0195 | B13 | Rôles sémantiques probabilité et impact | |
+| T-0196 | B14 | Test d'architecture des politiques RLS | |
+| T-0197 | B15 | Vérification : unité de `remaining` dans les données existantes | |
+| T-0198 | B16 | Vérification : performance du tableau de santé au palier 1 | |
+| T-0199 | — | `LOT17-VERIFICATION.md`, `STATE.md`, arrêt pour compte rendu | |
+
+Règle de l'agent : un commit par tâche, tests ciblés, e2e seulement à la vérification du lot. Handoff vers une nouvelle session si le contexte approche 70 %.

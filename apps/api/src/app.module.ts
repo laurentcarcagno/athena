@@ -12,11 +12,12 @@ import type { Pool } from 'pg';
 import { TokenVerifier } from './auth/token-verifier';
 import { loadConfig } from './config';
 import { CoreModule } from './core/core.module';
+import { PpmModule } from './ppm/ppm.module';
 import { OpenApiController } from './openapi/openapi.controller';
 import { HealthController } from './health/health.controller';
 
 @Module({
-  imports: [CoreModule],
+  imports: [CoreModule, PpmModule],
   controllers: [HealthController, BffController, OpenApiController],
   providers: [
     {

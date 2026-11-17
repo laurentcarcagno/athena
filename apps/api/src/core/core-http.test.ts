@@ -150,6 +150,20 @@ suite('API REST du noyau', () => {
     expect((await call('GET', '/v1/projects/ARI/search?limit=9999', user)).statusCode).toBe(422);
   });
 
+  it('PpmModule : portefeuilles et équipes servis par le module PPM, avec leurs droits', async () => {
+    expect((await call('GET', '/v1/portfolios')).statusCode).toBe(401);
+    expect((await call('GET', '/v1/portfolios', await token(['athena-team-member']))).statusCode).toBe(403);
+    expect((await call('GET', '/v1/teams', await token(['athena-team-member']))).statusCode).toBe(403);
+    for (const role of ['athena-admin', 'athena-pmo', 'athena-director']) {
+      expect((await call('GET', '/v1/portfolios', await token([role]))).statusCode, role).toBe(200);
+      expect((await call('GET', '/v1/teams', await token([role]))).statusCode, role).toBe(200);
+    }
+    const created = await call('POST', '/v1/portfolios', await token(['athena-pmo']), { key: 'http-pf', name: 'Portefeuille HTTP' });
+    expect(created.statusCode).toBe(201);
+    expect((await call('POST', '/v1/portfolios', await token(['athena-director']), { key: 'http-pf2', name: 'Refusé' })).statusCode).toBe(403);
+    expect((await call('DELETE', '/v1/portfolios/http-pf', await token(['athena-pmo']))).statusCode).toBe(204);
+  });
+
   it('calendrier : lu par toute personne connectée, modifié par l’administration seulement', async () => {
     const week = { workDays: [1, 2, 3, 4], holidays: [{ day: '2026-12-25', label: 'Noël' }] };
     expect((await call('GET', '/v1/calendar')).statusCode).toBe(401);
