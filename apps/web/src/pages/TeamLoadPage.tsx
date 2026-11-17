@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Btn, Card, EmptyState, Field, Id, PageHeader, Select, StatusPill, Table, Td, Th, useToast } from '@athena/ui';
 import { api, type Session } from '../api';
 import { useFailure } from '../hooks';
@@ -57,7 +57,7 @@ export function TeamLoadPage({ session }: { session: Session }) {
   const inTeam = new Set(load?.members.map((m) => m.subject));
   return (
     <>
-      <PageHeader title={t.teamsTitle} sub={t.teamsSub} />
+      <PageHeader title={t.teamsTitle} sub={t.teamsSub} actions={<Link className="ath-link" to="/capacite">{fr.capacity.title}</Link>} />
       {teams === null ? <p role="status">{fr.loading}</p> : (
         <div className="ath-stack">
           {teams.length === 0 ? <EmptyState eyebrow={t.team} title={admin ? t.noTeamAdmin : t.noTeam} /> : (

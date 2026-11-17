@@ -87,4 +87,22 @@ suite('capacité par personne et par équipe (B35, intégration)', () => {
     expect(v.bottlenecks[0]!.projects[0]!.project).toBe('CAP');
     expect(v.bottlenecks[0]!.saturationPercent).toBeGreaterThan(100);
   });
+
+  it('volumétrie (B35) : 100 personnes sur 12 mois se calculent à la lecture en moins de 2 s, donc sans job différé', async () => {
+    const db = new Db(testDb.pool);
+    await db.tx(org, async (c) => {
+      const team = (await c.query("insert into team (organization_id, key, name, created_by) values ($1,'grande','Grande équipe','x') returning id", [org])).rows[0].id;
+      await c.query("insert into user_account (organization_id, subject, username, display_name, email) select $1, 'p' || n, 'p' || n, 'Personne ' || n, 'p' || n || '@example.test' from generate_series(1, 100) n", [org]);
+      await c.query("insert into team_member (organization_id, team_id, subject, role, added_by) select $1, $2, 'p' || n, 'member', 'x' from generate_series(1, 100) n", [org, team]);
+      await c.query("insert into person_availability (organization_id, subject, from_day, ratio, created_by) select $1, 'p' || n, '2026-01-01', 0.8, 'x' from generate_series(1, 100) n", [org]);
+      await c.query("insert into absence (organization_id, subject, from_day, to_day, kind, created_by) select $1, 'p' || n, '2026-12-07', '2026-12-11', 'leave', 'x' from generate_series(1, 100) n", [org]);
+      await c.query("insert into allocation (organization_id, project_id, subject, from_day, fte, created_by) select $1, (select id from project where key = 'CAP'), 'p' || n, '2026-06-01', 0.6, 'x' from generate_series(1, 100) n", [org]);
+    });
+    const t0 = performance.now();
+    const v = await cap.view(org, admin, { from: '2026-06-01', to: '2027-05-31', granularity: 'month', team: 'grande' });
+    const ms = performance.now() - t0;
+    expect(v.people).toHaveLength(100);
+    expect(v.periods).toHaveLength(12);
+    expect(ms).toBeLessThan(2000);
+  });
 });

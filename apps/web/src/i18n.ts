@@ -214,6 +214,14 @@ const frDict = {
     trend: 'Tendance des jalons', trendProject: 'Projet', trendTitle: (p: string) => `Dates prévues des jalons de ${p}, relevé après relevé`, trendUnit: 'jours depuis la première date prévue', noTrend: 'Aucune modification de date prévue pour ce projet.',
     fields: { planned_end: 'fin de phase', review_planned_on: 'revue' } as Record<string, string>,
   },
+  capacity: {
+    title: 'Capacité', sub: 'Capacité, charge planifiée et goulots par personne et par équipe, sur l’horizon choisi.', filters: 'Filtres', from: 'Du', to: 'Au', granularity: 'Période', month: 'Mois', week: 'Semaine', team: 'Équipe', allTeams: 'Toutes mes équipes',
+    empty: 'Aucune personne à afficher : rattachez des personnes à une équipe.', heatmap: 'Charge par personne', legend: (n: number) => `Taux de charge = charge planifiée ÷ capacité. Sous-charge sous 60 %, normal jusqu’à 100 %, tendu jusqu’à ${n} %, surcharge au-delà.`,
+    heatmapCaption: (n: number) => `Charge de ${n} personne${n > 1 ? 's' : ''} par période`, person: 'Personne', levels: { free: 'sous-charge', normal: 'normal', tight: 'tendu', overload: 'surcharge' } as Record<string, string>,
+    teamChart: (n: string) => `Capacité et charge de l’équipe ${n}`, capacityLabel: 'Capacité', loadLabel: 'Charge', hoursUnit: 'heures', bottlenecks: 'Goulots', noBottleneck: 'Aucune équipe ne dépasse sa capacité sur cet horizon.',
+    bottleneckCaption: (n: number) => `${n} goulot${n > 1 ? 's' : ''}`, period: 'Période', saturation: 'Saturation', projects: 'Projets qui chargent l’équipe',
+    myAbsences: 'Mes absences', absenceFrom: 'Du (absence)', absenceTo: 'Au (absence)', halfDay: 'Demi-journée', halfDayShort: 'demi-journée', addAbsence: 'Ajouter l’absence', absenceAdded: 'Absence enregistrée.', removeAbsence: 'Retirer', noAbsence: 'Aucune absence saisie.',
+  },
   statusNote: {
     title: 'Météo du projet', write: 'Écrire la météo', save: 'Enregistrer', cancel: 'Annuler', saved: 'Météo enregistrée.', none: 'Aucune météo écrite.', comment: 'Commentaire',
     axes: { schedule: 'Délai', scope: 'Périmètre', risk: 'Risque', resources: 'Ressources', cost: 'Coût' } as Record<string, string>,
@@ -824,6 +832,14 @@ const enDict: Dictionary = {
     actions: 'Action tracking', noActions: 'No action in this portfolio.', actionsCaption: (n: number) => `Actions of ${n} project${n > 1 ? 's' : ''}`, open: 'Open', closed: 'Closed', dueOn: (d: string) => `due ${d}`,
     trend: 'Milestone trend', trendProject: 'Project', trendTitle: (p: string) => `Planned milestone dates of ${p}, survey after survey`, trendUnit: 'days since the first planned date', noTrend: 'No planned date change for this project.',
     fields: { planned_end: 'phase end', review_planned_on: 'review' } as Record<string, string>,
+  },
+  capacity: {
+    title: 'Capacity', sub: 'Capacity, planned load and bottlenecks by person and team, over the chosen horizon.', filters: 'Filters', from: 'From', to: 'To', granularity: 'Period', month: 'Month', week: 'Week', team: 'Team', allTeams: 'All my teams',
+    empty: 'No one to show: attach people to a team.', heatmap: 'Load by person', legend: (n: number) => `Load rate = planned load ÷ capacity. Under-used below 60%, normal up to 100%, tight up to ${n}%, overloaded beyond.`,
+    heatmapCaption: (n: number) => `Load of ${n} ${n > 1 ? 'people' : 'person'} by period`, person: 'Person', levels: { free: 'under-used', normal: 'normal', tight: 'tight', overload: 'overloaded' } as Record<string, string>,
+    teamChart: (n: string) => `Capacity and load of team ${n}`, capacityLabel: 'Capacity', loadLabel: 'Load', hoursUnit: 'hours', bottlenecks: 'Bottlenecks', noBottleneck: 'No team exceeds its capacity over this horizon.',
+    bottleneckCaption: (n: number) => `${n} bottleneck${n > 1 ? 's' : ''}`, period: 'Period', saturation: 'Saturation', projects: 'Projects loading the team',
+    myAbsences: 'My absences', absenceFrom: 'From (absence)', absenceTo: 'To (absence)', halfDay: 'Half day', halfDayShort: 'half day', addAbsence: 'Add the absence', absenceAdded: 'Absence saved.', removeAbsence: 'Remove', noAbsence: 'No absence entered.',
   },
   statusNote: {
     title: 'Project weather', write: 'Write the weather', save: 'Save', cancel: 'Cancel', saved: 'Weather saved.', none: 'No weather written.', comment: 'Comment',
