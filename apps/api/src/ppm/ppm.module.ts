@@ -5,6 +5,9 @@ import { Db } from '../core/db';
 import { FeatureController } from './feature.controller';
 import { FeatureGuard, FeatureService } from './feature.service';
 import { HealthService } from './health.service';
+import { RoadmapService } from './roadmap.service';
+import { ScheduleService } from '../planning/schedule.service';
+import { TemplateUpgradeService } from '../core/template-upgrade.service';
 import { LifecycleController } from './lifecycle.controller';
 import { LifecycleService } from './lifecycle.service';
 import { PortfolioController, TeamController } from './portfolio.controller';
@@ -35,6 +38,7 @@ import { TeamService } from './team.service';
     { provide: StatusNoteService, useFactory: (db: Db) => new StatusNoteService(db), inject: [Db] },
     { provide: LifecycleService, useFactory: (db: Db) => new LifecycleService(db), inject: [Db] },
     { provide: HealthService, useFactory: (db: Db, p: PortfolioService, l: LifecycleService) => new HealthService(db, p, l), inject: [Db, PortfolioService, LifecycleService] },
+    { provide: RoadmapService, useFactory: (db: Db, t: TemplateUpgradeService, s: ScheduleService, l: LifecycleService) => new RoadmapService(db, t, s, l), inject: [Db, TemplateUpgradeService, ScheduleService, LifecycleService] },
     { provide: TeamService, useFactory: (db: Db) => new TeamService(db), inject: [Db] },
     { provide: PortfolioService, useFactory: (db: Db, k: KpiService) => new PortfolioService(db, k), inject: [Db, KpiService] },
   ],

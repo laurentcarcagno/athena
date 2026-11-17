@@ -5,6 +5,7 @@ import { BodySchema } from '../openapi/body-schema';
 import { OrgResolver, parseBody } from '../core/http';
 import { ExportMarker } from '../core/export-marking';
 import { FeatureGuard, RequiresFeature } from './feature.service';
+import { RoadmapService } from './roadmap.service';
 import { HealthService, healthCsv, type HealthFilter } from './health.service';
 import { LIFECYCLE_CATEGORIES, type LifecycleCategory } from './lifecycle';
 import { PortfolioService } from './portfolio.service';
@@ -103,7 +104,7 @@ export class TeamController {
 @RequiresFeature('ppm.portfolios')
 export class PortfolioController {
   constructor(
-    @Inject(PortfolioService) private readonly portfolios: PortfolioService, @Inject(HealthService) private readonly healths: HealthService,
+    @Inject(PortfolioService) private readonly portfolios: PortfolioService, @Inject(HealthService) private readonly healths: HealthService, @Inject(RoadmapService) private readonly roadmaps: RoadmapService,
     @Inject(OrgResolver) private readonly orgs: OrgResolver,
     @Inject(ExportMarker) private readonly marker: ExportMarker, @Inject(UsageService) private readonly usage: UsageService,
   ) {}
@@ -131,6 +132,14 @@ export class PortfolioController {
   async create(@Req() request: AuthedRequest, @Body() body: unknown) {
     const { organizationId, actor } = await this.orgs.resolve(request.principal!);
     return this.portfolios.create(organizationId, parseBody(PortfolioCreate, body), actor);
+  }
+
+  /** Roadmap consolidée : projets, phases, revues, versions et baseline (lecture seule). `includeClosed=1` ajoute les projets clos. */
+  @Roles('athena-admin', 'athena-pmo', 'athena-pm', 'athena-director')
+  @Get(':key/roadmap')
+  async roadmap(@Req() request: AuthedRequest, @Param('key') key: string, @Query('includeClosed') includeClosed?: string) {
+    const { organizationId, actor } = await this.orgs.resolve(request.principal!);
+    return this.roadmaps.roadmap(organizationId, key, actor, { includeClosed: includeClosed === '1' || includeClosed === 'true' });
   }
 
   /** Journal d'usage agrégé (KPI 6) : compteurs quotidiens par rôle et route, sans identité ni contenu. */
