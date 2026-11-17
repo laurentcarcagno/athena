@@ -1,4 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { AccessService } from '../core/access.service';
+import { runAs } from '../core/request-context';
 import { ArtifactService } from '../core/artifact.service';
 import { Db, type Actor } from '../core/db';
 import { FieldTypeRegistry } from '../core/field-types';
@@ -12,6 +14,7 @@ import { StatusNoteInput, StatusNoteService } from './status-note.service';
 
 const suite = pgUp ? describe : describe.skip;
 const admin: Actor = { id: 'sub-admin', roles: ['athena-team-member', 'athena-admin'] };
+const director: Actor = { id: 'sub-dir', roles: ['athena-director', 'athena-team-member'] };
 const pm: Actor = { id: 'sub-pm', roles: ['athena-team-member', 'athena-pm'] };
 
 describe('filtre du tableau de santé', () => {
@@ -27,6 +30,7 @@ describe('filtre du tableau de santé', () => {
 suite('tableau de santé (intégration)', () => {
   let testDb: TestDb;
   let health: HealthService;
+  let access: AccessService;
   const org = crypto.randomUUID();
   const kpis = {
     async kpis(_o: string, project: string) {
@@ -47,10 +51,11 @@ suite('tableau de santé (intégration)', () => {
     const trackers = new TrackerService(db, registry);
     const artifacts = new ArtifactService(db, trackers, registry);
     const portfolios = new PortfolioService(db, kpis);
+    access = new AccessService(db);
     health = new HealthService(db, portfolios, new LifecycleService(db));
     await db.tx(org, async (c) => {
       await c.query("insert into organization (id, key, name) values ($1,'hl','hl')", [org]);
-      await c.query("insert into user_account (organization_id, subject, username, display_name, email) values ($1,'sub-sp','sp','Sam Sponsor','s@example.test')", [org]);
+      await c.query("insert into user_account (organization_id, subject, username, display_name, email) values ($1,'sub-sp','sp','Sam Sponsor','s@example.test'), ($1,'sub-admin','admin.dev','Admin Dev','a@example.test')", [org]);
     });
     for (const k of ['HA', 'HB', 'HC']) await trackers.createProject(org, k, `Projet ${k}`, admin);
     await portfolios.create(org, { key: 'sante', name: 'Santé' }, admin);
@@ -101,5 +106,20 @@ suite('tableau de santé (intégration)', () => {
     expect(await keys({ health: 'ok' })).toEqual(['HA']);
     expect(await keys({ sponsor: 'Sam Sponsor' })).toEqual(['HB']);
     expect(await keys({ categories: ['closed'], includeClosed: true })).toEqual(['HC']);
+  });
+
+  it('B19 : un lecteur hors liste d’ayants droit ne trouve aucune trace du projet masqué, ni ligne, ni total, ni nombre', async () => {
+    await runAs('sub-admin', () => access.set(org, 'HB', { members: ['sub-admin'] }, admin));
+    const full = await runAs('sub-admin', () => health.health(org, 'sante', admin));
+    const restricted = await runAs('sub-dir', () => health.health(org, 'sante', director));
+    expect(full.rows.map((r) => r.key)).toEqual(['HB', 'HA']);
+    expect(restricted.rows.map((r) => r.key)).toEqual(['HA']);
+    expect(restricted.portfolio.projects).toBe(2); // HA et HC : HB n'est pas compté
+    expect(restricted.totals).toMatchObject({ projects: 1, byHealth: { ok: 1, attention: 0, critical: 0 }, late: 0, blocked: 0, open: 2 });
+    const json = JSON.stringify(restricted);
+    for (const trace of ['HB', 'Lanceur', 'Sam Sponsor', '2026-12-18', '2026-12-01', 'pdr']) expect(json).not.toContain(trace);
+    expect(restricted.hiddenByState).toBe(1); // HC (terminé) reste visible du lecteur et exclu par défaut ; HB n'est compté nulle part
+    await runAs('sub-admin', () => access.remove(org, 'HB', null, admin)); // lève la restriction
+    expect((await runAs('sub-dir', () => health.health(org, 'sante', director))).rows.map((r) => r.key)).toEqual(['HB', 'HA']);
   });
 });
