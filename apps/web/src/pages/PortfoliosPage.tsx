@@ -6,6 +6,7 @@ import { useFailure } from '../hooks';
 import { useConfirm } from '../components/ConfirmDialog';
 import { Dashboard } from '../components/Dashboard';
 import { RoadmapView } from '../components/RoadmapView';
+import { SnapshotPanel } from '../components/SnapshotPanel';
 import { PortfolioHealthTable } from '../components/PortfolioHealthTable';
 import { fr } from '../i18n';
 
@@ -81,6 +82,7 @@ export function PortfoliosPage({ session }: { session: Session }) {
             <p>{t.progress} : <strong className="ath-mono">{one.totals.progress} %</strong> · {t.open} : <strong className="ath-mono">{one.totals.open}</strong> · {t.late} : <strong className="ath-mono">{one.totals.late}</strong> · {t.blocked} : <strong className="ath-mono">{one.totals.blocked}</strong></p>
           </Card>
           {roles.some((r) => r === 'athena-admin' || r === 'athena-pmo' || r === 'athena-director') ? <Dashboard portfolio={one.portfolio.key} /> : <PortfolioHealthTable portfolio={one.portfolio.key} />}
+          <SnapshotPanel portfolio={one.portfolio.key} canTake={admin} />
           {one.projects.length === 0 ? <EmptyState eyebrow={t.project} title={t.noProject} /> : (
             <Table caption={t.projectsCount(one.projects.length)}>
               <thead><tr><Th>{t.project}</Th><Th>{t.healthCol}</Th><Th>{t.progress}</Th><Th>{t.late}</Th><Th>{t.blocked}</Th><Th>{t.dueSoon}</Th><Th>{t.sprint}</Th><Th>{t.managers}</Th><Th>{t.note}</Th>{editor && <Th>{t.saveRow}</Th>}</tr></thead>

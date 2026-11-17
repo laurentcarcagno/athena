@@ -167,6 +167,7 @@ const frDict = {
     categories: { pipeline: 'Pipeline', active: 'Actif', suspended: 'Suspendu', closed: 'Clos', cancelled: 'Annulé', archived: 'Archivé' } as Record<string, string>,
   },
   steerHealth: {
+    trend: { up: 'en hausse', down: 'en baisse', same: 'stable' } as Record<string, string>, since: (d: string) => `depuis le ${d}`, trendCol: 'Tendance', trendFrom: (h: string) => `était : ${h}`, newProject: 'Nouveau depuis l’instantané', noSnapshot: 'Aucun instantané', sparkLabel: (k: string) => `Retards de ${k} sur les derniers instantanés`,
     exportCsv: 'Exporter en CSV (mêmes lignes que le tableau)', tiles: 'Vue direction', tile: { projects: 'Projets', critical: 'Critiques', attention: 'À surveiller', ok: 'Sous contrôle', gaps: 'Écarts de météo', late: 'Tickets en retard' } as Record<string, string>,
     title: 'Tableau de santé', scope: 'Périmètre : les projets que vous pouvez voir', shown: (n: number) => `${n} projet${n > 1 ? 's' : ''} affiché${n > 1 ? 's' : ''}`,
     hiddenClosed: (n: number) => `${n} terminé${n > 1 ? 's' : ''}, annulé${n > 1 ? 's' : ''} ou archivé${n > 1 ? 's' : ''} masqué${n > 1 ? 's' : ''}`,
@@ -188,6 +189,13 @@ const frDict = {
     today: 'Aujourd’hui', unscheduled: 'Non planifié', baseline: 'Baseline', calculatedEnd: 'Fin calculée', plannedEnd: 'Fin prévue', gap: 'Écart', state: 'État', phase: 'Phase', nextReview: 'Prochaine revue',
     noGap: 'écart non calculé', onTrack: 'dans les temps', gapDays: (n: number) => `${n > 0 ? '+' : ''}${n} jour${Math.abs(n) > 1 ? 's' : ''} ouvré${Math.abs(n) > 1 ? 's' : ''}`, heldLate: 'tenue en retard', notSet: 'Non renseigné', notHeld: 'Pas encore tenue',
     kind: 'Nature', milestone: 'Jalon', planned: 'Prévu', actual: 'Réel', deviation: 'Écart', kinds: { review: 'Revue', release: 'Version' } as Record<string, string>, open: 'Roadmap du portefeuille',
+  },
+  snapshots: {
+    title: 'Instantanés', label: 'Libellé de l’instantané', take: 'Prendre un instantané', taken: 'Instantané pris.', none: 'Aucun instantané : le premier est pris à la prochaine échéance, ou à la main.',
+    caption: (n: number) => `${n} instantané${n > 1 ? 's' : ''}`, date: 'Date', kind: 'Nature', labelCol: 'Libellé', projects: 'Projets visibles',
+    kinds: { weekly: 'Hebdomadaire', monthly: 'Mensuel', review: 'Revue', manual: 'Manuel' } as Record<string, string>,
+    compareFrom: 'Comparer', compareTo: 'à', compare: 'Comparer', compareCaption: (a: string, b: string) => `Écarts du ${a} au ${b}`, change: 'Évolution', health: 'Santé', phase: 'Phase', plannedEnd: 'Fin prévue',
+    changes: { added: 'Entré', removed: 'Sorti', changed: 'Modifié', same: 'Inchangé' } as Record<string, string>, noChange: 'Aucun écart entre ces deux instantanés.',
   },
   statusNote: {
     title: 'Météo du projet', write: 'Écrire la météo', save: 'Enregistrer', cancel: 'Annuler', saved: 'Météo enregistrée.', none: 'Aucune météo écrite.', comment: 'Commentaire',
@@ -753,6 +761,7 @@ const enDict: Dictionary = {
     categories: { pipeline: 'Pipeline', active: 'Active', suspended: 'Suspended', closed: 'Closed', cancelled: 'Cancelled', archived: 'Archived' } as Record<string, string>,
   },
   steerHealth: {
+    trend: { up: 'rising', down: 'falling', same: 'stable' } as Record<string, string>, since: (d: string) => `since ${d}`, trendCol: 'Trend', trendFrom: (h: string) => `was: ${h}`, newProject: 'New since the snapshot', noSnapshot: 'No snapshot', sparkLabel: (k: string) => `Late tickets of ${k} over the last snapshots`,
     exportCsv: 'Export as CSV (same rows as the table)', tiles: 'Management view', tile: { projects: 'Projects', critical: 'Critical', attention: 'Watch', ok: 'Under control', gaps: 'Weather gaps', late: 'Late tickets' } as Record<string, string>,
     title: 'Health table', scope: 'Scope: the projects you can see', shown: (n: number) => `${n} project${n > 1 ? 's' : ''} shown`,
     hiddenClosed: (n: number) => `${n} completed, cancelled or archived hidden`,
@@ -774,6 +783,13 @@ const enDict: Dictionary = {
     today: 'Today', unscheduled: 'Not scheduled', baseline: 'Baseline', calculatedEnd: 'Calculated end', plannedEnd: 'Planned end', gap: 'Gap', state: 'State', phase: 'Phase', nextReview: 'Next review',
     noGap: 'gap not computed', onTrack: 'on track', gapDays: (n: number) => `${n > 0 ? '+' : ''}${n} working day${Math.abs(n) > 1 ? 's' : ''}`, heldLate: 'held late', notSet: 'Not set', notHeld: 'Not held yet',
     kind: 'Kind', milestone: 'Milestone', planned: 'Planned', actual: 'Actual', deviation: 'Deviation', kinds: { review: 'Review', release: 'Release' } as Record<string, string>, open: 'Portfolio roadmap',
+  },
+  snapshots: {
+    title: 'Snapshots', label: 'Snapshot label', take: 'Take a snapshot', taken: 'Snapshot taken.', none: 'No snapshot: the first one is taken at the next due date, or by hand.',
+    caption: (n: number) => `${n} snapshot${n > 1 ? 's' : ''}`, date: 'Date', kind: 'Kind', labelCol: 'Label', projects: 'Visible projects',
+    kinds: { weekly: 'Weekly', monthly: 'Monthly', review: 'Review', manual: 'Manual' } as Record<string, string>,
+    compareFrom: 'Compare', compareTo: 'with', compare: 'Compare', compareCaption: (a: string, b: string) => `Changes from ${a} to ${b}`, change: 'Change', health: 'Health', phase: 'Phase', plannedEnd: 'Planned end',
+    changes: { added: 'Added', removed: 'Removed', changed: 'Changed', same: 'Unchanged' } as Record<string, string>, noChange: 'No difference between these two snapshots.',
   },
   statusNote: {
     title: 'Project weather', write: 'Write the weather', save: 'Save', cancel: 'Cancel', saved: 'Weather saved.', none: 'No weather written.', comment: 'Comment',

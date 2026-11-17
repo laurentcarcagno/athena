@@ -13,6 +13,10 @@ export interface HealthRowData {
   reasons: string[]; note: string; plannedStart: string | null; plannedEnd: string | null; sponsor: string | null; phase: string | null; nextReview: string | null;
   progress: number; open: number; late: number; blocked: number; dueSoon: number; maxRisk: number | null;
 }
+export interface TrendData {
+  previous: { id: string; takenAt: string; kind: string; totals: { projects: number; byHealth: Record<Health, number>; late: number; blocked: number }; lines: Array<{ key: string; health: Health; late: number }> } | null;
+  series: Record<string, Array<{ at: string; late: number; progress: number; health: Health }>>;
+}
 export interface PortfolioHealthData {
   portfolio: { key: string; name: string; projects: number };
   rows: HealthRowData[];
@@ -28,6 +32,18 @@ export const HealthPill = ({ health, forced = false }: { health: Health; forced?
   <span className={forced ? 'ath-health--forced' : undefined}><StatusPill kind={KIND[health]}>{fr.steer.health[health]}</StatusPill>{forced && <small> {fr.steerHealth.forced}</small>}</span>
 );
 
+/** Flèche de tendance : le sens est dit en toutes lettres, jamais par la flèche seule. */
+export const trendOf = (now: number, before: number | undefined): { arrow: string; word: 'up' | 'down' | 'same' } | null =>
+  before === undefined ? null : now > before ? { arrow: '↑', word: 'up' } : now < before ? { arrow: '↓', word: 'down' } : { arrow: '→', word: 'same' };
+
+/** Mini-courbe sans axes des retards des derniers instantanés. */
+function Spark({ points, label }: { points: number[]; label: string }) {
+  if (points.length < 2) return null;
+  const max = Math.max(...points, 1);
+  const path = points.map((p, i) => `${(i / (points.length - 1)) * 60},${16 - (p / max) * 14}`).join(' ');
+  return <svg className="ath-spark" width={60} height={18} role="img" aria-label={label}><polyline points={path} fill="none" stroke="currentColor" strokeWidth={1.5} /></svg>;
+}
+
 const day = (iso: string | null) => (iso ? <time dateTime={iso}>{formatDay(iso, true)}</time> : <span>{fr.steerHealth.notSet}</span>);
 
 /** Tableau de santé d'un portefeuille (lot 18, B20) : calculée, déclarée et forcée côte à côte, dates, phase, risque, filtres dans l'adresse non requis. */
@@ -40,6 +56,8 @@ export function PortfolioHealthTable({ portfolio, view = 'both', bare = false }:
   const [health, setHealth] = useState('');
   const [closed, setClosed] = useState(false);
   const [error, setError] = useState(false);
+  const [trend, setTrend] = useState<TrendData | null>(null);
+  useEffect(() => { api<TrendData>('GET', `/v1/portfolios/${portfolio}/trend`).then((d) => setTrend(d && 'series' in d ? d : null)).catch(() => setTrend(null)); }, [portfolio]);
   useEffect(() => {
     const q = new URLSearchParams();
     if (state) q.set('state', state);
@@ -49,6 +67,13 @@ export function PortfolioHealthTable({ portfolio, view = 'both', bare = false }:
     api<PortfolioHealthData>('GET', `/v1/portfolios/${portfolio}/health?${q}`).then((d) => setData(d && Array.isArray(d.rows) ? d : null)).catch((e) => { setError(true); fail(e); });
   }, [portfolio, state, health, closed, fail]);
 
+  const prev = trend?.previous ?? null;
+  const before: Record<string, number | undefined> = prev ? { projects: prev.totals.projects, critical: prev.totals.byHealth.critical, attention: prev.totals.byHealth.attention, ok: prev.totals.byHealth.ok, late: prev.totals.late } : {};
+  const tileTrend = (id: string): ReactNode => {
+    const now = ({ projects: data?.totals.projects, critical: data?.totals.byHealth.critical, attention: data?.totals.byHealth.attention, ok: data?.totals.byHealth.ok, late: data?.totals.late } as Record<string, number | undefined>)[id];
+    const tr = now === undefined ? null : trendOf(now, before[id]);
+    return tr && prev ? <small className="ath-tile__trend"> <span aria-hidden="true">{tr.arrow}</span> {t.trend[tr.word]} {t.since(formatDay(prev.takenAt, true))}</small> : null;
+  };
   const csvQuery = new URLSearchParams({ format: 'csv', ...(state ? { state } : {}), ...(health ? { health } : {}), ...(closed ? { includeClosed: '1' } : {}) });
   const frame = (children: ReactNode) => (bare ? <div className="ath-stack">{children}</div> : <Card title={t.title}>{children}</Card>);
   if (error) return frame(<p role="alert">{t.degraded}</p>);
@@ -67,7 +92,7 @@ export function PortfolioHealthTable({ portfolio, view = 'both', bare = false }:
             ['late', data.totals.late, null],
           ] as const).map(([id, value, action]) => (
             <li key={id} className="ath-tile">
-              <span className="ath-tile__value ath-mono">{value}</span>
+              <span className="ath-tile__value ath-mono">{value}</span>{tileTrend(id)}
               {action && view === 'both' ? <button type="button" className="ath-link" onClick={action}>{t.tile[id]}</button> : action ? <Link className="ath-link" to={`/portefeuilles/${portfolio}`}>{t.tile[id]}</Link> : <span>{t.tile[id]}</span>}
             </li>
           ))}
@@ -90,7 +115,7 @@ export function PortfolioHealthTable({ portfolio, view = 'both', bare = false }:
           <Table caption={t.caption(data.rows.length)}>
             <thead><tr>
               <Th>{fr.steer.project}</Th><Th>{t.health}</Th><Th>{t.declared}</Th><Th>{t.state}</Th><Th>{t.phase}</Th><Th>{t.nextReview}</Th><Th>{t.plannedEnd}</Th>
-              <Th>{fr.steer.progress}</Th><Th>{fr.steer.late}</Th><Th>{fr.steer.blocked}</Th><Th>{t.maxRisk}</Th><Th>{t.sponsor}</Th>
+              <Th>{fr.steer.progress}</Th><Th>{fr.steer.late}</Th><Th>{fr.steer.blocked}</Th><Th>{t.maxRisk}</Th><Th>{t.sponsor}</Th><Th>{t.trendCol}</Th>
             </tr></thead>
             <tbody>
               {data.rows.map((r) => (
@@ -107,6 +132,7 @@ export function PortfolioHealthTable({ portfolio, view = 'both', bare = false }:
                   <Td mono>{r.blocked}</Td>
                   <Td mono>{r.maxRisk === null ? '—' : <Link className="ath-link" to={`/p/${r.key}/rapports/risques`}>{r.maxRisk}</Link>}</Td>
                   <Td>{r.sponsor ?? t.notSet}</Td>
+                  <Td>{(() => { const was = prev?.lines.find((l) => l.key === r.key); const s = trend?.series[r.key]; return <>{was ? <span>{was.health === r.health ? t.trend.same : t.trendFrom(fr.steer.health[was.health] ?? was.health)}</span> : <span>{prev ? t.newProject : t.noSnapshot}</span>}{s && s.length > 1 && <> <Spark points={s.map((p) => p.late)} label={t.sparkLabel(r.key)} /></>}</>; })()}</Td>
                 </tr>
               ))}
             </tbody>
