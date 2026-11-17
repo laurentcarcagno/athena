@@ -45,9 +45,10 @@ export function NotificationSettings({ id = 'notify-settings' }: { id?: string }
     <>
       <fieldset id={id} className="ath-notify__settings">
         <legend>{fr.notify.settingsLegend}</legend>
-        {NOTIFY_EVENTS.map((event) => (
+        {/* Aucune valeur n'est inventée pendant le chargement : l'état affiché est toujours celui du serveur. */}
+        {prefs === null ? <p role="status">{fr.loading}</p> : NOTIFY_EVENTS.map((event) => (
           <label key={event} className="ath-notify__pref">
-            <Checkbox checked={prefs?.[event] ?? true} disabled={prefs === null} onChange={(e) => void setPref(event, e.target.checked)} />
+            <Checkbox checked={prefs[event]} onChange={(e) => void setPref(event, e.target.checked)} />
             {fr.notify.eventNames[event]}
           </label>
         ))}
