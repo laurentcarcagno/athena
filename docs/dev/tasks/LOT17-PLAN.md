@@ -18,7 +18,7 @@ Migrations réelles : la prochaine est la **065**.
 | T-0194 | B12 | Phases datées : frise des gates avec dates et décisions | faite |
 | T-0195 | B13 | Rôles sémantiques probabilité et impact | faite (migration 070) |
 | T-0196 | B14 | Test d'architecture des politiques RLS | faite |
-| T-0197 | B15 | Vérification : unité de `remaining` dans les données existantes | |
+| T-0197 | B15 | Vérification : unité de `remaining` dans les données existantes | faite |
 | T-0198 | B16 | Vérification : performance du tableau de santé au palier 1 | |
 | T-0199 | — | `LOT17-VERIFICATION.md`, `STATE.md`, arrêt pour compte rendu | |
 
