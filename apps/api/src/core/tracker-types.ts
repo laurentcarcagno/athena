@@ -14,6 +14,8 @@ export interface TrackerTypeView {
 const title: BaseField = { key: 'title', label: 'Titre', type: 'text', required: true, semanticRole: 'title' };
 const description: BaseField = { key: 'description', label: 'Description', type: 'richtext', semanticRole: 'description' };
 const assignee: BaseField = { key: 'assignee', label: 'Responsable', type: 'user', semanticRole: 'assignee' };
+const probability: BaseField = { key: 'probability', label: 'Probabilité (1 à 5)', type: 'number', config: { min: 1, max: 5 }, semanticRole: 'probability' };
+const impact: BaseField = { key: 'impact', label: 'Impact (1 à 5)', type: 'number', config: { min: 1, max: 5 }, semanticRole: 'impact' };
 const due: BaseField = { key: 'due', label: 'Échéance', type: 'date', semanticRole: 'due_date' };
 
 const t = (key: string, name: string, desc: string, category: TrackerCategory, defaultViews: TrackerViewKind[], baseFields: BaseField[]): TrackerTypeView =>
@@ -31,7 +33,7 @@ export function builtinTrackerTypes(): TrackerTypeView[] {
     t('test', 'Cas de test', 'Cas de test lié aux exigences vérifiées.', 'verification', ['tableau', 'matrice', 'document'], [title, description]),
     t('campaign', 'Campagne', 'Campagne de vérification ou de validation.', 'verification', ['tableau'], [title, description, assignee]),
     t('nonconformity', 'Non-conformité', 'Écart constaté, à traiter jusqu’à clôture.', 'verification', ['tableau', 'board'], [title, description, assignee]),
-    t('risk', 'Risque', 'Risque projet, probabilité et criticité.', 'management', ['tableau', 'matrice'], [title, description, assignee]),
+    t('risk', 'Risque', 'Risque projet, probabilité et criticité.', 'management', ['tableau', 'matrice'], [title, description, assignee, probability, impact]),
     t('action', 'Action', 'Action décidée en réunion ou en revue.', 'management', ['tableau', 'board', 'calendrier'], [title, description, assignee, due]),
     t('decision', 'Décision', 'Décision tracée avec son contexte.', 'management', ['tableau'], [title, description]),
     t('review', 'Revue', 'Revue de jalon ou revue technique.', 'management', ['tableau', 'calendrier'], [title, description, due]),

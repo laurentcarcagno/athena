@@ -16,7 +16,7 @@ Migrations réelles : la prochaine est la **065**.
 | T-0192 | B11 | Cycle de vie : Administration › Cycle de vie et action de transition dans le projet | faite |
 | T-0193 | B12 | Phases datées et décisions de gate : migration, API, historique des dates | faite (migration 069) |
 | T-0194 | B12 | Phases datées : frise des gates avec dates et décisions | faite |
-| T-0195 | B13 | Rôles sémantiques probabilité et impact | |
+| T-0195 | B13 | Rôles sémantiques probabilité et impact | faite (migration 070) |
 | T-0196 | B14 | Test d'architecture des politiques RLS | |
 | T-0197 | B15 | Vérification : unité de `remaining` dans les données existantes | |
 | T-0198 | B16 | Vérification : performance du tableau de santé au palier 1 | |

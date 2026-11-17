@@ -98,7 +98,7 @@ export async function logout(): Promise<string> {
 export const loginUrl = (returnTo: string) => `/auth/login?returnTo=${encodeURIComponent(returnTo)}`;
 
 // --- Types de l'API ---
-export interface Hit { key: string; project?: string; title?: string; tracker: string; status: string; statusName: string; statusColor?: string | null; category: string; values: Record<string, unknown>; version: number; updatedAt: string }
+export interface Hit { key: string; project?: string; title?: string; tracker: string; status: string; statusName: string; statusColor?: string | null; category: string; values: Record<string, unknown>; version: number; updatedAt: string; risk?: { probability: number | null; impact: number | null; criticality: number | null } }
 export interface SearchResult { total: number; totalCapped?: boolean; hits: Hit[] }
 export interface Field { id: string; key: string; label: string; type: string; config: Record<string, unknown>; required: boolean; isContent?: boolean; semanticRole: string | null; readRoles?: string[] | null; writeRoles?: string[] | null }
 export interface TrackerTypeEntry {

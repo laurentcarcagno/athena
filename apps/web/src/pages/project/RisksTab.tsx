@@ -28,14 +28,17 @@ export function RisksTab({ tabs }: { tabs?: ReactNode } = {}) {
   const location = useLocation();
   const [hits, setHits] = useState<Hit[] | null>(null);
   useEffect(() => {
-    api<SearchResult>('GET', `/v1/projects/${project}/search?q=${encodeURIComponent('type = risk ORDER BY criticality DESC')}&limit=200`)
+    api<SearchResult>('GET', `/v1/projects/${project}/search?q=${encodeURIComponent('type = risk')}&limit=200`)
       .then((r) => setHits(r.hits)).catch((e) => { setHits([]); fail(e); });
   }, [project, fail]);
   if (hits === null) return <><PageHeader title={fr.reports.names.risques!} />{tabs}<p role="status">{fr.loading}</p></>;
   const open = hits.filter((h) => h.category !== 'done');
-  const scored = (hit: Hit) => num(hit, 'criticality') ?? ((num(hit, 'probability') ?? 0) * (num(hit, 'impact') ?? 0) || null);
+  const prob = (hit: Hit) => hit.risk?.probability ?? num(hit, 'probability');
+  const imp = (hit: Hit) => hit.risk?.impact ?? num(hit, 'impact');
+  const scored = (hit: Hit) => hit.risk?.criticality ?? num(hit, 'criticality') ?? ((prob(hit) ?? 0) * (imp(hit) ?? 0) || null);
   const counts = { critical: 0, high: 0, moderate: 0, low: 0 };
   for (const h of open) { const s = scored(h); if (s !== null) counts[bandOf(s)]++; }
+  hits.sort((x, y) => (scored(y) ?? -1) - (scored(x) ?? -1));
   const keys = hits.map((h) => h.key);
   return (
     <>
@@ -54,8 +57,8 @@ export function RisksTab({ tabs }: { tabs?: ReactNode } = {}) {
                     <Td><Link className="ath-link ath-mono" to={`/p/${project}/a/${h.key}`} state={fromHere(location, t.eyebrow, keys)}>{h.key}</Link></Td>
                     <Td><span className="ath-clip" title={h.title ?? h.key}>{h.title ?? h.key}</span></Td>
                     <Td>{text(h, 'category')}</Td>
-                    <Td mono>{num(h, 'probability') ?? ''}</Td>
-                    <Td mono>{num(h, 'impact') ?? ''}</Td>
+                    <Td mono>{prob(h) ?? ''}</Td>
+                    <Td mono>{imp(h) ?? ''}</Td>
                     <Td>{score === null ? '' : <><Id>{String(score)}</Id> {t.bands[bandOf(score)]}</>}</Td>
                     <Td><StatusPill {...statusPill(h.category, h.statusColor)}>{h.statusName ?? h.status}</StatusPill></Td>
                   </tr>

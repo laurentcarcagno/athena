@@ -156,7 +156,9 @@ export class SearchService {
       const rows = (
         await c.query(
           `select a.key, p.key as project, t.key as tracker, s.key as status, s.name as status_name, s.color as status_color, s.category, a."values" as values, a.version, a.updated_at,
-                  (select f.key from field_definition f where f.tracker_id = a.tracker_id and f.semantic_role = 'title') as title_field
+                  (select f.key from field_definition f where f.tracker_id = a.tracker_id and f.semantic_role = 'title') as title_field,
+                  (select f.key from field_definition f where f.tracker_id = a.tracker_id and f.semantic_role = 'probability') as probability_field,
+                  (select f.key from field_definition f where f.tracker_id = a.tracker_id and f.semantic_role = 'impact') as impact_field
            ${from} order by ${compiled.orderBy} limit ${limit} offset ${offset}`,
           compiled.params,
         )
@@ -168,7 +170,10 @@ export class SearchService {
           const hidden = restricted.get(`${r.project}/${r.tracker}`);
           const values = hidden ? Object.fromEntries(Object.entries(r.values as Record<string, unknown>).filter(([k]) => !hidden.has(k))) : (r.values as Record<string, unknown>);
           const title = r.title_field && values[r.title_field] != null ? String(values[r.title_field]) : (r.key as string);
+          const score = (field: string | null) => { const v = field ? values[field] : undefined; return typeof v === 'number' && Number.isFinite(v) ? v : null; };
+          const probability = score(r.probability_field), impact = score(r.impact_field);
           return {
+            ...(r.probability_field || r.impact_field ? { risk: { probability, impact, criticality: probability !== null && impact !== null ? probability * impact : null } } : {}),
             key: r.key, project: r.project, tracker: r.tracker, title, status: r.status, statusName: r.status_name, statusColor: (r.status_color as string | null) ?? null, category: r.category,
             values, version: r.version, updatedAt: r.updated_at.toISOString(),
           };

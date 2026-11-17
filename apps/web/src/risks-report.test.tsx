@@ -39,7 +39,7 @@ describe('rapport Risques', () => {
       const ok = (body: unknown) => new Response(JSON.stringify(body), { status: 200 });
       if (/\/trackers$/.test(input)) return ok(trackers);
       if (/\/modules$/.test(input)) return ok({ modules: ['overview', 'trackers'] });
-      if (/\/search\?/.test(input)) { expect(decodeURIComponent(input)).toContain('type = risk ORDER BY criticality DESC'); return ok({ total: hits.length, hits }); }
+      if (/\/search\?/.test(input)) { expect(decodeURIComponent(input)).toContain('type = risk'); return ok({ total: hits.length, hits }); }
       return ok([]);
     }));
   });
@@ -55,5 +55,15 @@ describe('rapport Risques', () => {
     expect(cells(0)[5]).toBe('20 critique');
     expect(cells(3)[5]).toBe('4 faible'); // criticité absente : probabilité × impact
     expect(screen.getByRole('link', { name: 'Risques' })).toHaveAttribute('aria-current', 'page');
+  });
+
+  it('lit les rôles probabilité et impact même quand les champs ont d’autres noms, et classe par criticité calculée', async () => {
+    const withRole = (key: string, title: string, p: number, i: number) => ({ ...hit(key, title, { proba_x: p, gravite: i }), risk: { probability: p, impact: i, criticality: p * i } });
+    hits.splice(0, hits.length, withRole('LUM-RSK-0010', 'Mineur', 1, 2), withRole('LUM-RSK-0011', 'Majeur', 5, 5));
+    open();
+    expect(await screen.findByText('2 risques ouverts : 1 critique, 0 élevé, 0 modéré, 1 faible.')).toBeInTheDocument();
+    const rows = screen.getAllByRole('row').slice(1);
+    expect(within(rows[0]!).getAllByRole('cell').map((c) => c.textContent).slice(0, 6)).toEqual(['LUM-RSK-0011', 'Majeur', '', '5', '5', '25 critique']);
+    expect(within(rows[1]!).getAllByRole('cell')[5]!.textContent).toBe('2 faible');
   });
 });
