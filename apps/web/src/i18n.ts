@@ -229,6 +229,14 @@ const frDict = {
     title: 'Temps passé', total: (h: string) => `Total : ${h}`, form: 'Saisir du temps passé', day: 'Jour', duration: 'Durée (h min)', comment: 'Commentaire', add: 'Ajouter', saved: 'Temps enregistré.', none: 'Aucun temps passé saisi.', remove: 'Retirer',
     badDuration: 'Durée invalide : saisissez des heures et des minutes (par exemple 1 h 30), de 1 minute à 24 heures.', plannedVsConsumed: 'Planifié contre consommé', planned: 'Planifié', consumed: 'Consommé', hoursUnit: 'heures',
   },
+  dependencies: {
+    title: 'Dépendances entre projets', none: 'Aucune dépendance entre les projets de ce portefeuille.', matrixCaption: (n: number) => `Matrice des dépendances de ${n} projet${n > 1 ? 's' : ''} (prédécesseur en ligne, successeur en colonne)`, predecessor: 'Prédécesseur',
+    successor: 'Successeur', criticalCount: (n: number) => `${n} critique${n > 1 ? 's' : ''}`, linksCaption: (n: number) => `${n} lien${n > 1 ? 's' : ''}`, lag: 'Décalage (jours ouvrés)', slack: 'Marge', days: 'jours ouvrés', noDates: 'dates inconnues',
+    critical: 'critique', violated: 'contrainte violée', actions: 'Actions', remove: 'Retirer', removeLink: (a: string, b: string) => `Retirer le lien de ${a} vers ${b}`, addForm: 'Ajouter une dépendance', predecessorKey: 'Ticket prédécesseur', successorKey: 'Ticket successeur',
+    add: 'Ajouter', added: 'Dépendance ajoutée.', propagateForm: 'Propager un retard', propagateTicket: 'Ticket qui glisse', propagateShift: 'Glissement (jours ouvrés)', propagate: 'Voir les jalons touchés',
+    noImpact: 'Aucun ticket d’un autre projet n’est touché.', impactCaption: (k: string, n: number, c: number) => `${c} ticket${c > 1 ? 's' : ''} touché${c > 1 ? 's' : ''} si ${k} glisse de ${n} jour${Math.abs(n) > 1 ? 's' : ''} ouvré${Math.abs(n) > 1 ? 's' : ''}`,
+    ticket: 'Ticket', shift: 'Glissement', newStart: 'Nouveau début', newEnd: 'Nouvelle fin', readOnly: 'La propagation est un calcul : aucun planning n’est modifié.',
+  },
   statusNote: {
     title: 'Météo du projet', write: 'Écrire la météo', save: 'Enregistrer', cancel: 'Annuler', saved: 'Météo enregistrée.', none: 'Aucune météo écrite.', comment: 'Commentaire',
     axes: { schedule: 'Délai', scope: 'Périmètre', risk: 'Risque', resources: 'Ressources', cost: 'Coût' } as Record<string, string>,
@@ -854,6 +862,14 @@ const enDict: Dictionary = {
   worklog: {
     title: 'Time spent', total: (h: string) => `Total: ${h}`, form: 'Enter time spent', day: 'Day', duration: 'Duration (h min)', comment: 'Comment', add: 'Add', saved: 'Time saved.', none: 'No time entered.', remove: 'Remove',
     badDuration: 'Invalid duration: enter hours and minutes (for example 1 h 30), from 1 minute to 24 hours.', plannedVsConsumed: 'Planned versus consumed', planned: 'Planned', consumed: 'Consumed', hoursUnit: 'hours',
+  },
+  dependencies: {
+    title: 'Dependencies between projects', none: 'No dependency between the projects of this portfolio.', matrixCaption: (n: number) => `Dependency matrix of ${n} project${n > 1 ? 's' : ''} (predecessor in rows, successor in columns)`, predecessor: 'Predecessor',
+    successor: 'Successor', criticalCount: (n: number) => `${n} critical`, linksCaption: (n: number) => `${n} link${n > 1 ? 's' : ''}`, lag: 'Lag (working days)', slack: 'Slack', days: 'working days', noDates: 'dates unknown',
+    critical: 'critical', violated: 'constraint violated', actions: 'Actions', remove: 'Remove', removeLink: (a: string, b: string) => `Remove the link from ${a} to ${b}`, addForm: 'Add a dependency', predecessorKey: 'Predecessor ticket', successorKey: 'Successor ticket',
+    add: 'Add', added: 'Dependency added.', propagateForm: 'Propagate a delay', propagateTicket: 'Ticket that slips', propagateShift: 'Slip (working days)', propagate: 'Show the affected milestones',
+    noImpact: 'No ticket of another project is affected.', impactCaption: (k: string, n: number, c: number) => `${c} ticket${c > 1 ? 's' : ''} affected if ${k} slips by ${n} working day${Math.abs(n) > 1 ? 's' : ''}`,
+    ticket: 'Ticket', shift: 'Slip', newStart: 'New start', newEnd: 'New end', readOnly: 'Propagation is a calculation: no schedule is modified.',
   },
   statusNote: {
     title: 'Project weather', write: 'Write the weather', save: 'Save', cancel: 'Cancel', saved: 'Weather saved.', none: 'No weather written.', comment: 'Comment',

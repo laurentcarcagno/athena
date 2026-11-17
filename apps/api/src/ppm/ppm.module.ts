@@ -12,6 +12,8 @@ import { GovernanceService } from './governance.service';
 import { AllocationController, CapacityController } from './capacity.controller';
 import { CapacityDataService } from './capacity-data.service';
 import { WorklogController } from './worklog.controller';
+import { DependencyController } from './dependency.controller';
+import { DependencyService } from './dependency.service';
 import { WorklogService } from './worklog.service';
 import { CapacityService } from './capacity.service';
 import { CalendarService } from '../core/calendar.service';
@@ -37,7 +39,7 @@ import { TeamService } from './team.service';
  */
 @Module({
   imports: [CoreModule],
-  controllers: [WorklogController, CapacityController, AllocationController, FeatureController, PpmSettingsController, ProjectMetaController, StatusNoteController, LifecycleController, TeamController, PortfolioController],
+  controllers: [DependencyController, WorklogController, CapacityController, AllocationController, FeatureController, PpmSettingsController, ProjectMetaController, StatusNoteController, LifecycleController, TeamController, PortfolioController],
   providers: [
     { provide: FeatureService, useFactory: (db: Db) => new FeatureService(db), inject: [Db] },
     FeatureGuard,
@@ -54,6 +56,7 @@ import { TeamService } from './team.service';
     { provide: CapacityDataService, useFactory: (db: Db) => new CapacityDataService(db), inject: [Db] },
     { provide: CapacityService, useFactory: (db: Db, c: CalendarService, s: PpmSettingsService) => new CapacityService(db, c, s), inject: [Db, CalendarService, PpmSettingsService] },
     { provide: WorklogService, useFactory: (db: Db, c: CalendarService, s: PpmSettingsService) => new WorklogService(db, c, s), inject: [Db, CalendarService, PpmSettingsService] },
+    { provide: DependencyService, useFactory: (db: Db, s: ScheduleService, c: CalendarService) => new DependencyService(db, s, c), inject: [Db, ScheduleService, CalendarService] },
     { provide: TeamService, useFactory: (db: Db) => new TeamService(db), inject: [Db] },
     { provide: PortfolioService, useFactory: (db: Db, k: KpiService) => new PortfolioService(db, k), inject: [Db, KpiService] },
   ],

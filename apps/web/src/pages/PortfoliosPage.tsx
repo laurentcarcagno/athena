@@ -6,6 +6,7 @@ import { useFailure } from '../hooks';
 import { useConfirm } from '../components/ConfirmDialog';
 import { Dashboard } from '../components/Dashboard';
 import { RoadmapView } from '../components/RoadmapView';
+import { DependenciesPanel } from '../components/DependenciesPanel';
 import { GovernancePanel } from '../components/GovernancePanel';
 import { SnapshotPanel } from '../components/SnapshotPanel';
 import { PortfolioHealthTable } from '../components/PortfolioHealthTable';
@@ -84,6 +85,7 @@ export function PortfoliosPage({ session }: { session: Session }) {
           </Card>
           {roles.some((r) => r === 'athena-admin' || r === 'athena-pmo' || r === 'athena-director') ? <Dashboard portfolio={one.portfolio.key} /> : <PortfolioHealthTable portfolio={one.portfolio.key} />}
           <SnapshotPanel portfolio={one.portfolio.key} canTake={admin} />
+          <DependenciesPanel portfolio={one.portfolio.key} canEdit={admin} />
           <GovernancePanel portfolio={one.portfolio.key} projects={one.projects.map((p) => p.key)} />
           {one.projects.length === 0 ? <EmptyState eyebrow={t.project} title={t.noProject} /> : (
             <Table caption={t.projectsCount(one.projects.length)}>
