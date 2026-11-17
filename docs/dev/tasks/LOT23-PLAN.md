@@ -7,5 +7,5 @@
 | T-0234 | B37 | Rôle `athena-finance`, migration 080 (catégories, budget, engagements, réels, prévisions, taux), services de saisie et droits | faite (080) |
 | T-0235 | B37 | Import CSV des réels : idempotent par empreinte, rejet ligne à ligne avec rapport | faite |
 | T-0236 | B37 | Vues : budget, réel, engagé, prévisions, EAC par projet et par catégorie ; coût du temps passé ; alertes de dépassement | faite |
-| T-0237 | B37 | Interface : page Finances (tableaux, courbe en S, barres, import) | |
-| T-0238 | — | `LOT23-VERIFICATION.md`, tests, `STATE.md` | |
+| T-0237 | B37 | Interface : page Finances (tableaux, courbe en S, barres, import) | faite |
+| T-0238 | — | `LOT23-VERIFICATION.md`, tests, `STATE.md` | faite |

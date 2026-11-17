@@ -237,6 +237,15 @@ const frDict = {
     noImpact: 'Aucun ticket d’un autre projet n’est touché.', impactCaption: (k: string, n: number, c: number) => `${c} ticket${c > 1 ? 's' : ''} touché${c > 1 ? 's' : ''} si ${k} glisse de ${n} jour${Math.abs(n) > 1 ? 's' : ''} ouvré${Math.abs(n) > 1 ? 's' : ''}`,
     ticket: 'Ticket', shift: 'Glissement', newStart: 'Nouveau début', newEnd: 'Nouvelle fin', readOnly: 'La propagation est un calcul : aucun planning n’est modifié.',
   },
+  finance: {
+    title: 'Finances', sub: 'Budget, engagé, réel, prévisions et estimation à terminaison d’un projet, par catégorie de dépense.', project: 'Projet', pick: 'Choisissez un projet.', none: 'Aucune donnée financière pour ce projet.',
+    byCategory: 'Par catégorie', caption: (p: string) => `Finances du projet ${p}`, category: 'Catégorie', budget: 'Budget', committed: 'Engagé', actual: 'Réel', forecast: 'Prévu à venir', eac: 'Estimation à terminaison', variance: 'Écart au budget', total: 'Total', over: 'dépassement',
+    alerts: 'Alertes de dépassement', alertKinds: { exceeded: 'Réel au-delà du budget', overrun: 'Estimation à terminaison au-delà du budget' } as Record<string, string>, excess: (e: string) => `${e} de dépassement`,
+    chart: 'Budget, réel et estimation à terminaison par catégorie', curve: 'Courbe en S : cumul du réel et de l’estimation à terminaison', actualCumulative: 'Réel cumulé', eacCumulative: 'Estimation cumulée',
+    input: 'Saisie', kindLabel: 'Nature de la saisie', kinds: { budget: 'Budget', actual: 'Réel', forecast: 'Prévision' } as Record<string, string>, budgetKind: 'Nature du budget', budgetKinds: { initial: 'Initial', amendment: 'Avenant', arbitration: 'Arbitrage' } as Record<string, string>,
+    reason: 'Motif', period: 'Période (AAAA-MM)', amount: 'Montant (€)', save: 'Enregistrer', saved: 'Montant enregistré.', importForm: 'Importer des réels', importHelp: 'Réels à importer (une ligne par montant : projet;catégorie;période;montant)', import: 'Importer',
+    imported: (n: number, total: number) => `${n} ligne${n > 1 ? 's' : ''} enregistrée${n > 1 ? 's' : ''} sur ${total}.`, alreadyImported: (n: number) => `Ce fichier a déjà été importé (${n} lignes) : rien n’a été ajouté.`, line: (n: number) => `Ligne ${n}`, openProject: 'Ouvrir le projet',
+  },
   statusNote: {
     title: 'Météo du projet', write: 'Écrire la météo', save: 'Enregistrer', cancel: 'Annuler', saved: 'Météo enregistrée.', none: 'Aucune météo écrite.', comment: 'Commentaire',
     axes: { schedule: 'Délai', scope: 'Périmètre', risk: 'Risque', resources: 'Ressources', cost: 'Coût' } as Record<string, string>,
@@ -870,6 +879,15 @@ const enDict: Dictionary = {
     add: 'Add', added: 'Dependency added.', propagateForm: 'Propagate a delay', propagateTicket: 'Ticket that slips', propagateShift: 'Slip (working days)', propagate: 'Show the affected milestones',
     noImpact: 'No ticket of another project is affected.', impactCaption: (k: string, n: number, c: number) => `${c} ticket${c > 1 ? 's' : ''} affected if ${k} slips by ${n} working day${Math.abs(n) > 1 ? 's' : ''}`,
     ticket: 'Ticket', shift: 'Slip', newStart: 'New start', newEnd: 'New end', readOnly: 'Propagation is a calculation: no schedule is modified.',
+  },
+  finance: {
+    title: 'Finance', sub: 'Budget, committed, actual, forecasts and estimate at completion of a project, by expense category.', project: 'Project', pick: 'Pick a project.', none: 'No financial data for this project.',
+    byCategory: 'By category', caption: (p: string) => `Finances of project ${p}`, category: 'Category', budget: 'Budget', committed: 'Committed', actual: 'Actual', forecast: 'Forecast to come', eac: 'Estimate at completion', variance: 'Variance to budget', total: 'Total', over: 'overrun',
+    alerts: 'Overrun alerts', alertKinds: { exceeded: 'Actual above budget', overrun: 'Estimate at completion above budget' } as Record<string, string>, excess: (e: string) => `${e} over`,
+    chart: 'Budget, actual and estimate at completion by category', curve: 'S-curve: cumulative actual and estimate at completion', actualCumulative: 'Cumulative actual', eacCumulative: 'Cumulative estimate',
+    input: 'Input', kindLabel: 'Kind of entry', kinds: { budget: 'Budget', actual: 'Actual', forecast: 'Forecast' } as Record<string, string>, budgetKind: 'Budget kind', budgetKinds: { initial: 'Initial', amendment: 'Amendment', arbitration: 'Arbitration' } as Record<string, string>,
+    reason: 'Reason', period: 'Period (YYYY-MM)', amount: 'Amount (€)', save: 'Save', saved: 'Amount saved.', importForm: 'Import actuals', importHelp: 'Actuals to import (one line per amount: project;category;period;amount)', import: 'Import',
+    imported: (n: number, total: number) => `${n} line${n > 1 ? 's' : ''} saved out of ${total}.`, alreadyImported: (n: number) => `This file was already imported (${n} lines): nothing was added.`, line: (n: number) => `Line ${n}`, openProject: 'Open the project',
   },
   statusNote: {
     title: 'Project weather', write: 'Write the weather', save: 'Save', cancel: 'Cancel', saved: 'Weather saved.', none: 'No weather written.', comment: 'Comment',

@@ -34,7 +34,8 @@ export class DependencyService {
   async add(organizationId: string, input: z.infer<typeof DependencyInput>, actor: Actor): Promise<DependencyLink> {
     const id = await this.db.tx(organizationId, async (c) => {
       const find = async (key: string) => {
-        const r = (await c.query('select a.id, a.key, a.project_id, p.key as project from artifact a join project p on p.id = a.project_id where a.key = $1', [key])).rows[0];
+        // la clé d'un ticket commence par celle de son projet ; les anciennes clés (alias) sont résolues par le projet
+        const r = (await c.query('select a.id, a.key, a.project_id, p.key as project from project p join artifact a on a.id = resolve_artifact(p.id, $1) where p.key = $2', [key, key.split('-')[0]])).rows[0];
         if (!r) throw notFound(`Ticket ${key}`);
         return r as { id: string; key: string; project_id: string; project: string };
       };
@@ -115,7 +116,7 @@ export class DependencyService {
    */
   async propagate(organizationId: string, input: z.infer<typeof PropagateInput>, actor: Actor): Promise<{ origin: string; shiftDays: number; impacts: Impact[] }> {
     const deps = await this.db.tx(organizationId, async (c) => {
-      if (!(await c.query('select 1 from artifact where key = $1', [input.ticket])).rows[0]) throw notFound(`Ticket ${input.ticket}`);
+      if (!(await c.query('select 1 from project p where p.key = $2 and resolve_artifact(p.id, $1) is not null', [input.ticket, input.ticket.split('-')[0]])).rows[0]) throw notFound(`Ticket ${input.ticket}`);
       return (await c.query(
         `select fa.key fkey, fp.key fproject, ta.key tkey, tp.key tproject, d.lag_days from project_dependency d join artifact fa on fa.id = d.from_artifact_id
            join project fp on fp.id = d.from_project_id join artifact ta on ta.id = d.to_artifact_id join project tp on tp.id = d.to_project_id`)).rows;

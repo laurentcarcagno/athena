@@ -1,4 +1,5 @@
 import { PortfolioRoadmapPage } from './pages/PortfolioRoadmapPage';
+import { FinancePage } from './pages/FinancePage';
 import { CapacityPage } from './pages/CapacityPage';
 import { ReviewDossierPage } from './pages/ReviewDossierPage';
 import { ProjectSheetPage } from './pages/project/ProjectSheetPage';
@@ -214,6 +215,7 @@ export function AuthenticatedApp({ session }: { session: Session }) {
         <Route path="/" element={<HomeRoute session={session} />} />
         <Route path="/projets" element={<ProjectsPage session={session} />} />
         <Route path="/charge" element={<FeatureRoute feature="ppm.portfolios"><TeamLoadPage session={session} /></FeatureRoute>} />
+        <Route path="/finances" element={<FeatureRoute feature="ppm.finance"><FinancePage session={session} /></FeatureRoute>} />
         <Route path="/capacite" element={<FeatureRoute feature="ppm.capacity"><CapacityPage session={session} /></FeatureRoute>} />
         <Route path="/portefeuilles" element={<FeatureRoute feature="ppm.portfolios"><PortfoliosPage session={session} /></FeatureRoute>} />
         <Route path="/portefeuilles/:key/roadmap" element={<FeatureRoute feature="ppm.portfolios"><PortfolioRoadmapPage /></FeatureRoute>} />
