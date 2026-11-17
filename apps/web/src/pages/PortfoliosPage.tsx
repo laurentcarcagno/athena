@@ -6,6 +6,7 @@ import { useFailure } from '../hooks';
 import { useConfirm } from '../components/ConfirmDialog';
 import { Dashboard } from '../components/Dashboard';
 import { RoadmapView } from '../components/RoadmapView';
+import { PrioritizationPanel } from '../components/PrioritizationPanel';
 import { DecisionsPanel } from '../components/DecisionsPanel';
 import { DependenciesPanel } from '../components/DependenciesPanel';
 import { GovernancePanel } from '../components/GovernancePanel';
@@ -86,6 +87,7 @@ export function PortfoliosPage({ session }: { session: Session }) {
           </Card>
           {roles.some((r) => r === 'athena-admin' || r === 'athena-pmo' || r === 'athena-director') ? <Dashboard portfolio={one.portfolio.key} /> : <PortfolioHealthTable portfolio={one.portfolio.key} />}
           <SnapshotPanel portfolio={one.portfolio.key} canTake={admin} />
+          <PrioritizationPanel portfolio={one.portfolio.key} canEdit={admin} canSeeFinance={roles.some((r) => ['athena-admin', 'athena-finance', 'athena-pmo', 'athena-director'].includes(r))} />
           <DecisionsPanel portfolio={one.portfolio.key} projects={one.projects.map((p) => p.key)} canDecide={admin} canApply={roles.includes('athena-admin') || roles.includes('athena-finance')} />
           <DependenciesPanel portfolio={one.portfolio.key} canEdit={admin} />
           <GovernancePanel portfolio={one.portfolio.key} projects={one.projects.map((p) => p.key)} />

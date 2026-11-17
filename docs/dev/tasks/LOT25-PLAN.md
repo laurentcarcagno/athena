@@ -8,5 +8,5 @@
 | T-0245 | B41 (I8a) | Conversion d'une demande en projet depuis un gabarit, refus motivé | faite |
 | T-0246 | B41 (I8b) | Scénarios what-if en lecture seule (planning, capacité, budget), architecture sans écriture | faite |
 | T-0247 | B41 (I8b) | Valeur acquise : CPI et SPI par projet | faite |
-| T-0248 | B41 | Interface : classement et scoring, scénarios, CPI et SPI | |
-| T-0249 | — | `LOT25-VERIFICATION.md`, tests, `STATE.md` | |
+| T-0248 | B41 | Interface : classement et scoring, scénarios, CPI et SPI | faite |
+| T-0249 | — | `LOT25-VERIFICATION.md`, tests, `STATE.md` | faite |
