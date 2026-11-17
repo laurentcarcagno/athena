@@ -191,11 +191,18 @@ const frDict = {
     kind: 'Nature', milestone: 'Jalon', planned: 'Prévu', actual: 'Réel', deviation: 'Écart', kinds: { review: 'Revue', release: 'Version' } as Record<string, string>, open: 'Roadmap du portefeuille',
   },
   snapshots: {
+    reviewsTitle: 'Revues de portefeuille', newReview: 'Préparer une revue', heldOn: 'Date de la revue', summaryField: 'Ordre du jour ou compte rendu', createReview: 'Créer la revue et figer l’instantané', reviewCreated: 'Revue créée : instantané figé.', openDossier: 'Ouvrir le dossier', markHeld: 'Marquer comme tenue', noReview: 'Aucune revue.', reviewCaption: (n: number) => `${n} revue${n > 1 ? 's' : ''}`,
     title: 'Instantanés', label: 'Libellé de l’instantané', take: 'Prendre un instantané', taken: 'Instantané pris.', none: 'Aucun instantané : le premier est pris à la prochaine échéance, ou à la main.',
     caption: (n: number) => `${n} instantané${n > 1 ? 's' : ''}`, date: 'Date', kind: 'Nature', labelCol: 'Libellé', projects: 'Projets visibles',
     kinds: { weekly: 'Hebdomadaire', monthly: 'Mensuel', review: 'Revue', manual: 'Manuel' } as Record<string, string>,
     compareFrom: 'Comparer', compareTo: 'à', compare: 'Comparer', compareCaption: (a: string, b: string) => `Écarts du ${a} au ${b}`, change: 'Évolution', health: 'Santé', phase: 'Phase', plannedEnd: 'Fin prévue',
     changes: { added: 'Entré', removed: 'Sorti', changed: 'Modifié', same: 'Inchangé' } as Record<string, string>, noChange: 'Aucun écart entre ces deux instantanés.',
+  },
+  dossier: {
+    title: (p: string, d: string) => `Dossier de revue ${p} · ${d}`, frozen: (d: string) => `Instantané figé le ${d} : ces valeurs ne changent plus.`, print: 'Imprimer le dossier', summary: 'Compte rendu', state: 'État',
+    states: { draft: 'Brouillon', held: 'Tenue' } as Record<string, string>, createdBy: (w: string) => `préparée par ${w}`, noSummary: 'Aucun compte rendu.', tiles: 'Vue direction', projects: (n: number) => `${n} projet${n > 1 ? 's' : ''}`,
+    health: 'Tableau de santé', caption: (n: number) => `Santé de ${n} projet${n > 1 ? 's' : ''} à la date de la revue`, empty: 'Aucun projet visible dans cet instantané.', notSet: 'Non renseigné',
+    criticalProject: (k: string) => `Projet critique ${k}`, phase: 'Phase', review: 'Prochaine revue',
   },
   statusNote: {
     title: 'Météo du projet', write: 'Écrire la météo', save: 'Enregistrer', cancel: 'Annuler', saved: 'Météo enregistrée.', none: 'Aucune météo écrite.', comment: 'Commentaire',
@@ -785,11 +792,18 @@ const enDict: Dictionary = {
     kind: 'Kind', milestone: 'Milestone', planned: 'Planned', actual: 'Actual', deviation: 'Deviation', kinds: { review: 'Review', release: 'Release' } as Record<string, string>, open: 'Portfolio roadmap',
   },
   snapshots: {
+    reviewsTitle: 'Portfolio reviews', newReview: 'Prepare a review', heldOn: 'Review date', summaryField: 'Agenda or minutes', createReview: 'Create the review and freeze the snapshot', reviewCreated: 'Review created: snapshot frozen.', openDossier: 'Open the file', markHeld: 'Mark as held', noReview: 'No review.', reviewCaption: (n: number) => `${n} review${n > 1 ? 's' : ''}`,
     title: 'Snapshots', label: 'Snapshot label', take: 'Take a snapshot', taken: 'Snapshot taken.', none: 'No snapshot: the first one is taken at the next due date, or by hand.',
     caption: (n: number) => `${n} snapshot${n > 1 ? 's' : ''}`, date: 'Date', kind: 'Kind', labelCol: 'Label', projects: 'Visible projects',
     kinds: { weekly: 'Weekly', monthly: 'Monthly', review: 'Review', manual: 'Manual' } as Record<string, string>,
     compareFrom: 'Compare', compareTo: 'with', compare: 'Compare', compareCaption: (a: string, b: string) => `Changes from ${a} to ${b}`, change: 'Change', health: 'Health', phase: 'Phase', plannedEnd: 'Planned end',
     changes: { added: 'Added', removed: 'Removed', changed: 'Changed', same: 'Unchanged' } as Record<string, string>, noChange: 'No difference between these two snapshots.',
+  },
+  dossier: {
+    title: (p: string, d: string) => `Review file ${p} · ${d}`, frozen: (d: string) => `Snapshot frozen on ${d}: these values no longer change.`, print: 'Print the file', summary: 'Minutes', state: 'State',
+    states: { draft: 'Draft', held: 'Held' } as Record<string, string>, createdBy: (w: string) => `prepared by ${w}`, noSummary: 'No minutes.', tiles: 'Management view', projects: (n: number) => `${n} project${n > 1 ? 's' : ''}`,
+    health: 'Health table', caption: (n: number) => `Health of ${n} project${n > 1 ? 's' : ''} at the review date`, empty: 'No project visible in this snapshot.', notSet: 'Not set',
+    criticalProject: (k: string) => `Critical project ${k}`, phase: 'Phase', review: 'Next review',
   },
   statusNote: {
     title: 'Project weather', write: 'Write the weather', save: 'Save', cancel: 'Cancel', saved: 'Weather saved.', none: 'No weather written.', comment: 'Comment',

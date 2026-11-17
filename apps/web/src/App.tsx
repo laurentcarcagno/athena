@@ -1,4 +1,5 @@
 import { PortfolioRoadmapPage } from './pages/PortfolioRoadmapPage';
+import { ReviewDossierPage } from './pages/ReviewDossierPage';
 import { ProjectSheetPage } from './pages/project/ProjectSheetPage';
 import { ProtectionBanner } from './components/ProtectionBanner';
 import { setProtectionLevel } from './lib/protection';
@@ -214,6 +215,7 @@ export function AuthenticatedApp({ session }: { session: Session }) {
         <Route path="/charge" element={<FeatureRoute feature="ppm.portfolios"><TeamLoadPage session={session} /></FeatureRoute>} />
         <Route path="/portefeuilles" element={<FeatureRoute feature="ppm.portfolios"><PortfoliosPage session={session} /></FeatureRoute>} />
         <Route path="/portefeuilles/:key/roadmap" element={<FeatureRoute feature="ppm.portfolios"><PortfolioRoadmapPage /></FeatureRoute>} />
+        <Route path="/portefeuilles/:key/revues/:id" element={<FeatureRoute feature="ppm.portfolios"><ReviewDossierPage /></FeatureRoute>} />
         <Route path="/portefeuilles/:key" element={<FeatureRoute feature="ppm.portfolios"><PortfoliosPage session={session} /></FeatureRoute>} />
         <Route path="/profil" element={<ProfilePage session={session} />} />
         <Route path="/notifications" element={<NotificationsPage />} />

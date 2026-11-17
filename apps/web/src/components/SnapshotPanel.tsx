@@ -24,6 +24,11 @@ export function SnapshotPanel({ portfolio, canTake }: { portfolio: string; canTa
   const [a, setA] = useState('');
   const [b, setB] = useState('');
   const [cmp, setCmp] = useState<Comparison | null>(null);
+  const [reviews, setReviews] = useState<Array<{ id: string; heldOn: string; state: string; summary: string }>>([]);
+  const [heldOn, setHeldOn] = useState('');
+  const [agenda, setAgenda] = useState('');
+  const loadReviews = useCallback(() => { api<Array<{ id: string; heldOn: string; state: string; summary: string }>>('GET', `/v1/portfolios/${portfolio}/reviews`).then((r) => setReviews(Array.isArray(r) ? r : [])).catch(() => setReviews([])); }, [portfolio]);
+  useEffect(loadReviews, [loadReviews]);
   const load = useCallback(() => { api<SnapshotView[]>('GET', `/v1/portfolios/${portfolio}/snapshots`).then((r) => setList(Array.isArray(r) ? r : [])).catch(() => setList([])); }, [portfolio]);
   useEffect(load, [load]);
   if (list === null) return null;
@@ -32,6 +37,11 @@ export function SnapshotPanel({ portfolio, canTake }: { portfolio: string; canTa
     e.preventDefault();
     try { await api('POST', `/v1/portfolios/${portfolio}/snapshots`, { kind: 'manual', ...(label.trim() ? { label: label.trim() } : {}) }); setLabel(''); toast('success', t.taken); load(); } catch (error) { fail(error); }
   };
+  const createReview = async (e: FormEvent) => {
+    e.preventDefault();
+    try { await api('POST', `/v1/portfolios/${portfolio}/reviews`, { heldOn, summary: agenda }); setHeldOn(''); setAgenda(''); toast('success', t.reviewCreated); load(); loadReviews(); } catch (error) { fail(error); }
+  };
+  const markHeld = async (id: string) => { try { await api('PATCH', `/v1/portfolios/${portfolio}/reviews/${id}`, { state: 'held' }); loadReviews(); } catch (error) { fail(error); } };
   const compare = async (e: FormEvent) => {
     e.preventDefault();
     try { setCmp(await api<Comparison>('GET', `/v1/portfolios/${portfolio}/snapshots/compare?a=${a}&b=${b}`)); } catch (error) { fail(error); }
@@ -74,6 +84,23 @@ export function SnapshotPanel({ portfolio, canTake }: { portfolio: string; canTa
                 <Td>{arrow(c.health.from ? fr.steer.health[c.health.from] ?? c.health.from : null, c.health.to ? fr.steer.health[c.health.to] ?? c.health.to : null)}</Td>
                 <Td>{arrow(c.phase.from, c.phase.to)}</Td><Td>{arrow(c.plannedEnd.from, c.plannedEnd.to)}</Td><Td mono>{arrow(c.late.from, c.late.to)}</Td><Td mono>{arrow(c.progress.from, c.progress.to)}</Td>
               </tr>
+            ))}</tbody>
+          </Table>
+        )}
+        <h3 className="ath-subsection-title">{t.reviewsTitle}</h3>
+        {canTake && (
+          <form className="ath-stack" onSubmit={(e) => void createReview(e)} aria-label={t.newReview}>
+            <div className="ath-toolbar"><Field label={t.heldOn} type="date" value={heldOn} onChange={(e) => setHeldOn(e.target.value)} required /></div>
+            <Field label={t.summaryField} value={agenda} maxLength={4000} onChange={(e) => setAgenda(e.target.value)} />
+            <div><Btn type="submit" size="sm" disabled={!heldOn}>{t.createReview}</Btn></div>
+          </form>
+        )}
+        {reviews.length === 0 ? <p>{t.noReview}</p> : (
+          <Table caption={t.reviewCaption(reviews.length)}>
+            <thead><tr><Th>{t.date}</Th><Th>{fr.dossier.state}</Th><Th>{fr.dossier.summary}</Th><Th>{t.openDossier}</Th></tr></thead>
+            <tbody>{reviews.map((r) => (
+              <tr key={r.id}><Td>{formatDay(r.heldOn, true)}</Td><Td>{fr.dossier.states[r.state] ?? r.state}</Td><Td>{r.summary || '—'}</Td>
+                <Td><Link className="ath-link" to={`/portefeuilles/${portfolio}/revues/${r.id}`}>{t.openDossier}</Link>{canTake && r.state === 'draft' && <> <Btn size="sm" variant="ghost" onClick={() => void markHeld(r.id)}>{t.markHeld}</Btn></>}</Td></tr>
             ))}</tbody>
           </Table>
         )}

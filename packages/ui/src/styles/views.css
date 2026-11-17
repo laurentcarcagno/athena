@@ -167,3 +167,4 @@
 .ath-roadmap-release { fill: var(--ath-data-3); }
 .ath-roadmap-today { stroke: var(--ath-border-focus); stroke-width: 1.5; stroke-dasharray: 3 3; }
 @media print { .ath-roadmap-scroll { overflow: visible; } }
+@media print { .ath-sheet-page { break-before: page; } }

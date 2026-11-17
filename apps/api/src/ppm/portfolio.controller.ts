@@ -7,6 +7,7 @@ import { ExportMarker } from '../core/export-marking';
 import { FeatureGuard, RequiresFeature } from './feature.service';
 import { RoadmapService } from './roadmap.service';
 import { SnapshotService, type SnapshotKind } from './snapshot.service';
+import { ReviewCreate, ReviewPatch, ReviewService } from './review.service';
 import { HealthService, healthCsv, type HealthFilter } from './health.service';
 import { LIFECYCLE_CATEGORIES, type LifecycleCategory } from './lifecycle';
 import { PortfolioService } from './portfolio.service';
@@ -106,7 +107,7 @@ export class TeamController {
 @RequiresFeature('ppm.portfolios')
 export class PortfolioController {
   constructor(
-    @Inject(PortfolioService) private readonly portfolios: PortfolioService, @Inject(HealthService) private readonly healths: HealthService, @Inject(RoadmapService) private readonly roadmaps: RoadmapService, @Inject(SnapshotService) private readonly snapshots: SnapshotService,
+    @Inject(PortfolioService) private readonly portfolios: PortfolioService, @Inject(HealthService) private readonly healths: HealthService, @Inject(RoadmapService) private readonly roadmaps: RoadmapService, @Inject(SnapshotService) private readonly snapshots: SnapshotService, @Inject(ReviewService) private readonly reviews: ReviewService,
     @Inject(OrgResolver) private readonly orgs: OrgResolver,
     @Inject(ExportMarker) private readonly marker: ExportMarker, @Inject(UsageService) private readonly usage: UsageService,
   ) {}
@@ -174,6 +175,37 @@ export class PortfolioController {
     const { organizationId, actor } = await this.orgs.resolve(request.principal!);
     const input = parseBody(SnapshotBody, body ?? {});
     return this.snapshots.take(organizationId, key, { kind: input.kind as SnapshotKind, label: input.label ?? '' }, actor);
+  }
+
+  @Roles('athena-admin', 'athena-pmo', 'athena-pm', 'athena-director')
+  @Get(':key/reviews')
+  async reviewList(@Req() request: AuthedRequest, @Param('key') key: string) {
+    return this.reviews.list((await this.orgs.resolve(request.principal!)).organizationId, key);
+  }
+
+  /** Dossier d'une revue : la revue et son instantané figé (lignes visibles du lecteur). */
+  @Roles('athena-admin', 'athena-pmo', 'athena-pm', 'athena-director')
+  @Get(':key/reviews/:id')
+  async reviewGet(@Req() request: AuthedRequest, @Param('key') key: string, @Param('id') id: string) {
+    return this.reviews.dossier((await this.orgs.resolve(request.principal!)).organizationId, key, id);
+  }
+
+  /** Crée une revue et fige l'instantané « revue » : le PMO et l'administrateur. */
+  @Roles('athena-admin', 'athena-pmo')
+  @Post(':key/reviews')
+  @HttpCode(201)
+  @BodySchema(ReviewCreate)
+  async reviewCreate(@Req() request: AuthedRequest, @Param('key') key: string, @Body() body: unknown) {
+    const { organizationId, actor } = await this.orgs.resolve(request.principal!);
+    return this.reviews.create(organizationId, key, parseBody(ReviewCreate, body), actor);
+  }
+
+  @Roles('athena-admin', 'athena-pmo')
+  @Patch(':key/reviews/:id')
+  @BodySchema(ReviewPatch)
+  async reviewPatch(@Req() request: AuthedRequest, @Param('key') key: string, @Param('id') id: string, @Body() body: unknown) {
+    const { organizationId, actor } = await this.orgs.resolve(request.principal!);
+    return this.reviews.update(organizationId, key, id, parseBody(ReviewPatch, body), actor);
   }
 
   /** Roadmap consolidée : projets, phases, revues, versions et baseline (lecture seule). `includeClosed=1` ajoute les projets clos. */

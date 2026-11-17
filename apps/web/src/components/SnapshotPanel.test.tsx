@@ -20,6 +20,7 @@ beforeEach(() => {
       { key: 'SA', name: 'A', change: 'changed', health: { from: 'ok', to: 'critical' }, phase: { from: null, to: null }, plannedEnd: { from: null, to: null }, late: { from: 0, to: 4 }, progress: { from: 50, to: 50 } },
       { key: 'SB', name: 'B', change: 'same', health: { from: 'ok', to: 'ok' }, phase: { from: null, to: null }, plannedEnd: { from: null, to: null }, late: { from: 0, to: 0 }, progress: { from: 50, to: 50 } },
     ] }), { status: 200 });
+    if (String(url).endsWith('/reviews')) return new Response(JSON.stringify(init?.method === 'POST' ? { id: 'r1' } : []), { status: init?.method === 'POST' ? 201 : 200 });
     if (init?.method === 'POST') return new Response(JSON.stringify(snaps[0]), { status: 201 });
     return new Response(JSON.stringify(snaps), { status: 200 });
   }));
@@ -54,6 +55,17 @@ describe('instantanés du portefeuille (B32)', () => {
     expect(within(rows[0]!).getByText('Modifié')).toBeInTheDocument();
     expect(within(rows[0]!).getByText('Sain → Critique')).toBeInTheDocument();
     expect(within(rows[0]!).getByText('0 → 4')).toBeInTheDocument();
+  });
+});
+
+describe('revues de portefeuille (B33)', () => {
+  it('le PMO crée une revue datée : l’instantané est figé à la création', async () => {
+    show(true);
+    await screen.findByRole('table');
+    await userEvent.type(screen.getByLabelText('Date de la revue'), '2026-12-10');
+    await userEvent.type(screen.getByLabelText('Ordre du jour ou compte rendu'), 'Point trimestriel');
+    await userEvent.click(screen.getByRole('button', { name: 'Créer la revue et figer l’instantané' }));
+    await waitFor(() => expect(calls.find((c) => c.method === 'POST' && c.url.endsWith('/reviews'))?.body).toBe(JSON.stringify({ heldOn: '2026-12-10', summary: 'Point trimestriel' })));
   });
 });
 

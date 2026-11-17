@@ -8,6 +8,7 @@ import { createTestDb, pgUp, type TestDb } from '../testing/harness';
 import { HealthService } from './health.service';
 import { LifecycleService } from './lifecycle.service';
 import { PortfolioService } from './portfolio.service';
+import { ReviewService } from './review.service';
 import { SnapshotService, compareLines, periodOf, totalsOf, type SnapshotMetrics } from './snapshot.service';
 
 const suite = pgUp ? describe : describe.skip;
@@ -39,6 +40,7 @@ describe('instantanés : calculs purs', () => {
 suite('instantanés de portefeuille (intégration)', () => {
   let testDb: TestDb;
   let snaps: SnapshotService;
+  let reviews: ReviewService;
   let portfolios: PortfolioService;
   let access: AccessService;
   let db: Db;
@@ -62,6 +64,7 @@ suite('instantanés de portefeuille (intégration)', () => {
     portfolios = new PortfolioService(db, kpis);
     snaps = new SnapshotService(db, new HealthService(db, portfolios, new LifecycleService(db)));
     access = new AccessService(db);
+    reviews = new ReviewService(db, snaps);
     await db.tx(org, async (c) => {
       await c.query("insert into organization (id, key, name) values ($1,'sn','sn')", [org]);
       await c.query("insert into user_account (organization_id, subject, username, display_name, email) values ($1,'sub-admin','admin.dev','Admin Dev','a@example.test'), ($1,'sub-pmo','pmo','Pat PMO','p@example.test')", [org]);
@@ -125,5 +128,25 @@ suite('instantanés de portefeuille (intégration)', () => {
     expect(left).toContain(review.id); // revue : pas de limite par défaut ; et une revue de portefeuille s'y appuie
     expect(await snaps.purge(org, { weeks: 26, reviewMonths: 1 }, admin, day('2027-03-01'))).toBeGreaterThanOrEqual(0);
     expect((await snaps.list(org, 'snap')).map((s) => s.id)).toContain(review.id); // protégé par la revue qui le référence
+  });
+
+  it('B33 : le dossier de revue reprend l’instantané figé, pas les données du jour ; une revue tenue n’est plus modifiable', async () => {
+    const r = await reviews.create(org, 'snap', { heldOn: '2026-12-10', summary: 'Ordre du jour' }, pmo);
+    expect(r).toMatchObject({ state: 'draft', heldOn: '2026-12-10', summary: 'Ordre du jour' });
+    const before = await reviews.dossier(org, 'snap', r.id);
+    const sb = before.snapshot.lines.find((l) => l.key === 'SB')!;
+    expect(sb).toMatchObject({ late: 4, blocked: 3 });
+    // le projet change après la revue : le dossier ne bouge pas
+    await db.tx(org, (c) => c.query("update portfolio_project set health_override = 'ok' where project_id = (select id from project where key = 'SB')"));
+    const after = await reviews.dossier(org, 'snap', r.id);
+    expect(after.snapshot.lines.find((l) => l.key === 'SB')!.health).toBe(sb.health);
+    expect(after.snapshot.kind).toBe('review');
+    expect((await reviews.list(org, 'snap')).map((x) => x.id)).toContain(r.id);
+    await reviews.update(org, 'snap', r.id, { summary: 'Compte rendu', state: 'held' }, pmo);
+    await expect(reviews.update(org, 'snap', r.id, { summary: 'Retouche' }, pmo)).rejects.toMatchObject({ code: 'conflict' });
+    await runAs('sub-admin', () => access.set(org, 'SB', { members: ['sub-admin'] }, admin));
+    const hidden = await runAs('sub-dir', () => reviews.dossier(org, 'snap', r.id));
+    expect(JSON.stringify(hidden)).not.toContain('SB'); // le dossier relit les lignes visibles du lecteur
+    await runAs('sub-admin', () => access.remove(org, 'SB', null, admin));
   });
 });
