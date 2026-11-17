@@ -4,6 +4,7 @@ import type { Session } from '../../api';
 import { Dashboard } from '../../components/Dashboard';
 import { fr } from '../../i18n';
 import { ProjectInfoCard } from '../../components/ProjectInfoCard';
+import { ProjectStatusCard } from '../../components/ProjectStatusCard';
 import { ProjectLifecycleCard } from '../../components/ProjectLifecycleCard';
 import { ProjectTemplateCard } from '../../components/ProjectTemplateCard';
 
@@ -18,6 +19,7 @@ export function OverviewTab({ session }: { session: Session }) {
       <PageHeader title={fr.overview.title} />
       <Dashboard project={String(project)} />
       <ProjectInfoCard project={String(project)} canManage={(session.user?.roles ?? []).some((r) => r === 'athena-admin' || r === 'athena-pm')} />
+      <ProjectStatusCard project={String(project)} canManage={(session.user?.roles ?? []).some((r) => r === 'athena-admin' || r === 'athena-pm')} />
       <ProjectLifecycleCard project={String(project)} />
       <ProjectTemplateCard project={String(project)} canManage={(session.user?.roles ?? []).some((r) => r === 'athena-admin' || r === 'athena-pm')} />
     </>

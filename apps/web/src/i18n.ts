@@ -166,6 +166,12 @@ const frDict = {
     reasonFor: (name: string) => `Motif du passage à « ${name} »`, moveConfirm: (name: string) => `Passer à « ${name} »`,
     categories: { pipeline: 'Pipeline', active: 'Actif', suspended: 'Suspendu', closed: 'Clos', cancelled: 'Annulé', archived: 'Archivé' } as Record<string, string>,
   },
+  statusNote: {
+    title: 'Météo du projet', write: 'Écrire la météo', save: 'Enregistrer', cancel: 'Annuler', saved: 'Météo enregistrée.', none: 'Aucune météo écrite.', comment: 'Commentaire',
+    axes: { schedule: 'Délai', scope: 'Périmètre', risk: 'Risque', resources: 'Ressources', cost: 'Coût' } as Record<string, string>,
+    levels: { ok: 'Sous contrôle', attention: 'Attention', critical: 'Critique' } as Record<string, string>,
+    writtenBy: (who: string, when: string) => `Écrite par ${who} le ${when}`,
+  },
   projectMeta: {
     title: 'Informations', edit: 'Modifier', save: 'Enregistrer', cancel: 'Annuler', saved: 'Informations enregistrées.', none: 'Non renseigné', plannedStart: 'Début prévu', plannedEnd: 'Fin prévue',
     endBeforeStart: 'La fin prévue ne peut pas précéder le début prévu.', sponsor: 'Sponsor', granularity: 'Granularité de la capacité', inherit: 'Réglage de l’organisation', week: 'Semaine', month: 'Mois', description: 'Description',
@@ -721,6 +727,12 @@ const enDict: Dictionary = {
     save: 'Save', saved: 'Lifecycle saved.', reset: 'Restore the delivered states', resetDone: 'Delivered states restored.', moveTo: 'Move to', cancel: 'Cancel', history: 'State history',
     reasonFor: (name: string) => `Reason for moving to “${name}”`, moveConfirm: (name: string) => `Move to “${name}”`,
     categories: { pipeline: 'Pipeline', active: 'Active', suspended: 'Suspended', closed: 'Closed', cancelled: 'Cancelled', archived: 'Archived' } as Record<string, string>,
+  },
+  statusNote: {
+    title: 'Project weather', write: 'Write the weather', save: 'Save', cancel: 'Cancel', saved: 'Weather saved.', none: 'No weather written.', comment: 'Comment',
+    axes: { schedule: 'Schedule', scope: 'Scope', risk: 'Risk', resources: 'Resources', cost: 'Cost' } as Record<string, string>,
+    levels: { ok: 'Under control', attention: 'Attention', critical: 'Critical' } as Record<string, string>,
+    writtenBy: (who: string, when: string) => `Written by ${who} on ${when}`,
   },
   projectMeta: {
     title: 'Information', edit: 'Edit', save: 'Save', cancel: 'Cancel', saved: 'Information saved.', none: 'Not set', plannedStart: 'Planned start', plannedEnd: 'Planned end',
