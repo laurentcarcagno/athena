@@ -14,6 +14,6 @@
 | T-0207 | B24 | Portée de tableau de bord `portfolio:<clé>` et cartes santé et tuiles | faite (072) |
 | T-0208 | B25 | Rappel de météo (notification, une par période) | faite (073) |
 | T-0209 | B26 | Journal d'usage agrégé des routes de portefeuille | faite (074) |
-| T-0210 | — | `LOT18-VERIFICATION.md`, e2e, `STATE.md` | |
+| T-0210 | — | `LOT18-VERIFICATION.md`, e2e, `STATE.md` | faite |
 
 Règle : un commit par tâche, tests ciblés, e2e à la vérification du lot, handoff si le contexte approche 70 %.
