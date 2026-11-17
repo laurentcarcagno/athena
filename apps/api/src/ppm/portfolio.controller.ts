@@ -1,10 +1,11 @@
-import { Body, Controller, Delete, Get, HttpCode, Inject, Param, Patch, Post, Put, Query, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Inject, Param, Patch, Post, Put, Query, Req, Res, UseGuards } from '@nestjs/common';
 import { z } from 'zod';
 import { Roles, type AuthedRequest } from '../auth/auth.guard';
 import { BodySchema } from '../openapi/body-schema';
 import { OrgResolver, parseBody } from '../core/http';
+import { ExportMarker } from '../core/export-marking';
 import { FeatureGuard, RequiresFeature } from './feature.service';
-import { HealthService, type HealthFilter } from './health.service';
+import { HealthService, healthCsv, type HealthFilter } from './health.service';
 import { LIFECYCLE_CATEGORIES, type LifecycleCategory } from './lifecycle';
 import { PortfolioService } from './portfolio.service';
 import { TeamService } from './team.service';
@@ -103,6 +104,7 @@ export class PortfolioController {
   constructor(
     @Inject(PortfolioService) private readonly portfolios: PortfolioService, @Inject(HealthService) private readonly healths: HealthService,
     @Inject(OrgResolver) private readonly orgs: OrgResolver,
+    @Inject(ExportMarker) private readonly marker: ExportMarker,
   ) {}
 
   @Roles('athena-admin', 'athena-pmo', 'athena-pm', 'athena-director')
@@ -130,9 +132,13 @@ export class PortfolioController {
   /** Tableau de santé : calculée, déclarée et forcée, écart, dates, phase, prochaine revue, risque maximal. Filtres : `state` (catégories), `phase`, `health`, `sponsor`, `includeClosed`. */
   @Roles('athena-admin', 'athena-pmo', 'athena-pm', 'athena-director')
   @Get(':key/health')
-  async health(@Req() request: AuthedRequest, @Param('key') key: string, @Query() query: Record<string, string | undefined>) {
+  async health(@Req() request: AuthedRequest, @Param('key') key: string, @Query() query: Record<string, string | undefined>, @Res({ passthrough: true }) reply: { header: (n: string, v: string) => unknown }) {
     const { organizationId, actor } = await this.orgs.resolve(request.principal!);
-    return this.healths.health(organizationId, key, actor, parseHealthFilter(query));
+    const h = await this.healths.health(organizationId, key, actor, parseHealthFilter(query));
+    if (query['format'] !== 'csv') return h;
+    reply.header('Content-Type', 'text/csv; charset=utf-8');
+    reply.header('Content-Disposition', `attachment; filename="sante-${key}.csv"`);
+    return this.marker.csv(healthCsv(h));
   }
 
   @Roles('athena-admin', 'athena-pmo', 'athena-pm', 'athena-director')

@@ -6,7 +6,8 @@ import { Db, type Actor } from '../core/db';
 import { FieldTypeRegistry } from '../core/field-types';
 import { TrackerService } from '../core/tracker.service';
 import { createTestDb, pgUp, type TestDb } from '../testing/harness';
-import { HealthService } from './health.service';
+import { ExportMarker } from '../core/export-marking';
+import { HealthService, healthCsv } from './health.service';
 import { LifecycleService } from './lifecycle.service';
 import { parseHealthFilter } from './portfolio.controller';
 import { PortfolioService } from './portfolio.service';
@@ -121,5 +122,31 @@ suite('tableau de santé (intégration)', () => {
     expect(restricted.hiddenByState).toBe(1); // HC (terminé) reste visible du lecteur et exclu par défaut ; HB n'est compté nulle part
     await runAs('sub-admin', () => access.remove(org, 'HB', null, admin)); // lève la restriction
     expect((await runAs('sub-dir', () => health.health(org, 'sante', director))).rows.map((r) => r.key)).toEqual(['HB', 'HA']);
+  });
+
+  it('B22 : le CSV a exactement les lignes de la vue, porte le marquage et ne contient rien d’un projet masqué', async () => {
+    const view = await runAs('sub-admin', () => health.health(org, 'sante', admin));
+    const csv = healthCsv(view);
+    const lines = csv.replace(/^﻿/, '').trimEnd().split('\n');
+    expect(lines[0]).toBe('projet,nom,etat,sante,sante_calculee,sante_forcee,sante_declaree,ecart,phase,prochaine_revue,debut_prevu,fin_prevue,avancement_pct,tickets_ouverts,en_retard,bloques,risque_max,sponsor');
+    expect(lines.slice(1).map((l) => l.split(',')[0])).toEqual(view.rows.map((r) => r.key));
+    expect(lines[1]).toContain('HB,Projet HB,En cours,critical,critical,non,,non,pdr,2026-12-01,2026-01-05,2026-12-18,20,8,4,3,20,Sam Sponsor');
+    const marked = new ExportMarker('DIFFUSION RESTREINTE').csv(csv);
+    expect(marked.split('\n')[0]).toContain('DIFFUSION RESTREINTE');
+    expect(marked.trimEnd().split('\n').at(-1)).toContain('DIFFUSION RESTREINTE');
+    expect(marked.startsWith('﻿')).toBe(true);
+    // lecteur restreint : aucune trace de HB, filtres appliqués à l'export comme à la vue
+    await runAs('sub-admin', () => access.set(org, 'HB', { members: ['sub-admin'] }, admin));
+    const restricted = healthCsv(await runAs('sub-dir', () => health.health(org, 'sante', director)));
+    for (const trace of ['HB', 'Lanceur', 'Sam Sponsor', '2026-12-18']) expect(restricted).not.toContain(trace);
+    await runAs('sub-admin', () => access.remove(org, 'HB', null, admin));
+    expect(healthCsv(await health.health(org, 'sante', admin, { health: 'ok' })).trimEnd().split('\n')).toHaveLength(2);
+  });
+
+  it('neutralise les formules et échappe virgules et guillemets', () => {
+    const row = { key: 'X', name: '=2+2, "piégé"', lifecycle: { key: 'a', name: 'Actif', category: 'active' as const }, health: 'ok' as const, computedHealth: 'ok' as const, overridden: false, declaredHealth: null, declaredAt: null, gap: false, reasons: [], note: '', plannedStart: null, plannedEnd: null, sponsor: '@cmd', phase: null, nextReview: null, progress: 0, open: 0, late: 0, blocked: 0, dueSoon: 0, maxRisk: null };
+    const out = healthCsv({ portfolio: { key: 'p', name: 'p', description: '', owner: null, projects: 1 }, rows: [row], totals: { projects: 1, byHealth: { ok: 1, attention: 0, critical: 0 }, gaps: 0, late: 0, blocked: 0, open: 0, progress: 0 }, hiddenByState: 0 });
+    expect(out).toContain(`X,"'=2+2, ""piégé""",Actif`);
+    expect(out).toContain(",'@cmd\n");
   });
 });

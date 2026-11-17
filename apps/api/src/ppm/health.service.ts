@@ -107,3 +107,24 @@ export class HealthService {
     };
   }
 }
+
+const CSV_COLUMNS: Array<[string, (r: HealthRow) => string | number | null]> = [
+  ['projet', (r) => r.key], ['nom', (r) => r.name], ['etat', (r) => r.lifecycle.name], ['sante', (r) => r.health], ['sante_calculee', (r) => r.computedHealth],
+  ['sante_forcee', (r) => (r.overridden ? 'oui' : 'non')], ['sante_declaree', (r) => r.declaredHealth], ['ecart', (r) => (r.gap ? 'oui' : 'non')],
+  ['phase', (r) => r.phase], ['prochaine_revue', (r) => r.nextReview], ['debut_prevu', (r) => r.plannedStart], ['fin_prevue', (r) => r.plannedEnd],
+  ['avancement_pct', (r) => r.progress], ['tickets_ouverts', (r) => r.open], ['en_retard', (r) => r.late], ['bloques', (r) => r.blocked], ['risque_max', (r) => r.maxRisk], ['sponsor', (r) => r.sponsor],
+];
+
+/** Une cellule CSV : guillemets doublés ; une valeur qui commence par = + - @ est neutralisée (injection de formule dans un tableur). */
+const cell = (v: string | number | null): string => {
+  if (v === null) return '';
+  const text = String(v);
+  const safe = typeof v === 'string' && /^[=+\-@\t\r]/.test(text) ? `'${text}` : text;
+  return /[",;\n\r]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe;
+};
+
+/** Export CSV du tableau de santé : exactement les lignes de la vue (mêmes filtres), BOM en tête pour les tableurs. Le marquage est ajouté par l'appelant. */
+export function healthCsv(h: PortfolioHealth): string {
+  const lines = [CSV_COLUMNS.map(([name]) => name).join(','), ...h.rows.map((r) => CSV_COLUMNS.map(([, f]) => cell(f(r))).join(','))];
+  return `﻿${lines.join('\n')}\n`;
+}

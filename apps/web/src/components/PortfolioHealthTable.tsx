@@ -48,11 +48,13 @@ export function PortfolioHealthTable({ portfolio }: { portfolio: string }) {
     api<PortfolioHealthData>('GET', `/v1/portfolios/${portfolio}/health?${q}`).then((d) => setData(d && Array.isArray(d.rows) ? d : null)).catch((e) => { setError(true); fail(e); });
   }, [portfolio, state, health, closed, fail]);
 
+  const csvQuery = new URLSearchParams({ format: 'csv', ...(state ? { state } : {}), ...(health ? { health } : {}), ...(closed ? { includeClosed: '1' } : {}) });
   if (error) return <Card title={t.title}><p role="alert">{t.degraded}</p></Card>;
   if (!data) return <p role="status">{fr.loading}</p>;
   return (
     <Card title={t.title}>
       <div className="ath-stack">
+        <p><a className="ath-link" href={`/v1/portfolios/${portfolio}/health?${csvQuery}`} download={`sante-${portfolio}.csv`}>{t.exportCsv}</a></p>
         <p>{t.scope} · {t.shown(data.rows.length)}{data.hiddenByState > 0 && !closed ? ` · ${t.hiddenClosed(data.hiddenByState)}` : ''}</p>
         <ul className="ath-tiles" aria-label={t.tiles}>
           {([

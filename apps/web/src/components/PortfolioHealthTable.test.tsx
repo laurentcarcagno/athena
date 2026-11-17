@@ -67,6 +67,7 @@ describe('tableau de santé du portefeuille (B20)', () => {
     show();
     await screen.findByRole('table');
     await userEvent.selectOptions(screen.getByLabelText('Santé'), 'critical');
+    await waitFor(() => expect(screen.getByRole('link', { name: /Exporter en CSV/ })).toHaveAttribute('href', '/v1/portfolios/sante/health?format=csv&health=critical'));
     await waitFor(() => expect(urls.at(-1)).toContain('health=critical'));
     await userEvent.click(screen.getByLabelText('Inclure les projets clos'));
     await waitFor(() => expect(urls.at(-1)).toContain('includeClosed=1'));

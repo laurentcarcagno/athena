@@ -9,7 +9,7 @@
 | T-0202 | B19 | Tests de visibilité des agrégats (lecteur restreint contre complet) | faite |
 | T-0203 | B20 | Page santé du portefeuille (tableau, pastilles libellées, hachure si forcé, états) | faite |
 | T-0204 | B21 | Vue direction : six tuiles, concordance avec le tableau | faite (flèche de tendance avec I3) |
-| T-0205 | B22 | Export CSV du tableau de santé avec marquage | |
+| T-0205 | B22 | Export CSV du tableau de santé avec marquage | faite |
 | T-0206 | B23 | Fiche projet d'une page `/p/:p/fiche`, impression A4 | |
 | T-0207 | B24 | Portée de tableau de bord `portfolio:<clé>` et cartes santé et tuiles | |
 | T-0208 | B25 | Rappel de météo (notification, une par période) | |
