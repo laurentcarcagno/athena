@@ -31,6 +31,8 @@ export const NormativeSchema = z.object({
     entryCriteria: z.array(CriterionSchema).max(20).default([]),
     exitCriteria: z.array(CriterionSchema).max(20).default([]),
     deliverables: z.array(Key).max(40).default([]),
+    /** Vrai : l'assurance qualité étatique (`athena-qa`) peut prendre la décision de gate de cette phase, comme le chef de projet. */
+    qaDecides: z.boolean().default(false),
   })).max(40).default([]),
   /** Documents attendus ; `document` désigne le modèle StrictDoc, `categories` limite aux catégories concernées (toutes si absent). */
   deliverables: z.array(z.object({ key: Key, name: Text, document: z.string().max(200).optional(), categories: z.array(z.string()).max(12).optional() })).max(60).default([]),

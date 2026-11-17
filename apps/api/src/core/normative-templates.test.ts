@@ -8,7 +8,7 @@ import { builtinLinkTypes } from './link-types';
 import { NormativeSchema, elementPaths, normativeProblems } from './normative-template';
 import { TemplateService } from './template.service';
 import { TemplateUpgradeService } from './template-upgrade.service';
-import { BUILTIN_NORMATIVE } from './templates/index';
+import { BUILTIN_NORMATIVE, builtinNormative } from './templates/index';
 import { builtinTrackerTypes } from './tracker-types';
 import { TrackerService } from './tracker.service';
 
@@ -208,6 +208,9 @@ suite('projets créés depuis les gabarits livrés (intégration)', () => {
 
   it('phases datées : historique des dates prévues, décision de gate, phase hors gabarit', async () => {
     await templates.createProject(org, 'PHB', 'Gates', 'spatial', admin, { criticality: 'C' });
+    const lines = (await db.tx(org, (c) => c.query("select phase from project_phase x join project p on p.id = x.project_id where p.key = 'PHB' order by phase"))).rows.map((r) => r.phase as string);
+    expect(lines).toEqual((await upgrades.status(org, 'PHB')).phases.map((x) => x.key).sort()); // une ligne par phase du gabarit, dès la création
+    expect(lines.length).toBeGreaterThan(3);
     expect(await fail(upgrades.setPhaseDates(org, 'PHB', 'inconnue', { plannedEnd: '2026-03-01' }, admin))).toMatch(/^validation:.*phase inconnue/);
     expect(await fail(upgrades.setPhaseDates(org, 'PHB', 'requirements', { plannedStart: '2026-03-10', plannedEnd: '2026-03-01' }, admin))).toMatch(/^validation:.*précède/);
     await upgrades.setPhaseDates(org, 'PHB', 'requirements', { plannedStart: '2026-01-05', plannedEnd: '2026-03-01', reviewPlannedOn: '2026-03-05' }, admin);
@@ -231,6 +234,10 @@ suite('projets créés depuis les gabarits livrés (intégration)', () => {
     expect(after.phases.find((x) => x.key === 'requirements')!.record).toMatchObject({ decision: 'go_with_reserves', reviewHeldOn: '2026-04-02', decidedAt: expect.any(String), decidedBy: expect.any(String) });
     expect(after.phaseHistory).toHaveLength(3); // décider ne change aucune date prévue
 
+    // la décision de gate par l'assurance qualité n'existe que si le gabarit l'exige : jamais pour Spatial, seulement en fin de cycle pour Défense
+    expect(await upgrades.qaDecides(org, 'PHB')).toBe(false);
+    const flags = Object.fromEntries(builtinNormative('defense')!.versions.at(-1)!.normative.phases.map((x) => [x.key, x.qaDecides]));
+    expect(flags).toEqual({ requirements: false, design: false, build: false, qualification: true, acceptance: true });
     // une phase absente du gabarit garde sa ligne, marquée « hors gabarit »
     await db.tx(org, async (c) => { await c.query("insert into project_phase (organization_id, project_id, phase, planned_end, updated_by) select $1, id, 'ancienne', '2026-01-01', 'x' from project where key = 'PHB'", [org]); });
     expect((await upgrades.status(org, 'PHB')).phases.filter((x) => x.offTemplate).map((x) => x.key)).toEqual(['ancienne']);

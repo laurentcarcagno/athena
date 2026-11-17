@@ -33,10 +33,11 @@ Date : 2026-11-17. Source : `docs/ppm/07-plan-livraison.md` § I0, `docs/ppm/08-
 | Écart | État |
 |---|---|
 | Chunk ECharts au-dessus de 200 Ko | Accepté par l'utilisateur (T-0188) |
-| B12 : lignes de phase créées depuis le gabarit | Reporté à la demande de l'utilisateur, repris dans le plan de levée des écarts (voir `STATE.md`) |
-| B12 : décision de gate par l'assurance qualité | Idem |
-| B13 : rôles dans les gabarits livrés, widget `risks` du tableau de bord | Idem |
-| B15 : confirmation de l'unité par les chefs de projet | Non faisable dans le dépôt (aucune donnée réelle) ; hypothèse « jour » documentée, à confirmer à la migration en minutes (I4) |
+| B12 : lignes de phase créées depuis le gabarit | **Levé** : une ligne par phase à la création du projet et à la montée de version ; les projets plus anciens les créent à la première écriture (lecture identique) |
+| B12 : décision de gate par l'assurance qualité | **Levé** côté API : drapeau `qaDecides` des phases du gabarit (Défense : Qualification et Recette) ; `athena-qa` peut alors faire `advance`. Pas de bouton dédié pour ce rôle dans l'interface |
+| B13 : widget `risks` et tri par criticité | **Levé** : ATQL `probability`, `impact`, `criticality` lisent les rôles (produit calculé), à défaut le champ de même nom |
+| B13 : rôles dans les gabarits livrés | Infaisable sans inventer du contenu : Spatial et Défense n'ont aucun tracker de risques ; le type livré « Risque » porte les rôles |
+| B15 : confirmation de l'unité par les chefs de projet | Infaisable dans le dépôt (aucune donnée réelle) ; hypothèse « jour » documentée, à confirmer à la migration en minutes (I4) |
 
 ## Tests
 

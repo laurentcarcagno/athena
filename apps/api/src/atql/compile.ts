@@ -39,6 +39,9 @@ const BUILTIN: Record<string, { column: string; type: 'text' | 'time' }> = {
 const DATE_ROLES: Record<string, string> = { startdate: 'start_date', duedate: 'due_date' };
 const roleDate = (role: string): string =>
   `(select case when v ~ '^\\d{4}-\\d{2}-\\d{2}$' then v::date end from (select a."values" ->> f.key as v from field_definition f where f.tracker_id = a.tracker_id and f.semantic_role = '${role}') r)`;
+/** Valeur numérique du champ porteur d'un rôle sémantique (probabilité, impact), nulle sans rôle ou sans nombre. */
+const roleNumber = (role: string): string =>
+  `(select case when jsonb_typeof(a."values" -> f.key) = 'number' then (a."values" ->> f.key)::numeric end from field_definition f where f.tracker_id = a.tracker_id and f.semantic_role = '${role}')`;
 const CUSTOM_FIELD = /^[a-z][a-z0-9_]{0,39}$/;
 const SQL_OP: Record<Operator, string> = { '=': '=', '!=': '<>', '~': 'ILIKE', '<': '<', '>': '>', '<=': '<=', '>=': '>=' };
 
@@ -55,6 +58,17 @@ export function compile(input: string | Query, context: CompileContext, leading:
   };
 
   const bindText = (value: string): string => `${bind(value)}::text`;
+
+  /**
+   * Champs de risque (lot 17, B13) : `probability` et `impact` suivent le rôle sémantique, à défaut le champ de même nom ; `criticality`
+   * vaut probabilité × impact quand les deux rôles existent, à défaut le champ nommé `criticality`. Nul si rien n'est lisible.
+   */
+  const numeric = (name: string): string | null => {
+    const named = (key: string) => `(case when jsonb_typeof(a."values" -> ${bindText(key)}) = 'number' then (a."values" ->> ${bindText(key)})::numeric end)`;
+    if (name === 'probability' || name === 'impact') return `coalesce(${roleNumber(name)}, ${named(name)})`;
+    if (name === 'criticality') return `coalesce(${roleNumber('probability')} * ${roleNumber('impact')}, ${named('criticality')})`;
+    return null;
+  };
 
   const scalar = (value: Value, position = 0): string | number => {
     if (value.kind === 'string' || value.kind === 'word') return value.value;
@@ -85,6 +99,13 @@ export function compile(input: string | Query, context: CompileContext, leading:
       if (op !== '~') throw new AtqlError("Le champ text n'accepte que l'opérateur ~", 0);
       if (context.forbiddenFields && context.forbiddenFields.size > 0) throw new AtqlError('Recherche plein texte indisponible : des champs sont à lecture restreinte pour votre rôle', 0);
       return `a.search_tsv @@ websearch_to_tsquery('simple', ${bind(String(scalar(value)))})`;
+    }
+    const risk = numeric(field.toLowerCase());
+    if (risk) {
+      if (op === '~') throw new AtqlError(`L'opérateur ~ ne s'applique pas à ${field}`, 0);
+      const n = Number(scalar(value));
+      if (!Number.isFinite(n)) throw new AtqlError(`${field} attend un nombre`, 0);
+      return `${risk} ${SQL_OP[op]} ${bind(n)}::numeric`;
     }
     const role = DATE_ROLES[field.toLowerCase()];
     if (role) {
@@ -158,6 +179,8 @@ export function compile(input: string | Query, context: CompileContext, leading:
         return e.negated ? `(not ${inner})` : inner;
       }
       case 'empty': {
+        const riskExpr = numeric(e.field.toLowerCase());
+        if (riskExpr) return e.negated ? `(${riskExpr} is not null)` : `(${riskExpr} is null)`;
         const dateRole = DATE_ROLES[e.field.toLowerCase()];
         if (dateRole) return e.negated ? `(${roleDate(dateRole)} is not null)` : `(${roleDate(dateRole)} is null)`;
         const { builtin, name } = fieldRef(e.field);
@@ -174,6 +197,8 @@ export function compile(input: string | Query, context: CompileContext, leading:
   const whereParamCount = params.length;
   const order: string[] = [];
   for (const o of query.orderBy) {
+    const sortNum = numeric(o.field.toLowerCase());
+    if (sortNum) { order.push(`${sortNum} ${o.descending ? 'desc' : 'asc'} nulls last`); continue; }
     const sortRole = DATE_ROLES[o.field.toLowerCase()];
     if (sortRole) { order.push(`${roleDate(sortRole)} ${o.descending ? 'desc' : 'asc'} nulls last`); continue; }
     const { builtin, name } = fieldRef(o.field);

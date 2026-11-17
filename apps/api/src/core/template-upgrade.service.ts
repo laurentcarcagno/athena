@@ -54,6 +54,8 @@ export interface PhaseCheck {
   key: string; name: string; review: string; next: string | null;
   /** Dates prévues, revue tenue et décision de la phase courante. */
   record: PhaseRecord;
+  /** Le gabarit autorise l'assurance qualité étatique à décider de cette gate. */
+  qaDecides: boolean;
   /**
    * Critères du passage : sortie de la phase courante puis entrée de la suivante. Un critère « tracker_status » est contrôlé
    * (`remaining` items à traiter) ; un critère manuel n'est rempli qu'une fois confirmé par une personne habilitée.
@@ -156,7 +158,12 @@ export class TemplateUpgradeService {
       }
       return out;
     });
-    return { key: phase.key, name: phase.name, review: phase.review, next: next?.key ?? null, record: records.get(phase.key) ?? EMPTY_RECORD, criteria, canAdvance: next !== undefined && criteria.every((x) => x.met) };
+    return { key: phase.key, name: phase.name, review: phase.review, next: next?.key ?? null, record: records.get(phase.key) ?? EMPTY_RECORD, qaDecides: phase.qaDecides === true, criteria, canAdvance: next !== undefined && criteria.every((x) => x.met) };
+  }
+
+  /** Vrai si le gabarit confie la décision de la phase courante à l'assurance qualité étatique. */
+  async qaDecides(organizationId: string, projectKey: string): Promise<boolean> {
+    return (await this.status(organizationId, projectKey)).phaseCheck?.qaDecides === true;
   }
 
   /** Confirme (ou annule) un critère manuel du passage en cours ; refuse un critère inconnu ou contrôlé automatiquement. */
@@ -400,6 +407,9 @@ export class TemplateUpgradeService {
         );
       }
       await c.query('update project set template_version = $2, current_phase = $3 where id = $1', [p.id, report.to, report.phases.nextCurrent]);
+      for (const key of report.phases.added) {
+        await c.query('insert into project_phase (organization_id, project_id, phase, updated_by) values ($1,$2,$3,$4) on conflict do nothing', [organizationId, p.id, key, actor.id]);
+      }
       await audit(c, organizationId, actor, 'project.template_upgrade', `project:${projectKey}`, { template: report.template, from: report.from, to: report.to });
     });
     return report;

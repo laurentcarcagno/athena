@@ -63,6 +63,16 @@ suite('rôles de risque (intégration)', () => {
     expect((by('Sans rôle') as { risk?: unknown }).risk).toBeUndefined(); // le rapport retombe sur le nom du champ
   });
 
+  it('ATQL : probability, impact et criticality suivent les rôles, à défaut le champ de même nom ; tri par criticité calculée', async () => {
+    const titles = async (q: string) => (await search.search(org, 'RSK', q, 'u1', 50, 0)).hits.map((h) => h.title);
+    expect(await titles('criticality >= 15')).toEqual(['Panne du bus']);
+    expect(await titles('probability = 4')).toEqual(['Panne du bus']);
+    expect(await titles('probability = 2')).toEqual(['Sans rôle']); // champ nommé, sans rôle
+    expect(await titles('type = risk AND impact IS EMPTY ORDER BY title')).toEqual(['Sans impact saisi', 'Sans rôle']);
+    expect((await titles('type = risk ORDER BY criticality DESC'))[0]).toBe('Panne du bus');
+    await expect(search.search(org, 'RSK', 'criticality ~ 5', 'u1', 50, 0)).rejects.toThrow();
+  });
+
   it('un rôle sur un champ qui n’est pas numérique est refusé', async () => {
     const db = new Db(testDb.pool);
     const trackers = new TrackerService(db, new FieldTypeRegistry());

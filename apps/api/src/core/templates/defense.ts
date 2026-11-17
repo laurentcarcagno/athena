@@ -48,8 +48,8 @@ const normative = () => parseNormative({
     { key: 'requirements', name: 'Exigences', review: 'srr', deliverables: ['quality-plan', 'software-dev-plan', 'config-plan'] },
     { key: 'design', name: 'Conception', review: 'pdr', deliverables: ['design-file'] },
     { key: 'build', name: 'Réalisation', review: 'cdr', deliverables: ['design-file', 'test-file'] },
-    { key: 'qualification', name: 'Qualification', review: 'qualification', deliverables: ['test-file'] },
-    { key: 'acceptance', name: 'Recette', review: 'recette', deliverables: ['test-file'] },
+    { key: 'qualification', name: 'Qualification', review: 'qualification', qaDecides: true, deliverables: ['test-file'] },
+    { key: 'acceptance', name: 'Recette', review: 'recette', qaDecides: true, deliverables: ['test-file'] },
   ],
   rules: [
     { key: 'customer-req-traced', name: 'Exigences client tracées vers le logiciel', fromTracker: 'STB', linkType: 'refines', direction: 'in', minCount: 1, threshold: { target: 100 } },

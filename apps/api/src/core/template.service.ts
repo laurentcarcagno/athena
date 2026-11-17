@@ -347,6 +347,10 @@ export class TemplateService {
   private async applyTemplate(organizationId: string, projectKey: string, templateKey: string, version: string | null, n: Normative, criticality: string | null): Promise<void> {
     await this.db.tx(organizationId, async (c) => {
       const project = (await c.query('update project set template_key = $2, template_version = $3, criticality = $4, current_phase = $5 where key = $1 returning id', [projectKey, templateKey, version, criticality, n.phases[0]?.key ?? null])).rows[0];
+      // Une ligne datée par phase du gabarit (dates et décision vides), à renseigner par le chef de projet.
+      for (const ph of n.phases) {
+        await c.query('insert into project_phase (organization_id, project_id, phase, updated_by) values ($1,$2,$3,$4) on conflict do nothing', [organizationId, project.id, ph.key, 'template']);
+      }
       for (const r of n.rules) {
         await c.query(
           `insert into coverage_rule (organization_id, project_id, key, name, from_tracker_key, link_type_key, direction, min_count, status_filter, threshold)

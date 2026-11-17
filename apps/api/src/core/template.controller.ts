@@ -2,6 +2,7 @@ import { Body, Controller, Delete, Get, HttpCode, Inject, Param, Post, Put, Req 
 import { z } from 'zod';
 import { Roles, type AuthedRequest } from '../auth/auth.guard';
 import { BodySchema } from '../openapi/body-schema';
+import { forbidden } from './errors';
 import { OrgResolver, parseBody } from './http';
 import { ExportMarker } from './export-marking';
 import { NormativeSchema } from './normative-template';
@@ -211,13 +212,16 @@ export class ProjectTemplateController {
   }
 
   /** Passe à la phase suivante si les critères de sortie de la phase courante sont remplis. */
-  @Roles('athena-admin', 'athena-pm')
+  @Roles('athena-admin', 'athena-pm', 'athena-qa')
   @Post(':project/template/phase/advance')
   @HttpCode(200)
   @BodySchema(AdvanceBody)
   async advance(@Req() request: AuthedRequest, @Param('project') project: string, @Body() body: unknown) {
     const { organizationId, actor } = await this.orgs.resolve(request.principal!);
-    await this.members.requireManager(organizationId, project, actor);
+    // Chef du projet ou administrateur ; l'assurance qualité étatique seulement quand le gabarit l'exige pour cette phase.
+    if (actor.roles.includes('athena-qa') && !actor.roles.includes('athena-admin') && !actor.roles.includes('athena-pm')) {
+      if (!(await this.upgrades.qaDecides(organizationId, project))) throw forbidden('La décision de cette gate n’est pas confiée à l’assurance qualité par le gabarit.');
+    } else await this.members.requireManager(organizationId, project, actor);
     return this.upgrades.advancePhase(organizationId, project, actor, parseBody(AdvanceBody, body ?? {}));
   }
 
