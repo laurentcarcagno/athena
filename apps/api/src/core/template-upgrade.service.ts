@@ -152,8 +152,8 @@ export class TemplateUpgradeService {
         }
         const remaining = Number((await c.query(
           `select count(*) n from artifact a join tracker t on t.id = a.tracker_id join project p on p.id = a.project_id join status s on s.id = a.status_id
-           where p.key = $1 and t.key = $2 and s.key <> all($3::text[]) and ($4::text is null or a."values"->>$4 = $5)`,
-          [projectKey, k.tracker, k.statuses, k.where?.field ?? null, k.where?.value ?? null])).rows[0].n);
+           where p.key = $1 and t.key = $2 and s.key <> all($3::text[]) and ($4::text is null or a."values"->>$4 = $5) and ($6::text is null or a."values"->>$6 = $7)`,
+          [projectKey, k.tracker, k.statuses, k.where?.field ?? null, k.where?.value ?? null, k.and?.field ?? null, k.and?.value ?? null])).rows[0].n);
         out.push({ label: k.label ?? `${k.tracker} : ${k.statuses.join(', ')}`, stage, phase: of, manual: false, met: remaining === 0, remaining });
       }
       return out;

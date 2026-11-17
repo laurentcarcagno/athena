@@ -15,7 +15,9 @@ export const CriterionSchema = z.discriminatedUnion('kind', [
     kind: z.literal('tracker_status'), tracker: TrackerRef, statuses: z.array(StatusRef).min(1).max(20), label: Text.optional(),
     /** Limite le contrôle aux items dont ce champ vaut cette valeur (ex. les RID de la revue PDR). */
     where: z.object({ field: z.string().regex(/^[a-z][a-z0-9_]{0,39}$/), value: z.string().max(100) }).optional(),
-  }),
+    /** Second filtre, cumulé au premier (lot 19, B29) : ex. les RID de la revue PDR ET d'une criticité donnée. Sans `where`, il est refusé. */
+    and: z.object({ field: z.string().regex(/^[a-z][a-z0-9_]{0,39}$/), value: z.string().max(100) }).optional(),
+  }).refine((c) => c.and === undefined || c.where !== undefined, { message: 'and exige where', path: ['and'] }),
 ]);
 export type Criterion = z.infer<typeof CriterionSchema>;
 

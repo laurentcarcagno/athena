@@ -5,7 +5,7 @@ import { Db, type Actor } from './db';
 import { DomainError } from './errors';
 import { FieldTypeRegistry } from './field-types';
 import { builtinLinkTypes } from './link-types';
-import { NormativeSchema, elementPaths, normativeProblems } from './normative-template';
+import { CriterionSchema, NormativeSchema, elementPaths, normativeProblems } from './normative-template';
 import { TemplateService } from './template.service';
 import { TemplateUpgradeService } from './template-upgrade.service';
 import { BUILTIN_NORMATIVE, builtinNormative } from './templates/index';
@@ -14,6 +14,16 @@ import { TrackerService } from './tracker.service';
 
 const admin: Actor = { id: 'sub-admin', roles: ['athena-team-member', 'athena-admin'] };
 const pmActor: Actor = { id: 'sub-pm', roles: ['athena-team-member', 'athena-pm'] };
+describe('critère de gate filtré sur deux champs (B29)', () => {
+  const base = { kind: 'tracker_status' as const, tracker: 'RID', statuses: ['closed'] };
+  it('accepte where seul (rétrocompatible) ou where et and ; refuse and sans where', () => {
+    expect(CriterionSchema.safeParse({ ...base, where: { field: 'review', value: 'pdr' } }).success).toBe(true);
+    expect(CriterionSchema.safeParse({ ...base, where: { field: 'review', value: 'pdr' }, and: { field: 'originator', value: 'ESA' } }).success).toBe(true);
+    expect(CriterionSchema.safeParse({ ...base, and: { field: 'originator', value: 'ESA' } }).success).toBe(false);
+    expect(CriterionSchema.safeParse({ kind: 'manual', label: 'Revue tenue' }).success).toBe(true);
+  });
+});
+
 const suite = pgUp ? describe : describe.skip;
 const fail = async (p: Promise<unknown>) => { const e = await p.then(() => null, (x: unknown) => x); return e instanceof DomainError ? `${e.code}:${e.details.join(' | ') || e.message}` : 'ok'; };
 
