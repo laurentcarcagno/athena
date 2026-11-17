@@ -180,8 +180,8 @@ function PinsBody({ kind }: { kind: 'favorites' | 'recents' }) {
 function Body({ widget, objects, onEmpty, project, portfolio }: { widget: Widget; objects: boolean; project?: string | undefined; portfolio?: string | undefined; onEmpty?: OnEmpty | undefined }) {
   const p = widget.project ?? widget.projects?.[0] ?? project ?? '';
   switch (widget.kind) {
-    case 'portfolio-health': return <PortfolioHealthTable portfolio={portfolio ?? ''} view="table" />;
-    case 'portfolio-tiles': return <PortfolioHealthTable portfolio={portfolio ?? ''} view="tiles" />;
+    case 'portfolio-health': return <PortfolioHealthTable portfolio={portfolio ?? ''} view="table" bare />;
+    case 'portfolio-tiles': return <PortfolioHealthTable portfolio={portfolio ?? ''} view="tiles" bare />;
     case 'indicators': return <IndicatorsCard project={p} />;
     case 'flow': return <FlowCard project={p} />;
     case 'velocity': return <VelocityCard project={p} />;

@@ -85,3 +85,16 @@ describe('tableau de santé du portefeuille (B20)', () => {
     expect(await screen.findByText('Le tableau de santé est indisponible pour le moment.')).toBeInTheDocument();
   });
 });
+
+describe('dans le tableau de bord d’un portefeuille (B24)', () => {
+  it('les cartes ne s’imbriquent pas (charte) : le tableau et les tuiles se rendent sans cadre propre', async () => {
+    const { Dashboard } = await import('./Dashboard');
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      if (String(url).includes('/v1/me/dashboard')) return new Response(JSON.stringify({ widgets: [{ id: 'portfolio-tiles', kind: 'portfolio-tiles', size: 'XL', h: 2, x: 0, y: 0, w: 12 }, { id: 'portfolio-health', kind: 'portfolio-health', size: 'XL', h: 5, x: 0, y: 2, w: 12 }], isDefault: true }), { status: 200 });
+      return new Response(JSON.stringify(body), { status: 200 });
+    }));
+    render(<MemoryRouter><ToastProvider><Dashboard portfolio="sante" /></ToastProvider></MemoryRouter>);
+    expect(await screen.findByRole('list', { name: 'Vue direction' })).toBeInTheDocument();
+    expect(await screen.findByRole('table', { name: /^Santé de \d+ projets?$/ })).toBeInTheDocument();
+  });
+});

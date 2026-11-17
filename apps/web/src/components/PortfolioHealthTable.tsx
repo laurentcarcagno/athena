@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, Checkbox, EmptyState, Select, StatusPill, Table, Td, Th, type PillKind } from '@athena/ui';
 import { api } from '../api';
@@ -31,7 +31,8 @@ export const HealthPill = ({ health, forced = false }: { health: Health; forced?
 const day = (iso: string | null) => (iso ? <time dateTime={iso}>{formatDay(iso, true)}</time> : <span>{fr.steerHealth.notSet}</span>);
 
 /** Tableau de santé d'un portefeuille (lot 18, B20) : calculée, déclarée et forcée côte à côte, dates, phase, risque, filtres dans l'adresse non requis. */
-export function PortfolioHealthTable({ portfolio, view = 'both' }: { portfolio: string; view?: 'both' | 'table' | 'tiles' }) {
+/** `bare` : sans cadre propre, quand la carte du tableau de bord en fournit déjà un (la charte interdit les cartes imbriquées). */
+export function PortfolioHealthTable({ portfolio, view = 'both', bare = false }: { portfolio: string; view?: 'both' | 'table' | 'tiles'; bare?: boolean }) {
   const t = fr.steerHealth;
   const fail = useFailure();
   const [data, setData] = useState<PortfolioHealthData | null>(null);
@@ -49,10 +50,10 @@ export function PortfolioHealthTable({ portfolio, view = 'both' }: { portfolio: 
   }, [portfolio, state, health, closed, fail]);
 
   const csvQuery = new URLSearchParams({ format: 'csv', ...(state ? { state } : {}), ...(health ? { health } : {}), ...(closed ? { includeClosed: '1' } : {}) });
-  if (error) return <Card title={t.title}><p role="alert">{t.degraded}</p></Card>;
+  const frame = (children: ReactNode) => (bare ? <div className="ath-stack">{children}</div> : <Card title={t.title}>{children}</Card>);
+  if (error) return frame(<p role="alert">{t.degraded}</p>);
   if (!data) return <p role="status">{fr.loading}</p>;
-  return (
-    <Card title={t.title}>
+  return frame(
       <div className="ath-stack">
         {view !== 'tiles' && <p><a className="ath-link" href={`/v1/portfolios/${portfolio}/health?${csvQuery}`} download={`sante-${portfolio}.csv`}>{t.exportCsv}</a></p>}
         <p>{t.scope} · {t.shown(data.rows.length)}{data.hiddenByState > 0 && !closed ? ` · ${t.hiddenClosed(data.hiddenByState)}` : ''}</p>
@@ -112,7 +113,6 @@ export function PortfolioHealthTable({ portfolio, view = 'both' }: { portfolio: 
           </Table>
         )}
         </>}
-      </div>
-    </Card>
+      </div>,
   );
 }
