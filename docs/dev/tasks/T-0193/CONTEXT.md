@@ -5,3 +5,5 @@
 - Routes : `PUT /v1/projects/:p/template/phases/:phase` (chef du projet ou administrateur), `POST …/phase/advance` accepte un corps facultatif.
 - Tests : `core/normative-templates.test.ts` (14), API 738/738.
 - Non fait : droit de décision de l'assurance qualité « si le gabarit l'exige » (le circuit 041 n'est pas branché) ; `advance` garde ses rôles `athena-admin`/`athena-pm` sans exiger d'être chef du projet (comportement existant) ; frise et saisie dans l'interface = T-0194.
+
+Écart 3 corrigé : `POST …/phase/advance` exige `requireManager` (chef du projet ou administrateur). Écarts 1 (lignes créées depuis le gabarit) et 2 (décision par l'assurance qualité) **reportés** à la demande de l'utilisateur (2026-11-17).

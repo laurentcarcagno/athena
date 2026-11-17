@@ -506,6 +506,10 @@ const frDict = {
     driftTracker: (t: string) => `Tracker ajouté : ${t}`, driftFields: (t: string, l: string) => `${t} · champs ajoutés : ${l}`, driftStatuses: (t: string, l: string) => `${t} · états ajoutés : ${l}`, driftTransitions: (t: string, l: string) => `${t} · transitions ajoutées : ${l}`,
     upgradeAvailable: (v: string) => `La version ${v} du gabarit est disponible.`, upToDate: 'Le projet est à la dernière version publiée.',
     preview: 'Aperçu de la montée', unversioned: 'Gabarit non versionné',
+    timeline: 'Frise des gates', current: 'En cours', offTemplate: 'Hors gabarit', noDates: 'Aucune date prévue', planned: (a: string, b: string) => `Prévue du ${a} au ${b}`, review: 'Revue', reviewPlanned: 'prévue le', reviewHeld: 'tenue le',
+    editDates: (p: string) => `Dates de la phase ${p}`, plannedStart: 'Début prévu', plannedEnd: 'Fin prévue', reviewPlannedOn: 'Revue prévue le', saveDates: 'Enregistrer les dates', cancel: 'Annuler', datesSaved: 'Dates enregistrées.', endBeforeStart: 'La fin prévue ne peut pas précéder le début prévu.',
+    decision: 'Décision de la revue', decisions: { go: 'Go', go_with_reserves: 'Go avec réserves', no_go: 'No go' } as Record<string, string>, note: 'Note de la décision', noteRequired: 'Une note est obligatoire pour cette décision.', recordNoGo: 'Enregistrer le no go', noGoRecorded: 'No go enregistré : la phase ne change pas.',
+    decidedBy: (who: string, when: string) => `par ${who} le ${when}`, history: 'Historique des dates prévues', historyFields: { planned_end: 'Fin prévue', review_planned_on: 'Revue prévue' } as Record<string, string>, historyLine: (field: string, from: string, to: string, by: string, at: string) => `${field} : ${from} → ${to} (${by}, ${at})`, none: 'Non renseignée',
   },
   protection: { label: 'Niveau de protection de l’instance' },
   access: {
@@ -1058,6 +1062,10 @@ const enDict: Dictionary = {
     driftTracker: (t: string) => `Tracker added: ${t}`, driftFields: (t: string, l: string) => `${t} · fields added: ${l}`, driftStatuses: (t: string, l: string) => `${t} · states added: ${l}`, driftTransitions: (t: string, l: string) => `${t} · transitions added: ${l}`,
     upgradeAvailable: (v: string) => `Template version ${v} is available.`, upToDate: 'The project is on the latest published version.',
     preview: 'Preview the upgrade', unversioned: 'Unversioned template',
+    timeline: 'Gate timeline', current: 'Current', offTemplate: 'Not in template', noDates: 'No planned date', planned: (a: string, b: string) => `Planned ${a} to ${b}`, review: 'Review', reviewPlanned: 'planned on', reviewHeld: 'held on',
+    editDates: (p: string) => `Dates of phase ${p}`, plannedStart: 'Planned start', plannedEnd: 'Planned end', reviewPlannedOn: 'Review planned on', saveDates: 'Save the dates', cancel: 'Cancel', datesSaved: 'Dates saved.', endBeforeStart: 'The planned end cannot be before the planned start.',
+    decision: 'Review decision', decisions: { go: 'Go', go_with_reserves: 'Go with reservations', no_go: 'No go' } as Record<string, string>, note: 'Decision note', noteRequired: 'A note is required for this decision.', recordNoGo: 'Record the no go', noGoRecorded: 'No go recorded: the phase does not change.',
+    decidedBy: (who: string, when: string) => `by ${who} on ${when}`, history: 'History of planned dates', historyFields: { planned_end: 'Planned end', review_planned_on: 'Planned review' } as Record<string, string>, historyLine: (field: string, from: string, to: string, by: string, at: string) => `${field}: ${from} → ${to} (${by}, ${at})`, none: 'Not set',
   },
   protection: { label: 'Instance protection level' },
   access: {

@@ -1,13 +1,15 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Btn, Card, Tag, useToast } from '@athena/ui';
+import { Btn, Card, Select, Tag, Textarea, useToast } from '@athena/ui';
 import { api } from '../api';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
+import { PhaseTimeline, type PhaseDecision, type PhaseEntry, type PhaseHistoryEntryData } from './PhaseTimeline';
 import { UpgradeReport, type UpgradeReportData } from './UpgradeReport';
 
 export interface TemplateStatus {
   templateKey: string | null; version: string | null; latest: string | null; upgradable: boolean; criticality: string | null; phase: string | null;
   phaseCheck: { key: string; name: string; review: string; next: string | null; canAdvance: boolean; criteria: Array<{ label: string; stage: 'exit' | 'entry'; phase: string; manual: boolean; met: boolean; remaining: number; checkedBy?: string; checkedAt?: string; note?: string }> } | null;
+  phases?: PhaseEntry[]; phaseHistory?: PhaseHistoryEntryData[];
   drift: { trackersAdded: string[]; trackers: Array<{ key: string; fieldsAdded: string[]; statusesAdded: string[]; transitionsAdded: string[] }>; total: number };
 }
 
@@ -22,13 +24,18 @@ export function ProjectTemplateCard({ project, canManage }: { project: string; c
   const [status, setStatus] = useState<TemplateStatus | null>(null);
   const [report, setReport] = useState<UpgradeReportData | null>(null);
   const [busy, setBusy] = useState(false);
+  const [decision, setDecision] = useState<PhaseDecision>('go');
+  const [note, setNote] = useState('');
   const load = useCallback(() => { api<TemplateStatus>('GET', `/v1/projects/${project}/template`).then(setStatus).catch(() => setStatus(null)); }, [project]);
   useEffect(load, [load]);
   if (!status?.templateKey) return null;
   const check = status.phaseCheck;
 
   const advance = async () => {
-    try { const out = await api<{ to: string }>('POST', `/v1/projects/${project}/template/phase/advance`); toast('success', t.advanced(out.to)); load(); } catch (error) { fail(error); }
+    try {
+      const out = await api<{ from: string; to: string }>('POST', `/v1/projects/${project}/template/phase/advance`, { decision, ...(note.trim() ? { note: note.trim() } : {}) });
+      toast('success', out.to === out.from ? t.noGoRecorded : t.advanced(out.to)); setDecision('go'); setNote(''); load();
+    } catch (error) { fail(error); }
   };
   const confirmCriterion = async (stage: 'exit' | 'entry', label: string, checked: boolean) => {
     try { await api('PUT', `/v1/projects/${project}/template/phase/criteria`, { stage, label, checked }); load(); } catch (error) { fail(error); }
@@ -63,9 +70,29 @@ export function ProjectTemplateCard({ project, canManage }: { project: string; c
                   </li>
                 ))}
               </ul>
-              {check.next === null ? <p>{t.last}</p> : canManage && <div><Btn disabled={!check.canAdvance} onClick={() => void advance()}>{t.advance(check.next)}</Btn></div>}
+              {check.next === null ? <p>{t.last}</p> : canManage && (
+                <div className="ath-stack">
+                  <div className="ath-toolbar">
+                    <label className="ath-field__label" htmlFor="gate-decision">{t.decision}</label>
+                    <Select id="gate-decision" value={decision} onChange={(e) => setDecision(e.target.value as PhaseDecision)}>
+                      {(['go', 'go_with_reserves', 'no_go'] as const).map((d) => <option key={d} value={d}>{t.decisions[d]}</option>)}
+                    </Select>
+                  </div>
+                  {decision !== 'go' && (
+                    <>
+                      <label className="ath-field__label" htmlFor="gate-note">{t.note}</label>
+                      <Textarea id="gate-note" rows={2} maxLength={2000} value={note} onChange={(e) => setNote(e.target.value)} />
+                    </>
+                  )}
+                  <div>
+                    <Btn disabled={(decision !== 'no_go' && !check.canAdvance) || (decision !== 'go' && note.trim() === '')} onClick={() => void advance()}>{decision === 'no_go' ? t.recordNoGo : t.advance(check.next)}</Btn>
+                    {decision !== 'go' && note.trim() === '' && <small> {t.noteRequired}</small>}
+                  </div>
+                </div>
+              )}
             </section>
           ) : status.phase && <p>{t.phase} : <span className="ath-mono">{status.phase}</span></p>}
+          {status.phases && status.phases.length > 0 && <PhaseTimeline project={project} phases={status.phases} history={status.phaseHistory ?? []} current={status.phase} canManage={canManage} onChange={load} />}
           <section className="ath-stack" aria-label={t.drift}>
             <h3 className="ath-subsection-title">{t.drift}</h3>
             {status.drift.total === 0 ? <p>{t.driftNone}</p> : (

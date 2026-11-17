@@ -185,6 +185,52 @@ describe('carte Gabarit et phase du projet', () => {
     expect(screen.getByRole('button', { name: 'Annuler la confirmation' })).toBeInTheDocument();
   });
 
+  const empty = { plannedStart: null, plannedEnd: null, reviewPlannedOn: null, reviewHeldOn: null, decision: null, decidedBy: null, decidedAt: null, note: '' };
+  const timeline = {
+    phases: [
+      { key: 'requirements', name: 'Exigences', review: 'srr', offTemplate: false, record: { ...empty, plannedStart: '2026-01-12', plannedEnd: '2026-04-01', reviewPlannedOn: '2026-03-05', reviewHeldOn: '2026-04-02', decision: 'go_with_reserves', decidedBy: 'Chef Projet', decidedAt: '2026-04-02T09:00:00.000Z', note: 'RID à lever' } },
+      { key: 'preliminary-design', name: 'Conception préliminaire', review: 'pdr', offTemplate: false, record: empty },
+      { key: 'ancienne', name: 'ancienne', review: '', offTemplate: true, record: { ...empty, plannedEnd: '2026-01-01' } },
+    ],
+    phaseHistory: [{ phase: 'requirements', field: 'planned_end', from: '2026-03-01', to: '2026-04-01', by: 'Chef Projet', at: '2026-03-20T10:00:00.000Z' }],
+  };
+
+  it('la frise montre les dates, la décision, les phases hors gabarit et l’historique des dates prévues', async () => {
+    status = { ...base, ...timeline, phaseCheck: phase(true) };
+    const { container } = render(<ToastProvider><ProjectTemplateCard project="SAT" canManage={false} /></ToastProvider>);
+    const frise = await screen.findByRole('region', { name: 'Frise des gates' });
+    expect(within(frise).getByText('Go avec réserves')).toBeInTheDocument();
+    expect(within(frise).getByText('Hors gabarit')).toBeInTheDocument();
+    expect(within(frise).getByText('Aucune date prévue')).toBeInTheDocument();
+    expect(within(frise).getAllByText(/Prévue du .* au /)).toHaveLength(2);
+    expect(within(frise).getByText(/Fin prévue · Exigences : .* → .* \(Chef Projet,/)).toBeInTheDocument();
+    expect(within(frise).getByText(/RID à lever/)).toBeInTheDocument();
+    expect(within(frise).getAllByRole('listitem').find((li) => li.getAttribute('aria-current') === 'step')).toHaveTextContent('Exigences');
+    expect(screen.queryByRole('button', { name: /Dates de la phase/ })).toBeNull();
+    const results = await axe.run(container, { rules: { 'color-contrast': { enabled: false } } });
+    expect(results.violations.map((v) => v.id)).toEqual([]);
+  });
+
+  it('un responsable modifie les dates d’une phase du gabarit, pas d’une phase hors gabarit', async () => {
+    status = { ...base, ...timeline, phaseCheck: phase(true) };
+    render(<ToastProvider><ProjectTemplateCard project="SAT" canManage /></ToastProvider>);
+    expect(await screen.findAllByRole('button', { name: /Dates de la phase/ })).toHaveLength(2);
+    await userEvent.click(screen.getByRole('button', { name: 'Dates de la phase Conception préliminaire' }));
+    await userEvent.type(screen.getByLabelText('Fin prévue'), '2026-09-30');
+    await userEvent.click(screen.getByRole('button', { name: 'Enregistrer les dates' }));
+    await waitFor(() => expect(sent.find((s) => /template\/phases\/preliminary-design$/.test(s.url))?.body).toEqual({ plannedStart: null, plannedEnd: '2026-09-30', reviewPlannedOn: null }));
+  });
+
+  it('go avec réserves exige une note ; le no go s’enregistre sans passer la phase', async () => {
+    status = { ...base, ...timeline, phaseCheck: phase(true) };
+    render(<ToastProvider><ProjectTemplateCard project="SAT" canManage /></ToastProvider>);
+    await userEvent.selectOptions(await screen.findByLabelText('Décision de la revue'), 'go_with_reserves');
+    expect(screen.getByRole('button', { name: 'Passer à la phase preliminary-design' })).toBeDisabled();
+    await userEvent.type(screen.getByLabelText('Note de la décision'), 'Deux RID ouverts');
+    await userEvent.click(screen.getByRole('button', { name: 'Passer à la phase preliminary-design' }));
+    await waitFor(() => expect(sent.find((s) => /phase\/advance$/.test(s.url))?.body).toEqual({ decision: 'go_with_reserves', note: 'Deux RID ouverts' }));
+  });
+
   it('est absente pour un projet sans gabarit', async () => {
     status = { templateKey: null };
     render(<ToastProvider><ProjectTemplateCard project="SAT" canManage /></ToastProvider>);
