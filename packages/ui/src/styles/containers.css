@@ -422,3 +422,6 @@
 .ath-badges { display: flex; flex-wrap: wrap; gap: var(--ath-space-xs); margin: 0; padding: 0; list-style: none; }
 .ath-dashcard__body ul { margin: 0; padding: 0; list-style: none; }
 .ath-dashcard__head { flex-wrap: wrap; }
+
+/* Santé forcée par le PMO (lot 18) : encadrée en pointillés, jamais signalée par la couleur seule. */
+.ath-health--forced { display: inline-block; border: var(--ath-border-width-hairline) dashed var(--ath-border-strong); padding: 0 var(--ath-space-xs); }

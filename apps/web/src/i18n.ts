@@ -166,6 +166,15 @@ const frDict = {
     reasonFor: (name: string) => `Motif du passage à « ${name} »`, moveConfirm: (name: string) => `Passer à « ${name} »`,
     categories: { pipeline: 'Pipeline', active: 'Actif', suspended: 'Suspendu', closed: 'Clos', cancelled: 'Annulé', archived: 'Archivé' } as Record<string, string>,
   },
+  steerHealth: {
+    title: 'Tableau de santé', scope: 'Périmètre : les projets que vous pouvez voir', shown: (n: number) => `${n} projet${n > 1 ? 's' : ''} affiché${n > 1 ? 's' : ''}`,
+    hiddenClosed: (n: number) => `${n} terminé${n > 1 ? 's' : ''}, annulé${n > 1 ? 's' : ''} ou archivé${n > 1 ? 's' : ''} masqué${n > 1 ? 's' : ''}`,
+    stateFilter: 'État du projet', healthFilter: 'Santé', all: 'Tous', includeClosed: 'Inclure les projets clos', caption: (n: number) => `Santé de ${n} projet${n > 1 ? 's' : ''}`,
+    categories: { pipeline: 'Pipeline', active: 'Actif', suspended: 'Suspendu', closed: 'Terminé', cancelled: 'Annulé', archived: 'Archivé' } as Record<string, string>,
+    health: 'Santé', declared: 'Déclarée', state: 'État', phase: 'Phase', nextReview: 'Prochaine revue', plannedEnd: 'Fin prévue', maxRisk: 'Risque max', sponsor: 'Sponsor',
+    forced: 'forcée', computed: 'Calculée', gap: 'écart avec la santé calculée', noWeather: 'Pas de météo', notSet: 'Non renseigné',
+    emptyPortfolio: 'Aucun projet dans ce portefeuille.', emptyFilter: 'Aucun projet ne correspond aux filtres.', degraded: 'Le tableau de santé est indisponible pour le moment.',
+  },
   statusNote: {
     title: 'Météo du projet', write: 'Écrire la météo', save: 'Enregistrer', cancel: 'Annuler', saved: 'Météo enregistrée.', none: 'Aucune météo écrite.', comment: 'Commentaire',
     axes: { schedule: 'Délai', scope: 'Périmètre', risk: 'Risque', resources: 'Ressources', cost: 'Coût' } as Record<string, string>,
@@ -727,6 +736,15 @@ const enDict: Dictionary = {
     save: 'Save', saved: 'Lifecycle saved.', reset: 'Restore the delivered states', resetDone: 'Delivered states restored.', moveTo: 'Move to', cancel: 'Cancel', history: 'State history',
     reasonFor: (name: string) => `Reason for moving to “${name}”`, moveConfirm: (name: string) => `Move to “${name}”`,
     categories: { pipeline: 'Pipeline', active: 'Active', suspended: 'Suspended', closed: 'Closed', cancelled: 'Cancelled', archived: 'Archived' } as Record<string, string>,
+  },
+  steerHealth: {
+    title: 'Health table', scope: 'Scope: the projects you can see', shown: (n: number) => `${n} project${n > 1 ? 's' : ''} shown`,
+    hiddenClosed: (n: number) => `${n} completed, cancelled or archived hidden`,
+    stateFilter: 'Project state', healthFilter: 'Health', all: 'All', includeClosed: 'Include closed projects', caption: (n: number) => `Health of ${n} project${n > 1 ? 's' : ''}`,
+    categories: { pipeline: 'Pipeline', active: 'Active', suspended: 'Suspended', closed: 'Completed', cancelled: 'Cancelled', archived: 'Archived' } as Record<string, string>,
+    health: 'Health', declared: 'Declared', state: 'State', phase: 'Phase', nextReview: 'Next review', plannedEnd: 'Planned end', maxRisk: 'Max risk', sponsor: 'Sponsor',
+    forced: 'forced', computed: 'Computed', gap: 'differs from computed health', noWeather: 'No weather', notSet: 'Not set',
+    emptyPortfolio: 'No project in this portfolio.', emptyFilter: 'No project matches the filters.', degraded: 'The health table is unavailable for now.',
   },
   statusNote: {
     title: 'Project weather', write: 'Write the weather', save: 'Save', cancel: 'Cancel', saved: 'Weather saved.', none: 'No weather written.', comment: 'Comment',
