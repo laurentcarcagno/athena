@@ -5,7 +5,7 @@
 | Tâche | Backlog | Contenu | État |
 |---|---|---|---|
 | T-0218 | B32 | Instantanés de portefeuille : migration 075 (`portfolio_snapshot`, `_line`), service, instantané manuel | faite (075) |
-| T-0219 | B32 | Jobs `instantanes` (idempotent par période) et rétention, boucle du worker | |
+| T-0219 | B32 | Jobs `instantanes` (idempotent par période) et rétention, boucle du worker | faite |
 | T-0220 | B32 | Comparaison entre deux instantanés, flèche de tendance des tuiles, mini-courbes | |
 | T-0221 | B33 | Revue de portefeuille (`portfolio_review`) et dossier imprimable sur l'instantané figé | |
 | T-0222 | B34 | Courbe de tendance des jalons (MTA) | |

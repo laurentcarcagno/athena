@@ -7,6 +7,7 @@ import type { HistorySync } from '../history/history-sync';
 import type { WebhookService } from '../webhooks/webhook.service';
 import type { DigestService } from '../notify/digest';
 import type { WeatherReminderService } from '../ppm/weather-reminder.service';
+import type { SnapshotJobService } from '../ppm/snapshot-job.service';
 import { WorkerLoop, type LoopOptions } from './loop';
 
 export interface WorkerDeps {
@@ -17,6 +18,7 @@ export interface WorkerDeps {
   plugins?: PluginService;
   digest?: DigestService;
   weather?: WeatherReminderService;
+  snapshots?: SnapshotJobService;
   log?: (message: string) => void;
 }
 
@@ -90,6 +92,16 @@ export function buildWorkers(deps: WorkerDeps, intervals: { historyMs: number; w
       let sent = 0;
       for (const { id } of organizations) sent += await weather.run(id);
       if (sent) deps.log?.(`météo: ${sent} rappel(s) émis`);
+    }, options(3_600_000)));
+  }
+  if (deps.snapshots) {
+    const snapshots = deps.snapshots;
+    // Jobs `instantanes` et `retention` (lot 20) : rejouables, une vérification par heure suffit.
+    loops.push(new WorkerLoop('instantanés', async () => {
+      const organizations = (await deps.pool.query('select list_organization_ids() as id')).rows as Array<{ id: string }>;
+      let taken = 0; let purged = 0;
+      for (const { id } of organizations) { const r = await snapshots.run(id); taken += r.taken; purged += r.purged; }
+      if (taken || purged) deps.log?.(`instantanés: ${taken} pris, ${purged} purgé(s)`);
     }, options(3_600_000)));
   }
   const sessions = new PgSessionStore(deps.pool);
