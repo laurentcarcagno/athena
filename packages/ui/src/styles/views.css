@@ -177,3 +177,10 @@
 .ath-matrix__cell--moderate { background: var(--ath-surface-muted); }
 .ath-matrix__cell--high { background: var(--ath-surface-selected); }
 .ath-matrix__cell--critical { background: var(--ath-surface-selected); border: var(--ath-border-width-strong) solid var(--ath-border-focus); }
+
+/* Carte de chaleur de charge (lot 21) : le taux est écrit et le palier dit en toutes lettres ; la nuance n'est qu'un renfort. */
+.ath-load { text-align: center; font-size: var(--ath-font-size-small); border: var(--ath-border-width-hairline) solid var(--ath-border-default); }
+.ath-load--free { background: var(--ath-surface-default); }
+.ath-load--normal { background: var(--ath-surface-muted); }
+.ath-load--tight { background: var(--ath-surface-selected); }
+.ath-load--overload { background: var(--ath-surface-selected); border: var(--ath-border-width-strong) solid var(--ath-border-focus); }
