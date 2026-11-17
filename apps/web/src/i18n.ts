@@ -157,6 +157,15 @@ const frDict = {
     enable: 'Activer', disable: 'Désactiver', active: 'Actif', inactive: 'Inactif', baselineName: 'Nom de la baseline', createdBaseline: (n: string) => `Baseline ${n} créée.`,
     createdWebhook: 'Webhook créé.', toggled: 'État modifié.', trigger: 'Déclencheur',
   },
+  duration: { hours: 'Heures', minutes: 'Minutes', total: 'Total', outOfRange: (min: string, max: string) => `La durée doit être comprise entre ${min} et ${max}.` },
+  ppmAdmin: {
+    tab: 'PPM', settings: 'Réglages de pilotage', help: 'Durée de la journée, instantanés de portefeuille et seuils d’alerte, pour toute l’organisation.',
+    workday: 'Durée de la journée de travail', frequency: 'Fréquence des instantanés', weekly: 'Hebdomadaire', monthly: 'Mensuelle',
+    weeklyRetention: 'Conservation des instantanés hebdomadaires (semaines)', reviewUnlimited: 'Conserver les instantanés de revue sans limite', reviewRetention: 'Conservation des instantanés de revue (mois)',
+    overload: 'Seuil de surcharge (% de la capacité)', staleDays: 'Jours sans météo avant rappel', save: 'Enregistrer les réglages', saved: 'Réglages enregistrés.',
+    features: 'Fonctionnalités', featuresHelp: 'Une fonctionnalité désactivée disparaît du menu pour toute l’organisation et ses adresses répondent « introuvable ».', featureSaved: 'Fonctionnalité enregistrée.',
+    featureNames: { 'ppm.portfolios': 'Portefeuilles et charge des équipes', 'ppm.roadmap': 'Roadmap des portefeuilles', 'ppm.capacity': 'Capacité (à venir)', 'ppm.finance': 'Finances (à venir)', 'ppm.demand': 'Demandes et priorisation (à venir)' } as Record<string, string>,
+  },
   steer: {
     nav: { teams: 'Charge des équipes', portfolios: 'Portefeuilles' },
     roleNames: { 'athena-admin': 'Administrateur', 'athena-pm': 'Chef de projet', 'athena-manager': 'Manager', 'athena-pmo': 'PMO', 'athena-director': 'Directeur', 'athena-qa': 'Assurance qualité', 'athena-team-member': 'Membre d’équipe' } as Record<string, string>,
@@ -687,6 +696,15 @@ const enDict: Dictionary = {
     url: 'HTTPS URL', events: 'Events (comma separated)', create: 'Create', secret: 'Signing secret (shown once)', empty: 'Nothing here.',
     enable: 'Enable', disable: 'Disable', active: 'Active', inactive: 'Inactive', baselineName: 'Baseline name', createdBaseline: (n: string) => `Baseline ${n} created.`,
     createdWebhook: 'Webhook created.', toggled: 'State changed.', trigger: 'Trigger',
+  },
+  duration: { hours: 'Hours', minutes: 'Minutes', total: 'Total', outOfRange: (min: string, max: string) => `The duration must be between ${min} and ${max}.` },
+  ppmAdmin: {
+    tab: 'PPM', settings: 'Steering settings', help: 'Workday length, portfolio snapshots and alert thresholds, for the whole organization.',
+    workday: 'Workday length', frequency: 'Snapshot frequency', weekly: 'Weekly', monthly: 'Monthly',
+    weeklyRetention: 'Weekly snapshot retention (weeks)', reviewUnlimited: 'Keep review snapshots without limit', reviewRetention: 'Review snapshot retention (months)',
+    overload: 'Overload threshold (% of capacity)', staleDays: 'Days without a status note before a reminder', save: 'Save settings', saved: 'Settings saved.',
+    features: 'Features', featuresHelp: 'A disabled feature disappears from the menu for the whole organization and its addresses answer “not found”.', featureSaved: 'Feature saved.',
+    featureNames: { 'ppm.portfolios': 'Portfolios and team workload', 'ppm.roadmap': 'Portfolio roadmap', 'ppm.capacity': 'Capacity (coming)', 'ppm.finance': 'Finance (coming)', 'ppm.demand': 'Demand and prioritization (coming)' } as Record<string, string>,
   },
   steer: {
     nav: { teams: 'Team workload', portfolios: 'Portfolios' },

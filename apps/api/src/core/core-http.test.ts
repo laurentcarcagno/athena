@@ -180,6 +180,19 @@ suite('API REST du noyau', () => {
     expect((await call('GET', '/v1/portfolios', await token(['athena-pmo']))).statusCode).toBe(200);
   });
 
+  it('réglages PPM : lus par tous, modifiés par l’administration ; valeur hors bornes refusée', async () => {
+    expect((await call('GET', '/v1/ppm-settings')).statusCode).toBe(401);
+    expect((await call('GET', '/v1/ppm-settings', await token(['athena-team-member']))).json()).toMatchObject({ workdayMinutes: 468, snapshotFrequency: 'weekly', snapshotWeeklyRetentionWeeks: 26, snapshotReviewRetentionMonths: null });
+    expect((await call('PUT', '/v1/admin/ppm-settings', await token(['athena-pmo']), { workdayMinutes: 420 })).statusCode).toBe(403);
+    expect((await call('PUT', '/v1/admin/ppm-settings', await token(['athena-admin']), { workdayMinutes: 1500 })).statusCode).toBe(422);
+    const saved = await call('PUT', '/v1/admin/ppm-settings', await token(['athena-admin']), { workdayMinutes: 420 });
+    expect(saved.statusCode).toBe(200);
+    expect(saved.json().workdayMinutes).toBe(420);
+    expect((await call('GET', '/v1/ppm-settings', await token(['athena-director']))).json().workdayMinutes).toBe(420);
+    expect((await call('GET', '/v1/ppm-settings', await token(['athena-director'], ['/org-autre']))).json().workdayMinutes).toBe(468);
+    await call('PUT', '/v1/admin/ppm-settings', await token(['athena-admin']), { workdayMinutes: 468 });
+  });
+
   it('calendrier : lu par toute personne connectée, modifié par l’administration seulement', async () => {
     const week = { workDays: [1, 2, 3, 4], holidays: [{ day: '2026-12-25', label: 'Noël' }] };
     expect((await call('GET', '/v1/calendar')).statusCode).toBe(401);

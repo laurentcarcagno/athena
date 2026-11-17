@@ -5,6 +5,8 @@ import { Db } from '../core/db';
 import { FeatureController } from './feature.controller';
 import { FeatureGuard, FeatureService } from './feature.service';
 import { PortfolioController, TeamController } from './portfolio.controller';
+import { PpmSettingsController } from './settings.controller';
+import { PpmSettingsService } from './settings.service';
 import { PortfolioService } from './portfolio.service';
 import { TeamService } from './team.service';
 
@@ -15,10 +17,11 @@ import { TeamService } from './team.service';
  */
 @Module({
   imports: [CoreModule],
-  controllers: [FeatureController, TeamController, PortfolioController],
+  controllers: [FeatureController, PpmSettingsController, TeamController, PortfolioController],
   providers: [
     { provide: FeatureService, useFactory: (db: Db) => new FeatureService(db), inject: [Db] },
     FeatureGuard,
+    { provide: PpmSettingsService, useFactory: (db: Db) => new PpmSettingsService(db), inject: [Db] },
     { provide: TeamService, useFactory: (db: Db) => new TeamService(db), inject: [Db] },
     { provide: PortfolioService, useFactory: (db: Db, k: KpiService) => new PortfolioService(db, k), inject: [Db, KpiService] },
   ],
