@@ -20,6 +20,6 @@ Migrations réelles : la prochaine est la **065**.
 | T-0196 | B14 | Test d'architecture des politiques RLS | faite |
 | T-0197 | B15 | Vérification : unité de `remaining` dans les données existantes | faite |
 | T-0198 | B16 | Vérification : performance du tableau de santé au palier 1 | faite (P95 1,6 s) |
-| T-0199 | — | `LOT17-VERIFICATION.md`, `STATE.md`, arrêt pour compte rendu | |
+| T-0199 | — | `LOT17-VERIFICATION.md`, `STATE.md` | faite |
 
 Règle de l'agent : un commit par tâche, tests ciblés, e2e seulement à la vérification du lot. Handoff vers une nouvelle session si le contexte approche 70 %.

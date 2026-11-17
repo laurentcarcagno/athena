@@ -28,7 +28,8 @@ test('un projet créé depuis le gabarit Spatial reçoit trackers, phase et règ
   await page.goto('/p/SPA1');
   const card = page.getByRole('heading', { name: 'Gabarit et phase' }).locator('xpath=ancestor::*[contains(concat(" ", normalize-space(@class), " "), " ath-card ")][1]');
   await expect(card.getByText('spatial 1.1')).toBeVisible();
-  await expect(card.getByText('Exigences', { exact: true })).toBeVisible();
+  await expect(card.getByRole('region', { name: 'Phase en cours' }).getByText('Exigences', { exact: true })).toBeVisible();
+  await expect(card.getByRole('region', { name: 'Frise des gates' }).getByText('Exigences', { exact: true })).toBeVisible();
   await expect(card.getByText('Tous les RID de la revue SRR sont clos')).toBeVisible();
   await expect(card.getByText('Aucun écart : le projet correspond à sa version du gabarit.')).toBeVisible();
   await page.goto('/p/SPA1/trackers');
