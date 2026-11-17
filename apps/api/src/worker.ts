@@ -23,6 +23,7 @@ import { HealthService } from './ppm/health.service';
 import { LifecycleService } from './ppm/lifecycle.service';
 import { PortfolioService } from './ppm/portfolio.service';
 import { SnapshotJobService } from './ppm/snapshot-job.service';
+import { CachedKpiService } from './ppm/kpi-cache.service';
 import { SnapshotService } from './ppm/snapshot.service';
 import { KpiService } from './agile/kpi.service';
 import { ReportService } from './agile/report.service';
@@ -83,7 +84,8 @@ const automation = new AutomationService(db, artifactService, new LinkService(db
 const plugins = new PluginService(db, registry, parseTrust(env.PLUGIN_TRUSTED_KEYS), { read: async () => null });
 
 const ppmSettings = new PpmSettingsService(db);
-const portfolios = new PortfolioService(db, new KpiService(db, new SearchService(db), new ReportService(db), new SprintService(db)));
+const kpiCache = new CachedKpiService(db, new KpiService(db, new SearchService(db), new ReportService(db), new SprintService(db)));
+const portfolios = new PortfolioService(db, kpiCache);
 const snapshotJobs = new SnapshotJobService(db, ppmSettings, new SnapshotService(db, new HealthService(db, portfolios, new LifecycleService(db))));
 
 const mailer = mailerFrom(env);
@@ -91,7 +93,7 @@ const digest = mailer ? new DigestService(db, { mailer, baseUrl: env.PUBLIC_URL,
 if (!digest) log('Résumé quotidien désactivé : SMTP non configuré (ou DIGEST_ENABLED=false) ; aucune connexion de messagerie ne sera ouverte.');
 
 const loops = buildWorkers(
-  { pool, weather: new WeatherReminderService(db, ppmSettings), snapshots: snapshotJobs, ...(digest ? { digest } : {}), ...(history ? { history } : {}), ...(webhooks ? { webhooks } : {}), automation, plugins, log },
+  { pool, weather: new WeatherReminderService(db, ppmSettings), snapshots: snapshotJobs, kpiCache, ...(digest ? { digest } : {}), ...(history ? { history } : {}), ...(webhooks ? { webhooks } : {}), automation, plugins, log },
   { historyMs: env.HISTORY_INTERVAL_MS, webhooksMs: env.WEBHOOKS_INTERVAL_MS, sessionsMs: env.SESSIONS_INTERVAL_MS, digestMs: env.DIGEST_INTERVAL_MS },
 );
 const health = healthServer(loops, env.WORKER_HEALTH_PORT);

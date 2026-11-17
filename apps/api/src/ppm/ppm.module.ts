@@ -15,6 +15,7 @@ import { WorklogController } from './worklog.controller';
 import { FinanceController } from './finance.controller';
 import { DecisionService } from './decision.service';
 import { AlertService } from './alert.service';
+import { CachedKpiService } from './kpi-cache.service';
 import { PrioritizationController } from './prioritization.controller';
 import { ScoringService } from './scoring.service';
 import { RequestService } from './request.service';
@@ -81,7 +82,7 @@ import { TeamService } from './team.service';
     },
     { provide: EarnedValueService, useFactory: (db: Db, f: FinanceService, k: KpiService) => new EarnedValueService(db, f, k), inject: [Db, FinanceService, KpiService] },
     { provide: TeamService, useFactory: (db: Db) => new TeamService(db), inject: [Db] },
-    { provide: PortfolioService, useFactory: (db: Db, k: KpiService) => new PortfolioService(db, k), inject: [Db, KpiService] },
+    { provide: PortfolioService, useFactory: (db: Db, k: KpiService) => new PortfolioService(db, new CachedKpiService(db, k)), inject: [Db, KpiService] },
   ],
 })
 export class PpmModule {}

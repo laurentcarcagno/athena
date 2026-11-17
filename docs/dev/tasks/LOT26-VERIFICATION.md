@@ -1,0 +1,24 @@
+# Lot 26 : vérification (PPM, incrément I9, charge et dimensionnement)
+
+Source : `docs/ppm/07-plan-livraison.md` § I9, B42. Rapport : `docs/ppm/verifications/B42-dimensionnement.md`.
+
+## Recette
+
+| Critère | Résultat |
+|---|---|
+| Rapport de dimensionnement avec les mesures et la configuration recommandée | Fait (`B42-dimensionnement.md`) |
+| Décision de matérialiser `project_kpi` | Oui : le tableau de santé passe de 8 à 11 s à 0,12 s au palier 2 ; migration 083, job `indicateurs`, lecture avec repli |
+| Visibilité des lignes matérialisées | Politique `acl_read` ; test `ppm/kpi-cache.test.ts` ; test d'architecture RLS vert |
+
+## Écarts
+
+| Écart | État |
+|---|---|
+| Mesure sous charge concurrente et sur disque SSD | Non faite (poste de développement, une session) ; consignée comme « reste à faire en recette » |
+| Job différé `capacite` | Inutile jusqu'à environ 1 500 personnes (1,5 à 2 s) ; seuil documenté |
+| Mesures d'imports de 100 000 lignes | Non faites ; l'import de 1 000 lignes est testé (lot 23) |
+
+## Tests
+
+- API : `kpi-cache` 2 tests, mesure `portfolio-scale` (sous `ATHENA_SCALE=1`). e2e : non rejouée depuis l'interruption du lot 20.
+- Migration du lot : 083. Prochaine : 084.
