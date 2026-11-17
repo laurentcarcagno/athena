@@ -11,7 +11,7 @@
 | T-0204 | B21 | Vue direction : six tuiles, concordance avec le tableau | faite (flèche de tendance avec I3) |
 | T-0205 | B22 | Export CSV du tableau de santé avec marquage | faite |
 | T-0206 | B23 | Fiche projet d'une page `/p/:p/fiche`, impression A4 | faite |
-| T-0207 | B24 | Portée de tableau de bord `portfolio:<clé>` et cartes santé et tuiles | |
+| T-0207 | B24 | Portée de tableau de bord `portfolio:<clé>` et cartes santé et tuiles | faite (072) |
 | T-0208 | B25 | Rappel de météo (notification, une par période) | |
 | T-0209 | B26 | Journal d'usage agrégé des routes de portefeuille | |
 | T-0210 | — | `LOT18-VERIFICATION.md`, e2e, `STATE.md` | |

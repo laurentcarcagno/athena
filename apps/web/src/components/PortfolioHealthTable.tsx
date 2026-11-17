@@ -31,7 +31,7 @@ export const HealthPill = ({ health, forced = false }: { health: Health; forced?
 const day = (iso: string | null) => (iso ? <time dateTime={iso}>{formatDay(iso, true)}</time> : <span>{fr.steerHealth.notSet}</span>);
 
 /** Tableau de santé d'un portefeuille (lot 18, B20) : calculée, déclarée et forcée côte à côte, dates, phase, risque, filtres dans l'adresse non requis. */
-export function PortfolioHealthTable({ portfolio }: { portfolio: string }) {
+export function PortfolioHealthTable({ portfolio, view = 'both' }: { portfolio: string; view?: 'both' | 'table' | 'tiles' }) {
   const t = fr.steerHealth;
   const fail = useFailure();
   const [data, setData] = useState<PortfolioHealthData | null>(null);
@@ -54,9 +54,9 @@ export function PortfolioHealthTable({ portfolio }: { portfolio: string }) {
   return (
     <Card title={t.title}>
       <div className="ath-stack">
-        <p><a className="ath-link" href={`/v1/portfolios/${portfolio}/health?${csvQuery}`} download={`sante-${portfolio}.csv`}>{t.exportCsv}</a></p>
+        {view !== 'tiles' && <p><a className="ath-link" href={`/v1/portfolios/${portfolio}/health?${csvQuery}`} download={`sante-${portfolio}.csv`}>{t.exportCsv}</a></p>}
         <p>{t.scope} · {t.shown(data.rows.length)}{data.hiddenByState > 0 && !closed ? ` · ${t.hiddenClosed(data.hiddenByState)}` : ''}</p>
-        <ul className="ath-tiles" aria-label={t.tiles}>
+        {view !== 'table' && <ul className="ath-tiles" aria-label={t.tiles}>
           {([
             ['projects', data.totals.projects, () => setHealth('')],
             ['critical', data.totals.byHealth.critical, () => setHealth('critical')],
@@ -67,10 +67,11 @@ export function PortfolioHealthTable({ portfolio }: { portfolio: string }) {
           ] as const).map(([id, value, action]) => (
             <li key={id} className="ath-tile">
               <span className="ath-tile__value ath-mono">{value}</span>
-              {action ? <button type="button" className="ath-link" onClick={action}>{t.tile[id]}</button> : <span>{t.tile[id]}</span>}
+              {action && view === 'both' ? <button type="button" className="ath-link" onClick={action}>{t.tile[id]}</button> : action ? <Link className="ath-link" to={`/portefeuilles/${portfolio}`}>{t.tile[id]}</Link> : <span>{t.tile[id]}</span>}
             </li>
           ))}
-        </ul>
+        </ul>}
+        {view !== 'tiles' && <>
         <div className="ath-toolbar">
           <label className="ath-field__label" htmlFor="ph-state">{t.stateFilter}</label>
           <Select id="ph-state" value={state} onChange={(e) => setState(e.target.value)}>
@@ -110,6 +111,7 @@ export function PortfolioHealthTable({ portfolio }: { portfolio: string }) {
             </tbody>
           </Table>
         )}
+        </>}
       </div>
     </Card>
   );

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type DragEvent, type KeyboardEvent, type ReactNode } from 'react';
+import { PortfolioHealthTable } from './PortfolioHealthTable';
 import { Link } from 'react-router-dom';
 import { Btn, DASH_SIZES, boxClasses, DashCard, DashGrid, Select, StatusPill, useToast, type DashSize } from '@athena/ui';
 import { api, type Hit, type SearchResult, type TrackerOverview } from '../api';
@@ -15,7 +16,7 @@ import { GRID_COLUMNS, DEFAULT_ROWS, MAX_ROWS, SIZE_COLUMNS, flowOrder, placeAt,
 
 export type WidgetKind = 'search' | 'mentions' | 'approvals' | 'favorites' | 'recents' | 'trackers'
   | 'indicators' | 'flow' | 'velocity' | 'release' | 'tracker-status' | 'activity' | 'chart'
-  | 'general-info' | 'global-progress' | 'key-indicators' | 'health' | 'sprint-progress' | 'pipelines' | 'quality' | 'badges';
+  | 'general-info' | 'global-progress' | 'key-indicators' | 'health' | 'sprint-progress' | 'pipelines' | 'quality' | 'badges' | 'portfolio-health' | 'portfolio-tiles';
 /** Cartes d'avancement d'un projet (T-0155) : elles portent la clé du projet dans `projects`. */
 const PROGRESS: WidgetKind[] = ['indicators', 'flow', 'velocity', 'release', 'tracker-status', 'activity'];
 export type Period = '7d' | '30d' | 'sprint';
@@ -65,7 +66,8 @@ export const progressWidgets = (project: string): Widget[] => [
   { id: 'activity', kind: 'activity', projects: [project], size: 'M' },
 ];
 /** Cartes proposées par « + Ajouter une carte » : celles de la page, plus, dans un projet, toutes les cartes d'avancement. */
-const builtinFor = (project?: string, page?: string): Widget[] => (project && page ? progressWidgets(project)
+const PORTFOLIO_WIDGETS: Widget[] = [{ id: 'portfolio-tiles', kind: 'portfolio-tiles', size: 'XL' }, { id: 'portfolio-health', kind: 'portfolio-health', size: 'XL' }];
+const builtinFor = (project?: string, page?: string, portfolio?: string): Widget[] => (portfolio ? PORTFOLIO_WIDGETS : project && page ? progressWidgets(project)
   : project ? [...projectWidgets(project), ...progressWidgets(project).filter((w) => w.id !== 'indicators')] : HOME_WIDGETS);
 /** Pied propre à une carte (lien vers le détail, T-0155). */
 const footerOf = (w: Widget, project: string | undefined): ReactNode => {
@@ -175,9 +177,11 @@ function PinsBody({ kind }: { kind: 'favorites' | 'recents' }) {
   return <Rows empty={fr.widgets.empty[kind]!} action={fr.widgets.browseProjects} to="/projets">{list.map((p) => <li key={p.id}><Link className={`ath-link${p.kind === 'item' ? ' ath-mono' : ''}`} to={pinHref(p)}>{p.label}</Link></li>)}</Rows>;
 }
 
-function Body({ widget, objects, onEmpty, project }: { widget: Widget; objects: boolean; project?: string | undefined; onEmpty?: OnEmpty | undefined }) {
+function Body({ widget, objects, onEmpty, project, portfolio }: { widget: Widget; objects: boolean; project?: string | undefined; portfolio?: string | undefined; onEmpty?: OnEmpty | undefined }) {
   const p = widget.project ?? widget.projects?.[0] ?? project ?? '';
   switch (widget.kind) {
+    case 'portfolio-health': return <PortfolioHealthTable portfolio={portfolio ?? ''} view="table" />;
+    case 'portfolio-tiles': return <PortfolioHealthTable portfolio={portfolio ?? ''} view="tiles" />;
     case 'indicators': return <IndicatorsCard project={p} />;
     case 'flow': return <FlowCard project={p} />;
     case 'velocity': return <VelocityCard project={p} />;
@@ -229,7 +233,7 @@ type Placed = Widget & { x: number; y: number; w: number; h: number };
  * flèches pour déplacer, Entrée ou Échap pour poser), engrenage (titre, projet, taille, période), retrait, tiroir « Catalogue »
  * des genres permis au rôle. Rien n'est enregistré avant « Enregistrer » ; « Annuler » restaure ; « Rétablir » revient au défaut.
  */
-export function Dashboard({ project, page, qa = false }: { project?: string; page?: 'avancement'; qa?: boolean } = {}) {
+export function Dashboard({ project, page, portfolio, qa = false }: { project?: string; page?: 'avancement'; portfolio?: string; qa?: boolean } = {}) {
   const fail = useFailure();
   const toast = useToast();
   const confirm = useConfirm();
@@ -246,11 +250,11 @@ export function Dashboard({ project, page, qa = false }: { project?: string; pag
   const [empty, setEmpty] = useState<Record<string, boolean>>({});
   const gridRef = useRef<HTMLDivElement>(null);
   const reportEmpty = useCallback((id: string) => (value: boolean) => setEmpty((st) => (st[id] === value ? st : { ...st, [id]: value })), []);
-  const BUILTIN = builtinFor(project, page);
-  const endpoint = `/v1/me/dashboard${project ? `?project=${project}${page ? `&page=${page}` : ''}` : ''}`;
+  const BUILTIN = builtinFor(project, page, portfolio);
+  const endpoint = `/v1/me/dashboard${portfolio ? `?portfolio=${portfolio}` : project ? `?project=${project}${page ? `&page=${page}` : ''}` : ''}`;
   const editing = draft !== null;
 
-  useEffect(() => { api<Layout>('GET', endpoint).then((r) => setLayout(Array.isArray(r?.widgets) ? r : { widgets: builtinFor(project, page), isDefault: true })).catch((e) => { setLayout({ widgets: builtinFor(project, page), isDefault: true }); fail(e); }); }, [fail, endpoint, project, page]);
+  useEffect(() => { api<Layout>('GET', endpoint).then((r) => setLayout(Array.isArray(r?.widgets) ? r : { widgets: builtinFor(project, page, portfolio), isDefault: true })).catch((e) => { setLayout({ widgets: builtinFor(project, page, portfolio), isDefault: true }); fail(e); }); }, [fail, endpoint, project, page, portfolio]);
   useEffect(() => {
     if (!editing) return;
     api<SavedSearch[]>('GET', '/v1/searches').then((r) => setViews(Array.isArray(r) ? r : [])).catch(() => setViews([]));
@@ -378,7 +382,7 @@ export function Dashboard({ project, page, qa = false }: { project?: string; pag
             ) : undefined}
             footer={w.kind === 'search' ? <Link className="ath-link" to={searchHref(w)}>{fr.home.seeAll}</Link>
               : w.kind === 'trackers' ? <Link className="ath-link" to={`/p/${w.projects?.[0] ?? ''}/trackers`}>{fr.overview.openTrackers}</Link> : footerOf(w, project)}>
-            {needsProject ? <p>{fr.home.chooseProject}</p> : <Body widget={w} objects={qa} project={project} onEmpty={QUIET.includes(w.kind) ? reportEmpty(w.id) : undefined} />}
+            {needsProject ? <p>{fr.home.chooseProject}</p> : <Body widget={w} objects={qa} project={project} portfolio={portfolio} onEmpty={QUIET.includes(w.kind) ? reportEmpty(w.id) : undefined} />}
           </DashCard>
         );
       })}

@@ -4,6 +4,7 @@ import { Btn, Card, EmptyState, Field, Id, PageHeader, Select, StatusPill, Table
 import { api, type Session } from '../api';
 import { useFailure } from '../hooks';
 import { useConfirm } from '../components/ConfirmDialog';
+import { Dashboard } from '../components/Dashboard';
 import { PortfolioHealthTable } from '../components/PortfolioHealthTable';
 import { fr } from '../i18n';
 
@@ -78,7 +79,7 @@ export function PortfoliosPage({ session }: { session: Session }) {
             <Distribution totals={one.totals} />
             <p>{t.progress} : <strong className="ath-mono">{one.totals.progress} %</strong> · {t.open} : <strong className="ath-mono">{one.totals.open}</strong> · {t.late} : <strong className="ath-mono">{one.totals.late}</strong> · {t.blocked} : <strong className="ath-mono">{one.totals.blocked}</strong></p>
           </Card>
-          <PortfolioHealthTable portfolio={one.portfolio.key} />
+          {roles.some((r) => r === 'athena-admin' || r === 'athena-pmo' || r === 'athena-director') ? <Dashboard portfolio={one.portfolio.key} /> : <PortfolioHealthTable portfolio={one.portfolio.key} />}
           {one.projects.length === 0 ? <EmptyState eyebrow={t.project} title={t.noProject} /> : (
             <Table caption={t.projectsCount(one.projects.length)}>
               <thead><tr><Th>{t.project}</Th><Th>{t.healthCol}</Th><Th>{t.progress}</Th><Th>{t.late}</Th><Th>{t.blocked}</Th><Th>{t.dueSoon}</Th><Th>{t.sprint}</Th><Th>{t.managers}</Th><Th>{t.note}</Th>{editor && <Th>{t.saveRow}</Th>}</tr></thead>

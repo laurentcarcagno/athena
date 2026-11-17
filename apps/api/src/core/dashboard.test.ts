@@ -158,7 +158,8 @@ describe('catalogue par rôle (T-0170)', () => {
     expect(kinds(dev)).not.toContain('health');
     expect(kinds(dev)).toEqual(expect.arrayContaining(['search', 'pipelines', 'quality', 'badges']));
     expect(kinds(lead)).toContain('sprint-progress');
-    expect(kinds({ id: 'a', roles: ['athena-admin'] }).length).toBe(kinds(lead).length);
+    // L'administrateur a en plus les deux cartes de portefeuille (lot 18).
+    expect(kinds({ id: 'a', roles: ['athena-admin'] }).filter((k) => !k.startsWith('portfolio-'))).toEqual(kinds(lead));
     // Le directeur accède aux tableaux de bord de pilotage ; le manager garde le catalogue d’un membre d’équipe.
     expect(kinds({ id: 'r', roles: ['athena-director', 'athena-team-member'] })).toContain('health');
     expect(kinds({ id: 'm', roles: ['athena-manager', 'athena-team-member'] })).not.toContain('health');
@@ -185,6 +186,44 @@ suite('refus d’un genre interdit (T-0170, intégration)', () => {
       const widgets = [{ id: 'sp', kind: 'sprint-progress' as const, project: 'NOVA' }];
       expect(await code(dash.put(org, { widgets }, { id: 'dev', roles: ['athena-team-member'] }))).toMatch(/^forbidden/);
       expect(await code(dash.put(org, { widgets }, { id: 'pm', roles: ['athena-pm'] }))).toBe('ok');
+    } finally { await testDb.drop(); }
+  }, 30_000);
+});
+
+describe('portée de portefeuille (lot 18, B24)', () => {
+  it('la portée portfolio:<clé> est valide ; une clé de projet minuscule ou un portefeuille vide ne le sont pas', () => {
+    expect(ScopeSchema.safeParse('portfolio:spatial').success).toBe(true);
+    expect(ScopeSchema.safeParse('portfolio:').success).toBe(false);
+    expect(ScopeSchema.safeParse('portfolio:Spatial').success).toBe(false);
+  });
+  it('les cartes de portefeuille sont dans le catalogue du PMO, du directeur et de l’administrateur, jamais d’un membre d’équipe ni d’un chef de projet', () => {
+    for (const roles of [['athena-pmo'], ['athena-director'], ['athena-admin']]) expect(allowedKinds(roles)).toEqual(expect.arrayContaining(['portfolio-health', 'portfolio-tiles']));
+    for (const roles of [['athena-team-member'], ['athena-pm', 'athena-team-member'], ['athena-qa']]) {
+      expect(allowedKinds(roles)).not.toContain('portfolio-health');
+      expect(allowedKinds(roles)).not.toContain('portfolio-tiles');
+    }
+  });
+});
+
+suite('tableau de bord d’un portefeuille (intégration)', () => {
+  it('défaut tuiles puis tableau ; réservé au PMO et au directeur ; ces cartes ne se posent que dans un portefeuille', async () => {
+    const testDb = await createTestDb('athena_test_dashboard_pf');
+    try {
+      const db = new Db(testDb.pool);
+      const dash = new DashboardService(db);
+      const org = crypto.randomUUID();
+      await db.tx(org, (c) => c.query('insert into organization (id, key, name) values ($1,$2,$2)', [org, 'dashpf']));
+      const pmo = { id: 'pmo', roles: ['athena-pmo', 'athena-team-member'] };
+      const dev = { id: 'dev', roles: ['athena-team-member'] };
+      const first = await dash.get(org, pmo, 'portfolio:spatial');
+      expect(first.isDefault).toBe(true);
+      expect(first.widgets.map((w) => w.kind)).toEqual(['portfolio-tiles', 'portfolio-health']);
+      expect(await code(dash.get(org, dev, 'portfolio:spatial'))).toMatch(/^forbidden/);
+      expect(await code(dash.put(org, { widgets: [{ id: 'h', kind: 'portfolio-health' }] }, pmo, 'portfolio:spatial'))).toBe('ok');
+      expect((await dash.get(org, pmo, 'portfolio:spatial')).widgets.map((w) => w.kind)).toEqual(['portfolio-health']);
+      expect(await code(dash.put(org, { widgets: [{ id: 'h', kind: 'portfolio-health' }] }, pmo, ''))).toMatch(/^validation/);
+      expect(await code(dash.put(org, { widgets: [{ id: 'm', kind: 'mentions' }] }, pmo, 'portfolio:spatial'))).toMatch(/^validation/);
+      expect((await dash.get(org, pmo, '')).isDefault).toBe(true); // l'accueil personnel est intact
     } finally { await testDb.drop(); }
   }, 30_000);
 });

@@ -10,7 +10,12 @@ export const WIDGET_KINDS = ['search', 'mentions', 'approvals', 'favorites', 're
   // Carte graphique sur une recherche (T-0156) : anneau, barres ou indicateur chiffré.
   'chart',
   // Pilotage, intégration continue et qualité (ADR-0007, T-0170 à T-0176).
-  'general-info', 'global-progress', 'key-indicators', 'health', 'sprint-progress', 'pipelines', 'quality', 'badges'] as const;
+  'general-info', 'global-progress', 'key-indicators', 'health', 'sprint-progress', 'pipelines', 'quality', 'badges',
+  // Portefeuille (lot 18, B24) : réservés au tableau de bord d'un portefeuille.
+  'portfolio-health', 'portfolio-tiles'] as const;
+/** Genres propres à un portefeuille et rôles qui organisent son tableau de bord : le PMO, le directeur et l'administrateur. */
+export const PORTFOLIO_KINDS: readonly string[] = ['portfolio-health', 'portfolio-tiles'];
+export const PORTFOLIO_ROLES = ['athena-admin', 'athena-pmo', 'athena-director'];
 const PROJECT_KINDS = new Set<string>(['chart', 'trackers', 'indicators', 'flow', 'velocity', 'release', 'tracker-status', 'activity',
   'general-info', 'global-progress', 'key-indicators', 'health', 'sprint-progress', 'pipelines', 'quality', 'badges']);
 
@@ -18,8 +23,9 @@ const COMMON_KINDS: readonly string[] = ['search', 'chart', 'mentions', 'approva
 
 /** Genres de widget qu'un rôle peut poser (catalogue, T-0170) ; l'union vaut pour une personne à plusieurs rôles. */
 export function allowedKinds(roles: readonly string[]): string[] {
+  const portfolio = PORTFOLIO_ROLES.some((r) => roles.includes(r));
   // Le directeur a accès à tout le catalogue de pilotage (ses tableaux de bord) ; la disposition reste personnelle.
-  if (['athena-admin', 'athena-pmo', 'athena-pm', 'athena-director'].some((r) => roles.includes(r))) return [...WIDGET_KINDS];
+  if (['athena-admin', 'athena-pmo', 'athena-pm', 'athena-director'].some((r) => roles.includes(r))) return WIDGET_KINDS.filter((k) => portfolio || !PORTFOLIO_KINDS.includes(k));
   return [...COMMON_KINDS];
 }
 
@@ -66,7 +72,7 @@ export const DEFAULT_WIDGETS: readonly Widget[] = [
 ];
 
 /** Portée du tableau de bord : '' (accueil), la clé d'un projet (Vue d'ensemble) ou « clé:avancement » (Avancement, T-0153). */
-export const ScopeSchema = z.string().regex(/^([A-Z][A-Z0-9]{1,9}(:avancement)?)?$/);
+export const ScopeSchema = z.string().regex(/^([A-Z][A-Z0-9]{1,9}(:avancement)?|portfolio:[a-z0-9][a-z0-9-]{1,29})?$/);
 
 /** Disposition initiale de la Vue d'ensemble d'un projet : mes tickets, échéances, trackers et mentions de ce projet. */
 export const defaultProjectWidgets = (project: string): Widget[] => [
@@ -114,7 +120,12 @@ export const homeWidgetsFor = (roles: readonly string[]): Widget[] => {
   out.splice(after, 0, ...extra);
   return out;
 };
-const defaultsFor = (scope: string, roles: readonly string[] = []): Widget[] => (scope.endsWith(':avancement') ? defaultProgressWidgets(scope.split(':')[0]!) : scope ? defaultProjectWidgets(scope) : homeWidgetsFor(roles));
+/** Disposition initiale du tableau de bord d'un portefeuille : les tuiles de la vue direction puis le tableau de santé. */
+export const defaultPortfolioWidgets = (): Widget[] => [
+  { id: 'portfolio-tiles', kind: 'portfolio-tiles', size: 'XL', h: 2 },
+  { id: 'portfolio-health', kind: 'portfolio-health', size: 'XL', h: 5 },
+];
+const defaultsFor = (scope: string, roles: readonly string[] = []): Widget[] => (scope.startsWith('portfolio:') ? defaultPortfolioWidgets() : scope.endsWith(':avancement') ? defaultProgressWidgets(scope.split(':')[0]!) : scope ? defaultProjectWidgets(scope) : homeWidgetsFor(roles));
 
 const overlaps = (a: Required<Pick<Widget, 'x' | 'y' | 'w' | 'h'>>, b: Required<Pick<Widget, 'x' | 'y' | 'w' | 'h'>>) =>
   a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
@@ -158,6 +169,7 @@ export class DashboardService {
   constructor(private readonly db: Db) {}
 
   async get(organizationId: string, actor: Actor, scope = ''): Promise<{ widgets: Widget[]; isDefault: boolean }> {
+    if (scope.startsWith('portfolio:') && !PORTFOLIO_ROLES.some((r) => actor.roles.includes(r))) throw forbidden('Le tableau de bord d’un portefeuille est réservé au PMO, au directeur et à l’administrateur.');
     const row = await this.db.tx(organizationId, async (c) => (await c.query('select widgets from dashboard_layout where owner = $1 and scope = $2', [actor.id, scope])).rows[0]);
     return row ? { widgets: toGrid(row.widgets as Widget[]), isDefault: false } : { widgets: toGrid(defaultsFor(scope, actor.roles)), isDefault: true };
   }
@@ -168,6 +180,7 @@ export class DashboardService {
   }
 
   async put(organizationId: string, input: z.infer<typeof LayoutInput>, actor: Actor, scope = ''): Promise<{ widgets: Widget[]; isDefault: boolean }> {
+    if (scope.startsWith('portfolio:') && !PORTFOLIO_ROLES.some((r) => actor.roles.includes(r))) throw forbidden('Le tableau de bord d’un portefeuille est réservé au PMO, au directeur et à l’administrateur.');
     const allowed = new Set(allowedKinds(actor.roles));
     const current = await this.db.tx(organizationId, async (c) => (await c.query('select widgets from dashboard_layout where owner = $1 and scope = $2', [actor.id, scope])).rows[0]);
     const kept = new Set(((current?.widgets ?? []) as Widget[]).map((w) => `${w.id}:${w.kind}`));
@@ -176,6 +189,7 @@ export class DashboardService {
     for (const w of input.widgets) {
       if (ids.has(w.id)) throw validation([`widgets : identifiant en double (${w.id})`]);
       ids.add(w.id);
+      if (PORTFOLIO_KINDS.includes(w.kind) !== scope.startsWith('portfolio:') && (PORTFOLIO_KINDS.includes(w.kind) || scope.startsWith('portfolio:'))) throw validation([`${w.id} : les cartes de portefeuille ne se posent que dans le tableau de bord d’un portefeuille, et seules elles`]);
       if ((w.field !== undefined || w.form !== undefined) && w.kind !== 'chart') throw validation([`${w.id} : field et form ne concernent que les cartes graphiques`]);
       if (w.kind === 'chart' && (!w.form || (w.form !== 'count' && !w.field))) throw validation([`${w.id} : une carte graphique exige une forme, et un champ sauf pour un indicateur`]);
       if (w.kind === 'search' || w.kind === 'chart') {
