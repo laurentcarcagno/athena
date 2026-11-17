@@ -158,6 +158,14 @@ const frDict = {
     createdWebhook: 'Webhook créé.', toggled: 'État modifié.', trigger: 'Déclencheur',
   },
   duration: { hours: 'Heures', minutes: 'Minutes', total: 'Total', outOfRange: (min: string, max: string) => `La durée doit être comprise entre ${min} et ${max}.` },
+  lifecycle: {
+    tab: 'Cycle de vie', cardTitle: 'Cycle de vie', states: 'États', transitions: 'Transitions permises', help: 'Les catégories sont fixes ; vous renommez, masquez ou ajoutez des états. Un état courant d’un projet se masque, il ne se supprime pas.',
+    key: 'Clé', name: 'Nom', category: 'Catégorie', hidden: 'Masqué', from: 'De', to: 'Vers', roles: 'Qui peut', roleNames: { manager: 'Chef du projet', pmo: 'PMO' } as Record<string, string>,
+    addState: 'Ajouter l’état', addTransition: 'Ajouter la transition', remove: 'Retirer', adminAlways: 'L’administrateur peut toujours effectuer une transition permise.',
+    save: 'Enregistrer', saved: 'Cycle de vie enregistré.', reset: 'Revenir aux états livrés', resetDone: 'États livrés rétablis.', moveTo: 'Passer à', cancel: 'Annuler', history: 'Historique des états',
+    reasonFor: (name: string) => `Motif du passage à « ${name} »`, moveConfirm: (name: string) => `Passer à « ${name} »`,
+    categories: { pipeline: 'Pipeline', active: 'Actif', suspended: 'Suspendu', closed: 'Clos', cancelled: 'Annulé', archived: 'Archivé' } as Record<string, string>,
+  },
   projectMeta: {
     title: 'Informations', edit: 'Modifier', save: 'Enregistrer', cancel: 'Annuler', saved: 'Informations enregistrées.', none: 'Non renseigné', plannedStart: 'Début prévu', plannedEnd: 'Fin prévue',
     endBeforeStart: 'La fin prévue ne peut pas précéder le début prévu.', sponsor: 'Sponsor', granularity: 'Granularité de la capacité', inherit: 'Réglage de l’organisation', week: 'Semaine', month: 'Mois', description: 'Description',
@@ -702,6 +710,14 @@ const enDict: Dictionary = {
     createdWebhook: 'Webhook created.', toggled: 'State changed.', trigger: 'Trigger',
   },
   duration: { hours: 'Hours', minutes: 'Minutes', total: 'Total', outOfRange: (min: string, max: string) => `The duration must be between ${min} and ${max}.` },
+  lifecycle: {
+    tab: 'Lifecycle', cardTitle: 'Lifecycle', states: 'States', transitions: 'Allowed transitions', help: 'Categories are fixed; you rename, hide or add states. A state in use by a project is hidden, not deleted.',
+    key: 'Key', name: 'Name', category: 'Category', hidden: 'Hidden', from: 'From', to: 'To', roles: 'Who can', roleNames: { manager: 'Project manager', pmo: 'PMO' } as Record<string, string>,
+    addState: 'Add the state', addTransition: 'Add the transition', remove: 'Remove', adminAlways: 'The administrator can always perform an allowed transition.',
+    save: 'Save', saved: 'Lifecycle saved.', reset: 'Restore the delivered states', resetDone: 'Delivered states restored.', moveTo: 'Move to', cancel: 'Cancel', history: 'State history',
+    reasonFor: (name: string) => `Reason for moving to “${name}”`, moveConfirm: (name: string) => `Move to “${name}”`,
+    categories: { pipeline: 'Pipeline', active: 'Active', suspended: 'Suspended', closed: 'Closed', cancelled: 'Cancelled', archived: 'Archived' } as Record<string, string>,
+  },
   projectMeta: {
     title: 'Information', edit: 'Edit', save: 'Save', cancel: 'Cancel', saved: 'Information saved.', none: 'Not set', plannedStart: 'Planned start', plannedEnd: 'Planned end',
     endBeforeStart: 'The planned end cannot be before the planned start.', sponsor: 'Sponsor', granularity: 'Capacity granularity', inherit: 'Organization setting', week: 'Week', month: 'Month', description: 'Description',
