@@ -5,6 +5,7 @@ import { api, type Session } from '../api';
 import { useFailure } from '../hooks';
 import { useConfirm } from '../components/ConfirmDialog';
 import { Dashboard } from '../components/Dashboard';
+import { RoadmapView } from '../components/RoadmapView';
 import { PortfolioHealthTable } from '../components/PortfolioHealthTable';
 import { fr } from '../i18n';
 
@@ -72,7 +73,7 @@ export function PortfoliosPage({ session }: { session: Session }) {
     const attached = new Set(one.projects.map((p) => p.key));
     return (
       <>
-        <PageHeader title={one.portfolio.name} actions={<Link className="ath-link" to="/portefeuilles">{t.back}</Link>}
+        <PageHeader title={one.portfolio.name} actions={<><Link className="ath-link" to={`/portefeuilles/${one.portfolio.key}/roadmap`}>{fr.pfRoadmap.open}</Link> <Link className="ath-link" to="/portefeuilles">{t.back}</Link></>}
           sub={[one.portfolio.description, one.portfolio.owner ? `${t.owner} : ${one.portfolio.owner}` : ''].filter(Boolean).join(' · ')} />
         <div className="ath-stack">
           <Card title={t.totals}>

@@ -180,6 +180,15 @@ const frDict = {
     open: 'Fiche projet d’une page', title: (p: string) => `Fiche projet ${p}`, print: 'Imprimer la fiche', health: 'Santé', state: 'État', dates: 'Dates', sponsor: 'Sponsor', manager: 'Chef de projet', notSet: 'Non renseigné',
     weather: 'Météo', noWeather: 'Aucune météo écrite.', phases: 'Phases et revues', noPhases: 'Ce projet n’a pas de gabarit normatif.', risks: 'Risques principaux', noRisks: 'Aucun risque ouvert noté.',
   },
+  pfRoadmap: {
+    title: 'Roadmap', nav: 'Roadmap du portefeuille', scope: 'Périmètre : les projets que vous pouvez voir', hidden: (n: number) => `${n} terminé${n > 1 ? 's' : ''}, annulé${n > 1 ? 's' : ''} ou archivé${n > 1 ? 's' : ''} masqué${n > 1 ? 's' : ''}`,
+    viewLabel: 'Vue', views: { timeline: 'Frise', table: 'Tableau', milestones: 'Jalons' } as Record<string, string>, zooms: { year: 'Année', quarter: 'Trimestre', month: 'Mois' } as Record<string, string>,
+    includeClosed: 'Inclure les projets clos', print: 'Imprimer les jalons', empty: 'Aucun projet à afficher.', degraded: 'La roadmap est indisponible pour le moment.',
+    caption: (n: number) => `Roadmap de ${n} projet${n > 1 ? 's' : ''}`, milestonesCaption: (n: number) => `${n} jalon${n > 1 ? 's' : ''}`,
+    today: 'Aujourd’hui', unscheduled: 'Non planifié', baseline: 'Baseline', calculatedEnd: 'Fin calculée', plannedEnd: 'Fin prévue', gap: 'Écart', state: 'État', phase: 'Phase', nextReview: 'Prochaine revue',
+    noGap: 'écart non calculé', onTrack: 'dans les temps', gapDays: (n: number) => `${n > 0 ? '+' : ''}${n} jour${Math.abs(n) > 1 ? 's' : ''} ouvré${Math.abs(n) > 1 ? 's' : ''}`, heldLate: 'tenue en retard', notSet: 'Non renseigné', notHeld: 'Pas encore tenue',
+    kind: 'Nature', milestone: 'Jalon', planned: 'Prévu', actual: 'Réel', deviation: 'Écart', kinds: { review: 'Revue', release: 'Version' } as Record<string, string>, open: 'Roadmap du portefeuille',
+  },
   statusNote: {
     title: 'Météo du projet', write: 'Écrire la météo', save: 'Enregistrer', cancel: 'Annuler', saved: 'Météo enregistrée.', none: 'Aucune météo écrite.', comment: 'Commentaire',
     axes: { schedule: 'Délai', scope: 'Périmètre', risk: 'Risque', resources: 'Ressources', cost: 'Coût' } as Record<string, string>,
@@ -756,6 +765,15 @@ const enDict: Dictionary = {
   sheet: {
     open: 'One-page project sheet', title: (p: string) => `Project sheet ${p}`, print: 'Print the sheet', health: 'Health', state: 'State', dates: 'Dates', sponsor: 'Sponsor', manager: 'Project manager', notSet: 'Not set',
     weather: 'Weather', noWeather: 'No weather written.', phases: 'Phases and reviews', noPhases: 'This project has no normative template.', risks: 'Main risks', noRisks: 'No open scored risk.',
+  },
+  pfRoadmap: {
+    title: 'Roadmap', nav: 'Portfolio roadmap', scope: 'Scope: the projects you can see', hidden: (n: number) => `${n} completed, cancelled or archived hidden`,
+    viewLabel: 'View', views: { timeline: 'Timeline', table: 'Table', milestones: 'Milestones' } as Record<string, string>, zooms: { year: 'Year', quarter: 'Quarter', month: 'Month' } as Record<string, string>,
+    includeClosed: 'Include closed projects', print: 'Print the milestones', empty: 'No project to show.', degraded: 'The roadmap is unavailable for now.',
+    caption: (n: number) => `Roadmap of ${n} project${n > 1 ? 's' : ''}`, milestonesCaption: (n: number) => `${n} milestone${n > 1 ? 's' : ''}`,
+    today: 'Today', unscheduled: 'Not scheduled', baseline: 'Baseline', calculatedEnd: 'Calculated end', plannedEnd: 'Planned end', gap: 'Gap', state: 'State', phase: 'Phase', nextReview: 'Next review',
+    noGap: 'gap not computed', onTrack: 'on track', gapDays: (n: number) => `${n > 0 ? '+' : ''}${n} working day${Math.abs(n) > 1 ? 's' : ''}`, heldLate: 'held late', notSet: 'Not set', notHeld: 'Not held yet',
+    kind: 'Kind', milestone: 'Milestone', planned: 'Planned', actual: 'Actual', deviation: 'Deviation', kinds: { review: 'Review', release: 'Release' } as Record<string, string>, open: 'Portfolio roadmap',
   },
   statusNote: {
     title: 'Project weather', write: 'Write the weather', save: 'Save', cancel: 'Cancel', saved: 'Weather saved.', none: 'No weather written.', comment: 'Comment',
