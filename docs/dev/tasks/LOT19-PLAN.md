@@ -10,4 +10,4 @@
 | T-0214 | B27 | API `/v1/roadmap` : phases, revues, versions, baseline par projet visible | faite |
 | T-0215 | B27 | Page roadmap : couloirs, chevrons, losanges, regroupement, zoom, vue tableau | faite |
 | T-0216 | B28 | Barres fantômes de baseline, écart chiffré, vue jalons imprimable | faite (choix de baseline non fait) |
-| T-0217 | — | `LOT19-VERIFICATION.md`, e2e, `STATE.md` | |
+| T-0217 | — | `LOT19-VERIFICATION.md`, e2e, `STATE.md` | faite |
