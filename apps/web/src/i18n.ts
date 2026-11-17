@@ -225,6 +225,10 @@ const frDict = {
     allocProject: 'Projet (clé)', genericNeed: 'Besoin générique (équipe et rôle)', roleLabel: 'Rôle', allocFrom: 'Allocation du', allocTo: 'au (facultatif)', fte: 'Charge (% d’un ETP)', saveAllocation: 'Enregistrer l’allocation', allocationSaved: 'Allocation enregistrée.',
     myAbsences: 'Mes absences', absenceFrom: 'Du (absence)', absenceTo: 'Au (absence)', halfDay: 'Demi-journée', halfDayShort: 'demi-journée', addAbsence: 'Ajouter l’absence', absenceAdded: 'Absence enregistrée.', removeAbsence: 'Retirer', noAbsence: 'Aucune absence saisie.',
   },
+  worklog: {
+    title: 'Temps passé', total: (h: string) => `Total : ${h}`, form: 'Saisir du temps passé', day: 'Jour', duration: 'Durée (h min)', comment: 'Commentaire', add: 'Ajouter', saved: 'Temps enregistré.', none: 'Aucun temps passé saisi.', remove: 'Retirer',
+    badDuration: 'Durée invalide : saisissez des heures et des minutes (par exemple 1 h 30), de 1 minute à 24 heures.', plannedVsConsumed: 'Planifié contre consommé', planned: 'Planifié', consumed: 'Consommé', hoursUnit: 'heures',
+  },
   statusNote: {
     title: 'Météo du projet', write: 'Écrire la météo', save: 'Enregistrer', cancel: 'Annuler', saved: 'Météo enregistrée.', none: 'Aucune météo écrite.', comment: 'Commentaire',
     axes: { schedule: 'Délai', scope: 'Périmètre', risk: 'Risque', resources: 'Ressources', cost: 'Coût' } as Record<string, string>,
@@ -846,6 +850,10 @@ const enDict: Dictionary = {
     inputs: 'Input: availability and allocations', availabilityForm: 'A person’s availability', allocationForm: 'Allocation to a project', availFrom: 'Availability from', ratio: 'Working time (%)', workday: 'Length of the day (h min, optional)', saveAvailability: 'Save the availability', availabilitySaved: 'Availability saved.', badDuration: 'Invalid duration: enter hours and minutes (for example 7 h 48).',
     allocProject: 'Project (key)', genericNeed: 'Generic need (team and role)', roleLabel: 'Role', allocFrom: 'Allocation from', allocTo: 'to (optional)', fte: 'Load (% of one FTE)', saveAllocation: 'Save the allocation', allocationSaved: 'Allocation saved.',
     myAbsences: 'My absences', absenceFrom: 'From (absence)', absenceTo: 'To (absence)', halfDay: 'Half day', halfDayShort: 'half day', addAbsence: 'Add the absence', absenceAdded: 'Absence saved.', removeAbsence: 'Remove', noAbsence: 'No absence entered.',
+  },
+  worklog: {
+    title: 'Time spent', total: (h: string) => `Total: ${h}`, form: 'Enter time spent', day: 'Day', duration: 'Duration (h min)', comment: 'Comment', add: 'Add', saved: 'Time saved.', none: 'No time entered.', remove: 'Remove',
+    badDuration: 'Invalid duration: enter hours and minutes (for example 1 h 30), from 1 minute to 24 hours.', plannedVsConsumed: 'Planned versus consumed', planned: 'Planned', consumed: 'Consumed', hoursUnit: 'hours',
   },
   statusNote: {
     title: 'Project weather', write: 'Write the weather', save: 'Save', cancel: 'Cancel', saved: 'Weather saved.', none: 'No weather written.', comment: 'Comment',

@@ -4,6 +4,7 @@ import { Btn, Card, EmptyState, Field as FieldInput, Id, Select, StatusPill, Tab
 import { ApiError, api, upload, type Artifact, type AttachmentView, type Field, type Revision, type Session, type TrackerDefinition } from '../api';
 import { useBusy, useFailure } from '../hooks';
 import { fr } from '../i18n';
+import { WorklogSection } from '../components/WorklogSection';
 import { PlanningSection, hasPlanning } from '../components/PlanningSection';
 import { useProjectManager } from '../lib/project-role';
 import { ItemHeader, type ItemLink as LinkView, type ItemSprint } from '../components/ItemHeader';
@@ -257,6 +258,7 @@ export function ArtifactView({ session, project, itemKey: key, embedded = false,
       />
       <div className="ath-stack" role="tabpanel">
         {tab === 'details' && hasPlanning(def) && <PlanningSection project={project} def={def} artifact={artifact} links={links} roles={roles} me={me} manager={responsible} onSave={(field, raw) => void save(field, raw)} onChanged={() => void reload()} />}
+        {tab === 'details' && <WorklogSection project={project} ticket={artifact.key} me={me} />}
         {tab === 'details' && (
           <Card title={fr.artifact.details} meta={`v${artifact.version}`}>
             <div className="ath-stack">

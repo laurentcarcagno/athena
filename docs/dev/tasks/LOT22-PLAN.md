@@ -5,7 +5,7 @@
 | Tâche | Backlog | Contenu | État |
 |---|---|---|---|
 | T-0230 | B36 | Temps passé : migration 078 `worklog`, service, API (saisie en heures et minutes, par ticket) | faite (078) |
-| T-0231 | B36 | Planifié contre consommé (API et graphique), saisie dans la fiche du ticket | |
+| T-0231 | B36 | Planifié contre consommé (API et graphique), saisie dans la fiche du ticket | faite |
 | T-0232 | B36 | Dépendances entre projets : migration 079, API, graphe et matrice, propagation d'un retard en lecture | |
 | T-0233 | — | `LOT22-VERIFICATION.md`, tests, `STATE.md` | |
 
