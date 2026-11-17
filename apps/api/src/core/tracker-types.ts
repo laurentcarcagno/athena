@@ -34,6 +34,7 @@ export function builtinTrackerTypes(): TrackerTypeView[] {
     t('campaign', 'Campagne', 'Campagne de vérification ou de validation.', 'verification', ['tableau'], [title, description, assignee]),
     t('nonconformity', 'Non-conformité', 'Écart constaté, à traiter jusqu’à clôture.', 'verification', ['tableau', 'board'], [title, description, assignee]),
     t('risk', 'Risque', 'Risque projet, probabilité et criticité.', 'management', ['tableau', 'matrice'], [title, description, assignee, probability, impact]),
+    t('request', 'Demande', 'Demande de projet ou d’évolution à instruire, scorer, puis convertir en projet ou refuser.', 'management', ['tableau', 'board'], [title, description, assignee]),
     t('action', 'Action', 'Action décidée en réunion ou en revue.', 'management', ['tableau', 'board', 'calendrier'], [title, description, assignee, due]),
     t('decision', 'Décision', 'Décision tracée avec son contexte.', 'management', ['tableau'], [title, description]),
     t('review', 'Revue', 'Revue de jalon ou revue technique.', 'management', ['tableau', 'calendrier'], [title, description, due]),

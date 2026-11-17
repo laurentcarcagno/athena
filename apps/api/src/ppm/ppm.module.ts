@@ -15,6 +15,12 @@ import { WorklogController } from './worklog.controller';
 import { FinanceController } from './finance.controller';
 import { DecisionService } from './decision.service';
 import { AlertService } from './alert.service';
+import { PrioritizationController } from './prioritization.controller';
+import { ScoringService } from './scoring.service';
+import { RequestService } from './request.service';
+import { ScenarioService } from './scenario.service';
+import { EarnedValueService } from './earned-value.service';
+import { TemplateService } from '../core/template.service';
 import { FinanceService } from './finance.service';
 import { DependencyController } from './dependency.controller';
 import { DependencyService } from './dependency.service';
@@ -43,7 +49,7 @@ import { TeamService } from './team.service';
  */
 @Module({
   imports: [CoreModule],
-  controllers: [FinanceController, DependencyController, WorklogController, CapacityController, AllocationController, FeatureController, PpmSettingsController, ProjectMetaController, StatusNoteController, LifecycleController, TeamController, PortfolioController],
+  controllers: [PrioritizationController, FinanceController, DependencyController, WorklogController, CapacityController, AllocationController, FeatureController, PpmSettingsController, ProjectMetaController, StatusNoteController, LifecycleController, TeamController, PortfolioController],
   providers: [
     { provide: FeatureService, useFactory: (db: Db) => new FeatureService(db), inject: [Db] },
     FeatureGuard,
@@ -64,6 +70,16 @@ import { TeamService } from './team.service';
     { provide: FinanceService, useFactory: (db: Db) => new FinanceService(db), inject: [Db] },
     { provide: DecisionService, useFactory: (db: Db, f: FinanceService) => new DecisionService(db, f), inject: [Db, FinanceService] },
     { provide: AlertService, useFactory: (db: Db, g: GovernanceService, s: SnapshotService, f: FinanceService, c: CapacityService) => new AlertService(db, (o, k) => g.gates(o, k), s, f, c), inject: [Db, GovernanceService, SnapshotService, FinanceService, CapacityService] },
+    { provide: ScoringService, useFactory: (db: Db) => new ScoringService(db), inject: [Db] },
+    { provide: RequestService, useFactory: (db: Db, t: TemplateService) => new RequestService(db, t), inject: [Db, TemplateService] },
+    {
+      provide: ScenarioService,
+      useFactory: (db: Db, d: DependencyService, c: CapacityService, f: FinanceService, cal: CalendarService, s: PpmSettingsService) => new ScenarioService(db, {
+        propagate: (o, i, a) => d.propagate(o, i, a), capacity: (o, a, i) => c.view(o, a, i), finance: (o, p, a) => f.project(o, p, a),
+      }, cal, s),
+      inject: [Db, DependencyService, CapacityService, FinanceService, CalendarService, PpmSettingsService],
+    },
+    { provide: EarnedValueService, useFactory: (db: Db, f: FinanceService, k: KpiService) => new EarnedValueService(db, f, k), inject: [Db, FinanceService, KpiService] },
     { provide: TeamService, useFactory: (db: Db) => new TeamService(db), inject: [Db] },
     { provide: PortfolioService, useFactory: (db: Db, k: KpiService) => new PortfolioService(db, k), inject: [Db, KpiService] },
   ],
