@@ -167,6 +167,7 @@ const frDict = {
     categories: { pipeline: 'Pipeline', active: 'Actif', suspended: 'Suspendu', closed: 'Clos', cancelled: 'Annulé', archived: 'Archivé' } as Record<string, string>,
   },
   steerHealth: {
+    tiles: 'Vue direction', tile: { projects: 'Projets', critical: 'Critiques', attention: 'À surveiller', ok: 'Sous contrôle', gaps: 'Écarts de météo', late: 'Tickets en retard' } as Record<string, string>,
     title: 'Tableau de santé', scope: 'Périmètre : les projets que vous pouvez voir', shown: (n: number) => `${n} projet${n > 1 ? 's' : ''} affiché${n > 1 ? 's' : ''}`,
     hiddenClosed: (n: number) => `${n} terminé${n > 1 ? 's' : ''}, annulé${n > 1 ? 's' : ''} ou archivé${n > 1 ? 's' : ''} masqué${n > 1 ? 's' : ''}`,
     stateFilter: 'État du projet', healthFilter: 'Santé', all: 'Tous', includeClosed: 'Inclure les projets clos', caption: (n: number) => `Santé de ${n} projet${n > 1 ? 's' : ''}`,
@@ -738,6 +739,7 @@ const enDict: Dictionary = {
     categories: { pipeline: 'Pipeline', active: 'Active', suspended: 'Suspended', closed: 'Closed', cancelled: 'Cancelled', archived: 'Archived' } as Record<string, string>,
   },
   steerHealth: {
+    tiles: 'Management view', tile: { projects: 'Projects', critical: 'Critical', attention: 'Watch', ok: 'Under control', gaps: 'Weather gaps', late: 'Late tickets' } as Record<string, string>,
     title: 'Health table', scope: 'Scope: the projects you can see', shown: (n: number) => `${n} project${n > 1 ? 's' : ''} shown`,
     hiddenClosed: (n: number) => `${n} completed, cancelled or archived hidden`,
     stateFilter: 'Project state', healthFilter: 'Health', all: 'All', includeClosed: 'Include closed projects', caption: (n: number) => `Health of ${n} project${n > 1 ? 's' : ''}`,

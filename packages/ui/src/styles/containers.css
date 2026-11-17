@@ -425,3 +425,8 @@
 
 /* Santé forcée par le PMO (lot 18) : encadrée en pointillés, jamais signalée par la couleur seule. */
 .ath-health--forced { display: inline-block; border: var(--ath-border-width-hairline) dashed var(--ath-border-strong); padding: 0 var(--ath-space-xs); }
+
+/* Tuiles de la vue direction du portefeuille (lot 18) : six au plus, chacune mène au tableau filtré. */
+.ath-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(calc(var(--ath-size-dashcard) / 2), 1fr)); gap: var(--ath-space-sm); list-style: none; padding: 0; margin: 0; }
+.ath-tile { display: flex; flex-direction: column; gap: var(--ath-space-xs); padding: var(--ath-space-sm) var(--ath-space-md); border: var(--ath-border-width-hairline) solid var(--ath-border-strong); }
+.ath-tile__value { font-size: var(--ath-font-size-display); }

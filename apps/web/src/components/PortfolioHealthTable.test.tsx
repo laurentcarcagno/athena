@@ -52,6 +52,17 @@ describe('tableau de santé du portefeuille (B20)', () => {
     expect((await axe.run(container, { rules: { 'color-contrast': { enabled: false } } })).violations.map((v) => v.id)).toEqual([]);
   });
 
+  it('B21 : les tuiles égalent les totaux du tableau ; une tuile de santé filtre le tableau', async () => {
+    show();
+    const tiles = await screen.findByRole('list', { name: 'Vue direction' });
+    const value = (label: string) => within(within(tiles).getByText(label).closest('li')!).getByText(/^\d+$/).textContent;
+    expect(within(tiles).getAllByRole('listitem')).toHaveLength(6);
+    expect([value('Projets'), value('Critiques'), value('À surveiller'), value('Sous contrôle'), value('Écarts de météo'), value('Tickets en retard')]).toEqual(['2', '1', '1', '0', '1', '4']);
+    expect(screen.getAllByRole('row').length - 1).toBe(Number(value('Projets')));
+    await userEvent.click(within(tiles).getByRole('button', { name: 'Critiques' }));
+    await waitFor(() => expect(urls.at(-1)).toContain('health=critical'));
+  });
+
   it('les filtres sont envoyés à l’API', async () => {
     show();
     await screen.findByRole('table');
