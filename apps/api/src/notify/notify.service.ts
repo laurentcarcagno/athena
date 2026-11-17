@@ -4,7 +4,7 @@ import { compile } from '../atql/compile';
 import { Db } from '../core/db';
 import { notFound, validation } from '../core/errors';
 
-export const NOTIFY_EVENTS = ['transition', 'mention', 'suspect', 'comment', 'approval', 'weather'] as const;
+export const NOTIFY_EVENTS = ['transition', 'mention', 'suspect', 'comment', 'approval', 'weather', 'decision'] as const;
 export type NotifyEvent = (typeof NOTIFY_EVENTS)[number];
 
 export const SubscribeInput = z.object({

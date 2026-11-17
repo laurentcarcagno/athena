@@ -25,6 +25,7 @@ export function describe(n: NotificationEntry): string {
     case 'mention': return text.mention(n.actorName);
     case 'suspect': return text.suspect(n.actorName, String(p['cause'] ?? ''));
     case 'weather': return text.weather(Number(p['days'] ?? 0));
+    case 'decision': return text.decision(String(p['dueOn'] ?? ''));
     default: return text.approval(n.actorName, p);
   }
 }

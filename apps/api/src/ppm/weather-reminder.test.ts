@@ -47,4 +47,16 @@ suite('rappel de météo (intégration)', () => {
     await db.tx(org, (c) => c.query("insert into notification_pref (organization_id, subject, event, enabled) values ($1,'sub-pm','weather',false)", [org]));
     expect(await reminders.run(org, day(200))).toBe(0);
   });
+
+  it('échéance d’une décision : le responsable est notifié une seule fois, à trois jours de l’échéance', async () => {
+    await db.tx(org, async (c) => {
+      await c.query("insert into portfolio (organization_id, key, name, created_by) values ($1,'dec','Décisions','x')", [org]);
+      await c.query("insert into portfolio_decision (organization_id, portfolio_id, project_id, kind, rationale, owner, due_on, decided_by) select $1, f.id, p.id, 'continue', 'À suivre', 'sub-pm', '2026-12-10', 'x' from portfolio f, project p where f.key = 'dec' and p.key = 'NEW'", [org]);
+    });
+    const countDecision = async () => (await db.tx(org, (c) => c.query("select count(*)::int n from notification where event = 'decision'"))).rows[0].n as number;
+    expect(await reminders.runDecisions(org, new Date('2026-12-01T00:00:00Z'))).toBe(0); // trop tôt
+    expect(await reminders.runDecisions(org, new Date('2026-12-08T00:00:00Z'))).toBe(1);
+    expect(await reminders.runDecisions(org, new Date('2026-12-11T00:00:00Z'))).toBe(0); // une seule fois
+    expect(await countDecision()).toBe(1);
+  });
 });

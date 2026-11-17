@@ -4,8 +4,8 @@ import { useFailure } from '../hooks';
 import { fr, getLocale } from '../i18n';
 import { Checkbox, Select } from '@athena/ui';
 
-export type NotifyEvent = 'transition' | 'mention' | 'suspect' | 'comment' | 'approval' | 'weather';
-export const NOTIFY_EVENTS: NotifyEvent[] = ['transition', 'mention', 'suspect', 'comment', 'approval', 'weather'];
+export type NotifyEvent = 'transition' | 'mention' | 'suspect' | 'comment' | 'approval' | 'weather' | 'decision';
+export const NOTIFY_EVENTS: NotifyEvent[] = ['transition', 'mention', 'suspect', 'comment', 'approval', 'weather', 'decision'];
 interface Digest { available: boolean; enabled: boolean; hour: number; timezone: string; locale: 'fr' | 'en' }
 
 const browserZone = (): string => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'; } catch { return 'UTC'; } };

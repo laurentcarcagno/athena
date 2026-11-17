@@ -7,6 +7,23 @@ import { PpmSettingsService } from './settings.service';
  * Le réglage de notification par événement du chef de projet est respecté (absent : activé).
  */
 export class WeatherReminderService {
+  /**
+   * Échéance d'une décision de portefeuille (lot 24, B38) : le responsable désigné reçoit une notification « decision » quand l'échéance est atteinte ou dans les trois jours,
+   * une seule fois par décision ; son réglage de notification « decision » est respecté.
+   */
+  async runDecisions(organizationId: string, now: Date = new Date()): Promise<number> {
+    return this.db.tx(organizationId, async (c) => {
+      const r = await c.query(
+        `insert into notification (organization_id, recipient, event, project_id, actor, payload)
+         select $1, d.owner, 'decision', d.project_id, '', jsonb_build_object('id', d.id, 'kind', d.kind, 'dueOn', to_char(d.due_on, 'YYYY-MM-DD'))
+           from portfolio_decision d
+          where d.owner is not null and d.due_on is not null and d.due_on <= ($2::timestamptz + interval '3 days')::date
+            and not exists (select 1 from notification n where n.event = 'decision' and n.payload ->> 'id' = d.id::text)
+            and not exists (select 1 from notification_pref f where f.subject = d.owner and f.event = 'decision' and f.enabled = false)`, [organizationId, now.toISOString()]);
+      return r.rowCount ?? 0;
+    });
+  }
+
   constructor(private readonly db: Db, private readonly settings: Pick<PpmSettingsService, 'get'>) {}
 
   /** Émet les rappels dus ; retourne le nombre de notifications créées. `now` sert aux tests. */

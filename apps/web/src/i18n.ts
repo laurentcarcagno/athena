@@ -258,6 +258,8 @@ const frDict = {
     proposalNote: 'La décision propose une transition du cycle de vie au chef du projet ; elle ne l’applique pas.',
   },
   prio: {
+    convert: 'Convertir en projet', converted: 'Demande convertie en projet.', convertForm: (k: string) => `Convertir ${k} en projet`, newProject: 'Clé du nouveau projet', projectName: 'Nom du projet', templateKey: 'Gabarit (clé, facultatif)', convertSubmit: 'Créer le projet', cancel: 'Annuler',
+    modelForm: 'Modèle de scoring', modelHelp: 'Critères (une ligne par critère : clé;libellé;poids;minimum;maximum;higher ou lower)', saveModel: 'Créer une nouvelle version du modèle', modelSaved: 'Modèle enregistré : nouvelle version.',
     ranking: 'Classement des demandes', version: (v: number) => `modèle v${v}`, noModel: 'Aucun modèle de scoring : le PMO en crée un (critères, poids, échelles).', noRequest: 'Aucune demande dans ce portefeuille (tickets de type Demande d’un projet de pilotage).',
     caption: (n: number) => `${n} demande${n > 1 ? 's' : ''} classée${n > 1 ? 's' : ''}`, rank: 'Rang', request: 'Demande', score: 'Score (0 à 100)', completeness: 'Complétude', incomplete: 'incomplète', notScored: 'non notée', state: 'État', open: 'Ouverte',
     outcomes: { converted: 'Convertie en projet', refused: 'Refusée' } as Record<string, string>, actions: 'Actions', refuse: 'Refuser', refusePrompt: (k: string) => `Motif du refus de ${k} (obligatoire)`, refused: 'Demande refusée.',
@@ -389,8 +391,9 @@ const frDict = {
     settings: 'Réglages', settingsLegend: 'Événements à notifier', follow: 'Suivre', unfollow: 'Ne plus suivre',
     digestLegend: 'Résumé quotidien par courriel', digestEnabled: 'Recevoir un résumé quotidien', digestHour: (tz: string) => `Heure d’envoi (${tz})`,
     digestUnavailable: 'Le résumé par courriel n’est pas disponible sur cette instance.',
-    eventNames: { transition: 'Changement de statut', mention: 'Mention', suspect: 'Lien suspect', comment: 'Commentaire', approval: 'Approbation', weather: 'Rappel de météo' } as Record<string, string>,
+    eventNames: { transition: 'Changement de statut', mention: 'Mention', suspect: 'Lien suspect', comment: 'Commentaire', approval: 'Approbation', weather: 'Rappel de météo', decision: 'Échéance de décision' } as Record<string, string>,
     events: {
+      decision: (d: string) => `Une décision de portefeuille dont vous êtes responsable arrive à échéance (${d}).`,
       weather: (days: number) => `La météo du projet n’a pas été mise à jour depuis ${days} jours : écrivez-la depuis la vue d’ensemble.`,
       transition: (who: string, from: string, to: string) => `${who} a fait passer le ticket de ${from} à ${to}.`,
       comment: (who: string) => `${who} a commenté le ticket.`,
@@ -923,6 +926,8 @@ const enDict: Dictionary = {
     proposalNote: 'The decision proposes a lifecycle transition to the project manager; it does not apply it.',
   },
   prio: {
+    convert: 'Convert to a project', converted: 'Request converted to a project.', convertForm: (k: string) => `Convert ${k} to a project`, newProject: 'New project key', projectName: 'Project name', templateKey: 'Template (key, optional)', convertSubmit: 'Create the project', cancel: 'Cancel',
+    modelForm: 'Scoring model', modelHelp: 'Criteria (one line per criterion: key;label;weight;minimum;maximum;higher or lower)', saveModel: 'Create a new model version', modelSaved: 'Model saved: new version.',
     ranking: 'Request ranking', version: (v: number) => `model v${v}`, noModel: 'No scoring model: the PMO creates one (criteria, weights, scales).', noRequest: 'No request in this portfolio (Request tickets of a pilot project).',
     caption: (n: number) => `${n} ranked request${n > 1 ? 's' : ''}`, rank: 'Rank', request: 'Request', score: 'Score (0 to 100)', completeness: 'Completeness', incomplete: 'incomplete', notScored: 'not scored', state: 'State', open: 'Open',
     outcomes: { converted: 'Converted to a project', refused: 'Refused' } as Record<string, string>, actions: 'Actions', refuse: 'Refuse', refusePrompt: (k: string) => `Reason for refusing ${k} (required)`, refused: 'Request refused.',
@@ -1054,8 +1059,9 @@ const enDict: Dictionary = {
     settings: 'Settings', settingsLegend: 'Events to notify', follow: 'Follow', unfollow: 'Unfollow',
     digestLegend: 'Daily email digest', digestEnabled: 'Receive a daily digest', digestHour: (tz: string) => `Send time (${tz})`,
     digestUnavailable: 'The email digest is not available on this instance.',
-    eventNames: { transition: 'Status change', mention: 'Mention', suspect: 'Suspect link', comment: 'Comment', approval: 'Approval', weather: 'Weather reminder' } as Record<string, string>,
+    eventNames: { transition: 'Status change', mention: 'Mention', suspect: 'Suspect link', comment: 'Comment', approval: 'Approval', weather: 'Weather reminder', decision: 'Decision due' } as Record<string, string>,
     events: {
+      decision: (d: string) => `A portfolio decision you own is due (${d}).`,
       weather: (days: number) => `The project weather has not been updated for ${days} days: write it from the overview.`,
       transition: (who: string, from: string, to: string) => `${who} moved the ticket from ${from} to ${to}.`,
       comment: (who: string) => `${who} commented on the ticket.`,

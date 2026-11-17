@@ -32,6 +32,7 @@ const TEXT = {
       suspect: (who: string, p: Record<string, unknown>) => `lien suspect : ${who} a modifié ${String(p['cause'] ?? '')}`,
       approval: (who: string) => `${who} a rendu une décision d’approbation`,
       weather: () => 'la météo du projet n’a pas été mise à jour depuis plusieurs jours',
+      decision: () => 'une décision de portefeuille dont vous êtes responsable arrive à échéance',
     },
   },
   en: {
@@ -45,6 +46,7 @@ const TEXT = {
       suspect: (who: string, p: Record<string, unknown>) => `suspect link: ${who} changed ${String(p['cause'] ?? '')}`,
       approval: (who: string) => `${who} recorded an approval decision`,
       weather: () => 'the project weather has not been updated for several days',
+      decision: () => 'a portfolio decision you own is due',
     },
   },
 } as const;

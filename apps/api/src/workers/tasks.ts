@@ -92,7 +92,7 @@ export function buildWorkers(deps: WorkerDeps, intervals: { historyMs: number; w
     loops.push(new WorkerLoop('météo', async () => {
       const organizations = (await deps.pool.query('select list_organization_ids() as id')).rows as Array<{ id: string }>;
       let sent = 0;
-      for (const { id } of organizations) sent += await weather.run(id);
+      for (const { id } of organizations) sent += (await weather.run(id)) + (await weather.runDecisions(id));
       if (sent) deps.log?.(`météo: ${sent} rappel(s) émis`);
     }, options(3_600_000)));
   }
