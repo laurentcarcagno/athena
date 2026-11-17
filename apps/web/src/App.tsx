@@ -17,6 +17,7 @@ import { PinsProvider } from './lib/pins';
 import { PreferencesProvider, savePreference } from './lib/preferences';
 import { PortfoliosPage } from './pages/PortfoliosPage';
 import { TeamLoadPage } from './pages/TeamLoadPage';
+import { loadFeatures, useFeature } from './lib/features';
 import { loadBrand, logoUrl, markUrl, useBrand, useFavicon } from './lib/brand';
 import { useThemeFamily } from './lib/theme';
 import { fr, getLocale, setLocale, useLocale } from './i18n';
@@ -107,7 +108,7 @@ function Shell({ session, children }: { session: Session; children: ReactNode })
   // Marque (T-0137) : icône du thème actif ou de l'organisation, dans le rail et en favicon.
   const family = useThemeFamily();
   useBrand();
-  useEffect(() => { void loadBrand(); }, []);
+  useEffect(() => { void loadBrand(); void loadFeatures(); }, []);
   useFavicon(family);
   const mark = markUrl(family);
   const logo = logoUrl(family);
@@ -195,6 +196,11 @@ function RedirectToView() {
   return <Navigate replace to={`/p/${project}/t/${tracker}/tableau`} />;
 }
 
+/** Page d'une fonctionnalité PPM : désactivée pour l'organisation, elle renvoie à l'accueil (le serveur répond 404). */
+function FeatureRoute({ feature, children }: { feature: string; children: ReactNode }) {
+  return useFeature(feature) ? <>{children}</> : <Navigate replace to="/" />;
+}
+
 export function AuthenticatedApp({ session }: { session: Session }) {
   return (
     <PinsProvider>
@@ -203,9 +209,9 @@ export function AuthenticatedApp({ session }: { session: Session }) {
       <Routes>
         <Route path="/" element={<HomeRoute session={session} />} />
         <Route path="/projets" element={<ProjectsPage session={session} />} />
-        <Route path="/charge" element={<TeamLoadPage session={session} />} />
-        <Route path="/portefeuilles" element={<PortfoliosPage session={session} />} />
-        <Route path="/portefeuilles/:key" element={<PortfoliosPage session={session} />} />
+        <Route path="/charge" element={<FeatureRoute feature="ppm.portfolios"><TeamLoadPage session={session} /></FeatureRoute>} />
+        <Route path="/portefeuilles" element={<FeatureRoute feature="ppm.portfolios"><PortfoliosPage session={session} /></FeatureRoute>} />
+        <Route path="/portefeuilles/:key" element={<FeatureRoute feature="ppm.portfolios"><PortfoliosPage session={session} /></FeatureRoute>} />
         <Route path="/profil" element={<ProfilePage session={session} />} />
         <Route path="/notifications" element={<NotificationsPage />} />
         <Route path="/admin" element={<OrgAdminPage session={session} />} />

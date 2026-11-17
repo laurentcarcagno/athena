@@ -48,7 +48,7 @@ suite('API REST du noyau', () => {
 
   const token = (roles: string[], groups: string[] = ['/org-demo']) =>
     sign({ preferred_username: 'tester', realm_access: { roles }, groups });
-  const call = async (method: 'GET' | 'POST' | 'PATCH' | 'PUT', url: string, jwt?: string, payload?: unknown) =>
+  const call = async (method: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE', url: string, jwt?: string, payload?: unknown) =>
     app.inject({
       method, url,
       ...(jwt ? { headers: { authorization: `Bearer ${jwt}` } } : {}),
@@ -162,6 +162,22 @@ suite('API REST du noyau', () => {
     expect(created.statusCode).toBe(201);
     expect((await call('POST', '/v1/portfolios', await token(['athena-director']), { key: 'http-pf2', name: 'Refusé' })).statusCode).toBe(403);
     expect((await call('DELETE', '/v1/portfolios/http-pf', await token(['athena-pmo']))).statusCode).toBe(204);
+  });
+
+  it('interrupteurs de fonctionnalité : lus par tous, réglés par l’administration ; une route désactivée est introuvable', async () => {
+    expect((await call('GET', '/v1/features')).statusCode).toBe(401);
+    const initial = (await call('GET', '/v1/features', await token(['athena-team-member']))).json();
+    expect(initial).toMatchObject({ 'ppm.portfolios': true, 'ppm.roadmap': true, 'ppm.capacity': false, 'ppm.finance': false });
+    expect((await call('PUT', '/v1/admin/features/ppm.portfolios', await token(['athena-pmo']), { enabled: false })).statusCode).toBe(403);
+    expect((await call('PUT', '/v1/admin/features/inconnue.cle', await token(['athena-admin']), { enabled: true })).statusCode).toBe(422);
+    const off = await call('PUT', '/v1/admin/features/ppm.portfolios', await token(['athena-admin']), { enabled: false });
+    expect(off.statusCode).toBe(200);
+    expect(off.json()['ppm.portfolios']).toBe(false);
+    expect((await call('GET', '/v1/portfolios', await token(['athena-pmo']))).statusCode).toBe(404);
+    expect((await call('GET', '/v1/teams', await token(['athena-admin']))).statusCode).toBe(404);
+    expect((await call('GET', '/v1/portfolios', await token(['athena-pmo'], ['/org-autre']))).statusCode).toBe(200); // l'autre organisation garde sa valeur par défaut
+    await call('PUT', '/v1/admin/features/ppm.portfolios', await token(['athena-admin']), { enabled: true });
+    expect((await call('GET', '/v1/portfolios', await token(['athena-pmo']))).statusCode).toBe(200);
   });
 
   it('calendrier : lu par toute personne connectée, modifié par l’administration seulement', async () => {

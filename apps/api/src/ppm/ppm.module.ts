@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { KpiService } from '../agile/kpi.service';
 import { CoreModule } from '../core/core.module';
 import { Db } from '../core/db';
+import { FeatureController } from './feature.controller';
+import { FeatureGuard, FeatureService } from './feature.service';
 import { PortfolioController, TeamController } from './portfolio.controller';
 import { PortfolioService } from './portfolio.service';
 import { TeamService } from './team.service';
@@ -13,8 +15,10 @@ import { TeamService } from './team.service';
  */
 @Module({
   imports: [CoreModule],
-  controllers: [TeamController, PortfolioController],
+  controllers: [FeatureController, TeamController, PortfolioController],
   providers: [
+    { provide: FeatureService, useFactory: (db: Db) => new FeatureService(db), inject: [Db] },
+    FeatureGuard,
     { provide: TeamService, useFactory: (db: Db) => new TeamService(db), inject: [Db] },
     { provide: PortfolioService, useFactory: (db: Db, k: KpiService) => new PortfolioService(db, k), inject: [Db, KpiService] },
   ],

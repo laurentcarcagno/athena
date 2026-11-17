@@ -1,8 +1,9 @@
-import { Body, Controller, Delete, Get, HttpCode, Inject, Param, Patch, Post, Put, Req } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Inject, Param, Patch, Post, Put, Req, UseGuards } from '@nestjs/common';
 import { z } from 'zod';
 import { Roles, type AuthedRequest } from '../auth/auth.guard';
 import { BodySchema } from '../openapi/body-schema';
 import { OrgResolver, parseBody } from '../core/http';
+import { FeatureGuard, RequiresFeature } from './feature.service';
 import { PortfolioService } from './portfolio.service';
 import { TeamService } from './team.service';
 
@@ -16,6 +17,8 @@ const PortfolioProjectBody = z.object({ health: z.enum(['ok', 'attention', 'crit
 
 /** Équipes et charge : l'administrateur et le PMO les gèrent ; le manager voit la charge des siennes ; le directeur et le chef de projet lisent. */
 @Controller('v1/teams')
+@UseGuards(FeatureGuard)
+@RequiresFeature('ppm.portfolios')
 export class TeamController {
   constructor(@Inject(TeamService) private readonly teams: TeamService, @Inject(OrgResolver) private readonly orgs: OrgResolver) {}
 
@@ -83,6 +86,8 @@ export class TeamController {
 
 /** Portefeuilles de projets : lecture pour le directeur et le chef de projet ; gestion pour l'administrateur et le PMO. */
 @Controller('v1/portfolios')
+@UseGuards(FeatureGuard)
+@RequiresFeature('ppm.portfolios')
 export class PortfolioController {
   constructor(@Inject(PortfolioService) private readonly portfolios: PortfolioService, @Inject(OrgResolver) private readonly orgs: OrgResolver) {}
 

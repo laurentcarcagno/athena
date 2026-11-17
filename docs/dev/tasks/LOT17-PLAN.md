@@ -7,7 +7,7 @@ Migrations réelles : la prochaine est la **065**.
 | Tâche | Backlog | Contenu | État |
 |---|---|---|---|
 | T-0185 | B04 | `PpmModule` : portefeuilles et équipes déplacés dans `apps/api/src/ppm/`, exports de `CoreModule` | faite |
-| T-0186 | B05 | Interrupteurs de fonctionnalité par organisation (`organization_feature`), prise en compte par l'API et le rail | |
+| T-0186 | B05 | Interrupteurs de fonctionnalité par organisation (`organization_feature`, migration 065), prise en compte par l'API (404) et le rail | faite |
 | T-0187 | B06 | Réglages PPM de l'organisation : durée de la journée en heures et minutes, rétention et fréquence des instantanés, seuils ; Administration › PPM | |
 | T-0188 | B07, B08 | Vérifications ECharts : rendu SVG sous la CSP de production, poids du chunk | |
 | T-0189 | B09 | Composant `<Chart>` : thème par jetons, `aria`, motifs, vue tableau | |

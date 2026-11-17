@@ -4,6 +4,7 @@ import { api, type SavedFilter } from '../api';
 import { fr } from '../i18n';
 import { PROJECT_SECTIONS, placeOf, sectionHref, visibleSections, type Place, type ProjectSectionId } from '../lib/navigation';
 import { entriesOf, pinHref, usePins, type Pin } from '../lib/pins';
+import { useFeature } from '../lib/features';
 import { RAIL_ICONS, sectionIcon } from './RailIcons';
 
 interface TrackerRow { key: string; name: string; category?: string | null }
@@ -100,6 +101,7 @@ export function useRailSections({ pathname, project, roles }: { pathname: string
   const place = placeOf(pathname);
   const tracker = /^\/p\/[^/]+\/t\/([^/]+)/.exec(pathname)?.[1];
   const admin = roles.includes('athena-admin');
+  const portfoliosOn = useFeature('ppm.portfolios');
 
   useEffect(() => {
     setTrackers([]);
@@ -150,8 +152,8 @@ export function useRailSections({ pathname, project, roles }: { pathname: string
     items: [
       // Rail global : Projets (menu), Mon travail, Recherche, Administration ; Favoris et Récents sont aussi des menus (ADR-0003) ; Profil et Aide sont au bas du rail.
       { id: '/', label: fr.nav.work, icon: RAIL_ICONS['work'] }, { id: '/recherche', label: fr.nav.search, icon: RAIL_ICONS['search'] },
-      ...(roles.some((r) => ['athena-admin', 'athena-pmo', 'athena-pm', 'athena-manager', 'athena-director'].includes(r)) ? [{ id: '/charge', label: fr.steer.nav.teams, icon: RAIL_ICONS['teams'] }] : []),
-      ...(roles.some((r) => ['athena-admin', 'athena-pmo', 'athena-pm', 'athena-director'].includes(r)) ? [{ id: '/portefeuilles', label: fr.steer.nav.portfolios, icon: RAIL_ICONS['portfolios'] }] : []),
+      ...(portfoliosOn && roles.some((r) => ['athena-admin', 'athena-pmo', 'athena-pm', 'athena-manager', 'athena-director'].includes(r)) ? [{ id: '/charge', label: fr.steer.nav.teams, icon: RAIL_ICONS['teams'] }] : []),
+      ...(portfoliosOn && roles.some((r) => ['athena-admin', 'athena-pmo', 'athena-pm', 'athena-director'].includes(r)) ? [{ id: '/portefeuilles', label: fr.steer.nav.portfolios, icon: RAIL_ICONS['portfolios'] }] : []),
       ...(admin ? [{ id: '/admin', label: fr.nav.admin, icon: RAIL_ICONS['admin'] }] : []),
     ],
   });
