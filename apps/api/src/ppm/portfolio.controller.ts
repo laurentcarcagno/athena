@@ -7,6 +7,7 @@ import { ExportMarker } from '../core/export-marking';
 import { FeatureGuard, RequiresFeature } from './feature.service';
 import { RoadmapService } from './roadmap.service';
 import { SnapshotService, type SnapshotKind } from './snapshot.service';
+import { GovernanceService } from './governance.service';
 import { ReviewCreate, ReviewPatch, ReviewService } from './review.service';
 import { HealthService, healthCsv, type HealthFilter } from './health.service';
 import { LIFECYCLE_CATEGORIES, type LifecycleCategory } from './lifecycle';
@@ -107,7 +108,7 @@ export class TeamController {
 @RequiresFeature('ppm.portfolios')
 export class PortfolioController {
   constructor(
-    @Inject(PortfolioService) private readonly portfolios: PortfolioService, @Inject(HealthService) private readonly healths: HealthService, @Inject(RoadmapService) private readonly roadmaps: RoadmapService, @Inject(SnapshotService) private readonly snapshots: SnapshotService, @Inject(ReviewService) private readonly reviews: ReviewService,
+    @Inject(PortfolioService) private readonly portfolios: PortfolioService, @Inject(HealthService) private readonly healths: HealthService, @Inject(RoadmapService) private readonly roadmaps: RoadmapService, @Inject(SnapshotService) private readonly snapshots: SnapshotService, @Inject(ReviewService) private readonly reviews: ReviewService, @Inject(GovernanceService) private readonly governance: GovernanceService,
     @Inject(OrgResolver) private readonly orgs: OrgResolver,
     @Inject(ExportMarker) private readonly marker: ExportMarker, @Inject(UsageService) private readonly usage: UsageService,
   ) {}
@@ -206,6 +207,35 @@ export class PortfolioController {
   async reviewPatch(@Req() request: AuthedRequest, @Param('key') key: string, @Param('id') id: string, @Body() body: unknown) {
     const { organizationId, actor } = await this.orgs.resolve(request.principal!);
     return this.reviews.update(organizationId, key, id, parseBody(ReviewPatch, body), actor);
+  }
+
+  /** Tableau de passage des gates : gate en cours, revue prévue et état des critères de chaque projet à gabarit. */
+  @Roles('athena-admin', 'athena-pmo', 'athena-pm', 'athena-director')
+  @Get(':key/gates')
+  async gates(@Req() request: AuthedRequest, @Param('key') key: string) {
+    return { rows: await this.governance.gates((await this.orgs.resolve(request.principal!)).organizationId, key) };
+  }
+
+  /** Matrice probabilité × impact des risques ouverts du portefeuille. */
+  @Roles('athena-admin', 'athena-pmo', 'athena-pm', 'athena-director')
+  @Get(':key/risks')
+  async risks(@Req() request: AuthedRequest, @Param('key') key: string) {
+    const { organizationId, actor } = await this.orgs.resolve(request.principal!);
+    return this.governance.riskMatrix(organizationId, key, actor);
+  }
+
+  /** Suivi des actions du portefeuille : ouvertes, en retard, closes. */
+  @Roles('athena-admin', 'athena-pmo', 'athena-pm', 'athena-director')
+  @Get(':key/actions')
+  async actions(@Req() request: AuthedRequest, @Param('key') key: string) {
+    return this.governance.actions((await this.orgs.resolve(request.principal!)).organizationId, key);
+  }
+
+  /** Courbe de tendance des jalons d'un projet (MTA). */
+  @Roles('athena-admin', 'athena-pmo', 'athena-pm', 'athena-director')
+  @Get(':key/milestone-trend/:project')
+  async milestoneTrend(@Req() request: AuthedRequest, @Param('project') project: string) {
+    return { series: await this.governance.milestoneTrend((await this.orgs.resolve(request.principal!)).organizationId, project) };
   }
 
   /** Roadmap consolidée : projets, phases, revues, versions et baseline (lecture seule). `includeClosed=1` ajoute les projets clos. */
