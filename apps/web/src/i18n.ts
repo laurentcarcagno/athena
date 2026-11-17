@@ -158,6 +158,10 @@ const frDict = {
     createdWebhook: 'Webhook créé.', toggled: 'État modifié.', trigger: 'Déclencheur',
   },
   duration: { hours: 'Heures', minutes: 'Minutes', total: 'Total', outOfRange: (min: string, max: string) => `La durée doit être comprise entre ${min} et ${max}.` },
+  projectMeta: {
+    title: 'Informations', edit: 'Modifier', save: 'Enregistrer', cancel: 'Annuler', saved: 'Informations enregistrées.', none: 'Non renseigné', plannedStart: 'Début prévu', plannedEnd: 'Fin prévue',
+    endBeforeStart: 'La fin prévue ne peut pas précéder le début prévu.', sponsor: 'Sponsor', granularity: 'Granularité de la capacité', inherit: 'Réglage de l’organisation', week: 'Semaine', month: 'Mois', description: 'Description',
+  },
   ppmAdmin: {
     tab: 'PPM', settings: 'Réglages de pilotage', help: 'Durée de la journée, instantanés de portefeuille et seuils d’alerte, pour toute l’organisation.',
     workday: 'Durée de la journée de travail', frequency: 'Fréquence des instantanés', weekly: 'Hebdomadaire', monthly: 'Mensuelle',
@@ -698,6 +702,10 @@ const enDict: Dictionary = {
     createdWebhook: 'Webhook created.', toggled: 'State changed.', trigger: 'Trigger',
   },
   duration: { hours: 'Hours', minutes: 'Minutes', total: 'Total', outOfRange: (min: string, max: string) => `The duration must be between ${min} and ${max}.` },
+  projectMeta: {
+    title: 'Information', edit: 'Edit', save: 'Save', cancel: 'Cancel', saved: 'Information saved.', none: 'Not set', plannedStart: 'Planned start', plannedEnd: 'Planned end',
+    endBeforeStart: 'The planned end cannot be before the planned start.', sponsor: 'Sponsor', granularity: 'Capacity granularity', inherit: 'Organization setting', week: 'Week', month: 'Month', description: 'Description',
+  },
   ppmAdmin: {
     tab: 'PPM', settings: 'Steering settings', help: 'Workday length, portfolio snapshots and alert thresholds, for the whole organization.',
     workday: 'Workday length', frequency: 'Snapshot frequency', weekly: 'Weekly', monthly: 'Monthly',

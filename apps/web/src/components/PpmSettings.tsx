@@ -45,7 +45,7 @@ export function PpmSettingsTab() {
   return (
     <div className="ath-stack">
       <section className="ath-stack" aria-label={t.settings}>
-        <h2 className="ath-subsection-title">{t.settings}</h2>
+        <h2 className="ath-section-title">{t.settings}</h2>
         <p>{t.help}</p>
         <form className="ath-stack" onSubmit={save}>
           <DurationField label={t.workday} value={form.workdayMinutes} onChange={(m) => set('workdayMinutes', m)} />
@@ -72,7 +72,7 @@ export function PpmSettingsTab() {
         </form>
       </section>
       <section className="ath-stack" aria-label={t.features}>
-        <h2 className="ath-subsection-title">{t.features}</h2>
+        <h2 className="ath-section-title">{t.features}</h2>
         <p>{t.featuresHelp}</p>
         {FEATURE_KEYS.map((key) => (
           <label key={key} className="ath-notify__pref">
