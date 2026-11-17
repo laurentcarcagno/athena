@@ -41,9 +41,11 @@ describe('gabarits livrés : validité du schéma', () => {
         expect(v.trackers.filter((t) => t.typeKey && !types.has(t.typeKey)).map((t) => t.key)).toEqual([]);
         for (const t of v.trackers) expect(t.transitions.every((x) => t.statuses.some((s) => s.key === x.to) && (x.from === null || t.statuses.some((s) => s.key === x.from))), t.key).toBe(true);
         // seuils de couverture de code : paramètres présents, tous vides
-        const coverage = v.normative.parameters.find((p) => p.key === 'code-coverage')!;
-        expect(Object.keys(coverage.byCategory).sort()).toEqual(v.normative.criticality!.categories.map((c) => c.key).sort());
-        expect(Object.values(coverage.byCategory).every((x) => x === null)).toBe(true);
+        if (v.normative.criticality) { // les gabarits de gestion de projet (ECSS-M-ST-10) n'ont ni catégories ni seuils de code
+          const coverage = v.normative.parameters.find((p) => p.key === 'code-coverage')!;
+          expect(Object.keys(coverage.byCategory).sort()).toEqual(v.normative.criticality.categories.map((c) => c.key).sort());
+          expect(Object.values(coverage.byCategory).every((x) => x === null)).toBe(true);
+        }
         expect(v.normative.rules.every((r) => r.threshold.target === 100)).toBe(true);
       });
     }
@@ -214,6 +216,22 @@ suite('projets créés depuis les gabarits livrés (intégration)', () => {
     expect((await project('PHA')).row.current_phase).toBe('preliminary-design');
     expect((await upgrades.status(org, 'PHA')).phaseCheck).toMatchObject({ key: 'preliminary-design', canAdvance: false }); // le RID de la PDR bloque la suite
     expect(await fail(upgrades.advancePhase(org, 'PHA', admin))).toMatch(/^conflict:.*PDR/);
+  });
+
+  it('gabarit ECSS-M-ST-10 : 7 phases, 13 revues ; seuls les RID majeurs de la revue bloquent la fin de phase (B29, B30)', async () => {
+    await templates.createProject(org, 'ECM', 'Mission', 'spatial-project', admin);
+    const st = await upgrades.status(org, 'ECM');
+    expect(st.phases.map((p) => p.key)).toEqual(['phase-0', 'phase-a', 'phase-b', 'phase-c', 'phase-d', 'phase-e', 'phase-f']);
+    expect(builtinNormative('spatial-project')!.versions[0]!.normative.reviews).toHaveLength(13);
+    await db.tx(org, (c) => c.query("update project set current_phase = 'phase-b' where key = 'ECM'"));
+    const major = await artifacts.create(org, 'ECM', 'RID', { title: 'Écart majeur', review: 'pdr', class: 'majeur' }, admin);
+    await artifacts.create(org, 'ECM', 'RID', { title: 'Écart mineur', review: 'pdr', class: 'mineur' }, admin);
+    await artifacts.create(org, 'ECM', 'RID', { title: 'Autre revue', review: 'cdr', class: 'majeur' }, admin);
+    const rids = async () => (await upgrades.status(org, 'ECM')).phaseCheck!.criteria.find((c) => c.label.startsWith('Tous les RID majeurs'))!;
+    expect(await rids()).toMatchObject({ label: 'Tous les RID majeurs de la revue PDR sont clos', met: false, remaining: 1 });
+    let version = major.version;
+    for (const t of ['Répondre', 'Décider', 'Lancer l’action', 'Clore']) version = (await artifacts.transition(org, 'ECM', major.key, t, version, admin)).version;
+    expect(await rids()).toMatchObject({ met: true, remaining: 0 }); // le mineur et le RID d'une autre revue ne comptent pas
   });
 
   it('phases datées : historique des dates prévues, décision de gate, phase hors gabarit', async () => {
