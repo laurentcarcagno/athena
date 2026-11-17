@@ -4,6 +4,8 @@ import { CoreModule } from '../core/core.module';
 import { Db } from '../core/db';
 import { FeatureController } from './feature.controller';
 import { FeatureGuard, FeatureService } from './feature.service';
+import { LifecycleController } from './lifecycle.controller';
+import { LifecycleService } from './lifecycle.service';
 import { PortfolioController, TeamController } from './portfolio.controller';
 import { ProjectMetaController } from './project-meta.controller';
 import { ProjectMetaService } from './project-meta.service';
@@ -19,12 +21,13 @@ import { TeamService } from './team.service';
  */
 @Module({
   imports: [CoreModule],
-  controllers: [FeatureController, PpmSettingsController, ProjectMetaController, TeamController, PortfolioController],
+  controllers: [FeatureController, PpmSettingsController, ProjectMetaController, LifecycleController, TeamController, PortfolioController],
   providers: [
     { provide: FeatureService, useFactory: (db: Db) => new FeatureService(db), inject: [Db] },
     FeatureGuard,
     { provide: PpmSettingsService, useFactory: (db: Db) => new PpmSettingsService(db), inject: [Db] },
     { provide: ProjectMetaService, useFactory: (db: Db) => new ProjectMetaService(db), inject: [Db] },
+    { provide: LifecycleService, useFactory: (db: Db) => new LifecycleService(db), inject: [Db] },
     { provide: TeamService, useFactory: (db: Db) => new TeamService(db), inject: [Db] },
     { provide: PortfolioService, useFactory: (db: Db, k: KpiService) => new PortfolioService(db, k), inject: [Db, KpiService] },
   ],

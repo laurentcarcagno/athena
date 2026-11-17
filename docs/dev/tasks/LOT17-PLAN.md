@@ -12,7 +12,7 @@ Migrations réelles : la prochaine est la **065**.
 | T-0188 | B07, B08 | Vérifications ECharts : rendu SVG sous la CSP de production, poids du chunk | faite (CSP confirmée en infobulle `richText` ; poids 220 Ko gzip / 179 Ko brotli : décision à prendre) |
 | T-0189 | B09 | Composant `<Chart>` : thème par jetons, `aria`, motifs, vue tableau | faite (`packages/ui/src/chart.tsx`, gzip activé dans nginx ; poids ECharts accepté par l'utilisateur) |
 | T-0190 | B10 | Méta du projet (dates, sponsor, description, granularité) : migration, API, carte | faite (migration 067, table `project_meta`, `GET/PATCH /v1/projects/:p/meta`, carte « Informations ») |
-| T-0191 | B11 | Cycle de vie configurable : migration, états livrés, transitions, historique, API | |
+| T-0191 | B11 | Cycle de vie configurable : migration, états livrés, transitions, historique, API | faite (migration 068, `ppm/lifecycle*.ts`) |
 | T-0192 | B11 | Cycle de vie : Administration › Cycle de vie et action de transition dans le projet | |
 | T-0193 | B12 | Phases datées et décisions de gate : migration, API, historique des dates | |
 | T-0194 | B12 | Phases datées : frise des gates avec dates et décisions | |
