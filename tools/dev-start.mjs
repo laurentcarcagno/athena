@@ -181,7 +181,7 @@ async function seedLumen(pool, db, trackers, artifacts) {
  * Démonstration des équipes et des portefeuilles (ADR-0008) : deux équipes dont les membres reçoivent les tickets ouverts de NOVA et
  * LUMEN (la page « Charge des équipes » n'est pas vide), et un portefeuille « spatial » regroupant les projets de démonstration, dont
  * un avec santé forcée et note. Les sujets viennent de Keycloak (identifiant des comptes de développement), inscrits dans
- * user_account comme le fait la première connexion ; sans Keycloak, rien n'est fait. Idempotent : ignoré si l'équipe `plateforme` existe.
+ * user_account comme le fait la première connexion ; sans Keycloak, rien n'est fait. Idempotent étape par étape : équipes, responsables des tickets et portefeuille ne sont créés que s'ils manquent.
  */
 async function seedTeamsPortfolios(pool, db, artifacts) {
   const org = (await pool.query("select organization_id_by_key('demo') as id")).rows[0].id;
@@ -201,23 +201,25 @@ async function seedTeamsPortfolios(pool, db, artifacts) {
     }
   });
   const sub = (u) => accounts.get(u)?.id;
-  if (await db.tx(org, async (c) => (await c.query("select 1 from team where key = 'plateforme'")).rowCount > 0)) return;
   const plan = [
     ['plateforme', 'Équipe Plateforme', 'Socle applicatif et tableau de bord', [['manager.dev', 'manager'], ['user.dev', 'member'], ['pm.dev', 'member'], ['qa.dev', 'member']]],
     ['segment-sol', 'Équipe Segment sol', 'Stations, télémesure et exploitation', [['pm.dev', 'manager'], ['admin.dev', 'member'], ['user.dev', 'member']]],
   ];
   for (const [key, name, description, members] of plan) {
-    await teams.create(org, { key, name, description }, actor);
+    if (await db.tx(org, async (c) => (await c.query('select 1 from team where key = $1', [key])).rowCount === 0)) await teams.create(org, { key, name, description }, actor);
     for (const [u, role] of members) if (sub(u)) await teams.setMember(org, key, sub(u), role, actor);
   }
   // Tickets ouverts sans responsable répartis entre les membres (charge non nulle, retards compris) ; les affectations existantes sont gardées.
+  // Le champ de responsable se retrouve par son rôle sémantique (sa clé varie selon le tracker) ; un tracker sans tel champ est ignoré.
   const open = await db.tx(org, async (c) => (await c.query(
-    `select p.key as project, a.key, a.version from artifact a join project p on p.id = a.project_id join status s on s.id = a.status_id
-      where p.key in ('NOVA','LUMEN') and s.category <> 'done' and coalesce(a."values" ->> 'assignee', '') = '' order by p.key, a.number`)).rows);
+    `select p.key as project, a.key, a.version, f.key as field from artifact a
+       join project p on p.id = a.project_id join status s on s.id = a.status_id
+       join field_definition f on f.tracker_id = a.tracker_id and f.semantic_role = 'assignee'
+      where p.key in ('NOVA','LUMEN') and s.category <> 'done' and coalesce(a."values" ->> f.key, '') = '' order by p.key, a.number`)).rows);
   const assignees = ['user.dev', 'pm.dev', 'qa.dev', 'admin.dev', 'user.dev', 'pm.dev'].map(sub).filter(Boolean);
-  for (const [i, t] of open.entries()) await artifacts.update(org, t.project, t.key, { assignee: assignees[i % assignees.length] }, t.version, actor);
-  await portfolios.create(org, { key: 'spatial', name: 'Programmes spatiaux', description: 'Projets de démonstration regroupés pour la direction', owner: sub('director.dev') ?? null }, actor);
-  const projects = (await pool.query("select key from project where key in ('LUMEN','NOVA','SAT1','ARI') order by key")).rows.map((r) => r.key);
+  for (const [i, t] of open.entries()) await artifacts.update(org, t.project, t.key, { [t.field]: assignees[i % assignees.length] }, t.version, actor);
+  if (await db.tx(org, async (c) => (await c.query("select 1 from portfolio where key = 'spatial'")).rowCount === 0)) await portfolios.create(org, { key: 'spatial', name: 'Programmes spatiaux', description: 'Projets de démonstration regroupés pour la direction', owner: sub('director.dev') ?? null }, actor);
+  const projects = (await db.tx(org, async (c) => (await c.query("select key from project where key in ('LUMEN','NOVA','SAT1','ARI') order by key")).rows)).map((r) => r.key);
   for (const k of projects) await portfolios.setProject(org, 'spatial', k, k === 'LUMEN' ? { health: 'attention', note: 'Calibrage du capteur en retard, arbitrage attendu à la prochaine revue.' } : {}, actor);
   console.log(`démonstration d'équipes et de portefeuilles amorcée : équipes plateforme et segment-sol, portefeuille spatial (${projects.join(', ')})`);
 }
