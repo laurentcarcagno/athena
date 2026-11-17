@@ -60,6 +60,7 @@ test('tableau de bord : disposition par défaut, masquer et réordonner surviven
   expect(moved.x).toBe(assigned.x + 1);
   expect(moved.y).toBe(assigned.y);
   await page.getByRole('button', { name: 'Enregistrer' }).click(); // rien n'est enregistré avant « Enregistrer » (ADR-0007)
+  await expect(page.getByText('Disposition enregistrée.')).toBeVisible(); // la lecture suit l'enregistrement (le brouillon compte déjà six cartes)
   await expect(groups).toHaveCount(6);
   const saved = await layoutOf(page);
   expect(saved.isDefault).toBe(false);
