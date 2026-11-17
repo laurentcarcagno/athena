@@ -232,7 +232,7 @@ async function ensureKeycloak() {
   if (!token) { console.log('Keycloak : jeton administrateur indisponible, rôles athena-pm et athena-qa non vérifiés'); return; }
   const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
   const api = (path, init = {}) => fetch(`${base}/admin/realms/athena${path}`, { headers, ...init });
-  for (const [name, description] of [['athena-pm', 'Chef de projet'], ['athena-qa', 'Assurance qualité (droits d’un utilisateur, approbation des jalons et baselines)'], ['athena-manager', 'Manager : charge de ses équipes'], ['athena-pmo', 'PMO : portefeuilles, équipes et revues de portefeuille'], ['athena-director', 'Directeur : portefeuilles et tableaux de bord, en lecture seule']]) {
+  for (const [name, description] of [['athena-pm', 'Chef de projet'], ['athena-qa', 'Assurance qualité (droits d’un utilisateur, approbation des jalons et baselines)'], ['athena-manager', 'Manager : charge de ses équipes'], ['athena-pmo', 'PMO : portefeuilles, équipes et revues de portefeuille'], ['athena-finance', 'Finance : budgets, engagements, réels, prévisions et taux'], ['athena-director', 'Directeur : portefeuilles et tableaux de bord, en lecture seule']]) {
     if ((await api(`/roles/${name}`)).status === 404) await api('/roles', { method: 'POST', body: JSON.stringify({ name, description }) });
   }
   const group = (await (await api('/groups?search=org-demo')).json())[0];
@@ -245,6 +245,7 @@ async function ensureKeycloak() {
     { username: 'qa.dev', password: 'dev-only-qa', firstName: 'Assurance', lastName: 'Qualité', roles: ['athena-qa'] },
     { username: 'manager.dev', password: 'dev-only-manager', firstName: 'Manager', lastName: 'Dev', roles: ['athena-manager'] },
     { username: 'pmo.dev', password: 'dev-only-pmo', firstName: 'Bureau', lastName: 'PMO', roles: ['athena-pmo'] },
+    { username: 'finance.dev', password: 'dev-only-finance', firstName: 'Contrôle', lastName: 'Finance', roles: ['athena-finance'] },
     { username: 'director.dev', password: 'dev-only-director', firstName: 'Directeur', lastName: 'Dev', roles: ['athena-director'] },
   ]) {
     let users = await (await api(`/users?username=${username}&exact=true`)).json();
