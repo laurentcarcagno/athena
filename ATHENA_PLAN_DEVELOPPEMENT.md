@@ -915,7 +915,7 @@ Chevauchements possibles (4 ∥ 5, 6 ∥ 7 partiel) : **≈ 50–54 semaines** j
 | 9 | Auteur des commits de développement | `Laurent Carcagno <laurent.carcagno@gmail.com>` | § 13.4 |
 | 10 | Keycloak et OpenBao | Retenus pour l'identité et les secrets | § 14 |
 | 11 | GitLab | **Instance interne existante** | Pas de déploiement GitLab ; version, quotas et runners à relever en phase 0 |
-| 12 | Hébergement | **Kubernetes sur site** | Helm chart, authentification Kubernetes d'OpenBao, HA (remplace la ligne 8) |
+| 12 | Hébergement | **Kubernetes sur site, ou machines virtuelles (Proxmox) avec Docker Compose** : deux voies maintenues, au choix de l'organisation | Kubernetes : Helm chart (`deploy/helm`), authentification Kubernetes d'OpenBao, HA. VM : `deploy/vm` (2 API, worker, nginx), authentification AppRole d'OpenBao. Mêmes images et même configuration (remplace la ligne 8) |
 | 13 | Fédération Keycloak | **LDAP / Active Directory + comptes locaux** | Fédération LDAP en phase 1 ; comptes locaux pour les cas hors annuaire |
 | 14 | MFA | **Administrateurs seulement** au départ | Politique extensible à tous les utilisateurs |
 | 15 | OpenBao | **Instance existante réutilisée** | Création des chemins `athena/…`, politiques et rôles Kubernetes ; pas de déploiement OpenBao |

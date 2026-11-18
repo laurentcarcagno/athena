@@ -41,9 +41,8 @@ Correction faite le jour même : la lecture des indicateurs matérialisés se fa
 | Composant | Recommandation |
 |---|---|
 | PostgreSQL | 4 vCPU, 16 Go de mémoire, `shared_buffers` 4 Go, `effective_cache_size` 12 Go, disque SSD local (base estimée à 3 Go avec ce jeu et ses index), sauvegarde quotidienne |
-| API | 2 instances de 2 vCPU et 2 Go (état de session en Redis) |
+| API | 2 instances de 2 vCPU et 2 Go (sessions web en PostgreSQL : aucune ressource partagée en mémoire) |
 | Worker | 1 instance de 1 vCPU et 1 Go ; il porte le job `indicateurs` (18 s toutes les 10 minutes), le job `instantanes` et les rappels |
-| Redis | 1 Go |
 | Réseau | latence base-API inférieure à 2 ms (la lecture d'un portefeuille enchaîne des requêtes courtes) |
 
 ## Reste à faire en recette

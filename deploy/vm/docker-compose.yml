@@ -1,0 +1,89 @@
+# Déploiement sur machines virtuelles (Proxmox ou autre hyperviseur) : voie alternative à Kubernetes (plan § 23.1, décision 12).
+# Une VM « applicative » exécute ce fichier ; PostgreSQL, Keycloak, OpenBao, GitLab et MinIO/S3 sont des services existants joignables par le réseau.
+# Les sessions web sont en PostgreSQL et les tâches de fond dans le worker : aucune ressource partagée en mémoire entre instances d'API
+# (sauf la limitation de débit, par instance : voir README).
+#
+#   cp env.example .env            # puis renseigner les valeurs (jamais commité)
+#   docker compose build           # construit api et web depuis la racine du dépôt
+#   docker compose run --rm migrate
+#   docker compose up -d
+#
+# Deux instances d'API derrière nginx (le nom `api` est résolu par le DNS de Docker, qui répartit sur les réplicas).
+name: athena
+
+x-api-env: &api-env
+  NODE_ENV: production
+  HOST: 0.0.0.0
+  DATABASE_URL: ${DATABASE_URL}
+  KEYCLOAK_ISSUER: ${KEYCLOAK_ISSUER}
+  KEYCLOAK_WEB_CLIENT_ID: ${KEYCLOAK_WEB_CLIENT_ID:-athena-web}
+  KEYCLOAK_WEB_CLIENT_SECRET: ${KEYCLOAK_WEB_CLIENT_SECRET}
+  PUBLIC_URL: ${PUBLIC_URL}
+  WEB_ORIGIN: ${PUBLIC_URL}
+  CORS_ORIGIN: ${PUBLIC_URL}
+  COOKIE_SECURE: "true"
+  TRUST_PROXY: "true"
+  OPENBAO_ADDR: ${OPENBAO_ADDR:-}
+  OPENBAO_TOKEN: ${OPENBAO_TOKEN:-}
+  OPENBAO_ROLE_ID: ${OPENBAO_ROLE_ID:-}
+  OPENBAO_SECRET_ID: ${OPENBAO_SECRET_ID:-}
+  GITLAB_URL: ${GITLAB_URL:-}
+  GITLAB_TOKEN: ${GITLAB_TOKEN:-}
+  GITLAB_NAMESPACE: ${GITLAB_NAMESPACE:-}
+  S3_ENDPOINT: ${S3_ENDPOINT:-}
+  S3_ACCESS_KEY: ${S3_ACCESS_KEY:-}
+  S3_SECRET_KEY: ${S3_SECRET_KEY:-}
+  ATHENA_PROTECTION_LEVEL: ${ATHENA_PROTECTION_LEVEL:-}
+
+services:
+  api:
+    build: { context: ../.., dockerfile: deploy/docker/Dockerfile, target: api }
+    image: athena-api:${ATHENA_VERSION:-local}
+    restart: unless-stopped
+    environment: *api-env
+    deploy: { replicas: 2, resources: { limits: { cpus: "2", memory: 2g } } }
+    read_only: true
+    tmpfs: ["/tmp"]
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+    healthcheck:
+      test: ["CMD", "/nodejs/bin/node", "-e", "fetch('http://127.0.0.1:3001/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 4
+      start_period: 20s
+
+  worker:
+    image: athena-api:${ATHENA_VERSION:-local}
+    command: ["dist/worker.js"]
+    restart: unless-stopped
+    environment: *api-env
+    deploy: { replicas: 1, resources: { limits: { cpus: "1", memory: 1g } } }
+    read_only: true
+    tmpfs: ["/tmp"]
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+    depends_on: [api]
+
+  web:
+    build: { context: ../.., dockerfile: deploy/docker/Dockerfile, target: web }
+    image: athena-web:${ATHENA_VERSION:-local}
+    restart: unless-stopped
+    environment:
+      ATHENA_API_UPSTREAM: http://api:3001
+    ports: ["${WEB_PORT:-8080}:8080"]   # TLS terminé en amont (reverse proxy de l'organisation) ou par un nginx de bordure
+    read_only: true
+    tmpfs: ["/tmp", "/var/cache/nginx"]
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+    depends_on: [api]
+
+  # Migrations : compte propriétaire du schéma (jamais le compte applicatif). À lancer avant chaque mise à jour : docker compose run --rm migrate
+  migrate:
+    image: athena-api:${ATHENA_VERSION:-local}
+    command: ["dist/migrate-cli.js"]
+    profiles: ["tools"]
+    environment:
+      MIGRATION_DATABASE_URL: ${MIGRATION_DATABASE_URL}
+    read_only: true
+    tmpfs: ["/tmp"]
