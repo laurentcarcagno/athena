@@ -27,9 +27,9 @@ Trackers configurables, workflow et permissions par rôle (champ, transition), l
 | E14 | § 15.3 : **bibliothèque de champs partagés** | Absent | À faire |
 | E15 | § 15.2 : **visibilité conditionnelle** des champs | Absent | À faire |
 | E16 | § 15.3 : rôle **administrateur de tracker** distinct | Absent | À faire |
-| E17 | § 17.2 : **réconciliation périodique** GitLab, rattrapage | Rattrapage initial présent ; réconciliation périodique absente | À vérifier puis faire |
-| E18 | § 9.2 : `DiffViewer`, éditeur Markdown, `DatePicker`, `UserPicker`, Trusted Types | Absents du paquet `@athena/ui` sous ces noms | À vérifier composant par composant |
-| E19 | § 6.1 : points d'extension `permissionProvider`, client en iframe sandboxée | Absents | À vérifier puis faire |
+| E17 | § 17.2 : **réconciliation périodique** GitLab, rattrapage | Rattrapage initial présent ; aucune réconciliation périodique (le code n'en contient pas) | À faire : tâche du worker qui compare le dernier commit de chaque dépôt suivi à celui connu et rejoue les poussées perdues |
+| E18 | § 9.2 : `DiffViewer`, éditeur Markdown, `DatePicker`, `UserPicker`, Trusted Types | Vérifié : `@athena/ui` expose Btn, Field, Select, Textarea, Checkbox, Radio, Switch, Table, Tabs, Modal, Toast, Card, StatCard, Sidebar… ; `DiffViewer`, éditeur Markdown, `DatePicker`, `UserPicker`, `Skeleton` n'existent pas comme composants partagés (les écrans utilisent le champ date natif, un sélecteur propre à la page et la vue d'historique de l'application web) | Δ : fonctions présentes, hébergées dans `apps/web` ; extraire en composants partagés si les plugins en ont besoin |
+| E19 | § 6.1 : points d'extension `permissionProvider`, client en iframe sandboxée | Vérifié : le manifeste n'offre que `fieldTypes`, `hooks`, `actions` (équivalent d'`apiRoute` et de `workflowAction`), `widgets` (modèle de données, rendu par l'application) et `connectors` ; pas de `view`, `artifactTab`, `menuItem`, `panel`, `importer`, `exporter`, `permissionProvider`, `workflowCondition`. Choix de sécurité : un plugin ne renvoie jamais de HTML, donc pas d'iframe | À faire : `artifactTab` et `menuItem` en modèle de données (même principe que les widgets) ; `permissionProvider`, `workflowCondition` et `importer` à instruire |
 | E20 | § 23.1 décision 5 : thème clair seul | Dépassé : ADR-0004, thèmes clair et sombre | Plan à mettre à jour |
 | E21 | § 25 : test d'intrusion externe, recette sur cluster, formation | Hors de portée du code | Commande et sessions : à la charge de l'organisation |
 
