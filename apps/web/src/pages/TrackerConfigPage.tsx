@@ -1,3 +1,4 @@
+import { visibleWhenOf } from '../lib/visibility';
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { useParams } from 'react-router-dom';
 import { Btn, Card, Checkbox, Field as TextField, PageHeader, Select, StatusPill, Table, Td, Th, useToast } from '@athena/ui';
@@ -26,7 +27,7 @@ export function TrackerConfigPage({ session }: { session: Session }) {
   const [layout, setLayout] = useState<Layout | null>(null);
   const [trackerTypes, setTrackerTypes] = useState<TrackerTypeEntry[]>([]);
   const { busy, guard } = useBusy();
-  const [field, setField] = useState({ key: '', label: '', type: 'text', required: false, isContent: true, readRoles: '', writeRoles: '' });
+  const [field, setField] = useState({ key: '', label: '', type: 'text', required: false, isContent: true, readRoles: '', writeRoles: '', whenField: '', whenIn: '' });
   const [status, setStatus] = useState({ key: '', name: '', category: 'todo' });
   const [transition, setTransition] = useState({ name: '', from: '', to: '', roles: '' });
   const base = `/v1/projects/${project}/trackers/${tracker}`;
@@ -67,6 +68,7 @@ export function TrackerConfigPage({ session }: { session: Session }) {
   const roleList = (raw: string) => raw.split(',').map((r) => r.trim()).filter(Boolean);
   const fieldBody = () => ({
     key: field.key, label: field.label, type: field.type, required: field.required, ...(field.isContent ? {} : { isContent: false }),
+    ...(field.whenField && roleList(field.whenIn).length ? { config: { visibleWhen: { field: field.whenField, in: roleList(field.whenIn) } } } : {}),
     ...(roleList(field.readRoles).length ? { readRoles: roleList(field.readRoles) } : {}),
     ...(roleList(field.writeRoles).length ? { writeRoles: roleList(field.writeRoles) } : {}),
   });
@@ -127,7 +129,7 @@ export function TrackerConfigPage({ session }: { session: Session }) {
           <Table>
             <thead><tr><Th>{fr.config.key}</Th><Th>{fr.config.label}</Th><Th>{fr.config.type}</Th><Th>{fr.config.required}</Th><Th>{fr.suspicion.column}</Th><Th>{fr.config.roles}</Th>{admin && <Th>{fr.config.edit}</Th>}{admin && <Th>{fr.config.remove}</Th>}</tr></thead>
             <tbody>{def.fields.map((f) => (
-              <tr key={f.key}><Td mono>{f.key}</Td><Td>{f.label}</Td><Td mono>{f.type}</Td><Td>{f.required ? '✓' : ''}</Td>
+              <tr key={f.key}><Td mono>{f.key}</Td><Td>{f.label}{visibleWhenOf(f.config) && <small className="ath-field__hint"> · {fr.config.visibleWhen(visibleWhenOf(f.config)!.field, visibleWhenOf(f.config)!.in.join(', '))}</small>}</Td><Td mono>{f.type}</Td><Td>{f.required ? '✓' : ''}</Td>
                 <Td>{admin ? <Checkbox aria-label={`${fr.suspicion.toggle} ${f.key}`} checked={f.isContent !== false} onChange={(e) => void setContent(f.key, e.target.checked)} /> : (f.isContent === false ? '' : '✓')}</Td>
                 <Td mono>{f.readRoles || f.writeRoles ? `R: ${f.readRoles?.join(', ') ?? fr.config.everyone} · W: ${f.writeRoles?.join(', ') ?? fr.config.everyone}` : fr.config.everyone}</Td>
                 {admin && <Td><Btn size="sm" variant="ghost" aria-label={`${fr.config.edit} ${f.key}`} onClick={() => setEditing({ key: f.key, label: f.label, required: !!f.required, readRoles: f.readRoles?.join(', ') ?? '', writeRoles: f.writeRoles?.join(', ') ?? '' })}>{fr.config.edit}</Btn></Td>}
@@ -145,9 +147,11 @@ export function TrackerConfigPage({ session }: { session: Session }) {
             </form>
           )}
           {admin && (
-            <form className="ath-toolbar" onSubmit={submit('fields', fieldBody(), () => setField({ key: '', label: '', type: 'text', required: false, isContent: true, readRoles: '', writeRoles: '' }))}>
+            <form className="ath-toolbar" onSubmit={submit('fields', fieldBody(), () => setField({ key: '', label: '', type: 'text', required: false, isContent: true, readRoles: '', writeRoles: '', whenField: '', whenIn: '' }))}>
               <TextField label={fr.config.key} value={field.key} onChange={(e) => setField({ ...field, key: e.target.value })} mono />
               <TextField label={fr.config.label} value={field.label} onChange={(e) => setField({ ...field, label: e.target.value })} />
+              <label className="ath-notify__pref">{fr.config.whenField}<Select value={field.whenField} onChange={(e) => setField({ ...field, whenField: e.target.value })}><option value="">{fr.config.always}</option>{def.fields.filter((f) => !visibleWhenOf(f.config)).map((f) => <option key={f.key} value={f.key}>{f.label}</option>)}</Select></label>
+              {field.whenField && <TextField label={fr.config.whenValues} value={field.whenIn} onChange={(e) => setField({ ...field, whenIn: e.target.value })} />}
               <div className="ath-field">
                 <label className="ath-field__label" htmlFor="cfg-type">{fr.config.type}</label>
                 <Select id="cfg-type" value={field.type} onChange={(e) => setField({ ...field, type: e.target.value })}>

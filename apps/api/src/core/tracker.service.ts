@@ -1,3 +1,4 @@
+import { checkVisibleWhen } from './field-visibility';
 import type { SemanticRole } from './semantic-roles';
 import { typeExists } from './tracker-types';
 import type { Hue } from './hues';
@@ -170,6 +171,9 @@ export class TrackerService {
       const used = Number((await c.query('select count(*) n from artifact where tracker_id = $1', [tracker])).rows[0].n);
       if (field.required && used > 0) throw conflict('Un champ obligatoire ne peut pas être ajouté à un tracker qui contient déjà des tickets.');
       const position = Number((await c.query('select coalesce(max(position) + 1, 0) n from field_definition where tracker_id = $1', [tracker])).rows[0].n);
+      const existing = (await c.query('select key, config from field_definition where tracker_id = $1', [tracker])).rows as Array<{ key: string; config: Record<string, unknown> }>;
+      const visibility = checkVisibleWhen(field.key, field.config, existing);
+      if (visibility.length) throw validation(visibility);
       await c.query(
         'insert into field_definition (organization_id, tracker_id, key, label, type, config, required, position, semantic_role, read_roles, write_roles, is_content) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)',
         [organizationId, tracker, field.key, field.label, field.type, JSON.stringify(field.config ?? {}), field.required ?? false, position, field.semanticRole ?? null, field.readRoles ?? null, field.writeRoles ?? null, field.isContent ?? true],

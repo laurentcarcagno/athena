@@ -1,3 +1,4 @@
+import { isFieldVisible } from '../lib/visibility';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Btn, Modal, Select, Textarea, useToast } from '@athena/ui';
@@ -105,6 +106,7 @@ export function CreateArtifact({ target, open, onClose, onCreated }: {
     if (!definition) return;
     const payload: Record<string, unknown> = {};
     for (const field of definition.fields) {
+      if (!isFieldVisible(field, values)) continue; // un champ masqué par sa condition n'est pas envoyé (même s'il a été rempli avant que la condition change)
       const value = coerce(field, values[field.key] ?? '');
       if (value !== undefined) payload[field.key] = value;
     }
@@ -139,8 +141,9 @@ export function CreateArtifact({ target, open, onClose, onCreated }: {
         ))}
         {definition && (() => {
           const field = (f: Field) => <Input key={f.key} field={f} value={values[f.key] ?? ''} onChange={(v) => setValues((s) => ({ ...s, [f.key]: v }))} />;
-          const main = definition.fields.filter(essential);
-          const rest = definition.fields.filter((f) => !essential(f));
+          const shown = definition.fields.filter((f) => isFieldVisible(f, values));
+          const main = shown.filter(essential);
+          const rest = shown.filter((f) => !essential(f));
           return <>
             {main.map(field)}
             {rest.length > 0 && <div><Btn variant="ghost" size="sm" aria-expanded={more} onClick={() => setMore(!more)}>{more ? fr.create.less : fr.create.more(rest.length, rest.map((f) => f.label.toLowerCase()).join(', '))}</Btn></div>}

@@ -148,6 +148,7 @@ const frDict = {
     extensions: 'Extensions', distribution: 'Répartition', recent: 'Activité récente', committed: 'Engagé', completed: 'Terminé',
   },
   config: {
+    visibleWhen: (field: string, values: string) => `visible si ${field} vaut ${values}`, whenField: 'Visible selon le champ', always: 'Toujours visible', whenValues: 'Valeurs (virgules)',
     edit: 'Modifier', editField: (key: string) => `Modifier le champ ${key}`, saveField: 'Enregistrer le champ', fieldSaved: 'Champ enregistré.',
     eyebrow: 'Configuration', title: 'Configuration du tracker', fields: 'Champs', statuses: 'Statuts', transitions: 'Transitions',
     key: 'Clé', label: 'Libellé', type: 'Type', required: 'Obligatoire', category: 'Catégorie', name: 'Nom', from: 'Depuis', to: 'Vers', anyState: 'Tout état', add: 'Ajouter',
@@ -830,6 +831,7 @@ const enDict: Dictionary = {
     extensions: 'Extensions', distribution: 'Distribution', recent: 'Recent activity', committed: 'Committed', completed: 'Completed',
   },
   config: {
+    visibleWhen: (field: string, values: string) => `visible if ${field} is ${values}`, whenField: 'Visible depending on field', always: 'Always visible', whenValues: 'Values (commas)',
     edit: 'Edit', editField: (key: string) => `Edit field ${key}`, saveField: 'Save the field', fieldSaved: 'Field saved.',
     eyebrow: 'Configuration', title: 'Tracker configuration', fields: 'Fields', statuses: 'Statuses', transitions: 'Transitions',
     key: 'Key', label: 'Label', type: 'Type', required: 'Required', category: 'Category', name: 'Name', from: 'From', to: 'To', anyState: 'Any state', add: 'Add',

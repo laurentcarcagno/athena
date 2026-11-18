@@ -1,3 +1,4 @@
+import { isFieldVisible } from '../lib/visibility';
 import { useCallback, useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Btn, Card, EmptyState, Field as FieldInput, Id, Select, StatusPill, Table, Tabs, Tag, Td, Textarea, Th, useToast } from '@athena/ui';
@@ -269,7 +270,7 @@ export function ArtifactView({ session, project, itemKey: key, embedded = false,
                   <section key={i} aria-label={section.title || undefined} className="ath-layout-view">
                     {section.title && <h3 className="ath-subsection-title">{section.title}</h3>}
                     <div className="ath-layout-grid">
-                      {section.fields.map((lf) => {
+                      {section.fields.filter((lf) => isFieldVisible(def.fields.find((x) => x.key === lf.key)!, artifact.values)).map((lf) => {
                         const f = def.fields.find((x) => x.key === lf.key)!;
                         const pending = conflict?.key === f.key ? conflict.raw : undefined;
                         return (

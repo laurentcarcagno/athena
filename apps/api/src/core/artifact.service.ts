@@ -1,3 +1,4 @@
+import { isFieldVisible } from './field-visibility';
 import type { PoolClient } from 'pg';
 import { Db, type Actor } from './db';
 import { conflict, forbidden, notFound, validation } from './errors';
@@ -211,7 +212,7 @@ export class ArtifactService {
         }
         if (validator.type === 'approval' && !(await approvalSatisfied(c, row.id))) problems.push("approbation requise : le circuit d'approbation n'est pas terminé");
         if (validator.type === 'required_fields') {
-          for (const f of validator.fields ?? []) if (row.values[f] === undefined) problems.push(`champ requis : ${f}`);
+          for (const f of validator.fields ?? []) if (row.values[f] === undefined && isFieldVisible(def.fields.find((x) => x.key === f) ?? {}, row.values)) problems.push(`champ requis : ${f}`);
         }
       }
       if (problems.length) throw validation(problems);
@@ -240,7 +241,8 @@ export class ArtifactService {
       if (problem) errors.push(`${k} : ${problem}`);
     }
     if (checkRequired) {
-      for (const f of def.fields) if (f.required && values[f.key] === undefined) errors.push(`${f.key} : obligatoire`);
+      // un champ masqué par sa condition de visibilité n'est jamais obligatoire
+      for (const f of def.fields) if (f.required && values[f.key] === undefined && isFieldVisible(f, values)) errors.push(`${f.key} : obligatoire`);
     }
     if (errors.length) throw validation(errors);
   }
