@@ -332,6 +332,13 @@ export class AthenaClient {
     timeCost: (path: { p: string }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('GET', this.path('/v1/finance/projects/{p}/time-cost', path), { query }),
   };
 
+  readonly graphql = {
+    /** GET /v1/graphql · rôles : athena-team-member, athena-admin */
+    get: (query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('GET', this.path('/v1/graphql', {}), { query }),
+    /** POST /v1/graphql · rôles : athena-team-member, athena-admin */
+    post: (body: { query: string; variables?: Record<string, unknown>; operationName?: string }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('POST', this.path('/v1/graphql', {}), { body, query }),
+  };
+
   readonly health = {
     /** GET /v1/admin/ping · rôles : athena-admin */
     adminPing: (query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('GET', this.path('/v1/admin/ping', {}), { query }),

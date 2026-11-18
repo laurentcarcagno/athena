@@ -41,3 +41,17 @@ Un jeton d'accès personnel (profil, « Jetons d'accès personnels ») : portée
 ## Tests
 
 `pnpm --filter @athena/sdk test` (client TypeScript, `fetch` simulé) et `cd packages/sdk-python && PYTHONPATH=. python -m unittest discover -s tests` (client Python contre un serveur HTTP local).
+
+## GraphQL (lecture seule)
+
+`POST /v1/graphql` (corps `{ "query", "variables", "operationName" }`) ou `GET /v1/graphql?query=...`. Mêmes droits que l'API REST (listes d'ayants droit, droits de lecture par champ). Aucune mutation ni abonnement : l'écriture reste en REST. Limites : requête de 20 000 caractères au plus, 7 niveaux de profondeur, pages de 200 éléments au plus.
+
+```graphql
+{
+  projects { key name trackers { key artifactCount } }
+  artifact(project: "ARI", key: "ARI-BUG-0001") { key status version values }
+  search(q: "status = Open AND severity = majeure", limit: 20) { total hits { key project title statusName } }
+  project(key: "ARI") { artifacts(tracker: "BUG", query: "severity = mineure") { hits { key title } } }
+}
+```
+Avec les SDK : `athena.graphql.post({ query: '{ projects { key } }' })` (TypeScript), `athena.graphql.post(body={"query": "{ projects { key } }"})` (Python).

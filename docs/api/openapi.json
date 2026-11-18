@@ -2928,6 +2928,105 @@
     }
    }
   },
+  "/v1/graphql": {
+   "post": {
+    "operationId": "Graphql_post",
+    "tags": [
+     "Graphql"
+    ],
+    "parameters": [],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+         "query": {
+          "type": "string",
+          "maxLength": 20000
+         },
+         "variables": {
+          "type": "object",
+          "propertyNames": {
+           "type": "string"
+          },
+          "additionalProperties": {}
+         },
+         "operationName": {
+          "type": "string",
+          "maxLength": 100
+         }
+        },
+        "required": [
+         "query"
+        ]
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     },
+     {
+      "session": []
+     }
+    ],
+    "x-athena-roles": [
+     "athena-team-member",
+     "athena-admin"
+    ],
+    "responses": {
+     "200": {
+      "description": "Succès"
+     },
+     "401": {
+      "description": "Non authentifié"
+     },
+     "403": {
+      "description": "Rôle insuffisant"
+     },
+     "422": {
+      "description": "Validation"
+     }
+    }
+   },
+   "get": {
+    "operationId": "Graphql_get",
+    "tags": [
+     "Graphql"
+    ],
+    "parameters": [],
+    "security": [
+     {
+      "bearer": []
+     },
+     {
+      "session": []
+     }
+    ],
+    "x-athena-roles": [
+     "athena-team-member",
+     "athena-admin"
+    ],
+    "responses": {
+     "200": {
+      "description": "Succès"
+     },
+     "401": {
+      "description": "Non authentifié"
+     },
+     "403": {
+      "description": "Rôle insuffisant"
+     },
+     "422": {
+      "description": "Validation"
+     }
+    }
+   }
+  },
   "/v1/lifecycle": {
    "get": {
     "operationId": "Lifecycle_config",

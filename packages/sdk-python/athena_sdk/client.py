@@ -586,6 +586,17 @@ class _Finance(_Group):
         return self._client.request("GET", path, query=query)
 
 
+class _Graphql(_Group):
+    def get(self, query: Optional[Dict[str, Any]] = None) -> Any:
+        """GET /v1/graphql (rôles : athena-team-member, athena-admin)"""
+        path = "/v1/graphql"
+        return self._client.request("GET", path, query=query)
+    def post(self, body: Any = None, query: Optional[Dict[str, Any]] = None) -> Any:
+        """POST /v1/graphql (rôles : athena-team-member, athena-admin)"""
+        path = "/v1/graphql"
+        return self._client.request("POST", path, query=query, body=body)
+
+
 class _Health(_Group):
     def admin_ping(self, query: Optional[Dict[str, Any]] = None) -> Any:
         """GET /v1/admin/ping (rôles : athena-admin)"""
@@ -1493,6 +1504,7 @@ class AthenaClient:
         self.doc = _Doc(self)
         self.feature = _Feature(self)
         self.finance = _Finance(self)
+        self.graphql = _Graphql(self)
         self.health = _Health(self)
         self.integrations = _Integrations(self)
         self.item_approval = _ItemApproval(self)
