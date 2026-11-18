@@ -262,7 +262,11 @@ for (const u of Object.keys(USERS)) {
     ...(k.project ? { projects: ['RADC'], project: 'RADC' } : {}),
     x: (i % 2) * 6, y: Math.floor(i / 2) * 3, w: 6, h: 3,
   }));
-  await call(u, 'PUT', '/v1/me/dashboard', { widgets });
+  // L'accueil (onglet principal) reste vide : chacun l'organise lui-même. Les cartes de démonstration vont dans un onglet « Démonstration ».
+  await call(u, 'DELETE', '/v1/me/dashboard');
+  let tab = ((await get(u, '/v1/me/dashboard/tabs'))?.tabs ?? []).find((t) => t.title === 'Démonstration');
+  if (!tab) tab = (await call(u, 'POST', '/v1/me/dashboard/tabs', { title: 'Démonstration' })).data;
+  if (tab?.id) await call(u, 'PUT', `/v1/me/dashboard?tab=${tab.id}`, { widgets });
 }
 
 for (const portfolio of ['defense', 'spatial']) {
