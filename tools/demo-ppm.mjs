@@ -251,22 +251,11 @@ for (const [p, list] of Object.entries(RISKS)) {
 }
 
 // ------------------------------------------------------------------ tableaux de bord : tous les genres de widget autorisés, pour chaque rôle
-section('tableaux de bord par rôle');
+section('accueils vides');
+// Les accueils (Mon travail) restent vides : chacun organise les siens. On retire ce que d'anciennes exécutions ont posé.
 for (const u of Object.keys(USERS)) {
-  const catalog = await get(u, '/v1/me/dashboard/catalog');
-  const kinds = (catalog?.kinds ?? []).filter((k) => !k.kind.startsWith('portfolio-'));
-  const widgets = kinds.slice(0, 24).map((k, i) => ({
-    id: `demo-${k.kind}`, kind: k.kind, size: 'M',
-    ...(k.kind === 'search' ? { query: 'category != done', title: 'Tickets ouverts' } : {}),
-    ...(k.kind === 'chart' ? { query: 'category != done', field: 'status', form: 'donut', title: 'Répartition par statut' } : {}),
-    ...(k.project ? { projects: ['RADC'], project: 'RADC' } : {}),
-    x: (i % 2) * 6, y: Math.floor(i / 2) * 3, w: 6, h: 3,
-  }));
-  // L'accueil (onglet principal) reste vide : chacun l'organise lui-même. Les cartes de démonstration vont dans un onglet « Démonstration ».
   await call(u, 'DELETE', '/v1/me/dashboard');
-  let tab = ((await get(u, '/v1/me/dashboard/tabs'))?.tabs ?? []).find((t) => t.title === 'Démonstration');
-  if (!tab) tab = (await call(u, 'POST', '/v1/me/dashboard/tabs', { title: 'Démonstration' })).data;
-  if (tab?.id) await call(u, 'PUT', `/v1/me/dashboard?tab=${tab.id}`, { widgets });
+  for (const tab of ((await get(u, '/v1/me/dashboard/tabs'))?.tabs ?? []).filter((t) => t.id !== '' && t.title === 'Démonstration')) await call(u, 'DELETE', `/v1/me/dashboard/tabs/${tab.id}`);
 }
 
 for (const portfolio of ['defense', 'spatial']) {
