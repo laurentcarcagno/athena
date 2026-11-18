@@ -26,7 +26,7 @@ Cette revue est interne et automatisée. **Elle ne remplace pas le test d'intrus
 ## Écarts connus (non couverts)
 - **Test d'intrusion externe** : à commander.
 - **CSP de l'application web** : la politique est à poser sur le reverse proxy (`default-src 'self'; style-src 'self'; script-src 'self'; connect-src 'self'; frame-ancestors 'none'`) ; non testée de bout en bout.
-- **Limitation de débit** : en mémoire, par instance. Derrière plusieurs instances, prévoir un stockage partagé (Redis).
+- **Limitation de débit** : en mémoire par instance par défaut ; `RATE_LIMIT_STORE=postgres` la partage entre instances (migration 087). Clés : adresse et empreinte du jeton.
 - **Secret de session** : lu depuis l'environnement ; à fournir par OpenBao en production.
 - **Déconnexion back-channel Keycloak** : non implémentée (la session expire à 8 h ou à la déconnexion).
 - **MFA** : appliquée par Keycloak aux administrateurs (le compte de démonstration n’en a pas : environnement de développement) ; à vérifier sur l'instance cible.

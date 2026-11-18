@@ -5,7 +5,8 @@ import { AppModule } from './app.module';
 import { loadConfig } from './config';
 import { registerBinaryUpload } from './core/attachment.controller';
 import { applyMetrics } from './observability/metrics';
-import { applyHardening } from './security/hardening';
+import { PG_POOL } from './core/core.tokens';
+import { applyHardening, PgRateStore } from './security/hardening';
 
 async function bootstrap() {
   const config = loadConfig();
@@ -17,6 +18,7 @@ async function bootstrap() {
     sensitivePerMinute: config.RATE_LIMIT_SENSITIVE_PER_MINUTE,
     hsts: config.COOKIE_SECURE,
     protectionLevel: config.ATHENA_PROTECTION_LEVEL,
+    ...(config.RATE_LIMIT_STORE === 'postgres' ? { store: new PgRateStore(app.get(PG_POOL, { strict: false })) } : {}),
   });
   applyMetrics(app.getHttpAdapter().getInstance());
   registerBinaryUpload(app.getHttpAdapter().getInstance());

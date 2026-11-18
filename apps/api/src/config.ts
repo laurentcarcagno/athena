@@ -35,6 +35,8 @@ const schema = z.object({
   PLUGIN_TRUSTED_KEYS: z.string().optional(),
   RATE_LIMIT_API_PER_MINUTE: z.coerce.number().int().min(10).max(100_000).default(600),
   RATE_LIMIT_SENSITIVE_PER_MINUTE: z.coerce.number().int().min(5).max(10_000).default(60),
+  /** Compteur de limitation de débit : `memory` (par instance, défaut) ou `postgres` (partagé entre instances d'API, plan § 13.3). */
+  RATE_LIMIT_STORE: z.enum(['memory', 'postgres']).default('memory'),
   TRUST_PROXY: z.enum(['true', 'false']).default('false').transform((v) => v === 'true'),
   CORS_ORIGIN: z.string().default('http://localhost:3000'),
   /** Niveau de protection de l'instance (ex. « Diffusion Restreinte ») : bandeau sur chaque page et mention sur les exports. Vide : aucun. */
@@ -54,7 +56,8 @@ export type AppConfig = z.infer<typeof schema>;
 
 /** Valide l'environnement au démarrage. Échec explicite plutôt que valeurs dangereuses par défaut. */
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
-  const parsed = schema.safeParse(env);
+  // Une variable vide (ligne `NOM=` d'un fichier .env, `${NOM:-}` de Compose) vaut « non définie » : sinon une valeur optionnelle vide ferait échouer la validation.
+  const parsed = schema.safeParse(Object.fromEntries(Object.entries(env).filter(([, v]) => v !== '')));
   if (!parsed.success) {
     const detail = parsed.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; ');
     throw new Error(`Configuration invalide : ${detail}`);

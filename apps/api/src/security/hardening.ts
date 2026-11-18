@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 /** Limiteur à fenêtre fixe en mémoire. Par instance : derrière plusieurs instances, la limite s'applique à chacune. */
 export class RateLimiter {
   private readonly windows = new Map<string, { start: number; count: number }>();
@@ -27,7 +28,30 @@ export class RateLimiter {
   }
 }
 
+/** Compteur partagé entre instances (fenêtre fixe) : PostgreSQL, sans Redis. Échec d'accès : on laisse passer plutôt que de couper l'API. */
+export interface RateStore { hit(key: string, limit: number, windowMs: number, now: number): Promise<{ allowed: boolean; remaining: number; retryAfterSeconds: number }> }
+
+export class PgRateStore implements RateStore {
+  private calls = 0;
+  constructor(private readonly pool: { query(sql: string, params?: unknown[]): Promise<{ rows: any[] }> }) {}
+
+  async hit(key: string, limit: number, windowMs: number, now: number) {
+    const start = Math.floor(now / windowMs) * windowMs;
+    try {
+      const count = Number((await this.pool.query(
+        'insert into rate_limit_window (key, window_start, hits) values ($1, $2, 1) on conflict (key, window_start) do update set hits = rate_limit_window.hits + 1 returning hits',
+        [key, new Date(start).toISOString()])).rows[0].hits);
+      if (++this.calls % 500 === 0) void this.pool.query('delete from rate_limit_window where window_start < $1', [new Date(now - 10 * windowMs).toISOString()]).catch(() => undefined);
+      return { allowed: count <= limit, remaining: Math.max(0, limit - count), retryAfterSeconds: Math.max(1, Math.ceil((start + windowMs - now) / 1000)) };
+    } catch {
+      return { allowed: true, remaining: limit, retryAfterSeconds: 1 };
+    }
+  }
+}
+
 export interface HardeningOptions {
+  /** Compteur partagé entre instances d'API ; par défaut, un compteur en mémoire par instance. */
+  store?: RateStore;
   /** Requêtes par minute et par client pour l'API. */
   apiPerMinute: number;
   /** Requêtes par minute et par client pour /auth et /hooks (authentification, webhooks entrants). */
@@ -55,10 +79,25 @@ export function applyHardening(fastify: FastifyLike, options: HardeningOptions, 
   const api = new RateLimiter(options.apiPerMinute, 60_000);
   const sensitive = new RateLimiter(options.sensitivePerMinute, 60_000);
 
+  // Clés : l'adresse du client, et le jeton présenté (empreinte) : un client qui change d'adresse reste limité, un jeton volé ne contourne pas la limite de son porteur.
+  const tokenKey = (request: any): string | null => {
+    const auth = request.headers?.['authorization'];
+    return typeof auth === 'string' && auth.length > 10 ? `tok:${createHash('sha256').update(auth).digest('hex').slice(0, 16)}` : null;
+  };
   fastify.addHook('onRequest', async (request, reply) => {
     const bucket = bucketOf(String(request.url).split('?')[0] ?? '');
     if (bucket === 'none') return;
-    const result = (bucket === 'sensitive' ? sensitive : api).hit(`${request.ip}`, now());
+    const limit = bucket === 'sensitive' ? options.sensitivePerMinute : options.apiPerMinute;
+    const keys = [`${bucket}:ip:${request.ip}`, ...(tokenKey(request) ? [`${bucket}:${tokenKey(request)}`] : [])];
+    let result: { allowed: boolean; remaining: number; retryAfterSeconds: number };
+    if (options.store) {
+      const hits = await Promise.all(keys.map((k) => options.store!.hit(k, limit, 60_000, now())));
+      result = hits.find((h) => !h.allowed) ?? hits.reduce((a, b) => (b.remaining < a.remaining ? b : a));
+    } else {
+      const limiter = bucket === 'sensitive' ? sensitive : api;
+      const hits = [limiter.hit(`${request.ip}`, now()), ...(tokenKey(request) ? [limiter.hit(tokenKey(request)!, now())] : [])];
+      result = hits.find((h) => !h.allowed) ?? hits.reduce((a, b) => (b.remaining < a.remaining ? b : a));
+    }
     reply.header('RateLimit-Remaining', String(result.remaining));
     if (!result.allowed) {
       reply.header('Retry-After', String(result.retryAfterSeconds));

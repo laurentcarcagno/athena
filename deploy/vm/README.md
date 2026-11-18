@@ -46,5 +46,5 @@ Hors Kubernetes, utiliser **AppRole** (plan § 14.2) : créer un rôle `athena-a
 ## Limites par rapport à Kubernetes
 
 - Pas de reprise automatique si la VM tombe : s'appuyer sur la haute disponibilité de l'hyperviseur (redémarrage de la VM sur un autre nœud Proxmox).
-- La limitation de débit est tenue **par instance** : avec deux API, la limite effective est doublée (voir `docs/security/REVUE.md`).
+- La limitation de débit est tenue **par instance** par défaut : avec deux API, la limite effective est doublée. Positionner `RATE_LIMIT_STORE=postgres` pour un compteur partagé (aucun Redis requis).
 - Aucune politique réseau : cloisonner par pare-feu de l'hyperviseur (seul le port du reverse proxy est exposé ; `athena-pg` n'accepte que `athena-app`).

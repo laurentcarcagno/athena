@@ -59,7 +59,7 @@ const env = z
     DIGEST_ENABLED: z.enum(['true', 'false']).default('true').transform((v) => v === 'true'),
     DIGEST_INTERVAL_MS: z.coerce.number().int().min(10_000).default(300_000),
   })
-  .parse(process.env);
+  .parse(Object.fromEntries(Object.entries(process.env).filter(([, v]) => v !== ''))); // variable vide = non définie (fichier .env, Compose)
 
 const log = (message: string) => console.log(`${new Date().toISOString()} ${message}`);
 const production = process.env['NODE_ENV'] === 'production';
