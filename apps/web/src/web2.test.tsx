@@ -131,6 +131,21 @@ describe('éditeur de tracker', () => {
     transitions: [{ id: 't', name: 'Terminer', fromStatusId: 's1', toStatusId: 's2' }] };
   const base = () => [on('GET', '/v1/projects/ARI/trackers/BUG', { body: def }), on('GET', '/v1/field-types', { body: ['text', 'number', 'select'] })];
 
+  it('modifie le libellé, l’obligation et les rôles d’un champ existant (administrateur)', async () => {
+    const withEnv = { ...def, fields: [...def.fields, { id: 'g', key: 'env', label: 'Env', type: 'text', config: {}, required: false, semanticRole: null }] };
+    handlers = [on('GET', '/v1/projects/ARI/trackers/BUG', { body: withEnv }), on('GET', '/v1/field-types', { body: ['text'] }), on('PATCH', /\/fields\/env$/, { status: 204 })];
+    wrap('/p/ARI/trackers/BUG/config', <TrackerConfigPage session={admin} />, '/p/:project/trackers/:tracker/config');
+    await userEvent.click(await screen.findByRole('button', { name: 'Modifier env' }));
+    const form = screen.getByRole('form', { name: 'Modifier le champ env' });
+    const label = within(form).getByLabelText('Libellé');
+    await userEvent.clear(label);
+    await userEvent.type(label, 'Environnement');
+    await userEvent.type(within(form).getByLabelText('Rôles en écriture (virgules)'), 'athena-pm, athena-admin');
+    await userEvent.click(within(form).getByRole('checkbox'));
+    await userEvent.click(within(form).getByRole('button', { name: 'Enregistrer le champ' }));
+    await waitFor(() => expect(calls.find((c) => c.method === 'PATCH' && c.url.endsWith('/fields/env'))?.body).toEqual({ label: 'Environnement', required: true, readRoles: null, writeRoles: ['athena-pm', 'athena-admin'] }));
+  });
+
   it('ajoute un champ, un statut et une transition (administrateur)', async () => {
     handlers = [...base(), on('POST', /\/fields$/, { status: 201, body: {} }), on('POST', /\/statuses$/, { status: 201, body: {} }), on('POST', /\/transitions$/, { status: 201, body: {} })];
     wrap('/p/ARI/trackers/BUG/config', <TrackerConfigPage session={admin} />, '/p/:project/trackers/:tracker/config');

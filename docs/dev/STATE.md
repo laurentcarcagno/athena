@@ -80,7 +80,7 @@ Dernière mise à jour : 2026-11-17
 - **Historique** : réécrit le 2026-11-10 à la demande de l'utilisateur (lot 8 en `@gmail.com`) ; sauvegarde `backup/avant-reecriture-email`, à supprimer quand l'utilisateur le décide.
 - **Reste à faire** (par priorité) :
   1. Test d'intrusion externe (à commander) ; déploiement de recette sur Kubernetes et mesures de charge concurrente.
-  5. Écarts mineurs : interface des rôles de champ, permissions par transition, suppression/renommage de champs, swimlanes, Gantt (traité par le lot 12).
+  5. Écarts mineurs : **tous levés** (vérifié le 2026-11-18) : rôles sémantiques de champ (éditeur de tracker), permissions par transition (rôles autorisés, appliqués par l'API), suppression de champ avec impact et purge, couloirs du board (par assignation ou tracker), Gantt (lot 12) ; renommage et modification des rôles de lecture et d'écriture d'un champ existant ajoutés dans la page de configuration du tracker.
 - **Blocages** : accès SSH à gitlab.karka.lan:2222 vérifié (authentification OK, aucun push). relevés d'environnement (GitLab interne, OpenBao, LDAP, Kubernetes : plan § 23.2). Rien n'est poussé ; l'accès SSH à `gitlab.karka.lan:2222` n'a pas été testé.
 
 ## Reprise IHM (plan du 2026-11-06, ADR-0002)

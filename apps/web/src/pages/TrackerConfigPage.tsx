@@ -63,12 +63,21 @@ export function TrackerConfigPage({ session }: { session: Session }) {
     }
   };
 
+  const [editing, setEditing] = useState<{ key: string; label: string; required: boolean; readRoles: string; writeRoles: string } | null>(null);
   const roleList = (raw: string) => raw.split(',').map((r) => r.trim()).filter(Boolean);
   const fieldBody = () => ({
     key: field.key, label: field.label, type: field.type, required: field.required, ...(field.isContent ? {} : { isContent: false }),
     ...(roleList(field.readRoles).length ? { readRoles: roleList(field.readRoles) } : {}),
     ...(roleList(field.writeRoles).length ? { writeRoles: roleList(field.writeRoles) } : {}),
   });
+  const saveField = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!editing) return;
+    try {
+      await api('PATCH', `${base}/fields/${editing.key}`, { label: editing.label.trim(), required: editing.required, readRoles: roleList(editing.readRoles).length ? roleList(editing.readRoles) : null, writeRoles: roleList(editing.writeRoles).length ? roleList(editing.writeRoles) : null });
+      toast('success', fr.config.fieldSaved); setEditing(null); await reload();
+    } catch (error) { fail(error); }
+  };
   const setContent = async (key: string, isContent: boolean) => {
     try { await api('PATCH', `${base}/fields/${key}`, { isContent }); toast('success', fr.suspicion.contentSaved); await reload(); } catch (error) { fail(error); }
   };
@@ -116,14 +125,25 @@ export function TrackerConfigPage({ session }: { session: Session }) {
       <div className="ath-stack">
         <Card title={fr.config.fields} meta={String(def.fields.length)}>
           <Table>
-            <thead><tr><Th>{fr.config.key}</Th><Th>{fr.config.label}</Th><Th>{fr.config.type}</Th><Th>{fr.config.required}</Th><Th>{fr.suspicion.column}</Th><Th>{fr.config.roles}</Th>{admin && <Th>{fr.config.remove}</Th>}</tr></thead>
+            <thead><tr><Th>{fr.config.key}</Th><Th>{fr.config.label}</Th><Th>{fr.config.type}</Th><Th>{fr.config.required}</Th><Th>{fr.suspicion.column}</Th><Th>{fr.config.roles}</Th>{admin && <Th>{fr.config.edit}</Th>}{admin && <Th>{fr.config.remove}</Th>}</tr></thead>
             <tbody>{def.fields.map((f) => (
               <tr key={f.key}><Td mono>{f.key}</Td><Td>{f.label}</Td><Td mono>{f.type}</Td><Td>{f.required ? '✓' : ''}</Td>
                 <Td>{admin ? <Checkbox aria-label={`${fr.suspicion.toggle} ${f.key}`} checked={f.isContent !== false} onChange={(e) => void setContent(f.key, e.target.checked)} /> : (f.isContent === false ? '' : '✓')}</Td>
                 <Td mono>{f.readRoles || f.writeRoles ? `R: ${f.readRoles?.join(', ') ?? fr.config.everyone} · W: ${f.writeRoles?.join(', ') ?? fr.config.everyone}` : fr.config.everyone}</Td>
+                {admin && <Td><Btn size="sm" variant="ghost" aria-label={`${fr.config.edit} ${f.key}`} onClick={() => setEditing({ key: f.key, label: f.label, required: !!f.required, readRoles: f.readRoles?.join(', ') ?? '', writeRoles: f.writeRoles?.join(', ') ?? '' })}>{fr.config.edit}</Btn></Td>}
                 {admin && <Td>{f.semanticRole !== 'title' && <Btn icon="trash" size="sm" variant="ghost" aria-label={`${fr.config.remove} ${f.key}`} onClick={() => removeField(f.key)}>{fr.config.remove}</Btn>}</Td>}</tr>
             ))}</tbody>
           </Table>
+          {admin && editing && (
+            <form className="ath-toolbar" onSubmit={(e) => void saveField(e)} aria-label={fr.config.editField(editing.key)}>
+              <TextField label={fr.config.label} value={editing.label} onChange={(e) => setEditing({ ...editing, label: e.target.value })} required />
+              <label className="ath-notify__pref"><Checkbox checked={editing.required} onChange={(e) => setEditing({ ...editing, required: e.target.checked })} />{fr.config.required}</label>
+              <TextField label={fr.config.readRoles} value={editing.readRoles} onChange={(e) => setEditing({ ...editing, readRoles: e.target.value })} mono />
+              <TextField label={fr.config.writeRoles} value={editing.writeRoles} onChange={(e) => setEditing({ ...editing, writeRoles: e.target.value })} mono />
+              <Btn type="submit" size="sm" disabled={!editing.label.trim()}>{fr.config.saveField}</Btn>
+              <Btn size="sm" variant="ghost" onClick={() => setEditing(null)}>{fr.config.cancel}</Btn>
+            </form>
+          )}
           {admin && (
             <form className="ath-toolbar" onSubmit={submit('fields', fieldBody(), () => setField({ key: '', label: '', type: 'text', required: false, isContent: true, readRoles: '', writeRoles: '' }))}>
               <TextField label={fr.config.key} value={field.key} onChange={(e) => setField({ ...field, key: e.target.value })} mono />

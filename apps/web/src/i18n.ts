@@ -145,6 +145,7 @@ const frDict = {
     extensions: 'Extensions', distribution: 'Répartition', recent: 'Activité récente', committed: 'Engagé', completed: 'Terminé',
   },
   config: {
+    edit: 'Modifier', editField: (key: string) => `Modifier le champ ${key}`, saveField: 'Enregistrer le champ', fieldSaved: 'Champ enregistré.',
     eyebrow: 'Configuration', title: 'Configuration du tracker', fields: 'Champs', statuses: 'Statuts', transitions: 'Transitions',
     key: 'Clé', label: 'Libellé', type: 'Type', required: 'Obligatoire', category: 'Catégorie', name: 'Nom', from: 'Depuis', to: 'Vers', anyState: 'Tout état', add: 'Ajouter',
     historyMode: 'Écriture de l’historique', historyDirect: 'Directe (branche principale)', historyMr: 'Par merge request (revue)', readRoles: 'Rôles en lecture (virgules)', writeRoles: 'Rôles en écriture (virgules)', roles: 'Rôles', everyone: 'Tous', allowedRoles: 'Rôles autorisés (virgules, vide : tous)', remove: 'Supprimer', confirmPurge: (n: string, count = 0) => `Le champ ${n} contient des valeurs${count ? ` (${count} ticket${count > 1 ? 's' : ''})` : ''}. Les supprimer définitivement des tickets ?`, removed: 'Champ supprimé.',
@@ -823,6 +824,7 @@ const enDict: Dictionary = {
     extensions: 'Extensions', distribution: 'Distribution', recent: 'Recent activity', committed: 'Committed', completed: 'Completed',
   },
   config: {
+    edit: 'Edit', editField: (key: string) => `Edit field ${key}`, saveField: 'Save the field', fieldSaved: 'Field saved.',
     eyebrow: 'Configuration', title: 'Tracker configuration', fields: 'Fields', statuses: 'Statuses', transitions: 'Transitions',
     key: 'Key', label: 'Label', type: 'Type', required: 'Required', category: 'Category', name: 'Name', from: 'From', to: 'To', anyState: 'Any state', add: 'Add',
     historyMode: 'History writes', historyDirect: 'Direct (main branch)', historyMr: 'Through merge request (review)', readRoles: 'Read roles (comma separated)', writeRoles: 'Write roles (comma separated)', roles: 'Roles', everyone: 'Everyone', allowedRoles: 'Allowed roles (comma separated, empty: everyone)', remove: 'Delete', confirmPurge: (n: string, count = 0) => `Field ${n} holds values${count ? ` (${count} artifact${count > 1 ? 's' : ''})` : ''}. Permanently remove them from artifacts?`, removed: 'Field deleted.',
