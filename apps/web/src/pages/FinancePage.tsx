@@ -104,6 +104,7 @@ export function FinancePage({ session }: { session: Session }) {
               )}
             </Card>
             {chart && <Card title={t.chart}><Chart type="bar" title={t.chart} unit="€" categories={chart.categories} series={chart.series} /></Card>}
+            {data.lines.some((l) => l.budget > 0) && <Card title={t.treemap}><Chart type="treemap" title={t.treemap} unit="€" categories={data.lines.filter((l) => l.budget > 0).map((l) => l.category)} series={[{ name: t.budget, data: data.lines.filter((l) => l.budget > 0).map((l) => l.budget) }]} /></Card>}
             {data.curve.length > 1 && <Card title={t.curve}><Chart type="line" title={t.curve} unit="€" categories={data.curve.map((c) => c.period)} series={[{ name: t.actualCumulative, data: data.curve.map((c) => c.actualCumulative) }, { name: t.eacCumulative, data: data.curve.map((c) => c.forecastCumulative) }]} /></Card>}
             {writer && (
               <Card title={t.input}>

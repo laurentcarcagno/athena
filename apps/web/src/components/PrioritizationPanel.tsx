@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
-import { Btn, Card, Chart, Field, Select, Table, Td, Textarea, Th, useToast } from '@athena/ui';
+import { Btn, Card, Checkbox, Chart, Field, Select, Table, Td, Textarea, Th, useToast } from '@athena/ui';
 import { api } from '../api';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
@@ -33,6 +33,7 @@ export function PrioritizationPanel({ portfolio, canEdit, canSeeFinance }: { por
   const [score, setScore] = useState({ ticket: '', criterion: '', value: '' });
   const [shift, setShift] = useState({ name: '', ticket: '', days: '5' });
   const [model, setModel] = useState('');
+  const [compare, setCompare] = useState<string[]>([]);
   const [conv, setConv] = useState({ ticket: '', project: '', name: '', template: '' });
   const load = useCallback(() => {
     api<Ranking>('GET', `/v1/portfolios/${portfolio}/ranking`).then((r) => setRanking(r && Array.isArray(r.requests) ? r : null)).catch(() => setRanking(null));
@@ -123,6 +124,25 @@ export function PrioritizationPanel({ portfolio, canEdit, canSeeFinance }: { por
                 series={[{ name: t.valueAxis, data: pts.map((r) => r.contributions.find((c) => c.criterion === 'valeur')!.points) }, { name: t.riskAxis, data: pts.map((r) => r.contributions.find((c) => c.criterion === 'risque')!.points) }]} />
             ) : null;
           })()}
+          {ranking.model && ranking.requests.length > 1 && (
+            <section aria-label={t.compareTitle}>
+              <h3 className="ath-subsection-title">{t.compareTitle}</h3>
+              <div className="ath-toolbar" role="group" aria-label={t.comparePick}>
+                {ranking.requests.map((r) => (
+                  <label key={r.key} className="ath-notify__pref"><Checkbox checked={compare.includes(r.key)} disabled={!compare.includes(r.key) && compare.length >= 5} onChange={(e) => setCompare(e.target.checked ? [...compare, r.key] : compare.filter((k) => k !== r.key))} />{r.key}</label>
+                ))}
+              </div>
+              {compare.length >= 2 && (
+                <Table caption={t.compareCaption(compare.length)}>
+                  <thead><tr><Th>{t.criterion}</Th>{compare.map((k) => <Th key={k}>{k}</Th>)}</tr></thead>
+                  <tbody>
+                    {ranking.model.criteria.map((c) => <tr key={c.key}><Td>{c.label}</Td>{compare.map((k) => <Td key={k} mono>{ranking.requests.find((r) => r.key === k)?.contributions.find((x) => x.criterion === c.key)?.points ?? '—'}</Td>)}</tr>)}
+                    <tr><Td><strong>{t.score}</strong></Td>{compare.map((k) => <Td key={k} mono>{ranking.requests.find((r) => r.key === k)?.score ?? '—'}</Td>)}</tr>
+                  </tbody>
+                </Table>
+              )}
+            </section>
+          )}
           {ranking.model && chart.length > 1 && (
             <Chart type="radar" title={t.radar} categories={ranking.model.criteria.map((c) => c.label)}
               series={chart.slice(0, 5).map((r) => ({ name: r.key, data: ranking.model!.criteria.map((c) => r.contributions.find((x) => x.criterion === c.key)?.points ?? 0) }))} />
