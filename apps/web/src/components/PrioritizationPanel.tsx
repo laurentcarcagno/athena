@@ -6,7 +6,7 @@ import { useFailure } from '../hooks';
 import { fr } from '../i18n';
 
 interface Criterion { key: string; label: string; weight: number; scaleMin: number; scaleMax: number; direction: 'higher' | 'lower' }
-interface Ranked { key: string; project: string; title: string; score: number | null; completeness: number; incomplete: boolean; contributions: Array<{ criterion: string; points: number }>; converted: 'converted' | 'refused' | null }
+interface Ranked { key: string; project: string; title: string; score: number | null; completeness: number; incomplete: boolean; contributions: Array<{ criterion: string; points: number }>; converted: 'converted' | 'refused' | null; decisionDays?: number | null }
 interface Ranking { model: { version: number; criteria: Criterion[] } | null; requests: Ranked[] }
 interface ScenarioItem { id: string; name: string; author: string; changeCount: number }
 interface Evaluation {
@@ -154,6 +154,11 @@ export function PrioritizationPanel({ portfolio, canEdit, canSeeFinance }: { por
             <Chart type="bar" title={t.funnel} categories={[t.funnelAll, t.funnelScored, t.funnelConverted]}
               series={[{ name: t.requestsLabel, data: [ranking.requests.length, ranking.requests.filter((r) => r.score !== null).length, ranking.requests.filter((r) => r.converted === 'converted').length] }]} />
           )}
+          {ranking.requests.some((r) => r.decisionDays != null) && (() => {
+            const bins = [{ label: '0–7', max: 7 }, { label: '8–30', max: 30 }, { label: '31–90', max: 90 }, { label: '> 90', max: Infinity }];
+            const days = ranking.requests.map((r) => r.decisionDays ?? null).filter((d): d is number => d !== null);
+            return <Chart type="bar" title={t.delays} unit={t.daysUnit} categories={bins.map((b) => b.label)} series={[{ name: t.requestsLabel, data: bins.map((b, i) => days.filter((d) => d <= b.max && d > (i === 0 ? -1 : bins[i - 1]!.max)).length) }]} />;
+          })()}
           {ranking.model && ranking.requests.filter((r) => r.score !== null).length > 1 && (
             <section aria-label={t.sensitivity}>
               <h3 className="ath-subsection-title">{t.sensitivity}</h3>

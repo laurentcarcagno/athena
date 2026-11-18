@@ -21,6 +21,8 @@ export interface RankedRequest {
   /** Contribution de chaque critère noté à la somme pondérée (points de score). */
   contributions: Array<{ criterion: string; points: number }>;
   converted: 'converted' | 'refused' | null;
+  /** Jours entre la création de la demande et la décision (conversion ou refus) ; null tant qu'elle n'est pas décidée. */
+  decisionDays: number | null;
 }
 
 /** Score pondéré normalisé : Σ (poids × valeur normalisée) / Σ poids des critères renseignés. Valeur normalisée = (v − min) / (max − min), inversée pour « plus c'est bas, mieux c'est ». */
@@ -101,7 +103,7 @@ export class ScoringService {
     const rows = await this.db.tx(organizationId, async (c) => {
       const f = await this.portfolio(c, portfolioKey);
       const reqs = (await c.query(
-        `select a.id, a.key, p.key project, coalesce(a."values" ->> (select f.key from field_definition f where f.tracker_id = a.tracker_id and f.semantic_role = 'title'), a.key) title, rc.outcome
+        `select a.id, a.key, p.key project, coalesce(a."values" ->> (select f.key from field_definition f where f.tracker_id = a.tracker_id and f.semantic_role = 'title'), a.key) title, rc.outcome, case when rc.decided_at is null then null else greatest(0, floor(extract(epoch from rc.decided_at - a.created_at) / 86400))::int end decision_days
            from portfolio_project x join project p on p.id = x.project_id join artifact a on a.project_id = p.id join tracker t on t.id = a.tracker_id and t.type_key = 'request'
            left join request_conversion rc on rc.artifact_id = a.id where x.portfolio_id = $1`, [f])).rows;
       const scores = (await c.query('select target_artifact_id id, criterion, value::float v from score where model_id = $1 and target_artifact_id = any($2::uuid[])', [model.id, reqs.map((r) => r.id)])).rows;
@@ -110,7 +112,7 @@ export class ScoringService {
     const requests = rows.reqs.map((r): RankedRequest => {
       const values = new Map(rows.scores.filter((s) => s.id === r.id).map((s) => [s.criterion as string, s.v as number]));
       const sc = scoreOf(model.criteria, values);
-      return { key: r.key, project: r.project, title: r.title, score: sc.score, completeness: sc.completeness, incomplete: sc.completeness < 70, contributions: sc.contributions, converted: r.outcome };
+      return { key: r.key, project: r.project, title: r.title, score: sc.score, completeness: sc.completeness, incomplete: sc.completeness < 70, contributions: sc.contributions, converted: r.outcome, decisionDays: r.decision_days ?? null };
     });
     requests.sort((a, b) => (b.score ?? -1) - (a.score ?? -1) || a.key.localeCompare(b.key));
     return { model, requests };
