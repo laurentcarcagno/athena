@@ -319,16 +319,24 @@ const procs = [
   return child;
 });
 console.log('Athena démarre : http://localhost:3000  (utilisateurs : user.dev / dev-only-user ; admin.dev / dev-only-admin ; pm.dev / dev-only-pm ; qa.dev / dev-only-qa, assurance qualité étatique ; manager.dev / dev-only-manager ; pmo.dev / dev-only-pmo ; director.dev / dev-only-director). Démonstration : équipes (/charge), portefeuilles spatial et défense (/portefeuilles), finances, capacité, demandes');
-// Démonstration PPM (portefeuille Défense, finances, capacité, tableaux de bord par rôle) : lancée quand l'API répond, idempotente, jamais bloquante.
+// Démonstrations lancées quand l'API répond, l'une après l'autre, idempotentes, jamais bloquantes : PPM (portefeuille Défense, finances, capacité, demandes,
+// tableaux de bord par rôle), puis données de tous les trackers (tickets, liens, commentaires, sprints, versions, recherches). Les baselines attendent que
+// l'historique GitLab ait rattrapé : relancer `node tools/demo-data.mjs` plus tard.
 (async () => {
   for (let i = 0; i < 90; i++) {
     if (await fetch('http://127.0.0.1:3001/healthz').then((r) => r.ok).catch(() => false)) break;
     await new Promise((r) => setTimeout(r, 2000));
   }
-  const demo = spawn(process.execPath, [join(here, 'demo-ppm.mjs')], { stdio: ['ignore', 'pipe', 'pipe'] });
-  const log = (d) => String(d).split(String.fromCharCode(10)).filter((l) => l.trim()).forEach((l) => console.log(`[demo-ppm] ${l.slice(0, 200)}`));
-  demo.stdout.on('data', log); demo.stderr.on('data', log);
-  procs.push(demo);
+  for (const script of ['demo-ppm.mjs', 'demo-data.mjs']) {
+    await new Promise((resolve) => {
+      const demo = spawn(process.execPath, [join(here, script)], { stdio: ['ignore', 'pipe', 'pipe'] });
+      const tag = script.replace('.mjs', '');
+      const log = (d) => String(d).split(String.fromCharCode(10)).filter((l) => l.trim()).forEach((l) => console.log(`[${tag}] ${l.slice(0, 200)}`));
+      demo.stdout.on('data', log); demo.stderr.on('data', log);
+      demo.on('exit', resolve);
+      procs.push(demo);
+    });
+  }
 })();
 const stop = () => { procs.forEach((p) => p.kill()); process.exit(0); };
 process.on('SIGINT', stop);
