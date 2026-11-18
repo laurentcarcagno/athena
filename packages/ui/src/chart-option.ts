@@ -4,7 +4,11 @@ export interface ChartTokens {
   /** `--ath-data-1` à `--ath-data-8`. */
   data: string[]; text: string; textMute: string; border: string; surface: string; fontFamily: string;
 }
-export interface ChartInput { type: 'bar' | 'line'; categories: string[]; series: ChartSeries[]; title: string; unit?: string }
+/**
+ * `scatter` : nuage de points. Chaque catégorie est un point libellé ; la première série donne les abscisses, la seconde les ordonnées ; `reference` trace des repères
+ * (par exemple CPI = 1 et SPI = 1). La vue tableau reste la même : un point par ligne, une colonne par série.
+ */
+export interface ChartInput { type: 'bar' | 'line' | 'scatter'; categories: string[]; series: ChartSeries[]; title: string; unit?: string; reference?: { x?: number; y?: number } }
 
 export const CHART_TOKEN_NAMES = {
   data: [1, 2, 3, 4, 5, 6, 7, 8].map((n) => `--ath-data-${n}`),
@@ -22,6 +26,23 @@ export function readChartTokens(el: Element): ChartTokens {
 }
 
 export function buildChartOption(input: ChartInput, t: ChartTokens): Record<string, unknown> {
+  if (input.type === 'scatter') {
+    const [x, y] = [input.series[0], input.series[1]];
+    const lines = [...(input.reference?.x !== undefined ? [{ xAxis: input.reference.x }] : []), ...(input.reference?.y !== undefined ? [{ yAxis: input.reference.y }] : [])];
+    return {
+      color: t.data, textStyle: { color: t.text, fontFamily: t.fontFamily }, animation: false,
+      aria: { enabled: true, label: { description: input.title }, decal: { show: true } },
+      tooltip: { trigger: 'item', renderMode: 'richText', backgroundColor: t.surface, borderColor: t.border, textStyle: { color: t.text } },
+      grid: { left: 8, right: 24, top: 24, bottom: 8, containLabel: true },
+      xAxis: { type: 'value', name: x?.name, nameTextStyle: { color: t.textMute }, scale: true, splitLine: { lineStyle: { color: t.border } }, axisLabel: { color: t.textMute } },
+      yAxis: { type: 'value', name: y?.name, nameTextStyle: { color: t.textMute }, scale: true, splitLine: { lineStyle: { color: t.border } }, axisLabel: { color: t.textMute } },
+      series: [{
+        type: 'scatter', symbolSize: 12, label: { show: true, formatter: '{b}', position: 'right', color: t.text },
+        data: input.categories.map((name, i) => ({ name, value: [x?.data[i] ?? 0, y?.data[i] ?? 0] })),
+        ...(lines.length ? { markLine: { silent: true, symbol: 'none', lineStyle: { color: t.textMute, type: 'dashed' }, label: { color: t.textMute }, data: lines } } : {}),
+      }],
+    };
+  }
   const multi = input.series.length > 1;
   return {
     color: t.data,

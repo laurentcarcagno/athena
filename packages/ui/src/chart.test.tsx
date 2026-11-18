@@ -28,4 +28,14 @@ describe('Chart (T-0189)', () => {
     expect(screen.getByRole('link', { name: 'En cours' })).toHaveAttribute('href', '/p/X?statut=En%20cours');
     expect(screen.getByRole('cell', { name: '4' })).toBeInTheDocument();
   });
+
+  it('nuage de points : un point libellé par catégorie, abscisse et ordonnée des deux séries, repères pointillés', () => {
+    const o = buildChartOption({ type: 'scatter', title: 'CPI et SPI', categories: ['ARI', 'LUM'], series: [{ name: 'CPI', data: [1.2, 0.8] }, { name: 'SPI', data: [1, 0.7] }], reference: { x: 1, y: 1 } }, tokens) as any;
+    expect(o.series[0].type).toBe('scatter');
+    expect(o.series[0].data).toEqual([{ name: 'ARI', value: [1.2, 1] }, { name: 'LUM', value: [0.8, 0.7] }]);
+    expect(o.series[0].label.show).toBe(true); // chaque point porte son libellé
+    expect(o.series[0].markLine.data).toEqual([{ xAxis: 1 }, { yAxis: 1 }]);
+    expect(o.xAxis.name).toBe('CPI');
+    expect(o.yAxis.name).toBe('SPI');
+  });
 });

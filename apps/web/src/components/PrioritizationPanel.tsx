@@ -154,6 +154,10 @@ export function PrioritizationPanel({ portfolio, canEdit, canSeeFinance }: { por
                 <Td mono>{r.cpi ?? '—'}</Td><Td mono>{r.spi ?? '—'}</Td><Td>{t.quadrants[r.quadrant] ?? r.quadrant}</Td></tr>
             ))}</tbody>
           </Table>
+          {ev.filter((r) => r.cpi !== null && r.spi !== null).length > 0 && (
+            <Chart type="scatter" title={t.quadrantChart} categories={ev.filter((r) => r.cpi !== null && r.spi !== null).map((r) => r.project)}
+              series={[{ name: t.cpi, data: ev.filter((r) => r.cpi !== null && r.spi !== null).map((r) => r.cpi as number) }, { name: t.spi, data: ev.filter((r) => r.cpi !== null && r.spi !== null).map((r) => r.spi as number) }]} reference={{ x: 1, y: 1 }} />
+          )}
         </Card>
       )}
     </div>

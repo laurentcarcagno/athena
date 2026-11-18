@@ -17,12 +17,12 @@ Date : 2026-11-18. Source : `docs/ppm/07-plan-livraison.md` § I8, `docs/ppm/08-
 
 | Écart | État |
 |---|---|
-| Seize vues de B41 : bulles valeur × risque, ligne de coupe, Sankey, treemap, sensibilité des pondérations, radar, entonnoir, histogramme des délais, comparateur de demandes | Non faites : classement avec contribution par critère, scénarios, tableau CPI et SPI sont livrés ; les autres exigent des types de graphique absents du composant `<Chart>` (scatter, sankey, treemap, radar) |
+| Seize vues de B41 : bulles valeur × risque, ligne de coupe, Sankey, treemap, sensibilité des pondérations, radar, entonnoir, histogramme des délais, comparateur de demandes | Non faites : classement avec contribution par critère, scénarios, tableau et nuage CPI et SPI sont livrés ; les bulles valeur × risque se font désormais avec le type `scatter` (non branché) ; sankey, treemap, radar restent à ajouter au composant `<Chart>` |
 | Courbe des entrées et sorties, Kanban du pipeline | Le Board existant porte le Kanban d'un tracker ; la courbe n'est pas faite |
 | Éditeur de modèle de scoring dans l'interface | API seulement (`POST /portfolios/:k/scoring-model`) |
 | Scénarios : édition de plusieurs types de changement dans l'interface | L'interface crée un scénario de glissement ; allocation et budget par l'API |
 | Conversion d'une demande depuis l'interface | API seulement (`POST /requests/:t/convert`) ; le refus est dans l'interface |
-| Quadrant CPI/SPI en graphique | Tableau libellé ; pas de nuage de points |
+| Quadrant CPI/SPI en graphique | **Levé** : le composant `<Chart>` accepte le type `scatter` (nuage de points libellés, repères à 1, vue tableau) |
 
 ## Tests
 
