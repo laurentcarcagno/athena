@@ -73,6 +73,15 @@ suite('gouvernance du portefeuille : gates, risques, actions, jalons (B34)', () 
     expect(m.top[0]).toMatchObject({ criticality: 20 });
   });
 
+  it('matrice d’un seul projet (carte du tableau de bord) : ses risques seulement ; projet inconnu : 404', async () => {
+    const all = await gov.riskMatrix(org, 'gov', admin);
+    const one = await gov.projectRiskMatrix(org, 'MIS', admin);
+    expect(one.total).toBeGreaterThan(0);
+    expect(one.total).toBeLessThanOrEqual(all.total);
+    expect(one.top.every((r) => r.project === 'MIS')).toBe(true);
+    await expect(gov.projectRiskMatrix(org, 'NOPE', admin)).rejects.toMatchObject({ code: 'not_found' });
+  });
+
   it('suivi des actions : ouvertes, en retard, closes par projet ; la liste des retards', async () => {
     const a = await gov.actions(org, 'gov');
     expect(a.projects.find((p) => p.project === 'MIS')).toEqual({ project: 'MIS', open: 2, late: 1, closed: 1 });

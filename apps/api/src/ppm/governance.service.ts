@@ -52,7 +52,16 @@ export class GovernanceService {
 
   /** Matrice probabilité × impact des risques ouverts (rôles sémantiques ; champs à lecture restreinte exclus), et les dix plus critiques. */
   async riskMatrix(organizationId: string, portfolioKey: string, actor: Actor): Promise<RiskMatrix> {
-    const keys = (await this.projects(organizationId, portfolioKey, true)).map((p) => p.key);
+    return this.matrixOf(organizationId, (await this.projects(organizationId, portfolioKey, true)).map((p) => p.key), actor);
+  }
+
+  /** Matrice d'un seul projet (carte « Risques consolidés » d'un tableau de bord de projet) ; 404 si le projet n'est pas visible. */
+  async projectRiskMatrix(organizationId: string, projectKey: string, actor: Actor): Promise<RiskMatrix> {
+    if (!(await this.db.tx(organizationId, async (c) => (await c.query('select 1 from project where key = $1', [projectKey])).rows[0]))) throw notFound(`Projet ${projectKey}`);
+    return this.matrixOf(organizationId, [projectKey], actor);
+  }
+
+  private async matrixOf(organizationId: string, keys: string[], actor: Actor): Promise<RiskMatrix> {
     const risks = await this.db.tx(organizationId, async (c) => (await c.query(
       `select a.key, p.key project, prob.v::int probability, imp.v::int impact
          from artifact a join project p on p.id = a.project_id join status s on s.id = a.status_id

@@ -33,7 +33,8 @@ export class FinanceController {
     return this.finance.categories(organizationId, actor);
   }
 
-  @Roles(...READERS)
+  /** Le chef de projet lit aussi les finances de son projet (carte « Finances du projet », lot 27) ; la base ne lui montre que les projets dont il est responsable. */
+  @Roles(...READERS, 'athena-pm')
   @Get('projects/:p')
   async project(@Req() request: AuthedRequest, @Param('p') project: string) {
     const { organizationId, actor } = await this.orgs.resolve(request.principal!);

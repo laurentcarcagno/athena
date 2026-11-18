@@ -9,6 +9,7 @@ import { RoadmapService } from './roadmap.service';
 import { SnapshotService } from './snapshot.service';
 import { ReviewService } from './review.service';
 import { GovernanceService } from './governance.service';
+import { ProjectRiskController } from './project-risk.controller';
 import { AllocationController, CapacityController } from './capacity.controller';
 import { CapacityDataService } from './capacity-data.service';
 import { WorklogController } from './worklog.controller';
@@ -51,7 +52,7 @@ import { TeamService } from './team.service';
  */
 @Module({
   imports: [CoreModule],
-  controllers: [PrioritizationController, FinanceController, DependencyController, WorklogController, CapacityController, AllocationController, FeatureController, PpmSettingsController, ProjectMetaController, StatusNoteController, LifecycleController, TeamController, PortfolioController],
+  controllers: [PrioritizationController, FinanceController, DependencyController, WorklogController, CapacityController, AllocationController, FeatureController, PpmSettingsController, ProjectMetaController, StatusNoteController, LifecycleController, TeamController, PortfolioController, ProjectRiskController],
   providers: [
     { provide: FeatureService, useFactory: (db: Db) => new FeatureService(db), inject: [Db] },
     FeatureGuard,

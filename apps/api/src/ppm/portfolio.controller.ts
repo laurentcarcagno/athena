@@ -116,7 +116,7 @@ export class PortfolioController {
     @Inject(ExportMarker) private readonly marker: ExportMarker, @Inject(UsageService) private readonly usage: UsageService,
   ) {}
 
-  @Roles('athena-admin', 'athena-pmo', 'athena-pm', 'athena-director')
+  @Roles('athena-admin', 'athena-pmo', 'athena-pm', 'athena-director', 'athena-finance')
   @Get()
   async list(@Req() request: AuthedRequest) {
     const { organizationId } = await this.orgs.resolve(request.principal!);
@@ -125,7 +125,7 @@ export class PortfolioController {
   }
 
   /** Tous les portefeuilles consolidés : le tableau de bord du directeur. */
-  @Roles('athena-admin', 'athena-pmo', 'athena-pm', 'athena-director')
+  @Roles('athena-admin', 'athena-pmo', 'athena-pm', 'athena-director', 'athena-finance')
   @Get('summary')
   async summaries(@Req() request: AuthedRequest) {
     const { organizationId, actor } = await this.orgs.resolve(request.principal!);
@@ -156,7 +156,7 @@ export class PortfolioController {
   }
 
   /** Dernier instantané et séries des mini-courbes, pour la flèche de tendance du tableau de santé. */
-  @Roles('athena-admin', 'athena-pmo', 'athena-pm', 'athena-director')
+  @Roles('athena-admin', 'athena-pmo', 'athena-pm', 'athena-director', 'athena-finance')
   @Get(':key/trend')
   async trend(@Req() request: AuthedRequest, @Param('key') key: string) {
     const { organizationId } = await this.orgs.resolve(request.principal!);
@@ -300,7 +300,7 @@ export class PortfolioController {
   }
 
   /** Tableau de santé : calculée, déclarée et forcée, écart, dates, phase, prochaine revue, risque maximal. Filtres : `state` (catégories), `phase`, `health`, `sponsor`, `includeClosed`. */
-  @Roles('athena-admin', 'athena-pmo', 'athena-pm', 'athena-director')
+  @Roles('athena-admin', 'athena-pmo', 'athena-pm', 'athena-director', 'athena-finance')
   @Get(':key/health')
   async health(@Req() request: AuthedRequest, @Param('key') key: string, @Query() query: Record<string, string | undefined>, @Res({ passthrough: true }) reply: { header: (n: string, v: string) => unknown }) {
     const { organizationId, actor } = await this.orgs.resolve(request.principal!);
@@ -312,7 +312,7 @@ export class PortfolioController {
     return this.marker.csv(healthCsv(h));
   }
 
-  @Roles('athena-admin', 'athena-pmo', 'athena-pm', 'athena-director')
+  @Roles('athena-admin', 'athena-pmo', 'athena-pm', 'athena-director', 'athena-finance')
   @Get(':key')
   async get(@Req() request: AuthedRequest, @Param('key') key: string) {
     const { organizationId, actor } = await this.orgs.resolve(request.principal!);

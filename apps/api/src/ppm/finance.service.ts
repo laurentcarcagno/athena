@@ -100,7 +100,7 @@ export class FinanceService {
 
   /** Budget, engagé, réel, prévisions et estimation à terminaison d'un projet, par catégorie ; `now` (mois courant) sépare le réel du reste à dépenser. */
   async project(organizationId: string, projectKey: string, actor: Actor, now: Date = new Date()): Promise<ProjectFinance> {
-    this.requireReader(actor);
+    if (!actor.roles.includes('athena-pm')) this.requireReader(actor); // le chef de projet lit les finances de ses projets (RLS : seulement ceux dont il est responsable)
     const month = now.toISOString().slice(0, 7);
     return this.db.tx(organizationId, async (c) => {
       const id = await this.projectId(c, projectKey);
