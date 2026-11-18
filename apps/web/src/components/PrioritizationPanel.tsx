@@ -115,6 +115,18 @@ export function PrioritizationPanel({ portfolio, canEdit, canSeeFinance }: { por
               <div><Btn type="submit" size="sm" disabled={!model.trim()}>{t.saveModel}</Btn></div>
             </form>
           )}
+          {ranking.model && (() => {
+            // bulles valeur × risque : points de contribution des critères « valeur » et « risque » quand le modèle les porte (clés conventionnelles)
+            const pts = chart.filter((r) => r.contributions.some((c) => c.criterion === 'valeur') && r.contributions.some((c) => c.criterion === 'risque'));
+            return pts.length > 0 ? (
+              <Chart type="scatter" title={t.bubbles} categories={pts.map((r) => r.key)} reference={{ x: 50, y: 50 }}
+                series={[{ name: t.valueAxis, data: pts.map((r) => r.contributions.find((c) => c.criterion === 'valeur')!.points) }, { name: t.riskAxis, data: pts.map((r) => r.contributions.find((c) => c.criterion === 'risque')!.points) }]} />
+            ) : null;
+          })()}
+          {ranking.model && chart.length > 1 && (
+            <Chart type="radar" title={t.radar} categories={ranking.model.criteria.map((c) => c.label)}
+              series={chart.slice(0, 5).map((r) => ({ name: r.key, data: ranking.model!.criteria.map((c) => r.contributions.find((x) => x.criterion === c.key)?.points ?? 0) }))} />
+          )}
           {chart.length > 0 && ranking.model && (
             <Chart type="bar" title={t.contribution} unit={t.points} categories={chart.map((r) => r.key)}
               series={ranking.model.criteria.map((c) => ({ name: c.label, data: chart.map((r) => r.contributions.find((x) => x.criterion === c.key)?.points ?? 0) }))} />

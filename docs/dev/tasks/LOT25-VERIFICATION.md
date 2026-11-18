@@ -17,7 +17,7 @@ Date : 2026-11-18. Source : `docs/ppm/07-plan-livraison.md` § I8, `docs/ppm/08-
 
 | Écart | État |
 |---|---|
-| Seize vues de B41 : bulles valeur × risque, ligne de coupe, Sankey, treemap, sensibilité des pondérations, radar, entonnoir, histogramme des délais, comparateur de demandes | Non faites : classement avec contribution par critère, scénarios, tableau et nuage CPI et SPI sont livrés ; les bulles valeur × risque se font désormais avec le type `scatter` (non branché) ; sankey, treemap, radar restent à ajouter au composant `<Chart>` |
+| Seize vues de B41 | **Levé en grande partie** : le composant `<Chart>` accepte `scatter`, `radar`, `treemap` et `sankey` (tests d'options) ; livrés dans l'interface : classement avec contribution par critère, bulles valeur × risque et radar par critère (si le modèle porte les critères `valeur` et `risque`), scénarios, quadrant CPI et SPI. Non branchés : treemap de répartition contre la cible, sankey objectifs → initiatives, sensibilité des pondérations, entonnoir, histogramme des délais, comparateur de demandes (les types de graphique existent, il manque les données et les écrans) |
 | Courbe des entrées et sorties, Kanban du pipeline | Le Board existant porte le Kanban d'un tracker ; la courbe n'est pas faite |
 | Éditeur de modèle de scoring dans l'interface | API seulement (`POST /portfolios/:k/scoring-model`) |
 | Scénarios : édition de plusieurs types de changement dans l'interface | L'interface crée un scénario de glissement ; allocation et budget par l'API |

@@ -38,4 +38,16 @@ describe('Chart (T-0189)', () => {
     expect(o.xAxis.name).toBe('CPI');
     expect(o.yAxis.name).toBe('SPI');
   });
+
+  it('radar, treemap et sankey : options construites depuis les mêmes catégories et séries, couleurs de la palette', () => {
+    const radar = buildChartOption({ type: 'radar', title: 'Critères', categories: ['Valeur', 'Coût', 'Risque'], series: [{ name: 'A', data: [8, 4, 2] }, { name: 'B', data: [3, 9, 5] }] }, tokens) as any;
+    expect(radar.radar.indicator).toEqual([{ name: 'Valeur', max: 9 }, { name: 'Coût', max: 9 }, { name: 'Risque', max: 9 }]);
+    expect(radar.series[0].data).toEqual([{ name: 'A', value: [8, 4, 2] }, { name: 'B', value: [3, 9, 5] }]);
+    expect(radar.color).toEqual(tokens.data);
+    const tree = buildChartOption({ type: 'treemap', title: 'Budget', categories: ['Logiciel', 'Prestations'], series: [{ name: 'k€', data: [60, 40] }] }, tokens) as any;
+    expect(tree.series[0].data).toEqual([{ name: 'Logiciel', value: 60 }, { name: 'Prestations', value: 40 }]);
+    const flow = buildChartOption({ type: 'sankey', title: 'Flux', categories: ['Objectif', 'Projet A'], series: [{ name: 'Sortant', data: [10, 0] }], links: [{ source: 'Objectif', target: 'Projet A', value: 10 }] }, tokens) as any;
+    expect(flow.series[0].links).toEqual([{ source: 'Objectif', target: 'Projet A', value: 10 }]);
+    expect(flow.series[0].data).toEqual([{ name: 'Objectif' }, { name: 'Projet A' }]);
+  });
 });

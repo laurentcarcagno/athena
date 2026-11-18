@@ -8,7 +8,11 @@ export interface ChartTokens {
  * `scatter` : nuage de points. Chaque catégorie est un point libellé ; la première série donne les abscisses, la seconde les ordonnées ; `reference` trace des repères
  * (par exemple CPI = 1 et SPI = 1). La vue tableau reste la même : un point par ligne, une colonne par série.
  */
-export interface ChartInput { type: 'bar' | 'line' | 'scatter'; categories: string[]; series: ChartSeries[]; title: string; unit?: string; reference?: { x?: number; y?: number } }
+export interface ChartInput {
+  type: 'bar' | 'line' | 'scatter' | 'radar' | 'treemap' | 'sankey'; categories: string[]; series: ChartSeries[]; title: string; unit?: string; reference?: { x?: number; y?: number };
+  /** `sankey` : flux entre les catégories (nœuds) ; la première série donne le total sortant de chaque nœud pour la vue tableau. */
+  links?: Array<{ source: string; target: string; value: number }>;
+}
 
 export const CHART_TOKEN_NAMES = {
   data: [1, 2, 3, 4, 5, 6, 7, 8].map((n) => `--ath-data-${n}`),
@@ -26,6 +30,21 @@ export function readChartTokens(el: Element): ChartTokens {
 }
 
 export function buildChartOption(input: ChartInput, t: ChartTokens): Record<string, unknown> {
+  const base = { color: t.data, textStyle: { color: t.text, fontFamily: t.fontFamily }, animation: false, aria: { enabled: true, label: { description: input.title }, decal: { show: true } } };
+  const tooltip = { trigger: 'item', renderMode: 'richText', backgroundColor: t.surface, borderColor: t.border, textStyle: { color: t.text } };
+  if (input.type === 'radar') {
+    // un axe par catégorie, une surface par série ; l'échelle va jusqu'au maximum des données
+    const max = Math.max(1, ...input.series.flatMap((s) => s.data));
+    return { ...base, tooltip, legend: input.series.length > 1 ? { top: 0, textStyle: { color: t.text } } : undefined, radar: { indicator: input.categories.map((name) => ({ name, max })), axisName: { color: t.text }, splitLine: { lineStyle: { color: t.border } }, axisLine: { lineStyle: { color: t.border } } },
+      series: [{ type: 'radar', areaStyle: { opacity: 0.15 }, data: input.series.map((s) => ({ name: s.name, value: s.data })) }] };
+  }
+  if (input.type === 'treemap') {
+    const values = input.series[0]?.data ?? [];
+    return { ...base, tooltip, series: [{ type: 'treemap', roam: false, breadcrumb: { show: false }, label: { show: true, formatter: '{b}', color: t.text }, itemStyle: { borderColor: t.surface }, data: input.categories.map((name, i) => ({ name, value: values[i] ?? 0 })) }] };
+  }
+  if (input.type === 'sankey') {
+    return { ...base, tooltip, series: [{ type: 'sankey', emphasis: { focus: 'adjacency' }, label: { color: t.text }, lineStyle: { color: 'source', opacity: 0.4 }, data: input.categories.map((name) => ({ name })), links: input.links ?? [] }] };
+  }
   if (input.type === 'scatter') {
     const [x, y] = [input.series[0], input.series[1]];
     const lines = [...(input.reference?.x !== undefined ? [{ xAxis: input.reference.x }] : []), ...(input.reference?.y !== undefined ? [{ yAxis: input.reference.y }] : [])];
