@@ -57,6 +57,8 @@ export function ProfilePage({ session }: { session: Session }) {
         <h2 className="ath-section-title">{p.notifications}</h2>
         <NotificationSettings id="profile-notify" />
         <AccessTokens />
+        <h2 className="ath-section-title">{p.privacy}</h2>
+        <p>{p.privacyHelp} <a className="ath-link" href="/v1/me/data-export" download="athena-mes-donnees.json">{p.exportData}</a></p>
       </div>
     </>
   );

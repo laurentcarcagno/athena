@@ -17,11 +17,12 @@ import { OpenApiController } from './openapi/openapi.controller';
 import { HealthController } from './health/health.controller';
 import { MetricsController } from './observability/metrics.controller';
 import { PatController } from './auth/pat.controller';
+import { PrivacyController } from './privacy/privacy.controller';
 import { PatService } from './auth/pat.service';
 
 @Module({
   imports: [CoreModule, PpmModule],
-  controllers: [HealthController, BffController, OpenApiController, MetricsController, PatController],
+  controllers: [HealthController, BffController, OpenApiController, MetricsController, PatController, PrivacyController],
   providers: [
     {
       provide: TOKEN_VERIFIER,
