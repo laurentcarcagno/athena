@@ -62,7 +62,34 @@ async function prepare() {
   await seedAgile(pool, db, trackers, artifacts);
   await seedLumen(pool, db, trackers, artifacts);
   await seedTeamsPortfolios(pool, db, artifacts);
+  await seedProjectTemplates(pool, db, trackers);
   await pool.end();
+}
+
+/**
+ * Rattache LUMEN et SAT1 au gabarit « Projet spatial » (ECSS-M-ST-10), version épinglée. Créés avec un ancien gabarit (`spatial`, `qualite`) ou sans version,
+ * ils n'ont ni phases ni revues de gate : rien à montrer dans les gates et la feuille de route du portefeuille. Les trackers existants sont gardés ; on
+ * (re)pose le rattachement, la ligne de chaque phase, les règles de couverture manquantes et la phase courante. Idempotent : un projet déjà sur ce gabarit
+ * n'est pas touché ; sans le projet, rien n'est fait.
+ */
+async function seedProjectTemplates(pool, db, trackers) {
+  const org = (await pool.query("select organization_id_by_key('demo') as id")).rows[0].id;
+  if (!org) return;
+  const { TemplateService } = dist('core/template.service.js');
+  const templates = new TemplateService(db, trackers);
+  const view = await templates.get(org, 'spatial-project').catch(() => null);
+  if (!view) return;
+  const phases = view.normative.phases.map((p) => p.key);
+  const current = { LUMEN: phases[3] ?? phases[0], SAT1: phases[1] ?? phases[0] }; // LUMEN en phase C, SAT1 en phase A
+  const done = [];
+  for (const key of ['LUMEN', 'SAT1']) {
+    const row = await db.tx(org, async (c) => (await c.query('select template_key, criticality from project where key = $1', [key])).rows[0]);
+    if (!row || row.template_key === view.key) continue;
+    await templates.applyTemplate(org, key, view.key, view.version ?? null, view.normative, row.criticality ?? null);
+    await db.tx(org, (c) => c.query('update project set current_phase = $2 where key = $1', [key, current[key]]));
+    done.push(`${key} (${current[key]})`);
+  }
+  if (done.length) console.log(`gabarit « ${view.key} » appliqué : ${done.join(', ')}`);
 }
 
 /**
@@ -291,7 +318,18 @@ const procs = [
   child.on('exit', (code) => console.log(`[${name}] arrêté (${code})`));
   return child;
 });
-console.log('Athena démarre : http://localhost:3000  (utilisateurs : user.dev / dev-only-user ; admin.dev / dev-only-admin ; pm.dev / dev-only-pm ; qa.dev / dev-only-qa, assurance qualité étatique ; manager.dev / dev-only-manager ; pmo.dev / dev-only-pmo ; director.dev / dev-only-director). Démonstration : équipes plateforme et segment-sol (/charge), portefeuille spatial (/portefeuilles)');
+console.log('Athena démarre : http://localhost:3000  (utilisateurs : user.dev / dev-only-user ; admin.dev / dev-only-admin ; pm.dev / dev-only-pm ; qa.dev / dev-only-qa, assurance qualité étatique ; manager.dev / dev-only-manager ; pmo.dev / dev-only-pmo ; director.dev / dev-only-director). Démonstration : équipes (/charge), portefeuilles spatial et défense (/portefeuilles), finances, capacité, demandes');
+// Démonstration PPM (portefeuille Défense, finances, capacité, tableaux de bord par rôle) : lancée quand l'API répond, idempotente, jamais bloquante.
+(async () => {
+  for (let i = 0; i < 90; i++) {
+    if (await fetch('http://127.0.0.1:3001/healthz').then((r) => r.ok).catch(() => false)) break;
+    await new Promise((r) => setTimeout(r, 2000));
+  }
+  const demo = spawn(process.execPath, [join(here, 'demo-ppm.mjs')], { stdio: ['ignore', 'pipe', 'pipe'] });
+  const log = (d) => String(d).split(String.fromCharCode(10)).filter((l) => l.trim()).forEach((l) => console.log(`[demo-ppm] ${l.slice(0, 200)}`));
+  demo.stdout.on('data', log); demo.stderr.on('data', log);
+  procs.push(demo);
+})();
 const stop = () => { procs.forEach((p) => p.kill()); process.exit(0); };
 process.on('SIGINT', stop);
 process.on('SIGTERM', stop);
