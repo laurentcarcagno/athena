@@ -908,7 +908,7 @@ Chevauchements possibles (4 ∥ 5, 6 ∥ 7 partiel) : **≈ 50–54 semaines** j
 | 2 | Dépôts d'historique | **Un dépôt GitLab par projet Athena** | Droits et volumétrie isolés par projet |
 | 3 | Keycloak | **Un realm unique, groupes par organisation** | Pas de multi-realm en v1 ; isolation par groupes et RLS |
 | 4 | Signature des commits d'historique | **Signature unique par le service** + trailer `Athena-Actor` et audit chaîné | Auteur = utilisateur réel ; l'option par utilisateur via Transit est reportée (le spike de phase 0 est réduit à une étude de faisabilité) |
-| 5 | Thème | **Clair uniquement, strictement Athena** | Thème sombre hors v1 |
+| 5 | Thème | ~~Clair uniquement~~ : **dépassé par l'ADR-0004** (système de thèmes, clair et sombre, plusieurs thèmes) | Voir `docs/dev/DECISIONS/ADR-0004-themes.md` |
 | 6 | MVP interne | **Phases 0 à 3 + lot 1 du connecteur GitLab de code** | Lot 1 avancé de la phase 5 à la fin de la phase 3 (+2 à 3 semaines) : MVP vers la **semaine 27** |
 | 7 | Langues | **Français + anglais** | Clés de traduction dès la phase 1 |
 | 8 | Hébergement | (remplacé par la ligne 12) | `docker-compose` conservé pour le développement local |
@@ -959,7 +959,10 @@ Ces réponses sont des valeurs par défaut proposées par le rédacteur du plan.
 
 ---
 
-## 25. État d'implémentation (2026-10-31)
+## 25. État d'implémentation (2026-10-31, complété le 2026-11-18)
+
+> **Mise à jour du 2026-11-18** : lots PPM 17 à 26 livrés (étude `docs/ppm/`) ; audit de ce plan contre le code : `docs/dev/AUDIT-PLAN.md` (écarts E1 à E21 et leur traitement) ; écarts d'architecture assumés : `docs/dev/DECISIONS/ADR-0009-ecarts-assumes-du-plan.md`. Livrés depuis l'audit : authentification AppRole d'OpenBao, métriques Prometheus et alertes, jetons d'accès personnels, conformité RGPD, chaîne de sécurité de la CI, limitation de débit partagée, flux temps réel SSE, contrat OpenAPI exhaustif et SDK TypeScript et Python, déploiement sur VM (`deploy/vm`) en alternative à Kubernetes. Reste : voir la table des écarts.
+
 
 Légende : ● fait et testé · ◐ partiel · ○ non fait.
 
