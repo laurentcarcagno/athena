@@ -7,7 +7,7 @@ import { FeatureGuard, RequiresFeature } from './feature.service';
 import { ActualInput, BudgetInput, CategoryInput, CommitmentInput, FinanceService, ForecastInput, RateInput } from './finance.service';
 
 const READERS = ['athena-admin', 'athena-finance', 'athena-pmo', 'athena-director'] as const;
-const WRITERS = ['athena-admin', 'athena-finance'] as const;
+const WRITERS = ['athena-admin', 'athena-finance', 'athena-pmo'] as const;
 const ImportBody = z.object({ fileName: z.string().trim().min(1).max(200), content: z.string().min(1).max(20_000_000) });
 
 /** Finances (lot 23) : lecture pour la finance, l'administrateur, le PMO et la direction ; écriture pour la finance et l'administrateur. Interrupteur `ppm.finance`. */

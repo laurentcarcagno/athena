@@ -89,7 +89,7 @@ suite('gouvernance V2 : décisions, projet de pilotage, alertes (B38, intégrati
 
   it('changement chiffré : s’applique en avenant de budget par la finance, une seule fois', async () => {
     const d = await decisions.create(org, 'gov2', { project: 'DEC', kind: 'change', rationale: 'Ajout de périmètre', costDelta: 12_000, scheduleDeltaDays: 10, budgetCategory: 'logiciel' }, pmo);
-    expect(await code(decisions.apply(org, 'gov2', d.id, pmo))).toBe('forbidden');
+    expect(await code(decisions.apply(org, 'gov2', d.id, { id: 'sub-dir', roles: ['athena-director', 'athena-team-member'] }))).toBe('forbidden'); // la direction ne l'applique pas ; le PMO, oui (droits de la finance)
     await finService.addBudget(org, { project: 'DEC', category: 'logiciel', kind: 'initial', amount: 50_000 }, finance);
     const done = await decisions.apply(org, 'gov2', d.id, finance);
     expect(done.appliedAt).not.toBeNull();

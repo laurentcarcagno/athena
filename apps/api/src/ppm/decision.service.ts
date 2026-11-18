@@ -79,7 +79,7 @@ export class DecisionService {
     if (!d) throw notFound('Décision');
     if (d.kind !== 'change' || d.costDelta === null || !d.budgetCategory) throw validation(['seul un changement chiffré en coût s’applique']);
     if (d.appliedAt) throw conflict('Cette décision est déjà appliquée.');
-    if (!actor.roles.includes('athena-admin') && !actor.roles.includes('athena-finance')) throw forbidden('L’application d’un avenant est réservée à la finance et à l’administrateur.');
+    if (!['athena-admin', 'athena-finance', 'athena-pmo'].some((r) => actor.roles.includes(r))) throw forbidden('L’application d’un avenant est réservée à la finance, au PMO et à l’administrateur.');
     await this.finance.addBudget(organizationId, { project: d.project, category: d.budgetCategory, kind: 'amendment', amount: d.costDelta, reason: `Décision de portefeuille : ${d.rationale}`.slice(0, 500) }, actor);
     await this.db.tx(organizationId, async (c) => {
       await c.query('update portfolio_decision set applied_at = now() where id = $1', [id]);

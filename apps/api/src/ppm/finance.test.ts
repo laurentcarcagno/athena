@@ -44,12 +44,13 @@ suite('finances (B37, intégration)', () => {
   }, 60_000);
   afterAll(async () => { await testDb?.drop(); });
 
-  it('droits : la finance et l’administrateur écrivent ; le PMO et la direction lisent ; un membre d’équipe n’accède à rien', async () => {
+  it('droits : la finance, le PMO et l’administrateur écrivent ; la direction lit ; un membre d’équipe n’accède à rien', async () => {
     expect(await code(fin.categories(org, member))).toBe('forbidden');
     expect(await code(fin.categories(org, pmo))).toBe('ok');
     expect(await code(fin.categories(org, director))).toBe('ok');
-    expect(await code(fin.addBudget(org, { project: 'FIN', category: 'logiciel', kind: 'initial', amount: 1000, reason: '' }, pmo))).toBe('forbidden');
-    expect(await code(fin.rates(org, pmo))).toBe('forbidden'); // les taux : finance et administrateur seulement
+    expect(await code(fin.addBudget(org, { project: 'FIN', category: 'logiciel', kind: 'initial', amount: 1000, reason: '' }, director))).toBe('forbidden');
+    expect(await code(fin.rates(org, pmo))).toBe('ok'); // le PMO a les droits de la finance : taux compris
+    expect(await code(fin.rates(org, member))).toBe('forbidden');
     expect(await code(fin.rates(org, director))).toBe('forbidden');
     expect(await code(fin.rates(org, finance))).toBe('ok');
   });
@@ -95,10 +96,10 @@ suite('finances (B37, intégration)', () => {
     const again = await fin.importActuals(org, 'reels.csv', csv, finance);
     expect(again).toMatchObject({ alreadyImported: true, imported: 997, batchId: r.batchId });
     expect((await fin.project(org, 'FIN', admin, NOW)).totals.actual).toBe(after);
-    expect(await code(fin.importActuals(org, 'x.csv', 'FIN;logiciel;2026-01;10', pmo))).toBe('forbidden');
+    expect(await code(fin.importActuals(org, 'x.csv', 'FIN;logiciel;2026-01;10', director))).toBe('forbidden');
   });
 
-  it('taux et coût du temps passé : visibles de la finance seule ; temps sans taux compté à part', async () => {
+  it('taux et coût du temps passé : visibles de la finance, du PMO et de l’administrateur ; temps sans taux compté à part', async () => {
     await fin.addRate(org, { subject: 'sub-ana', hourlyRate: 60, validFrom: '2026-01-01' }, finance);
     await fin.addRate(org, { subject: 'sub-ana', hourlyRate: 80, validFrom: '2026-06-01' }, finance);
     expect(await code(fin.addRate(org, { subject: 'sub-ana', roleLabel: 'x', hourlyRate: 1, validFrom: '2026-01-01' }, finance))).toBe('validation');
@@ -111,7 +112,8 @@ suite('finances (B37, intégration)', () => {
     await wl.add(org, 'FIN', t, { day: '2026-06-10', minutes: 60, comment: '' }, member); // 1 h à 80 €
     await wl.add(org, 'FIN', t, { day: '2026-03-11', minutes: 30, comment: '' }, admin); // sans taux
     expect(await fin.timeCost(org, 'FIN', finance)).toEqual({ cost: 200, minutes: 210, unpricedMinutes: 30 });
-    expect(await code(fin.timeCost(org, 'FIN', pmo))).toBe('forbidden');
+    expect(await code(fin.timeCost(org, 'FIN', pmo))).toBe('ok'); // le PMO a les droits de la finance
+    expect(await code(fin.timeCost(org, 'FIN', director))).toBe('forbidden');
   });
 
   it('un projet masqué au lecteur : ni budget ni réel ; le PMO restreint ne voit rien de ce projet', async () => {

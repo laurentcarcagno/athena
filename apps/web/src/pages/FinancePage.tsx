@@ -24,7 +24,7 @@ export function FinancePage({ session }: { session: Session }) {
   const fail = useFailure();
   const toast = useToast();
   const roles = session.user?.roles ?? [];
-  const writer = roles.includes('athena-admin') || roles.includes('athena-finance');
+  const writer = roles.some((r) => ['athena-admin', 'athena-finance', 'athena-pmo'].includes(r));
   const [project, setProject] = useState('');
   const [projects, setProjects] = useState<Array<{ key: string; name: string }>>([]);
   const [data, setData] = useState<Finance | null>(null);

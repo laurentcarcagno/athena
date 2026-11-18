@@ -239,7 +239,7 @@ export class PortfolioController {
   }
 
   /** Applique un changement chiffré en avenant de budget (finance et administrateur). */
-  @Roles('athena-admin', 'athena-finance')
+  @Roles('athena-admin', 'athena-finance', 'athena-pmo')
   @Post(':key/decisions/:id/apply')
   @HttpCode(200)
   async decisionApply(@Req() request: AuthedRequest, @Param('key') key: string, @Param('id') id: string) {

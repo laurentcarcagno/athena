@@ -4,7 +4,7 @@ import { Db, type Actor } from '../core/db';
 import { forbidden, notFound, validation } from '../core/errors';
 import { audit } from '../core/tracker.service';
 
-export const FINANCE_WRITERS = ['athena-admin', 'athena-finance'];
+export const FINANCE_WRITERS = ['athena-admin', 'athena-finance', 'athena-pmo'];
 export const FINANCE_READERS = ['athena-admin', 'athena-finance', 'athena-pmo', 'athena-director'];
 const Period = z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/);
 const Money = z.number().finite().min(-1e11).max(1e11);
@@ -39,7 +39,7 @@ const num = (v: unknown) => Number(v ?? 0);
 export class FinanceService {
   constructor(private readonly db: Db) {}
 
-  private requireWriter(actor: Actor): void { if (!FINANCE_WRITERS.some((r) => actor.roles.includes(r))) throw forbidden('Réservé à la finance et à l’administrateur.'); }
+  private requireWriter(actor: Actor): void { if (!FINANCE_WRITERS.some((r) => actor.roles.includes(r))) throw forbidden('Réservé à la finance, au PMO et à l’administrateur.'); }
   private requireReader(actor: Actor): void { if (!FINANCE_READERS.some((r) => actor.roles.includes(r))) throw forbidden('Les données financières sont réservées à la finance, à l’administrateur, au PMO et à la direction.'); }
 
   async categories(organizationId: string, actor: Actor): Promise<Array<z.infer<typeof CategoryInput>>> {

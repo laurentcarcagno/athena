@@ -88,7 +88,7 @@ export function PortfoliosPage({ session }: { session: Session }) {
           {roles.some((r) => r === 'athena-admin' || r === 'athena-pmo' || r === 'athena-director') ? <Dashboard portfolio={one.portfolio.key} /> : <PortfolioHealthTable portfolio={one.portfolio.key} />}
           <SnapshotPanel portfolio={one.portfolio.key} canTake={admin} />
           <PrioritizationPanel portfolio={one.portfolio.key} canEdit={admin} canSeeFinance={roles.some((r) => ['athena-admin', 'athena-finance', 'athena-pmo', 'athena-director'].includes(r))} />
-          <DecisionsPanel portfolio={one.portfolio.key} projects={one.projects.map((p) => p.key)} canDecide={admin} canApply={roles.includes('athena-admin') || roles.includes('athena-finance')} />
+          <DecisionsPanel portfolio={one.portfolio.key} projects={one.projects.map((p) => p.key)} canDecide={admin} canApply={roles.some((r) => ['athena-admin', 'athena-finance', 'athena-pmo'].includes(r))} />
           <DependenciesPanel portfolio={one.portfolio.key} canEdit={admin} />
           <GovernancePanel portfolio={one.portfolio.key} projects={one.projects.map((p) => p.key)} />
           {one.projects.length === 0 ? <EmptyState eyebrow={t.project} title={t.noProject} /> : (

@@ -32,13 +32,20 @@ const show = (roles: string[]) => render(<MemoryRouter><ToastProvider><FinancePa
 
 describe('page Finances (B37)', () => {
   it('tableau par catégorie, écart et dépassement dits en toutes lettres, alertes ; aucun défaut axe', async () => {
-    const { container } = show(['athena-pmo']);
+    const { container } = show(['athena-director']);
     await userEvent.selectOptions(await screen.findByLabelText('Projet'), 'FIN');
     const table = await screen.findByRole('table', { name: 'Finances du projet FIN' });
     expect(within(table).getByText(/-5\s?000 € · dépassement/)).toBeInTheDocument();
     expect(screen.getByText('Estimation à terminaison au-delà du budget')).toBeInTheDocument();
-    expect(screen.queryByRole('form', { name: 'Budget' })).toBeNull(); // le PMO lit, ne saisit pas
+    expect(screen.queryByRole('form', { name: 'Budget' })).toBeNull(); // la direction lit, ne saisit pas
     expect((await axe.run(container, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa'] }, rules: { 'color-contrast': { enabled: false } } })).violations.map((v) => v.id)).toEqual([]);
+  });
+
+  it('le PMO a les droits de la finance : il saisit un budget', async () => {
+    show(['athena-pmo']);
+    await userEvent.selectOptions(await screen.findByLabelText('Projet'), 'FIN');
+    await screen.findByRole('table', { name: 'Finances du projet FIN' });
+    expect(screen.getByRole('form', { name: 'Budget' })).toBeInTheDocument();
   });
 
   it('la finance saisit un budget, puis importe des réels avec le rapport de rejet', async () => {
