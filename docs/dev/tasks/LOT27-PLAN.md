@@ -1,6 +1,6 @@
 # Lot 27 : gabarits de tableaux de bord
 
-Préparé le 2026-11-18, à partir de la revue des propositions par l'utilisateur (formulaire « Gabarits de tableaux de bord » : 42 fiches, 41 validées, 1 à revoir). Pas encore ouvert : aucune ligne de code. Prochaine migration : **094**.
+Préparé le 2026-11-18 à partir de la revue des propositions par l'utilisateur (formulaire « Gabarits de tableaux de bord » : 42 fiches, 41 validées, 1 à revoir). **Ouvert et terminé le 2026-11-18** (`/goal`) : les 24 tâches sont faites ; vérification critère par critère dans `LOT27-VERIFICATION.md`. Migration créée : **094** ; prochaine : **095**.
 
 ## Objet
 
@@ -115,7 +115,7 @@ Reprend la grille d'« Organiser » (glisser, clavier, réglages, catalogue) et 
 - *Acceptation* :
   - Le bouton n'apparaît qu'en mode Organiser.
   - La liste ne montre que les gabarits proposés, avec leur description et leurs onglets.
-  - « Ajouter » et « Remplacer » (après confirmation) sont disponibles. Le résultat reste un brouillon jusqu'à « Enregistrer ».
+  - « Ajouter » et « Remplacer » (après confirmation) sont disponibles. L'application est immédiate (ajouter : sans confirmation ; remplacer : avec confirmation) et le brouillon en cours est abandonné : une copie de plusieurs onglets ne se prête pas à un brouillon unique.
   - Si aucun gabarit n'est proposé, un message le dit.
   - Tests web.
 

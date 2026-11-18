@@ -38,6 +38,10 @@ test('météo du projet, fiche d’une page, tableau de santé et tuiles du port
   await page.emulateMedia({ media: 'screen' });
 
   // Portefeuille : tuiles, tableau, écart entre santé déclarée et calculée, export CSV de mêmes lignes.
+  // Les tableaux de bord sont vides par défaut : la personne y pose elle-même les tuiles et le tableau de santé.
+  const { csrf } = await (await page.request.get('/auth/session')).json() as { csrf?: string };
+  const put = await page.request.put('/v1/me/dashboard?portfolio=sante-e2e', { data: { widgets: [{ id: 'tuiles', kind: 'portfolio-tiles', size: 'XL', h: 2 }, { id: 'sante', kind: 'portfolio-health', size: 'XL', h: 5 }] }, headers: csrf ? { 'X-CSRF-Token': csrf } : {} });
+  expect(put.ok()).toBe(true);
   await page.goto('/portefeuilles/sante-e2e');
   const tiles = page.getByRole('list', { name: 'Vue direction' });
   await expect(tiles.getByRole('listitem')).toHaveCount(6);
