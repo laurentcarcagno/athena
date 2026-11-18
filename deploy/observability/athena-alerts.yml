@@ -1,0 +1,48 @@
+# Règles d'alerte Prometheus pour Athena (plan § 10 : retard de synchronisation GitLab, taux d'échec des webhooks, erreurs et latence de l'API).
+# Charger avec `rule_files:` dans prometheus.yml. Métriques : GET /metrics (jeton porteur METRICS_TOKEN), voir docs/admin/EXPLOITATION.md.
+groups:
+  - name: athena
+    rules:
+      - alert: AthenaInstanceDown
+        expr: up{job="athena"} == 0
+        for: 2m
+        labels: { severity: critical }
+        annotations: { summary: "Instance Athena injoignable ({{ $labels.instance }})" }
+
+      - alert: AthenaRetardSynchronisation
+        expr: athena_outbox_oldest_age_seconds > 300
+        for: 5m
+        labels: { severity: warning }
+        annotations:
+          summary: "Le plus ancien événement de l'outbox attend depuis plus de 5 minutes"
+          description: "Synchronisation GitLab, webhooks ou notifications en retard : vérifier le worker et la disponibilité de GitLab."
+
+      - alert: AthenaOutboxSature
+        expr: athena_outbox_backlog > 5000
+        for: 10m
+        labels: { severity: critical }
+        annotations: { summary: "Plus de 5 000 événements non publiés" }
+
+      - alert: AthenaWebhooksEnEchec
+        expr: athena_webhook_deliveries{status="failed"} > 50
+        for: 15m
+        labels: { severity: warning }
+        annotations: { summary: "Plus de 50 livraisons de webhooks en échec : un destinataire est probablement indisponible" }
+
+      - alert: AthenaTauxErreurs5xx
+        expr: sum(rate(athena_http_requests_total{status="5xx"}[5m])) / clamp_min(sum(rate(athena_http_requests_total[5m])), 1) > 0.02
+        for: 10m
+        labels: { severity: critical }
+        annotations: { summary: "Plus de 2 % de réponses 5xx sur 10 minutes" }
+
+      - alert: AthenaLatenceP95
+        expr: histogram_quantile(0.95, sum by (le) (rate(athena_http_request_duration_seconds_bucket[5m]))) > 1
+        for: 10m
+        labels: { severity: warning }
+        annotations: { summary: "Latence p95 de l'API supérieure à 1 s" }
+
+      - alert: AthenaLectureMetriquesImpossible
+        expr: athena_scrape_errors > 0
+        for: 5m
+        labels: { severity: warning }
+        annotations: { summary: "Les jauges métier ne sont pas lisibles : base de données indisponible ou lente" }

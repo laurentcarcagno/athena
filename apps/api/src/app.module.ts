@@ -15,10 +15,11 @@ import { CoreModule } from './core/core.module';
 import { PpmModule } from './ppm/ppm.module';
 import { OpenApiController } from './openapi/openapi.controller';
 import { HealthController } from './health/health.controller';
+import { MetricsController } from './observability/metrics.controller';
 
 @Module({
   imports: [CoreModule, PpmModule],
-  controllers: [HealthController, BffController, OpenApiController],
+  controllers: [HealthController, BffController, OpenApiController, MetricsController],
   providers: [
     {
       provide: TOKEN_VERIFIER,

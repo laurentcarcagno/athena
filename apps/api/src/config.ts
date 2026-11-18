@@ -9,6 +9,8 @@ const schema = z.object({
   OPENBAO_ADDR: z.string().url().optional(),
   OPENBAO_TOKEN: z.string().min(1).optional(),
   /** Connexion AppRole (hors Kubernetes) : les deux ensemble, de préférence au jeton fixe. */
+  /** Jeton porteur de `GET /metrics` ; sans lui, l'exposition est désactivée (404). */
+  METRICS_TOKEN: z.string().min(16).optional(),
   OPENBAO_ROLE_ID: z.string().min(1).optional(),
   OPENBAO_SECRET_ID: z.string().min(1).optional(),
   WEBHOOK_ALLOW_PRIVATE: z.enum(['true', 'false']).default('false').transform((v) => v === 'true'),

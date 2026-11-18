@@ -4,6 +4,7 @@ import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fa
 import { AppModule } from './app.module';
 import { loadConfig } from './config';
 import { registerBinaryUpload } from './core/attachment.controller';
+import { applyMetrics } from './observability/metrics';
 import { applyHardening } from './security/hardening';
 
 async function bootstrap() {
@@ -17,6 +18,7 @@ async function bootstrap() {
     hsts: config.COOKIE_SECURE,
     protectionLevel: config.ATHENA_PROTECTION_LEVEL,
   });
+  applyMetrics(app.getHttpAdapter().getInstance());
   registerBinaryUpload(app.getHttpAdapter().getInstance());
   await app.listen(config.PORT, config.HOST);
 }
