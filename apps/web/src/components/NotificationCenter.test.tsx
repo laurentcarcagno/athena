@@ -172,3 +172,29 @@ describe('suivi d’un ticket', () => {
     await screen.findByRole('button', { name: 'Suivre' });
   });
 });
+
+describe('temps réel (SSE)', () => {
+  class FakeSource {
+    static instances: FakeSource[] = [];
+    listeners: Record<string, Array<() => void>> = {};
+    closed = false;
+    constructor(public url: string) { FakeSource.instances.push(this); }
+    addEventListener(type: string, fn: () => void) { (this.listeners[type] ??= []).push(fn); }
+    removeEventListener(type: string, fn: () => void) { this.listeners[type] = (this.listeners[type] ?? []).filter((f) => f !== fn); }
+    close() { this.closed = true; }
+    emit(type: string) { (this.listeners[type] ?? []).forEach((f) => f()); }
+  }
+  beforeEach(() => { FakeSource.instances = []; vi.stubGlobal('EventSource', FakeSource); });
+
+  it('ouvre le flux de la personne, rafraîchit la boîte à chaque notification reçue et ferme le flux au démontage', async () => {
+    const { unmount } = mount();
+    await screen.findByRole('button', { name: /Notifications/ });
+    expect(FakeSource.instances).toHaveLength(1);
+    expect(FakeSource.instances[0]!.url).toBe('/v1/me/events');
+    const before = calls.filter((c) => c.url.includes('/v1/me/notifications?limit=50')).length;
+    FakeSource.instances[0]!.emit('notification');
+    await waitFor(() => expect(calls.filter((c) => c.url.includes('/v1/me/notifications?limit=50')).length).toBeGreaterThan(before));
+    unmount();
+    expect(FakeSource.instances[0]!.closed).toBe(true);
+  });
+});

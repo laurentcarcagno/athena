@@ -59,6 +59,7 @@ import { SearchController } from '../atql/search.controller';
 import { SavedFilterService } from '../atql/saved-filter.service';
 import { LinkService } from './link.service';
 import { NotifyController } from '../notify/notify.controller';
+import { EventStreamService } from '../notify/event-stream';
 import { NotifyService } from '../notify/notify.service';
 import { DigestService } from '../notify/digest';
 import { mailerFrom } from '../notify/mailer-config';
@@ -175,6 +176,7 @@ export { PG_POOL } from './core.tokens';
     { provide: TemplateUpgradeService, useFactory: (db: Db, t: TrackerService, tpl: TemplateService) => new TemplateUpgradeService(db, t, tpl), inject: [Db, TrackerService, TemplateService] },
     { provide: ExportMarker, useFactory: () => new ExportMarker(loadConfig().ATHENA_PROTECTION_LEVEL), inject: [] },
     { provide: NotifyService, useFactory: (db: Db) => new NotifyService(db), inject: [Db] },
+    { provide: EventStreamService, useFactory: (db: Db) => new EventStreamService(db), inject: [Db] },
     {
       provide: DigestService,
       useFactory: (db: Db): DigestService => {

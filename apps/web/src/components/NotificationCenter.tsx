@@ -48,6 +48,14 @@ export function NotificationCenter() {
     const timer = setInterval(() => { if (!document.hidden) refresh().catch(() => undefined); }, POLL_MS);
     return () => clearInterval(timer);
   }, [refresh]);
+  // Temps réel : une notification reçue par le flux SSE rafraîchit la boîte aussitôt ; l'interrogation ci-dessus reste le repli si le flux est coupé (proxy, navigateur sans EventSource).
+  useEffect(() => {
+    if (typeof EventSource === 'undefined') return undefined;
+    const source = new EventSource('/v1/me/events');
+    const onNotification = () => { refresh().catch(() => undefined); };
+    source.addEventListener('notification', onNotification);
+    return () => { source.removeEventListener('notification', onNotification); source.close(); };
+  }, [refresh]);
   useEffect(() => { if (open) refresh().catch(() => undefined); }, [open, refresh]);
   useEffect(() => {
     if (!open) return undefined;

@@ -1,4 +1,6 @@
-import { Body, Controller, Delete, Get, HttpCode, Inject, Param, Post, Put, Query, Req } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Inject, Param, Post, Put, Query, Req, Sse, type MessageEvent } from '@nestjs/common';
+import { Observable, from, map, switchMap } from 'rxjs';
+import { EventStreamService } from './event-stream';
 import { Roles, type AuthedRequest } from '../auth/auth.guard';
 import { OrgResolver, parseBody } from '../core/http';
 import { validation } from '../core/errors';
@@ -18,7 +20,18 @@ export class NotifyController {
     @Inject(NotifyService) private readonly notify: NotifyService,
     @Inject(DigestService) private readonly digest: DigestService,
     @Inject(OrgResolver) private readonly orgs: OrgResolver,
+    @Inject(EventStreamService) private readonly events: EventStreamService,
   ) {}
+
+  /** Flux temps réel (SSE) des notifications de la personne : `notification`, `unread`, `heartbeat`. */
+  @Roles(...ME)
+  @Sse('me/events')
+  stream(@Req() request: AuthedRequest): Observable<MessageEvent> {
+    return from(this.orgs.resolve(request.principal!)).pipe(
+      switchMap(({ organizationId, actor }) => this.events.stream(organizationId, actor.id)),
+      map((e): MessageEvent => ({ type: e.type, data: e.data })),
+    );
+  }
 
   @Roles(...ME)
   @Get('me/notifications')
