@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { Db, type Actor } from './db';
-import { forbidden, validation } from './errors';
+import { forbidden, notFound, validation } from './errors';
 import { AtqlError, parse } from '../atql/parser';
 
 /** Genres de widget (ADR-0003 § 2.1) : la grille est fixe, seuls le contenu, l'ordre et la présence se règlent. */
@@ -58,6 +58,11 @@ export const WidgetSchema = z.object({
   project: z.string().regex(/^[A-Z][A-Z0-9]{1,9}$/).optional(),
   period: z.enum(['7d', '30d', 'sprint']).optional(),
 });
+/** Onglets d'un classeur : au plus MAX_TABS onglets nommés par portée, en plus de l'onglet principal. */
+export const MAX_TABS = 8;
+export const TabIdSchema = z.string().regex(/^[a-z0-9][a-z0-9-]{0,29}$/);
+export const TabInput = z.object({ title: z.string().trim().min(1).max(60) });
+export interface DashboardTab { id: string; title: string | null }
 export const LayoutInput = z.object({ widgets: z.array(WidgetSchema).max(MAX_WIDGETS) });
 export type Widget = z.infer<typeof WidgetSchema>;
 
@@ -168,10 +173,65 @@ export function checkGrid(widgets: readonly Widget[]): void {
 export class DashboardService {
   constructor(private readonly db: Db) {}
 
-  async get(organizationId: string, actor: Actor, scope = ''): Promise<{ widgets: Widget[]; isDefault: boolean }> {
+  private guard(actor: Actor, scope: string): void {
     if (scope.startsWith('portfolio:') && !PORTFOLIO_ROLES.some((r) => actor.roles.includes(r))) throw forbidden('Le tableau de bord d’un portefeuille est réservé au PMO, au directeur et à l’administrateur.');
-    const row = await this.db.tx(organizationId, async (c) => (await c.query('select widgets from dashboard_layout where owner = $1 and scope = $2', [actor.id, scope])).rows[0]);
-    return row ? { widgets: toGrid(row.widgets as Widget[]), isDefault: false } : { widgets: toGrid(defaultsFor(scope, actor.roles)), isDefault: true };
+  }
+
+  /** Un onglet nommé doit exister (404 sinon) ; l'onglet principal (`''`) existe toujours. */
+  private async requireTab(organizationId: string, actor: Actor, scope: string, tab: string): Promise<void> {
+    if (tab === '') return;
+    const found = await this.db.tx(organizationId, async (c) => (await c.query('select 1 from dashboard_tab where owner = $1 and scope = $2 and id = $3', [actor.id, scope, tab])).rowCount);
+    if (!found) throw notFound('Onglet');
+  }
+
+  async get(organizationId: string, actor: Actor, scope = '', tab = ''): Promise<{ widgets: Widget[]; isDefault: boolean }> {
+    this.guard(actor, scope);
+    await this.requireTab(organizationId, actor, scope, tab);
+    const row = await this.db.tx(organizationId, async (c) => (await c.query('select widgets from dashboard_layout where owner = $1 and scope = $2 and tab = $3', [actor.id, scope, tab])).rows[0]);
+    if (row) return { widgets: toGrid(row.widgets as Widget[]), isDefault: false };
+    // Un onglet nommé neuf est une feuille blanche ; seul l'onglet principal a une disposition par défaut.
+    return { widgets: tab === '' ? toGrid(defaultsFor(scope, actor.roles)) : [], isDefault: true };
+  }
+
+  /** Onglets d'une portée : le principal d'abord (titre `null` : le client le nomme), puis les onglets nommés dans l'ordre de création. */
+  async tabs(organizationId: string, actor: Actor, scope = ''): Promise<DashboardTab[]> {
+    this.guard(actor, scope);
+    const rows = await this.db.tx(organizationId, async (c) => (await c.query('select id, title from dashboard_tab where owner = $1 and scope = $2 order by position, created_at, id', [actor.id, scope])).rows as { id: string; title: string }[]);
+    return [{ id: '', title: null }, ...rows];
+  }
+
+  async createTab(organizationId: string, actor: Actor, scope: string, title: string): Promise<DashboardTab> {
+    this.guard(actor, scope);
+    return this.db.tx(organizationId, async (c) => {
+      const rows = (await c.query('select id, position from dashboard_tab where owner = $1 and scope = $2', [actor.id, scope])).rows as { id: string; position: number }[];
+      if (rows.length >= MAX_TABS) throw validation([`Un classeur compte au plus ${MAX_TABS} onglets en plus de l’onglet principal`]);
+      const base = title.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 22) || 'onglet';
+      const taken = new Set(rows.map((r) => r.id));
+      let id = base;
+      for (let n = 2; taken.has(id); n++) id = `${base}-${n}`;
+      await c.query('insert into dashboard_tab (organization_id, owner, scope, id, title, position) values ($1,$2,$3,$4,$5,$6)',
+        [organizationId, actor.id, scope, id, title, rows.reduce((m, r) => Math.max(m, r.position + 1), 0)]);
+      return { id, title };
+    });
+  }
+
+  async renameTab(organizationId: string, actor: Actor, scope: string, tab: string, title: string): Promise<DashboardTab> {
+    this.guard(actor, scope);
+    if (tab === '') throw validation(['L’onglet principal ne se renomme pas']);
+    const n = await this.db.tx(organizationId, async (c) => (await c.query('update dashboard_tab set title = $4 where owner = $1 and scope = $2 and id = $3', [actor.id, scope, tab, title])).rowCount);
+    if (!n) throw notFound('Onglet');
+    return { id: tab, title };
+  }
+
+  /** Supprime un onglet nommé et sa disposition ; l'onglet principal ne se supprime pas (il se réinitialise). */
+  async deleteTab(organizationId: string, actor: Actor, scope: string, tab: string): Promise<void> {
+    this.guard(actor, scope);
+    if (tab === '') throw validation(['L’onglet principal ne se supprime pas']);
+    await this.db.tx(organizationId, async (c) => {
+      const n = (await c.query('delete from dashboard_tab where owner = $1 and scope = $2 and id = $3', [actor.id, scope, tab])).rowCount;
+      if (!n) throw notFound('Onglet');
+      await c.query('delete from dashboard_layout where owner = $1 and scope = $2 and tab = $3', [actor.id, scope, tab]);
+    });
   }
 
   /** Catalogue du rôle : genres posables et, pour chacun, s'il vise un projet. */
@@ -179,10 +239,11 @@ export class DashboardService {
     return allowedKinds(actor.roles).map((kind) => ({ kind, project: PROJECT_KINDS.has(kind) }));
   }
 
-  async put(organizationId: string, input: z.infer<typeof LayoutInput>, actor: Actor, scope = ''): Promise<{ widgets: Widget[]; isDefault: boolean }> {
-    if (scope.startsWith('portfolio:') && !PORTFOLIO_ROLES.some((r) => actor.roles.includes(r))) throw forbidden('Le tableau de bord d’un portefeuille est réservé au PMO, au directeur et à l’administrateur.');
+  async put(organizationId: string, input: z.infer<typeof LayoutInput>, actor: Actor, scope = '', tab = ''): Promise<{ widgets: Widget[]; isDefault: boolean }> {
+    this.guard(actor, scope);
+    await this.requireTab(organizationId, actor, scope, tab);
     const allowed = new Set(allowedKinds(actor.roles));
-    const current = await this.db.tx(organizationId, async (c) => (await c.query('select widgets from dashboard_layout where owner = $1 and scope = $2', [actor.id, scope])).rows[0]);
+    const current = await this.db.tx(organizationId, async (c) => (await c.query('select widgets from dashboard_layout where owner = $1 and scope = $2 and tab = $3', [actor.id, scope, tab])).rows[0]);
     const kept = new Set(((current?.widgets ?? []) as Widget[]).map((w) => `${w.id}:${w.kind}`));
     for (const w of input.widgets) if (!allowed.has(w.kind) && !kept.has(`${w.id}:${w.kind}`)) throw forbidden(`Le genre « ${w.kind} » n'est pas disponible pour votre rôle`);
     const ids = new Set<string>();
@@ -203,15 +264,16 @@ export class DashboardService {
     const stored = toGrid(input.widgets);
     checkGrid(stored);
     await this.db.tx(organizationId, (c) => c.query(
-      `insert into dashboard_layout (organization_id, owner, scope, widgets) values ($1,$2,$3,$4)
-       on conflict (organization_id, owner, scope) do update set widgets = excluded.widgets, updated_at = now()`,
-      [organizationId, actor.id, scope, JSON.stringify(stored)],
+      `insert into dashboard_layout (organization_id, owner, scope, tab, widgets) values ($1,$2,$3,$4,$5)
+       on conflict (organization_id, owner, scope, tab) do update set widgets = excluded.widgets, updated_at = now()`,
+      [organizationId, actor.id, scope, tab, JSON.stringify(stored)],
     ));
     return { widgets: stored, isDefault: false };
   }
 
-  /** Revient à la disposition par défaut. */
-  async reset(organizationId: string, actor: Actor, scope = ''): Promise<void> {
-    await this.db.tx(organizationId, (c) => c.query('delete from dashboard_layout where owner = $1 and scope = $2', [actor.id, scope]));
+  /** Revient à la disposition par défaut (onglet principal) ou vide l'onglet (onglet nommé). */
+  async reset(organizationId: string, actor: Actor, scope = '', tab = ''): Promise<void> {
+    await this.requireTab(organizationId, actor, scope, tab);
+    await this.db.tx(organizationId, (c) => c.query('delete from dashboard_layout where owner = $1 and scope = $2 and tab = $3', [actor.id, scope, tab]));
   }
 }

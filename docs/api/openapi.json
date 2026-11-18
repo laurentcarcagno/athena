@@ -3697,6 +3697,213 @@
     }
    }
   },
+  "/v1/me/dashboard/tabs": {
+   "get": {
+    "operationId": "Dashboard_tabs",
+    "tags": [
+     "Dashboard"
+    ],
+    "parameters": [],
+    "security": [
+     {
+      "bearer": []
+     },
+     {
+      "session": []
+     }
+    ],
+    "x-athena-roles": [
+     "athena-team-member",
+     "athena-admin",
+     "athena-pm",
+     "athena-qa"
+    ],
+    "responses": {
+     "200": {
+      "description": "Succès"
+     },
+     "401": {
+      "description": "Non authentifié"
+     },
+     "403": {
+      "description": "Rôle insuffisant"
+     },
+     "422": {
+      "description": "Validation"
+     }
+    }
+   },
+   "post": {
+    "operationId": "Dashboard_createTab",
+    "tags": [
+     "Dashboard"
+    ],
+    "parameters": [],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+         "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60
+         }
+        },
+        "required": [
+         "title"
+        ]
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     },
+     {
+      "session": []
+     }
+    ],
+    "x-athena-roles": [
+     "athena-team-member",
+     "athena-admin",
+     "athena-pm",
+     "athena-qa",
+     "athena-director"
+    ],
+    "responses": {
+     "201": {
+      "description": "Succès"
+     },
+     "401": {
+      "description": "Non authentifié"
+     },
+     "403": {
+      "description": "Rôle insuffisant"
+     },
+     "422": {
+      "description": "Validation"
+     }
+    }
+   }
+  },
+  "/v1/me/dashboard/tabs/{id}": {
+   "patch": {
+    "operationId": "Dashboard_renameTab",
+    "tags": [
+     "Dashboard"
+    ],
+    "parameters": [
+     {
+      "name": "id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+         "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60
+         }
+        },
+        "required": [
+         "title"
+        ]
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     },
+     {
+      "session": []
+     }
+    ],
+    "x-athena-roles": [
+     "athena-team-member",
+     "athena-admin",
+     "athena-pm",
+     "athena-qa",
+     "athena-director"
+    ],
+    "responses": {
+     "200": {
+      "description": "Succès"
+     },
+     "401": {
+      "description": "Non authentifié"
+     },
+     "403": {
+      "description": "Rôle insuffisant"
+     },
+     "422": {
+      "description": "Validation"
+     }
+    }
+   },
+   "delete": {
+    "operationId": "Dashboard_deleteTab",
+    "tags": [
+     "Dashboard"
+    ],
+    "parameters": [
+     {
+      "name": "id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string"
+      }
+     }
+    ],
+    "security": [
+     {
+      "bearer": []
+     },
+     {
+      "session": []
+     }
+    ],
+    "x-athena-roles": [
+     "athena-team-member",
+     "athena-admin",
+     "athena-pm",
+     "athena-qa",
+     "athena-director"
+    ],
+    "responses": {
+     "204": {
+      "description": "Succès"
+     },
+     "401": {
+      "description": "Non authentifié"
+     },
+     "403": {
+      "description": "Rôle insuffisant"
+     },
+     "422": {
+      "description": "Validation"
+     }
+    }
+   }
+  },
   "/v1/me/data-export": {
    "get": {
     "operationId": "Privacy_exportMine",

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type DragEvent, type KeyboardEvent, type ReactNode } from 'react';
 import { PortfolioHealthTable } from './PortfolioHealthTable';
 import { Link } from 'react-router-dom';
-import { Btn, DASH_SIZES, boxClasses, DashCard, DashGrid, Select, StatusPill, useToast, type DashSize } from '@athena/ui';
+import { Btn, DASH_SIZES, boxClasses, DashCard, DashGrid, Select, StatusPill, Tabs, useToast, type DashSize } from '@athena/ui';
 import { api, type Hit, type SearchResult, type TrackerOverview } from '../api';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
@@ -27,6 +27,8 @@ export const sizeOf = (w: Widget): DashSize => w.size ?? 'S';
 const QUIET: WidgetKind[] = ['search', 'approvals', 'mentions'];
 type OnEmpty = (empty: boolean) => void;
 interface Layout { widgets: Widget[]; isDefault: boolean }
+interface TabInfo { id: string; title: string | null }
+const MAIN_TAB: TabInfo = { id: '', title: null };
 interface SavedSearch { id: string; name: string; query: string; projects: string[] }
 interface Mention { id: string; project: string; key: string; actorName: string; read: boolean }
 interface ApprovalRow { project: string; type: string; ref: string }
@@ -248,13 +250,31 @@ export function Dashboard({ project, page, portfolio, qa = false }: { project?: 
   const [settings, setSettings] = useState<string | null>(null);
   const [announce, setAnnounce] = useState('');
   const [empty, setEmpty] = useState<Record<string, boolean>>({});
+  const [tabs, setTabs] = useState<TabInfo[]>([MAIN_TAB]);
+  const [tab, setTab] = useState('');
+  const [tabForm, setTabForm] = useState<{ mode: 'create' | 'rename'; value: string } | null>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   const reportEmpty = useCallback((id: string) => (value: boolean) => setEmpty((st) => (st[id] === value ? st : { ...st, [id]: value })), []);
   const BUILTIN = builtinFor(project, page, portfolio);
-  const endpoint = `/v1/me/dashboard${portfolio ? `?portfolio=${portfolio}` : project ? `?project=${project}${page ? `&page=${page}` : ''}` : ''}`;
+  const scopeQuery = portfolio ? `portfolio=${portfolio}` : project ? `project=${project}${page ? `&page=${page}` : ''}` : '';
+  const withQuery = (path: string, ...parts: string[]) => { const q = [scopeQuery, ...parts].filter(Boolean).join('&'); return q ? `${path}?${q}` : path; };
+  const endpoint = withQuery('/v1/me/dashboard', tab ? `tab=${tab}` : '');
+  const tabsEndpoint = withQuery('/v1/me/dashboard/tabs');
   const editing = draft !== null;
 
-  useEffect(() => { api<Layout>('GET', endpoint).then((r) => setLayout(Array.isArray(r?.widgets) ? r : { widgets: builtinFor(project, page, portfolio), isDefault: true })).catch((e) => { setLayout({ widgets: builtinFor(project, page, portfolio), isDefault: true }); fail(e); }); }, [fail, endpoint, project, page, portfolio]);
+  useEffect(() => {
+    let live = true;
+    const blank = tab ? [] : builtinFor(project, page, portfolio);
+    api<Layout>('GET', endpoint).then((r) => { if (live) setLayout(Array.isArray(r?.widgets) ? r : { widgets: blank, isDefault: true }); }).catch((e) => { if (live) { setLayout({ widgets: blank, isDefault: true }); fail(e); } });
+    return () => { live = false; };
+  }, [fail, endpoint, project, page, portfolio, tab]);
+  // Changer de portée ramène à l'onglet principal ; la liste des onglets est celle de la portée.
+  useEffect(() => { setTab(''); setTabForm(null); }, [project, page, portfolio]);
+  useEffect(() => {
+    let live = true;
+    api<{ tabs: TabInfo[] }>('GET', tabsEndpoint).then((r) => { if (live) setTabs(Array.isArray(r?.tabs) && r.tabs.length ? r.tabs : [MAIN_TAB]); }).catch(() => { if (live) setTabs([MAIN_TAB]); });
+    return () => { live = false; };
+  }, [tabsEndpoint]);
   useEffect(() => {
     if (!editing) return;
     api<SavedSearch[]>('GET', '/v1/searches').then((r) => setViews(Array.isArray(r) ? r : [])).catch(() => setViews([]));
@@ -300,6 +320,27 @@ export function Dashboard({ project, page, portfolio, qa = false }: { project?: 
   const addChart = (c: { title: string; query: string; field: string; form: ChartFormKind }) => {
     addWidget({ id: uid('chart'), kind: 'chart', title: c.title, query: c.query, form: c.form, size: 'S', ...(c.form === 'count' ? {} : { field: c.field }), ...(project ? { projects: [project] } : {}) });
     setChartOpen(false);
+  };
+  const tabName = (t: TabInfo) => t.title ?? fr.home.tabMain;
+  const currentTab = tabs.find((t) => t.id === tab) ?? MAIN_TAB;
+  const submitTab = async () => {
+    if (!tabForm) return;
+    const title = tabForm.value.trim();
+    if (!title) return;
+    try {
+      if (tabForm.mode === 'create') {
+        const made = await api<TabInfo>('POST', tabsEndpoint, { title });
+        setTabs((list) => [...list, made]); setTab(made.id); toast('success', fr.home.tabCreated);
+      } else {
+        await api('PATCH', withQuery(`/v1/me/dashboard/tabs/${tab}`), { title });
+        setTabs((list) => list.map((t) => (t.id === tab ? { ...t, title } : t))); toast('success', fr.home.tabRenamed);
+      }
+      setTabForm(null);
+    } catch (error) { fail(error); }
+  };
+  const deleteTab = async () => {
+    if (!(await confirm.ask({ title: fr.home.tabDeleteTitle(tabName(currentTab)), body: fr.home.tabDeleteBody, confirm: fr.home.tabDelete }))) return;
+    try { await api('DELETE', withQuery(`/v1/me/dashboard/tabs/${tab}`)); setTabs((list) => list.filter((t) => t.id !== tab)); setTab(''); toast('success', fr.home.tabDeleted); } catch (error) { fail(error); }
   };
   const reset = async () => {
     if (!(await confirm.ask({ title: fr.home.resetTitle, body: fr.home.resetBody, confirm: fr.home.reset }))) return;
@@ -392,6 +433,21 @@ export function Dashboard({ project, page, portfolio, qa = false }: { project?: 
 
   return (
     <section aria-label={page ? fr.home.progressLabel : project ? fr.home.projectLabel : fr.home.label} className="ath-stack">
+      {!editing && (
+        <div className="ath-toolbar ath-dash-tabs">
+          <Tabs tabs={tabs.map((t) => ({ id: t.id, label: tabName(t) }))} active={tab} onChange={(id) => { setTab(id); setTabForm(null); }} />
+          <Btn variant="ghost" size="sm" onClick={() => setTabForm({ mode: 'create', value: '' })}>{fr.home.tabNew}</Btn>
+          {tab !== '' && <Btn variant="ghost" size="sm" onClick={() => setTabForm({ mode: 'rename', value: currentTab.title ?? '' })}>{fr.home.tabRenameDo}</Btn>}
+          {tab !== '' && <Btn variant="ghost" size="sm" onClick={() => void deleteTab()}>{fr.home.tabDelete}</Btn>}
+        </div>
+      )}
+      {!editing && tabForm && (
+        <form className="ath-toolbar" onSubmit={(e) => { e.preventDefault(); void submitTab(); }}>
+          <label className="ath-field">{fr.home.tabName}<input className="ath-input" autoFocus value={tabForm.value} maxLength={60} onChange={(e) => setTabForm({ ...tabForm, value: e.target.value })} /></label>
+          <Btn size="sm" type="submit" disabled={!tabForm.value.trim()}>{tabForm.mode === 'create' ? fr.home.tabCreate : fr.home.tabRename}</Btn>
+          <Btn variant="ghost" size="sm" type="button" onClick={() => setTabForm(null)}>{fr.home.cancel}</Btn>
+        </form>
+      )}
       <div className="ath-toolbar ath-dash-toolbar">
         {editing ? (
           <>
@@ -403,7 +459,7 @@ export function Dashboard({ project, page, portfolio, qa = false }: { project?: 
       </div>
       {editing && <p className="ath-notice">{fr.home.organizeHint}</p>}
       <p className="ath-visually-hidden" aria-live="assertive">{announce}</p>
-      {widgets.length === 0 && !editing && <p>{fr.home.noWidget}</p>}
+      {widgets.length === 0 && !editing && <p>{tab ? fr.home.tabBlank : fr.home.noWidget}</p>}
       {/* Mon travail : les cartes vides se résument en une ligne, la liste utile remonte (T-0153, revue O3). */}
       {!editing && !project && quiet.length > 0 && <p className="ath-card ath-dash-quiet"><strong>{fr.home.quietLead}</strong> {fr.home.quiet(quiet.map((w) => widgetTitle(w)))}</p>}
       {editing ? (

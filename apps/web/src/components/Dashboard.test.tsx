@@ -18,15 +18,33 @@ const DEFAULTS: Widget[] = [
 ];
 let stored: Widget[] | null;
 let calls: Array<{ method: string; url: string; body: unknown }>;
+let tabs: Array<{ id: string; title: string | null }>;
+let tabWidgets: Record<string, Widget[]>;
 
 beforeEach(() => {
   stored = null;
   calls = [];
+  tabs = [{ id: '', title: null }];
+  tabWidgets = {};
   vi.stubGlobal('fetch', vi.fn(async (url: string, init?: RequestInit) => {
     const method = init?.method ?? 'GET';
     const body = init?.body ? JSON.parse(String(init.body)) : undefined;
     calls.push({ method, url, body });
     const json = (value: unknown, status = 200) => new Response(JSON.stringify(value), { status });
+    if (url === '/v1/me/dashboard/tabs') {
+      if (method === 'POST') { const made = { id: 'risques', title: (body as { title: string }).title }; tabs = [...tabs, made]; return json(made); }
+      return json({ tabs });
+    }
+    if (url.startsWith('/v1/me/dashboard/tabs/')) {
+      const id = url.split('/').pop()!;
+      if (method === 'PATCH') { tabs = tabs.map((t) => (t.id === id ? { ...t, title: (body as { title: string }).title } : t)); return json({ id, title: (body as { title: string }).title }); }
+      if (method === 'DELETE') { tabs = tabs.filter((t) => t.id !== id); return new Response(null, { status: 204 }); }
+    }
+    if (url.startsWith('/v1/me/dashboard?tab=')) {
+      const id = url.split('=')[1]!;
+      if (method === 'PUT') { tabWidgets[id] = (body as { widgets: Widget[] }).widgets; return json({ widgets: tabWidgets[id], isDefault: false }); }
+      return json({ widgets: tabWidgets[id] ?? [], isDefault: !tabWidgets[id] });
+    }
     if (url.endsWith('/v1/me/dashboard')) {
       if (method === 'PUT') { stored = (body as { widgets: Widget[] }).widgets; return json({ widgets: stored, isDefault: false }); }
       if (method === 'DELETE') { stored = null; return new Response(null, { status: 204 }); }
@@ -133,5 +151,36 @@ describe('tableau de bord personnel', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Organiser' }));
     const results = await axe.run(container, { rules: { 'color-contrast': { enabled: false } } });
     expect(results.violations.map((v) => v.id)).toEqual([]);
+  });
+});
+
+describe('classeur à onglets', () => {
+  it('crée un onglet vide, y enregistre une carte sans toucher à l’onglet principal, le renomme puis le supprime', async () => {
+    const user = userEvent.setup();
+    page();
+    await waitFor(() => expect(groups()).toEqual(DEFAULT_TITLES));
+    expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual(['Principal']);
+    await user.click(screen.getByRole('button', { name: 'Nouvel onglet' }));
+    await user.type(screen.getByLabelText('Nom de l’onglet'), 'Risques');
+    await user.click(screen.getByRole('button', { name: 'Créer' }));
+    await waitFor(() => expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual(['Principal', 'Risques']));
+    expect(calls.find((c) => c.method === 'POST')?.body).toEqual({ title: 'Risques' });
+    expect(await screen.findByText(/Onglet vide/)).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Risques' })).toHaveAttribute('aria-selected', 'true');
+    await user.click(screen.getByRole('button', { name: 'Organiser' }));
+    await user.click(await screen.findByRole('button', { name: 'Ajouter Mentions' }));
+    await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
+    await waitFor(() => expect(calls.some((c) => c.method === 'PUT' && c.url === '/v1/me/dashboard?tab=risques')).toBe(true));
+    expect(tabWidgets['risques']!.map((w) => w.kind)).toEqual(['mentions']);
+    expect(stored).toBeNull(); // l'onglet principal n'a pas été écrit
+    await user.click(screen.getByRole('button', { name: 'Renommer l’onglet' }));
+    const name = screen.getByLabelText('Nom de l’onglet');
+    await user.clear(name); await user.type(name, 'Qualité');
+    await user.click(screen.getByRole('button', { name: 'Renommer' }));
+    await waitFor(() => expect(screen.getByRole('tab', { name: 'Qualité' })).toBeInTheDocument());
+    await user.click(screen.getByRole('button', { name: 'Supprimer l’onglet' }));
+    await user.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Supprimer l’onglet' }));
+    await waitFor(() => expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual(['Principal']));
+    await waitFor(() => expect(groups()).toContain('Mes tickets')); // l’onglet principal retrouve sa disposition
   });
 });

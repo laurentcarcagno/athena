@@ -480,18 +480,34 @@ class _Dashboard(_Group):
         """GET /v1/me/dashboard/catalog (rôles : athena-team-member, athena-admin, athena-pm, athena-qa)"""
         path = "/v1/me/dashboard/catalog"
         return self._client.request("GET", path, query=query)
+    def create_tab(self, body: Any = None, query: Optional[Dict[str, Any]] = None) -> Any:
+        """POST /v1/me/dashboard/tabs (rôles : athena-team-member, athena-admin, athena-pm, athena-qa, athena-director)"""
+        path = "/v1/me/dashboard/tabs"
+        return self._client.request("POST", path, query=query, body=body)
+    def delete_tab(self, id, query: Optional[Dict[str, Any]] = None) -> Any:
+        """DELETE /v1/me/dashboard/tabs/{id} (rôles : athena-team-member, athena-admin, athena-pm, athena-qa, athena-director)"""
+        path = "/v1/me/dashboard/tabs/{id}".replace("{id}", urllib.parse.quote(str(id), safe=""))
+        return self._client.request("DELETE", path, query=query)
     def get(self, query: Optional[Dict[str, Any]] = None) -> Any:
         """GET /v1/me/dashboard (rôles : athena-team-member, athena-admin, athena-pm, athena-qa)"""
         path = "/v1/me/dashboard"
         return self._client.request("GET", path, query=query)
     def put(self, body: Any = None, query: Optional[Dict[str, Any]] = None) -> Any:
-        """PUT /v1/me/dashboard (rôles : athena-team-member, athena-admin, athena-pm, athena-qa)"""
+        """PUT /v1/me/dashboard (rôles : athena-team-member, athena-admin, athena-pm, athena-qa, athena-director)"""
         path = "/v1/me/dashboard"
         return self._client.request("PUT", path, query=query, body=body)
+    def rename_tab(self, id, body: Any = None, query: Optional[Dict[str, Any]] = None) -> Any:
+        """PATCH /v1/me/dashboard/tabs/{id} (rôles : athena-team-member, athena-admin, athena-pm, athena-qa, athena-director)"""
+        path = "/v1/me/dashboard/tabs/{id}".replace("{id}", urllib.parse.quote(str(id), safe=""))
+        return self._client.request("PATCH", path, query=query, body=body)
     def reset(self, query: Optional[Dict[str, Any]] = None) -> Any:
-        """DELETE /v1/me/dashboard (rôles : athena-team-member, athena-admin, athena-pm, athena-qa)"""
+        """DELETE /v1/me/dashboard (rôles : athena-team-member, athena-admin, athena-pm, athena-qa, athena-director)"""
         path = "/v1/me/dashboard"
         return self._client.request("DELETE", path, query=query)
+    def tabs(self, query: Optional[Dict[str, Any]] = None) -> Any:
+        """GET /v1/me/dashboard/tabs (rôles : athena-team-member, athena-admin, athena-pm, athena-qa)"""
+        path = "/v1/me/dashboard/tabs"
+        return self._client.request("GET", path, query=query)
 
 
 class _Dependency(_Group):
@@ -553,11 +569,11 @@ class _Feature(_Group):
 
 class _Finance(_Group):
     def actual(self, body: Any = None, query: Optional[Dict[str, Any]] = None) -> Any:
-        """POST /v1/finance/actuals (rôles : athena-admin, athena-finance)"""
+        """POST /v1/finance/actuals (rôles : athena-admin, athena-finance, athena-pmo)"""
         path = "/v1/finance/actuals"
         return self._client.request("POST", path, query=query, body=body)
     def budget(self, body: Any = None, query: Optional[Dict[str, Any]] = None) -> Any:
-        """POST /v1/finance/budget (rôles : athena-admin, athena-finance)"""
+        """POST /v1/finance/budget (rôles : athena-admin, athena-finance, athena-pmo)"""
         path = "/v1/finance/budget"
         return self._client.request("POST", path, query=query, body=body)
     def categories(self, query: Optional[Dict[str, Any]] = None) -> Any:
@@ -565,19 +581,19 @@ class _Finance(_Group):
         path = "/v1/finance/categories"
         return self._client.request("GET", path, query=query)
     def category(self, body: Any = None, query: Optional[Dict[str, Any]] = None) -> Any:
-        """PUT /v1/finance/categories (rôles : athena-admin, athena-finance)"""
+        """PUT /v1/finance/categories (rôles : athena-admin, athena-finance, athena-pmo)"""
         path = "/v1/finance/categories"
         return self._client.request("PUT", path, query=query, body=body)
     def commitment(self, body: Any = None, query: Optional[Dict[str, Any]] = None) -> Any:
-        """POST /v1/finance/commitments (rôles : athena-admin, athena-finance)"""
+        """POST /v1/finance/commitments (rôles : athena-admin, athena-finance, athena-pmo)"""
         path = "/v1/finance/commitments"
         return self._client.request("POST", path, query=query, body=body)
     def forecast(self, body: Any = None, query: Optional[Dict[str, Any]] = None) -> Any:
-        """PUT /v1/finance/forecasts (rôles : athena-admin, athena-finance)"""
+        """PUT /v1/finance/forecasts (rôles : athena-admin, athena-finance, athena-pmo)"""
         path = "/v1/finance/forecasts"
         return self._client.request("PUT", path, query=query, body=body)
     def import_actuals(self, body: Any = None, query: Optional[Dict[str, Any]] = None) -> Any:
-        """POST /v1/finance/actuals/import (rôles : athena-admin, athena-finance)"""
+        """POST /v1/finance/actuals/import (rôles : athena-admin, athena-finance, athena-pmo)"""
         path = "/v1/finance/actuals/import"
         return self._client.request("POST", path, query=query, body=body)
     def project(self, p, query: Optional[Dict[str, Any]] = None) -> Any:
@@ -585,15 +601,15 @@ class _Finance(_Group):
         path = "/v1/finance/projects/{p}".replace("{p}", urllib.parse.quote(str(p), safe=""))
         return self._client.request("GET", path, query=query)
     def rate(self, body: Any = None, query: Optional[Dict[str, Any]] = None) -> Any:
-        """POST /v1/finance/rates (rôles : athena-admin, athena-finance)"""
+        """POST /v1/finance/rates (rôles : athena-admin, athena-finance, athena-pmo)"""
         path = "/v1/finance/rates"
         return self._client.request("POST", path, query=query, body=body)
     def rates(self, query: Optional[Dict[str, Any]] = None) -> Any:
-        """GET /v1/finance/rates (rôles : athena-admin, athena-finance)"""
+        """GET /v1/finance/rates (rôles : athena-admin, athena-finance, athena-pmo)"""
         path = "/v1/finance/rates"
         return self._client.request("GET", path, query=query)
     def time_cost(self, p, query: Optional[Dict[str, Any]] = None) -> Any:
-        """GET /v1/finance/projects/{p}/time-cost (rôles : athena-admin, athena-finance)"""
+        """GET /v1/finance/projects/{p}/time-cost (rôles : athena-admin, athena-finance, athena-pmo)"""
         path = "/v1/finance/projects/{p}/time-cost".replace("{p}", urllib.parse.quote(str(p), safe=""))
         return self._client.request("GET", path, query=query)
 
@@ -1057,7 +1073,7 @@ class _Portfolio(_Group):
         path = "/v1/portfolios"
         return self._client.request("POST", path, query=query, body=body)
     def decision_apply(self, key, id, query: Optional[Dict[str, Any]] = None) -> Any:
-        """POST /v1/portfolios/{key}/decisions/{id}/apply (rôles : athena-admin, athena-finance)"""
+        """POST /v1/portfolios/{key}/decisions/{id}/apply (rôles : athena-admin, athena-finance, athena-pmo)"""
         path = "/v1/portfolios/{key}/decisions/{id}/apply".replace("{key}", urllib.parse.quote(str(key), safe="")).replace("{id}", urllib.parse.quote(str(id), safe=""))
         return self._client.request("POST", path, query=query)
     def decision_create(self, key, body: Any = None, query: Optional[Dict[str, Any]] = None) -> Any:

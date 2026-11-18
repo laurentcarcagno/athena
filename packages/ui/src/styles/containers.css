@@ -331,6 +331,7 @@
 
 /* Organiser (T-0154) : poignée, largeur, carte saisie, case d'ajout. */
 .ath-dash-toolbar { justify-content: flex-end; }
+.ath-dash-tabs { align-items: center; flex-wrap: wrap; gap: var(--ath-space-sm); }
 .ath-dashgrid--editing .ath-dashcard { outline: var(--ath-border-width-strong) dashed var(--ath-border-focus); outline-offset: calc(var(--ath-border-width-strong) * -1); }
 .ath-dashcard__handle { background: transparent; border: 0; padding: 0 var(--ath-space-xs); color: var(--ath-text-secondary); font: inherit; cursor: grab; min-height: var(--ath-size-icon-button-compact); }
 .ath-dashcard__handle:focus-visible { outline: var(--ath-border-width-strong) solid var(--ath-focus-ring); outline-offset: 2px; }

@@ -239,5 +239,53 @@ describe('droits du directeur sur sa disposition', () => {
     expect(allowed('get', 'GET')).toBe(true);
     expect(allowed('put', 'PUT')).toBe(true);
     expect(allowed('reset', 'DELETE')).toBe(true);
+    expect(allowed('createTab', 'POST')).toBe(true);
+    expect(allowed('deleteTab', 'DELETE')).toBe(true);
   });
+});
+
+suite('classeur à onglets du tableau de bord (intégration)', () => {
+  it('crée, remplit, renomme et supprime des onglets, par portée et par personne', async () => {
+    const testDb = await createTestDb('athena_test_dashboard_tabs');
+    try {
+      const db = new Db(testDb.pool);
+      const dash = new DashboardService(db);
+      const org = crypto.randomUUID();
+      await db.tx(org, (c) => c.query('insert into organization (id, key, name) values ($1,$2,$2)', [org, 'dashtabs']));
+      expect(await dash.tabs(org, alice)).toEqual([{ id: '', title: null }]);
+      const a = await dash.createTab(org, alice, '', 'Qualité & risques');
+      expect(a).toEqual({ id: 'qualite-risques', title: 'Qualité & risques' });
+      expect((await dash.createTab(org, alice, '', 'Qualité risques')).id).toBe('qualite-risques-2'); // titre voisin : identifiant distinct
+      // feuille blanche, puis disposition propre à l'onglet ; l'onglet principal garde la sienne
+      expect(await dash.get(org, alice, '', a.id)).toEqual({ widgets: [], isDefault: true });
+      expect(await code(dash.put(org, { widgets: [{ id: 'm', kind: 'mentions' }] }, alice, '', a.id))).toBe('ok');
+      expect((await dash.get(org, alice, '', a.id)).widgets.map((w) => w.id)).toEqual(['m']);
+      expect((await dash.get(org, alice, '')).isDefault).toBe(true);
+      // un onglet est personnel et propre à sa portée
+      expect(await code(dash.get(org, bob, '', a.id))).toMatch(/^not_found/);
+      expect((await dash.tabs(org, bob)).length).toBe(1);
+      expect((await dash.tabs(org, alice, 'NOVA')).length).toBe(1);
+      expect(await code(dash.put(org, { widgets: [] }, alice, '', 'inconnu'))).toMatch(/^not_found/);
+      // renommer, vider, supprimer
+      expect(await dash.renameTab(org, alice, '', a.id, 'Risques')).toEqual({ id: a.id, title: 'Risques' });
+      expect((await dash.tabs(org, alice)).map((t) => t.title)).toEqual([null, 'Risques', 'Qualité risques']);
+      await dash.reset(org, alice, '', a.id);
+      expect((await dash.get(org, alice, '', a.id)).widgets).toEqual([]);
+      await dash.put(org, { widgets: [{ id: 'm', kind: 'mentions' }] }, alice, '', a.id);
+      await dash.deleteTab(org, alice, '', a.id);
+      expect(await code(dash.get(org, alice, '', a.id))).toMatch(/^not_found/);
+      // l'identifiant libéré repart sur une feuille blanche : la disposition supprimée ne ressuscite pas
+      expect((await dash.createTab(org, alice, '', 'Qualité & risques')).id).toBe('qualite-risques');
+      expect((await dash.get(org, alice, '', 'qualite-risques')).widgets).toEqual([]);
+      // l'onglet principal ne se renomme ni ne se supprime ; la limite est tenue
+      expect(await code(dash.renameTab(org, alice, '', '', 'X'))).toMatch(/^validation/);
+      expect(await code(dash.deleteTab(org, alice, '', ''))).toMatch(/^validation/);
+      for (let i = 0; i < 6; i++) await dash.createTab(org, alice, '', `Onglet ${i}`);
+      expect(await code(dash.createTab(org, alice, '', 'De trop'))).toMatch(/^validation/);
+      // les onglets d'un tableau de bord de portefeuille restent réservés à ses rôles
+      expect(await code(dash.createTab(org, alice, 'portfolio:spatial', 'X'))).toMatch(/^forbidden/);
+      const pmo = { id: 'pmo', roles: ['athena-pmo', 'athena-team-member'] };
+      expect((await dash.createTab(org, pmo, 'portfolio:spatial', 'Synthèse')).id).toBe('synthese');
+    } finally { await testDb.drop(); }
+  }, 30_000);
 });
