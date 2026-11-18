@@ -36,7 +36,7 @@ beforeEach(() => {
       return json({ tabs });
     }
     if (url.startsWith('/v1/me/dashboard/tabs/')) {
-      const id = url.split('/').pop()!;
+      const id = url.split('/').pop()!.replace('main', '');
       if (method === 'PATCH') { tabs = tabs.map((t) => (t.id === id ? { ...t, title: (body as { title: string }).title } : t)); return json({ id, title: (body as { title: string }).title }); }
       if (method === 'DELETE') { tabs = tabs.filter((t) => t.id !== id); return new Response(null, { status: 204 }); }
     }
@@ -166,7 +166,7 @@ describe('classeur à onglets', () => {
     await user.click(screen.getByRole('button', { name: 'Renommer l’onglet' }));
     await user.type(screen.getByLabelText('Nom de l’onglet'), 'Quotidien');
     await user.click(screen.getByRole('button', { name: 'Renommer' }));
-    await waitFor(() => expect(calls.find((c) => c.method === 'PATCH')?.url).toBe('/v1/me/dashboard/tabs/'));
+    await waitFor(() => expect(calls.find((c) => c.method === 'PATCH')?.url).toBe('/v1/me/dashboard/tabs/main'));
     expect(screen.queryByRole('button', { name: 'Supprimer l’onglet' })).not.toBeInTheDocument(); // le principal ne se supprime pas
     // créer un onglet (on reste sur le brouillon en cours), puis l'ouvrir
     await user.click(screen.getByRole('button', { name: 'Nouvel onglet' }));

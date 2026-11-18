@@ -6,6 +6,7 @@ import { NormativeTemplateEditor, type NormativeDraft, type NormativeTemplateEnt
 import { AccessNotice } from '../components/AccessNotice';
 import { ProjectTemplateEditor } from '../components/ProjectTemplateEditor';
 import { TrackerTemplateForm, type TrackerTemplateEntry } from '../components/TrackerTemplateForm';
+import { DashboardTemplatesAdmin } from '../components/DashboardTemplatesAdmin';
 import { useConfirm } from '../components/ConfirmDialog';
 import { LinkTypesTab } from '../components/LinkTypesTab';
 import { TrackerTypesTab } from '../components/TrackerTypesTab';
@@ -321,10 +322,11 @@ function TemplatesTab({ templates, trackerTemplates, reload, reloadTrackerTempla
   const [sub, setSub] = useState('project');
   return (
     <div className="ath-stack">
-      <Tabs tabs={[{ id: 'project', label: fr.builder.projectTemplates }, { id: 'tracker', label: fr.builder.trackerTemplates }]} active={sub} onChange={setSub} />
+      <Tabs tabs={[{ id: 'project', label: fr.builder.projectTemplates }, { id: 'tracker', label: fr.builder.trackerTemplates }, { id: 'dashboard', label: fr.builder.dashboardTemplates }]} active={sub} onChange={setSub} />
       <div role="tabpanel" className="ath-stack">
         {sub === 'project' && <ProjectTemplates templates={templates} trackerTemplates={trackerTemplates} reload={reload} reloadTrackerTemplates={reloadTrackerTemplates} />}
         {sub === 'tracker' && <TrackerTemplates templates={trackerTemplates} reload={reloadTrackerTemplates} />}
+        {sub === 'dashboard' && <DashboardTemplatesAdmin />}
       </div>
     </div>
   );

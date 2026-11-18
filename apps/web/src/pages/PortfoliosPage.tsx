@@ -48,6 +48,8 @@ export function PortfoliosPage({ session }: { session: Session }) {
   // Gestion des portefeuilles : administrateur et PMO ; rattachement, santé forcée et note : aussi le chef de projet.
   const admin = roles.includes('athena-admin') || roles.includes('athena-pmo');
   const editor = admin || roles.includes('athena-pm');
+  // La finance lit les portefeuilles et compose son tableau de bord ; les panneaux de pilotage (instantanés, demandes, décisions, gouvernance) restent hors de sa lecture.
+  const financeOnly = roles.includes('athena-finance') && !roles.some((r) => ['athena-admin', 'athena-pmo', 'athena-pm', 'athena-director'].includes(r));
   const [list, setList] = useState<Summary[] | null>(null);
   const [one, setOne] = useState<Summary | null>(null);
   const [projects, setProjects] = useState<Array<{ key: string; name: string }>>([]);
@@ -85,12 +87,14 @@ export function PortfoliosPage({ session }: { session: Session }) {
             <Distribution totals={one.totals} />
             <p>{t.progress} : <strong className="ath-mono">{one.totals.progress} %</strong> · {t.open} : <strong className="ath-mono">{one.totals.open}</strong> · {t.late} : <strong className="ath-mono">{one.totals.late}</strong> · {t.blocked} : <strong className="ath-mono">{one.totals.blocked}</strong></p>
           </Card>
-          {roles.some((r) => r === 'athena-admin' || r === 'athena-pmo' || r === 'athena-director') ? <Dashboard portfolio={one.portfolio.key} /> : <PortfolioHealthTable portfolio={one.portfolio.key} />}
+          {roles.some((r) => r === 'athena-admin' || r === 'athena-pmo' || r === 'athena-director' || r === 'athena-finance') ? <Dashboard portfolio={one.portfolio.key} /> : <PortfolioHealthTable portfolio={one.portfolio.key} />}
+          {!financeOnly && <>
           <SnapshotPanel portfolio={one.portfolio.key} canTake={admin} />
           <PrioritizationPanel portfolio={one.portfolio.key} canEdit={admin} canSeeFinance={roles.some((r) => ['athena-admin', 'athena-finance', 'athena-pmo', 'athena-director'].includes(r))} />
           <DecisionsPanel portfolio={one.portfolio.key} projects={one.projects.map((p) => p.key)} canDecide={admin} canApply={roles.some((r) => ['athena-admin', 'athena-finance', 'athena-pmo'].includes(r))} />
           <DependenciesPanel portfolio={one.portfolio.key} canEdit={admin} />
           <GovernancePanel portfolio={one.portfolio.key} projects={one.projects.map((p) => p.key)} />
+          </>}
           {one.projects.length === 0 ? <EmptyState eyebrow={t.project} title={t.noProject} /> : (
             <Table caption={t.projectsCount(one.projects.length)}>
               <thead><tr><Th>{t.project}</Th><Th>{t.healthCol}</Th><Th>{t.progress}</Th><Th>{t.late}</Th><Th>{t.blocked}</Th><Th>{t.dueSoon}</Th><Th>{t.sprint}</Th><Th>{t.managers}</Th><Th>{t.note}</Th>{editor && <Th>{t.saveRow}</Th>}</tr></thead>
