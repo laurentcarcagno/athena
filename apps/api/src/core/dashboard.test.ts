@@ -2,6 +2,8 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { Db, type Actor } from './db';
 import { DomainError } from './errors';
 import { createTestDb, pgUp, type TestDb } from '../testing/harness';
+import { ROLES_KEY, withUserRole } from '../auth/auth.guard';
+import { DashboardController } from './dashboard.controller';
 import { DEFAULT_WIDGETS, DashboardService, ScopeSchema, WidgetSchema, allowedKinds, checkGrid, homeWidgetsFor, toGrid, type Widget } from './dashboard.service';
 
 // T-0122 : disposition personnelle du tableau de bord, défaut sans réglage, réinitialisation.
@@ -226,4 +228,16 @@ suite('tableau de bord d’un portefeuille (intégration)', () => {
       expect((await dash.get(org, pmo, '')).isDefault).toBe(true); // l'accueil personnel est intact
     } finally { await testDb.drop(); }
   }, 30_000);
+});
+
+describe('droits du directeur sur sa disposition', () => {
+  const allowed = (handler: keyof DashboardController, method: string) => {
+    const required = Reflect.getMetadata(ROLES_KEY, DashboardController.prototype[handler]) as string[];
+    return required.some((r) => withUserRole(['athena-director'], method).includes(r));
+  };
+  it('le directeur lit, enregistre et réinitialise son tableau de bord (préférence personnelle) ; la lecture seule reste la règle ailleurs', () => {
+    expect(allowed('get', 'GET')).toBe(true);
+    expect(allowed('put', 'PUT')).toBe(true);
+    expect(allowed('reset', 'DELETE')).toBe(true);
+  });
 });

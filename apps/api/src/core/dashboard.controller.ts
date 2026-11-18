@@ -40,7 +40,8 @@ export class DashboardController {
     return { items: await this.approvals.awaiting(organizationId, { subject: actor.id, roles: request.principal!.roles }) };
   }
 
-  @Roles('athena-team-member', 'athena-admin', 'athena-pm', 'athena-qa')
+  /** Le directeur est en lecture seule partout, sauf ici : sa disposition est une préférence personnelle, pas une donnée de projet. */
+  @Roles('athena-team-member', 'athena-admin', 'athena-pm', 'athena-qa', 'athena-director')
   @Put('dashboard')
   @BodySchema(LayoutInput)
   async put(@Req() request: AuthedRequest, @Body() body: unknown, @Query('project') project?: string, @Query('page') page?: string, @Query('portfolio') portfolio?: string) {
@@ -48,7 +49,7 @@ export class DashboardController {
     return this.dashboard.put(organizationId, parseBody(LayoutInput, body), actor, scopeOf(project, page, portfolio));
   }
 
-  @Roles('athena-team-member', 'athena-admin', 'athena-pm', 'athena-qa')
+  @Roles('athena-team-member', 'athena-admin', 'athena-pm', 'athena-qa', 'athena-director')
   @HttpCode(204)
   @Delete('dashboard')
   async reset(@Req() request: AuthedRequest, @Query('project') project?: string, @Query('page') page?: string, @Query('portfolio') portfolio?: string) {
