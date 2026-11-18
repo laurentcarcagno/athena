@@ -860,6 +860,40 @@
     }
    }
   },
+  "/v1/admin/platform-status": {
+   "get": {
+    "operationId": "PlatformStatus_get",
+    "tags": [
+     "PlatformStatus"
+    ],
+    "parameters": [],
+    "security": [
+     {
+      "bearer": []
+     },
+     {
+      "session": []
+     }
+    ],
+    "x-athena-roles": [
+     "athena-admin"
+    ],
+    "responses": {
+     "200": {
+      "description": "Succès"
+     },
+     "401": {
+      "description": "Non authentifié"
+     },
+     "403": {
+      "description": "Rôle insuffisant"
+     },
+     "422": {
+      "description": "Validation"
+     }
+    }
+   }
+  },
   "/v1/admin/ppm-settings": {
    "put": {
     "operationId": "PpmSettings_put",
@@ -2012,6 +2046,1004 @@
     }
    }
   },
+  "/v1/dashboard-templates": {
+   "get": {
+    "operationId": "DashboardTemplate_list",
+    "tags": [
+     "DashboardTemplate"
+    ],
+    "parameters": [],
+    "security": [
+     {
+      "bearer": []
+     },
+     {
+      "session": []
+     }
+    ],
+    "x-athena-roles": [
+     "athena-admin"
+    ],
+    "responses": {
+     "200": {
+      "description": "Succès"
+     },
+     "401": {
+      "description": "Non authentifié"
+     },
+     "403": {
+      "description": "Rôle insuffisant"
+     },
+     "422": {
+      "description": "Validation"
+     }
+    }
+   },
+   "post": {
+    "operationId": "DashboardTemplate_create",
+    "tags": [
+     "DashboardTemplate"
+    ],
+    "parameters": [],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+         "key": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{2,39}$"
+         },
+         "type": {
+          "type": "string",
+          "enum": [
+           "home",
+           "project",
+           "progress",
+           "portfolio"
+          ]
+         },
+         "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+         },
+         "description": {
+          "default": "",
+          "type": "string",
+          "maxLength": 500
+         },
+         "roles": {
+          "minItems": 1,
+          "maxItems": 8,
+          "type": "array",
+          "items": {
+           "type": "string",
+           "enum": [
+            "athena-admin",
+            "athena-pmo",
+            "athena-director",
+            "athena-pm",
+            "athena-manager",
+            "athena-finance",
+            "athena-qa",
+            "athena-team-member"
+           ]
+          }
+         },
+         "natures": {
+          "default": [],
+          "maxItems": 5,
+          "type": "array",
+          "items": {
+           "type": "string",
+           "enum": [
+            "space-software",
+            "space-project",
+            "defense-software",
+            "armament",
+            "generic"
+           ]
+          }
+         },
+         "projectRoles": {
+          "default": [],
+          "maxItems": 3,
+          "type": "array",
+          "items": {
+           "type": "string",
+           "enum": [
+            "manager",
+            "member",
+            "reader"
+           ]
+          }
+         },
+         "tabs": {
+          "minItems": 1,
+          "maxItems": 9,
+          "type": "array",
+          "items": {
+           "type": "object",
+           "properties": {
+            "name": {
+             "type": "string",
+             "minLength": 1,
+             "maxLength": 60
+            },
+            "widgets": {
+             "maxItems": 24,
+             "type": "array",
+             "items": {
+              "type": "object",
+              "properties": {
+               "kind": {
+                "type": "string",
+                "enum": [
+                 "search",
+                 "mentions",
+                 "approvals",
+                 "favorites",
+                 "recents",
+                 "trackers",
+                 "indicators",
+                 "flow",
+                 "velocity",
+                 "release",
+                 "tracker-status",
+                 "activity",
+                 "chart",
+                 "general-info",
+                 "global-progress",
+                 "key-indicators",
+                 "health",
+                 "sprint-progress",
+                 "pipelines",
+                 "quality",
+                 "badges",
+                 "portfolio-health",
+                 "portfolio-tiles",
+                 "portfolio-finance",
+                 "project-finance",
+                 "capacity",
+                 "roadmap",
+                 "phase-gate",
+                 "portfolio-gates",
+                 "portfolio-requests",
+                 "risk-matrix",
+                 "platform-ops"
+                ]
+               },
+               "title": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+               },
+               "query": {
+                "type": "string",
+                "maxLength": 2000
+               },
+               "size": {
+                "type": "string",
+                "enum": [
+                 "S",
+                 "M",
+                 "L",
+                 "XL"
+                ]
+               },
+               "field": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]{0,39}$"
+               },
+               "form": {
+                "type": "string",
+                "enum": [
+                 "donut",
+                 "bars",
+                 "count"
+                ]
+               },
+               "x": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 11
+               },
+               "y": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 200
+               },
+               "w": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 12
+               },
+               "h": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 8
+               },
+               "period": {
+                "type": "string",
+                "enum": [
+                 "7d",
+                 "30d",
+                 "sprint"
+                ]
+               },
+               "id": {
+                "type": "string",
+                "pattern": "^[a-z0-9][a-z0-9-]{0,39}$"
+               },
+               "repeat": {
+                "type": "string",
+                "enum": [
+                 "project",
+                 "portfolio"
+                ]
+               }
+              },
+              "required": [
+               "kind"
+              ]
+             }
+            }
+           },
+           "required": [
+            "name",
+            "widgets"
+           ]
+          }
+         }
+        },
+        "required": [
+         "type",
+         "name",
+         "roles",
+         "tabs"
+        ]
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     },
+     {
+      "session": []
+     }
+    ],
+    "x-athena-roles": [
+     "athena-admin"
+    ],
+    "responses": {
+     "201": {
+      "description": "Succès"
+     },
+     "401": {
+      "description": "Non authentifié"
+     },
+     "403": {
+      "description": "Rôle insuffisant"
+     },
+     "422": {
+      "description": "Validation"
+     }
+    }
+   }
+  },
+  "/v1/dashboard-templates/{key}": {
+   "get": {
+    "operationId": "DashboardTemplate_one",
+    "tags": [
+     "DashboardTemplate"
+    ],
+    "parameters": [
+     {
+      "name": "key",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string"
+      }
+     }
+    ],
+    "security": [
+     {
+      "bearer": []
+     },
+     {
+      "session": []
+     }
+    ],
+    "x-athena-roles": [
+     "athena-admin"
+    ],
+    "responses": {
+     "200": {
+      "description": "Succès"
+     },
+     "401": {
+      "description": "Non authentifié"
+     },
+     "403": {
+      "description": "Rôle insuffisant"
+     },
+     "422": {
+      "description": "Validation"
+     }
+    }
+   },
+   "put": {
+    "operationId": "DashboardTemplate_update",
+    "tags": [
+     "DashboardTemplate"
+    ],
+    "parameters": [
+     {
+      "name": "key",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+         "key": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{2,39}$"
+         },
+         "type": {
+          "type": "string",
+          "enum": [
+           "home",
+           "project",
+           "progress",
+           "portfolio"
+          ]
+         },
+         "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+         },
+         "description": {
+          "default": "",
+          "type": "string",
+          "maxLength": 500
+         },
+         "roles": {
+          "minItems": 1,
+          "maxItems": 8,
+          "type": "array",
+          "items": {
+           "type": "string",
+           "enum": [
+            "athena-admin",
+            "athena-pmo",
+            "athena-director",
+            "athena-pm",
+            "athena-manager",
+            "athena-finance",
+            "athena-qa",
+            "athena-team-member"
+           ]
+          }
+         },
+         "natures": {
+          "default": [],
+          "maxItems": 5,
+          "type": "array",
+          "items": {
+           "type": "string",
+           "enum": [
+            "space-software",
+            "space-project",
+            "defense-software",
+            "armament",
+            "generic"
+           ]
+          }
+         },
+         "projectRoles": {
+          "default": [],
+          "maxItems": 3,
+          "type": "array",
+          "items": {
+           "type": "string",
+           "enum": [
+            "manager",
+            "member",
+            "reader"
+           ]
+          }
+         },
+         "tabs": {
+          "minItems": 1,
+          "maxItems": 9,
+          "type": "array",
+          "items": {
+           "type": "object",
+           "properties": {
+            "name": {
+             "type": "string",
+             "minLength": 1,
+             "maxLength": 60
+            },
+            "widgets": {
+             "maxItems": 24,
+             "type": "array",
+             "items": {
+              "type": "object",
+              "properties": {
+               "kind": {
+                "type": "string",
+                "enum": [
+                 "search",
+                 "mentions",
+                 "approvals",
+                 "favorites",
+                 "recents",
+                 "trackers",
+                 "indicators",
+                 "flow",
+                 "velocity",
+                 "release",
+                 "tracker-status",
+                 "activity",
+                 "chart",
+                 "general-info",
+                 "global-progress",
+                 "key-indicators",
+                 "health",
+                 "sprint-progress",
+                 "pipelines",
+                 "quality",
+                 "badges",
+                 "portfolio-health",
+                 "portfolio-tiles",
+                 "portfolio-finance",
+                 "project-finance",
+                 "capacity",
+                 "roadmap",
+                 "phase-gate",
+                 "portfolio-gates",
+                 "portfolio-requests",
+                 "risk-matrix",
+                 "platform-ops"
+                ]
+               },
+               "title": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+               },
+               "query": {
+                "type": "string",
+                "maxLength": 2000
+               },
+               "size": {
+                "type": "string",
+                "enum": [
+                 "S",
+                 "M",
+                 "L",
+                 "XL"
+                ]
+               },
+               "field": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]{0,39}$"
+               },
+               "form": {
+                "type": "string",
+                "enum": [
+                 "donut",
+                 "bars",
+                 "count"
+                ]
+               },
+               "x": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 11
+               },
+               "y": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 200
+               },
+               "w": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 12
+               },
+               "h": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 8
+               },
+               "period": {
+                "type": "string",
+                "enum": [
+                 "7d",
+                 "30d",
+                 "sprint"
+                ]
+               },
+               "id": {
+                "type": "string",
+                "pattern": "^[a-z0-9][a-z0-9-]{0,39}$"
+               },
+               "repeat": {
+                "type": "string",
+                "enum": [
+                 "project",
+                 "portfolio"
+                ]
+               }
+              },
+              "required": [
+               "kind"
+              ]
+             }
+            }
+           },
+           "required": [
+            "name",
+            "widgets"
+           ]
+          }
+         }
+        },
+        "required": [
+         "type",
+         "name",
+         "roles",
+         "tabs"
+        ]
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     },
+     {
+      "session": []
+     }
+    ],
+    "x-athena-roles": [
+     "athena-admin"
+    ],
+    "responses": {
+     "200": {
+      "description": "Succès"
+     },
+     "401": {
+      "description": "Non authentifié"
+     },
+     "403": {
+      "description": "Rôle insuffisant"
+     },
+     "422": {
+      "description": "Validation"
+     }
+    }
+   },
+   "delete": {
+    "operationId": "DashboardTemplate_remove",
+    "tags": [
+     "DashboardTemplate"
+    ],
+    "parameters": [
+     {
+      "name": "key",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string"
+      }
+     }
+    ],
+    "security": [
+     {
+      "bearer": []
+     },
+     {
+      "session": []
+     }
+    ],
+    "x-athena-roles": [
+     "athena-admin"
+    ],
+    "responses": {
+     "204": {
+      "description": "Succès"
+     },
+     "401": {
+      "description": "Non authentifié"
+     },
+     "403": {
+      "description": "Rôle insuffisant"
+     },
+     "422": {
+      "description": "Validation"
+     }
+    }
+   }
+  },
+  "/v1/dashboard-templates/{key}/duplicate": {
+   "post": {
+    "operationId": "DashboardTemplate_duplicate",
+    "tags": [
+     "DashboardTemplate"
+    ],
+    "parameters": [
+     {
+      "name": "key",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+         "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+         }
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     },
+     {
+      "session": []
+     }
+    ],
+    "x-athena-roles": [
+     "athena-admin"
+    ],
+    "responses": {
+     "201": {
+      "description": "Succès"
+     },
+     "401": {
+      "description": "Non authentifié"
+     },
+     "403": {
+      "description": "Rôle insuffisant"
+     },
+     "422": {
+      "description": "Validation"
+     }
+    }
+   }
+  },
+  "/v1/dashboard-templates/{key}/hidden": {
+   "put": {
+    "operationId": "DashboardTemplate_hidden",
+    "tags": [
+     "DashboardTemplate"
+    ],
+    "parameters": [
+     {
+      "name": "key",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+         "hidden": {
+          "type": "boolean"
+         }
+        },
+        "required": [
+         "hidden"
+        ]
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     },
+     {
+      "session": []
+     }
+    ],
+    "x-athena-roles": [
+     "athena-admin"
+    ],
+    "responses": {
+     "200": {
+      "description": "Succès"
+     },
+     "401": {
+      "description": "Non authentifié"
+     },
+     "403": {
+      "description": "Rôle insuffisant"
+     },
+     "422": {
+      "description": "Validation"
+     }
+    }
+   }
+  },
+  "/v1/dashboard-templates/{key}/preview": {
+   "post": {
+    "operationId": "DashboardTemplate_preview",
+    "tags": [
+     "DashboardTemplate"
+    ],
+    "parameters": [
+     {
+      "name": "key",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+         "project": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9]{1,9}$"
+         },
+         "portfolio": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]{1,29}$"
+         },
+         "projects": {
+          "maxItems": 50,
+          "type": "array",
+          "items": {
+           "type": "string",
+           "pattern": "^[A-Z][A-Z0-9]{1,9}$"
+          }
+         },
+         "portfolios": {
+          "maxItems": 50,
+          "type": "array",
+          "items": {
+           "type": "string",
+           "pattern": "^[a-z0-9][a-z0-9-]{1,29}$"
+          }
+         }
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     },
+     {
+      "session": []
+     }
+    ],
+    "x-athena-roles": [
+     "athena-admin"
+    ],
+    "responses": {
+     "201": {
+      "description": "Succès"
+     },
+     "401": {
+      "description": "Non authentifié"
+     },
+     "403": {
+      "description": "Rôle insuffisant"
+     },
+     "422": {
+      "description": "Validation"
+     }
+    }
+   }
+  },
+  "/v1/dashboard-templates/catalog": {
+   "get": {
+    "operationId": "DashboardTemplate_catalog",
+    "tags": [
+     "DashboardTemplate"
+    ],
+    "parameters": [],
+    "security": [
+     {
+      "bearer": []
+     },
+     {
+      "session": []
+     }
+    ],
+    "x-athena-roles": [
+     "athena-admin"
+    ],
+    "responses": {
+     "200": {
+      "description": "Succès"
+     },
+     "401": {
+      "description": "Non authentifié"
+     },
+     "403": {
+      "description": "Rôle insuffisant"
+     },
+     "422": {
+      "description": "Validation"
+     }
+    }
+   }
+  },
+  "/v1/dashboard-templates/defaults/{type}/{role}": {
+   "put": {
+    "operationId": "DashboardTemplate_setDefault",
+    "tags": [
+     "DashboardTemplate"
+    ],
+    "parameters": [
+     {
+      "name": "type",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "name": "role",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+         "template": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{2,39}$"
+         }
+        },
+        "required": [
+         "template"
+        ]
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     },
+     {
+      "session": []
+     }
+    ],
+    "x-athena-roles": [
+     "athena-admin"
+    ],
+    "responses": {
+     "200": {
+      "description": "Succès"
+     },
+     "401": {
+      "description": "Non authentifié"
+     },
+     "403": {
+      "description": "Rôle insuffisant"
+     },
+     "422": {
+      "description": "Validation"
+     }
+    }
+   },
+   "delete": {
+    "operationId": "DashboardTemplate_clearDefault",
+    "tags": [
+     "DashboardTemplate"
+    ],
+    "parameters": [
+     {
+      "name": "type",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "name": "role",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string"
+      }
+     }
+    ],
+    "security": [
+     {
+      "bearer": []
+     },
+     {
+      "session": []
+     }
+    ],
+    "x-athena-roles": [
+     "athena-admin"
+    ],
+    "responses": {
+     "204": {
+      "description": "Succès"
+     },
+     "401": {
+      "description": "Non authentifié"
+     },
+     "403": {
+      "description": "Rôle insuffisant"
+     },
+     "422": {
+      "description": "Validation"
+     }
+    }
+   }
+  },
   "/v1/dependencies": {
    "post": {
     "operationId": "Dependency_add",
@@ -2768,7 +3800,8 @@
      "athena-admin",
      "athena-finance",
      "athena-pmo",
-     "athena-director"
+     "athena-director",
+     "athena-pm"
     ],
     "responses": {
      "200": {
@@ -3402,7 +4435,8 @@
      "athena-team-member",
      "athena-admin",
      "athena-pm",
-     "athena-qa"
+     "athena-qa",
+     "athena-finance"
     ],
     "responses": {
      "200": {
@@ -3439,7 +4473,8 @@
      "athena-team-member",
      "athena-admin",
      "athena-pm",
-     "athena-qa"
+     "athena-qa",
+     "athena-finance"
     ],
     "responses": {
      "200": {
@@ -3505,7 +4540,16 @@
               "quality",
               "badges",
               "portfolio-health",
-              "portfolio-tiles"
+              "portfolio-tiles",
+              "portfolio-finance",
+              "project-finance",
+              "capacity",
+              "roadmap",
+              "phase-gate",
+              "portfolio-gates",
+              "portfolio-requests",
+              "risk-matrix",
+              "platform-ops"
              ]
             },
             "title": {
@@ -3570,6 +4614,10 @@
              "type": "string",
              "pattern": "^[A-Z][A-Z0-9]{1,9}$"
             },
+            "portfolio": {
+             "type": "string",
+             "pattern": "^[a-z0-9][a-z0-9-]{1,29}$"
+            },
             "period": {
              "type": "string",
              "enum": [
@@ -3606,6 +4654,7 @@
      "athena-admin",
      "athena-pm",
      "athena-qa",
+     "athena-finance",
      "athena-director"
     ],
     "responses": {
@@ -3642,6 +4691,7 @@
      "athena-admin",
      "athena-pm",
      "athena-qa",
+     "athena-finance",
      "athena-director"
     ],
     "responses": {
@@ -3679,7 +4729,46 @@
      "athena-team-member",
      "athena-admin",
      "athena-pm",
-     "athena-qa"
+     "athena-qa",
+     "athena-finance"
+    ],
+    "responses": {
+     "200": {
+      "description": "Succès"
+     },
+     "401": {
+      "description": "Non authentifié"
+     },
+     "403": {
+      "description": "Rôle insuffisant"
+     },
+     "422": {
+      "description": "Validation"
+     }
+    }
+   }
+  },
+  "/v1/me/dashboard/portfolios": {
+   "get": {
+    "operationId": "Dashboard_portfolios",
+    "tags": [
+     "Dashboard"
+    ],
+    "parameters": [],
+    "security": [
+     {
+      "bearer": []
+     },
+     {
+      "session": []
+     }
+    ],
+    "x-athena-roles": [
+     "athena-team-member",
+     "athena-admin",
+     "athena-pm",
+     "athena-qa",
+     "athena-finance"
     ],
     "responses": {
      "200": {
@@ -3716,7 +4805,8 @@
      "athena-team-member",
      "athena-admin",
      "athena-pm",
-     "athena-qa"
+     "athena-qa",
+     "athena-finance"
     ],
     "responses": {
      "200": {
@@ -3773,6 +4863,7 @@
      "athena-admin",
      "athena-pm",
      "athena-qa",
+     "athena-finance",
      "athena-director"
     ],
     "responses": {
@@ -3841,6 +4932,7 @@
      "athena-admin",
      "athena-pm",
      "athena-qa",
+     "athena-finance",
      "athena-director"
     ],
     "responses": {
@@ -3886,10 +4978,120 @@
      "athena-admin",
      "athena-pm",
      "athena-qa",
+     "athena-finance",
      "athena-director"
     ],
     "responses": {
      "204": {
+      "description": "Succès"
+     },
+     "401": {
+      "description": "Non authentifié"
+     },
+     "403": {
+      "description": "Rôle insuffisant"
+     },
+     "422": {
+      "description": "Validation"
+     }
+    }
+   }
+  },
+  "/v1/me/dashboard/templates": {
+   "get": {
+    "operationId": "Dashboard_proposed",
+    "tags": [
+     "Dashboard"
+    ],
+    "parameters": [],
+    "security": [
+     {
+      "bearer": []
+     },
+     {
+      "session": []
+     }
+    ],
+    "x-athena-roles": [
+     "athena-team-member",
+     "athena-admin",
+     "athena-pm",
+     "athena-qa",
+     "athena-finance"
+    ],
+    "responses": {
+     "200": {
+      "description": "Succès"
+     },
+     "401": {
+      "description": "Non authentifié"
+     },
+     "403": {
+      "description": "Rôle insuffisant"
+     },
+     "422": {
+      "description": "Validation"
+     }
+    }
+   }
+  },
+  "/v1/me/dashboard/templates/{key}/apply": {
+   "post": {
+    "operationId": "Dashboard_apply",
+    "tags": [
+     "Dashboard"
+    ],
+    "parameters": [
+     {
+      "name": "key",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+         "mode": {
+          "type": "string",
+          "enum": [
+           "add",
+           "replace"
+          ]
+         }
+        },
+        "required": [
+         "mode"
+        ]
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     },
+     {
+      "session": []
+     }
+    ],
+    "x-athena-roles": [
+     "athena-team-member",
+     "athena-admin",
+     "athena-pm",
+     "athena-qa",
+     "athena-finance",
+     "athena-director"
+    ],
+    "responses": {
+     "201": {
       "description": "Succès"
      },
      "401": {
@@ -5373,7 +6575,8 @@
      "athena-admin",
      "athena-pmo",
      "athena-pm",
-     "athena-director"
+     "athena-director",
+     "athena-finance"
     ],
     "responses": {
      "200": {
@@ -5493,7 +6696,8 @@
      "athena-admin",
      "athena-pmo",
      "athena-pm",
-     "athena-director"
+     "athena-director",
+     "athena-finance"
     ],
     "responses": {
      "200": {
@@ -6097,7 +7301,8 @@
      "athena-admin",
      "athena-pmo",
      "athena-pm",
-     "athena-director"
+     "athena-director",
+     "athena-finance"
     ],
     "responses": {
      "200": {
@@ -7504,7 +8709,8 @@
      "athena-admin",
      "athena-pmo",
      "athena-pm",
-     "athena-director"
+     "athena-director",
+     "athena-finance"
     ],
     "responses": {
      "200": {
@@ -7541,7 +8747,8 @@
      "athena-admin",
      "athena-pmo",
      "athena-pm",
-     "athena-director"
+     "athena-director",
+     "athena-finance"
     ],
     "responses": {
      "200": {
@@ -10504,6 +11711,53 @@
      "athena-qa",
      "athena-manager",
      "athena-director"
+    ],
+    "responses": {
+     "200": {
+      "description": "Succès"
+     },
+     "401": {
+      "description": "Non authentifié"
+     },
+     "403": {
+      "description": "Rôle insuffisant"
+     },
+     "422": {
+      "description": "Validation"
+     }
+    }
+   }
+  },
+  "/v1/projects/{p}/risk-matrix": {
+   "get": {
+    "operationId": "ProjectRisk_matrix",
+    "tags": [
+     "ProjectRisk"
+    ],
+    "parameters": [
+     {
+      "name": "p",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string"
+      }
+     }
+    ],
+    "security": [
+     {
+      "bearer": []
+     },
+     {
+      "session": []
+     }
+    ],
+    "x-athena-roles": [
+     "athena-admin",
+     "athena-pmo",
+     "athena-pm",
+     "athena-director",
+     "athena-qa"
     ],
     "responses": {
      "200": {

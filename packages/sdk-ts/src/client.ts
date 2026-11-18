@@ -268,24 +268,55 @@ export class AthenaClient {
   };
 
   readonly dashboard = {
-    /** GET /v1/me/approvals · rôles : athena-team-member, athena-admin, athena-pm, athena-qa */
+    /** POST /v1/me/dashboard/templates/{key}/apply · rôles : athena-team-member, athena-admin, athena-pm, athena-qa, athena-finance, athena-director */
+    apply: (path: { key: string }, body: { mode: "add" | "replace" }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('POST', this.path('/v1/me/dashboard/templates/{key}/apply', path), { body, query }),
+    /** GET /v1/me/approvals · rôles : athena-team-member, athena-admin, athena-pm, athena-qa, athena-finance */
     awaiting: (query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('GET', this.path('/v1/me/approvals', {}), { query }),
-    /** GET /v1/me/dashboard/catalog · rôles : athena-team-member, athena-admin, athena-pm, athena-qa */
+    /** GET /v1/me/dashboard/catalog · rôles : athena-team-member, athena-admin, athena-pm, athena-qa, athena-finance */
     catalog: (query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('GET', this.path('/v1/me/dashboard/catalog', {}), { query }),
-    /** POST /v1/me/dashboard/tabs · rôles : athena-team-member, athena-admin, athena-pm, athena-qa, athena-director */
+    /** POST /v1/me/dashboard/tabs · rôles : athena-team-member, athena-admin, athena-pm, athena-qa, athena-finance, athena-director */
     createTab: (body: { title: string }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('POST', this.path('/v1/me/dashboard/tabs', {}), { body, query }),
-    /** DELETE /v1/me/dashboard/tabs/{id} · rôles : athena-team-member, athena-admin, athena-pm, athena-qa, athena-director */
+    /** DELETE /v1/me/dashboard/tabs/{id} · rôles : athena-team-member, athena-admin, athena-pm, athena-qa, athena-finance, athena-director */
     deleteTab: (path: { id: string }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('DELETE', this.path('/v1/me/dashboard/tabs/{id}', path), { query }),
-    /** GET /v1/me/dashboard · rôles : athena-team-member, athena-admin, athena-pm, athena-qa */
+    /** GET /v1/me/dashboard · rôles : athena-team-member, athena-admin, athena-pm, athena-qa, athena-finance */
     get: (query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('GET', this.path('/v1/me/dashboard', {}), { query }),
-    /** PUT /v1/me/dashboard · rôles : athena-team-member, athena-admin, athena-pm, athena-qa, athena-director */
-    put: (body: { widgets: Array<{ id: string; kind: "search" | "mentions" | "approvals" | "favorites" | "recents" | "trackers" | "indicators" | "flow" | "velocity" | "release" | "tracker-status" | "activity" | "chart" | "general-info" | "global-progress" | "key-indicators" | "health" | "sprint-progress" | "pipelines" | "quality" | "badges" | "portfolio-health" | "portfolio-tiles"; title?: string; query?: string; projects?: Array<string>; size?: "S" | "M" | "L" | "XL"; field?: string; form?: "donut" | "bars" | "count"; x?: number; y?: number; w?: number; h?: number; project?: string; period?: "7d" | "30d" | "sprint" }> }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('PUT', this.path('/v1/me/dashboard', {}), { body, query }),
-    /** PATCH /v1/me/dashboard/tabs/{id} · rôles : athena-team-member, athena-admin, athena-pm, athena-qa, athena-director */
+    /** GET /v1/me/dashboard/portfolios · rôles : athena-team-member, athena-admin, athena-pm, athena-qa, athena-finance */
+    portfolios: (query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('GET', this.path('/v1/me/dashboard/portfolios', {}), { query }),
+    /** GET /v1/me/dashboard/templates · rôles : athena-team-member, athena-admin, athena-pm, athena-qa, athena-finance */
+    proposed: (query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('GET', this.path('/v1/me/dashboard/templates', {}), { query }),
+    /** PUT /v1/me/dashboard · rôles : athena-team-member, athena-admin, athena-pm, athena-qa, athena-finance, athena-director */
+    put: (body: { widgets: Array<{ id: string; kind: "search" | "mentions" | "approvals" | "favorites" | "recents" | "trackers" | "indicators" | "flow" | "velocity" | "release" | "tracker-status" | "activity" | "chart" | "general-info" | "global-progress" | "key-indicators" | "health" | "sprint-progress" | "pipelines" | "quality" | "badges" | "portfolio-health" | "portfolio-tiles" | "portfolio-finance" | "project-finance" | "capacity" | "roadmap" | "phase-gate" | "portfolio-gates" | "portfolio-requests" | "risk-matrix" | "platform-ops"; title?: string; query?: string; projects?: Array<string>; size?: "S" | "M" | "L" | "XL"; field?: string; form?: "donut" | "bars" | "count"; x?: number; y?: number; w?: number; h?: number; project?: string; portfolio?: string; period?: "7d" | "30d" | "sprint" }> }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('PUT', this.path('/v1/me/dashboard', {}), { body, query }),
+    /** PATCH /v1/me/dashboard/tabs/{id} · rôles : athena-team-member, athena-admin, athena-pm, athena-qa, athena-finance, athena-director */
     renameTab: (path: { id: string }, body: { title: string }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('PATCH', this.path('/v1/me/dashboard/tabs/{id}', path), { body, query }),
-    /** DELETE /v1/me/dashboard · rôles : athena-team-member, athena-admin, athena-pm, athena-qa, athena-director */
+    /** DELETE /v1/me/dashboard · rôles : athena-team-member, athena-admin, athena-pm, athena-qa, athena-finance, athena-director */
     reset: (query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('DELETE', this.path('/v1/me/dashboard', {}), { query }),
-    /** GET /v1/me/dashboard/tabs · rôles : athena-team-member, athena-admin, athena-pm, athena-qa */
+    /** GET /v1/me/dashboard/tabs · rôles : athena-team-member, athena-admin, athena-pm, athena-qa, athena-finance */
     tabs: (query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('GET', this.path('/v1/me/dashboard/tabs', {}), { query }),
+  };
+
+  readonly dashboardTemplate = {
+    /** GET /v1/dashboard-templates/catalog · rôles : athena-admin */
+    catalog: (query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('GET', this.path('/v1/dashboard-templates/catalog', {}), { query }),
+    /** DELETE /v1/dashboard-templates/defaults/{type}/{role} · rôles : athena-admin */
+    clearDefault: (path: { type: string; role: string }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('DELETE', this.path('/v1/dashboard-templates/defaults/{type}/{role}', path), { query }),
+    /** POST /v1/dashboard-templates · rôles : athena-admin */
+    create: (body: { key?: string; type: "home" | "project" | "progress" | "portfolio"; name: string; description?: string; roles: Array<"athena-admin" | "athena-pmo" | "athena-director" | "athena-pm" | "athena-manager" | "athena-finance" | "athena-qa" | "athena-team-member">; natures?: Array<"space-software" | "space-project" | "defense-software" | "armament" | "generic">; projectRoles?: Array<"manager" | "member" | "reader">; tabs: Array<{ name: string; widgets: Array<{ kind: unknown; title?: unknown; query?: unknown; size?: unknown; field?: unknown; form?: unknown; x?: unknown; y?: unknown; w?: unknown; h?: unknown; period?: unknown; id?: unknown; repeat?: unknown }> }> }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('POST', this.path('/v1/dashboard-templates', {}), { body, query }),
+    /** POST /v1/dashboard-templates/{key}/duplicate · rôles : athena-admin */
+    duplicate: (path: { key: string }, body: { name?: string }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('POST', this.path('/v1/dashboard-templates/{key}/duplicate', path), { body, query }),
+    /** PUT /v1/dashboard-templates/{key}/hidden · rôles : athena-admin */
+    hidden: (path: { key: string }, body: { hidden: boolean }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('PUT', this.path('/v1/dashboard-templates/{key}/hidden', path), { body, query }),
+    /** GET /v1/dashboard-templates · rôles : athena-admin */
+    list: (query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('GET', this.path('/v1/dashboard-templates', {}), { query }),
+    /** GET /v1/dashboard-templates/{key} · rôles : athena-admin */
+    one: (path: { key: string }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('GET', this.path('/v1/dashboard-templates/{key}', path), { query }),
+    /** POST /v1/dashboard-templates/{key}/preview · rôles : athena-admin */
+    preview: (path: { key: string }, body: { project?: string; portfolio?: string; projects?: Array<string>; portfolios?: Array<string> }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('POST', this.path('/v1/dashboard-templates/{key}/preview', path), { body, query }),
+    /** DELETE /v1/dashboard-templates/{key} · rôles : athena-admin */
+    remove: (path: { key: string }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('DELETE', this.path('/v1/dashboard-templates/{key}', path), { query }),
+    /** PUT /v1/dashboard-templates/defaults/{type}/{role} · rôles : athena-admin */
+    setDefault: (path: { type: string; role: string }, body: { template: string }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('PUT', this.path('/v1/dashboard-templates/defaults/{type}/{role}', path), { body, query }),
+    /** PUT /v1/dashboard-templates/{key} · rôles : athena-admin */
+    update: (path: { key: string }, body: { key?: string; type: "home" | "project" | "progress" | "portfolio"; name: string; description?: string; roles: Array<"athena-admin" | "athena-pmo" | "athena-director" | "athena-pm" | "athena-manager" | "athena-finance" | "athena-qa" | "athena-team-member">; natures?: Array<"space-software" | "space-project" | "defense-software" | "armament" | "generic">; projectRoles?: Array<"manager" | "member" | "reader">; tabs: Array<{ name: string; widgets: Array<{ kind: unknown; title?: unknown; query?: unknown; size?: unknown; field?: unknown; form?: unknown; x?: unknown; y?: unknown; w?: unknown; h?: unknown; period?: unknown; id?: unknown; repeat?: unknown }> }> }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('PUT', this.path('/v1/dashboard-templates/{key}', path), { body, query }),
   };
 
   readonly dependency = {
@@ -336,7 +367,7 @@ export class AthenaClient {
     forecast: (body: { project: string; category: string; period: string; amount: number }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('PUT', this.path('/v1/finance/forecasts', {}), { body, query }),
     /** POST /v1/finance/actuals/import · rôles : athena-admin, athena-finance, athena-pmo */
     importActuals: (body: { fileName: string; content: string }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('POST', this.path('/v1/finance/actuals/import', {}), { body, query }),
-    /** GET /v1/finance/projects/{p} · rôles : athena-admin, athena-finance, athena-pmo, athena-director */
+    /** GET /v1/finance/projects/{p} · rôles : athena-admin, athena-finance, athena-pmo, athena-director, athena-pm */
     project: (path: { p: string }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('GET', this.path('/v1/finance/projects/{p}', path), { query }),
     /** POST /v1/finance/rates · rôles : athena-admin, athena-finance, athena-pmo */
     rate: (body: { subject?: string; roleLabel?: string; hourlyRate: number; validFrom: string }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('POST', this.path('/v1/finance/rates', {}), { body, query }),
@@ -591,6 +622,11 @@ export class AthenaClient {
     setLag: (path: { project: string; id: string }, body: { lagDays: number }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('PATCH', this.path('/v1/projects/{project}/schedule/links/{id}', path), { body, query }),
   };
 
+  readonly platformStatus = {
+    /** GET /v1/admin/platform-status · rôles : athena-admin */
+    get: (query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('GET', this.path('/v1/admin/platform-status', {}), { query }),
+  };
+
   readonly portfolio = {
     /** GET /v1/portfolios/{key}/actions · rôles : athena-admin, athena-pmo, athena-pm, athena-director */
     actions: (path: { key: string }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('GET', this.path('/v1/portfolios/{key}/actions', path), { query }),
@@ -606,11 +642,11 @@ export class AthenaClient {
     decisionList: (path: { key: string }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('GET', this.path('/v1/portfolios/{key}/decisions', path), { query }),
     /** GET /v1/portfolios/{key}/gates · rôles : athena-admin, athena-pmo, athena-pm, athena-director */
     gates: (path: { key: string }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('GET', this.path('/v1/portfolios/{key}/gates', path), { query }),
-    /** GET /v1/portfolios/{key} · rôles : athena-admin, athena-pmo, athena-pm, athena-director */
+    /** GET /v1/portfolios/{key} · rôles : athena-admin, athena-pmo, athena-pm, athena-director, athena-finance */
     get: (path: { key: string }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('GET', this.path('/v1/portfolios/{key}', path), { query }),
-    /** GET /v1/portfolios/{key}/health · rôles : athena-admin, athena-pmo, athena-pm, athena-director */
+    /** GET /v1/portfolios/{key}/health · rôles : athena-admin, athena-pmo, athena-pm, athena-director, athena-finance */
     health: (path: { key: string }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('GET', this.path('/v1/portfolios/{key}/health', path), { query }),
-    /** GET /v1/portfolios · rôles : athena-admin, athena-pmo, athena-pm, athena-director */
+    /** GET /v1/portfolios · rôles : athena-admin, athena-pmo, athena-pm, athena-director, athena-finance */
     list: (query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('GET', this.path('/v1/portfolios', {}), { query }),
     /** GET /v1/portfolios/{key}/milestone-trend/{project} · rôles : athena-admin, athena-pmo, athena-pm, athena-director */
     milestoneTrend: (path: { key: string; project: string }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('GET', this.path('/v1/portfolios/{key}/milestone-trend/{project}', path), { query }),
@@ -642,9 +678,9 @@ export class AthenaClient {
     snapshotList: (path: { key: string }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('GET', this.path('/v1/portfolios/{key}/snapshots', path), { query }),
     /** POST /v1/portfolios/{key}/snapshots · rôles : athena-admin, athena-pmo */
     snapshotTake: (path: { key: string }, body: { kind?: "manual" | "review"; label?: string }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('POST', this.path('/v1/portfolios/{key}/snapshots', path), { body, query }),
-    /** GET /v1/portfolios/summary · rôles : athena-admin, athena-pmo, athena-pm, athena-director */
+    /** GET /v1/portfolios/summary · rôles : athena-admin, athena-pmo, athena-pm, athena-director, athena-finance */
     summaries: (query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('GET', this.path('/v1/portfolios/summary', {}), { query }),
-    /** GET /v1/portfolios/{key}/trend · rôles : athena-admin, athena-pmo, athena-pm, athena-director */
+    /** GET /v1/portfolios/{key}/trend · rôles : athena-admin, athena-pmo, athena-pm, athena-director, athena-finance */
     trend: (path: { key: string }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('GET', this.path('/v1/portfolios/{key}/trend', path), { query }),
     /** PATCH /v1/portfolios/{key} · rôles : athena-admin, athena-pmo */
     update: (path: { key: string }, body: { name?: string; description?: string; owner?: unknown }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('PATCH', this.path('/v1/portfolios/{key}', path), { body, query }),
@@ -716,6 +752,11 @@ export class AthenaClient {
     modules: (path: { project: string }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('GET', this.path('/v1/projects/{project}/modules', path), { query }),
     /** GET /v1/projects/{project}/overview · rôles : athena-team-member, athena-admin */
     overviewOf: (path: { project: string }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('GET', this.path('/v1/projects/{project}/overview', path), { query }),
+  };
+
+  readonly projectRisk = {
+    /** GET /v1/projects/{p}/risk-matrix · rôles : athena-admin, athena-pmo, athena-pm, athena-director, athena-qa */
+    matrix: (path: { p: string }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('GET', this.path('/v1/projects/{p}/risk-matrix', path), { query }),
   };
 
   readonly projectTemplate = {

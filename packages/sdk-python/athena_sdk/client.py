@@ -472,42 +472,101 @@ class _Coverage(_Group):
 
 
 class _Dashboard(_Group):
+    def apply(self, key, body: Any = None, query: Optional[Dict[str, Any]] = None) -> Any:
+        """POST /v1/me/dashboard/templates/{key}/apply (rôles : athena-team-member, athena-admin, athena-pm, athena-qa, athena-finance, athena-director)"""
+        path = "/v1/me/dashboard/templates/{key}/apply".replace("{key}", urllib.parse.quote(str(key), safe=""))
+        return self._client.request("POST", path, query=query, body=body)
     def awaiting(self, query: Optional[Dict[str, Any]] = None) -> Any:
-        """GET /v1/me/approvals (rôles : athena-team-member, athena-admin, athena-pm, athena-qa)"""
+        """GET /v1/me/approvals (rôles : athena-team-member, athena-admin, athena-pm, athena-qa, athena-finance)"""
         path = "/v1/me/approvals"
         return self._client.request("GET", path, query=query)
     def catalog(self, query: Optional[Dict[str, Any]] = None) -> Any:
-        """GET /v1/me/dashboard/catalog (rôles : athena-team-member, athena-admin, athena-pm, athena-qa)"""
+        """GET /v1/me/dashboard/catalog (rôles : athena-team-member, athena-admin, athena-pm, athena-qa, athena-finance)"""
         path = "/v1/me/dashboard/catalog"
         return self._client.request("GET", path, query=query)
     def create_tab(self, body: Any = None, query: Optional[Dict[str, Any]] = None) -> Any:
-        """POST /v1/me/dashboard/tabs (rôles : athena-team-member, athena-admin, athena-pm, athena-qa, athena-director)"""
+        """POST /v1/me/dashboard/tabs (rôles : athena-team-member, athena-admin, athena-pm, athena-qa, athena-finance, athena-director)"""
         path = "/v1/me/dashboard/tabs"
         return self._client.request("POST", path, query=query, body=body)
     def delete_tab(self, id, query: Optional[Dict[str, Any]] = None) -> Any:
-        """DELETE /v1/me/dashboard/tabs/{id} (rôles : athena-team-member, athena-admin, athena-pm, athena-qa, athena-director)"""
+        """DELETE /v1/me/dashboard/tabs/{id} (rôles : athena-team-member, athena-admin, athena-pm, athena-qa, athena-finance, athena-director)"""
         path = "/v1/me/dashboard/tabs/{id}".replace("{id}", urllib.parse.quote(str(id), safe=""))
         return self._client.request("DELETE", path, query=query)
     def get(self, query: Optional[Dict[str, Any]] = None) -> Any:
-        """GET /v1/me/dashboard (rôles : athena-team-member, athena-admin, athena-pm, athena-qa)"""
+        """GET /v1/me/dashboard (rôles : athena-team-member, athena-admin, athena-pm, athena-qa, athena-finance)"""
         path = "/v1/me/dashboard"
         return self._client.request("GET", path, query=query)
+    def portfolios(self, query: Optional[Dict[str, Any]] = None) -> Any:
+        """GET /v1/me/dashboard/portfolios (rôles : athena-team-member, athena-admin, athena-pm, athena-qa, athena-finance)"""
+        path = "/v1/me/dashboard/portfolios"
+        return self._client.request("GET", path, query=query)
+    def proposed(self, query: Optional[Dict[str, Any]] = None) -> Any:
+        """GET /v1/me/dashboard/templates (rôles : athena-team-member, athena-admin, athena-pm, athena-qa, athena-finance)"""
+        path = "/v1/me/dashboard/templates"
+        return self._client.request("GET", path, query=query)
     def put(self, body: Any = None, query: Optional[Dict[str, Any]] = None) -> Any:
-        """PUT /v1/me/dashboard (rôles : athena-team-member, athena-admin, athena-pm, athena-qa, athena-director)"""
+        """PUT /v1/me/dashboard (rôles : athena-team-member, athena-admin, athena-pm, athena-qa, athena-finance, athena-director)"""
         path = "/v1/me/dashboard"
         return self._client.request("PUT", path, query=query, body=body)
     def rename_tab(self, id, body: Any = None, query: Optional[Dict[str, Any]] = None) -> Any:
-        """PATCH /v1/me/dashboard/tabs/{id} (rôles : athena-team-member, athena-admin, athena-pm, athena-qa, athena-director)"""
+        """PATCH /v1/me/dashboard/tabs/{id} (rôles : athena-team-member, athena-admin, athena-pm, athena-qa, athena-finance, athena-director)"""
         path = "/v1/me/dashboard/tabs/{id}".replace("{id}", urllib.parse.quote(str(id), safe=""))
         return self._client.request("PATCH", path, query=query, body=body)
     def reset(self, query: Optional[Dict[str, Any]] = None) -> Any:
-        """DELETE /v1/me/dashboard (rôles : athena-team-member, athena-admin, athena-pm, athena-qa, athena-director)"""
+        """DELETE /v1/me/dashboard (rôles : athena-team-member, athena-admin, athena-pm, athena-qa, athena-finance, athena-director)"""
         path = "/v1/me/dashboard"
         return self._client.request("DELETE", path, query=query)
     def tabs(self, query: Optional[Dict[str, Any]] = None) -> Any:
-        """GET /v1/me/dashboard/tabs (rôles : athena-team-member, athena-admin, athena-pm, athena-qa)"""
+        """GET /v1/me/dashboard/tabs (rôles : athena-team-member, athena-admin, athena-pm, athena-qa, athena-finance)"""
         path = "/v1/me/dashboard/tabs"
         return self._client.request("GET", path, query=query)
+
+
+class _DashboardTemplate(_Group):
+    def catalog(self, query: Optional[Dict[str, Any]] = None) -> Any:
+        """GET /v1/dashboard-templates/catalog (rôles : athena-admin)"""
+        path = "/v1/dashboard-templates/catalog"
+        return self._client.request("GET", path, query=query)
+    def clear_default(self, type, role, query: Optional[Dict[str, Any]] = None) -> Any:
+        """DELETE /v1/dashboard-templates/defaults/{type}/{role} (rôles : athena-admin)"""
+        path = "/v1/dashboard-templates/defaults/{type}/{role}".replace("{type}", urllib.parse.quote(str(type), safe="")).replace("{role}", urllib.parse.quote(str(role), safe=""))
+        return self._client.request("DELETE", path, query=query)
+    def create(self, body: Any = None, query: Optional[Dict[str, Any]] = None) -> Any:
+        """POST /v1/dashboard-templates (rôles : athena-admin)"""
+        path = "/v1/dashboard-templates"
+        return self._client.request("POST", path, query=query, body=body)
+    def duplicate(self, key, body: Any = None, query: Optional[Dict[str, Any]] = None) -> Any:
+        """POST /v1/dashboard-templates/{key}/duplicate (rôles : athena-admin)"""
+        path = "/v1/dashboard-templates/{key}/duplicate".replace("{key}", urllib.parse.quote(str(key), safe=""))
+        return self._client.request("POST", path, query=query, body=body)
+    def hidden(self, key, body: Any = None, query: Optional[Dict[str, Any]] = None) -> Any:
+        """PUT /v1/dashboard-templates/{key}/hidden (rôles : athena-admin)"""
+        path = "/v1/dashboard-templates/{key}/hidden".replace("{key}", urllib.parse.quote(str(key), safe=""))
+        return self._client.request("PUT", path, query=query, body=body)
+    def list(self, query: Optional[Dict[str, Any]] = None) -> Any:
+        """GET /v1/dashboard-templates (rôles : athena-admin)"""
+        path = "/v1/dashboard-templates"
+        return self._client.request("GET", path, query=query)
+    def one(self, key, query: Optional[Dict[str, Any]] = None) -> Any:
+        """GET /v1/dashboard-templates/{key} (rôles : athena-admin)"""
+        path = "/v1/dashboard-templates/{key}".replace("{key}", urllib.parse.quote(str(key), safe=""))
+        return self._client.request("GET", path, query=query)
+    def preview(self, key, body: Any = None, query: Optional[Dict[str, Any]] = None) -> Any:
+        """POST /v1/dashboard-templates/{key}/preview (rôles : athena-admin)"""
+        path = "/v1/dashboard-templates/{key}/preview".replace("{key}", urllib.parse.quote(str(key), safe=""))
+        return self._client.request("POST", path, query=query, body=body)
+    def remove(self, key, query: Optional[Dict[str, Any]] = None) -> Any:
+        """DELETE /v1/dashboard-templates/{key} (rôles : athena-admin)"""
+        path = "/v1/dashboard-templates/{key}".replace("{key}", urllib.parse.quote(str(key), safe=""))
+        return self._client.request("DELETE", path, query=query)
+    def set_default(self, type, role, body: Any = None, query: Optional[Dict[str, Any]] = None) -> Any:
+        """PUT /v1/dashboard-templates/defaults/{type}/{role} (rôles : athena-admin)"""
+        path = "/v1/dashboard-templates/defaults/{type}/{role}".replace("{type}", urllib.parse.quote(str(type), safe="")).replace("{role}", urllib.parse.quote(str(role), safe=""))
+        return self._client.request("PUT", path, query=query, body=body)
+    def update(self, key, body: Any = None, query: Optional[Dict[str, Any]] = None) -> Any:
+        """PUT /v1/dashboard-templates/{key} (rôles : athena-admin)"""
+        path = "/v1/dashboard-templates/{key}".replace("{key}", urllib.parse.quote(str(key), safe=""))
+        return self._client.request("PUT", path, query=query, body=body)
 
 
 class _Dependency(_Group):
@@ -597,7 +656,7 @@ class _Finance(_Group):
         path = "/v1/finance/actuals/import"
         return self._client.request("POST", path, query=query, body=body)
     def project(self, p, query: Optional[Dict[str, Any]] = None) -> Any:
-        """GET /v1/finance/projects/{p} (rôles : athena-admin, athena-finance, athena-pmo, athena-director)"""
+        """GET /v1/finance/projects/{p} (rôles : athena-admin, athena-finance, athena-pmo, athena-director, athena-pm)"""
         path = "/v1/finance/projects/{p}".replace("{p}", urllib.parse.quote(str(p), safe=""))
         return self._client.request("GET", path, query=query)
     def rate(self, body: Any = None, query: Optional[Dict[str, Any]] = None) -> Any:
@@ -1059,6 +1118,13 @@ class _Planning(_Group):
         return self._client.request("PATCH", path, query=query, body=body)
 
 
+class _PlatformStatus(_Group):
+    def get(self, query: Optional[Dict[str, Any]] = None) -> Any:
+        """GET /v1/admin/platform-status (rôles : athena-admin)"""
+        path = "/v1/admin/platform-status"
+        return self._client.request("GET", path, query=query)
+
+
 class _Portfolio(_Group):
     def actions(self, key, query: Optional[Dict[str, Any]] = None) -> Any:
         """GET /v1/portfolios/{key}/actions (rôles : athena-admin, athena-pmo, athena-pm, athena-director)"""
@@ -1089,15 +1155,15 @@ class _Portfolio(_Group):
         path = "/v1/portfolios/{key}/gates".replace("{key}", urllib.parse.quote(str(key), safe=""))
         return self._client.request("GET", path, query=query)
     def get(self, key, query: Optional[Dict[str, Any]] = None) -> Any:
-        """GET /v1/portfolios/{key} (rôles : athena-admin, athena-pmo, athena-pm, athena-director)"""
+        """GET /v1/portfolios/{key} (rôles : athena-admin, athena-pmo, athena-pm, athena-director, athena-finance)"""
         path = "/v1/portfolios/{key}".replace("{key}", urllib.parse.quote(str(key), safe=""))
         return self._client.request("GET", path, query=query)
     def health(self, key, query: Optional[Dict[str, Any]] = None) -> Any:
-        """GET /v1/portfolios/{key}/health (rôles : athena-admin, athena-pmo, athena-pm, athena-director)"""
+        """GET /v1/portfolios/{key}/health (rôles : athena-admin, athena-pmo, athena-pm, athena-director, athena-finance)"""
         path = "/v1/portfolios/{key}/health".replace("{key}", urllib.parse.quote(str(key), safe=""))
         return self._client.request("GET", path, query=query)
     def list(self, query: Optional[Dict[str, Any]] = None) -> Any:
-        """GET /v1/portfolios (rôles : athena-admin, athena-pmo, athena-pm, athena-director)"""
+        """GET /v1/portfolios (rôles : athena-admin, athena-pmo, athena-pm, athena-director, athena-finance)"""
         path = "/v1/portfolios"
         return self._client.request("GET", path, query=query)
     def milestone_trend(self, key, project, query: Optional[Dict[str, Any]] = None) -> Any:
@@ -1161,11 +1227,11 @@ class _Portfolio(_Group):
         path = "/v1/portfolios/{key}/snapshots".replace("{key}", urllib.parse.quote(str(key), safe=""))
         return self._client.request("POST", path, query=query, body=body)
     def summaries(self, query: Optional[Dict[str, Any]] = None) -> Any:
-        """GET /v1/portfolios/summary (rôles : athena-admin, athena-pmo, athena-pm, athena-director)"""
+        """GET /v1/portfolios/summary (rôles : athena-admin, athena-pmo, athena-pm, athena-director, athena-finance)"""
         path = "/v1/portfolios/summary"
         return self._client.request("GET", path, query=query)
     def trend(self, key, query: Optional[Dict[str, Any]] = None) -> Any:
-        """GET /v1/portfolios/{key}/trend (rôles : athena-admin, athena-pmo, athena-pm, athena-director)"""
+        """GET /v1/portfolios/{key}/trend (rôles : athena-admin, athena-pmo, athena-pm, athena-director, athena-finance)"""
         path = "/v1/portfolios/{key}/trend".replace("{key}", urllib.parse.quote(str(key), safe=""))
         return self._client.request("GET", path, query=query)
     def update(self, key, body: Any = None, query: Optional[Dict[str, Any]] = None) -> Any:
@@ -1289,6 +1355,13 @@ class _ProjectOverview(_Group):
     def overview_of(self, project, query: Optional[Dict[str, Any]] = None) -> Any:
         """GET /v1/projects/{project}/overview (rôles : athena-team-member, athena-admin)"""
         path = "/v1/projects/{project}/overview".replace("{project}", urllib.parse.quote(str(project), safe=""))
+        return self._client.request("GET", path, query=query)
+
+
+class _ProjectRisk(_Group):
+    def matrix(self, p, query: Optional[Dict[str, Any]] = None) -> Any:
+        """GET /v1/projects/{p}/risk-matrix (rôles : athena-admin, athena-pmo, athena-pm, athena-director, athena-qa)"""
+        path = "/v1/projects/{p}/risk-matrix".replace("{p}", urllib.parse.quote(str(p), safe=""))
         return self._client.request("GET", path, query=query)
 
 
@@ -1555,6 +1628,7 @@ class AthenaClient:
         self.core = _Core(self)
         self.coverage = _Coverage(self)
         self.dashboard = _Dashboard(self)
+        self.dashboard_template = _DashboardTemplate(self)
         self.dependency = _Dependency(self)
         self.doc = _Doc(self)
         self.feature = _Feature(self)
@@ -1574,6 +1648,7 @@ class AthenaClient:
         self.pat = _Pat(self)
         self.pin = _Pin(self)
         self.planning = _Planning(self)
+        self.platform_status = _PlatformStatus(self)
         self.portfolio = _Portfolio(self)
         self.ppm_settings = _PpmSettings(self)
         self.preference = _Preference(self)
@@ -1581,6 +1656,7 @@ class AthenaClient:
         self.privacy = _Privacy(self)
         self.project_meta = _ProjectMeta(self)
         self.project_overview = _ProjectOverview(self)
+        self.project_risk = _ProjectRisk(self)
         self.project_template = _ProjectTemplate(self)
         self.saved_filter = _SavedFilter(self)
         self.search = _Search(self)

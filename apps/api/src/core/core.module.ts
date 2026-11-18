@@ -49,6 +49,10 @@ import { AppearanceService } from './appearance.service';
 import { PreferenceController } from './preference.controller';
 import { PreferenceService } from './preference.service';
 import { DashboardService } from './dashboard.service';
+import { DashboardTemplateController } from './dashboard-template.controller';
+import { DashboardTemplateService } from './dashboard-template.service';
+import { PlatformStatusController } from './platform-status.controller';
+import { PlatformStatusService } from './platform-status.service';
 import { SavedSearchService } from '../atql/saved-search.service';
 import { AttachmentController } from './attachment.controller';
 import { AttachmentService, DEFAULT_QUOTA } from './attachment.service';
@@ -101,7 +105,7 @@ import { TrackerService } from './tracker.service';
 export { PG_POOL } from './core.tokens';
 
 @Module({
-  controllers: [SharedFieldController, GraphqlController, CoreController, AttachmentController, SavedFilterController, SearchController, IntegrationsController, AgileController, MemberController, TemplateController, ProjectTemplateController, TrackerTemplateController, TrackerTypeController, ProjectOverviewController, PinController, LinkTypeController, TreeController, MatrixController, CoverageController, NormativeController, AccessController, ApprovalController, ItemApprovalController, DocController, NotifyController, DashboardController, PreferenceController, AppearanceController, CalendarController, PlanningController, BrandController],
+  controllers: [SharedFieldController, GraphqlController, CoreController, AttachmentController, SavedFilterController, SearchController, IntegrationsController, AgileController, MemberController, TemplateController, ProjectTemplateController, TrackerTemplateController, TrackerTypeController, ProjectOverviewController, PinController, LinkTypeController, TreeController, MatrixController, CoverageController, NormativeController, AccessController, ApprovalController, ItemApprovalController, DocController, NotifyController, DashboardController, DashboardTemplateController, PlatformStatusController, PreferenceController, AppearanceController, CalendarController, PlanningController, BrandController],
   providers: [
     { provide: PG_POOL, useFactory: () => new Pool({ connectionString: loadConfig().DATABASE_URL, max: 10 }) },
     { provide: FieldTypeRegistry, useValue: new FieldTypeRegistry() },
@@ -145,6 +149,8 @@ export { PG_POOL } from './core.tokens';
       inject: [Db],
     },
     { provide: DashboardService, useFactory: (db: Db) => new DashboardService(db), inject: [Db] },
+    { provide: PlatformStatusService, useFactory: (db: Db) => new PlatformStatusService(db), inject: [Db] },
+    { provide: DashboardTemplateService, useFactory: (db: Db) => new DashboardTemplateService(db), inject: [Db] },
     { provide: SavedSearchService, useFactory: (db: Db) => new SavedSearchService(db), inject: [Db] },
     {
       provide: SECRET_STORE,

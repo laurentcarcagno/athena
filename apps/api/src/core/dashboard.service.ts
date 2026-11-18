@@ -12,22 +12,50 @@ export const WIDGET_KINDS = ['search', 'mentions', 'approvals', 'favorites', 're
   // Pilotage, intégration continue et qualité (ADR-0007, T-0170 à T-0176).
   'general-info', 'global-progress', 'key-indicators', 'health', 'sprint-progress', 'pipelines', 'quality', 'badges',
   // Portefeuille (lot 18, B24) : réservés au tableau de bord d'un portefeuille.
-  'portfolio-health', 'portfolio-tiles'] as const;
-/** Genres propres à un portefeuille et rôles qui organisent son tableau de bord : le PMO, le directeur et l'administrateur. */
-export const PORTFOLIO_KINDS: readonly string[] = ['portfolio-health', 'portfolio-tiles'];
-export const PORTFOLIO_ROLES = ['athena-admin', 'athena-pmo', 'athena-director'];
-const PROJECT_KINDS = new Set<string>(['chart', 'trackers', 'indicators', 'flow', 'velocity', 'release', 'tracker-status', 'activity',
-  'general-info', 'global-progress', 'key-indicators', 'health', 'sprint-progress', 'pipelines', 'quality', 'badges']);
+  'portfolio-health', 'portfolio-tiles',
+  // Gabarits (lot 27, ADR-0010) : finances, charge, feuille de route, phase, portes, demandes, risques, plateforme.
+  'portfolio-finance', 'project-finance', 'capacity', 'roadmap', 'phase-gate', 'portfolio-gates', 'portfolio-requests', 'risk-matrix', 'platform-ops'] as const;
+/** Genres qui portent sur un portefeuille (réglage `portfolio` hors du tableau de bord d'un portefeuille). */
+export const PORTFOLIO_KINDS: readonly string[] = ['portfolio-health', 'portfolio-tiles', 'portfolio-finance', 'portfolio-gates', 'portfolio-requests'];
+/** Genres à double portée : un projet (`projects`) ou un portefeuille (`portfolio`) ; sans l'un ni l'autre, `capacity` montre les équipes de la personne. */
+export const DUAL_KINDS: readonly string[] = ['capacity', 'roadmap', 'risk-matrix'];
+/** Rôles qui organisent le tableau de bord d'un portefeuille : le PMO, le directeur, la finance (lecture seule des portefeuilles) et l'administrateur. */
+export const PORTFOLIO_ROLES = ['athena-admin', 'athena-pmo', 'athena-director', 'athena-finance'];
+export const PROJECT_KINDS = new Set<string>(['chart', 'trackers', 'indicators', 'flow', 'velocity', 'release', 'tracker-status', 'activity',
+  'general-info', 'global-progress', 'key-indicators', 'health', 'sprint-progress', 'pipelines', 'quality', 'badges', 'project-finance', 'phase-gate']);
+/** Genres permis dans le tableau de bord d'un portefeuille : les siens, ceux à double portée, les recherches et les graphiques (P11). */
+export const PORTFOLIO_SCOPE_KINDS = new Set<string>([...PORTFOLIO_KINDS, ...DUAL_KINDS, 'search', 'chart']);
+/** Rôles qui peuvent poser chaque genre réservé (les autres genres suivent la règle générale ci-dessous). */
+const KIND_ROLES: Record<string, readonly string[]> = {
+  'portfolio-health': ['athena-admin', 'athena-pmo', 'athena-director'], 'portfolio-tiles': ['athena-admin', 'athena-pmo', 'athena-director', 'athena-finance'],
+  'portfolio-finance': ['athena-admin', 'athena-pmo', 'athena-director', 'athena-finance'], 'portfolio-gates': ['athena-admin', 'athena-pmo', 'athena-director'],
+  'portfolio-requests': ['athena-admin', 'athena-pmo', 'athena-director'], 'project-finance': ['athena-admin', 'athena-pmo', 'athena-pm', 'athena-director', 'athena-finance'],
+  capacity: ['athena-admin', 'athena-pmo', 'athena-pm', 'athena-director', 'athena-manager'], roadmap: ['athena-admin', 'athena-pmo', 'athena-pm', 'athena-director', 'athena-qa'],
+  'phase-gate': ['athena-admin', 'athena-pmo', 'athena-pm', 'athena-director', 'athena-qa'], 'risk-matrix': ['athena-admin', 'athena-pmo', 'athena-pm', 'athena-director'],
+  'platform-ops': ['athena-admin'],
+  'key-indicators': ['athena-admin', 'athena-pmo', 'athena-pm', 'athena-director', 'athena-qa'], 'global-progress': ['athena-admin', 'athena-pmo', 'athena-pm', 'athena-director', 'athena-qa'],
+};
 
-const COMMON_KINDS: readonly string[] = ['search', 'chart', 'mentions', 'approvals', 'favorites', 'recents', 'trackers', 'indicators', 'flow', 'velocity', 'release', 'tracker-status', 'activity', 'pipelines', 'quality', 'badges'];
+const COMMON_KINDS: readonly string[] = ['search', 'chart', 'mentions', 'approvals', 'favorites', 'recents', 'trackers', 'indicators', 'flow', 'velocity', 'release', 'tracker-status', 'activity', 'general-info', 'sprint-progress', 'pipelines', 'quality', 'badges'];
 
 /** Genres de widget qu'un rôle peut poser (catalogue, T-0170) ; l'union vaut pour une personne à plusieurs rôles. */
 export function allowedKinds(roles: readonly string[]): string[] {
-  const portfolio = PORTFOLIO_ROLES.some((r) => roles.includes(r));
-  // Le directeur a accès à tout le catalogue de pilotage (ses tableaux de bord) ; la disposition reste personnelle.
-  if (['athena-admin', 'athena-pmo', 'athena-pm', 'athena-director'].some((r) => roles.includes(r))) return WIDGET_KINDS.filter((k) => portfolio || !PORTFOLIO_KINDS.includes(k));
-  return [...COMMON_KINDS];
+  const general = ['athena-admin', 'athena-pmo', 'athena-pm', 'athena-director'].some((r) => roles.includes(r)) ? WIDGET_KINDS.filter((k) => !(k in KIND_ROLES)) : COMMON_KINDS;
+  // Les genres réservés se posent selon leur propre liste de rôles ; la finance a donc les siens sans le reste du pilotage.
+  const reserved = WIDGET_KINDS.filter((k) => k in KIND_ROLES && KIND_ROLES[k]!.some((r) => roles.includes(r)));
+  return WIDGET_KINDS.filter((k) => general.includes(k) || reserved.includes(k));
 }
+
+/** Taille et hauteur par défaut d'une carte, par genre : les gabarits livrés n'ont pas à les répéter, et le catalogue les propose à l'ajout. */
+export const KIND_LAYOUT: Record<string, { size: 'S' | 'M' | 'L' | 'XL'; h?: number }> = {
+  search: { size: 'M' }, approvals: { size: 'S' }, mentions: { size: 'S' }, favorites: { size: 'S' }, recents: { size: 'S' }, trackers: { size: 'M' },
+  indicators: { size: 'L' }, flow: { size: 'M' }, velocity: { size: 'M' }, release: { size: 'S' }, 'tracker-status': { size: 'M' }, activity: { size: 'M' },
+  chart: { size: 'S' }, 'general-info': { size: 'M' }, 'global-progress': { size: 'S' }, 'key-indicators': { size: 'L' }, health: { size: 'M' },
+  'sprint-progress': { size: 'M' }, pipelines: { size: 'M' }, quality: { size: 'M' }, badges: { size: 'S' },
+  'portfolio-health': { size: 'XL', h: 5 }, 'portfolio-tiles': { size: 'XL', h: 2 }, 'portfolio-finance': { size: 'XL', h: 4 }, 'project-finance': { size: 'M', h: 4 },
+  capacity: { size: 'L', h: 4 }, roadmap: { size: 'XL', h: 5 }, 'phase-gate': { size: 'M', h: 3 }, 'portfolio-gates': { size: 'L', h: 4 }, 'portfolio-requests': { size: 'L', h: 4 },
+  'risk-matrix': { size: 'M', h: 4 }, 'platform-ops': { size: 'L', h: 4 },
+};
 
 export const GRID_COLUMNS = 12;
 export const MAX_ROWS = 8;
@@ -56,6 +84,8 @@ export const WidgetSchema = z.object({
   h: z.number().int().min(1).max(MAX_ROWS).optional(),
   /** Projet unique d'un exemplaire (clé) et période d'analyse ; plusieurs exemplaires d'un même genre sont permis. */
   project: z.string().regex(/^[A-Z][A-Z0-9]{1,9}$/).optional(),
+  /** Portefeuille d'une carte à portée de portefeuille posée hors du tableau de bord d'un portefeuille (P11). */
+  portfolio: z.string().regex(/^[a-z0-9][a-z0-9-]{1,29}$/).optional(),
   period: z.enum(['7d', '30d', 'sprint']).optional(),
 });
 /** Onglets d'un classeur : au plus MAX_TABS onglets nommés par portée, en plus de l'onglet principal. */
@@ -175,6 +205,15 @@ export function checkGrid(widgets: readonly Widget[]): void {
   for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) if (overlaps(boxes[i]!, boxes[j]!)) throw validation([`${boxes[i]!.id} et ${boxes[j]!.id} se chevauchent`]);
 }
 
+/** Identifiant d'un onglet tiré de son titre (sans accents, tirets), distinct de ceux déjà pris. */
+export function uniqueTabId(title: string, taken: ReadonlySet<string>): string {
+  const base = title.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 22) || 'onglet';
+  let id = base;
+  // « main » désigne l'onglet principal dans les adresses (PATCH et DELETE des onglets) : aucun onglet nommé ne le porte.
+  for (let n = 2; taken.has(id) || id === 'main'; n++) id = `${base}-${n}`;
+  return id;
+}
+
 /** Tableau de bord personnel configurable (T-0122) : disposition par personne, défaut sans réglage, réinitialisation. */
 export class DashboardService {
   constructor(private readonly db: Db) {}
@@ -211,10 +250,7 @@ export class DashboardService {
     return this.db.tx(organizationId, async (c) => {
       const rows = (await c.query("select id, position from dashboard_tab where owner = $1 and scope = $2 and id <> ''", [actor.id, scope])).rows as { id: string; position: number }[];
       if (rows.length >= MAX_TABS) throw validation([`Un classeur compte au plus ${MAX_TABS} onglets en plus de l’onglet principal`]);
-      const base = title.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 22) || 'onglet';
-      const taken = new Set(rows.map((r) => r.id));
-      let id = base;
-      for (let n = 2; taken.has(id); n++) id = `${base}-${n}`;
+      const id = uniqueTabId(title, new Set(rows.map((r) => r.id)));
       await c.query('insert into dashboard_tab (organization_id, owner, scope, id, title, position) values ($1,$2,$3,$4,$5,$6)',
         [organizationId, actor.id, scope, id, title, rows.reduce((m, r) => Math.max(m, r.position + 1), 0)]);
       return { id, title };
@@ -246,8 +282,8 @@ export class DashboardService {
   }
 
   /** Catalogue du rôle : genres posables et, pour chacun, s'il vise un projet. */
-  catalog(actor: Actor): { kind: string; project: boolean }[] {
-    return allowedKinds(actor.roles).map((kind) => ({ kind, project: PROJECT_KINDS.has(kind) }));
+  catalog(actor: Actor): { kind: string; project: boolean; size: string; h?: number }[] {
+    return allowedKinds(actor.roles).map((kind) => ({ kind, project: PROJECT_KINDS.has(kind), ...(KIND_LAYOUT[kind] ?? { size: 'M' }) }));
   }
 
   async put(organizationId: string, input: z.infer<typeof LayoutInput>, actor: Actor, scope = '', tab = ''): Promise<{ widgets: Widget[]; isDefault: boolean }> {
@@ -261,7 +297,8 @@ export class DashboardService {
     for (const w of input.widgets) {
       if (ids.has(w.id)) throw validation([`widgets : identifiant en double (${w.id})`]);
       ids.add(w.id);
-      if (PORTFOLIO_KINDS.includes(w.kind) !== scope.startsWith('portfolio:') && (PORTFOLIO_KINDS.includes(w.kind) || scope.startsWith('portfolio:'))) throw validation([`${w.id} : les cartes de portefeuille ne se posent que dans le tableau de bord d’un portefeuille, et seules elles`]);
+      if (scope.startsWith('portfolio:') && !PORTFOLIO_SCOPE_KINDS.has(w.kind)) throw validation([`${w.id} : le tableau de bord d’un portefeuille n’accepte que les cartes de portefeuille, de charge, de feuille de route, de risques, de recherche et les graphiques`]);
+      if (w.portfolio !== undefined && !PORTFOLIO_SCOPE_KINDS.has(w.kind)) throw validation([`${w.id} : portfolio ne concerne que les cartes de portefeuille, de recherche et les graphiques`]);
       if ((w.field !== undefined || w.form !== undefined) && w.kind !== 'chart') throw validation([`${w.id} : field et form ne concernent que les cartes graphiques`]);
       if (w.kind === 'chart' && (!w.form || (w.form !== 'count' && !w.field))) throw validation([`${w.id} : une carte graphique exige une forme, et un champ sauf pour un indicateur`]);
       if (w.kind === 'search' || w.kind === 'chart') {
@@ -270,7 +307,7 @@ export class DashboardService {
           throw error;
         }
       } else if (w.query !== undefined) throw validation([`${w.id} : query ne concerne que les widgets de recherche`]);
-      else if (w.projects !== undefined && !PROJECT_KINDS.has(w.kind)) throw validation([`${w.id} : projects ne concerne que les widgets de recherche, de trackers et d'avancement`]);
+      else if (w.projects !== undefined && !PROJECT_KINDS.has(w.kind) && !DUAL_KINDS.includes(w.kind)) throw validation([`${w.id} : projects ne concerne que les widgets de recherche, de trackers, d'avancement, de charge, de feuille de route et de risques`]);
     }
     const stored = toGrid(input.widgets);
     checkGrid(stored);

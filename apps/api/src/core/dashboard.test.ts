@@ -140,12 +140,13 @@ describe('catalogue par rôle (T-0170)', () => {
   const svc = new DashboardService(null as unknown as Db);
   it('le développeur ne voit pas le pilotage ; le chef de projet et l’administrateur voient tout', () => {
     const kinds = (a: Actor) => svc.catalog(a).map((k) => k.kind);
-    expect(kinds(dev)).not.toContain('sprint-progress');
+    expect(kinds(dev)).toContain('sprint-progress'); // lecture seule de ce que le membre voit déjà (lot 27, O2)
+    expect(kinds(dev)).not.toContain('key-indicators');
     expect(kinds(dev)).not.toContain('health');
     expect(kinds(dev)).toEqual(expect.arrayContaining(['search', 'pipelines', 'quality', 'badges']));
-    expect(kinds(lead)).toContain('sprint-progress');
+    expect(kinds(lead)).toContain('key-indicators');
     // L'administrateur a en plus les deux cartes de portefeuille (lot 18).
-    expect(kinds({ id: 'a', roles: ['athena-admin'] }).filter((k) => !k.startsWith('portfolio-'))).toEqual(kinds(lead));
+    expect(kinds({ id: 'a', roles: ['athena-admin'] }).filter((k) => !k.startsWith('portfolio-') && k !== 'platform-ops')).toEqual(kinds(lead));
     // Le directeur accède aux tableaux de bord de pilotage ; le manager garde le catalogue d’un membre d’équipe.
     expect(kinds({ id: 'r', roles: ['athena-director', 'athena-team-member'] })).toContain('health');
     expect(kinds({ id: 'm', roles: ['athena-manager', 'athena-team-member'] })).not.toContain('health');
@@ -162,14 +163,14 @@ describe('catalogue par rôle (T-0170)', () => {
 });
 
 suite('refus d’un genre interdit (T-0170, intégration)', () => {
-  it('le développeur ne peut pas poser « Progression du sprint » (403) ; le chef de projet le peut', async () => {
+  it('le développeur ne peut pas poser « Santé du projet » (403) ; le chef de projet le peut', async () => {
     const testDb = await createTestDb('athena_test_dashboard2');
     try {
       const db = new Db(testDb.pool);
       const dash = new DashboardService(db);
       const org = crypto.randomUUID();
       await db.tx(org, (c) => c.query('insert into organization (id, key, name) values ($1,$2,$2)', [org, 'dash3']));
-      const widgets = [{ id: 'sp', kind: 'sprint-progress' as const, project: 'NOVA' }];
+      const widgets = [{ id: 'sp', kind: 'health' as const, project: 'NOVA' }];
       expect(await code(dash.put(org, { widgets }, { id: 'dev', roles: ['athena-team-member'] }))).toMatch(/^forbidden/);
       expect(await code(dash.put(org, { widgets }, { id: 'pm', roles: ['athena-pm'] }))).toBe('ok');
     } finally { await testDb.drop(); }
@@ -192,7 +193,7 @@ describe('portée de portefeuille (lot 18, B24)', () => {
 });
 
 suite('tableau de bord d’un portefeuille (intégration)', () => {
-  it('défaut tuiles puis tableau ; réservé au PMO et au directeur ; ces cartes ne se posent que dans un portefeuille', async () => {
+  it('défaut tuiles puis tableau ; réservé au PMO et au directeur ; les cartes de projet ne s’y posent pas', async () => {
     const testDb = await createTestDb('athena_test_dashboard_pf');
     try {
       const db = new Db(testDb.pool);
@@ -207,7 +208,8 @@ suite('tableau de bord d’un portefeuille (intégration)', () => {
       expect(await code(dash.get(org, dev, 'portfolio:spatial'))).toMatch(/^forbidden/);
       expect(await code(dash.put(org, { widgets: [{ id: 'h', kind: 'portfolio-health' }] }, pmo, 'portfolio:spatial'))).toBe('ok');
       expect((await dash.get(org, pmo, 'portfolio:spatial')).widgets.map((w) => w.kind)).toEqual(['portfolio-health']);
-      expect(await code(dash.put(org, { widgets: [{ id: 'h', kind: 'portfolio-health' }] }, pmo, ''))).toMatch(/^validation/);
+      expect(await code(dash.put(org, { widgets: [{ id: 'h', kind: 'portfolio-health', portfolio: 'spatial' }] }, pmo, ''))).toBe('ok'); // P11 : les cartes de portefeuille se posent aussi dans Mon travail
+      await dash.reset(org, pmo, '');
       expect(await code(dash.put(org, { widgets: [{ id: 'm', kind: 'mentions' }] }, pmo, 'portfolio:spatial'))).toMatch(/^validation/);
       expect((await dash.get(org, pmo, '')).isDefault).toBe(true); // l'accueil personnel est intact
     } finally { await testDb.drop(); }
@@ -268,6 +270,7 @@ suite('classeur à onglets du tableau de bord (intégration)', () => {
       expect((await dash.tabs(org, alice)).slice(0, 2)).toEqual([{ id: '', title: 'Au quotidien' }, { id: 'qualite-risques-2', title: 'Qualité risques' }]);
       expect((await dash.tabs(org, alice, 'NOVA'))[0]!.title).toBeNull();
       expect(await code(dash.deleteTab(org, alice, '', ''))).toMatch(/^validation/);
+      expect((await dash.createTab(org, alice, 'DELTA', 'Main')).id).toBe('main-2'); // « main » est réservé à l'onglet principal dans les adresses
       for (let i = 0; i < 6; i++) await dash.createTab(org, alice, '', `Onglet ${i}`);
       expect(await code(dash.createTab(org, alice, '', 'De trop'))).toMatch(/^validation/);
       // les onglets d'un tableau de bord de portefeuille restent réservés à ses rôles
