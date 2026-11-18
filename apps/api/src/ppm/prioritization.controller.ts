@@ -6,6 +6,7 @@ import { EarnedValueService } from './earned-value.service';
 import { FeatureGuard, RequiresFeature } from './feature.service';
 import { ConvertInput, RefuseInput, RequestService } from './request.service';
 import { ScenarioInput, ScenarioService } from './scenario.service';
+import { ObjectiveInput, ObjectiveLinkInput, ObjectiveService } from './objective.service';
 import { ModelInput, ScoreInput, ScoringService } from './scoring.service';
 
 const READERS = ['athena-admin', 'athena-pmo', 'athena-pm', 'athena-director'] as const;
@@ -19,7 +20,32 @@ export class PrioritizationController {
   constructor(
     @Inject(ScoringService) private readonly scoring: ScoringService, @Inject(RequestService) private readonly requests: RequestService,
     @Inject(ScenarioService) private readonly scenarios: ScenarioService, @Inject(EarnedValueService) private readonly earned: EarnedValueService, @Inject(OrgResolver) private readonly orgs: OrgResolver,
+    @Inject(ObjectiveService) private readonly objectives: ObjectiveService,
   ) {}
+
+  @Roles(...READERS)
+  @Get('portfolios/:key/objectives')
+  async objectiveFlow(@Req() request: AuthedRequest, @Param('key') key: string) {
+    return this.objectives.flow((await this.orgs.resolve(request.principal!)).organizationId, key);
+  }
+
+  @Roles(...PMO)
+  @Post('objectives')
+  @HttpCode(204)
+  @BodySchema(ObjectiveInput)
+  async objective(@Req() request: AuthedRequest, @Body() body: unknown) {
+    const { organizationId, actor } = await this.orgs.resolve(request.principal!);
+    await this.objectives.upsert(organizationId, parseBody(ObjectiveInput, body), actor);
+  }
+
+  @Roles(...PMO)
+  @Post('objectives/:key/projects')
+  @HttpCode(204)
+  @BodySchema(ObjectiveLinkInput)
+  async objectiveLink(@Req() request: AuthedRequest, @Param('key') key: string, @Body() body: unknown) {
+    const { organizationId, actor } = await this.orgs.resolve(request.principal!);
+    await this.objectives.link(organizationId, key, parseBody(ObjectiveLinkInput, body), actor);
+  }
 
   @Roles(...READERS)
   @Get('portfolios/:key/ranking')

@@ -17,6 +17,7 @@ import { DecisionService } from './decision.service';
 import { AlertService } from './alert.service';
 import { CachedKpiService } from './kpi-cache.service';
 import { PrioritizationController } from './prioritization.controller';
+import { ObjectiveService } from './objective.service';
 import { ScoringService } from './scoring.service';
 import { RequestService } from './request.service';
 import { ScenarioService } from './scenario.service';
@@ -71,6 +72,7 @@ import { TeamService } from './team.service';
     { provide: FinanceService, useFactory: (db: Db) => new FinanceService(db), inject: [Db] },
     { provide: DecisionService, useFactory: (db: Db, f: FinanceService) => new DecisionService(db, f), inject: [Db, FinanceService] },
     { provide: AlertService, useFactory: (db: Db, g: GovernanceService, s: SnapshotService, f: FinanceService, c: CapacityService) => new AlertService(db, (o, k) => g.gates(o, k), s, f, c), inject: [Db, GovernanceService, SnapshotService, FinanceService, CapacityService] },
+    { provide: ObjectiveService, useFactory: (db: Db) => new ObjectiveService(db), inject: [Db] },
     { provide: ScoringService, useFactory: (db: Db) => new ScoringService(db), inject: [Db] },
     { provide: RequestService, useFactory: (db: Db, t: TemplateService) => new RequestService(db, t), inject: [Db, TemplateService] },
     {

@@ -6,6 +6,7 @@ import { useFailure } from '../hooks';
 import { fr } from '../i18n';
 
 interface Criterion { key: string; label: string; weight: number; scaleMin: number; scaleMax: number; direction: 'higher' | 'lower' }
+interface ObjectiveFlow { objectives: Array<{ key: string; name: string }>; projects: string[]; links: Array<{ objective: string; project: string; weight: number }>; unlinked: string[] }
 interface Ranked { key: string; project: string; title: string; score: number | null; completeness: number; incomplete: boolean; contributions: Array<{ criterion: string; points: number }>; converted: 'converted' | 'refused' | null; decisionDays?: number | null }
 interface Ranking { model: { version: number; criteria: Criterion[] } | null; requests: Ranked[] }
 interface ScenarioItem { id: string; name: string; author: string; changeCount: number }
@@ -60,9 +61,12 @@ export function PrioritizationPanel({ portfolio, canEdit, canSeeFinance }: { por
   const [shift, setShift] = useState({ name: '', ticket: '', days: '5' });
   const [model, setModel] = useState('');
   const [compare, setCompare] = useState<string[]>([]);
+  const [flow, setFlow] = useState<ObjectiveFlow | null>(null);
+  const [obj, setObj] = useState({ key: '', name: '', objective: '', project: '', weight: '1' });
   const [conv, setConv] = useState({ ticket: '', project: '', name: '', template: '' });
   const load = useCallback(() => {
     api<Ranking>('GET', `/v1/portfolios/${portfolio}/ranking`).then((r) => setRanking(r && Array.isArray(r.requests) ? r : null)).catch(() => setRanking(null));
+    api<ObjectiveFlow>('GET', `/v1/portfolios/${portfolio}/objectives`).then((r) => setFlow(r && Array.isArray(r.links) ? r : null)).catch(() => setFlow(null));
     api<ScenarioItem[]>('GET', `/v1/portfolios/${portfolio}/scenarios`).then((r) => setScenarios(Array.isArray(r) ? r : [])).catch(() => setScenarios([]));
     if (canSeeFinance) api<{ rows: Ev[] }>('GET', `/v1/portfolios/${portfolio}/earned-value`).then((r) => setEv(Array.isArray(r?.rows) ? r.rows : null)).catch(() => setEv(null));
   }, [portfolio, canSeeFinance]);
@@ -97,6 +101,14 @@ export function PrioritizationPanel({ portfolio, canEdit, canSeeFinance }: { por
   const createScenario = async (e: FormEvent) => {
     e.preventDefault();
     try { await api('POST', `/v1/portfolios/${portfolio}/scenarios`, { name: shift.name, changes: [{ kind: 'shift_ticket', ticket: shift.ticket.trim(), shiftDays: Number(shift.days) }] }); setShift({ name: '', ticket: '', days: '5' }); toast('success', t.scenarioSaved); load(); } catch (error) { fail(error); }
+  };
+  const saveObjective = async (e: FormEvent) => {
+    e.preventDefault();
+    try { await api('POST', '/v1/objectives', { key: obj.key.trim(), name: obj.name.trim() }); setObj({ ...obj, key: '', name: '' }); toast('success', t.objectiveSaved); load(); } catch (error) { fail(error); }
+  };
+  const linkObjective = async (e: FormEvent) => {
+    e.preventDefault();
+    try { await api('POST', `/v1/objectives/${obj.objective}/projects`, { project: obj.project.trim().toUpperCase(), weight: Number(obj.weight.replace(',', '.')) }); setObj({ ...obj, project: '' }); toast('success', t.objectiveLinked); load(); } catch (error) { fail(error); }
   };
   const evaluate = async (id: string) => { try { setEvaluation(await api<Evaluation>('GET', `/v1/portfolios/${portfolio}/scenarios/${id}/evaluate`)); } catch (error) { fail(error); } };
   const chart = ranking.requests.filter((r) => r.score !== null && r.contributions.length > 0);
@@ -150,6 +162,28 @@ export function PrioritizationPanel({ portfolio, canEdit, canSeeFinance }: { por
                 series={[{ name: t.valueAxis, data: pts.map((r) => r.contributions.find((c) => c.criterion === 'valeur')!.points) }, { name: t.riskAxis, data: pts.map((r) => r.contributions.find((c) => c.criterion === 'risque')!.points) }]} />
             ) : null;
           })()}
+          {flow && flow.links.length > 0 && (
+            <Chart type="sankey" title={t.flow} categories={[...flow.objectives.map((o) => o.name), ...flow.projects]}
+              series={[{ name: t.weight, data: [...flow.objectives.map((o) => flow.links.filter((l) => l.objective === o.key).reduce((n, l) => n + l.weight, 0)), ...flow.projects.map(() => 0)] }]}
+              links={flow.links.map((l) => ({ source: flow.objectives.find((o) => o.key === l.objective)!.name, target: l.project, value: l.weight }))} />
+          )}
+          {flow && flow.unlinked.length > 0 && <p>{t.unlinked(flow.unlinked.join(', '))}</p>}
+          {canEdit && (
+            <section aria-label={t.objectivesTitle}>
+              <h3 className="ath-subsection-title">{t.objectivesTitle}</h3>
+              <form className="ath-toolbar" onSubmit={(e) => void saveObjective(e)} aria-label={t.objectiveForm}>
+                <Field label={t.objectiveKey} mono value={obj.key} onChange={(e) => setObj({ ...obj, key: e.target.value })} required />
+                <Field label={t.objectiveName} value={obj.name} onChange={(e) => setObj({ ...obj, name: e.target.value })} required />
+                <Btn type="submit" size="sm" disabled={!obj.key || !obj.name}>{t.objectiveSave}</Btn>
+              </form>
+              <form className="ath-toolbar" onSubmit={(e) => void linkObjective(e)} aria-label={t.objectiveLinkForm}>
+                <Field label={t.objectiveKey} mono value={obj.objective} onChange={(e) => setObj({ ...obj, objective: e.target.value })} required />
+                <Field label={t.linkProject} mono value={obj.project} onChange={(e) => setObj({ ...obj, project: e.target.value })} required />
+                <Field label={t.weight} value={obj.weight} onChange={(e) => setObj({ ...obj, weight: e.target.value })} required />
+                <Btn type="submit" size="sm" disabled={!obj.objective || !obj.project || !obj.weight}>{t.objectiveLink}</Btn>
+              </form>
+            </section>
+          )}
           {ranking.requests.length > 0 && (
             <Chart type="bar" title={t.funnel} categories={[t.funnelAll, t.funnelScored, t.funnelConverted]}
               series={[{ name: t.requestsLabel, data: [ranking.requests.length, ranking.requests.filter((r) => r.score !== null).length, ranking.requests.filter((r) => r.converted === 'converted').length] }]} />
