@@ -15,7 +15,7 @@ Source : `docs/ppm/07-plan-livraison.md` § I9, B42. Rapport : `docs/ppm/verific
 | Écart | État |
 |---|---|
 | Mesure sous charge concurrente | Faite et corrigée : 50 lectures simultanées, P95 5,3 s avant lecture groupée, **196 ms** après |
-| Mesure sur disque SSD | Infaisable depuis le poste de développement (disque USB) ; à mesurer sur le serveur de recette |
+| Mesure sur disque SSD | **Faite** : la base des mesures est sur le SSD NVMe interne (volume Docker sur `C:`) ; une erreur antérieure de ce document la disait sur disque USB. Reste une mesure sur serveur dédié en recette, à titre de confirmation |
 | Job différé `capacite` | Inutile jusqu'à environ 1 500 personnes (1,5 à 2 s) ; seuil documenté |
 | Import de 100 000 lignes | Fait : 4,3 s après insertion par paquets |
 

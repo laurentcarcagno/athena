@@ -1,6 +1,6 @@
 # B42 : charge et dimensionnement du serveur (palier 2)
 
-Date : 2026-11-18. Mesure : `apps/api/src/ppm/portfolio-scale.test.ts` (`ATHENA_SCALE=1 pnpm vitest run src/ppm/portfolio-scale.test.ts --disable-console-intercept` dans `apps/api`). Jeu de données : **300 projets, 499 800 tickets (1 666 par projet, un tiers terminés), 1 000 personnes en 40 équipes, 1 000 allocations, budgets et réels par projet**, créé en 30 s (projets par les services, tickets par SQL). Machine de mesure : poste de développement Windows 11, PostgreSQL 16 en conteneur Docker, base sur disque USB (donc plus lent qu'un serveur à disque SSD local) ; une seule session cliente, sans charge concurrente.
+Date : 2026-11-18. Mesure : `apps/api/src/ppm/portfolio-scale.test.ts` (`ATHENA_SCALE=1 pnpm vitest run src/ppm/portfolio-scale.test.ts --disable-console-intercept` dans `apps/api`). Jeu de données : **300 projets, 499 800 tickets (1 666 par projet, un tiers terminés), 1 000 personnes en 40 équipes, 1 000 allocations, budgets et réels par projet**, créé en 30 s (projets par les services, tickets par SQL). Machine de mesure : poste de développement Windows 11, PostgreSQL 16 en conteneur Docker, base sur un volume Docker (WSL2) hébergé par le SSD NVMe interne du poste (vérifié : disque virtuel de Docker sur `C:`, volume `athena-dev_pgdata`) ; une seule session cliente, sans charge concurrente.
 
 ## Mesures (P50 et P95)
 
@@ -48,4 +48,4 @@ Correction faite le jour même : la lecture des indicateurs matérialisés se fa
 
 ## Reste à faire en recette
 
-Mesure sous charge concurrente, mesure sur disque SSD, jeu de données avec des trackers réalistes (20 champs), imports de 100 000 lignes de réels, purge des instantanés après un an.
+Jeu de données avec des trackers réalistes (20 champs), purge des instantanés après un an, mesure sur un serveur dédié avec plusieurs instances d'API (la mesure actuelle tourne sur un poste de développement à une seule instance, couche de virtualisation WSL2 comprise).
