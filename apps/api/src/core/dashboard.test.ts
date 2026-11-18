@@ -4,7 +4,7 @@ import { DomainError } from './errors';
 import { createTestDb, pgUp, type TestDb } from '../testing/harness';
 import { ROLES_KEY, withUserRole } from '../auth/auth.guard';
 import { DashboardController } from './dashboard.controller';
-import { DEFAULT_WIDGETS, DashboardService, ScopeSchema, WidgetSchema, allowedKinds, checkGrid, homeWidgetsFor, toGrid, type Widget } from './dashboard.service';
+import { DashboardService, ScopeSchema, WidgetSchema, allowedKinds, checkGrid, homeWidgetsFor, suggestedHomeWidgets, toGrid, type Widget } from './dashboard.service';
 
 // T-0122 : disposition personnelle du tableau de bord, défaut sans réglage, réinitialisation.
 
@@ -30,24 +30,12 @@ suite('tableau de bord personnel (intégration)', () => {
   }, 30_000);
   afterAll(async () => { await testDb?.drop(); });
 
-  it('donne la disposition par défaut sans réglage : l’utilisateur voit en plus ses tâches en retard', async () => {
-    const d = await dash.get(org, alice);
-    expect(d.isDefault).toBe(true);
-    expect(d.widgets.map((w) => w.id)).toEqual(['assigned', 'mylate', 'approvals', 'mentions', 'due', 'favorites', 'recents']);
-    expect(d.widgets.filter((w) => w.id !== 'mylate')).toMatchObject([...DEFAULT_WIDGETS]);
-    expect(d.widgets.find((w) => w.id === 'mylate')!.query).toBe('assignee = currentUser() AND late()');
-  });
-
-  it('selon le rôle : le chef de projet ouvre sur retards, chemin critique et risques ; l’assurance produit sur ses visas et écarts', async () => {
-    const pm = (await dash.get(org, { id: 'pm', roles: ['athena-pm', 'athena-team-member'] })).widgets;
-    expect(pm.map((w) => w.id)).toEqual(['assigned', 'late', 'critical', 'risks', 'approvals', 'mentions', 'due', 'favorites', 'recents']);
-    expect(pm.find((w) => w.id === 'late')!.query).toBe('late() ORDER BY dueDate');
-    const qa = (await dash.get(org, { id: 'qa', roles: ['athena-qa'] })).widgets;
-    expect(qa.map((w) => w.id)).toEqual(['approvals', 'mentions', 'ncr', 'rid', 'favorites', 'recents']);
-    expect((await dash.get(org, { id: 'qa2', roles: ['athena-qa', 'athena-team-member'] })).widgets.map((w) => w.id)).toEqual(['approvals', 'mentions', 'ncr', 'rid', 'favorites', 'recents']); // rôle effectif
-    expect((await dash.get(org, { id: 'adm', roles: ['athena-admin', 'athena-team-member'] })).widgets.map((w) => w.id)).toContain('critical');
-    // toutes ces dispositions sont des requêtes ATQL valides, enregistrables telles quelles
-    for (const w of [...pm, ...qa]) expect(await code(dash.put(org, { widgets: [w] }, { id: 'probe', roles: ['athena-pm'] }))).toBe('ok');
+  it('l’accueil est vide par défaut pour tous les rôles, et reste enregistrable carte par carte', async () => {
+    for (const roles of [['athena-team-member'], ['athena-pm', 'athena-team-member'], ['athena-qa'], ['athena-admin', 'athena-team-member'], ['athena-director']]) {
+      expect(await dash.get(org, { id: 'r', roles })).toEqual({ widgets: [], isDefault: true });
+    }
+    // les dispositions suggérées par rôle (à définir plus tard) restent des requêtes ATQL valides
+    for (const roles of [['athena-pm'], ['athena-qa'], ['athena-team-member']]) for (const w of suggestedHomeWidgets(roles)) expect(await code(dash.put(org, { widgets: [w] }, { id: 'probe', roles: ['athena-pm'] }))).toBe('ok');
   });
 
   it('enregistre, relit, réordonne, reste personnelle et propre à l’organisation, se réinitialise', async () => {
@@ -170,7 +158,7 @@ describe('catalogue par rôle (T-0170)', () => {
   it('les dispositions par défaut de chaque rôle sont posables par ce rôle et sans chevauchement', () => {
     for (const a of [dev, lead, { id: 'r', roles: ['athena-director', 'athena-team-member'] }, { id: 'm', roles: ['athena-manager', 'athena-team-member'] }, { id: 'q', roles: ['athena-qa'] }, { id: 'a', roles: ['athena-admin'] }]) {
       const allowed = new Set(allowedKinds(a.roles));
-      const grid = toGrid(homeWidgetsFor(a.roles));
+      const grid = toGrid(suggestedHomeWidgets(a.roles));
       expect(grid.every((w) => allowed.has(w.kind))).toBe(true);
       expect(() => checkGrid(grid)).not.toThrow();
     }

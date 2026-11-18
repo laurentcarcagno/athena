@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
+import { seedSevenCards } from './dashboard-seed';
 
 const axeSource = readFileSync(join(process.cwd(), 'node_modules/axe-core/axe.min.js'), 'utf8');
 
@@ -32,8 +33,9 @@ async function layoutOf(page: Page): Promise<{ isDefault: boolean; boxes: Record
 }
 
 // T-0122 (ADR-0003 § 2.1) : tableau de bord personnel, disposition par défaut sans réglage, puis personnalisation durable.
-test('tableau de bord : disposition par défaut, masquer et réordonner survivent au rechargement, réinitialiser la rétablit', async ({ page }) => {
+test('tableau de bord : masquer et réordonner survivent au rechargement, réinitialiser vide l’accueil', async ({ page }) => {
   await login(page, 'user.dev', 'dev-only-user');
+  await seedSevenCards(page);
   await page.goto('/me');
   // Toutes les cartes de la disposition (une carte vide est résumée dans « Rien d'urgent » mais reste dans la grille, T-0153).
   const groups = page.locator('section[aria-label="Tableau de bord"] .ath-dashcard');
@@ -41,7 +43,7 @@ test('tableau de bord : disposition par défaut, masquer et réordonner surviven
   await expect(groups).toHaveCount(7);
   expect(await titles()).toEqual([...TITLES].sort());
   const initial = await layoutOf(page);
-  expect(initial.isDefault).toBe(true);
+  expect(initial.isDefault).toBe(false);
   expect(Object.keys(initial.boxes)).toHaveLength(7);
   const assigned = initial.boxes.assigned!;
 
@@ -76,10 +78,9 @@ test('tableau de bord : disposition par défaut, masquer et réordonner surviven
   await page.getByRole('button', { name: 'Organiser' }).click();
   await page.getByRole('button', { name: 'Rétablir la disposition par défaut' }).click();
   await page.getByRole('dialog').getByRole('button', { name: 'Réinitialiser' }).click();
-  await expect(groups).toHaveCount(7);
-  expect(await layoutOf(page)).toEqual(initial);
+  await expect(groups).toHaveCount(0); // l'accueil par défaut est vide
+  expect((await layoutOf(page)).isDefault).toBe(true);
   await page.reload();
-  await expect(groups).toHaveCount(7);
-  expect(await titles()).toEqual([...TITLES].sort());
-  expect(await layoutOf(page)).toEqual(initial); // la disposition par défaut est rétablie, position par position
+  await expect(groups).toHaveCount(0);
+  expect(await layoutOf(page)).toEqual({ isDefault: true, boxes: {} });
 });

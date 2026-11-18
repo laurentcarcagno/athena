@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { seedSevenCards } from './dashboard-seed';
 
 /** Lot 11 (ADR-0005) : parcours corrigés après l'audit d'ergonomie. */
 async function login(page: Page, user = 'admin.dev', password = 'dev-only-admin') {
@@ -118,17 +119,18 @@ test('recherche simple : un mot trouve le ticket, une clé ouvre sa fiche (T-014
 test('Organiser : glisser une carte et changer sa largeur, retrouvés au rechargement (T-0154)', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1500 }); // les sept cartes tiennent à l'écran : glisser exige source et cible visibles
   await login(page, 'user.dev', 'dev-only-user');
+  await seedSevenCards(page);
   await page.goto('/');
   const cards = page.locator('section[aria-label="Tableau de bord"] .ath-dashcard');
   const card = (name: string) => page.locator(`section[aria-label="Tableau de bord"] .ath-dashcard[aria-label="${name}"]`);
   const layout = async () => {
     const r = await (await page.request.get('/v1/me/dashboard')).json() as { isDefault: boolean; widgets: Array<{ id: string; x: number; y: number; w: number; h: number }> };
-    const pick = (id: string) => { const { x, y, w, h } = r.widgets.find((c) => c.id === id)!; return { x, y, w, h }; };
+    const pick = (id: string) => { const found = r.widgets.find((c) => c.id === id); return found ? { x: found.x, y: found.y, w: found.w, h: found.h } : null; };
     return { isDefault: r.isDefault, recents: pick('recents') };
   };
   await expect(cards).toHaveCount(7);
   const before = await layout();
-  expect(before.isDefault).toBe(true);
+  expect(before.isDefault).toBe(false);
   await page.getByRole('button', { name: 'Organiser' }).click();
   await card('Récents').dragTo(card('Mes tickets'));
   await page.getByRole('button', { name: 'Réglages de Récents' }).click();
@@ -140,7 +142,7 @@ test('Organiser : glisser une carte et changer sa largeur, retrouvés au recharg
     return { x: n(/ath-gx-(\d+)/) - 1, y: n(/ath-gy-(\d+)/) - 1, w: n(/ath-gw-(\d+)/) };
   });
   expect(drafted.w).toBe(8); // taille L : 8 colonnes sur 12
-  expect([drafted.x, drafted.y]).not.toEqual([before.recents.x, before.recents.y]); // la carte a bougé
+  expect([drafted.x, drafted.y]).not.toEqual([before.recents!.x, before.recents!.y]); // la carte a bougé
   await page.getByRole('button', { name: 'Enregistrer' }).click(); // rien n'est enregistré avant « Enregistrer » (ADR-0007)
   await expect(page.getByRole('button', { name: 'Organiser' })).toBeVisible();
   const saved = await layout();
@@ -154,10 +156,10 @@ test('Organiser : glisser une carte et changer sa largeur, retrouvés au recharg
   await page.getByRole('button', { name: 'Rétablir la disposition par défaut' }).click();
   await page.getByRole('dialog').getByRole('button', { name: 'Réinitialiser' }).click();
   await expect(page.getByRole('dialog')).toBeHidden();
-  await expect(cards).toHaveCount(7);
+  await expect(cards).toHaveCount(0); // l'accueil par défaut est vide
   // La réinitialisation est faite côté serveur : on attend qu'elle soit lue, sans supposer son instant.
   await expect.poll(async () => (await layout()).isDefault).toBe(true);
-  expect((await layout()).recents).toEqual(before.recents);
+
 });
 
 test('carte graphique : ajouter un anneau des tickets par statut, puis le retirer (T-0156)', async ({ page }) => {

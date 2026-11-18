@@ -102,7 +102,7 @@ export const defaultProgressWidgets = (project: string): Widget[] => [
  * et les risques ouverts ; un utilisateur ses tâches en retard ; l'assurance produit (lecture et visa) ses visas, mentions et
  * écarts à suivre. Chacun peut ensuite réorganiser, retirer ou ajouter ces cartes.
  */
-export const homeWidgetsFor = (roles: readonly string[]): Widget[] => {
+export const suggestedHomeWidgets = (roles: readonly string[]): Widget[] => {
   const manager = ['athena-admin', 'athena-pmo', 'athena-pm', 'athena-director'].some((r) => roles.includes(r));
   const qaOnly = roles.includes('athena-qa') && !manager; // l'assurance produit a aussi les droits d'un utilisateur (rôle effectif), son accueil reste le sien
   if (qaOnly) {
@@ -125,6 +125,11 @@ export const homeWidgetsFor = (roles: readonly string[]): Widget[] => {
   out.splice(after, 0, ...extra);
   return out;
 };
+/**
+ * Disposition initiale de l'accueil : vide pour tous les rôles ; chacun compose ses onglets avec Organiser. Les dispositions
+ * par rôle ci-dessus (`suggestedHomeWidgets`) sont conservées pour les définir plus tard.
+ */
+export const homeWidgetsFor = (_roles: readonly string[]): Widget[] => [];
 /** Disposition initiale du tableau de bord d'un portefeuille : les tuiles de la vue direction puis le tableau de santé. */
 export const defaultPortfolioWidgets = (): Widget[] => [
   { id: 'portfolio-tiles', kind: 'portfolio-tiles', size: 'XL', h: 2 },
