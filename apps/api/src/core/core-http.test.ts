@@ -245,6 +245,23 @@ suite('API REST du noyau', () => {
     expect((await addField(pm, 'e3')).statusCode).toBe(403); // plus responsable : refusé de nouveau
   });
 
+  it('administrateur de tracker : configure ce tracker seulement, désigné et révoqué par le chef du projet', async () => {
+    const member = await token(['athena-team-member']); // même sujet que le chef de projet des essais précédents (u-test)
+    const admin = await token(['athena-admin']);
+    const addField = (jwt: string, key: string, tracker = 'BUG') => call('POST', `/v1/projects/ARI/trackers/${tracker}/fields`, jwt, { key, label: 'Champ', type: 'text' });
+    expect((await addField(member, 'd0')).statusCode).toBe(403); // simple membre : refusé
+    expect((await call('PUT', '/v1/projects/ARI/trackers/BUG/admins/u-test', member)).statusCode).toBe(403); // un membre ne désigne personne
+    expect((await call('PUT', '/v1/projects/ARI/trackers/BUG/admins/u-test', admin)).statusCode).toBe(204);
+    expect((await call('GET', '/v1/projects/ARI/trackers/BUG/admins', member)).json()).toEqual([expect.objectContaining({ subject: 'u-test' })]);
+    expect((await addField(member, 'd1')).statusCode).toBeLessThan(300); // administrateur du tracker BUG : autorisé
+    expect((await call('PATCH', '/v1/projects/ARI/trackers/BUG/fields/d1', member, { label: 'Renommé' })).statusCode).toBe(204);
+    expect((await call('POST', '/v1/projects/ARI/trackers/BUG/statuses', member, { key: 'revu', name: 'Revu', category: 'in_progress' })).statusCode).toBeLessThan(300);
+    expect((await call('POST', '/v1/projects/ARI/baselines', member, { name: 'B9' })).statusCode).toBe(403); // pas chef de projet : le reste du projet lui reste fermé
+    expect((await call('DELETE', '/v1/projects/ARI/trackers/BUG/admins/u-test', admin)).statusCode).toBe(204);
+    expect((await addField(member, 'd2')).statusCode).toBe(403); // révoqué : refusé de nouveau
+    expect((await call('PUT', '/v1/projects/ARI/trackers/BUG/admins/inconnu', admin)).statusCode).toBe(404);
+  });
+
   it("isole les organisations : l'autre organisation ne voit rien", async () => {
     const other = await token(['athena-team-member'], ['/org-autre']);
     expect((await call('GET', '/v1/projects/ARI/artifacts/ARI-BUG-0001', other)).statusCode).toBe(404);

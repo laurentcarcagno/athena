@@ -21,7 +21,12 @@ export function TrackerConfigPage({ session }: { session: Session }) {
   const fail = useFailure();
   const confirm = useConfirm();
   // Configuration du tracker : administrateur ou chef de projet (le serveur vérifie qu'il est responsable de ce projet).
-  const admin = useProjectManager(project, session);
+  const manager = useProjectManager(project, session);
+  // Administrateur désigné de ce tracker : il configure ce tracker (le serveur vérifie), sans être chef du projet (plan § 15.3).
+  const [trackerAdmins, setTrackerAdmins] = useState<Array<{ subject: string; name: string | null }>>([]);
+  const [people, setPeople] = useState<Array<{ subject: string; displayName: string }>>([]);
+  const [newAdmin, setNewAdmin] = useState('');
+  const admin = manager || trackerAdmins.some((a) => a.subject === session.user?.id);
   const [def, setDef] = useState<TrackerDefinition | null>(null);
   const [types, setTypes] = useState<string[]>([]);
   const [layout, setLayout] = useState<Layout | null>(null);
@@ -47,6 +52,17 @@ export function TrackerConfigPage({ session }: { session: Session }) {
     } catch (error) { fail(error); }
   };
   useEffect(() => { reload().catch(fail); }, [reload, fail]);
+  const loadAdmins = useCallback(() => {
+    api<Array<{ subject: string; name: string | null }>>('GET', `${base}/admins`).then((r) => setTrackerAdmins(Array.isArray(r) ? r : [])).catch(() => setTrackerAdmins([]));
+  }, [base]);
+  useEffect(loadAdmins, [loadAdmins]);
+  useEffect(() => { if (manager) api<Array<{ subject: string; displayName: string }>>('GET', `/v1/projects/${project}/members`).then((r) => setPeople(Array.isArray(r) ? r : [])).catch(() => setPeople([])); }, [manager, project]);
+  const grantAdmin = async () => {
+    try { await api('PUT', `${base}/admins/${encodeURIComponent(newAdmin)}`); setNewAdmin(''); toast('success', fr.config.adminAdded); loadAdmins(); } catch (error) { fail(error); }
+  };
+  const revokeAdmin = async (subject: string) => {
+    try { await api('DELETE', `${base}/admins/${encodeURIComponent(subject)}`); /* sans confirmation : réversible (la désignation se refait) */ toast('success', fr.config.adminRemoved); loadAdmins(); } catch (error) { fail(error); }
+  };
   useEffect(() => { if (admin) api<TrackerTypeEntry[]>('GET', '/v1/tracker-types').then((t) => setTrackerTypes(Array.isArray(t) ? t : [])).catch(() => undefined); }, [admin]);
   const saveType = async (typeKey: string) => {
     try { await api('PATCH', `${base}/type`, { typeKey: typeKey || null }); toast('success', fr.types.typeSaved); await reload(); } catch (error) { fail(error); }
@@ -125,6 +141,27 @@ export function TrackerConfigPage({ session }: { session: Session }) {
         </div>
       )}
       <div className="ath-stack">
+        {(manager || trackerAdmins.length > 0) && (
+          <Card title={fr.config.trackerAdmins} meta={String(trackerAdmins.length)}>
+            <div className="ath-stack">
+              <p>{fr.config.trackerAdminsHelp}</p>
+              {trackerAdmins.length === 0 ? <p>{fr.config.noTrackerAdmin}</p> : (
+                <Table caption={fr.config.trackerAdminsCaption(trackerAdmins.length)}>
+                  <thead><tr><Th>{fr.config.person}</Th>{manager && <Th>{fr.config.remove}</Th>}</tr></thead>
+                  <tbody>{trackerAdmins.map((a) => (
+                    <tr key={a.subject}><Td>{a.name ?? a.subject}</Td>{manager && <Td><Btn size="sm" variant="ghost" aria-label={`${fr.config.remove} ${a.name ?? a.subject}`} onClick={() => void revokeAdmin(a.subject)}>{fr.config.remove}</Btn></Td>}</tr>
+                  ))}</tbody>
+                </Table>
+              )}
+              {manager && (
+                <div className="ath-toolbar">
+                  <label className="ath-notify__pref">{fr.config.person}<Select value={newAdmin} onChange={(e) => setNewAdmin(e.target.value)}><option value="" />{people.filter((p) => !trackerAdmins.some((a) => a.subject === p.subject)).map((p) => <option key={p.subject} value={p.subject}>{p.displayName}</option>)}</Select></label>
+                  <Btn size="sm" disabled={!newAdmin} onClick={() => void grantAdmin()}>{fr.config.designate}</Btn>
+                </div>
+              )}
+            </div>
+          </Card>
+        )}
         <Card title={fr.config.fields} meta={String(def.fields.length)}>
           <Table>
             <thead><tr><Th>{fr.config.key}</Th><Th>{fr.config.label}</Th><Th>{fr.config.type}</Th><Th>{fr.config.required}</Th><Th>{fr.suspicion.column}</Th><Th>{fr.config.roles}</Th>{admin && <Th>{fr.config.edit}</Th>}{admin && <Th>{fr.config.remove}</Th>}</tr></thead>

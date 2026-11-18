@@ -146,6 +146,28 @@ describe('éditeur de tracker', () => {
     await waitFor(() => expect(calls.find((c) => c.method === 'PATCH' && c.url.endsWith('/fields/env'))?.body).toEqual({ label: 'Environnement', required: true, readRoles: null, writeRoles: ['athena-pm', 'athena-admin'] }));
   });
 
+  it('administrateur désigné du tracker : la configuration lui est ouverte (sans la désignation d’autres personnes) ; un autre membre reste refusé', async () => {
+    const delegated = { ...simple, user: { ...simple.user!, id: 'sub-bob' } } as Session;
+    handlers = [...base(), on('GET', /\/trackers\/BUG\/admins$/, { body: [{ subject: 'sub-bob', name: 'Bob' }] }), on('POST', /\/fields$/, { status: 201, body: {} })];
+    wrap('/p/ARI/trackers/BUG/config', <TrackerConfigPage session={delegated} />, '/p/:project/trackers/:tracker/config');
+    expect(await screen.findByRole('heading', { level: 1, name: /Configuration du tracker · BUG/ })).toBeInTheDocument();
+    const fields = screen.getByRole('heading', { name: 'Champs' }).closest('section')!;
+    await userEvent.type(within(fields).getByLabelText('Clé'), 'cause');
+    await userEvent.type(within(fields).getByLabelText('Libellé'), 'Cause');
+    await userEvent.click(within(fields).getByRole('button', { name: 'Ajouter' }));
+    await waitFor(() => expect(calls.find((c) => c.url.endsWith('/fields'))?.body).toMatchObject({ key: 'cause', label: 'Cause' }));
+    const admins = screen.getByRole('heading', { name: 'Administrateurs du tracker' }).closest('section')!;
+    expect(within(admins).getByText('Bob')).toBeInTheDocument();
+    expect(within(admins).queryByRole('button', { name: 'Désigner' })).toBeNull(); // seul le chef du projet désigne
+  });
+
+  it('un membre qui n’est pas désigné ne voit pas les formulaires de configuration', async () => {
+    handlers = [...base(), on('GET', /\/trackers\/BUG\/admins$/, { body: [{ subject: 'sub-autre', name: 'Autre' }] })];
+    wrap('/p/ARI/trackers/BUG/config', <TrackerConfigPage session={{ ...simple, user: { ...simple.user!, id: 'sub-bob' } } as Session} />, '/p/:project/trackers/:tracker/config');
+    expect(await screen.findByRole('heading', { level: 1, name: /Configuration du tracker · BUG/ })).toBeInTheDocument();
+    expect(screen.queryByLabelText('Clé')).toBeNull();
+  });
+
   it('ajoute un champ, un statut et une transition (administrateur)', async () => {
     handlers = [...base(), on('POST', /\/fields$/, { status: 201, body: {} }), on('POST', /\/statuses$/, { status: 201, body: {} }), on('POST', /\/transitions$/, { status: 201, body: {} })];
     wrap('/p/ARI/trackers/BUG/config', <TrackerConfigPage session={admin} />, '/p/:project/trackers/:tracker/config');

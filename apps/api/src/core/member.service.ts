@@ -52,6 +52,42 @@ export class MemberService {
     });
   }
 
+  /**
+   * Configuration d'un tracker : administrateur, chef du projet, ou administrateur désigné de ce tracker (plan § 15.3, administration déléguée).
+   * Un administrateur de tracker ne configure que les trackers où il est désigné.
+   */
+  async requireTrackerAdmin(organizationId: string, projectKey: string, trackerKey: string, actor: Actor): Promise<void> {
+    if (actor.roles.includes('athena-admin')) return;
+    if (actor.roles.includes('athena-pm')) { try { await this.requireManager(organizationId, projectKey, actor); return; } catch { /* repli : administrateur de tracker */ } }
+    const ok = await this.db.tx(organizationId, async (c) => (await c.query(
+      `select 1 from tracker_admin ta join tracker t on t.id = ta.tracker_id join project p on p.id = t.project_id where p.key = $1 and t.key = $2 and ta.subject = $3`, [projectKey, trackerKey, actor.id])).rows[0], { system: true });
+    if (!ok) throw forbidden(`Réservé aux administrateurs du tracker ${trackerKey}, aux chefs du projet et aux administrateurs.`);
+  }
+
+  async trackerAdmins(organizationId: string, projectKey: string, trackerKey: string): Promise<Array<{ subject: string; name: string | null; grantedAt: string }>> {
+    return this.db.tx(organizationId, async (c) => (await c.query(
+      `select ta.subject, u.display_name as name, ta.granted_at from tracker_admin ta join tracker t on t.id = ta.tracker_id join project p on p.id = t.project_id
+         left join user_account u on u.subject = ta.subject and u.organization_id = ta.organization_id where p.key = $1 and t.key = $2 order by ta.granted_at`, [projectKey, trackerKey])).rows
+      .map((r) => ({ subject: r.subject as string, name: (r.name as string | null) ?? null, grantedAt: new Date(r.granted_at).toISOString() })), { system: true });
+  }
+
+  async grantTrackerAdmin(organizationId: string, projectKey: string, trackerKey: string, subject: string, actor: Actor): Promise<void> {
+    await this.db.tx(organizationId, async (c) => {
+      const t = (await c.query('select t.id from tracker t join project p on p.id = t.project_id where p.key = $1 and t.key = $2', [projectKey, trackerKey])).rows[0];
+      if (!t) throw notFound(`Tracker ${trackerKey}`);
+      if (!(await c.query('select 1 from user_account where subject = $1', [subject])).rows[0]) throw notFound('Utilisateur');
+      await c.query('insert into tracker_admin (tracker_id, organization_id, subject, granted_by) values ($1,$2,$3,$4) on conflict do nothing', [t.id, organizationId, subject, actor.id]);
+      await audit(c, organizationId, actor, 'tracker.admin.grant', `tracker:${projectKey}/${trackerKey}`, { subject });
+    }, { system: true });
+  }
+
+  async revokeTrackerAdmin(organizationId: string, projectKey: string, trackerKey: string, subject: string, actor: Actor): Promise<void> {
+    await this.db.tx(organizationId, async (c) => {
+      await c.query('delete from tracker_admin ta using tracker t, project p where ta.tracker_id = t.id and t.project_id = p.id and p.key = $1 and t.key = $2 and ta.subject = $3', [projectKey, trackerKey, subject]);
+      await audit(c, organizationId, actor, 'tracker.admin.revoke', `tracker:${projectKey}/${trackerKey}`, { subject });
+    }, { system: true });
+  }
+
   /** Autorise un administrateur, ou un chef de projet (rôle athena-pm) désigné `manager` du projet. */
   async requireManager(organizationId: string, projectKey: string, actor: Actor): Promise<void> {
     if (actor.roles.includes('athena-admin')) return;
