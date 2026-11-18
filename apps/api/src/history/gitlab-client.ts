@@ -122,7 +122,7 @@ export class GitLabClient {
 
   async compare(projectId: number, from: string, to: string) {
     const query = new URLSearchParams({ from, to, straight: 'true' });
-    return this.json<{ diffs: Array<{ old_path: string; new_path: string; new_file: boolean; deleted_file: boolean }> }>(
+    return this.json<{ commits?: Array<{ id: string; message: string }>; diffs: Array<{ old_path: string; new_path: string; new_file: boolean; deleted_file: boolean }> }>(
       await this.request('GET', `/projects/${projectId}/repository/compare?${query.toString()}`),
       'comparaison',
     );

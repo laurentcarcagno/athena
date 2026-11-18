@@ -9,6 +9,8 @@ import { FieldTypeRegistry } from './core/field-types';
 import { LinkService } from './core/link.service';
 import { TrackerService } from './core/tracker.service';
 import { GitLabClient } from './history/gitlab-client';
+import { ReconcileService } from './history/reconcile';
+import { ReverseSync } from './history/reverse-sync';
 import { HistorySync } from './history/history-sync';
 import { ConfidentialFields } from './secrets/confidential';
 import { OpenBao, tokenSourceFromEnv } from './secrets/openbao';
@@ -84,6 +86,10 @@ const registry = new FieldTypeRegistry(); // types natifs : les types de champ d
 const artifactService = new ArtifactService(db, new TrackerService(db, registry), registry);
 const automation = new AutomationService(db, artifactService, new LinkService(db), new SearchService(db));
 
+const reconcile = env.GITLAB_URL && env.GITLAB_TOKEN && env.GITLAB_NAMESPACE
+  ? (() => { const gitlab = new GitLabClient(env.GITLAB_URL, env.GITLAB_TOKEN); return new ReconcileService(pool, gitlab, env.GITLAB_NAMESPACE, new ReverseSync(pool, gitlab, env.GITLAB_NAMESPACE, artifactService, undefined, 'main', new ExportMarker(env.ATHENA_PROTECTION_LEVEL))); })()
+  : undefined;
+
 const plugins = new PluginService(db, registry, parseTrust(env.PLUGIN_TRUSTED_KEYS), { read: async () => null });
 
 const ppmSettings = new PpmSettingsService(db);
@@ -96,7 +102,7 @@ const digest = mailer ? new DigestService(db, { mailer, baseUrl: env.PUBLIC_URL,
 if (!digest) log('Résumé quotidien désactivé : SMTP non configuré (ou DIGEST_ENABLED=false) ; aucune connexion de messagerie ne sera ouverte.');
 
 const loops = buildWorkers(
-  { pool, weather: new WeatherReminderService(db, ppmSettings), snapshots: snapshotJobs, kpiCache, ...(digest ? { digest } : {}), ...(history ? { history } : {}), ...(webhooks ? { webhooks } : {}), automation, plugins, log },
+  { pool, weather: new WeatherReminderService(db, ppmSettings), snapshots: snapshotJobs, kpiCache, ...(reconcile ? { reconcile } : {}), ...(digest ? { digest } : {}), ...(history ? { history } : {}), ...(webhooks ? { webhooks } : {}), automation, plugins, log },
   { historyMs: env.HISTORY_INTERVAL_MS, webhooksMs: env.WEBHOOKS_INTERVAL_MS, sessionsMs: env.SESSIONS_INTERVAL_MS, digestMs: env.DIGEST_INTERVAL_MS },
 );
 const health = healthServer(loops, env.WORKER_HEALTH_PORT);

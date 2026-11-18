@@ -1,3 +1,4 @@
+import type { ReconcileService } from '../history/reconcile';
 import http from 'node:http';
 import type { Pool } from 'pg';
 import { PgSessionStore } from '../auth/session';
@@ -21,6 +22,7 @@ export interface WorkerDeps {
   weather?: WeatherReminderService;
   snapshots?: SnapshotJobService;
   kpiCache?: CachedKpiService;
+  reconcile?: ReconcileService;
   log?: (message: string) => void;
 }
 
@@ -95,6 +97,16 @@ export function buildWorkers(deps: WorkerDeps, intervals: { historyMs: number; w
       for (const { id } of organizations) sent += (await weather.run(id)) + (await weather.runDecisions(id));
       if (sent) deps.log?.(`météo: ${sent} rappel(s) émis`);
     }, options(3_600_000)));
+  }
+  if (deps.reconcile) {
+    const reconcile = deps.reconcile;
+    // Réconciliation GitLab (plan § 17.2) : les webhooks peuvent se perdre ; un passage toutes les dix minutes rejoue les commits externes manqués.
+    loops.push(new WorkerLoop('réconciliation', async () => {
+      const organizations = (await deps.pool.query('select list_organization_ids() as id')).rows as Array<{ id: string }>;
+      let replayed = 0; let failed = 0;
+      for (const { id } of organizations) for (const r of await reconcile.reconcileOrganization(id)) { if (r.outcome === 'replayed') replayed += 1; if (r.outcome === 'failed') failed += 1; }
+      if (replayed || failed) deps.log?.(`réconciliation: ${replayed} projet(s) rejoué(s), ${failed} échec(s)`);
+    }, options(600_000)));
   }
   if (deps.kpiCache) {
     const cache = deps.kpiCache;
