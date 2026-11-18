@@ -18,7 +18,7 @@ export class EventStreamService {
 
   connections(subject: string): number { return this.open.get(subject) ?? 0; }
 
-  stream(organizationId: string, subject: string): Observable<StreamEvent> {
+  stream(organizationId: string, subject: string, managedOnly = false): Observable<StreamEvent> {
     const intervalMs = this.options.intervalMs ?? 3000;
     const heartbeatMs = this.options.heartbeatMs ?? 25_000;
     return new Observable<StreamEvent>((subscriber) => {
@@ -47,7 +47,7 @@ export class EventStreamService {
                from outbox_event e join artifact a on a.id = e.aggregate_id join project p on p.id = a.project_id
               where e.type in ('artifact.created','artifact.updated','artifact.transitioned') and e.created_at > $1::timestamptz
               order by e.created_at limit 100`, [ticketCursor])).rows;
-        }, { subject });
+        }, { subject, managedOnly });
         if (rows.length === 0) return false;
         ticketCursor = String(rows[rows.length - 1].ts);
         for (const r of rows) subscriber.next({ type: 'ticket', data: { id: r.id, event: r.type, key: r.key, project: r.project, fields: r.fields } });

@@ -1,6 +1,7 @@
 import { Body, Controller, Delete, Get, HttpCode, Inject, Param, Post, Put, Query, Req, Sse, type MessageEvent } from '@nestjs/common';
 import { Observable, from, map, switchMap } from 'rxjs';
 import { EventStreamService } from './event-stream';
+import { isManagedOnly } from '../core/request-context';
 import { Roles, type AuthedRequest } from '../auth/auth.guard';
 import { OrgResolver, parseBody } from '../core/http';
 import { validation } from '../core/errors';
@@ -28,7 +29,7 @@ export class NotifyController {
   @Sse('me/events')
   stream(@Req() request: AuthedRequest): Observable<MessageEvent> {
     return from(this.orgs.resolve(request.principal!)).pipe(
-      switchMap(({ organizationId, actor }) => this.events.stream(organizationId, actor.id)),
+      switchMap(({ organizationId, actor }) => this.events.stream(organizationId, actor.id, isManagedOnly(request.principal!.roles))),
       map((e): MessageEvent => ({ type: e.type, data: e.data })),
     );
   }

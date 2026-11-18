@@ -1,5 +1,5 @@
 import type { Pool, PoolClient } from 'pg';
-import { currentSubject } from './request-context';
+import { currentManagedOnly, currentSubject } from './request-context';
 
 /**
  * Exécute `fn` dans une transaction avec l'organisation courante positionnée (RLS). Dans une requête authentifiée, le sujet
@@ -9,7 +9,7 @@ import { currentSubject } from './request-context';
 export class Db {
   constructor(private readonly pool: Pool) {}
 
-  async tx<T>(organizationId: string, fn: (client: PoolClient) => Promise<T>, options: { system?: boolean; subject?: string } = {}): Promise<T> {
+  async tx<T>(organizationId: string, fn: (client: PoolClient) => Promise<T>, options: { system?: boolean; subject?: string; managedOnly?: boolean } = {}): Promise<T> {
     const client = await this.pool.connect();
     try {
       await client.query('begin');
@@ -21,6 +21,12 @@ export class Db {
           `select coalesce(string_agg(p.id::text, ','), '') as ids from project p
            where exists (select 1 from artifact a where a.project_id = p.id and a.export_control is not null)
              and not exists (select 1 from export_control_member m where m.project_id = p.id and m.subject = $1)`, [subject])).rows[0].ids as string;
+        // chef de projet seul : liste blanche des projets dont il est responsable, calculée avant d'activer les politiques (sinon project_member se filtrerait lui-même)
+        const managedOnly = options.managedOnly ?? (options.subject === undefined && currentManagedOnly());
+        const only = managedOnly
+          ? 'x,' + ((await client.query(`select coalesce(string_agg(project_id::text, ','), '') as ids from project_member where subject = $1 and role = 'manager'`, [subject])).rows[0].ids as string)
+          : '';
+        await client.query("select set_config('app.only_projects', $1, true)", [only]);
         await client.query(
           `select set_config('app.subject', $1, true), set_config('app.denied_export', $2, true),
                   set_config('app.denied_projects', coalesce(string_agg(l.project_id::text, ',') filter (where l.tracker_id is null), ''), true),

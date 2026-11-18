@@ -97,11 +97,14 @@ function valueOf(field, n, ctx) {
   return undefined;
 }
 
-// ------------------------------------------------------------------ membres : pm.dev est chef de chaque projet (il peut donc modifier le planning), les autres comptes y sont membres
+// ------------------------------------------------------------------ membres : pm.dev n'est chef que de certains projets (un chef de projet ne voit que ceux dont il est responsable) ;
+// les autres comptes sont membres de tous. Les projets de pm.dev : LUMEN, SAT1, RADC, DRNT.
 const projects = ((await get('/v1/projects')) ?? []).map((p) => p.key);
+const PM_PROJECTS = ['LUMEN', 'SAT1', 'RADC', 'DRNT'];
 log('membres des projets');
 for (const project of projects) {
-  await call(A, 'PUT', `/v1/projects/${project}/members/${subs.pm}`, { role: 'manager' });
+  if (PM_PROJECTS.includes(project)) await call(A, 'PUT', `/v1/projects/${project}/members/${subs.pm}`, { role: 'manager' });
+  else await call(A, 'DELETE', `/v1/projects/${project}/members/${subs.pm}`);
   for (const who of ['user', 'qa', 'manager']) await call(A, 'PUT', `/v1/projects/${project}/members/${subs[who]}`, { role: 'member' });
 }
 
