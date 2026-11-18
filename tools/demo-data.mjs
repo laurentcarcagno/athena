@@ -97,8 +97,15 @@ function valueOf(field, n, ctx) {
   return undefined;
 }
 
-// ------------------------------------------------------------------ tickets
+// ------------------------------------------------------------------ membres : pm.dev est chef de chaque projet (il peut donc modifier le planning), les autres comptes y sont membres
 const projects = ((await get('/v1/projects')) ?? []).map((p) => p.key);
+log('membres des projets');
+for (const project of projects) {
+  await call(A, 'PUT', `/v1/projects/${project}/members/${subs.pm}`, { role: 'manager' });
+  for (const who of ['user', 'qa', 'manager']) await call(A, 'PUT', `/v1/projects/${project}/members/${subs[who]}`, { role: 'member' });
+}
+
+// ------------------------------------------------------------------ tickets
 const byProject = {}; // projet → tracker → { type, keys[], statuses }
 let created = 0;
 log(`tickets (${PER_TRACKER} par tracker)`);
