@@ -20,6 +20,15 @@ Date : 2026-11-18. Mesure : `apps/api/src/ppm/portfolio-scale.test.ts` (`ATHENA_
 - La lecture ne rend une ligne que si elle a moins de 15 minutes et seulement si le lecteur voit le projet (politique `acl_read`) ; sinon elle recalcule en direct. Les totaux de portefeuille restent calculés à la lecture sur les lignes visibles (§ 3.3).
 - Le calcul direct reste le repli et le mode du palier 1 (50 projets : P95 1,6 s, `B16-sante-palier1.md`).
 
+## Concurrence et import (mesurés le 2026-11-18)
+
+| Mesure | Résultat |
+|---|---|
+| 50 lectures simultanées du tableau de santé matérialisé (300 projets) | P50 5,3 s, P95 5,3 s, durée totale 5,3 s : les lectures se sérialisent (environ 106 ms chacune, soit 9 lectures par seconde et par instance) |
+| Import de 100 000 lignes de réels (insertion par paquets de 5 000) | 4,3 s, 100 000 enregistrées |
+
+La mesure de concurrence est le point faible : à 50 lecteurs simultanés, la dernière attend 5 s. Pistes, par ordre de gain : mettre en cache la réponse du tableau de santé par lecteur pendant quelques secondes, ou lire les lignes matérialisées en une seule requête au lieu d'une par projet (le portefeuille en enchaîne 300), ou répartir sur deux instances d'API. Non traitée dans ce lot ; consignée comme travail de recette.
+
 ## Limites constatées
 
 - **Capacité** : 1,5 à 2,0 s pour 1 000 personnes sur 12 mois. Au seuil de 2 s : au-delà de 1 500 personnes, ou à la semaine sur 12 mois, le job différé `capacite` (horaire, une ligne par personne et période) devient nécessaire. Le calcul reste linéaire en personnes × périodes.

@@ -165,7 +165,14 @@ export class FinanceService {
       }
       const batch = (await c.query('insert into import_batch (organization_id, file_name, sha256, rows_total, rows_imported, rows_rejected, imported_by) values ($1,$2,$3,$4,$5,$6,$7) returning id',
         [organizationId, fileName.slice(0, 200), sha, lines.length - (header ? 1 : 0), ok.length, rejected.length, actor.id])).rows[0];
-      for (const r of ok) await c.query("insert into actual_cost (organization_id, project_id, category, period, amount, source, import_batch_id, created_by) values ($1,$2,$3,$4,$5,'import',$6,$7)", [organizationId, projects.get(r.project), r.category, r.period, r.amount, batch.id, actor.id]);
+      // insertion par paquets de 5 000 lignes (un import de 100 000 lignes ne fait que vingt requêtes)
+      for (let i = 0; i < ok.length; i += 5000) {
+        const part = ok.slice(i, i + 5000);
+        await c.query(
+          `insert into actual_cost (organization_id, project_id, category, period, amount, source, import_batch_id, created_by)
+           select $1, p.id, x.category, x.period, x.amount, 'import', $2, $3 from unnest($4::text[], $5::text[], $6::text[], $7::numeric[]) as x(project, category, period, amount) join project p on p.key = x.project`,
+          [organizationId, batch.id, actor.id, part.map((r) => r.project), part.map((r) => r.category), part.map((r) => r.period), part.map((r) => r.amount)]);
+      }
       await audit(c, organizationId, actor, 'finance.import', 'finance', { file: fileName, imported: ok.length, rejected: rejected.length });
       return { batchId: batch.id, fileName, rows: ok.length + rejected.length, imported: ok.length, rejected, alreadyImported: false };
     });

@@ -238,6 +238,7 @@ const frDict = {
     ticket: 'Ticket', shift: 'Glissement', newStart: 'Nouveau début', newEnd: 'Nouvelle fin', readOnly: 'La propagation est un calcul : aucun planning n’est modifié.',
   },
   finance: {
+    ratesTitle: 'Taux des ressources et coût du temps passé', timeCost: (c: string, h: number, u: number) => `Coût du temps passé : ${c} pour ${h} h valorisées${u > 0 ? ` (${u} h sans taux, non valorisées)` : ''}.`, rateForm: 'Ajouter un taux horaire', rateSubject: 'Personne (identifiant)', rateRole: 'ou profil', hourly: 'Taux horaire (€)', validFrom: 'En vigueur depuis le', saveRate: 'Enregistrer le taux', rateSaved: 'Taux enregistré.', noRate: 'Aucun taux saisi.', ratesCaption: (n: number) => `${n} taux`, rateWho: 'Personne ou profil', rateConfidential: 'Les taux ne sont visibles que de la finance et de l’administrateur.',
     title: 'Finances', sub: 'Budget, engagé, réel, prévisions et estimation à terminaison d’un projet, par catégorie de dépense.', project: 'Projet', pick: 'Choisissez un projet.', none: 'Aucune donnée financière pour ce projet.',
     byCategory: 'Par catégorie', caption: (p: string) => `Finances du projet ${p}`, category: 'Catégorie', budget: 'Budget', committed: 'Engagé', actual: 'Réel', forecast: 'Prévu à venir', eac: 'Estimation à terminaison', variance: 'Écart au budget', total: 'Total', over: 'dépassement',
     alerts: 'Alertes de dépassement', alertKinds: { exceeded: 'Réel au-delà du budget', overrun: 'Estimation à terminaison au-delà du budget' } as Record<string, string>, excess: (e: string) => `${e} de dépassement`,
@@ -906,6 +907,7 @@ const enDict: Dictionary = {
     ticket: 'Ticket', shift: 'Slip', newStart: 'New start', newEnd: 'New end', readOnly: 'Propagation is a calculation: no schedule is modified.',
   },
   finance: {
+    ratesTitle: 'Resource rates and cost of time spent', timeCost: (c: string, h: number, u: number) => `Cost of time spent: ${c} for ${h} h priced${u > 0 ? ` (${u} h without a rate, not priced)` : ''}.`, rateForm: 'Add an hourly rate', rateSubject: 'Person (identifier)', rateRole: 'or profile', hourly: 'Hourly rate (€)', validFrom: 'Valid from', saveRate: 'Save the rate', rateSaved: 'Rate saved.', noRate: 'No rate entered.', ratesCaption: (n: number) => `${n} rate${n > 1 ? 's' : ''}`, rateWho: 'Person or profile', rateConfidential: 'Rates are only visible to finance and the administrator.',
     title: 'Finance', sub: 'Budget, committed, actual, forecasts and estimate at completion of a project, by expense category.', project: 'Project', pick: 'Pick a project.', none: 'No financial data for this project.',
     byCategory: 'By category', caption: (p: string) => `Finances of project ${p}`, category: 'Category', budget: 'Budget', committed: 'Committed', actual: 'Actual', forecast: 'Forecast to come', eac: 'Estimate at completion', variance: 'Variance to budget', total: 'Total', over: 'overrun',
     alerts: 'Overrun alerts', alertKinds: { exceeded: 'Actual above budget', overrun: 'Estimate at completion above budget' } as Record<string, string>, excess: (e: string) => `${e} over`,

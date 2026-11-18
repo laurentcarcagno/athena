@@ -14,9 +14,10 @@ Source : `docs/ppm/07-plan-livraison.md` § I9, B42. Rapport : `docs/ppm/verific
 
 | Écart | État |
 |---|---|
-| Mesure sous charge concurrente et sur disque SSD | Non faite (poste de développement, une session) ; consignée comme « reste à faire en recette » |
+| Mesure sous charge concurrente | Faite : 50 lectures simultanées, P95 5,3 s (lectures sérialisées, 9 par seconde) ; amélioration à traiter en recette |
+| Mesure sur disque SSD | Infaisable depuis le poste de développement (disque USB) ; à mesurer sur le serveur de recette |
 | Job différé `capacite` | Inutile jusqu'à environ 1 500 personnes (1,5 à 2 s) ; seuil documenté |
-| Mesures d'imports de 100 000 lignes | Non faites ; l'import de 1 000 lignes est testé (lot 23) |
+| Import de 100 000 lignes | Fait : 4,3 s après insertion par paquets |
 
 ## Tests
 

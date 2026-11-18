@@ -12,6 +12,8 @@ interface Finance {
   curve: Array<{ period: string; actualCumulative: number; forecastCumulative: number }>;
 }
 interface Category { key: string; name: string; kind: string }
+interface Rate { subject: string | null; roleLabel: string | null; hourlyRate: number; validFrom: string }
+interface TimeCost { cost: number; minutes: number; unpricedMinutes: number }
 interface ImportReport { fileName: string; rows: number; imported: number; rejected: Array<{ line: number; reason: string }>; alreadyImported: boolean }
 
 export const euros = (n: number) => `${new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 }).format(Math.round(n))} €`;
@@ -31,15 +33,24 @@ export function FinancePage({ session }: { session: Session }) {
   const [form, setForm] = useState({ category: '', period: '', amount: '', budgetKind: 'initial', reason: '' });
   const [csv, setCsv] = useState('');
   const [report, setReport] = useState<ImportReport | null>(null);
+  const [rates, setRates] = useState<Rate[]>([]);
+  const [timeCost, setTimeCost] = useState<TimeCost | null>(null);
+  const [rate, setRate] = useState({ who: '', role: '', hourly: '', from: '' });
 
   useEffect(() => {
     api<Array<{ key: string; name: string }>>('GET', '/v1/projects').then((p) => setProjects(Array.isArray(p) ? p : [])).catch(() => setProjects([]));
     api<Category[]>('GET', '/v1/finance/categories').then((c) => setCats(Array.isArray(c) ? c : [])).catch(() => setCats([]));
   }, []);
+  const loadRates = useCallback(() => {
+    if (!writer) return;
+    api<Rate[]>('GET', '/v1/finance/rates').then((r) => setRates(Array.isArray(r) ? r : [])).catch(() => setRates([]));
+  }, [writer]);
+  useEffect(loadRates, [loadRates]);
   const load = useCallback(() => {
     if (!project) { setData(null); return; }
+    if (writer) api<TimeCost>('GET', `/v1/finance/projects/${project}/time-cost`).then((r) => setTimeCost(r && typeof r.cost === 'number' ? r : null)).catch(() => setTimeCost(null));
     api<Finance>('GET', `/v1/finance/projects/${project}`).then((d) => setData(d && Array.isArray(d.lines) ? d : null)).catch((e) => { setData(null); fail(e); });
-  }, [project, fail]);
+  }, [project, fail, writer]);
   useEffect(load, [load]);
 
   const chart = useMemo(() => (data && data.lines.length ? { categories: data.lines.map((l) => l.category), series: [{ name: t.budget, data: data.lines.map((l) => l.budget) }, { name: t.actual, data: data.lines.map((l) => l.actual) }, { name: t.eac, data: data.lines.map((l) => l.eac) }] } : null), [data, t]);
@@ -52,6 +63,13 @@ export function FinancePage({ session }: { session: Session }) {
       else if (kind === 'actual') await api('POST', '/v1/finance/actuals', { project, category: form.category, period: form.period, amount });
       else await api('PUT', '/v1/finance/forecasts', { project, category: form.category, period: form.period, amount });
       setForm({ ...form, amount: '', reason: '' }); toast('success', t.saved); load();
+    } catch (error) { fail(error); }
+  };
+  const saveRate = async (e: FormEvent) => {
+    e.preventDefault();
+    try {
+      await api('POST', '/v1/finance/rates', { ...(rate.who ? { subject: rate.who.trim() } : { roleLabel: rate.role.trim() }), hourlyRate: Number(rate.hourly.replace(',', '.')), validFrom: rate.from });
+      setRate({ who: '', role: '', hourly: '', from: '' }); toast('success', t.rateSaved); loadRates(); load();
     } catch (error) { fail(error); }
   };
   const runImport = async (e: FormEvent) => {
@@ -117,6 +135,27 @@ export function FinancePage({ session }: { session: Session }) {
                       {report.rejected.length > 0 && <ul>{report.rejected.slice(0, 20).map((r) => <li key={r.line}>{t.line(r.line)} : {r.reason}</li>)}</ul>}
                     </div>
                   )}
+                </div>
+              </Card>
+            )}
+            {writer && (
+              <Card title={t.ratesTitle}>
+                <div className="ath-stack">
+                  {timeCost && <p>{t.timeCost(euros(timeCost.cost), Math.round(timeCost.minutes / 60), Math.round(timeCost.unpricedMinutes / 60))}</p>}
+                  <form className="ath-toolbar" onSubmit={(e) => void saveRate(e)} aria-label={t.rateForm}>
+                    <Field label={t.rateSubject} mono value={rate.who} onChange={(e) => setRate({ ...rate, who: e.target.value })} />
+                    <Field label={t.rateRole} value={rate.role} onChange={(e) => setRate({ ...rate, role: e.target.value })} />
+                    <Field label={t.hourly} value={rate.hourly} onChange={(e) => setRate({ ...rate, hourly: e.target.value })} required />
+                    <Field label={t.validFrom} type="date" value={rate.from} onChange={(e) => setRate({ ...rate, from: e.target.value })} required />
+                    <Btn type="submit" size="sm" disabled={(!rate.who && !rate.role) || !rate.hourly || !rate.from}>{t.saveRate}</Btn>
+                  </form>
+                  {rates.length === 0 ? <p>{t.noRate}</p> : (
+                    <Table caption={t.ratesCaption(rates.length)}>
+                      <thead><tr><Th>{t.rateWho}</Th><Th>{t.hourly}</Th><Th>{t.validFrom}</Th></tr></thead>
+                      <tbody>{rates.map((r, i) => <tr key={`${r.subject ?? r.roleLabel}-${r.validFrom}-${i}`}><Td>{r.subject ?? r.roleLabel}</Td><Td mono>{euros(r.hourlyRate)} / h</Td><Td>{r.validFrom}</Td></tr>)}</tbody>
+                    </Table>
+                  )}
+                  <p><small>{t.rateConfidential}</small></p>
                 </div>
               </Card>
             )}

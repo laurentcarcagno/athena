@@ -130,4 +130,18 @@ suite(`palier 2 : ${PROJECTS} projets, ${TICKETS} tickets, ${PEOPLE} personnes (
     await measure('capacité (1 000 personnes, 12 mois)', 3, () => capacity.view(org, admin, { from: '2026-06-01', to: '2027-05-31', granularity: 'month' }));
     await measure('instantané du portefeuille (300 projets)', 2, () => snapshots.take(org, 'palier2', { kind: 'manual', label: `mesure ${Math.random()}` }, admin));
   }, 3_600_000);
+
+  it('concurrence : 50 lectures simultanées du tableau de santé matérialisé ; import de 100 000 lignes de réels', async () => {
+    const t0 = performance.now();
+    const times = await Promise.all(Array.from({ length: 50 }, async () => { const a = performance.now(); await health.health(org, 'palier2', admin); return performance.now() - a; }));
+    report.push(`santé, 50 lectures simultanées : P50 ${percentile(times, 0.5).toFixed(0)} ms, P95 ${percentile(times, 0.95).toFixed(0)} ms, durée totale ${(performance.now() - t0).toFixed(0)} ms`);
+    console.log(`B42 ${report[report.length - 1]}`);
+    const rows = ['projet;catégorie;période;montant'];
+    for (let i = 0; i < 100_000; i++) rows.push(`S${String(i % PROJECTS).padStart(3, '0')};logiciel;2026-${String((i % 12) + 1).padStart(2, '0')};${(i % 90) + 10},25`);
+    const t1 = performance.now();
+    const r = await finance.importActuals(org, 'reels-100k.csv', rows.join('\n'), admin);
+    report.push(`import de 100 000 lignes de réels : ${((performance.now() - t1) / 1000).toFixed(1)} s (${r.imported} enregistrées, ${r.rejected.length} rejetées)`);
+    console.log(`B42 ${report[report.length - 1]}`);
+    expect(r.imported).toBe(100_000);
+  }, 3_600_000);
 });
