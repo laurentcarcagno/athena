@@ -26,7 +26,7 @@ Validées telles que proposées : principes P1 à P11, nouveaux genres de cartes
 
 ## Écarts antérieurs encore ouverts
 
-Le registre d'audit (`AUDIT-PLAN.md`) garde deux écarts de code : E19 (plugins `artifactTab` et `menuItem`) et E2 (identifiants PostgreSQL dynamiques OpenBao). La règle de `CLAUDE.md` veut qu'ils soient comblés, ou acceptés comme reportés par l'utilisateur, avant l'ouverture de ce lot.
+Le registre d'audit (`AUDIT-PLAN.md`) garde deux écarts de code : E19 (plugins `artifactTab` et `menuItem`) et E2 (identifiants PostgreSQL dynamiques OpenBao). L’utilisateur les a **reportés le 2026-11-18** : le lot peut s’ouvrir.
 
 ## Tâches
 
