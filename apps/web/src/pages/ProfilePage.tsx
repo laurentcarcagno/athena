@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { PageHeader, Select } from '@athena/ui';
 import type { Session } from '../api';
+import { AccessTokens } from '../components/AccessTokens';
 import { NotificationSettings } from '../components/NotificationSettings';
 import { fr, getLocale, setLocale, type Locale } from '../i18n';
 import type { HomeChoice } from '../lib/home';
@@ -55,6 +56,7 @@ export function ProfilePage({ session }: { session: Session }) {
         </fieldset>
         <h2 className="ath-section-title">{p.notifications}</h2>
         <NotificationSettings id="profile-notify" />
+        <AccessTokens />
       </div>
     </>
   );

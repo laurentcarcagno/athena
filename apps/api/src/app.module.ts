@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { AccessContextInterceptor } from './core/access.interceptor';
 import { AuthGuard } from './auth/auth.guard';
-import { SESSION_STORE, TOKEN_VERIFIER, WEB_CONFIG, type WebConfig } from './auth/auth.tokens';
+import { PAT_SERVICE, SESSION_STORE, TOKEN_VERIFIER, WEB_CONFIG, type WebConfig } from './auth/auth.tokens';
 import { BffController } from './auth/bff.controller';
 import { resolveSessionSecret } from './auth/secret';
 import { PgSessionStore } from './auth/session';
@@ -16,10 +16,12 @@ import { PpmModule } from './ppm/ppm.module';
 import { OpenApiController } from './openapi/openapi.controller';
 import { HealthController } from './health/health.controller';
 import { MetricsController } from './observability/metrics.controller';
+import { PatController } from './auth/pat.controller';
+import { PatService } from './auth/pat.service';
 
 @Module({
   imports: [CoreModule, PpmModule],
-  controllers: [HealthController, BffController, OpenApiController, MetricsController],
+  controllers: [HealthController, BffController, OpenApiController, MetricsController, PatController],
   providers: [
     {
       provide: TOKEN_VERIFIER,
@@ -45,6 +47,7 @@ import { MetricsController } from './observability/metrics.controller';
         };
       },
     },
+    { provide: PAT_SERVICE, useFactory: (pool: Pool) => new PatService(pool), inject: [PG_POOL] },
     { provide: APP_GUARD, useClass: AuthGuard },
     { provide: APP_INTERCEPTOR, useClass: AccessContextInterceptor },
   ],

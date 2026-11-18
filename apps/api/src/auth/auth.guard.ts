@@ -4,11 +4,13 @@ import {
   ForbiddenException,
   Inject,
   Injectable,
+  Optional,
   SetMetadata,
   UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { SESSION_COOKIE, SESSION_STORE, TOKEN_VERIFIER, WEB_CONFIG, type WebConfig } from './auth.tokens';
+import { PAT_SERVICE, SESSION_COOKIE, SESSION_STORE, TOKEN_VERIFIER, WEB_CONFIG, type WebConfig } from './auth.tokens';
+import { PAT_PREFIX, type PatService } from './pat.service';
 import { csrfToken, parseCookies, safeEqual, type SessionStore } from './session';
 import { TokenVerifier, type Principal } from './token-verifier';
 
@@ -45,6 +47,7 @@ export class AuthGuard implements CanActivate {
     @Inject(TOKEN_VERIFIER) private readonly verifier: TokenVerifier,
     @Inject(SESSION_STORE) private readonly sessions: SessionStore,
     @Inject(WEB_CONFIG) private readonly web: WebConfig,
+    @Optional() @Inject(PAT_SERVICE) private readonly pats?: PatService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -57,7 +60,13 @@ export class AuthGuard implements CanActivate {
     const match = value ? /^Bearer (.+)$/i.exec(value) : null;
 
     let principal: Principal;
-    if (match?.[1]) {
+    if (match?.[1]?.startsWith(PAT_PREFIX)) {
+      // Jeton d'accès personnel : la portée `read` n'autorise que la lecture, `write` les écritures dans la limite des rôles figés à la création.
+      const pat = this.pats ? await this.pats.verify(match[1]).catch(() => null) : null;
+      if (!pat) throw new UnauthorizedException('Jeton invalide.');
+      if (pat.patScope === 'read' && !['GET', 'HEAD', 'OPTIONS'].includes((request.method ?? 'GET').toUpperCase())) throw new ForbiddenException('Jeton en lecture seule.');
+      principal = pat;
+    } else if (match?.[1]) {
       try {
         principal = await this.verifier.verify(match[1]);
       } catch {

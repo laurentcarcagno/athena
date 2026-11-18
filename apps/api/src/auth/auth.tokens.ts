@@ -1,6 +1,7 @@
 export const TOKEN_VERIFIER = Symbol('TOKEN_VERIFIER');
 export const SESSION_STORE = Symbol('SESSION_STORE');
 export const WEB_CONFIG = Symbol('WEB_CONFIG');
+export const PAT_SERVICE = Symbol('PAT_SERVICE');
 export const SESSION_COOKIE = 'athena_session';
 
 export interface WebConfig {
