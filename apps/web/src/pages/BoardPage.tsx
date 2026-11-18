@@ -3,6 +3,7 @@ import { Link, Navigate, useLocation, useNavigate, useParams, useSearchParams } 
 import { Btn, Card, EmptyState, Id, isHue, PageHeader, Select, StatusPill, Tag, useToast } from '@athena/ui';
 import { api, type BoardView, type Session, type TrackerOverview } from '../api';
 import { useCreate, useOnCreated } from '../components/CreateArtifact';
+import { useTicketChanges } from '../lib/ticket-events';
 import { DetailPanel } from '../components/DetailPanel';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
@@ -28,6 +29,7 @@ export function BoardView({ session, project, board, header = true }: { session:
   const load = useCallback(() => api<BoardView>('GET', `/v1/projects/${project}/boards/${board}`).then(setView), [project, board]);
   useEffect(() => { load().catch(fail); }, [load, fail]);
   useOnCreated(() => { load().catch(fail); });
+  useTicketChanges(String(project), () => { load().catch(() => undefined); });
 
   const item = params.get('i');
   const text = params.get('q') ?? '';

@@ -6,6 +6,7 @@ import { useFailure } from '../hooks';
 import { fr } from '../i18n';
 import { NotificationSettings, type NotifyEvent } from './NotificationSettings';
 import { formatDateTime } from '../lib/dates';
+import { publishTicketChange, type TicketChange } from '../lib/ticket-events';
 
 export interface NotificationEntry {
   id: string; event: NotifyEvent; project: string; key: string; actor: string; actorName: string;
@@ -53,8 +54,12 @@ export function NotificationCenter() {
     if (typeof EventSource === 'undefined') return undefined;
     const source = new EventSource('/v1/me/events');
     const onNotification = () => { refresh().catch(() => undefined); };
+    const onTicket = (e: Event) => {
+      try { publishTicketChange(JSON.parse((e as MessageEvent<string>).data) as TicketChange); } catch { /* événement illisible : ignoré */ }
+    };
     source.addEventListener('notification', onNotification);
-    return () => { source.removeEventListener('notification', onNotification); source.close(); };
+    source.addEventListener('ticket', onTicket);
+    return () => { source.removeEventListener('notification', onNotification); source.removeEventListener('ticket', onTicket); source.close(); };
   }, [refresh]);
   useEffect(() => { if (open) refresh().catch(() => undefined); }, [open, refresh]);
   useEffect(() => {

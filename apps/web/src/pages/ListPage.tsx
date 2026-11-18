@@ -5,6 +5,7 @@ import { ApiError, api, type SavedFilter, type Session, type SearchResult, type 
 import { ArtifactTable } from '../components/ArtifactTable';
 import { useConfirm } from '../components/ConfirmDialog';
 import { useCreate, useOnCreated } from '../components/CreateArtifact';
+import { useTicketChanges } from '../lib/ticket-events';
 import { useFailure } from '../hooks';
 import { fr } from '../i18n';
 import { useProjectManager } from '../lib/project-role';
@@ -48,6 +49,7 @@ export function ListPage({ session }: { session?: Session } = {}) {
   const create = useCreate();
   const [refresh, setRefresh] = useState(0);
   useOnCreated(() => setRefresh((n) => n + 1)); // on reste sur la recherche ; la liste se recharge
+  useTicketChanges(String(project), () => setRefresh((n) => n + 1)); // un autre changement du projet (flux temps réel)
   const [trackerKeys, setTrackerKeys] = useState<string[]>([]);
   const [params, setParams] = useSearchParams();
   const query = params.get('q') ?? '';

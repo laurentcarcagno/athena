@@ -9,12 +9,12 @@ import { currentSubject } from './request-context';
 export class Db {
   constructor(private readonly pool: Pool) {}
 
-  async tx<T>(organizationId: string, fn: (client: PoolClient) => Promise<T>, options: { system?: boolean } = {}): Promise<T> {
+  async tx<T>(organizationId: string, fn: (client: PoolClient) => Promise<T>, options: { system?: boolean; subject?: string } = {}): Promise<T> {
     const client = await this.pool.connect();
     try {
       await client.query('begin');
       await client.query("select set_config('app.org_id', $1, true)", [organizationId]);
-      const subject = options.system ? undefined : currentSubject();
+      const subject = options.system ? undefined : (options.subject ?? currentSubject());
       if (subject !== undefined) {
         // projets où le sujet n'est pas ayant droit du marquage de contrôle export et qui ont des items marqués (calculé avant de poser les refus)
         const deniedExport = (await client.query(
