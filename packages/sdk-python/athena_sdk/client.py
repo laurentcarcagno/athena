@@ -307,15 +307,15 @@ class _Core(_Group):
         path = "/v1/projects/{project}/artifacts/{key}/comments".replace("{project}", urllib.parse.quote(str(project), safe="")).replace("{key}", urllib.parse.quote(str(key), safe=""))
         return self._client.request("POST", path, query=query, body=body)
     def add_field(self, project, tracker, body: Any = None, query: Optional[Dict[str, Any]] = None) -> Any:
-        """POST /v1/projects/{project}/trackers/{tracker}/fields (rôles : athena-admin, athena-pm)"""
+        """POST /v1/projects/{project}/trackers/{tracker}/fields (rôles : athena-admin, athena-pm, athena-team-member)"""
         path = "/v1/projects/{project}/trackers/{tracker}/fields".replace("{project}", urllib.parse.quote(str(project), safe="")).replace("{tracker}", urllib.parse.quote(str(tracker), safe=""))
         return self._client.request("POST", path, query=query, body=body)
     def add_status(self, project, tracker, body: Any = None, query: Optional[Dict[str, Any]] = None) -> Any:
-        """POST /v1/projects/{project}/trackers/{tracker}/statuses (rôles : athena-admin, athena-pm)"""
+        """POST /v1/projects/{project}/trackers/{tracker}/statuses (rôles : athena-admin, athena-pm, athena-team-member)"""
         path = "/v1/projects/{project}/trackers/{tracker}/statuses".replace("{project}", urllib.parse.quote(str(project), safe="")).replace("{tracker}", urllib.parse.quote(str(tracker), safe=""))
         return self._client.request("POST", path, query=query, body=body)
     def add_transition(self, project, tracker, body: Any = None, query: Optional[Dict[str, Any]] = None) -> Any:
-        """POST /v1/projects/{project}/trackers/{tracker}/transitions (rôles : athena-admin, athena-pm)"""
+        """POST /v1/projects/{project}/trackers/{tracker}/transitions (rôles : athena-admin, athena-pm, athena-team-member)"""
         path = "/v1/projects/{project}/trackers/{tracker}/transitions".replace("{project}", urllib.parse.quote(str(project), safe="")).replace("{tracker}", urllib.parse.quote(str(tracker), safe=""))
         return self._client.request("POST", path, query=query, body=body)
     def clear_suspect(self, project, id, query: Optional[Dict[str, Any]] = None) -> Any:
@@ -354,6 +354,10 @@ class _Core(_Group):
         """GET /v1/projects/{project}/trackers/{tracker} (rôles : athena-team-member, athena-admin)"""
         path = "/v1/projects/{project}/trackers/{tracker}".replace("{project}", urllib.parse.quote(str(project), safe="")).replace("{tracker}", urllib.parse.quote(str(tracker), safe=""))
         return self._client.request("GET", path, query=query)
+    def grant_tracker_admin(self, project, tracker, subject, query: Optional[Dict[str, Any]] = None) -> Any:
+        """PUT /v1/projects/{project}/trackers/{tracker}/admins/{subject} (rôles : athena-admin, athena-pm)"""
+        path = "/v1/projects/{project}/trackers/{tracker}/admins/{subject}".replace("{project}", urllib.parse.quote(str(project), safe="")).replace("{tracker}", urllib.parse.quote(str(tracker), safe="")).replace("{subject}", urllib.parse.quote(str(subject), safe=""))
+        return self._client.request("PUT", path, query=query)
     def history(self, project, key, query: Optional[Dict[str, Any]] = None) -> Any:
         """GET /v1/projects/{project}/artifacts/{key}/history (rôles : athena-team-member, athena-admin)"""
         path = "/v1/projects/{project}/artifacts/{key}/history".replace("{project}", urllib.parse.quote(str(project), safe="")).replace("{key}", urllib.parse.quote(str(key), safe=""))
@@ -379,11 +383,11 @@ class _Core(_Group):
         path = "/v1/projects/{project}/trackers".replace("{project}", urllib.parse.quote(str(project), safe=""))
         return self._client.request("GET", path, query=query)
     def patch_status(self, project, tracker, status, body: Any = None, query: Optional[Dict[str, Any]] = None) -> Any:
-        """PATCH /v1/projects/{project}/trackers/{tracker}/statuses/{status} (rôles : athena-admin, athena-pm)"""
+        """PATCH /v1/projects/{project}/trackers/{tracker}/statuses/{status} (rôles : athena-admin, athena-pm, athena-team-member)"""
         path = "/v1/projects/{project}/trackers/{tracker}/statuses/{status}".replace("{project}", urllib.parse.quote(str(project), safe="")).replace("{tracker}", urllib.parse.quote(str(tracker), safe="")).replace("{status}", urllib.parse.quote(str(status), safe=""))
         return self._client.request("PATCH", path, query=query, body=body)
     def remove_field(self, project, tracker, field, query: Optional[Dict[str, Any]] = None) -> Any:
-        """DELETE /v1/projects/{project}/trackers/{tracker}/fields/{field} (rôles : athena-admin, athena-pm)"""
+        """DELETE /v1/projects/{project}/trackers/{tracker}/fields/{field} (rôles : athena-admin, athena-pm, athena-team-member)"""
         path = "/v1/projects/{project}/trackers/{tracker}/fields/{field}".replace("{project}", urllib.parse.quote(str(project), safe="")).replace("{tracker}", urllib.parse.quote(str(tracker), safe="")).replace("{field}", urllib.parse.quote(str(field), safe=""))
         return self._client.request("DELETE", path, query=query)
     def remove_link(self, project, id, query: Optional[Dict[str, Any]] = None) -> Any:
@@ -394,22 +398,30 @@ class _Core(_Group):
         """POST /v1/projects/{project}/artifacts/{key}/restore (rôles : athena-team-member, athena-admin)"""
         path = "/v1/projects/{project}/artifacts/{key}/restore".replace("{project}", urllib.parse.quote(str(project), safe="")).replace("{key}", urllib.parse.quote(str(key), safe=""))
         return self._client.request("POST", path, query=query, body=body)
+    def revoke_tracker_admin(self, project, tracker, subject, query: Optional[Dict[str, Any]] = None) -> Any:
+        """DELETE /v1/projects/{project}/trackers/{tracker}/admins/{subject} (rôles : athena-admin, athena-pm)"""
+        path = "/v1/projects/{project}/trackers/{tracker}/admins/{subject}".replace("{project}", urllib.parse.quote(str(project), safe="")).replace("{tracker}", urllib.parse.quote(str(tracker), safe="")).replace("{subject}", urllib.parse.quote(str(subject), safe=""))
+        return self._client.request("DELETE", path, query=query)
     def search(self, project, query: Optional[Dict[str, Any]] = None) -> Any:
         """GET /v1/projects/{project}/search (rôles : athena-team-member, athena-admin)"""
         path = "/v1/projects/{project}/search".replace("{project}", urllib.parse.quote(str(project), safe=""))
         return self._client.request("GET", path, query=query)
     def set_history_mode(self, project, tracker, body: Any = None, query: Optional[Dict[str, Any]] = None) -> Any:
-        """PATCH /v1/projects/{project}/trackers/{tracker}/history-mode (rôles : athena-admin, athena-pm)"""
+        """PATCH /v1/projects/{project}/trackers/{tracker}/history-mode (rôles : athena-admin, athena-pm, athena-team-member)"""
         path = "/v1/projects/{project}/trackers/{tracker}/history-mode".replace("{project}", urllib.parse.quote(str(project), safe="")).replace("{tracker}", urllib.parse.quote(str(tracker), safe=""))
         return self._client.request("PATCH", path, query=query, body=body)
     def set_layout(self, project, tracker, body: Any = None, query: Optional[Dict[str, Any]] = None) -> Any:
-        """PATCH /v1/projects/{project}/trackers/{tracker}/layout (rôles : athena-admin, athena-pm)"""
+        """PATCH /v1/projects/{project}/trackers/{tracker}/layout (rôles : athena-admin, athena-pm, athena-team-member)"""
         path = "/v1/projects/{project}/trackers/{tracker}/layout".replace("{project}", urllib.parse.quote(str(project), safe="")).replace("{tracker}", urllib.parse.quote(str(tracker), safe=""))
         return self._client.request("PATCH", path, query=query, body=body)
     def set_type(self, project, tracker, body: Any = None, query: Optional[Dict[str, Any]] = None) -> Any:
-        """PATCH /v1/projects/{project}/trackers/{tracker}/type (rôles : athena-admin, athena-pm)"""
+        """PATCH /v1/projects/{project}/trackers/{tracker}/type (rôles : athena-admin, athena-pm, athena-team-member)"""
         path = "/v1/projects/{project}/trackers/{tracker}/type".replace("{project}", urllib.parse.quote(str(project), safe="")).replace("{tracker}", urllib.parse.quote(str(tracker), safe=""))
         return self._client.request("PATCH", path, query=query, body=body)
+    def tracker_admins(self, project, tracker, query: Optional[Dict[str, Any]] = None) -> Any:
+        """GET /v1/projects/{project}/trackers/{tracker}/admins (rôles : athena-team-member, athena-admin)"""
+        path = "/v1/projects/{project}/trackers/{tracker}/admins".replace("{project}", urllib.parse.quote(str(project), safe="")).replace("{tracker}", urllib.parse.quote(str(tracker), safe=""))
+        return self._client.request("GET", path, query=query)
     def transition(self, project, key, body: Any = None, query: Optional[Dict[str, Any]] = None) -> Any:
         """POST /v1/projects/{project}/artifacts/{key}/transitions (rôles : athena-team-member, athena-admin)"""
         path = "/v1/projects/{project}/artifacts/{key}/transitions".replace("{project}", urllib.parse.quote(str(project), safe="")).replace("{key}", urllib.parse.quote(str(key), safe=""))
@@ -419,7 +431,7 @@ class _Core(_Group):
         path = "/v1/projects/{project}/artifacts/{key}".replace("{project}", urllib.parse.quote(str(project), safe="")).replace("{key}", urllib.parse.quote(str(key), safe=""))
         return self._client.request("PATCH", path, query=query, body=body)
     def update_field(self, project, tracker, field, body: Any = None, query: Optional[Dict[str, Any]] = None) -> Any:
-        """PATCH /v1/projects/{project}/trackers/{tracker}/fields/{field} (rôles : athena-admin, athena-pm)"""
+        """PATCH /v1/projects/{project}/trackers/{tracker}/fields/{field} (rôles : athena-admin, athena-pm, athena-team-member)"""
         path = "/v1/projects/{project}/trackers/{tracker}/fields/{field}".replace("{project}", urllib.parse.quote(str(project), safe="")).replace("{tracker}", urllib.parse.quote(str(tracker), safe="")).replace("{field}", urllib.parse.quote(str(field), safe=""))
         return self._client.request("PATCH", path, query=query, body=body)
 
@@ -1333,6 +1345,33 @@ class _Search(_Group):
         return self._client.request("GET", path, query=query)
 
 
+class _SharedField(_Group):
+    def delete_org(self, key, query: Optional[Dict[str, Any]] = None) -> Any:
+        """DELETE /v1/shared-fields/{key} (rôles : athena-admin)"""
+        path = "/v1/shared-fields/{key}".replace("{key}", urllib.parse.quote(str(key), safe=""))
+        return self._client.request("DELETE", path, query=query)
+    def delete_project(self, project, key, query: Optional[Dict[str, Any]] = None) -> Any:
+        """DELETE /v1/projects/{project}/shared-fields/{key} (rôles : athena-admin, athena-pm)"""
+        path = "/v1/projects/{project}/shared-fields/{key}".replace("{project}", urllib.parse.quote(str(project), safe="")).replace("{key}", urllib.parse.quote(str(key), safe=""))
+        return self._client.request("DELETE", path, query=query)
+    def list_org(self, query: Optional[Dict[str, Any]] = None) -> Any:
+        """GET /v1/shared-fields (rôles : athena-team-member, athena-admin)"""
+        path = "/v1/shared-fields"
+        return self._client.request("GET", path, query=query)
+    def list_project(self, project, query: Optional[Dict[str, Any]] = None) -> Any:
+        """GET /v1/projects/{project}/shared-fields (rôles : athena-team-member, athena-admin)"""
+        path = "/v1/projects/{project}/shared-fields".replace("{project}", urllib.parse.quote(str(project), safe=""))
+        return self._client.request("GET", path, query=query)
+    def put_org(self, key, body: Any = None, query: Optional[Dict[str, Any]] = None) -> Any:
+        """PUT /v1/shared-fields/{key} (rôles : athena-admin)"""
+        path = "/v1/shared-fields/{key}".replace("{key}", urllib.parse.quote(str(key), safe=""))
+        return self._client.request("PUT", path, query=query, body=body)
+    def put_project(self, project, key, body: Any = None, query: Optional[Dict[str, Any]] = None) -> Any:
+        """PUT /v1/projects/{project}/shared-fields/{key} (rôles : athena-admin, athena-pm)"""
+        path = "/v1/projects/{project}/shared-fields/{key}".replace("{project}", urllib.parse.quote(str(project), safe="")).replace("{key}", urllib.parse.quote(str(key), safe=""))
+        return self._client.request("PUT", path, query=query, body=body)
+
+
 class _StatusNote(_Group):
     def list(self, p, query: Optional[Dict[str, Any]] = None) -> Any:
         """GET /v1/projects/{p}/status-notes (rôles : athena-team-member, athena-admin, athena-pmo, athena-pm, athena-qa, athena-manager, athena-director)"""
@@ -1529,6 +1568,7 @@ class AthenaClient:
         self.project_template = _ProjectTemplate(self)
         self.saved_filter = _SavedFilter(self)
         self.search = _Search(self)
+        self.shared_field = _SharedField(self)
         self.status_note = _StatusNote(self)
         self.team = _Team(self)
         self.template = _Template(self)

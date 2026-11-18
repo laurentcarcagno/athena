@@ -1,6 +1,8 @@
 import { LayoutSchema } from './layout';
 import { SEMANTIC_ROLES } from './semantic-roles';
 import { MemberService } from './member.service';
+import { SharedFieldService } from './shared-field.service';
+import { notFound, validation } from './errors';
 import { builtinTrackerTypes } from './tracker-types';
 import { HueSchema } from './hues';
 import { TemplateService } from './template.service';
@@ -63,7 +65,7 @@ const UpdateFieldBody = z.object({
       readRoles: z.array(z.string().max(60)).min(1).max(20).nullable().optional(), writeRoles: z.array(z.string().max(60)).min(1).max(20).nullable().optional(),
     });
 const AddFieldBody = z.object({
-      key: z.string(), label: z.string().min(1).max(100), type: z.string(), config: z.record(z.string(), z.unknown()).optional(),
+      key: z.string(), label: z.string().min(1).max(100).optional(), type: z.string().optional(), fromShared: z.string().max(40).optional(), config: z.record(z.string(), z.unknown()).optional(),
       readRoles: z.array(z.string().max(60)).min(1).max(20).optional(), writeRoles: z.array(z.string().max(60)).min(1).max(20).optional(),
       required: z.boolean().optional(), isContent: z.boolean().optional(), semanticRole: z.enum(SEMANTIC_ROLES).optional(),
     });
@@ -85,6 +87,7 @@ export class CoreController {
     private readonly searcher: SearchService,
     private readonly templates: TemplateService,
     private readonly members: MemberService,
+    private readonly shared: SharedFieldService,
   ) {}
 
   @Roles('athena-team-member', 'athena-admin')
@@ -242,7 +245,15 @@ export class CoreController {
     const { organizationId, actor } = await this.orgs.resolve(principalOf(request));
     await this.members.requireTrackerAdmin(organizationId, project, tracker, actor);
     const input = parseBody(AddFieldBody, body);
-    await this.trackers.addField(organizationId, project, tracker, stripUndefined(input), actor);
+    let { type, label, config } = { type: input.type, label: input.label, config: input.config };
+    if (input.fromShared) {
+      // champ copié depuis la bibliothèque (projet d'abord, puis organisation) ; le libellé et la configuration saisis priment
+      const shared = await this.shared.get(organizationId, project, input.fromShared);
+      if (!shared) throw notFound(`Champ partagé ${input.fromShared}`);
+      type = shared.type; label = label ?? shared.label; config = { ...shared.config, ...(config ?? {}) };
+    }
+    if (!type || !label) throw validation(['type et libellé obligatoires (ou fromShared)']);
+    await this.trackers.addField(organizationId, project, tracker, stripUndefined({ ...input, type, label, ...(config ? { config } : {}) }), actor);
     return { added: input.key };
   }
 

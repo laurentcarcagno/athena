@@ -146,6 +146,24 @@ describe('éditeur de tracker', () => {
     await waitFor(() => expect(calls.find((c) => c.method === 'PATCH' && c.url.endsWith('/fields/env'))?.body).toEqual({ label: 'Environnement', required: true, readRoles: null, writeRoles: ['athena-pm', 'athena-admin'] }));
   });
 
+  it('bibliothèque de champs partagés : le chef du projet crée un champ type et le copie dans le tracker', async () => {
+    const shared = [{ key: 'niveau', label: 'Niveau', type: 'select', scope: 'organization', config: { options: ['faible', 'fort'] } }];
+    handlers = [...base(), on('GET', /\/shared-fields$/, { body: shared }), on('PUT', /\/shared-fields\/urgence$/, { status: 204 }), on('POST', /\/fields$/, { status: 201, body: {} })];
+    wrap('/p/ARI/trackers/BUG/config', <TrackerConfigPage session={admin} />, '/p/:project/trackers/:tracker/config');
+    const lib = (await screen.findByRole('heading', { name: 'Bibliothèque de champs partagés' })).closest('section')!;
+    expect(within(lib).getByText('faible, fort')).toBeInTheDocument();
+    await userEvent.type(within(lib).getByLabelText('Clé'), 'urgence');
+    await userEvent.type(within(lib).getByLabelText('Libellé'), 'Urgence');
+    await userEvent.type(within(lib).getByLabelText('Valeurs (virgules)'), 'basse, haute');
+    await userEvent.click(within(lib).getByRole('button', { name: 'Enregistrer dans la bibliothèque' }));
+    await waitFor(() => expect(calls.find((c) => c.method === 'PUT' && c.url.endsWith('/shared-fields/urgence'))?.body).toEqual({ label: 'Urgence', type: 'select', config: { options: ['basse', 'haute'] } }));
+    const fields = screen.getByRole('heading', { name: 'Champs' }).closest('section')!;
+    await userEvent.selectOptions(within(fields).getByLabelText('Copier depuis la bibliothèque'), 'niveau');
+    await userEvent.type(within(fields).getByLabelText('Clé'), 'gravite');
+    await userEvent.click(within(fields).getByRole('button', { name: 'Ajouter' }));
+    await waitFor(() => expect(calls.find((c) => c.method === 'POST' && c.url.endsWith('/fields'))?.body).toEqual({ key: 'gravite', fromShared: 'niveau', required: false }));
+  });
+
   it('administrateur désigné du tracker : la configuration lui est ouverte (sans la désignation d’autres personnes) ; un autre membre reste refusé', async () => {
     const delegated = { ...simple, user: { ...simple.user!, id: 'sub-bob' } } as Session;
     handlers = [...base(), on('GET', /\/trackers\/BUG\/admins$/, { body: [{ subject: 'sub-bob', name: 'Bob' }] }), on('POST', /\/fields$/, { status: 201, body: {} })];

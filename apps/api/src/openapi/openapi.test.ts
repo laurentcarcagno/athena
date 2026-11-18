@@ -36,6 +36,7 @@ describe('schéma OpenAPI', () => {
       'POST /v1/projects/{project}/rebuild', 'POST /v1/projects/{project}/history/migrate-keys', 'POST /v1/projects/{project}/releases/{id}/publish',
       'POST /v1/projects/{project}/sprints/{id}/start', 'POST /v1/webhooks/deliveries/{id}/replay',
       'POST /v1/projects/{project}/integrations/gitlab', 'POST /v1/projects/{project}/integrations/history',
+      'PUT /v1/projects/{project}/trackers/{tracker}/admins/{subject}', // désignation : tout est dans le chemin
       'POST /hooks/in/source/{org}/{project}/{name}', // charge externe signée (HMAC) lue en octets bruts : forme fixée par l’émetteur
     ]);
     const missing: string[] = [];

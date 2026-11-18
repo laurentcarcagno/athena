@@ -182,11 +182,11 @@ export class AthenaClient {
   readonly core = {
     /** POST /v1/projects/{project}/artifacts/{key}/comments · rôles : athena-team-member, athena-admin */
     addComment: (path: { project: string; key: string }, body: { body: string }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('POST', this.path('/v1/projects/{project}/artifacts/{key}/comments', path), { body, query }),
-    /** POST /v1/projects/{project}/trackers/{tracker}/fields · rôles : athena-admin, athena-pm */
-    addField: (path: { project: string; tracker: string }, body: { key: string; label: string; type: string; config?: Record<string, unknown>; readRoles?: Array<string>; writeRoles?: Array<string>; required?: boolean; isContent?: boolean; semanticRole?: "title" | "description" | "status" | "assignee" | "due_date" | "estimate" | "priority" | "version" | "start_date" | "progress" | "remaining" | "probability" | "impact" }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('POST', this.path('/v1/projects/{project}/trackers/{tracker}/fields', path), { body, query }),
-    /** POST /v1/projects/{project}/trackers/{tracker}/statuses · rôles : athena-admin, athena-pm */
+    /** POST /v1/projects/{project}/trackers/{tracker}/fields · rôles : athena-admin, athena-pm, athena-team-member */
+    addField: (path: { project: string; tracker: string }, body: { key: string; label?: string; type?: string; fromShared?: string; config?: Record<string, unknown>; readRoles?: Array<string>; writeRoles?: Array<string>; required?: boolean; isContent?: boolean; semanticRole?: "title" | "description" | "status" | "assignee" | "due_date" | "estimate" | "priority" | "version" | "start_date" | "progress" | "remaining" | "probability" | "impact" }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('POST', this.path('/v1/projects/{project}/trackers/{tracker}/fields', path), { body, query }),
+    /** POST /v1/projects/{project}/trackers/{tracker}/statuses · rôles : athena-admin, athena-pm, athena-team-member */
     addStatus: (path: { project: string; tracker: string }, body: { key: string; name: string; category: "todo" | "in_progress" | "done"; color?: unknown }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('POST', this.path('/v1/projects/{project}/trackers/{tracker}/statuses', path), { body, query }),
-    /** POST /v1/projects/{project}/trackers/{tracker}/transitions · rôles : athena-admin, athena-pm */
+    /** POST /v1/projects/{project}/trackers/{tracker}/transitions · rôles : athena-admin, athena-pm, athena-team-member */
     addTransition: (path: { project: string; tracker: string }, body: { name: string; from: string | null; to: string; conditions?: Array<unknown>; validators?: Array<unknown>; postActions?: Array<unknown> }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('POST', this.path('/v1/projects/{project}/trackers/{tracker}/transitions', path), { body, query }),
     /** POST /v1/projects/{project}/links/{id}/clear-suspect · rôles : athena-team-member, athena-admin */
     clearSuspect: (path: { project: string; id: string }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('POST', this.path('/v1/projects/{project}/links/{id}/clear-suspect', path), { query }),
@@ -206,6 +206,8 @@ export class AthenaClient {
     getArtifact: (path: { project: string; key: string }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('GET', this.path('/v1/projects/{project}/artifacts/{key}', path), { query }),
     /** GET /v1/projects/{project}/trackers/{tracker} · rôles : athena-team-member, athena-admin */
     getTracker: (path: { project: string; tracker: string }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('GET', this.path('/v1/projects/{project}/trackers/{tracker}', path), { query }),
+    /** PUT /v1/projects/{project}/trackers/{tracker}/admins/{subject} · rôles : athena-admin, athena-pm */
+    grantTrackerAdmin: (path: { project: string; tracker: string; subject: string }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('PUT', this.path('/v1/projects/{project}/trackers/{tracker}/admins/{subject}', path), { query }),
     /** GET /v1/projects/{project}/artifacts/{key}/history · rôles : athena-team-member, athena-admin */
     history: (path: { project: string; key: string }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('GET', this.path('/v1/projects/{project}/artifacts/{key}/history', path), { query }),
     /** POST /v1/projects/{project}/artifacts/{key}/links · rôles : athena-team-member, athena-admin */
@@ -218,27 +220,31 @@ export class AthenaClient {
     listProjects: (query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('GET', this.path('/v1/projects', {}), { query }),
     /** GET /v1/projects/{project}/trackers · rôles : athena-team-member, athena-admin */
     listTrackers: (path: { project: string }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('GET', this.path('/v1/projects/{project}/trackers', path), { query }),
-    /** PATCH /v1/projects/{project}/trackers/{tracker}/statuses/{status} · rôles : athena-admin, athena-pm */
+    /** PATCH /v1/projects/{project}/trackers/{tracker}/statuses/{status} · rôles : athena-admin, athena-pm, athena-team-member */
     patchStatus: (path: { project: string; tracker: string; status: string }, body: { name?: string; category?: "todo" | "in_progress" | "done"; color?: unknown }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('PATCH', this.path('/v1/projects/{project}/trackers/{tracker}/statuses/{status}', path), { body, query }),
-    /** DELETE /v1/projects/{project}/trackers/{tracker}/fields/{field} · rôles : athena-admin, athena-pm */
+    /** DELETE /v1/projects/{project}/trackers/{tracker}/fields/{field} · rôles : athena-admin, athena-pm, athena-team-member */
     removeField: (path: { project: string; tracker: string; field: string }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('DELETE', this.path('/v1/projects/{project}/trackers/{tracker}/fields/{field}', path), { query }),
     /** DELETE /v1/projects/{project}/links/{id} · rôles : athena-team-member, athena-admin */
     removeLink: (path: { project: string; id: string }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('DELETE', this.path('/v1/projects/{project}/links/{id}', path), { query }),
     /** POST /v1/projects/{project}/artifacts/{key}/restore · rôles : athena-team-member, athena-admin */
     restore: (path: { project: string; key: string }, body: { version: number; expectedVersion: number }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('POST', this.path('/v1/projects/{project}/artifacts/{key}/restore', path), { body, query }),
+    /** DELETE /v1/projects/{project}/trackers/{tracker}/admins/{subject} · rôles : athena-admin, athena-pm */
+    revokeTrackerAdmin: (path: { project: string; tracker: string; subject: string }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('DELETE', this.path('/v1/projects/{project}/trackers/{tracker}/admins/{subject}', path), { query }),
     /** GET /v1/projects/{project}/search · rôles : athena-team-member, athena-admin */
     search: (path: { project: string }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('GET', this.path('/v1/projects/{project}/search', path), { query }),
-    /** PATCH /v1/projects/{project}/trackers/{tracker}/history-mode · rôles : athena-admin, athena-pm */
+    /** PATCH /v1/projects/{project}/trackers/{tracker}/history-mode · rôles : athena-admin, athena-pm, athena-team-member */
     setHistoryMode: (path: { project: string; tracker: string }, body: { mode: "direct" | "merge_request" }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('PATCH', this.path('/v1/projects/{project}/trackers/{tracker}/history-mode', path), { body, query }),
-    /** PATCH /v1/projects/{project}/trackers/{tracker}/layout · rôles : athena-admin, athena-pm */
+    /** PATCH /v1/projects/{project}/trackers/{tracker}/layout · rôles : athena-admin, athena-pm, athena-team-member */
     setLayout: (path: { project: string; tracker: string }, body: { layout: unknown }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('PATCH', this.path('/v1/projects/{project}/trackers/{tracker}/layout', path), { body, query }),
-    /** PATCH /v1/projects/{project}/trackers/{tracker}/type · rôles : athena-admin, athena-pm */
+    /** PATCH /v1/projects/{project}/trackers/{tracker}/type · rôles : athena-admin, athena-pm, athena-team-member */
     setType: (path: { project: string; tracker: string }, body: { typeKey: unknown }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('PATCH', this.path('/v1/projects/{project}/trackers/{tracker}/type', path), { body, query }),
+    /** GET /v1/projects/{project}/trackers/{tracker}/admins · rôles : athena-team-member, athena-admin */
+    trackerAdmins: (path: { project: string; tracker: string }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('GET', this.path('/v1/projects/{project}/trackers/{tracker}/admins', path), { query }),
     /** POST /v1/projects/{project}/artifacts/{key}/transitions · rôles : athena-team-member, athena-admin */
     transition: (path: { project: string; key: string }, body: { name: string; version: number }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('POST', this.path('/v1/projects/{project}/artifacts/{key}/transitions', path), { body, query }),
     /** PATCH /v1/projects/{project}/artifacts/{key} · rôles : athena-team-member, athena-admin */
     updateArtifact: (path: { project: string; key: string }, body: { values: Record<string, unknown>; version: number }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('PATCH', this.path('/v1/projects/{project}/artifacts/{key}', path), { body, query }),
-    /** PATCH /v1/projects/{project}/trackers/{tracker}/fields/{field} · rôles : athena-admin, athena-pm */
+    /** PATCH /v1/projects/{project}/trackers/{tracker}/fields/{field} · rôles : athena-admin, athena-pm, athena-team-member */
     updateField: (path: { project: string; tracker: string; field: string }, body: { label?: string; required?: boolean; isContent?: boolean; readRoles?: unknown; writeRoles?: unknown }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('PATCH', this.path('/v1/projects/{project}/trackers/{tracker}/fields/{field}', path), { body, query }),
   };
 
@@ -741,6 +747,21 @@ export class AthenaClient {
     remove: (path: { id: string }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('DELETE', this.path('/v1/searches/{id}', path), { query }),
     /** GET /v1/search · rôles : athena-team-member, athena-admin */
     search: (query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('GET', this.path('/v1/search', {}), { query }),
+  };
+
+  readonly sharedField = {
+    /** DELETE /v1/shared-fields/{key} · rôles : athena-admin */
+    deleteOrg: (path: { key: string }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('DELETE', this.path('/v1/shared-fields/{key}', path), { query }),
+    /** DELETE /v1/projects/{project}/shared-fields/{key} · rôles : athena-admin, athena-pm */
+    deleteProject: (path: { project: string; key: string }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('DELETE', this.path('/v1/projects/{project}/shared-fields/{key}', path), { query }),
+    /** GET /v1/shared-fields · rôles : athena-team-member, athena-admin */
+    listOrg: (query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('GET', this.path('/v1/shared-fields', {}), { query }),
+    /** GET /v1/projects/{project}/shared-fields · rôles : athena-team-member, athena-admin */
+    listProject: (path: { project: string }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('GET', this.path('/v1/projects/{project}/shared-fields', path), { query }),
+    /** PUT /v1/shared-fields/{key} · rôles : athena-admin */
+    putOrg: (path: { key: string }, body: { label: string; type: string; config?: Record<string, unknown> }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('PUT', this.path('/v1/shared-fields/{key}', path), { body, query }),
+    /** PUT /v1/projects/{project}/shared-fields/{key} · rôles : athena-admin, athena-pm */
+    putProject: (path: { project: string; key: string }, body: { label: string; type: string; config?: Record<string, unknown> }, query?: Record<string, string | number | boolean | undefined>): Promise<unknown> => this.request('PUT', this.path('/v1/projects/{project}/shared-fields/{key}', path), { body, query }),
   };
 
   readonly statusNote = {

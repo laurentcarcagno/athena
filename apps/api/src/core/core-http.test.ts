@@ -245,6 +245,34 @@ suite('API REST du noyau', () => {
     expect((await addField(pm, 'e3')).statusCode).toBe(403); // plus responsable : refusé de nouveau
   });
 
+  it('bibliothèque de champs partagés : organisation et projet, copie à l’ajout, droits', async () => {
+    const admin = await token(['athena-admin']);
+    const member = await token(['athena-team-member']);
+    const levels = { label: 'Niveau', type: 'select', config: { options: ['faible', 'moyen', 'fort'] } };
+    expect((await call('PUT', '/v1/shared-fields/niveau', member, levels)).statusCode).toBe(403); // l'organisation : administrateur seulement
+    expect((await call('PUT', '/v1/shared-fields/niveau', admin, { ...levels, type: 'inconnu' })).statusCode).toBe(422);
+    expect((await call('PUT', '/v1/shared-fields/niveau', admin, levels)).statusCode).toBe(204);
+    expect((await call('GET', '/v1/shared-fields', member)).json()).toEqual([{ key: 'niveau', label: 'Niveau', type: 'select', config: { options: ['faible', 'moyen', 'fort'] }, scope: 'organization' }]);
+    // un champ de projet de même clé masque celui de l'organisation
+    expect((await call('PUT', '/v1/projects/ARI/shared-fields/niveau', admin, { label: 'Niveau ARI', type: 'select', config: { options: ['A', 'B'] } })).statusCode).toBe(204);
+    const seen = (await call('GET', '/v1/projects/ARI/shared-fields', member)).json() as Array<{ key: string; scope: string; config: { options: string[] } }>;
+    expect(seen).toEqual([expect.objectContaining({ key: 'niveau', scope: 'project', config: { options: ['A', 'B'] } })]);
+    // ajout d'un champ copié depuis la bibliothèque : type et valeurs repris, libellé saisi prioritaire
+    expect((await call('POST', '/v1/projects/ARI/trackers/BUG/fields', admin, { key: 'urgence', fromShared: 'niveau', label: 'Urgence' })).statusCode).toBeLessThan(300);
+    const def = (await call('GET', '/v1/projects/ARI/trackers/BUG', member)).json() as { fields: Array<{ key: string; label: string; type: string; config: { options?: string[] } }> };
+    expect(def.fields.find((f) => f.key === 'urgence')).toMatchObject({ label: 'Urgence', type: 'select', config: { options: ['A', 'B'] } });
+    expect((await call('POST', '/v1/projects/ARI/trackers/BUG/fields', admin, { key: 'x1', fromShared: 'absent' })).statusCode).toBe(404);
+    expect((await call('POST', '/v1/projects/ARI/trackers/BUG/fields', admin, { key: 'x2' })).statusCode).toBe(422); // ni type ni modèle
+    // modifier la bibliothèque ne change pas le tracker déjà créé (copie, pas de lien vivant)
+    await call('PUT', '/v1/projects/ARI/shared-fields/niveau', admin, { label: 'Niveau', type: 'select', config: { options: ['Z'] } });
+    const again = (await call('GET', '/v1/projects/ARI/trackers/BUG', member)).json() as { fields: Array<{ key: string; config: { options?: string[] } }> };
+    expect(again.fields.find((f) => f.key === 'urgence')!.config.options).toEqual(['A', 'B']);
+    expect((await call('DELETE', '/v1/projects/ARI/shared-fields/niveau', admin)).statusCode).toBe(204);
+    expect((await call('GET', '/v1/projects/ARI/shared-fields', member)).json()).toEqual([expect.objectContaining({ scope: 'organization' })]); // l'organisation réapparaît
+    expect((await call('DELETE', '/v1/shared-fields/niveau', admin)).statusCode).toBe(204);
+    expect((await call('DELETE', '/v1/shared-fields/niveau', admin)).statusCode).toBe(404);
+  });
+
   it('administrateur de tracker : configure ce tracker seulement, désigné et révoqué par le chef du projet', async () => {
     const member = await token(['athena-team-member']); // même sujet que le chef de projet des essais précédents (u-test)
     const admin = await token(['athena-admin']);

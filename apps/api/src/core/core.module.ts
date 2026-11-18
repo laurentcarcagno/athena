@@ -61,6 +61,8 @@ import { LinkService } from './link.service';
 import { NotifyController } from '../notify/notify.controller';
 import { GraphqlController } from '../graphql/graphql.controller';
 import { GraphqlService } from '../graphql/graphql.service';
+import { SharedFieldController } from './shared-field.controller';
+import { SharedFieldService } from './shared-field.service';
 import { EventStreamService } from '../notify/event-stream';
 import { NotifyService } from '../notify/notify.service';
 import { DigestService } from '../notify/digest';
@@ -99,7 +101,7 @@ import { TrackerService } from './tracker.service';
 export { PG_POOL } from './core.tokens';
 
 @Module({
-  controllers: [GraphqlController, CoreController, AttachmentController, SavedFilterController, SearchController, IntegrationsController, AgileController, MemberController, TemplateController, ProjectTemplateController, TrackerTemplateController, TrackerTypeController, ProjectOverviewController, PinController, LinkTypeController, TreeController, MatrixController, CoverageController, NormativeController, AccessController, ApprovalController, ItemApprovalController, DocController, NotifyController, DashboardController, PreferenceController, AppearanceController, CalendarController, PlanningController, BrandController],
+  controllers: [SharedFieldController, GraphqlController, CoreController, AttachmentController, SavedFilterController, SearchController, IntegrationsController, AgileController, MemberController, TemplateController, ProjectTemplateController, TrackerTemplateController, TrackerTypeController, ProjectOverviewController, PinController, LinkTypeController, TreeController, MatrixController, CoverageController, NormativeController, AccessController, ApprovalController, ItemApprovalController, DocController, NotifyController, DashboardController, PreferenceController, AppearanceController, CalendarController, PlanningController, BrandController],
   providers: [
     { provide: PG_POOL, useFactory: () => new Pool({ connectionString: loadConfig().DATABASE_URL, max: 10 }) },
     { provide: FieldTypeRegistry, useValue: new FieldTypeRegistry() },
@@ -179,6 +181,7 @@ export { PG_POOL } from './core.tokens';
     { provide: ExportMarker, useFactory: () => new ExportMarker(loadConfig().ATHENA_PROTECTION_LEVEL), inject: [] },
     { provide: NotifyService, useFactory: (db: Db) => new NotifyService(db), inject: [Db] },
     { provide: GraphqlService, useFactory: (db: Db, a: ArtifactService, search: SearchService) => new GraphqlService(db, a, search), inject: [Db, ArtifactService, SearchService] },
+    { provide: SharedFieldService, useFactory: (db: Db, f: FieldTypeRegistry) => new SharedFieldService(db, f), inject: [Db, FieldTypeRegistry] },
     { provide: EventStreamService, useFactory: (db: Db) => new EventStreamService(db), inject: [Db] },
     {
       provide: DigestService,

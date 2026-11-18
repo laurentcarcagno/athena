@@ -26,6 +26,10 @@ export function TrackerConfigPage({ session }: { session: Session }) {
   const [trackerAdmins, setTrackerAdmins] = useState<Array<{ subject: string; name: string | null }>>([]);
   const [people, setPeople] = useState<Array<{ subject: string; displayName: string }>>([]);
   const [newAdmin, setNewAdmin] = useState('');
+  // Bibliothèque de champs partagés (plan § 15.3) : champs types copiés dans le tracker à l'ajout.
+  const [shared, setShared] = useState<Array<{ key: string; label: string; type: string; scope: string; config: Record<string, unknown> }>>([]);
+  const [fromShared, setFromShared] = useState('');
+  const [lib, setLib] = useState({ key: '', label: '', type: 'select', options: '' });
   const admin = manager || trackerAdmins.some((a) => a.subject === session.user?.id);
   const [def, setDef] = useState<TrackerDefinition | null>(null);
   const [types, setTypes] = useState<string[]>([]);
@@ -57,6 +61,21 @@ export function TrackerConfigPage({ session }: { session: Session }) {
   }, [base]);
   useEffect(loadAdmins, [loadAdmins]);
   useEffect(() => { if (manager) api<Array<{ subject: string; displayName: string }>>('GET', `/v1/projects/${project}/members`).then((r) => setPeople(Array.isArray(r) ? r : [])).catch(() => setPeople([])); }, [manager, project]);
+  const loadShared = useCallback(() => {
+    api<typeof shared>('GET', `/v1/projects/${project}/shared-fields`).then((r) => setShared(Array.isArray(r) ? r : [])).catch(() => setShared([]));
+  }, [project]);
+  useEffect(loadShared, [loadShared]);
+  const saveShared = async (e: FormEvent) => {
+    e.preventDefault();
+    const options = lib.options.split(',').map((o) => o.trim()).filter(Boolean);
+    try {
+      await api('PUT', `/v1/projects/${project}/shared-fields/${lib.key.trim()}`, { label: lib.label.trim(), type: lib.type, config: options.length ? { options } : {} });
+      setLib({ key: '', label: '', type: 'select', options: '' }); toast('success', fr.config.sharedSaved); loadShared();
+    } catch (error) { fail(error); }
+  };
+  const removeShared = async (key: string) => {
+    try { await api('DELETE', `/v1/projects/${project}/shared-fields/${key}`); /* sans confirmation : réversible (le champ se recrée ; les trackers déjà créés gardent leur copie) */ toast('success', fr.config.sharedRemoved); loadShared(); } catch (error) { fail(error); }
+  };
   const grantAdmin = async () => {
     try { await api('PUT', `${base}/admins/${encodeURIComponent(newAdmin)}`); setNewAdmin(''); toast('success', fr.config.adminAdded); loadAdmins(); } catch (error) { fail(error); }
   };
@@ -83,7 +102,7 @@ export function TrackerConfigPage({ session }: { session: Session }) {
   const [editing, setEditing] = useState<{ key: string; label: string; required: boolean; readRoles: string; writeRoles: string } | null>(null);
   const roleList = (raw: string) => raw.split(',').map((r) => r.trim()).filter(Boolean);
   const fieldBody = () => ({
-    key: field.key, label: field.label, type: field.type, required: field.required, ...(field.isContent ? {} : { isContent: false }),
+    key: field.key, ...(fromShared ? { fromShared, ...(field.label ? { label: field.label } : {}) } : { label: field.label, type: field.type }), required: field.required, ...(field.isContent ? {} : { isContent: false }),
     ...(field.whenField && roleList(field.whenIn).length ? { config: { visibleWhen: { field: field.whenField, in: roleList(field.whenIn) } } } : {}),
     ...(roleList(field.readRoles).length ? { readRoles: roleList(field.readRoles) } : {}),
     ...(roleList(field.writeRoles).length ? { writeRoles: roleList(field.writeRoles) } : {}),
@@ -141,6 +160,31 @@ export function TrackerConfigPage({ session }: { session: Session }) {
         </div>
       )}
       <div className="ath-stack">
+        {(manager || shared.length > 0) && (
+          <Card title={fr.config.sharedTitle} meta={String(shared.length)}>
+            <div className="ath-stack">
+              <p>{fr.config.sharedHelp}</p>
+              {shared.length === 0 ? <p>{fr.config.sharedNone}</p> : (
+                <Table caption={fr.config.sharedCaption(shared.length)}>
+                  <thead><tr><Th>{fr.config.key}</Th><Th>{fr.config.label}</Th><Th>{fr.config.type}</Th><Th>{fr.config.sharedValues}</Th><Th>{fr.config.sharedScope}</Th>{manager && <Th>{fr.config.remove}</Th>}</tr></thead>
+                  <tbody>{shared.map((f) => (
+                    <tr key={f.key}><Td mono>{f.key}</Td><Td>{f.label}</Td><Td mono>{f.type}</Td><Td>{Array.isArray(f.config['options']) ? (f.config['options'] as string[]).join(', ') : ''}</Td><Td>{f.scope === 'project' ? fr.config.scopeProject : fr.config.scopeOrg}</Td>
+                      {manager && <Td>{f.scope === 'project' && <Btn size="sm" variant="ghost" aria-label={`${fr.config.remove} ${f.key}`} onClick={() => void removeShared(f.key)}>{fr.config.remove}</Btn>}</Td>}</tr>
+                  ))}</tbody>
+                </Table>
+              )}
+              {manager && (
+                <form className="ath-toolbar" onSubmit={(e) => void saveShared(e)} aria-label={fr.config.sharedCreate}>
+                  <TextField label={fr.config.key} mono value={lib.key} onChange={(e) => setLib({ ...lib, key: e.target.value })} required />
+                  <TextField label={fr.config.label} value={lib.label} onChange={(e) => setLib({ ...lib, label: e.target.value })} required />
+                  <label className="ath-notify__pref">{fr.config.type}<Select value={lib.type} onChange={(e) => setLib({ ...lib, type: e.target.value })}>{types.map((t) => <option key={t} value={t}>{t}</option>)}</Select></label>
+                  <TextField label={fr.config.sharedValues} value={lib.options} onChange={(e) => setLib({ ...lib, options: e.target.value })} />
+                  <Btn type="submit" size="sm" disabled={!lib.key || !lib.label}>{fr.config.sharedSave}</Btn>
+                </form>
+              )}
+            </div>
+          </Card>
+        )}
         {(manager || trackerAdmins.length > 0) && (
           <Card title={fr.config.trackerAdmins} meta={String(trackerAdmins.length)}>
             <div className="ath-stack">
@@ -186,6 +230,7 @@ export function TrackerConfigPage({ session }: { session: Session }) {
           {admin && (
             <form className="ath-toolbar" onSubmit={submit('fields', fieldBody(), () => setField({ key: '', label: '', type: 'text', required: false, isContent: true, readRoles: '', writeRoles: '', whenField: '', whenIn: '' }))}>
               <TextField label={fr.config.key} value={field.key} onChange={(e) => setField({ ...field, key: e.target.value })} mono />
+              {shared.length > 0 && <label className="ath-notify__pref">{fr.config.fromShared}<Select value={fromShared} onChange={(e) => setFromShared(e.target.value)}><option value="">{fr.config.fromScratch}</option>{shared.map((f) => <option key={f.key} value={f.key}>{f.label} ({f.key})</option>)}</Select></label>}
               <TextField label={fr.config.label} value={field.label} onChange={(e) => setField({ ...field, label: e.target.value })} />
               <label className="ath-notify__pref">{fr.config.whenField}<Select value={field.whenField} onChange={(e) => setField({ ...field, whenField: e.target.value })}><option value="">{fr.config.always}</option>{def.fields.filter((f) => !visibleWhenOf(f.config)).map((f) => <option key={f.key} value={f.key}>{f.label}</option>)}</Select></label>
               {field.whenField && <TextField label={fr.config.whenValues} value={field.whenIn} onChange={(e) => setField({ ...field, whenIn: e.target.value })} />}
@@ -198,7 +243,7 @@ export function TrackerConfigPage({ session }: { session: Session }) {
               <label className="ath-row" title={fr.suspicion.contentHelp}><Checkbox checked={field.isContent} onChange={(e) => setField({ ...field, isContent: e.target.checked })} />{fr.suspicion.content}</label>
               <TextField label={fr.config.readRoles} value={field.readRoles} onChange={(e) => setField({ ...field, readRoles: e.target.value })} />
               <TextField label={fr.config.writeRoles} value={field.writeRoles} onChange={(e) => setField({ ...field, writeRoles: e.target.value })} />
-              <Btn type="submit" icon="plus" disabled={!field.key || !field.label}>{fr.config.add}</Btn>
+              <Btn type="submit" icon="plus" disabled={!field.key || (!field.label && !fromShared)}>{fr.config.add}</Btn>
             </form>
           )}
         </Card>
