@@ -8,6 +8,9 @@ const schema = z.object({
   KEYCLOAK_AUDIENCE: z.string().min(1).default('athena-api'),
   OPENBAO_ADDR: z.string().url().optional(),
   OPENBAO_TOKEN: z.string().min(1).optional(),
+  /** Connexion AppRole (hors Kubernetes) : les deux ensemble, de préférence au jeton fixe. */
+  OPENBAO_ROLE_ID: z.string().min(1).optional(),
+  OPENBAO_SECRET_ID: z.string().min(1).optional(),
   WEBHOOK_ALLOW_PRIVATE: z.enum(['true', 'false']).default('false').transform((v) => v === 'true'),
   KEYCLOAK_WEB_CLIENT_ID: z.string().default('athena-web'),
   KEYCLOAK_WEB_CLIENT_SECRET: z.string().min(8).optional(),

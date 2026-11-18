@@ -24,7 +24,7 @@ import { DocLinkService } from '../docs/doc-link.service';
 import { DocReadService } from '../docs/doc-read.service';
 import { GitCodeService } from '../gitcode/gitcode.service';
 import { IntegrationsController } from '../integrations/integrations.controller';
-import { OpenBao } from '../secrets/openbao';
+import { OpenBao, tokenSourceFromEnv } from '../secrets/openbao';
 import { OpenBaoSecretStore, UnavailableSecretStore } from '../secrets/store';
 import { WebhookService, type SecretStore } from '../webhooks/webhook.service';
 import { BaselineService } from '../history/baseline.service';
@@ -145,8 +145,9 @@ export { PG_POOL } from './core.tokens';
       provide: SECRET_STORE,
       useFactory: (): SecretStore => {
         const config = loadConfig();
-        return config.OPENBAO_ADDR && config.OPENBAO_TOKEN
-          ? new OpenBaoSecretStore(new OpenBao(config.OPENBAO_ADDR, config.OPENBAO_TOKEN))
+        const source = tokenSourceFromEnv(config);
+        return config.OPENBAO_ADDR && source
+          ? new OpenBaoSecretStore(new OpenBao(config.OPENBAO_ADDR, source))
           : new UnavailableSecretStore();
       },
     },

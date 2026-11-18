@@ -11,7 +11,7 @@ Trackers configurables, workflow et permissions par rôle (champ, transition), l
 
 | # | Engagement du plan | Constat | Traitement |
 |---|---|---|---|
-| E1 | § 14.2 : authentification des services auprès d'OpenBao par Kubernetes ou **AppRole** | Seul `OPENBAO_TOKEN` statique est lu (`config.ts`, `secrets/openbao.ts`) | À faire : connexion AppRole, jeton renouvelé |
+| E1 | § 14.2 : authentification des services auprès d'OpenBao par Kubernetes ou **AppRole** | Seul `OPENBAO_TOKEN` statique est lu (`config.ts`, `secrets/openbao.ts`) | **Fait** : connexion AppRole (`OPENBAO_ROLE_ID`, `OPENBAO_SECRET_ID`), jeton renouvelé aux 2/3 de sa durée, reconnexion sur 403, une seule connexion pour des appels simultanés (6 tests). L'authentification Kubernetes d'OpenBao reste à configurer côté OpenBao : elle délivre un jeton que `OPENBAO_TOKEN` accepte |
 | E2 | § 14.2 : identifiants PostgreSQL **dynamiques** (moteur database) | Absent | À faire : prise en charge de l'identifiant dynamique avec renouvellement |
 | E3 | § 13.3 et 14.2 : **mTLS interne** par PKI OpenBao | Absent | Δ : relève de l'infrastructure (service mesh, certificats du reverse proxy) ; consigné dans l'ADR d'exploitation |
 | E4 | § 3.1, 10 : **OpenTelemetry**, métriques RED Prometheus, tableaux Grafana, Loki, alertes (retard GitLab, échecs webhooks) | Seul `/healthz` existe | À faire : `/metrics`, traces, règles d'alerte et tableau Grafana fournis |

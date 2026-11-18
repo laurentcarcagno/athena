@@ -6,7 +6,7 @@ import { SESSION_STORE, TOKEN_VERIFIER, WEB_CONFIG, type WebConfig } from './aut
 import { BffController } from './auth/bff.controller';
 import { resolveSessionSecret } from './auth/secret';
 import { PgSessionStore } from './auth/session';
-import { OpenBao } from './secrets/openbao';
+import { OpenBao, tokenSourceFromEnv } from './secrets/openbao';
 import { PG_POOL } from './core/core.tokens';
 import type { Pool } from 'pg';
 import { TokenVerifier } from './auth/token-verifier';
@@ -32,7 +32,7 @@ import { HealthController } from './health/health.controller';
       provide: WEB_CONFIG,
       useFactory: async (): Promise<WebConfig> => {
         const c = loadConfig();
-        const bao = c.OPENBAO_ADDR && c.OPENBAO_TOKEN ? new OpenBao(c.OPENBAO_ADDR, c.OPENBAO_TOKEN) : null;
+        const bao = (() => { const source = tokenSourceFromEnv(c); return c.OPENBAO_ADDR && source ? new OpenBao(c.OPENBAO_ADDR, source) : null; })();
         const sessionSecret = await resolveSessionSecret(c.SESSION_SECRET, bao).catch((error: Error) => {
           console.error(`auth: secret de session indisponible : ${error.message.slice(0, 150)}`);
           return undefined; // l'authentification web répond alors 503 plutôt que d'utiliser un secret faible

@@ -11,7 +11,7 @@ import { TrackerService } from './core/tracker.service';
 import { GitLabClient } from './history/gitlab-client';
 import { HistorySync } from './history/history-sync';
 import { ConfidentialFields } from './secrets/confidential';
-import { OpenBao } from './secrets/openbao';
+import { OpenBao, tokenSourceFromEnv } from './secrets/openbao';
 import { OpenBaoSecretStore } from './secrets/store';
 import { WebhookService } from './webhooks/webhook.service';
 import { PluginService } from './plugins/plugin.service';
@@ -39,6 +39,8 @@ const env = z
     GITLAB_NAMESPACE: z.string().min(1).optional(),
     OPENBAO_ADDR: z.string().url().optional(),
     OPENBAO_TOKEN: z.string().min(1).optional(),
+    OPENBAO_ROLE_ID: z.string().min(1).optional(),
+    OPENBAO_SECRET_ID: z.string().min(1).optional(),
     WEBHOOK_ALLOW_PRIVATE: z.enum(['true', 'false']).default('false').transform((v) => v === 'true'),
     HISTORY_INTERVAL_MS: z.coerce.number().int().min(500).default(2000),
     WEBHOOKS_INTERVAL_MS: z.coerce.number().int().min(500).default(2000),
@@ -63,7 +65,8 @@ const log = (message: string) => console.log(`${new Date().toISOString()} ${mess
 const production = process.env['NODE_ENV'] === 'production';
 const pool = new Pool({ connectionString: env.DATABASE_URL, max: 6 });
 
-const bao = env.OPENBAO_ADDR && env.OPENBAO_TOKEN ? new OpenBao(env.OPENBAO_ADDR, env.OPENBAO_TOKEN) : null;
+const baoSource = tokenSourceFromEnv(env);
+const bao = env.OPENBAO_ADDR && baoSource ? new OpenBao(env.OPENBAO_ADDR, baoSource) : null;
 if (!bao) {
   log('OpenBao non configuré : champs confidentiels non chiffrés, webhooks sortants désactivés.');
   if (production) throw new Error('OPENBAO_ADDR et OPENBAO_TOKEN sont obligatoires en production');
