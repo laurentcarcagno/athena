@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
+import { settle } from './settle';
 
 /** T-0136 (ADR-0004) : chaque thème, dans chaque mode, passe axe-core (contraste compris) sur six écrans ; palier tablette. */
 const axeSource = readFileSync(join(process.cwd(), 'node_modules/axe-core/axe.min.js'), 'utf8');
@@ -49,7 +50,7 @@ test('chaque thème × mode : axe-core sans violation, contraste compris, sur si
         await expect(page.locator('main#contenu')).toBeVisible();
         await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
         await expect(page.locator('html')).toHaveAttribute('data-mode', mode);
-        await page.waitForLoadState('networkidle');
+        await settle(page);
         expect.soft(await violations(page), `${theme} ${mode} ${path}`).toEqual([]);
       }
     }

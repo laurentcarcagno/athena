@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
+import { settle } from './settle';
 
 const axeSource = readFileSync(join(process.cwd(), 'node_modules/axe-core/axe.min.js'), 'utf8');
 
@@ -72,12 +73,12 @@ test('thème sombre : bascule au clavier, mémorisée, système respecté, axe (
     for (const [name, path] of PAGES) {
       await page.goto(path);
       await expect(page.locator('main#contenu')).toBeVisible();
-      await page.waitForLoadState('networkidle');
+      await settle(page);
       expect(await axeViolations(page), `${theme} : ${name}`).toEqual([]);
     }
     // Capture visuelle jointe au rapport (aucune comparaison de pixels : la référence est la mesure axe et les couleurs calculées).
     await page.goto('/p/ARI/t/BUG/tableau');
-    await page.waitForLoadState('networkidle');
+    await settle(page);
     await testInfo.attach(`tableau-${theme}.png`, { body: await page.screenshot({ fullPage: false }), contentType: 'image/png' });
   }
 

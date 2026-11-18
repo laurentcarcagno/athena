@@ -16,3 +16,10 @@ export async function seedSevenCards(page: Page): Promise<void> {
   const res = await page.request.put('/v1/me/dashboard', { data: { widgets: SEVEN }, headers: csrf ? { 'X-CSRF-Token': csrf } : {} });
   if (!res.ok()) throw new Error(`disposition de départ refusée : ${res.status()}`);
 }
+
+/** Pose une seule carte (l'accueil est vide par défaut) : pour les parcours qui vérifient une carte précise de Mon travail. */
+export async function seedCards(page: Page, widgets: unknown[]): Promise<void> {
+  const { csrf } = await (await page.request.get('/auth/session')).json() as { csrf?: string };
+  const res = await page.request.put('/v1/me/dashboard', { data: { widgets }, headers: csrf ? { 'X-CSRF-Token': csrf } : {} });
+  if (!res.ok()) throw new Error(`disposition refusée : ${res.status()}`);
+}

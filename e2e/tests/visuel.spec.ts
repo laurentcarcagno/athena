@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { seedPlanning } from './planning-seed';
+import { settle } from './settle';
 
 /**
  * Non-régression visuelle du lot 10 (ADR-0004) : 13 écrans × clair et sombre × 4 largeurs.
@@ -54,7 +55,7 @@ for (const mode of MODES) {
       for (const [name, path] of PAGES) {
         await page.goto(path);
         await expect(page.locator('main#contenu')).toBeVisible();
-        await page.waitForLoadState('networkidle');
+        await settle(page);
         await page.evaluate(() => document.fonts.ready);
         await expect(page.locator('html')).toHaveAttribute('data-mode', mode);
         await expect.soft(page).toHaveScreenshot(`${mode}-${width}-${name}.png`, {

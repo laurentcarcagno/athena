@@ -90,10 +90,12 @@ test('administrateur : ajoute un champ avec rôles puis le supprime dans l’éd
   await page.goto('/p/ARI/trackers/BUG/config');
   await expect(page.getByRole('heading', { level: 1 })).toContainText('BUG');
   const fields = page.locator('section', { has: page.getByRole('heading', { name: 'Champs' }) });
-  await fields.getByLabel('Clé').fill('cout');
-  await fields.getByLabel('Libellé').fill('Coût');
-  await fields.getByLabel('Rôles en lecture (virgules)').fill('finance');
-  await fields.getByRole('button', { name: 'Ajouter' }).click();
+  // Depuis la bibliothèque de champs partagés (090), la section compte deux formulaires : on vise celui qui ajoute un champ au tracker.
+  const add = fields.locator('form').filter({ hasText: 'Visible selon' });
+  await add.getByLabel('Clé').fill('cout');
+  await add.getByLabel('Libellé').fill('Coût');
+  await add.getByLabel('Rôles en lecture (virgules)').fill('finance');
+  await add.getByRole('button', { name: 'Ajouter' }).click();
   const row = fields.getByRole('row', { name: /cout/ });
   await expect(row).toContainText('R: finance');
   await row.getByRole('button', { name: 'Supprimer cout' }).click();

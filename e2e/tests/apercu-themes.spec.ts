@@ -1,4 +1,5 @@
 import { test } from '@playwright/test';
+import { settle } from './settle';
 
 /** Aperçus des thèmes pour relecture humaine (lancé à la demande : APERCU=1). Captures dans e2e/visuel/apercu/. */
 test.skip(!process.env.APERCU, 'aperçus : APERCU=1');
@@ -26,7 +27,7 @@ test('aperçus des thèmes', async ({ page }) => {
         await page.setViewportSize({ width, height: 900 });
         await page.goto('/p/ARI/t/BUG/tableau');
         await page.locator(`html[data-theme="${theme}"]`).waitFor();
-        await page.waitForLoadState('networkidle');
+        await settle(page);
         await page.screenshot({ path: `visuel/apercu/${theme}-${mode}${width === 1440 ? '' : `-${width}`}.png` });
       }
     }

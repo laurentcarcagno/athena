@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
 import { seedPlanning } from './planning-seed';
+import { settle } from './settle';
 
 // T-0162 à T-0165 : Planning (Gantt, Board, Liste, Versions) ; barres aux bonnes dates, édition, filtres, accessibilité par thème.
 
@@ -204,7 +205,7 @@ test('planning : Gantt, Board, Liste et fiche passent axe-core dans chaque thèm
         await page.goto(path);
         await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
         await expect(page.locator('html')).toHaveAttribute('data-mode', mode);
-        await page.waitForLoadState('networkidle');
+        await settle(page);
         await expect(page.locator('main#contenu')).toBeVisible();
         expect.soft(await axeViolations(page), `${theme} ${mode} ${path}`).toEqual([]);
       }

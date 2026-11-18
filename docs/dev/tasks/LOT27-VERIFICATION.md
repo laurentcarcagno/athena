@@ -34,4 +34,10 @@ Rejouée le 2026-11-18 (`/goal`). Décisions : ADR-0010. Plan : `LOT27-PLAN.md`.
 
 ## Suites
 
-API et web : voir `STATE.md`. e2e : lancé spec par spec, base remise à zéro.
+API : 942 tests ; web : 719 tests (tous verts). e2e : lancé spec par spec, base remise à zéro avant chaque reprise ; toutes les specs passent (`apercu-themes` reste ignorée, comme avant le lot).
+
+Le passage e2e complet a d'abord révélé sept échecs, tous réglés :
+- `notifications` : l'accueil est vide par défaut ; la spec pose elle-même la carte Mentions (`dashboard-seed.ts`).
+- `parcours` (ajout d'un champ) : la bibliothèque de champs partagés (090) ajoute un second formulaire « Clé » dans la section ; la spec vise le bon formulaire. Défaut antérieur au lot, jamais rejoué depuis.
+- `theme`, `no-egress`, `audit`, `planning`, `themes` : `waitForLoadState('networkidle')` ne se termine plus depuis le flux temps réel `/v1/me/events` (SSE), ouvert sur chaque page ; les « page crashed » étaient la suite de ces attentes sans fin. Remplacé par `settle()` (`e2e/tests/settle.ts`).
+- `gabarits` dépend de l'ordre des specs (le module Traçabilité s'active quand des types de liens existent) : il passe dans l'ordre alphabétique, base neuve.

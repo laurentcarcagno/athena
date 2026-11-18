@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
+import { settle } from './settle';
 
 const axeSource = readFileSync(join(process.cwd(), 'node_modules/axe-core/axe.min.js'), 'utf8');
 
@@ -39,11 +40,11 @@ async function sweep(page: Page, label: string): Promise<void> {
   for (const path of ROUTES) {
     await page.goto(path);
     await expect(page.locator('main#contenu')).toBeVisible();
-    await page.waitForLoadState('networkidle');
+    await settle(page);
     expect(await axeViolations(page), `${label} : ${path}`).toEqual([]);
   }
   await page.goto('/p/ARI/a/ARI-BUG-0001');
-  await page.waitForLoadState('networkidle');
+  await settle(page);
   for (const tab of ITEM_TABS) {
     await page.getByRole('tab', { name: tab }).click();
     expect(await axeViolations(page), `${label} : fiche, onglet ${tab}`).toEqual([]);

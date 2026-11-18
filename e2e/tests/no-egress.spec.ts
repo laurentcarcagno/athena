@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { settle } from './settle';
 
 /** Hôtes internes de la recette : l'application, l'API et le fournisseur d'identité local (Keycloak du poste de développement). */
 const INTERNAL = new Set(['localhost', '127.0.0.1']);
@@ -39,7 +40,7 @@ test('aucune requête ne sort de l’origine sur les pages principales', async (
   page.on('request', (request) => { const u = new URL(request.url()); if (!['data:', 'blob:', 'about:'].includes(u.protocol)) origins.add(u.origin); });
   for (const path of ['/', '/p/ARI', '/p/ARI/trackers', '/p/ARI/rapports/tracabilite', '/p/ARI/planification', '/p/ARI/rapports/activite', '/p/ARI/membres', '/p/ARI/recherche', '/org', '/aide', '/projets', '/profil', '/notifications']) {
     await page.goto(path);
-    await page.waitForLoadState('networkidle');
+    await settle(page);
     await expect(page.locator('main, [role="main"], #root').first()).toBeVisible();
   }
   expect(egress, `requêtes sortantes : ${egress.join(', ')}`).toEqual([]);

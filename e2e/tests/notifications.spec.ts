@@ -1,3 +1,4 @@
+import { seedCards } from './dashboard-seed';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
@@ -88,6 +89,7 @@ test('mentions : autocomplétion au clavier, rendu assaini, notification et entr
   expect(mentioned.status()).toBe(201);
   expect(((await mentioned.json()) as { mentions: string[] }).mentions).toEqual(['user.dev']);
 
+  await seedCards(page, [{ id: 'mentions', kind: 'mentions' }]); // l'accueil est vide par défaut : la personne pose elle-même sa carte
   await page.goto('/me');
   await expect(page.getByRole('heading', { name: 'Mentions' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'ARI-BUG-0001' }).first()).toBeVisible();
