@@ -69,3 +69,20 @@ describe('priorisation, scénarios, valeur acquise (B41)', () => {
     expect(container.textContent).toBe('');
   });
 });
+
+import { sensitivity } from './PrioritizationPanel';
+
+describe('sensibilité des pondérations (B41)', () => {
+  it('doubler le poids du critère où une demande excelle la fait monter ; le diviser par deux la fait descendre', () => {
+    const criteria = [{ key: 'valeur', label: 'Valeur', weight: 1, scaleMin: 0, scaleMax: 10, direction: 'higher' as const }, { key: 'cout', label: 'Coût', weight: 1, scaleMin: 0, scaleMax: 100, direction: 'lower' as const }];
+    // A : valeur 100 %, coût 20 % ; B : valeur 40 %, coût 100 % ; à poids égaux B (70) devance A (60)
+    const requests = [
+      { key: 'A', project: 'P', title: 'A', score: 60, completeness: 100, incomplete: false, contributions: [{ criterion: 'valeur', points: 50 }, { criterion: 'cout', points: 10 }], converted: null },
+      { key: 'B', project: 'P', title: 'B', score: 70, completeness: 100, incomplete: false, contributions: [{ criterion: 'valeur', points: 20 }, { criterion: 'cout', points: 50 }], converted: null },
+    ];
+    const s = sensitivity(criteria, requests);
+    const valeur = s.find((x) => x.criterion === 'valeur')!.rankings;
+    expect(valeur['A']).toEqual({ half: 2, double: 1 }); // doubler la valeur fait passer A devant B
+    expect(valeur['B']).toEqual({ half: 1, double: 2 });
+  });
+});

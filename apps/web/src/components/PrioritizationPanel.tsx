@@ -19,6 +19,32 @@ interface Evaluation {
 }
 interface Ev { project: string; name: string; bac: number; pv: number; ev: number; ac: number; cpi: number | null; spi: number | null; quadrant: string }
 
+/**
+ * Sensibilité des pondérations : pour chaque critère, le rang de chaque demande si son poids double ou est divisé par deux. La valeur normalisée de chaque critère se
+ * retrouve depuis les points de contribution (points = normalisée × poids ÷ somme des poids notés × 100).
+ */
+export function sensitivity(criteria: Criterion[], requests: Ranked[]): Array<{ criterion: string; label: string; rankings: Record<string, { half: number; double: number }> }> {
+  const scored = requests.filter((r) => r.score !== null && r.contributions.length > 0);
+  const normalized = scored.map((r) => {
+    const noted = criteria.filter((c) => r.contributions.some((x) => x.criterion === c.key));
+    const wsum = noted.reduce((n, c) => n + c.weight, 0);
+    return { key: r.key, values: new Map(noted.map((c) => [c.key, (r.contributions.find((x) => x.criterion === c.key)!.points * wsum) / (c.weight * 100)])) };
+  });
+  const rankWith = (weights: Map<string, number>) => {
+    const scores = normalized.map((r) => {
+      const noted = [...r.values.keys()];
+      const w = noted.reduce((n, k) => n + (weights.get(k) ?? 0), 0);
+      return { key: r.key, score: w === 0 ? 0 : noted.reduce((n, k) => n + r.values.get(k)! * (weights.get(k) ?? 0), 0) / w };
+    }).sort((a, b) => b.score - a.score || a.key.localeCompare(b.key));
+    return new Map(scores.map((s, i) => [s.key, i + 1]));
+  };
+  return criteria.map((c) => {
+    const half = rankWith(new Map(criteria.map((x) => [x.key, x.key === c.key ? x.weight / 2 : x.weight])));
+    const dbl = rankWith(new Map(criteria.map((x) => [x.key, x.key === c.key ? x.weight * 2 : x.weight])));
+    return { criterion: c.key, label: c.label, rankings: Object.fromEntries(normalized.map((r) => [r.key, { half: half.get(r.key)!, double: dbl.get(r.key)! }])) };
+  });
+}
+
 const euros = (n: number) => `${new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 }).format(Math.round(n))} €`;
 
 /** Priorisation des demandes, scénarios et valeur acquise d'un portefeuille (lot 25, B41). Ne se montre que si la fonctionnalité Demandes est active. */
@@ -124,6 +150,21 @@ export function PrioritizationPanel({ portfolio, canEdit, canSeeFinance }: { por
                 series={[{ name: t.valueAxis, data: pts.map((r) => r.contributions.find((c) => c.criterion === 'valeur')!.points) }, { name: t.riskAxis, data: pts.map((r) => r.contributions.find((c) => c.criterion === 'risque')!.points) }]} />
             ) : null;
           })()}
+          {ranking.requests.length > 0 && (
+            <Chart type="bar" title={t.funnel} categories={[t.funnelAll, t.funnelScored, t.funnelConverted]}
+              series={[{ name: t.requestsLabel, data: [ranking.requests.length, ranking.requests.filter((r) => r.score !== null).length, ranking.requests.filter((r) => r.converted === 'converted').length] }]} />
+          )}
+          {ranking.model && ranking.requests.filter((r) => r.score !== null).length > 1 && (
+            <section aria-label={t.sensitivity}>
+              <h3 className="ath-subsection-title">{t.sensitivity}</h3>
+              <Table caption={t.sensitivityCaption}>
+                <thead><tr><Th>{t.criterion}</Th>{ranking.requests.filter((r) => r.score !== null).map((r) => <Th key={r.key}>{r.key}</Th>)}</tr></thead>
+                <tbody>{sensitivity(ranking.model.criteria, ranking.requests).map((s) => (
+                  <tr key={s.criterion}><Td>{s.label}</Td>{ranking.requests.filter((r) => r.score !== null).map((r) => { const x = s.rankings[r.key]; return <Td key={r.key} mono>{x ? t.rankPair(x.half, x.double) : '—'}</Td>; })}</tr>
+                ))}</tbody>
+              </Table>
+            </section>
+          )}
           {ranking.model && ranking.requests.length > 1 && (
             <section aria-label={t.compareTitle}>
               <h3 className="ath-subsection-title">{t.compareTitle}</h3>
