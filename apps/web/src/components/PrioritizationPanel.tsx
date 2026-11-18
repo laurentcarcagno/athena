@@ -49,8 +49,7 @@ export function PrioritizationPanel({ portfolio, canEdit, canSeeFinance }: { por
   const saveModel = async (e: FormEvent) => {
     e.preventDefault();
     // une ligne par critère : clé;libellé;poids;minimum;maximum;higher|lower (higher : plus c'est haut, mieux c'est)
-    const criteria = model.split(/?
-/).map((l) => l.trim()).filter(Boolean).map((l) => {
+    const criteria = model.split(/\r?\n/).map((l) => l.trim()).filter(Boolean).map((l) => {
       const [key = '', label = '', weight = '', min = '', max = '', direction = 'higher'] = l.split(';').map((x) => x.trim());
       return { key, label, weight: Number(weight.replace(',', '.')), scaleMin: Number(min.replace(',', '.')), scaleMax: Number(max.replace(',', '.')), direction };
     });
