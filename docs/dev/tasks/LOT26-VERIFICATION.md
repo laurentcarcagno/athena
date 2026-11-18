@@ -14,7 +14,7 @@ Source : `docs/ppm/07-plan-livraison.md` § I9, B42. Rapport : `docs/ppm/verific
 
 | Écart | État |
 |---|---|
-| Mesure sous charge concurrente | Faite : 50 lectures simultanées, P95 5,3 s (lectures sérialisées, 9 par seconde) ; amélioration à traiter en recette |
+| Mesure sous charge concurrente | Faite et corrigée : 50 lectures simultanées, P95 5,3 s avant lecture groupée, **196 ms** après |
 | Mesure sur disque SSD | Infaisable depuis le poste de développement (disque USB) ; à mesurer sur le serveur de recette |
 | Job différé `capacite` | Inutile jusqu'à environ 1 500 personnes (1,5 à 2 s) ; seuil documenté |
 | Import de 100 000 lignes | Fait : 4,3 s après insertion par paquets |

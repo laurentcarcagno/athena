@@ -24,10 +24,10 @@ Date : 2026-11-18. Mesure : `apps/api/src/ppm/portfolio-scale.test.ts` (`ATHENA_
 
 | Mesure | Résultat |
 |---|---|
-| 50 lectures simultanées du tableau de santé matérialisé (300 projets) | P50 5,3 s, P95 5,3 s, durée totale 5,3 s : les lectures se sérialisent (environ 106 ms chacune, soit 9 lectures par seconde et par instance) |
+| 50 lectures simultanées du tableau de santé matérialisé (300 projets) | Avant correction : P95 5,3 s (lectures sérialisées, une transaction par projet). Après : **P50 173 ms, P95 196 ms** |
 | Import de 100 000 lignes de réels (insertion par paquets de 5 000) | 4,3 s, 100 000 enregistrées |
 
-La mesure de concurrence est le point faible : à 50 lecteurs simultanés, la dernière attend 5 s. Pistes, par ordre de gain : mettre en cache la réponse du tableau de santé par lecteur pendant quelques secondes, ou lire les lignes matérialisées en une seule requête au lieu d'une par projet (le portefeuille en enchaîne 300), ou répartir sur deux instances d'API. Non traitée dans ce lot ; consignée comme travail de recette.
+Correction faite le jour même : la lecture des indicateurs matérialisés se fait **en une requête groupée** pour tout le portefeuille (`CachedKpiService.prefetch`) au lieu d'une transaction par projet. Résultat : tableau de santé **P50 18 ms, P95 22 ms** ; **50 lectures simultanées : P50 173 ms, P95 196 ms** (avant : 5,3 s).
 
 ## Limites constatées
 

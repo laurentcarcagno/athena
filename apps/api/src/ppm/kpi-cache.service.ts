@@ -20,6 +20,18 @@ export class CachedKpiService implements Pick<KpiService, 'kpis'> {
     return this.live.kpis(organizationId, projectKey, actor, today);
   }
 
+  /**
+   * Lecture groupée : une seule requête pour toutes les lignes fraîches des projets demandés (visibles du lecteur), déposées dans `cache` ; les projets sans ligne fraîche restent à
+   * `kpis()`, qui recalcule en direct. Évite une transaction par projet (300 pour un portefeuille du palier 2).
+   */
+  async prefetch(organizationId: string, keys: string[], cache: Map<string, Promise<ProjectKpis>>, today: Date = new Date()): Promise<void> {
+    if (keys.length === 0) return;
+    const rows = await this.db.tx(organizationId, async (c) => (await c.query(
+      `select p.key, k.metrics from project_kpi k join project p on p.id = k.project_id where p.key = any($1::text[]) and k.computed_at >= $2::timestamptz and k.computed_at <= $3::timestamptz`,
+      [keys, new Date(today.getTime() - this.freshMs).toISOString(), new Date(today.getTime() + 60_000).toISOString()])).rows as Array<{ key: string; metrics: ProjectKpis }>);
+    for (const r of rows) cache.set(r.key, Promise.resolve(r.metrics));
+  }
+
   /** Recalcule et écrit les indicateurs de tous les projets de l'organisation (ou de ceux donnés) ; retourne le nombre de projets écrits. */
   async refresh(organizationId: string, projectKeys?: string[], now: Date = new Date()): Promise<number> {
     const projects = await this.db.tx(organizationId, async (c) => (await c.query('select id, key from project where ($1::text[] is null or key = any($1)) order by key', [projectKeys ?? null])).rows as Array<{ id: string; key: string }>, { system: true });

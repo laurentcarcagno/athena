@@ -24,7 +24,7 @@ const ORDER: Record<Health, number> = { critical: 0, attention: 1, ok: 2 };
 
 /** Portefeuilles de projets (ADR-0008) : regroupement, santé consolidée, avancement et retards. Lecture pour le directeur, gestion pour l'administrateur. */
 export class PortfolioService {
-  constructor(private readonly db: Db, private readonly kpis: Pick<KpiService, 'kpis'>) {}
+  constructor(private readonly db: Db, private readonly kpis: Pick<KpiService, 'kpis'> & { prefetch?: (organizationId: string, keys: string[], cache: Map<string, Promise<ProjectKpis>>, today?: Date) => Promise<void> }) {}
 
   async list(organizationId: string): Promise<PortfolioView[]> {
     return this.db.tx(organizationId, async (c) => (await c.query(
@@ -101,6 +101,8 @@ export class PortfolioService {
           where x.portfolio_id = $1 and x.kind = 'delivery' order by x.position, p.key`, [f.id])).rows as Array<{ key: string; health_override: Health | null; note: string }>;
       return { view: await this.viewIn(c, f.key), rows };
     });
+    // lecture groupée des indicateurs matérialisés (une requête au lieu d'une par projet) quand le fournisseur sait le faire
+    await this.kpis.prefetch?.(organizationId, rows.filter((r) => !cache.has(r.key)).map((r) => r.key), cache);
     const projects = await Promise.all(rows.map(async (r): Promise<PortfolioProject> => {
       let k = cache.get(r.key);
       if (!k) { k = this.kpis.kpis(organizationId, r.key, actor); cache.set(r.key, k); }
