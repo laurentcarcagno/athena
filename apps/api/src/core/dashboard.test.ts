@@ -278,7 +278,11 @@ suite('classeur à onglets du tableau de bord (intégration)', () => {
       expect((await dash.createTab(org, alice, '', 'Qualité & risques')).id).toBe('qualite-risques');
       expect((await dash.get(org, alice, '', 'qualite-risques')).widgets).toEqual([]);
       // l'onglet principal ne se renomme ni ne se supprime ; la limite est tenue
-      expect(await code(dash.renameTab(org, alice, '', '', 'X'))).toMatch(/^validation/);
+      // l'onglet principal se renomme (titre propre à la portée), sans compter dans la limite
+      expect(await dash.renameTab(org, alice, '', '', 'Mon quotidien')).toEqual({ id: '', title: 'Mon quotidien' });
+      await dash.renameTab(org, alice, '', '', 'Au quotidien');
+      expect((await dash.tabs(org, alice)).slice(0, 2)).toEqual([{ id: '', title: 'Au quotidien' }, { id: 'qualite-risques-2', title: 'Qualité risques' }]);
+      expect((await dash.tabs(org, alice, 'NOVA'))[0]!.title).toBeNull();
       expect(await code(dash.deleteTab(org, alice, '', ''))).toMatch(/^validation/);
       for (let i = 0; i < 6; i++) await dash.createTab(org, alice, '', `Onglet ${i}`);
       expect(await code(dash.createTab(org, alice, '', 'De trop'))).toMatch(/^validation/);

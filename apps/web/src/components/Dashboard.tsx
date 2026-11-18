@@ -330,7 +330,7 @@ export function Dashboard({ project, page, portfolio, qa = false }: { project?: 
     try {
       if (tabForm.mode === 'create') {
         const made = await api<TabInfo>('POST', tabsEndpoint, { title });
-        setTabs((list) => [...list, made]); setTab(made.id); toast('success', fr.home.tabCreated);
+        setTabs((list) => [...list, made]); if (!editing) setTab(made.id); toast('success', fr.home.tabCreated);
       } else {
         await api('PATCH', withQuery(`/v1/me/dashboard/tabs/${tab}`), { title });
         setTabs((list) => list.map((t) => (t.id === tab ? { ...t, title } : t))); toast('success', fr.home.tabRenamed);
@@ -340,7 +340,7 @@ export function Dashboard({ project, page, portfolio, qa = false }: { project?: 
   };
   const deleteTab = async () => {
     if (!(await confirm.ask({ title: fr.home.tabDeleteTitle(tabName(currentTab)), body: fr.home.tabDeleteBody, confirm: fr.home.tabDelete }))) return;
-    try { await api('DELETE', withQuery(`/v1/me/dashboard/tabs/${tab}`)); setTabs((list) => list.filter((t) => t.id !== tab)); setTab(''); toast('success', fr.home.tabDeleted); } catch (error) { fail(error); }
+    try { await api('DELETE', withQuery(`/v1/me/dashboard/tabs/${tab}`)); setTabs((list) => list.filter((t) => t.id !== tab)); stop(); setTab(''); toast('success', fr.home.tabDeleted); } catch (error) { fail(error); }
   };
   const reset = async () => {
     if (!(await confirm.ask({ title: fr.home.resetTitle, body: fr.home.resetBody, confirm: fr.home.reset }))) return;
@@ -436,12 +436,17 @@ export function Dashboard({ project, page, portfolio, qa = false }: { project?: 
       {!editing && (
         <div className="ath-toolbar ath-dash-tabs">
           <Tabs tabs={tabs.map((t) => ({ id: t.id, label: tabName(t) }))} active={tab} onChange={(id) => { setTab(id); setTabForm(null); }} />
+        </div>
+      )}
+      {editing && (
+        <div className="ath-toolbar ath-dash-tabs" role="group" aria-label={fr.home.tabsLabel}>
+          <strong>{tabName(currentTab)}</strong>
           <Btn variant="ghost" size="sm" onClick={() => setTabForm({ mode: 'create', value: '' })}>{fr.home.tabNew}</Btn>
-          {tab !== '' && <Btn variant="ghost" size="sm" onClick={() => setTabForm({ mode: 'rename', value: currentTab.title ?? '' })}>{fr.home.tabRenameDo}</Btn>}
+          <Btn variant="ghost" size="sm" onClick={() => setTabForm({ mode: 'rename', value: currentTab.title ?? '' })}>{fr.home.tabRenameDo}</Btn>
           {tab !== '' && <Btn variant="ghost" size="sm" onClick={() => void deleteTab()}>{fr.home.tabDelete}</Btn>}
         </div>
       )}
-      {!editing && tabForm && (
+      {tabForm && (
         <form className="ath-toolbar" onSubmit={(e) => { e.preventDefault(); void submitTab(); }}>
           <label className="ath-field">{fr.home.tabName}<input className="ath-input" autoFocus value={tabForm.value} maxLength={60} onChange={(e) => setTabForm({ ...tabForm, value: e.target.value })} /></label>
           <Btn size="sm" type="submit" disabled={!tabForm.value.trim()}>{tabForm.mode === 'create' ? fr.home.tabCreate : fr.home.tabRename}</Btn>

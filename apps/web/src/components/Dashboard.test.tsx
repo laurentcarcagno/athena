@@ -155,32 +155,38 @@ describe('tableau de bord personnel', () => {
 });
 
 describe('classeur à onglets', () => {
-  it('crée un onglet vide, y enregistre une carte sans toucher à l’onglet principal, le renomme puis le supprime', async () => {
+  it('gère les onglets depuis Organiser : crée, renomme l’onglet principal, remplit un onglet sans toucher au principal, supprime', async () => {
     const user = userEvent.setup();
     page();
     await waitFor(() => expect(groups()).toEqual(DEFAULT_TITLES));
     expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual(['Principal']);
+    expect(screen.queryByRole('button', { name: 'Nouvel onglet' })).not.toBeInTheDocument(); // la gestion se fait dans Organiser
+    await user.click(screen.getByRole('button', { name: 'Organiser' }));
+    // renommer l'onglet principal
+    await user.click(screen.getByRole('button', { name: 'Renommer l’onglet' }));
+    await user.type(screen.getByLabelText('Nom de l’onglet'), 'Quotidien');
+    await user.click(screen.getByRole('button', { name: 'Renommer' }));
+    await waitFor(() => expect(calls.find((c) => c.method === 'PATCH')?.url).toBe('/v1/me/dashboard/tabs/'));
+    expect(screen.queryByRole('button', { name: 'Supprimer l’onglet' })).not.toBeInTheDocument(); // le principal ne se supprime pas
+    // créer un onglet (on reste sur le brouillon en cours), puis l'ouvrir
     await user.click(screen.getByRole('button', { name: 'Nouvel onglet' }));
     await user.type(screen.getByLabelText('Nom de l’onglet'), 'Risques');
     await user.click(screen.getByRole('button', { name: 'Créer' }));
-    await waitFor(() => expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual(['Principal', 'Risques']));
-    expect(calls.find((c) => c.method === 'POST')?.body).toEqual({ title: 'Risques' });
+    await waitFor(() => expect(calls.find((c) => c.method === 'POST')?.body).toEqual({ title: 'Risques' }));
+    await user.click(screen.getByRole('button', { name: 'Annuler' }));
+    await user.click(await screen.findByRole('tab', { name: 'Risques' }));
     expect(await screen.findByText(/Onglet vide/)).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: 'Risques' })).toHaveAttribute('aria-selected', 'true');
     await user.click(screen.getByRole('button', { name: 'Organiser' }));
     await user.click(await screen.findByRole('button', { name: 'Ajouter Mentions' }));
     await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
     await waitFor(() => expect(calls.some((c) => c.method === 'PUT' && c.url === '/v1/me/dashboard?tab=risques')).toBe(true));
     expect(tabWidgets['risques']!.map((w) => w.kind)).toEqual(['mentions']);
     expect(stored).toBeNull(); // l'onglet principal n'a pas été écrit
-    await user.click(screen.getByRole('button', { name: 'Renommer l’onglet' }));
-    const name = screen.getByLabelText('Nom de l’onglet');
-    await user.clear(name); await user.type(name, 'Qualité');
-    await user.click(screen.getByRole('button', { name: 'Renommer' }));
-    await waitFor(() => expect(screen.getByRole('tab', { name: 'Qualité' })).toBeInTheDocument());
+    // supprimer l'onglet
+    await user.click(screen.getByRole('button', { name: 'Organiser' }));
     await user.click(screen.getByRole('button', { name: 'Supprimer l’onglet' }));
     await user.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Supprimer l’onglet' }));
-    await waitFor(() => expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual(['Principal']));
-    await waitFor(() => expect(groups()).toContain('Mes tickets')); // l’onglet principal retrouve sa disposition
+    await waitFor(() => expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual(['Quotidien']));
+    await waitFor(() => expect(groups()).toContain('Mes tickets'));
   });
 });

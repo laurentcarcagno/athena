@@ -196,14 +196,14 @@ export class DashboardService {
   /** Onglets d'une portée : le principal d'abord (titre `null` : le client le nomme), puis les onglets nommés dans l'ordre de création. */
   async tabs(organizationId: string, actor: Actor, scope = ''): Promise<DashboardTab[]> {
     this.guard(actor, scope);
-    const rows = await this.db.tx(organizationId, async (c) => (await c.query('select id, title from dashboard_tab where owner = $1 and scope = $2 order by position, created_at, id', [actor.id, scope])).rows as { id: string; title: string }[]);
-    return [{ id: '', title: null }, ...rows];
+    const rows = await this.db.tx(organizationId, async (c) => (await c.query("select id, title from dashboard_tab where owner = $1 and scope = $2 order by (id <> ''), position, created_at, id", [actor.id, scope])).rows as { id: string; title: string }[]);
+    return rows[0]?.id === '' ? rows : [{ id: '', title: null }, ...rows];
   }
 
   async createTab(organizationId: string, actor: Actor, scope: string, title: string): Promise<DashboardTab> {
     this.guard(actor, scope);
     return this.db.tx(organizationId, async (c) => {
-      const rows = (await c.query('select id, position from dashboard_tab where owner = $1 and scope = $2', [actor.id, scope])).rows as { id: string; position: number }[];
+      const rows = (await c.query("select id, position from dashboard_tab where owner = $1 and scope = $2 and id <> ''", [actor.id, scope])).rows as { id: string; position: number }[];
       if (rows.length >= MAX_TABS) throw validation([`Un classeur compte au plus ${MAX_TABS} onglets en plus de l’onglet principal`]);
       const base = title.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 22) || 'onglet';
       const taken = new Set(rows.map((r) => r.id));
@@ -217,7 +217,12 @@ export class DashboardService {
 
   async renameTab(organizationId: string, actor: Actor, scope: string, tab: string, title: string): Promise<DashboardTab> {
     this.guard(actor, scope);
-    if (tab === '') throw validation(['L’onglet principal ne se renomme pas']);
+    // L'onglet principal se renomme aussi : son titre est enregistré à la première fois (id vide).
+    if (tab === '') {
+      await this.db.tx(organizationId, (c) => c.query(`insert into dashboard_tab (organization_id, owner, scope, id, title, position) values ($1,$2,$3,'',$4,-1)
+        on conflict (organization_id, owner, scope, id) do update set title = excluded.title`, [organizationId, actor.id, scope, title]));
+      return { id: tab, title };
+    }
     const n = await this.db.tx(organizationId, async (c) => (await c.query('update dashboard_tab set title = $4 where owner = $1 and scope = $2 and id = $3', [actor.id, scope, tab, title])).rowCount);
     if (!n) throw notFound('Onglet');
     return { id: tab, title };
