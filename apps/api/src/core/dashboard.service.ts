@@ -135,7 +135,8 @@ export const defaultPortfolioWidgets = (): Widget[] => [
   { id: 'portfolio-tiles', kind: 'portfolio-tiles', size: 'XL', h: 2 },
   { id: 'portfolio-health', kind: 'portfolio-health', size: 'XL', h: 5 },
 ];
-const defaultsFor = (scope: string, roles: readonly string[] = []): Widget[] => (scope.startsWith('portfolio:') ? defaultPortfolioWidgets() : scope.endsWith(':avancement') ? defaultProgressWidgets(scope.split(':')[0]!) : scope ? defaultProjectWidgets(scope) : homeWidgetsFor(roles));
+/** Aucun tableau de bord n'a de disposition par défaut : chacun organise les siens (les dispositions types ci-dessus restent disponibles pour les définir plus tard). */
+const defaultsFor = (_scope: string, _roles: readonly string[] = []): Widget[] => [];
 
 const overlaps = (a: Required<Pick<Widget, 'x' | 'y' | 'w' | 'h'>>, b: Required<Pick<Widget, 'x' | 'y' | 'w' | 'h'>>) =>
   a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;

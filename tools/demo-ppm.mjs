@@ -258,9 +258,4 @@ for (const u of Object.keys(USERS)) {
   for (const tab of ((await get(u, '/v1/me/dashboard/tabs'))?.tabs ?? []).filter((t) => t.id !== '' && t.title === 'Démonstration')) await call(u, 'DELETE', `/v1/me/dashboard/tabs/${tab.id}`);
 }
 
-for (const portfolio of ['defense', 'spatial']) {
-  await call('pmo', 'PUT', `/v1/me/dashboard?portfolio=${portfolio}`, { widgets: [
-    { id: 'sante', kind: 'portfolio-health', size: 'XL', x: 0, y: 0, w: 12, h: 3 }, { id: 'tuiles', kind: 'portfolio-tiles', size: 'XL', x: 0, y: 3, w: 12, h: 3 },
-  ] });
-}
 console.log(issues.length === 0 ? 'Démonstration PPM amorcée sans incident.' : `Démonstration PPM amorcée, ${issues.length} appel(s) refusé(s) :\n  ${[...new Set(issues)].slice(0, 60).join('\n  ')}`);

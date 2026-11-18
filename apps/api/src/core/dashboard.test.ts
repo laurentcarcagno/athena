@@ -55,8 +55,7 @@ suite('tableau de bord personnel (intégration)', () => {
   it('donne à chaque projet sa propre Vue d’ensemble, indépendante de l’accueil', async () => {
     const d = await dash.get(org, alice, 'NOVA');
     expect(d.isDefault).toBe(true);
-    expect(d.widgets.map((w) => w.id)).toEqual(['assigned', 'due', 'trackers', 'mentions', 'indicators']); // T-0155 : indicateurs du projet en pleine largeur
-    expect(d.widgets[0]!.projects).toEqual(['NOVA']);
+    expect(d.widgets).toEqual([]); // aucune disposition par défaut : chacun organise la sienne
     await dash.put(org, { widgets: [{ id: 'trackers', kind: 'trackers', projects: ['NOVA'] }] }, alice, 'NOVA');
     expect((await dash.get(org, alice, 'NOVA')).widgets.map((w) => w.id)).toEqual(['trackers']);
     expect((await dash.get(org, alice)).isDefault).toBe(true); // l'accueil n'est pas touché
@@ -70,11 +69,8 @@ suite('tableau de bord personnel (intégration)', () => {
     expect((await dash.get(org, alice, 'NOVA:avancement')).widgets[0]).toMatchObject({ id: 'trackers', size: 'L' });
     expect((await dash.get(org, alice, 'NOVA')).isDefault).toBe(true); // la Vue d’ensemble est une autre page
     await dash.reset(org, alice, 'NOVA:avancement');
-    // Avancement par défaut (T-0155) : les variantes retenues, avec la clé du projet ; elles acceptent un projet.
     const progress = await dash.get(org, alice, 'NOVA:avancement');
-    expect(progress.isDefault).toBe(true);
-    expect(progress.widgets.map((w) => [w.id, w.size])).toEqual([['indicators', 'L'], ['release', 'S'], ['flow', 'M'], ['tracker-status', 'M'], ['velocity', 'M'], ['activity', 'M']]);
-    expect(progress.widgets.every((w) => w.projects?.[0] === 'NOVA')).toBe(true);
+    expect(progress).toEqual({ widgets: [], isDefault: true }); // l'Avancement est vide par défaut lui aussi
     await dash.put(org, { widgets: [{ id: 'flow', kind: 'flow', projects: ['NOVA'], size: 'XL' }] }, alice, 'NOVA:avancement');
     expect((await dash.get(org, alice, 'NOVA:avancement')).widgets).toMatchObject([{ id: 'flow', kind: 'flow', projects: ['NOVA'], size: 'XL', x: 0, y: 0, w: 12 }]);
     await dash.reset(org, alice, 'NOVA:avancement');
@@ -207,7 +203,7 @@ suite('tableau de bord d’un portefeuille (intégration)', () => {
       const dev = { id: 'dev', roles: ['athena-team-member'] };
       const first = await dash.get(org, pmo, 'portfolio:spatial');
       expect(first.isDefault).toBe(true);
-      expect(first.widgets.map((w) => w.kind)).toEqual(['portfolio-tiles', 'portfolio-health']);
+      expect(first.widgets).toEqual([]); // vide par défaut : le PMO compose le sien
       expect(await code(dash.get(org, dev, 'portfolio:spatial'))).toMatch(/^forbidden/);
       expect(await code(dash.put(org, { widgets: [{ id: 'h', kind: 'portfolio-health' }] }, pmo, 'portfolio:spatial'))).toBe('ok');
       expect((await dash.get(org, pmo, 'portfolio:spatial')).widgets.map((w) => w.kind)).toEqual(['portfolio-health']);
