@@ -1,0 +1,58 @@
+rules:
+  - id: athena-sql-concatenation
+    languages: [typescript]
+    severity: ERROR
+    message: "Requête SQL construite par concaténation ou gabarit avec valeur variable : utiliser des paramètres ($1, $2) (plan § 13.2). Les noms d'objets sont validés par liste blanche, jamais pris tels quels."
+    patterns:
+      - pattern-either:
+          - pattern: $C.query(`...${$X}...`, ...)
+          - pattern: $C.query("..." + $X, ...)
+          - pattern: $C.query($X + "...", ...)
+      - pattern-not: $C.query(`...${$T}...`, ...)  # voir les exceptions justifiées par `// nosemgrep: athena-sql-concatenation`
+    paths:
+      exclude: ["**/*.test.ts", "**/migrations/**"]
+
+  - id: athena-eval
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: "eval, new Function ou vm.runInThisContext : interdits hors du runtime de plugins isolé."
+    pattern-either:
+      - pattern: eval(...)
+      - pattern: new Function(...)
+      - pattern: vm.runInThisContext(...)
+    paths:
+      exclude: ["**/*.test.ts", "apps/api/src/plugins/runner.cjs"]
+
+  - id: athena-child-process
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: "child_process hors de la liste autorisée (runtime de plugins, indexeur StrictDoc, outils). Toute nouvelle utilisation se justifie en revue."
+    pattern-either:
+      - pattern: require("child_process")
+      - pattern: import $X from "node:child_process"
+      - pattern: import {...} from "node:child_process"
+      - pattern: import {...} from "child_process"
+    paths:
+      exclude: ["**/*.test.ts", "apps/api/src/plugins/**", "apps/api/src/docs/**", "tools/**", "e2e/**", "packages/cli/**"]
+
+  - id: athena-jwt-none
+    languages: [typescript]
+    severity: ERROR
+    message: "Jeton JWT accepté sans vérification de signature."
+    pattern-either:
+      - pattern: decodeJwt(...)
+      - pattern: jwt.decode(...)
+    paths:
+      exclude: ["**/*.test.ts"]
+
+  - id: athena-fetch-user-url
+    languages: [typescript]
+    severity: WARNING
+    message: "fetch sur une URL issue d'une entrée : passer par le client protégé contre le SSRF (webhooks, connecteurs)."
+    patterns:
+      - pattern: fetch($URL, ...)
+      - pattern-not: fetch("...", ...)
+      - pattern-not: fetch(`${$BASE}/...`, ...)
+    paths:
+      include: ["apps/api/src/webhooks/**", "apps/api/src/integrations/**"]
+      exclude: ["**/*.test.ts"]

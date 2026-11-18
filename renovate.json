@@ -1,0 +1,15 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended", ":semanticCommits", ":pinAllExceptPeerDependencies"],
+  "timezone": "Europe/Paris",
+  "schedule": ["before 6am on monday"],
+  "labels": ["dependances"],
+  "prConcurrentLimit": 5,
+  "rangeStrategy": "pin",
+  "lockFileMaintenance": { "enabled": true, "schedule": ["before 6am on the first day of the month"] },
+  "vulnerabilityAlerts": { "labels": ["securite"], "schedule": ["at any time"] },
+  "packageRules": [
+    { "matchUpdateTypes": ["minor", "patch"], "matchCurrentVersion": "!/^0/", "groupName": "mises à jour mineures", "automerge": false },
+    { "matchManagers": ["dockerfile", "docker-compose", "helm-values"], "groupName": "images", "pinDigests": true }
+  ]
+}

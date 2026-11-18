@@ -1,6 +1,6 @@
 # CI Athena. Portes de sécurité : voir ATHENA_PLAN_DEVELOPPEMENT.md § 13.2.
 image: node:22-bookworm
-stages: [verify, security, package]
+stages: [verify, security, package, recette, nightly]
 
 default:
   before_script:
@@ -55,3 +55,108 @@ package-cli:
   artifacts:
     paths: [dist-cli/*.tgz]
     expire_in: 90 days
+
+# ---------------------------------------------------------------------------------------------------------------
+# Chaîne de sécurité complète (plan § 13.2). Les jobs de recette et de nuit demandent des variables de projet GitLab
+# (RECETTE_URL, RECETTE_TOKEN, REGISTRY_*, COSIGN_*) : voir docs/dev/CI.md.
+# ---------------------------------------------------------------------------------------------------------------
+
+commit-signatures:
+  stage: verify
+  variables: { GIT_DEPTH: "0" }
+  before_script: []
+  script:
+    - sh tools/check-commit-signatures.sh "origin/${CI_DEFAULT_BRANCH}..HEAD"
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+sast-semgrep:
+  stage: security
+  image: semgrep/semgrep:latest
+  before_script: []
+  script:
+    - semgrep scan --error --metrics=off --config p/typescript --config p/nodejs --config p/jwt --config tools/semgrep/athena.yml apps packages tools
+
+sca-osv:
+  stage: security
+  image: ghcr.io/google/osv-scanner:latest
+  before_script: []
+  script:
+    - osv-scanner scan --lockfile pnpm-lock.yaml --format table
+
+sbom-licences:
+  stage: security
+  script:
+    - pnpm dlx @cyclonedx/cdxgen@10 --type pnpm --spec-version 1.5 -o sbom.cdx.json .
+    - node tools/check-licenses.mjs sbom.cdx.json
+  artifacts: { paths: [sbom.cdx.json], expire_in: 90 days }
+
+iac-trivy:
+  stage: security
+  image: { name: aquasec/trivy:latest, entrypoint: [""] }
+  before_script: []
+  script:
+    - trivy config --exit-code 1 --severity HIGH,CRITICAL deploy/docker deploy/helm deploy/vm
+
+# Images : construction, analyse et signature (cosign) à chaque étiquette ; provenance de build attachée à l'image.
+images:
+  stage: package
+  image: { name: gcr.io/kaniko-project/executor:debug, entrypoint: [""] }
+  before_script: []
+  rules:
+    - if: $CI_COMMIT_TAG
+  parallel: { matrix: [{ TARGET: [api, web] }] }
+  script:
+    - mkdir -p /kaniko/.docker
+    - |
+      printf '%s' "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+    - /kaniko/executor --context "$CI_PROJECT_DIR" --dockerfile deploy/docker/Dockerfile --target "$TARGET" --destination "$CI_REGISTRY_IMAGE/athena-$TARGET:$CI_COMMIT_TAG" --digest-file "digest-$TARGET"
+  artifacts: { paths: ["digest-*"], expire_in: 30 days }
+
+images-scan-sign:
+  stage: package
+  image: { name: alpine:3.20 }
+  needs: [images]
+  rules:
+    - if: $CI_COMMIT_TAG
+  before_script:
+    - apk add --no-cache curl cosign
+    - curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+  script:
+    - |
+      for target in api web; do
+        ref="$CI_REGISTRY_IMAGE/athena-$target@$(cat digest-$target)"
+        trivy image --exit-code 1 --severity HIGH,CRITICAL "$ref"
+        cosign sign --yes --key env://COSIGN_PRIVATE_KEY "$ref"
+        cosign attest --yes --key env://COSIGN_PRIVATE_KEY --type slsaprovenance --predicate <(printf '{"buildType":"gitlab-ci","builder":{"id":"%s"},"invocation":{"configSource":{"uri":"%s","digest":{"sha1":"%s"}}}}' "$CI_PIPELINE_URL" "$CI_PROJECT_URL" "$CI_COMMIT_SHA") "$ref"
+      done
+
+# Recette : analyse dynamique (ZAP) et tests de contrat (Schemathesis) sur l'environnement de recette, à chaque version.
+dast-zap:
+  stage: recette
+  image: { name: ghcr.io/zaproxy/zaproxy:stable, entrypoint: [""] }
+  before_script: []
+  rules:
+    - if: $CI_COMMIT_TAG && $RECETTE_URL
+  script:
+    - zap-baseline.py -t "$RECETTE_URL" -I -r zap-report.html
+  artifacts: { paths: [zap-report.html], when: always, expire_in: 30 days }
+
+contract-schemathesis:
+  stage: recette
+  image: { name: schemathesis/schemathesis:stable, entrypoint: [""] }
+  before_script: []
+  rules:
+    - if: $CI_COMMIT_TAG && $RECETTE_URL && $RECETTE_TOKEN
+  script:
+    - st run "$RECETTE_URL/v1/openapi.json" --base-url "$RECETTE_URL" --header "Authorization: Bearer $RECETTE_TOKEN" --checks not_a_server_error,response_schema_conformance --hypothesis-max-examples 50 --exclude-method DELETE
+
+# Nuit : tests de charge k6 avec seuils bloquants (déclenché par une planification du projet).
+charge-k6:
+  stage: nightly
+  image: { name: grafana/k6:latest, entrypoint: [""] }
+  before_script: []
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule" && $RECETTE_URL && $RECETTE_TOKEN
+  script:
+    - k6 run -e BASE_URL="$RECETTE_URL" -e TOKEN="$RECETTE_TOKEN" -e PROJECT="${K6_PROJECT:-ARI}" -e TRACKER="${K6_TRACKER:-BUG}" -e HOOK_PATH="$K6_HOOK_PATH" -e HOOK_SECRET="$K6_HOOK_SECRET" tools/k6/athena.js

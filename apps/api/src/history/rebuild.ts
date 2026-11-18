@@ -54,8 +54,12 @@ export class RebuildService {
     const paths = await this.gitlab.tree(repo, this.ref);
     const trackerPaths = paths.filter((p) => /^trackers\/[A-Z0-9]+\/tracker\.yaml$/.test(p)).sort();
     const artifactPaths = paths.filter((p) => ARTIFACT_FILE.test(p)).sort();
-    const trackerFiles = await Promise.all(trackerPaths.map(async (p) => parse(await this.gitlab.fileContent(repo, p, this.ref)) as TrackerFile));
-    const artifactFiles = await Promise.all(artifactPaths.map(async (p) => parse(await this.gitlab.fileContent(repo, p, this.ref)) as ArtifactFile));
+    // Un fichier illisible (YAML corrompu, alias non résolu) arrête la reconstruction en nommant le fichier : jamais d'exception brute de l'analyseur.
+    const read = async <T>(p: string): Promise<T> => {
+      try { return parse(await this.gitlab.fileContent(repo, p, this.ref)) as T; } catch (error) { throw validation([`Fichier d'historique illisible : ${p} (${(error as Error).message.split('\n')[0]})`]); }
+    };
+    const trackerFiles = await Promise.all(trackerPaths.map((p) => read<TrackerFile>(p)));
+    const artifactFiles = await Promise.all(artifactPaths.map((p) => read<ArtifactFile>(p)));
 
     return db.tx(organizationId, async (c) => {
       const project = (await c.query('select id from project where key = $1', [projectKey])).rows[0];
