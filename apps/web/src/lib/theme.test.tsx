@@ -80,6 +80,13 @@ describe('densité (T-0135)', () => {
     setDensity('normal');
     expect(window.localStorage.getItem(DENSITY_KEY)).toBeNull();
   });
+
+  it('Confortable : attribut posé et mémorisé', () => {
+    setDensity('comfortable');
+    expect(document.documentElement.getAttribute('data-density')).toBe('comfortable');
+    expect(window.localStorage.getItem(DENSITY_KEY)).toBe('comfortable');
+    setDensity('normal');
+  });
 });
 
 describe('thèmes du lot 13', () => {

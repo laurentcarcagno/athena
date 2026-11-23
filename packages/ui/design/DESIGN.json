@@ -1396,12 +1396,12 @@
         "note": "Tables de plusieurs centaines de lignes. Cible minimale 24 px respectée."
       },
       "comfortable": {
-        "status": "proposed",
+        "status": "stable",
         "controlHeight": "{sizes.control-lg}",
-        "rowPaddingY": "13px",
+        "rowPaddingY": "12px",
         "fontSize": "{fontSizes.md}",
         "gap": "{spacing.md}",
-        "note": "Écrans tactiles ou usage occasionnel."
+        "note": "Choix de la personne (Profil, Densité) : corps 16 px, petit texte 14 px, section 18 px, titre 24 px, affichage 32 px."
       },
       "rule": "La densité change les espacements et hauteurs, jamais les couleurs ni les tailles de police en dessous de 11 px."
     }

@@ -13,6 +13,7 @@ const block = (css: string, selector: string) => {
 const px = (v: string | undefined) => Number(/^(\d+)px$/.exec(v ?? '')?.[1] ?? NaN);
 const normal = block(theme, ':root[data-theme="athena"],');
 const compact = new Map([...normal, ...block(density, ':root[data-density="compact"] {')]);
+const comfortable = new Map([...normal, ...block(density, ':root[data-density="comfortable"] {')]);
 const coarse = block(density, ':root[data-density], :root:not([data-density]) {');
 
 describe('densité (T-0135)', () => {
@@ -20,6 +21,13 @@ describe('densité (T-0135)', () => {
     expect(px(compact.get('--ath-size-control-md'))).toBeLessThan(px(normal.get('--ath-size-control-md')));
     expect(px(compact.get('--ath-font-size-body'))).toBeLessThan(px(normal.get('--ath-font-size-body')));
     expect(density).toMatch(/:root\[data-density="compact"\] \{[^}]*--ath-row-y: var\(--ath-space-xs\)/);
+  });
+
+  it('Confortable agrandit texte, contrôles et titres', () => {
+    for (const name of ['--ath-font-size-small', '--ath-font-size-body', '--ath-font-size-section', '--ath-font-size-title', '--ath-font-size-display', '--ath-size-control-md', '--ath-size-icon-button']) {
+      expect(px(comfortable.get(name)), name).toBeGreaterThan(px(normal.get(name)));
+    }
+    expect(px(comfortable.get('--ath-font-size-body'))).toBeGreaterThanOrEqual(16);
   });
 
   it('jamais de texte sous 12 px ni de cible sous 24 px, même en Compacte', () => {

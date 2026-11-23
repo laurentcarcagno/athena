@@ -5843,7 +5843,8 @@
             "type": "string",
             "enum": [
              "normal",
-             "compact"
+             "compact",
+             "comfortable"
             ]
            },
            {

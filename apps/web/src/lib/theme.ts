@@ -7,9 +7,9 @@ export type ThemeChoice = 'system' | 'light' | 'dark';
 export const THEME_CHOICES: ThemeChoice[] = ['system', 'light', 'dark'];
 export const THEME_KEY = 'athena.theme';
 
-/** Densité (T-0135) : normale ou compacte ; mémorisée dans le navigateur et sur le compte. */
-export type DensityChoice = 'normal' | 'compact';
-export const DENSITIES: DensityChoice[] = ['normal', 'compact'];
+/** Densité (T-0135) : compacte, normale ou confortable ; mémorisée dans le navigateur et sur le compte. */
+export type DensityChoice = 'normal' | 'compact' | 'comfortable';
+export const DENSITIES: DensityChoice[] = ['compact', 'normal', 'comfortable'];
 export const DENSITY_KEY = 'athena.density';
 
 /**

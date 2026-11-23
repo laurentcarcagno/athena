@@ -6,12 +6,12 @@ export const PreferenceInput = z.object({
   home: z.enum(['work', 'projects']).nullable().optional(),
   locale: z.enum(['fr', 'en']).nullable().optional(),
   theme: z.enum(['system', 'light', 'dark']).nullable().optional(),
-  density: z.enum(['normal', 'compact']).nullable().optional(),
+  density: z.enum(['normal', 'compact', 'comfortable']).nullable().optional(),
   /** Famille de thème (T-0136), parmi celles que propose l'organisation. */
   family: z.string().regex(/^[a-z][a-z0-9-]{1,30}$/).nullable().optional(),
 }).strict();
 export type PreferenceInput = z.infer<typeof PreferenceInput>;
-export interface Preferences { home: 'work' | 'projects' | null; locale: 'fr' | 'en' | null; theme: 'system' | 'light' | 'dark' | null; density: 'normal' | 'compact' | null; family: string | null }
+export interface Preferences { home: 'work' | 'projects' | null; locale: 'fr' | 'en' | null; theme: 'system' | 'light' | 'dark' | null; density: 'normal' | 'compact' | 'comfortable' | null; family: string | null }
 
 const COLUMNS = ['home', 'locale', 'theme', 'density', 'family'] as const;
 

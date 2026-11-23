@@ -390,7 +390,7 @@ Hauteurs de contrôle : `{sizes.control-sm}` 26 px, `{sizes.control-md}` 32 px, 
 |---|---|---|---|---|
 | `{density.normal}` | 32 px | 9 px | stable | Défaut. |
 | `{density.compact}` | 26 px | 5 px | proposed | Tables de centaines de lignes. Cible minimale de 24 px respectée. |
-| `{density.comfortable}` | 40 px | 13 px | proposed | Écrans tactiles, usage occasionnel. |
+| `{density.comfortable}` | 38 px | 12 px | stable | Choix de la personne (Profil › Densité) : corps 16 px, petit texte 14 px, section 18 px, titre 24 px, affichage 32 px. |
 
 Couches (`z-index`) : `{zIndex.base}`, `{zIndex.sticky}`, `{zIndex.overlay}` (modale), `{zIndex.toast}`.
 
@@ -1161,7 +1161,7 @@ Généré par `scripts/validate-design.mjs --write`. Ne pas modifier à la main.
 
 | Token | Valeur | Statut |
 |---|---|---|
-| `{density.comfortable}` | {sizes.control-lg} | proposed |
+| `{density.comfortable}` | {sizes.control-lg} | stable |
 | `{density.compact}` | {sizes.control-sm} | proposed |
 | `{density.normal}` | {sizes.control-md} | stable |
 

@@ -16,6 +16,7 @@ describe('validation des préférences', () => {
     expect(PreferenceInput.safeParse({ theme: 'blue' }).success).toBe(false);
     expect(PreferenceInput.safeParse({ density: 'spacious' }).success).toBe(false);
     expect(PreferenceInput.safeParse({ density: 'compact', family: null }).success).toBe(true);
+    expect(PreferenceInput.safeParse({ density: 'comfortable' }).success).toBe(true);
     expect(PreferenceInput.safeParse({ admin: true }).success).toBe(false);
     expect(PreferenceInput.safeParse({ home: null, theme: 'dark', density: null, family: null }).success).toBe(true);
   });
@@ -45,6 +46,7 @@ suite('préférences personnelles (intégration)', () => {
 
   it('enregistre la densité (T-0135) sans toucher aux autres réglages', async () => {
     expect(await prefs.put(org, { density: 'compact' }, alice)).toEqual({ home: null, locale: 'en', theme: 'dark', density: 'compact', family: null });
+    expect((await prefs.put(org, { density: 'comfortable' }, alice)).density).toBe('comfortable');
     expect(await prefs.put(org, { density: null }, alice)).toEqual({ home: null, locale: 'en', theme: 'dark', density: null, family: null });
   });
 
